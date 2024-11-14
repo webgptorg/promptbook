@@ -4,7 +4,7 @@ import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
 import { CallbackInterfaceTools } from '../../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PipelineString } from '../../../types/PipelineString';
-import { PROMPTBOOK_VERSION } from '../../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../version';
 import { MockedFackedLlmExecutionTools } from '../MockedFackedLlmExecutionTools';
 
 describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example completion prompt', () => {
@@ -28,7 +28,7 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example co
                 promptExecutions: [],
                 pipelineUrl: 'https://promptbook.studio/examples/pipeline.ptbk.md',
                 promptbookRequestedVersion: '1.0.0',
-                promptbookUsedVersion: PROMPTBOOK_VERSION,
+                promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
             outputParameters: {},
             usage: {

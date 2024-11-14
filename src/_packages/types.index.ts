@@ -244,7 +244,6 @@ import type { string_snake_case } from '../utils/normalization/normalizeTo_snake
 import type { empty_object } from '../utils/organization/empty_object';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
-import type { string_promptbook_version } from '../version';
 
 // Note: Entities of the `@promptbook/types`
 export type { PipelineCollection };
@@ -490,4 +489,3 @@ export type { string_snake_case };
 export type { empty_object };
 export type { really_any };
 export type { TODO_any };
-export type { string_promptbook_version };

@@ -6,15 +6,17 @@ import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/$currentDate';
 import type { really_any } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
-import { PROMPTBOOK_VERSION } from '../../../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
@@ -89,7 +91,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
 
         await storage.setItem(key, {
             date: $currentDate(),
-            promptbookVersion: PROMPTBOOK_VERSION,
+            promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
             prompt,
             promptResult,
         });

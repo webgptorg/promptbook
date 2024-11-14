@@ -1,12 +1,11 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
-import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
@@ -15,7 +14,7 @@ import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { clonePipeline } from '../utils/serialization/clonePipeline';
-import { PROMPTBOOK_VERSION } from '../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 import { prepareTemplates } from './prepareTemplates';
@@ -62,7 +61,7 @@ export async function preparePipeline(
 
     /*
     TODO: [🧠][🪑][🔃] Should this be done or not
-    if (promptbookVersion !== PROMPTBOOK_VERSION) {
+    if (promptbookVersion !== PROMPTBOOK_ENGINE_VERSION) {
         throw new VersionMismatchError(`Can not prepare the pipeline`, promptbookVersion);
     }
     */
@@ -73,7 +72,7 @@ export async function preparePipeline(
     const currentPreparation: Writable<PreparationJson> = {
         id: 1, // <- TODO: [🧊] Make incremental
         // TODO: [🍥]> date: $currentDate(),
-        promptbookVersion: PROMPTBOOK_VERSION,
+        promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
         usage: ZERO_USAGE,
     };
 

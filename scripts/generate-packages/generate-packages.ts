@@ -112,12 +112,12 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     // ${block(GENERATOR_WARNING)}
                     // \`${packageFullname}\`
 
-                    import { PROMPTBOOK_VERSION } from '../version';
+                    import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
                     ${block(entryIndexFilePathContentImports.join('\n'))}
 
 
                     // Note: Exporting version from each package
-                    export { PROMPTBOOK_VERSION };
+                    export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
                     // Note: Entities of the \`${packageFullname}\`

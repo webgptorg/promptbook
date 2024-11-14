@@ -2,7 +2,7 @@ import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
-import { PROMPTBOOK_VERSION } from '../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { initializeAboutCommand } from './cli-commands/about';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeMakeCommand } from './cli-commands/make';
@@ -30,7 +30,7 @@ export async function promptbookCli(): Promise<void> {
     program.name('promptbook');
     program.alias('ptbk');
 
-    program.version(PROMPTBOOK_VERSION);
+    program.version(PROMPTBOOK_ENGINE_VERSION);
     program.description(
         spaceTrim(`
             Promptbook utilities for enhancing workflow with promptbooks

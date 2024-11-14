@@ -250,43 +250,51 @@ In all of these situations, but especially in 3., the **✨ Promptbook can make 
 
 
 
+
+
+
 ## 💜 The Promptbook Project
 
-
+Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
 
 <table>
+  <thead>
+    <tr>
+      <th>Project</th>
+      <th>Description</th>
+      <th>Link</th>
+    </tr>
+  </thead>
   <tbody>
     <tr>
-      <td>Promptbook whitepaper</td>
-      <td>Basic motivations and problems which we are trying to solve</td>
-      <td rowspan=3>https://github.com/webgptorg/book</td>
-    </tr>
-    <tr>
-      <td>Promptbook <i>(system)</i></td>
-      <td>Promptbook ...</td>
+      <td>Core</td>
+      <td>Promptbook core is a description and documentation of basic innerworkings how should be Promptbook implemented and defines which fetures must be descriable by book language</td>
+      <td rowspan=2>https://ptbk.io<br/>https://github.com/webgptorg/book</td>
     </tr>
     <tr>
       <td>Book language</td>
       <td>
-          Book is a markdown-like language to define projects, pipelines, knowledge,... in the Promptbook system. It is designed to be understandable by non-programmers and non-technical people
+          Book is a markdown-like language to define core entities like projects, pipelines, knowledge,.... It is designed to be understandable by non-programmers and non-technical people
       </td>
     </tr>
     <tr>
       <td>Promptbook typescript project</td>
       <td>Implementation of Promptbook in TypeScript published into multiple packages to NPM</td>
-      <td>https://github.com/webgptorg/promptbook</td>
+      <td>https://github.com/webgptorg/promptbook + Multiple packages on NPM</td>
     </tr>
     <tr>
       <td>Promptbook studio</td>
-      <td>Promptbook studio</td>
-      <td rowspan=2>https://github.com/hejny/promptbook-studio</td>
+      <td>No-code studio to write book without need to write even the markdown</td>
+      <td rowspan=2>https://promptbook.studio<br/>https://github.com/hejny/promptbook-studio</td>
     </tr>
     <tr>
       <td>Promptbook miniapps</td>
-      <td>Promptbook miniapps</td>
+      <td>Builder of LLM miniapps from book notation</td>
     </tr>
   </tbody>
 </table>
+
+
 
 ## 💙 Book language _(for prompt-engineer)_
 
@@ -358,15 +366,66 @@ Or you can install them separately:
 
 
 
+
+
+
 ## 📚 Dictionary
+
+
+
+
+
+
+### 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
 
-### Basic terms
+#### General LLM / AI terms
+
+-   **Prompt drift** is a phenomenon where the AI model starts to generate outputs that are not aligned with the original prompt. This can happen due to the model's training data, the prompt's wording, or the model's architecture.
+-   **Pipeline, workflow or chain** is a sequence of tasks that are executed in a specific order. In the context of AI, a pipeline can refer to a sequence of AI models that are used to process data.
+-   **Fine-tuning** is a process where a pre-trained AI model is further trained on a specific dataset to improve its performance on a specific task.
+-   **Zero-shot learning** is a machine learning paradigm where a model is trained to perform a task without any labeled examples. Instead, the model is provided with a description of the task and is expected to generate the correct output.
+-   **Few-shot learning** is a machine learning paradigm where a model is trained to perform a task with only a few labeled examples. This is in contrast to traditional machine learning, where models are trained on large datasets.
+-   **Meta-learning** is a machine learning paradigm where a model is trained on a variety of tasks and is able to learn new tasks with minimal additional training. This is achieved by learning a set of meta-parameters that can be quickly adapted to new tasks.
+-   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
+-   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 
 
-### Core concepts
+_Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
+
+#### Promptbook core
+
+-   **Organization** _(legacy name collection)_ group jobs, workforce, knowledge, instruments, and actions into one package. Entities in one organization can share resources (= import resources from each other).
+    -   **Jobs**
+        -   **Task**
+        -   **Subtask**
+    -   **Workforce**
+        -   **Persona**
+        -   **Team**
+        -   **Role**
+    -   **Knowledge**
+        -   **Public**
+        -   **Private**
+        -   **Protected**
+    -   **Instruments**
+    -   **Actions**
+
+#### Book language
+
+-   **Book file**
+    -   **Section**
+        -   **Heading**
+        -   **Description**
+        -   **Command**
+        -   **Block**
+        -   **Return statement**
+    -   **Comment**
+    -   **Import**
+    -   **Scope**
+
+#### 💯 Core concepts
 
 -   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
 -   [📯 Pipeline](https://github.com/webgptorg/promptbook/discussions/64)
@@ -379,7 +438,7 @@ The following glossary is used to clarify certain concepts:
 -   [🔣 Words not tokens](https://github.com/webgptorg/promptbook/discussions/29)
 -   [☯ Separation of concerns](https://github.com/webgptorg/promptbook/discussions/32)
 
-### Advanced concepts
+##### Advanced concepts
 
 -   [📚 Knowledge (Retrieval-augmented generation)](https://github.com/webgptorg/promptbook/discussions/41)
 -   [🌏 Remote server](https://github.com/webgptorg/promptbook/discussions/89)
@@ -393,6 +452,15 @@ The following glossary is used to clarify certain concepts:
 -   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
+
+
+
+### Terms specific to Promptbook TypeScript implementation
+
+-   Anonymous mode
+-   Application mode
+
+
 
 ## 🔌 Usage in Typescript / Javascript
 

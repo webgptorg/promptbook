@@ -67,7 +67,7 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
             continue;
         }
 
-        if (entity.name === 'PROMPTBOOK_VERSION') {
+        if (entity.name === 'PROMPTBOOK_ENGINE_VERSION') {
             continue;
         }
 

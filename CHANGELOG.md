@@ -322,7 +322,7 @@ Rename and reorganize libraries
 
 -   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
 -   Rename `@promptbook/fake-llmed` -> `@promptbook/fake-llm`
--   Export `PROMPTBOOK_VERSION` from each package
+-   Export `PROMPTBOOK_ENGINE_VERSION` from each package
 -   Use `export type` in `@promptbook/types`
 
 ### `0.57.0` _(2024-06-15)_

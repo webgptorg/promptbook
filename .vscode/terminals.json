@@ -1,13 +1,13 @@
 {
     "autokill": true,
     "terminals": [
-      {
-        "name": "👨‍💻⚫ Run CLI example (💸)",
-        "command": "!!!!!!!!",
-        "execute": false,
-        "onlySingle": false,
-        "focus": false
-    },
+        {
+            "name": "👨‍💻⚫ Run CLI example (💸)",
+            "command": "!!!!!!!!",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
         {
             "name": "👨‍💻⚪ Run simple-script example (💸)",
             "command": "npx ts-node ./examples/usage/simple-script/simple-script.ts",
@@ -30,12 +30,12 @@
             "focus": false
         },
         {
-          "name": "👨‍💻🔵 Run CLI `ptbk about`",
-          "command": "ts-node ./src/cli/test/ptbk.ts about",
-          "execute": false,
-          "onlySingle": false,
-          "focus": false
-      },
+            "name": "👨‍💻🔵 Run CLI `ptbk about`",
+            "command": "ts-node ./src/cli/test/ptbk.ts about",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
         {
             "name": "👨‍💻🔽 Install promptbook for usage examples",
             "cwd": "./examples/usage/",

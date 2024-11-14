@@ -39,6 +39,8 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
+    const BOOK_LANGUAGE_VERSION = await readFile(`./book/version.txt`, 'utf-8');
+
     await writeFile(
         `./src/version.ts`, // <- Note: [🏳‍🌈] Maybe use json file (used .ts file (not .json) to avoid support of json files in bundle)
         spaceTrim(
@@ -48,12 +50,26 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                 import type { string_semantic_version } from './types/typeAliases';
 
                 /**
-                 * The version of the Promptbook library
+                 * The version of the Book language
+                 *
+                 * @see https://github.com/webgptorg/book
                  */
-                export const PROMPTBOOK_VERSION: string_promptbook_version = '${version}';
+                export const BOOK_LANGUAGE_VERSION: string_semantic_version = '${BOOK_LANGUAGE_VERSION}';
+
+                /**
+                 * The version of the Promptbook engine
+                 *
+                 * @see https://github.com/webgptorg/promptbook
+                 */
+                export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '${version}';
 
                 export type string_promptbook_version = string_semantic_version;
-                // TODO: [main] !!!! List here all the versions and annotate + put into script
+
+                /**
+                 * TODO: string_promptbook_version should be constrained to the all versions of Promptbook engine
+                 */
+
+
 
             `,
         ),

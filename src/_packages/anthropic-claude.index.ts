@@ -1,7 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/anthropic-claude`
 
-import { PROMPTBOOK_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { ANTHROPIC_CLAUDE_MODELS } from '../llm-providers/anthropic-claude/anthropic-claude-models';
 import { AnthropicClaudeExecutionTools } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
 import type { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
@@ -12,7 +12,7 @@ import { _AnthropicClaudeRegistration } from '../llm-providers/anthropic-claude/
 
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
+export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/anthropic-claude`

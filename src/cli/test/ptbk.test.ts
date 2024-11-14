@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
-import { PROMPTBOOK_VERSION } from '../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 describe('how promptbookCli works', () => {
     it('should initiate without errors', () =>
@@ -19,7 +19,7 @@ describe('how promptbookCli works', () => {
                 crashOnError: false,
                 cwd: process.cwd(),
             }),
-        ).resolves.toContain(PROMPTBOOK_VERSION));
+        ).resolves.toContain(PROMPTBOOK_ENGINE_VERSION));
 
     // TODO: Test each command
 });

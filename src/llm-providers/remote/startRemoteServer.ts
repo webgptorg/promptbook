@@ -9,7 +9,7 @@ import { serializeError } from '../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { really_any } from '../../utils/organization/really_any';
-import { PROMPTBOOK_VERSION } from '../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { createLlmToolsFromConfiguration } from '../_common/register/createLlmToolsFromConfiguration';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
@@ -57,7 +57,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 async (block) => `
                     Server for processing promptbook remote requests is running.
 
-                    Version: ${PROMPTBOOK_VERSION}
+                    Version: ${PROMPTBOOK_ENGINE_VERSION}
                     Socket.io path: ${path}/socket.io
                     Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     Application mode: ${isApplicationModeAllowed ? 'enabled' : 'disabled'}

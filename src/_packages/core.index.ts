@@ -1,7 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/core`
 
-import { PROMPTBOOK_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { collectionToJson } from '../collection/collectionToJson';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
@@ -97,7 +97,7 @@ import { EXPECTATION_UNITS } from '../types/PipelineJson/Expectations';
 
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
+export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/core`

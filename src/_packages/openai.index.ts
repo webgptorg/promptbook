@@ -1,7 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/openai`
 
-import { PROMPTBOOK_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { createOpenAiAssistantExecutionTools } from '../llm-providers/openai/createOpenAiAssistantExecutionTools';
 import { createOpenAiExecutionTools } from '../llm-providers/openai/createOpenAiExecutionTools';
 import { OPENAI_MODELS } from '../llm-providers/openai/openai-models';
@@ -14,7 +14,7 @@ import { _OpenAiAssistantRegistration } from '../llm-providers/openai/register-c
 
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
+export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/openai`

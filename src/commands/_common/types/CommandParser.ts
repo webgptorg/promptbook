@@ -1,9 +1,11 @@
 import type { WritableDeep } from 'type-fest';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../../types/PipelineJson/TemplateJson';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
+import type {
+    string_markdown_text,
+    string_name,
+    string_promptbook_documentation_url,
+} from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { ___and___ } from '../../../utils/organization/___and___';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
@@ -200,7 +202,7 @@ export type CommandParserInput = {
     /**
      * @@@
      *
-     * @example 'PROMPTBOOK_VERSION_0_62_0'
+     * @example 'PROMPTBOOK_ENGINE_VERSION_0_62_0'
      * @example 'FOREACH_LIST_LINE_CUSTOMERS_CUSTOMER'
      */
     readonly normalized: string_name & string_SCREAMING_CASE;

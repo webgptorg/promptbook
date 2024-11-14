@@ -4,7 +4,7 @@ import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
 import { CallbackInterfaceTools } from '../../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PipelineString } from '../../../types/PipelineString';
-import { PROMPTBOOK_VERSION } from '../../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../version';
 import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat prompt', () => {
@@ -17,7 +17,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
                 title: 'Example prompt',
                 promptbookRequestedVersion: '1.0.0',
                 pipelineUrl: 'https://promptbook.studio/examples/pipeline.ptbk.md',
-                promptbookUsedVersion: PROMPTBOOK_VERSION,
+                promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
             outputParameters: {
                 response: spaceTrim(`
@@ -40,7 +40,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
                 promptExecutions: [],
                 pipelineUrl: 'https://promptbook.studio/examples/pipeline.ptbk.md',
                 promptbookRequestedVersion: '1.0.0',
-                promptbookUsedVersion: PROMPTBOOK_VERSION,
+                promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
             outputParameters: {},
             usage: {
