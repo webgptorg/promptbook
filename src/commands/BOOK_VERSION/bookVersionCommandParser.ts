@@ -4,23 +4,23 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
-import { PROMPTBOOK_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION } from '../../version';
 import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
-import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
+import type { BookVersionCommand } from './BookVersionCommand';
 
 /**
- * Parses the PROMPTBOOK_VERSION command
+ * Parses the BOOK_VERSION command
  *
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const promptbookVersionCommandParser: PipelineHeadCommandParser<PromptbookVersionCommand> = {
+export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionCommand> = {
     /**
      * Name of the command
      */
-    name: 'PROMPTBOOK_VERSION',
+    name: 'BOOK_VERSION',
 
-    aliasNames: ['PTBK_VERSION', 'PTBK_V', 'PTBKV'],
+    aliasNames: ['PTBK_VERSION', 'BOOK_VERSION', 'BOOK'],
 
     /**
      * BOILERPLATE command can be used in:
@@ -29,9 +29,9 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
     isUsedInPipelineTemplate: false,
 
     /**
-     * Description of the PROMPTBOOK_VERSION command
+     * Description of the BOOK_VERSION command
      */
-    description: `Which version of the promptbook is the .ptbk.md using`,
+    description: `Which version of the Book language is the .ptbk.md using`,
 
     /**
      * Link to documentation
@@ -39,14 +39,14 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/69',
 
     /**
-     * Example usages of the PROMPTBOOK_VERSION command
+     * Example usages of the BOOK_VERSION command
      */
-    examples: [`PROMPTBOOK VERSION ${PROMPTBOOK_VERSION}`, `PTBKV ${PROMPTBOOK_VERSION}`],
+    examples: [`BOOK VERSION ${BOOK_LANGUAGE_VERSION}`, `BOOK ${BOOK_LANGUAGE_VERSION}`],
 
     /**
-     * Parses the PROMPTBOOK_VERSION command
+     * Parses the BOOK_VERSION command
      */
-    parse(input: CommandParserInput): PromptbookVersionCommand {
+    parse(input: CommandParserInput): BookVersionCommand {
         const { args } = input;
 
         const promptbookVersion = args.pop();
@@ -64,37 +64,37 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
         }
 
         return {
-            type: 'PROMPTBOOK_VERSION',
+            type: 'BOOK_VERSION',
             promptbookVersion,
-        } satisfies PromptbookVersionCommand;
+        } satisfies BookVersionCommand;
     },
 
     /**
-     * Apply the PROMPTBOOK_VERSION command to the `pipelineJson`
+     * Apply the BOOK_VERSION command to the `pipelineJson`
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PromptbookVersionCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: BookVersionCommand, $pipelineJson: $PipelineJson): void {
         // TODO: Warn if the version is overridden
         $pipelineJson.promptbookVersion = command.promptbookVersion;
     },
 
     /**
-     * Converts the PROMPTBOOK_VERSION command back to string
+     * Converts the BOOK_VERSION command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    stringify(command: PromptbookVersionCommand): string_markdown_text {
+    stringify(command: BookVersionCommand): string_markdown_text {
         keepUnused(command);
         return `---`; // <- TODO: [🛋] Implement
     },
 
     /**
-     * Reads the PROMPTBOOK_VERSION command from the `PipelineJson`
+     * Reads the BOOK_VERSION command from the `PipelineJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<PromptbookVersionCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<BookVersionCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

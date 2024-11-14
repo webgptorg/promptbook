@@ -7,7 +7,7 @@ import { modelCommandParser } from './MODEL/modelCommandParser';
 import { parameterCommandParser } from './PARAMETER/parameterCommandParser';
 import { personaCommandParser } from './PERSONA/personaCommandParser';
 import { postprocessCommandParser } from './POSTPROCESS/postprocessCommandParser';
-import { promptbookVersionCommandParser } from './PROMPTBOOK_VERSION/promptbookVersionCommandParser';
+import { bookVersionCommandParser } from './BOOK_VERSION/bookVersionCommandParser';
 import { templateCommandParser } from './TEMPLATE/templateCommandParser';
 import { urlCommandParser } from './URL/urlCommandParser';
 import { actionCommandParser } from './X_ACTION/actionCommandParser';
@@ -27,7 +27,7 @@ export const COMMANDS = [
     modelCommandParser,
     parameterCommandParser,
     postprocessCommandParser,
-    promptbookVersionCommandParser,
+    bookVersionCommandParser,
     urlCommandParser,
     knowledgeCommandParser,
     actionCommandParser,

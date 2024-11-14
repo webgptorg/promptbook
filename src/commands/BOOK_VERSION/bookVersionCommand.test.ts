@@ -1,30 +1,30 @@
 import { describe, expect, it } from '@jest/globals';
-import { PROMPTBOOK_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION } from '../../version';
 import { parseCommand } from '../_common/parseCommand';
-import { promptbookVersionCommandParser } from './promptbookVersionCommandParser';
+import { bookVersionCommandParser } from './bookVersionCommandParser';
 
-describe('how PROMPTBOOK_VERSION command in .ptbk.md files works', () => {
-    it('should parse PROMPTBOOK_VERSION command', () => {
+describe('how BOOK_VERSION command in .ptbk.md files works', () => {
+    it('should parse BOOK_VERSION command', () => {
         expect(parseCommand('promptbook version 0.62.0', 'PIPELINE_HEAD')).toEqual({
-            type: 'PROMPTBOOK_VERSION',
+            type: 'BOOK_VERSION',
             promptbookVersion: '0.62.0',
         });
         expect(parseCommand('PTBK version 0.62.0', 'PIPELINE_HEAD')).toEqual({
-            type: 'PROMPTBOOK_VERSION',
+            type: 'BOOK_VERSION',
             promptbookVersion: '0.62.0',
         });
 
         expect(parseCommand('PTBK version 0.62.0', 'PIPELINE_HEAD')).toEqual({
-            type: 'PROMPTBOOK_VERSION',
+            type: 'BOOK_VERSION',
             promptbookVersion: '0.62.0',
         });
-        expect(parseCommand(`PROMPTBOOK version ${PROMPTBOOK_VERSION}`, 'PIPELINE_HEAD')).toEqual({
-            type: 'PROMPTBOOK_VERSION',
-            promptbookVersion: PROMPTBOOK_VERSION,
+        expect(parseCommand(`PROMPTBOOK version ${BOOK_LANGUAGE_VERSION}`, 'PIPELINE_HEAD')).toEqual({
+            type: 'BOOK_VERSION',
+            promptbookVersion: BOOK_LANGUAGE_VERSION,
         });
     });
 
-    it('should fail parsing PROMPTBOOK_VERSION command', () => {
+    it('should fail parsing BOOK_VERSION command', () => {
         expect(() => parseCommand('PROMPTBOOK version', 'PIPELINE_HEAD')).toThrowError(/Version is required/i);
         expect(() => parseCommand('PROMPTBOOK version   ', 'PIPELINE_HEAD')).toThrowError(/Version is required/i);
         expect(() => parseCommand('PROMPTBOOK version 0.25.0 0.26.0', 'PIPELINE_HEAD')).toThrowError(
@@ -42,7 +42,7 @@ describe('how PROMPTBOOK_VERSION command in .ptbk.md files works', () => {
 
     it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
-        for (const example of promptbookVersionCommandParser.examples) {
+        for (const example of bookVersionCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
         }
     });
