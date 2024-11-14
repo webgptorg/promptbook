@@ -11,14 +11,15 @@
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
         "module": "esnext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "isolatedModules": false,
         "resolveJsonModule": true,
         "downlevelIteration": true,
         "noEmit": true,
         "sourceMap": true,
         "declaration": true,
-        "outDir": "typings"
+        "outDir": "typings",
+        "jsx": "react"
     },
     "include": ["src", "promptbook-collection", "src/cli/test/ptbk.test.ts"]
 }
