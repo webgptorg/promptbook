@@ -4,7 +4,7 @@
         "module": "commonjs",
         "downlevelIteration": true,
         "allowJs": true,
-        "moduleResolution": "node",
+        "moduleResolution": "n",
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
@@ -13,7 +13,8 @@
         "experimentalDecorators": true,
         "noUnusedLocals": false,
         "resolveJsonModule": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "jsx": "react"
     },
     "exclude": ["node_modules"]
 }
