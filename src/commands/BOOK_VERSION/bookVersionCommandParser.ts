@@ -20,7 +20,7 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
      */
     name: 'BOOK_VERSION',
 
-    aliasNames: ['PTBK_VERSION', 'BOOK_VERSION', 'BOOK'],
+    aliasNames: ['PTBK_VERSION', 'PROMPTBOOK_VERSION', 'BOOK'],
 
     /**
      * BOILERPLATE command can be used in:
