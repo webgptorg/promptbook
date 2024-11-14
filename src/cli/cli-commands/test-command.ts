@@ -35,7 +35,7 @@ export function initializeTestCommand(program: Program) {
     testCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache `, false);
     testCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    testCommand.action(async (filesGlob, { ignore, reloadCache: isCacheReloaded, verbose: isVerbose }) => {
+    testCommand.action(async (filesGlob, { ignore, reload: isCacheReloaded, verbose: isVerbose }) => {
         // TODO: DRY [◽]
         const options = {
             isVerbose,

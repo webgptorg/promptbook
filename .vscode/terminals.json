@@ -3,7 +3,7 @@
     "terminals": [
         {
             "name": "👨‍💻⚫ Run CLI example (💸)",
-            "command": "!!!!!!!!",
+            "command": "ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.ptbk.md",
             "execute": false,
             "onlySingle": false,
             "focus": false

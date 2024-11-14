@@ -5,8 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME, GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -30,6 +29,8 @@ export function initializeMakeCommand(program: Program) {
             Makes a new pipeline collection in given folder
       `),
     );
+
+    // TODO: [🧅] DRY command arguments
 
     makeCommand.argument(
         '[path]',
@@ -69,10 +70,7 @@ export function initializeMakeCommand(program: Program) {
     );
 
     makeCommand.action(
-        async (
-            path,
-            { projectName, format, validation, reloadCache: isCacheReloaded, verbose: isVerbose, outFile },
-        ) => {
+        async (path, { projectName, format, validation, reload: isCacheReloaded, verbose: isVerbose, outFile }) => {
             let formats = ((format as string | false) || '')
                 .split(',')
                 .map((_) => _.trim())
@@ -277,7 +275,6 @@ export function initializeMakeCommand(program: Program) {
 
 /**
  * TODO: [🥃][main] !!! Allow `ptbk make` without configuring any llm tools
- * TODO: Maybe remove this command - "about" command should be enough?
  * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks

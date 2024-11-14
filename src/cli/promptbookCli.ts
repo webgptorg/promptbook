@@ -7,6 +7,7 @@ import { initializeAboutCommand } from './cli-commands/about';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeMakeCommand } from './cli-commands/make';
 import { initializePrettifyCommand } from './cli-commands/prettify';
+import { initializeRunCommand } from './cli-commands/run';
 import { initializeTestCommand } from './cli-commands/test-command';
 
 /**
@@ -38,6 +39,7 @@ export async function promptbookCli(): Promise<void> {
     );
 
     initializeAboutCommand(program);
+    initializeRunCommand(program);
     initializeHelloCommand(program);
     initializeMakeCommand(program);
     initializePrettifyCommand(program);
@@ -47,6 +49,7 @@ export async function promptbookCli(): Promise<void> {
 }
 
 /**
+ * TODO: [🧠] Maybe `run` command the default, instead of `ptbk run ./foo.ptbk.md` -> `ptbk ./foo.ptbk.md`
  * TODO: [🥠] Do not export, its just for CLI script
  * TODO: [🕌] When more functionalities, rename
  * Note: 11:11

@@ -1,0 +1,122 @@
+{
+    "date": "2024-11-14T14:46:20.133Z",
+    "promptbookVersion": "0.74.0-0",
+    "prompt": {
+        "title": "Writing bio",
+        "pipelineUrl": "https://promptbook.studio/examples/simple-knowledge.ptbk.md#writing-bio",
+        "parameters": {
+            "knowledge": "- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---",
+            "eventTitle": "OpenAlt",
+            "eventDescription": "Konference OpenAlt vznikla v roce 2014 jako výsledek spojení konferencí LinuxAlt a Openmobility. LinuxAlt jako konference s dlouhodobou tradicí se již od roku 2006 věnovala otevřenému softwaru a technologiím. Záhy se LinuxAlt s více jak 500 návštěvníky stal největší akcí tohoto typu v České republice. Openmobility konference vznikla v roce 2010 a přinesla českým a slovenským návštěvníkům témata otevřených mobilních platforem a otevřeného hardware formou klasických přednášek a praktických workshopů. OpenAlt vychází z toho nejlepšího na LinuxAltu a Openmobility a rozšiřuje oblast svého zájmu o témata otevřených dat ve státní správě a soukromém sektoru (Open Data) a otevřeného přístupu k vědeckým informacím (Open Access). OpenAlt se věnuje také participativní a svobodné kultuře, zejména online spolupráci, učícím se komunitám a v souvislosti s tím i alternativnímu vzdělávání. Na své si přijdou i novodobí kutilové (Makers) řídící se pravidlem „Udělej si sám“ (DIY).",
+            "rules": ""
+        },
+        "content": "You are writing a bio for Pavol Hejný for the event {eventTitle}.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"{eventTitle}\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   {rules}\n\n## {eventTitle}\n\n> {eventDescription}\n\n## Knowledge\n\n{knowledge}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "name": "Jane",
+            "description": "HR professional with prior experience in writing bios",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced HR professional with extensive expertise in writing professional biographies. Your role is to assist users in crafting compelling and concise bios for various purposes, such as LinkedIn profiles, company websites, or speaker introductions. Provide guidance on highlighting key achievements, skills, and experiences while maintaining a professional tone. Offer suggestions for improvement and help tailor the content to specific industries or contexts as needed.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ],
+            "sentences": {
+                "min": 1
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Pavol Hejný is a passionate developer specializing in creating fully functional user applications using the latest AI models. As a member of the Ainautes consulting group, he supports the deployment of generative AI worldwide. Pavol is the developer behind WebGPT, a web page generation service, and has previously created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children. His diverse experience includes working on scientific projects for the Czech Ornithological Society, mentoring in competitions, and serving on juries. Pavol is a strong advocate for open-source software, with many of his projects available on GitHub. He is excited to share his knowledge and experiences at OpenAlt, where his expertise in AI, open technologies, and innovative applications aligns perfectly with the conference's focus on open software, hardware, and collaborative culture.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-11-14T14:46:15.959Z",
+            "complete": "2024-11-14T14:46:20.131Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.005415
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 840
+                },
+                "charactersCount": {
+                    "value": 3062
+                },
+                "wordsCount": {
+                    "value": 462
+                },
+                "sentencesCount": {
+                    "value": 22
+                },
+                "linesCount": {
+                    "value": 32
+                },
+                "paragraphsCount": {
+                    "value": 7
+                },
+                "pagesCount": {
+                    "value": 5
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 193
+                },
+                "charactersCount": {
+                    "value": 930
+                },
+                "wordsCount": {
+                    "value": 139
+                },
+                "sentencesCount": {
+                    "value": 6
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 2
+                }
+            }
+        },
+        "rawPromptContent": "You are writing a bio for Pavol Hejný for the event OpenAlt.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"OpenAlt\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   \n\n## OpenAlt\n\n> Konference OpenAlt vznikla v roce 2014 jako výsledek spojení konferencí LinuxAlt a Openmobility. LinuxAlt jako konference s dlouhodobou tradicí se již od roku 2006 věnovala otevřenému softwaru a technologiím. Záhy se LinuxAlt s více jak 500 návštěvníky stal největší akcí tohoto typu v České republice. Openmobility konference vznikla v roce 2010 a přinesla českým a slovenským návštěvníkům témata otevřených mobilních platforem a otevřeného hardware formou klasických přednášek a praktických workshopů. OpenAlt vychází z toho nejlepšího na LinuxAltu a Openmobility a rozšiřuje oblast svého zájmu o témata otevřených dat ve státní správě a soukromém sektoru (Open Data) a otevřeného přístupu k vědeckým informacím (Open Access). OpenAlt se věnuje také participativní a svobodné kultuře, zejména online spolupráci, učícím se komunitám a v souvislosti s tím i alternativnímu vzdělávání. Na své si přijdou i novodobí kutilové (Makers) řídící se pravidlem „Udělej si sám“ (DIY).\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are writing a bio for Pavol Hejný for the event OpenAlt.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"OpenAlt\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   \n\n## OpenAlt\n\n> Konference OpenAlt vznikla v roce 2014 jako výsledek spojení konferencí LinuxAlt a Openmobility. LinuxAlt jako konference s dlouhodobou tradicí se již od roku 2006 věnovala otevřenému softwaru a technologiím. Záhy se LinuxAlt s více jak 500 návštěvníky stal největší akcí tohoto typu v České republice. Openmobility konference vznikla v roce 2010 a přinesla českým a slovenským návštěvníkům témata otevřených mobilních platforem a otevřeného hardware formou klasických přednášek a praktických workshopů. OpenAlt vychází z toho nejlepšího na LinuxAltu a Openmobility a rozšiřuje oblast svého zájmu o témata otevřených dat ve státní správě a soukromém sektoru (Open Data) a otevřeného přístupu k vědeckým informacím (Open Access). OpenAlt se věnuje také participativní a svobodné kultuře, zejména online spolupráci, učícím se komunitám a v souvislosti s tím i alternativnímu vzdělávání. Na své si přijdou i novodobí kutilové (Makers) řídící se pravidlem „Udělej si sám“ (DIY).\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_019Z6x76vcJxmmJ3bz8XUsCJ",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Pavol Hejný is a passionate developer specializing in creating fully functional user applications using the latest AI models. As a member of the Ainautes consulting group, he supports the deployment of generative AI worldwide. Pavol is the developer behind WebGPT, a web page generation service, and has previously created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children. His diverse experience includes working on scientific projects for the Czech Ornithological Society, mentoring in competitions, and serving on juries. Pavol is a strong advocate for open-source software, with many of his projects available on GitHub. He is excited to share his knowledge and experiences at OpenAlt, where his expertise in AI, open technologies, and innovative applications aligns perfectly with the conference's focus on open software, hardware, and collaborative culture."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 840,
+                "output_tokens": 193
+            }
+        }
+    }
+}
