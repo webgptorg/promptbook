@@ -59,7 +59,7 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
             throw new ParseError(`Invalid Promptbook version "${promptbookVersion}"`);
         }
 
-        if (args.length > 0) {
+        if (args.length > 0 && !(((args.length === 1 && args[0]) || '').toUpperCase() === 'VERSION')) {
             throw new ParseError(`Can not have more than one Promptbook version`);
         }
 
