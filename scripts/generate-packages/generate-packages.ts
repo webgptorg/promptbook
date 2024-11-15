@@ -432,7 +432,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         if (isBuilded) {
             const indexContent = await readFile(`./packages/${packageBasename}/esm/index.es.js`, 'utf-8');
             for (const dependencyName of Object.keys(allDependencies)) {
-                if (indexContent.includes(`from '${dependencyName}'`)) {
+                if (
+                    indexContent.includes(`from '${dependencyName}'`) ||
+                    indexContent.includes(`require('${dependencyName}')`) ||
+                    indexContent.includes(`require("${dependencyName}")`)
+                ) {
                     packageJson.dependencies = packageJson.dependencies || {};
 
                     if (allDependencies[dependencyName] === undefined) {
