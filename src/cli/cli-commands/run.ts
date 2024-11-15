@@ -2,7 +2,6 @@ import colors from 'colors';
 import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { forTime } from 'waitasecond';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -61,7 +60,9 @@ export function initializeRunCommand(program: Program) {
             isCacheReloaded,
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
 
-        await forTime(10000);
+        if (isVerbose) {
+            console.info(colors.gray('--- Preparing tools ---'));
+        }
 
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
 
@@ -125,10 +126,40 @@ export function initializeRunCommand(program: Program) {
             ],
         } satisfies ExecutionTools;
 
+        if (isVerbose) {
+            console.info(colors.gray('--- Reading file ---'));
+        }
+
         const pipelineString = (await fs.readFile(filePath, 'utf-8')) as PipelineString;
+
+        if (isVerbose) {
+            console.info(colors.gray('--- Preparing pipeline ---'));
+        }
+
         const pipeline = await pipelineStringToJson(pipelineString, tools);
 
+        if (isVerbose) {
+            console.info(colors.gray('--- Validating pipeline ---'));
+        }
+
         validatePipeline(pipeline);
+
+        if (isVerbose) {
+            console.info(colors.gray('--- Creating executor ---'));
+        }
+
+        const pipelineExecutor = createPipelineExecutor({
+            pipeline,
+            tools,
+            isNotPreparedWarningSupressed: true,
+            maxExecutionAttempts: 3, // <- TODO: !!!!!! Pass
+            //                          <- TODO: !!!!!! Why "LLM execution failed undefinedx"
+            maxParallelCount: 1, // <- TODO: !!!!!! Pass
+        });
+
+        if (isVerbose) {
+            console.info(colors.gray('--- Getting input parameters ---'));
+        }
 
         const questions = pipeline.parameters
             .filter(({ isInput }) => isInput)
@@ -145,21 +176,17 @@ export function initializeRunCommand(program: Program) {
 
         const inputParameters = response;
 
-        await forTime(100);
-
-        const pipelineExecutor = createPipelineExecutor({
-            pipeline,
-            tools,
-            isNotPreparedWarningSupressed: true,
-            maxExecutionAttempts: 3, // <- TODO: !!!!!! Pass
-            //                          <- TODO: !!!!!! Why "LLM execution failed undefinedx"
-            maxParallelCount: 1, // <- TODO: !!!!!! Pass
-        });
+        if (isVerbose) {
+            console.info(colors.gray('--- Executing ---'));
+        }
 
         const result = await pipelineExecutor(inputParameters, (taskProgress) => {
             if (isVerbose) {
-                // TODO: !!!!!!! Pretty print taskProgress
-                console.log(taskProgress);
+                console.info(colors.gray('--- Progress ---'));
+                console.info(
+                    taskProgress,
+                    // <- TODO: Pretty print taskProgress
+                );
             }
         });
 
@@ -168,17 +195,19 @@ export function initializeRunCommand(program: Program) {
         const { isSuccessful, errors, warnings, outputParameters, executionReport } = result;
 
         if (isVerbose) {
-            // TODO: !!!!!!! Pretty print
-            console.log({ isSuccessful, errors, warnings, outputParameters, executionReport });
-            console.log(outputParameters);
+            console.info(colors.gray('--- Detailed Result ---'));
+
+            console.info(
+                { isSuccessful, errors, warnings, outputParameters, executionReport },
+                // <- TODO: Pretty print taskProgress
+            );
         }
 
         // TODO: !!!!!!! Log usage if verbose
-        // TODO: !!!!!!! Remove all console.log(s)  and replace with pretty print console.info(s)
 
         TODO_USE(executionReport /* <- TODO: [🧠] Allow to save execution report */);
 
-        console.info(colors.gray('--- Result: ---'));
+        console.info(colors.gray('--- Result ---'));
 
         // TODO: [🧠] Should be errors or warnings shown first
 
