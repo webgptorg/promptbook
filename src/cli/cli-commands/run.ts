@@ -42,6 +42,10 @@ export function initializeRunCommand(program: Program) {
     runCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache`, false);
     runCommand.option('--verbose', `Is output verbose`, false);
 
+    // TODO: !!!!!! Interactive mode
+    // TODO: !!!!!! JSON output
+    // TODO: !!!!!! Save report
+
     runCommand.action(async (path, { reload: isCacheReloaded, verbose: isVerbose }) => {
         // TODO: !!!!!!! Log stages in color if verbose
 
