@@ -26,7 +26,7 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
  * @private internal function of `promptbookCli`
  */
 export function initializeRunCommand(program: Program) {
-    const runCommand = program.command('run');
+    const runCommand = program.command('run', { isDefault: true });
     runCommand.description(
         spaceTrim(`
             Runs a pipeline

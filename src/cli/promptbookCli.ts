@@ -1,5 +1,6 @@
 import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
+import { CLAIM } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
@@ -32,11 +33,7 @@ export async function promptbookCli(): Promise<void> {
     program.alias('ptbk');
 
     program.version(PROMPTBOOK_ENGINE_VERSION);
-    program.description(
-        spaceTrim(`
-            Promptbook utilities for enhancing workflow with promptbooks
-        `),
-    );
+    program.description(CLAIM);
 
     initializeAboutCommand(program);
     initializeRunCommand(program);
