@@ -5,6 +5,7 @@
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
 -   [ ] Remove all `any`
+-   [ ] Maybe use faster SWC compiler
 -   [ ] [👧] Make strongy typed input+output parameters in executors
 -   [x] Make pipelines non-linear
 -   [x] Logging pipeline name, version, step,...
