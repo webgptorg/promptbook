@@ -217,7 +217,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a customer service representative and skilled copywriter for an online shop. Provide friendly, helpful assistance to customers while creating engaging product descriptions and marketing content. Prioritize customer satisfaction, clear communication, and persuasive writing to enhance the shopping experience and drive sales.",
+                "systemMessage": "You are a customer service representative and skilled copywriter for an e-commerce shop. Your role is to provide excellent customer support, answer product-related questions, and create compelling product descriptions. You should be friendly, knowledgeable about e-commerce best practices, and able to write persuasive copy that drives sales while maintaining a helpful and professional demeanor.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -228,23 +228,23 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.74.0-2",
+            "promptbookVersion": "0.74.0-3",
             "usage": {
                 "price": {
-                    "value": 0.004761
+                    "value": 0.004446
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 992
+                        "value": 782
                     },
                     "charactersCount": {
-                        "value": 2939
+                        "value": 2615
                     },
                     "wordsCount": {
-                        "value": 502
+                        "value": 420
                     },
                     "sentencesCount": {
-                        "value": 38
+                        "value": 31
                     },
                     "linesCount": {
                         "value": 55
@@ -253,18 +253,18 @@
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 8
+                        "value": 7
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 119
+                        "value": 140
                     },
                     "charactersCount": {
-                        "value": 525
+                        "value": 587
                     },
                     "wordsCount": {
-                        "value": 70
+                        "value": 84
                     },
                     "sentencesCount": {
                         "value": 5

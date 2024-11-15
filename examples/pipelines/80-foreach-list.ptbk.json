@@ -53,7 +53,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure customer satisfaction. You have extensive knowledge of company policies, products, and services. Always maintain a polite and helpful demeanor, even in challenging situations.",
+                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure a positive experience. You have extensive knowledge of company policies, products, and services. Always maintain a polite and helpful demeanor, even in challenging situations.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -64,23 +64,23 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.74.0-2",
+            "promptbookVersion": "0.74.0-3",
             "usage": {
                 "price": {
-                    "value": 0.004842
+                    "value": 0.004197
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 984
+                        "value": 774
                     },
                     "charactersCount": {
-                        "value": 2906
+                        "value": 2582
                     },
                     "wordsCount": {
-                        "value": 497
+                        "value": 415
                     },
                     "sentencesCount": {
-                        "value": 38
+                        "value": 31
                     },
                     "linesCount": {
                         "value": 55
@@ -89,18 +89,18 @@
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 8
+                        "value": 7
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 126
+                        "value": 125
                     },
                     "charactersCount": {
-                        "value": 533
+                        "value": 526
                     },
                     "wordsCount": {
-                        "value": 75
+                        "value": 74
                     },
                     "sentencesCount": {
                         "value": 6
