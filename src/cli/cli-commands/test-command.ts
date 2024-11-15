@@ -32,22 +32,22 @@ export function initializeTestCommand(program: Program) {
         'Pipelines to test as glob pattern',
     );
     testCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
-    testCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache `, false);
+    testCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache `, false);
     testCommand.option('-v, --verbose', `Is output verbose`, false);
 
     testCommand.action(async (filesGlob, { ignore, reload: isCacheReloaded, verbose: isVerbose }) => {
         // TODO: DRY [◽]
-        const options = {
+        const prepareAndScrapeOptions = {
             isVerbose,
             isCacheReloaded,
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-        const fs = $provideFilesystemForNode(options);
-        const llm = $provideLlmToolsForCli(options);
-        const executables = await $provideExecutablesForNode(options);
+        const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+        const llm = $provideLlmToolsForCli(prepareAndScrapeOptions);
+        const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
             script: [
                 /*new JavascriptExecutionTools(options)*/
             ],

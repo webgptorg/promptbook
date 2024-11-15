@@ -5,8 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME, GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -56,8 +55,8 @@ export function initializeMakeCommand(program: Program) {
         'logic,imports',
     );
 
-    makeCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache`, false);
-    makeCommand.option('--verbose', `Is output verbose`, false);
+    makeCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
+    makeCommand.option('-v, --verbose', `Is output verbose`, false);
     makeCommand.option(
         '-o, --out-file <path>',
         spaceTrim(`
@@ -87,17 +86,17 @@ export function initializeMakeCommand(program: Program) {
             }
 
             // TODO: DRY [◽]
-            const options = {
+            const prepareAndScrapeOptions = {
                 isVerbose,
                 isCacheReloaded,
             }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-            const fs = $provideFilesystemForNode(options);
-            const llm = $provideLlmToolsForCli(options);
-            const executables = await $provideExecutablesForNode(options);
+            const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+            const llm = $provideLlmToolsForCli(prepareAndScrapeOptions);
+            const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
             const tools = {
                 llm,
                 fs,
-                scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
+                scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
                 script: [
                     /*new JavascriptExecutionTools(options)*/
                 ],

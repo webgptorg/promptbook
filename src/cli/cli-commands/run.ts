@@ -13,6 +13,7 @@ import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$pr
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { PipelineString } from '../../types/PipelineString';
+import { string_filename } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -37,28 +38,60 @@ export function initializeRunCommand(program: Program) {
     runCommand.argument(
         '<path>',
         // <- Note: [🧟‍♂️] This is NOT promptbook collection directory BUT direct path to .ptbk.md file
-        'Path to `.ptbk.md` file',
+        'Path to book file',
     );
-    runCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache`, false);
-    runCommand.option('--verbose', `Is output verbose`, false);
+    runCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
+    runCommand.option('-v, --verbose', `Is output verbose`, false);
+    runCommand.option('--no-interactive', `Input is not interactive`, false);
 
     // TODO: !!!!!! Interactive mode
     // TODO: !!!!!! JSON output
-    // TODO: !!!!!! Save report
+    // TODO: !!!!!! Save report = json/md
 
-    runCommand.action(async (path, { reload: isCacheReloaded, verbose: isVerbose }) => {
+    runCommand.action(async (filePathRaw, options) => {
         // TODO: !!!!!!! Log stages in color if verbose
 
+        const { reload: isCacheReloaded, interactive: isInteractive, verbose: isVerbose } = options;
+
+        TODO_USE(isInteractive);
+
         // TODO: DRY [◽]
-        const options = {
+        const prepareAndScrapeOptions = {
             isVerbose,
             isCacheReloaded,
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-        const fs = $provideFilesystemForNode(options);
+
+        await forTime(10000);
+
+        const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+
+        let filePath: string_filename | null = null;
+        const filePathCandidates = [
+            filePathRaw,
+            `${filePathRaw}.md`,
+            `${filePathRaw}.book.md`,
+            `${filePathRaw}.ptbk.md`,
+        ];
+
+        for (const filePathCandidate of filePathCandidates) {
+            if (
+                await isFileExisting(filePathCandidate, fs)
+                // <- TODO: Also test that among the candidates the file is book not just any file
+            ) {
+                filePath = filePathCandidate;
+                break;
+            }
+        }
+
+        if (filePath === null) {
+            console.error(colors.red(`File "${filePathRaw}" does not exist`));
+            return process.exit(1);
+        }
+
         let llm: LlmExecutionTools;
 
         try {
-            llm = $provideLlmToolsForCli(options);
+            llm = $provideLlmToolsForCli(prepareAndScrapeOptions);
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
@@ -82,22 +115,17 @@ export function initializeRunCommand(program: Program) {
             return process.exit(1);
         }
 
-        const executables = await $provideExecutablesForNode(options);
+        const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
             script: [
                 /*new JavascriptExecutionTools(options)*/
             ],
         } satisfies ExecutionTools;
 
-        if (!(await isFileExisting(path, fs))) {
-            console.error(colors.red(`File "${path}" does not exist`));
-            return process.exit(1);
-        }
-
-        const pipelineString = (await fs.readFile(path, 'utf-8')) as PipelineString;
+        const pipelineString = (await fs.readFile(filePath, 'utf-8')) as PipelineString;
         const pipeline = await pipelineStringToJson(pipelineString, tools);
 
         validatePipeline(pipeline);
@@ -117,7 +145,6 @@ export function initializeRunCommand(program: Program) {
 
         const inputParameters = response;
 
-        // console.log(response);
         await forTime(100);
 
         const pipelineExecutor = createPipelineExecutor({
@@ -138,15 +165,14 @@ export function initializeRunCommand(program: Program) {
 
         // assertsExecutionSuccessful(result);
 
-        const { isSuccessful, errors, outputParameters, executionReport } = result;
+        const { isSuccessful, errors, warnings, outputParameters, executionReport } = result;
 
         if (isVerbose) {
             // TODO: !!!!!!! Pretty print
-            console.log({ isSuccessful, errors, /*!!! warnings,*/ outputParameters, executionReport });
+            console.log({ isSuccessful, errors, warnings, outputParameters, executionReport });
             console.log(outputParameters);
         }
 
-        // TODO: !!!!!!! Log errors if not successful
         // TODO: !!!!!!! Log usage if verbose
         // TODO: !!!!!!! Remove all console.log(s)  and replace with pretty print console.info(s)
 
@@ -154,8 +180,14 @@ export function initializeRunCommand(program: Program) {
 
         console.info(colors.gray('--- Result: ---'));
 
+        // TODO: [🧠] Should be errors or warnings shown first
+
         for (const error of errors || []) {
             console.error(colors.red(colors.bold(error.name) + ': ' + error.message));
+        }
+
+        for (const warning of warnings || []) {
+            console.error(colors.red(colors.bold(warning.name) + ': ' + warning.message));
         }
 
         for (const key of Object.keys(outputParameters)) {
