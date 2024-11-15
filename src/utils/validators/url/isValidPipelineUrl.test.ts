@@ -3,6 +3,7 @@ import { isValidPipelineUrl } from './isValidPipelineUrl';
 
 describe(`validation of urls`, () => {
     it(`is valid pipeline url`, () => {
+        expect(isValidPipelineUrl(`https://promptbook.studio/library/promptbook.book`)).toBe(true);
         expect(isValidPipelineUrl(`https://promptbook.studio/library/promptbook.ptbk.md`)).toBe(true);
     });
 
