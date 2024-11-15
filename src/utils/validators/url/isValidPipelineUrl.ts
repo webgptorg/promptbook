@@ -9,7 +9,7 @@ import { isValidUrl } from './isValidUrl';
  * Note: There are two simmilar functions:
  * - `isValidUrl` which tests any URL
  * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
- * 
+ *
  * @public exported from `@promptbook/utils`
  */
 export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_url {
@@ -21,7 +21,7 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
         return false;
     }
 
-    if (!url.endsWith('.ptbk.md')) {
+    if (!(url.endsWith('.book.md') || url.endsWith('.book') || url.endsWith('.ptbk.md') || url.endsWith('.ptbk'))) {
         return false;
     }
 
