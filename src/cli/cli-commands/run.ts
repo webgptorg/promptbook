@@ -3,7 +3,6 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import type { TODO_any } from '../../utils/organization/TODO_any';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -17,6 +16,7 @@ import type { PipelineString } from '../../types/PipelineString';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 
 /**
@@ -116,7 +116,14 @@ export function initializeRunCommand(program: Program) {
         // console.log(response);
         await forTime(100);
 
-        const pipelineExecutor = createPipelineExecutor({ pipeline, tools, isNotPreparedWarningSupressed: true });
+        const pipelineExecutor = createPipelineExecutor({
+            pipeline,
+            tools,
+            isNotPreparedWarningSupressed: true,
+            maxExecutionAttempts: 3, // <- TODO: !!!!!! Pass
+            //                          <- TODO: !!!!!! Why "LLM execution failed undefinedx"
+            maxParallelCount: 1, // <- TODO: !!!!!! Pass
+        });
 
         const result = await pipelineExecutor(inputParameters, (taskProgress) => {
             if (isVerbose) {
@@ -131,7 +138,7 @@ export function initializeRunCommand(program: Program) {
 
         if (isVerbose) {
             // TODO: !!!!!!! Pretty print
-            console.log({ isSuccessful, errors, outputParameters, executionReport });
+            console.log({ isSuccessful, errors, /*!!! warnings,*/ outputParameters, executionReport });
             console.log(outputParameters);
         }
 
@@ -142,6 +149,10 @@ export function initializeRunCommand(program: Program) {
         TODO_USE(executionReport /* <- TODO: [🧠] Allow to save execution report */);
 
         console.info(colors.gray('--- Result: ---'));
+
+        for (const error of errors || []) {
+            console.error(colors.red(colors.bold(error.name) + ': ' + error.message));
+        }
 
         for (const key of Object.keys(outputParameters)) {
             const value = outputParameters[key] || colors.grey(colors.italic('(nothing)'));
