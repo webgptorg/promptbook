@@ -2,6 +2,7 @@ import colors from 'colors';
 import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
+import { usageToHuman } from '../../_packages/core.index';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -206,6 +207,11 @@ export function initializeRunCommand(program: Program) {
         // TODO: !!!!!!! Log usage if verbose
 
         TODO_USE(executionReport /* <- TODO: [🧠] Allow to save execution report */);
+
+        if (isVerbose) {
+            console.info(colors.gray('--- Usage ---'));
+            console.info(colors.cyan(usageToHuman(result.usage)));
+        }
 
         console.info(colors.gray('--- Result ---'));
 
