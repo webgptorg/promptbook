@@ -63,12 +63,12 @@ export function initializePrettifyCommand(program: Program) {
                 console.error(colors.bgRed(error.name /* <- 11:11 */));
                 console.error(colors.red(error.stack || error.message));
 
-                process.exit(1);
+                return process.exit(1);
             }
         }
 
         console.info(colors.green(`All pipelines are prettified`));
-        process.exit(0);
+        return process.exit(0);
     });
 }
 

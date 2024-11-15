@@ -5,8 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME, GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -83,7 +82,7 @@ export function initializeMakeCommand(program: Program) {
 
             if (outFile !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
                 console.error(colors.red(`You can only use one format if you specify --out-file`));
-                process.exit(1);
+                return process.exit(1);
             }
 
             // TODO: DRY [◽]
@@ -269,7 +268,7 @@ export function initializeMakeCommand(program: Program) {
                 console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
             }
 
-            process.exit(0);
+            return process.exit(0);
         },
     );
 }

@@ -2,8 +2,7 @@ import colors from 'colors';
 import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
 import spaceTrim from 'spacetrim';
 import { CLAIM } from '../../config';
-import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Initializes `about` command for Promptbook CLI utilities
@@ -24,7 +23,7 @@ export function initializeAboutCommand(program: Program) {
         console.info(colors.cyan(`Promptbook engine version: ${PROMPTBOOK_ENGINE_VERSION}`));
         console.info(colors.cyan(`https://github.com/webgptorg/promptbook`));
         console.info(colors.cyan(`https://ptbk.io`));
-        process.exit(0);
+        return process.exit(0);
     });
 }
 

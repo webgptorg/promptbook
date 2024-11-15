@@ -23,7 +23,7 @@ export function initializeHelloCommand(program: Program) {
         console.info(colors.cyan(`${greeting} ${name}`));
         await forTime(1000);
         console.info(colors.rainbow(`Nice to meet you!`));
-        process.exit(0);
+        return process.exit(0);
     });
 }
 
