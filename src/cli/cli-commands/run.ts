@@ -1,8 +1,9 @@
 import colors from 'colors';
 import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
+import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { usageToHuman } from '../../_packages/core.index';
+import { executionReportJsonToString, usageToHuman } from '../../_packages/core.index';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -43,15 +44,18 @@ export function initializeRunCommand(program: Program) {
     runCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
     runCommand.option('-v, --verbose', `Is output verbose`, false);
     runCommand.option('--no-interactive', `Input is not interactive`, false);
+    runCommand.option('-s, --save-report <path>', `Save report to file`);
 
     // TODO: !!!!!! Interactive mode
     // TODO: !!!!!! JSON output
-    // TODO: !!!!!! Save report = json/md
 
     runCommand.action(async (filePathRaw, options) => {
-        // TODO: !!!!!!! Log stages in color if verbose
+        const { reload: isCacheReloaded, interactive: isInteractive, verbose: isVerbose, saveReport } = options;
 
-        const { reload: isCacheReloaded, interactive: isInteractive, verbose: isVerbose } = options;
+        if (saveReport && !saveReport.endsWith('.json') && !saveReport.endsWith('.md')) {
+            console.error(colors.red(`Report file must be .json or .md`));
+            return process.exit(1);
+        }
 
         TODO_USE(isInteractive);
 
@@ -131,7 +135,7 @@ export function initializeRunCommand(program: Program) {
             console.info(colors.gray('--- Reading file ---'));
         }
 
-        const pipelineString = (await fs.readFile(filePath, 'utf-8')) as PipelineString;
+        const pipelineString = (await readFile(filePath, 'utf-8')) as PipelineString;
 
         if (isVerbose) {
             console.info(colors.gray('--- Preparing pipeline ---'));
@@ -204,9 +208,16 @@ export function initializeRunCommand(program: Program) {
             );
         }
 
-        // TODO: !!!!!!! Log usage if verbose
+        if (saveReport && saveReport.endsWith('.json')) {
+            await writeFile(saveReport, JSON.stringify(executionReport, null, 4) + '\n', 'utf-8');
+        } else if (saveReport && saveReport.endsWith('.md')) {
+            const executionReportString = executionReportJsonToString(executionReport);
+            await writeFile(saveReport, executionReportString, 'utf-8');
+        }
 
-        TODO_USE(executionReport /* <- TODO: [🧠] Allow to save execution report */);
+        if (saveReport && isVerbose) {
+            console.info(colors.green(`Report saved to ${saveReport}`));
+        }
 
         if (isVerbose) {
             console.info(colors.gray('--- Usage ---'));
