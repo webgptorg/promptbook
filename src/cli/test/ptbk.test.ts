@@ -6,7 +6,7 @@ describe('how promptbookCli works', () => {
     it('should initiate without errors', () =>
         expect(
             $execCommand({
-                command: 'ts-node src/cli/test/ptbk.ts',
+                command: 'ts-node src/cli/test/ptbk.ts --help',
                 crashOnError: false,
                 cwd: process.cwd(),
             }),
