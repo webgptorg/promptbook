@@ -55,8 +55,6 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 🤍 The Promptbook Whitepaper
 
-
-
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 3, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
 But often you will struggle with the **limitations of LLMs**, such as **hallucinations, off-topic responses, poor quality output, language and prompt drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd resp0nses**. When this happens, you generally have three options:
@@ -125,23 +123,17 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
 
 ## 💙 Book language _(for prompt-engineer)_
 
-Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) are written in markdown-like language called [Book](https://github.com/webgptorg/book). It is designed to be understandable by non-programmers and non-technical people.
 
 
+
+## 💙 The blueprint of book language
+
+Following is the documentation and blueprint of the Book language.
+
+### Example
 
 ```markdown
 # 🌟 My first Book
-
--   INPUT PARAMETER {subject}
--   OUTPUT PARAMETER {article}
-
-## Sample subject
-
-> Promptbook
-
--> {subject}
-
-## Write an article
 
 -   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
 -   KNOWLEDGE https://ptbk.io
@@ -150,10 +142,64 @@ Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) a
 -   EXPECT MAX 1 Paragraph
 
 > Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
-> Look specifically at the impact of {subject} on the AI industry.
+> Look specifically at the impact of Promptbook on the AI industry.
 
 -> {article}
 ```
+
+### Goals and principles of book language
+
+File is designed to be easy to read and write. It is strict subset of markdown. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
+
+It has file with `.ptbk.md` or `.book` extension with `UTF-8` non BOM encoding.
+
+As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
+
+But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
+
+### Structure
+
+Book is divided into sections. Each section starts with heading. The language itself is not sensitive to the type of heading _(`h1`, `h2`, `h3`, ...)_ but it is recommended to use `h1` for header section and `h2` for other sections.
+
+### Header
+
+Header is the first section of the book. It contains metadata about the pipeline. It is recommended to use `h1` heading for header section but it is not required.
+
+### Parameter
+
+Foo bar
+
+#### Parameter names
+
+Reserved words:
+
+-   _each command_ like `PERSONA`, `EXPECT`, `KNOWLEDGE`, etc.
+-   `content`
+-   `context`
+-   `knowledge`
+-   `examples`
+-   `modelName`
+-   `currentDate`
+
+#### Parameter notation
+
+### Template
+
+Todo todo
+
+### Command
+
+Todo todo
+
+### Block
+
+Todo todo
+
+### Return parameter
+
+### Examples
+
+
 
 ## 📦 Packages _(for developers)_
 
