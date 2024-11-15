@@ -56,7 +56,7 @@
         "promptbook": "0.74.0-4"
     },
     "bin": {
-        "promptbook": "bin/promptbook-cli.js",
-        "ptbk": "bin/promptbook-cli.js"
+        "promptbook": "node --no-warnings bin/promptbook-cli.js",
+        "ptbk": "node --no-warnings bin/promptbook-cli.js"
     }
 }
