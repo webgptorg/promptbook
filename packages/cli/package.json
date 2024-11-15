@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.74.0-4",
+    "version": "0.74.0-5",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -66,6 +66,7 @@
         "showdown": "2.1.0",
         "socket.io-client": "4.7.2",
         "spacetrim": "0.11.59",
+        "userhome": "1.0.1",
         "waitasecond": "1.11.83"
     },
     "bin": {
