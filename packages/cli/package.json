@@ -71,7 +71,7 @@
         "waitasecond": "1.11.83"
     },
     "bin": {
-        "promptbook": "bin/promptbook-cli.js",
-        "ptbk": "bin/promptbook-cli.js"
+        "promptbook": "node --no-warnings bin/promptbook-cli.js",
+        "ptbk": "node --no-warnings bin/promptbook-cli.js"
     }
 }
