@@ -3,8 +3,6 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import { countCharacters } from '../../utils/expectation-counters/countCharacters';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
@@ -17,8 +15,10 @@ import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$pr
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { executionReportJsonToString } from '../../types/execution-report/executionReportJsonToString';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 import type { string_filename } from '../../types/typeAliases';
+import { countCharacters } from '../../utils/expectation-counters/countCharacters';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -157,7 +157,7 @@ export function initializeRunCommand(program: Program) {
                 colors.red(
                     spaceTrim(
                         (block) => `
-                            ${block(error.message)}
+                            ${block((error as ParseError).message)}
 
                             in ${filePath}
                         `,
