@@ -579,6 +579,8 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   Allow to run books directly in cli via `ptbk run ./path/to/book.ptbk.md`
 -   Fix security warnings in dependencies
 -   Enhance `countPages` utility function
+-   No need to explicitly define the input and output parameters
+-   Split `PROMPTBOOK_VERSION` -> `BOOK_LANGUAGE_VERSION` + `PROMPTBOOK_ENGINE_VERSION`
 -   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
 
 ## Drafts
