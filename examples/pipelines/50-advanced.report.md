@@ -2,7 +2,7 @@
 
 Show how to use a simple prompt with no parameters.
 
--   PIPELINE URL https://promptbook.studio/examples/simple.ptbk.md
+-   PIPELINE URL https://promptbook.studio/examples/advanced.ptbk.md
 -   PROMPTBOOK VERSION 0.52.0-0 _(requested 1.0.0)_
 -   STARTED AT Invalid date
 -   COMPLETED AT Invalid date

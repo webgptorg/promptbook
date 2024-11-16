@@ -2,9 +2,10 @@
 
 Show how to use a simple prompt with no parameters.
 
+-   PIPELINE URL https://promptbook.studio/examples/simple.ptbk.md
+
 <!--
 Note: No need to explicitly define the input and output parameters
--   PIPELINE URL https://promptbook.studio/examples/simple.ptbk.md
 -   OUTPUT PARAMETER `{greetingResponse}`
 -->
 
