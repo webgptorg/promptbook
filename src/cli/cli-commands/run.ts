@@ -50,7 +50,7 @@ export function initializeRunCommand(program: Program) {
     runCommand.option('--no-interactive', `Input is not interactive`, false);
     runCommand.option('-s, --save-report <path>', `Save report to file`);
 
-    // TODO: !!!!!! Interactive mode
+    // TODO: !!!!!! Implement non-interactive mode - allow to pass input parameters as JSON
     // TODO: !!!!!! JSON output
 
     runCommand.action(async (filePathRaw, options) => {
