@@ -1,5 +1,5 @@
+import { TODO_any } from '../../../src/utils/organization/TODO_any';
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
-
 /**
  * All possible emoji chars like "🍆", "🍡", "🍤"...
  * Note: this will be needed to update annually - now updated at 2022-01-19
@@ -106,8 +106,7 @@ export const EMOJIS_IN_CATEGORIES: Record<string, ReadonlyArray<string_char_emoj
 
     'New Emojis (Discorered randomly)': '🖌️'.split(' ') as ReadonlyArray<string_char_emoji>,
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    'Emojis used in WebGPT': ['▶', '❤'] as any as ReadonlyArray<string_char_emoji>,
+    'Emojis used in WebGPT': ['▶', '❤'] as TODO_any as ReadonlyArray<string_char_emoji>,
 };
 
 /**

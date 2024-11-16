@@ -3,6 +3,7 @@ import { join } from 'path';
 import prettier from 'prettier';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
+import { TODO_any } from '../../src/utils/organization/TODO_any';
 
 /**
  * Prettifies a file
@@ -15,8 +16,7 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
     try {
         return prettier.format(fileContents, {
             parser,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ...(JSON.parse(await promisify(readFile)(join(process.cwd(), '.prettierrc'), 'utf-8')) as any),
+            ...(JSON.parse(await promisify(readFile)(join(process.cwd(), '.prettierrc'), 'utf-8')) as TODO_any),
         });
     } catch (error) {
         if (!(error instanceof Error)) {

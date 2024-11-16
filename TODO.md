@@ -1,10 +1,12 @@
 # 🎯 TODOs
 
--   [ ] [🧠] !! `folder` vs `directory`
+-   [ ] [🧠] `folder` vs `directory`
 -   [x] Annotate all entities
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
--   [ ] Remove all `any`
+-   [x] Remove all `any`
+-   [ ] !!!!!! Make ptbk installed in path and executable with hashbang
+-   [ ] !!!!!! Add support for other package managers and installer files such as `.msi`, `.rpm`, and `.deb`, homebrew, etc.
 -   [ ] Maybe use faster SWC compiler
 -   [ ] [👧] Make strongy typed input+output parameters in executors
 -   [x] Make pipelines non-linear
