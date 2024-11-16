@@ -3,8 +3,8 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { PipelineJson } from '../../_packages/types.index';
-import { countCharacters } from '../../_packages/utils.index';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import { countCharacters } from '../../utils/expectation-counters/countCharacters';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';

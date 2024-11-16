@@ -1,6 +1,7 @@
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import { TODO_any } from '../organization/TODO_any';
-import type { ExecCommandOptions, ExecCommandOptionsAdvanced } from './ExecCommandOptions';
+import type { TODO_any } from '../organization/TODO_any';
+import type { ExecCommandOptions } from './ExecCommandOptions';
+import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
 
 /**
  * Normalize options for `execCommand` and `execCommands`
