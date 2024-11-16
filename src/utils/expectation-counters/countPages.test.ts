@@ -3,27 +3,124 @@ import { spaceTrim } from 'spacetrim';
 import { countPages } from './countPages';
 
 describe('countPages', () => {
-    it('should return 0 for an empty string', () => {
+    const ONE_PAGE_OF_CHARACTERS =
+        'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+    const ONE_PAGE_OF_LINES = spaceTrim(`
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+        Line
+    `);
+
+    it('should return zero pages', () => {
         expect(countPages('')).toBe(0);
     });
 
-    it('should return 1 for a string with one page', () => {
+    it('should return single page', () => {
+        expect(countPages('-')).toBe(1);
         expect(countPages('Page 1')).toBe(1);
-    });
-
-    it('should return the correct count for a string with multiple pages', () => {
         expect(
             countPages(
                 spaceTrim(`
-
-                    Page 1
+                    Page
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor.
 
-                    Page 2
                     Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur.
 
                 `),
             ),
+        ).toBe(1);
+        expect(countPages(ONE_PAGE_OF_LINES)).toBe(1);
+        expect(countPages(ONE_PAGE_OF_CHARACTERS)).toBe(1);
+        expect(countPages(ONE_PAGE_OF_LINES + '-')).toBe(1);
+        // TODO: [🌁]> expect(countPages(ONE_PAGE_OF_LINES + 'aaaaaaaaaaaaaaa')).toBe(2);
+        // TODO: [🌁] What about line that wraps on last line
+        //     > expect(countPages(ONE_PAGE_OF_LINES + 'a'.repeat(150))).toBe(2);
+    });
+
+    it('should return two pages', () => {
+        expect(countPages(ONE_PAGE_OF_LINES + '\n' + '-')).toBe(2);
+        expect(countPages(ONE_PAGE_OF_CHARACTERS + '-')).toBe(2);
+        expect(
+            countPages(
+                spaceTrim(
+                    (block) => `
+                        Page
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor.
+
+                        Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur.
+
+
+                        ${block(ONE_PAGE_OF_CHARACTERS)}
+
+                    `,
+                ),
+            ),
         ).toBe(2);
+        expect(countPages(ONE_PAGE_OF_LINES + ONE_PAGE_OF_CHARACTERS)).toBe(2);
+        expect(countPages(ONE_PAGE_OF_CHARACTERS + ONE_PAGE_OF_CHARACTERS)).toBe(2);
+    });
+
+    it('should return multiple pages', () => {
+        expect(countPages(ONE_PAGE_OF_LINES + ONE_PAGE_OF_CHARACTERS + ONE_PAGE_OF_CHARACTERS)).toBe(3);
+        expect(countPages(ONE_PAGE_OF_CHARACTERS + ONE_PAGE_OF_CHARACTERS + '-')).toBe(3);
+
+        /*
+        TODO: [🌁] Mixing
+        expect(
+            countPages(
+                ONE_PAGE_OF_CHARACTERS +
+                    ONE_PAGE_OF_LINES +
+                    ONE_PAGE_OF_CHARACTERS +
+                    ONE_PAGE_OF_LINES +
+                    ONE_PAGE_OF_CHARACTERS +
+                    ONE_PAGE_OF_LINES +
+                    ONE_PAGE_OF_CHARACTERS +
+                    ONE_PAGE_OF_LINES +
+                    ONE_PAGE_OF_CHARACTERS +
+                    ONE_PAGE_OF_LINES,
+            ),
+        ).toBe(10);
+        */
     });
 });
