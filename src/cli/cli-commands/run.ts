@@ -4,6 +4,7 @@ import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { PipelineJson } from '../../_packages/types.index';
+import { countCharacters } from '../../_packages/utils.index';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
@@ -192,12 +193,31 @@ export function initializeRunCommand(program: Program) {
 
         const questions = pipeline.parameters
             .filter(({ isInput }) => isInput)
-            .map(({ name }) => ({
-                type: 'text',
-                name: name,
-                message: name,
-                // TODO: Maybe use> validate: value => value < 18 ? `Forbidden` : true
-            }));
+            .map(({ name, exampleValues }) => {
+                let message = name;
+                let initial = '';
+
+                if (exampleValues && exampleValues.length > 0) {
+                    const exampleValuesFiltered = exampleValues.filter(
+                        (exampleValue) => countLines(exampleValue) <= 1 && countCharacters(exampleValue) <= 30,
+                        // <- TODO: [🧠] Some better filtration heuristic
+                    );
+
+                    if (exampleValuesFiltered.length !== 0) {
+                        message += ` (e.g. ${exampleValuesFiltered.join(', ')})`;
+                    }
+
+                    initial = exampleValues[0] || '';
+                }
+
+                return {
+                    type: 'text',
+                    name,
+                    message,
+                    initial,
+                    // TODO: Maybe use> validate: value => value < 18 ? `Forbidden` : true
+                };
+            });
 
         const response = await prompts(questions as TODO_any);
 
