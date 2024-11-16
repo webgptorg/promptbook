@@ -1,18 +1,16 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/single.ptbk.md",
     "title": "✨ Example prompt",
     "description": "Show how to use a simple prompt with one parameter.",
     "parameters": [
         {
-            "name": "word",
-            "description": "Any single word",
-            "isInput": true,
-            "isOutput": false
-        },
-        {
             "name": "wordSynonym",
             "isInput": false,
             "isOutput": true
+        },
+        {
+            "name": "word",
+            "isInput": true,
+            "isOutput": false
         }
     ],
     "templates": [

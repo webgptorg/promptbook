@@ -4,11 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TemplateJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTemplateCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -158,7 +160,11 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     // =============================================================
     ///Note: 2️⃣ Function for defining parameters
-    const defineParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
+    const defineParam = (
+        parameterCommand: Omit<ParameterCommand, 'type'>,
+
+        // TODO: !!!!!! Use or remove> Pick<ParameterCommand, 'parameterName'> & Partial<Omit<ParameterCommand, 'type' | 'name'>>,
+    ) => {
         const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
 
         if (RESERVED_PARAMETER_NAMES.includes(parameterName as really_any)) {
@@ -203,6 +209,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             if (parameterDescription) {
                 existingParameter.description = parameterDescription;
             }
+
+            existingParameter.isInput = existingParameter.isInput || isInput;
+            existingParameter.isOutput = existingParameter.isOutput || isOutput;
         } else {
             $pipelineJson.parameters.push({
                 name: parameterName,
@@ -455,6 +464,17 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ),
         );
 
+        for (const parameterName of $templateJson.dependentParameterNames) {
+            // TODO: [🧠] This definition should be made first in the template
+            defineParam({
+                parameterName,
+                parameterDescription: null,
+                isInput: false,
+                isOutput: false,
+                // <- Note: In this case null+false+false means that we do not know yet if it is input or output and we will set it later
+            });
+        }
+
         /*
         // TODO: [🍧] This should be checked in `MODEL` command + better error message
         if ($templateJson.templateType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
@@ -488,7 +508,30 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 5️⃣ Cleanup of undefined values
+    // Note: 5️⃣ Mark parameters as INPUT if not explicitly set
+    if ($pipelineJson.parameters.every((parameter) => !parameter.isInput)) {
+        for (const parameter of $pipelineJson.parameters) {
+            const isThisParameterResulting = $pipelineJson.templates.some(
+                (template) => template.resultingParameterName === parameter.name,
+            );
+            if (!isThisParameterResulting) {
+                parameter.isInput = true;
+            }
+        }
+    }
+
+    // =============================================================
+    // Note: 6️⃣ Mark all non-INPUT parameters as OUTPUT if any OUTPUT is not set
+    if ($pipelineJson.parameters.every((parameter) => !parameter.isOutput)) {
+        for (const parameter of $pipelineJson.parameters) {
+            if (!parameter.isInput) {
+                parameter.isOutput = true;
+            }
+        }
+    }
+
+    // =============================================================
+    // Note: 7️⃣ Cleanup of undefined values
     $pipelineJson.templates.forEach((templates) => {
         for (const [key, value] of Object.entries(templates)) {
             if (value === undefined) {

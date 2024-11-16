@@ -2,8 +2,11 @@
 
 Show how to use a simple prompt with no parameters.
 
+<!--
+Note: No need to explicitly define the input and output parameters
 -   PIPELINE URL https://promptbook.studio/examples/simple.ptbk.md
 -   OUTPUT PARAMETER `{greetingResponse}`
+-->
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->

@@ -2,9 +2,12 @@
 
 Show how to use a simple prompt with one parameter.
 
+<!--
+Note: No need to explicitly define the input and output parameters
 -   PIPELINE URL https://promptbook.studio/examples/single.ptbk.md
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{wordSynonym}`
+-->
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
