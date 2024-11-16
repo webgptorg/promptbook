@@ -3,17 +3,19 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { executionReportJsonToString } from '../../types/execution-report/executionReportJsonToString';
-import { usageToHuman } from '../../execution/utils/usageToHuman';
+import { PipelineJson } from '../../_packages/types.index';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
+import { executionReportJsonToString } from '../../types/execution-report/executionReportJsonToString';
 import type { PipelineString } from '../../types/PipelineString';
 import type { string_filename } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
@@ -142,12 +144,33 @@ export function initializeRunCommand(program: Program) {
             console.info(colors.gray('--- Preparing pipeline ---'));
         }
 
-        const pipeline = await pipelineStringToJson(pipelineString, tools);
+        let pipeline: PipelineJson;
+        try {
+            pipeline = await pipelineStringToJson(pipelineString, tools);
+        } catch (error) {
+            if (!(error instanceof ParseError)) {
+                throw error;
+            }
+
+            console.error(
+                colors.red(
+                    spaceTrim(
+                        (block) => `
+                            ${block(error.message)}
+
+                            in ${filePath}
+                        `,
+                    ),
+                ),
+            );
+            return process.exit(1);
+        }
 
         if (isVerbose) {
             console.info(colors.gray('--- Validating pipeline ---'));
         }
 
+        // TODO: !!!!!! Same try-catch for LogicError
         validatePipeline(pipeline);
 
         if (isVerbose) {

@@ -5,8 +5,8 @@
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
 -   [x] Remove all `any`
--   [ ] !!!!!! Make ptbk installed in path and executable with hashbang
--   [ ] !!!!!! Add support for other package managers and installer files such as `.msi`, `.rpm`, and `.deb`, homebrew, etc.
+-   [ ] [🎺] !!!!!! Make ptbk installed in path and executable with hashbang
+-   [ ] [🎺] !!!!!! Add support for other package managers and installer files such as `.msi`, `.rpm`, and `.deb`, homebrew, etc.
 -   [ ] Maybe use faster SWC compiler
 -   [ ] [👧] Make strongy typed input+output parameters in executors
 -   [x] Make pipelines non-linear

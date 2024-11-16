@@ -1,3 +1,4 @@
+import colors from 'colors';
 import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { CLAIM } from '../config';
@@ -25,6 +26,14 @@ export async function promptbookCli(): Promise<void> {
                 - In browser use function exported from \`@promptbook/utils\` or  \`@promptbook/core\` directly, for example \`prettifyPipelineString\`.
 
             `),
+        );
+    }
+
+    const isVerbose = process.argv.some((arg) => arg === '--verbose' || arg === '-v');
+    //     <- TODO: Can be this be done with commander before the commander commands are initialized?
+    if (isVerbose) {
+        console.info(
+            colors.gray(`Promptbook CLI version ${PROMPTBOOK_ENGINE_VERSION} in ${__filename.split('\\').join('/')}`),
         );
     }
 
