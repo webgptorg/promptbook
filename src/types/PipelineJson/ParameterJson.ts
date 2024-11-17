@@ -1,6 +1,6 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_parameter_value } from '../typeAliases';
+import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../typeAliases';
+
+// TODO: !!!!!! Split `ParameterJson` into `InputParameterJson`, `OutputParameterJson` and `InternalParameterJson`
 
 /**
  * Describes one parameter of the promptbook
