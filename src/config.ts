@@ -21,6 +21,13 @@ export const CLAIM = `Build responsible, controlled and transparent applications
 //            <- TODO: [🐊] Pick the best claim
 
 /**
+ * When the title is not provided, the default title is used
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_TITLE = `Untitled`;
+
+/**
  * Warning message for the generated sections and files files
  *
  * @private within the repository
