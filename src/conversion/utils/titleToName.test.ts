@@ -15,7 +15,7 @@ describe('how titleToName works', () => {
 
     it('should make name url', () => {
         expect(titleToName(`https://promptbook.studio/webgpt/write-website-content.book.md`)).toBe(
-            `promptbook-studio-webgpt-write-website-content-ptbk-md`,
+            `promptbook-studio-webgpt-write-website-content-book-md`,
         );
 
         expect(titleToName(`https://promptbook.studio/webgpt/write-website-content.html`)).toBe(
@@ -24,18 +24,18 @@ describe('how titleToName works', () => {
     });
 
     it('should make relative file path', () => {
-        expect(titleToName(`../webgpt/write-website-content.book.md`)).toBe(`write-website-content-ptbk-md`);
-        expect(titleToName(`../webgpt/write-website-content.book.html`)).toBe(`write-website-content-ptbk-html`);
-        expect(titleToName(`./webgpt/write-website-content.book.md`)).toBe(`write-website-content-ptbk-md`);
-        expect(titleToName(`./webgpt/write-website-content.book.html`)).toBe(`write-website-content-ptbk-html`);
+        expect(titleToName(`../webgpt/write-website-content.book.md`)).toBe(`write-website-content-book-md`);
+        expect(titleToName(`../webgpt/write-website-content.book.html`)).toBe(`write-website-content-book-html`);
+        expect(titleToName(`./webgpt/write-website-content.book.md`)).toBe(`write-website-content-book-md`);
+        expect(titleToName(`./webgpt/write-website-content.book.html`)).toBe(`write-website-content-book-html`);
     });
 
     it('should make absolute file path', () => {
         expect(titleToName(`C://Users/pavol/projects/webgpt/write-website-content.book.md`)).toBe(
-            `write-website-content-ptbk-md`,
+            `write-website-content-book-md`,
         );
         expect(titleToName(`/home/pavol/projects/webgpt/write-website-content.book.md`)).toBe(
-            `write-website-content-ptbk-md`,
+            `write-website-content-book-md`,
         );
     });
 });
