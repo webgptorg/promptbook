@@ -5,9 +5,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { BOOK_LANGUAGE_VERSION } from '../../version';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { BookVersionCommand } from './BookVersionCommand';
 
 /**
@@ -51,14 +49,14 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
     parse(input: CommandParserInput): BookVersionCommand {
         const { args } = input;
 
-        const promptbookVersion = args.pop();
+        const bookVersion = args.pop();
 
-        if (promptbookVersion === undefined) {
+        if (bookVersion === undefined) {
             throw new ParseError(`Version is required`);
         }
 
-        if (!isValidPromptbookVersion(promptbookVersion)) {
-            throw new ParseError(`Invalid Promptbook version "${promptbookVersion}"`);
+        if (!isValidPromptbookVersion(bookVersion)) {
+            throw new ParseError(`Invalid Promptbook version "${bookVersion}"`);
         }
 
         if (args.length > 0 && !(((args.length === 1 && args[0]) || '').toUpperCase() === 'VERSION')) {
@@ -67,7 +65,7 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
 
         return {
             type: 'BOOK_VERSION',
-            promptbookVersion,
+            bookVersion: bookVersion,
         } satisfies BookVersionCommand;
     },
 
@@ -78,7 +76,7 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
      */
     $applyToPipelineJson(command: BookVersionCommand, $pipelineJson: $PipelineJson): void {
         // TODO: Warn if the version is overridden
-        $pipelineJson.promptbookVersion = command.promptbookVersion;
+        $pipelineJson.bookVersion = command.bookVersion;
     },
 
     /**

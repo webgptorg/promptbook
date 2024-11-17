@@ -14,7 +14,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  * @public exported from `@promptbook/core`
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
-    const { title, pipelineUrl, promptbookVersion, description, parameters, templates } = pipelineJson;
+    const { title, pipelineUrl, bookVersion, description, parameters, templates } = pipelineJson;
 
     let pipelineString: string_markdown = `# ${title}`;
 
@@ -29,7 +29,9 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         commands.push(`PIPELINE URL ${pipelineUrl}`);
     }
 
-    commands.push(`PROMPTBOOK VERSION ${promptbookVersion}`);
+    if (bookVersion !== `undefined`) {
+        commands.push(`PROMPTBOOK VERSION ${bookVersion}`);
+    }
 
     // TODO: [main] !!!!!! This increase size of the bundle and is probbably not necessary
     pipelineString = prettifyMarkdown(pipelineString);

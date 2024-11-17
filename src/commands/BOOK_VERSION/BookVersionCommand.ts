@@ -8,5 +8,5 @@ import type { string_semantic_version } from '../../types/typeAliases';
  */
 export type BookVersionCommand = {
     readonly type: 'BOOK_VERSION';
-    readonly promptbookVersion: string_semantic_version;
+    readonly bookVersion: string_semantic_version;
 };

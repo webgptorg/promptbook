@@ -7,7 +7,7 @@ describe('how renameParameter works', () => {
             renameParameter({
                 pipeline: validatePipeline({
                     title: '✨ Example prompt',
-                    promptbookVersion: '1.0.0',
+                    bookVersion: '1.0.0',
                     description: 'Show how to use a simple prompt with no parameters.',
                     parameters: [
                         {
@@ -41,7 +41,7 @@ describe('how renameParameter works', () => {
         ).toEqual(
             validatePipeline({
                 title: '✨ Example prompt',
-                promptbookVersion: '1.0.0',
+                bookVersion: '1.0.0',
                 description: 'Show how to use a simple prompt with no parameters.',
                 parameters: [
                     {
@@ -77,7 +77,7 @@ describe('how renameParameter works', () => {
                 pipeline: validatePipeline({
                     title: '✨ Example prompt with two consecutive prompts',
                     pipelineUrl: 'https://promptbook.studio/examples/two.ptbk.md',
-                    promptbookVersion: '1.0.0',
+                    bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [
                         {
@@ -137,7 +137,7 @@ describe('how renameParameter works', () => {
             validatePipeline({
                 title: '✨ Example prompt with two consecutive prompts',
                 pipelineUrl: 'https://promptbook.studio/examples/two.ptbk.md',
-                promptbookVersion: '1.0.0',
+                bookVersion: '1.0.0',
                 description: 'Show how to use two consecutive prompts with one parameter each.',
                 parameters: [
                     {
@@ -198,7 +198,7 @@ describe('how renameParameter works', () => {
                 pipeline: validatePipeline({
                     title: '✨ Example prompt with two consecutive prompts',
                     pipelineUrl: 'https://promptbook.studio/examples/two.ptbk.md',
-                    promptbookVersion: '1.0.0',
+                    bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [
                         {

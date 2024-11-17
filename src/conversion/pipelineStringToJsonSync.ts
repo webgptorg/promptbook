@@ -4,11 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TemplateJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTemplateCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -51,7 +53,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const $pipelineJson: $PipelineJson = {
         title: undefined as TODO_any /* <- Note: [🍙] Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
-        promptbookVersion: undefined /* <- Note: By default no explicit version */,
+        bookVersion: undefined /* <- Note: By default no explicit version */,
         description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         templates: [],
