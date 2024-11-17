@@ -30,7 +30,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
     }
 
     if (bookVersion !== `undefined`) {
-        commands.push(`PROMPTBOOK VERSION ${bookVersion}`);
+        commands.push(`BOOK VERSION ${bookVersion}`);
     }
 
     // TODO: [main] !!!!!! This increase size of the bundle and is probbably not necessary
