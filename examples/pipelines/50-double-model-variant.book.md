@@ -1,17 +1,28 @@
-# ⚠ Example of non-recommended syntax
-
-Defining same model variant twice is **not recommended** but it is not an error in case of model variants are same.
-
--   OUTPUT PARAMETER `{answer}`
-
-## 💬 Prompt
-
--   MODEL NAME `gpt-4o`
--   MODEL NAME `gpt-4o`
-
-```
-Hello,
-What is the answer to the universe?
-```
-
-`-> {answer}`
+{
+    "title": "⚠ Example of non-recommended syntax",
+    "description": "Defining same model variant twice is **not recommended** but it is not an error in case of model variants are same.",
+    "parameters": [
+        {
+            "name": "answer",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "content": "Hello,\nWhat is the answer to the universe?",
+            "resultingParameterName": "answer",
+            "modelRequirements": {
+                "modelName": "gpt-4o"
+            },
+            "dependentParameterNames": []
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
+}

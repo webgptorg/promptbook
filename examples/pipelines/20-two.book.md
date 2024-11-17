@@ -1,83 +1,128 @@
-# ✨ Example prompt with two consecutive prompts
-
-Show how to use two consecutive prompts with one parameter each.
-
--   PIPELINE URL https://promptbook.studio/examples/two.book.md
--   INPUT  PARAMETER `{word}` Any single word
--   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
-
-<!--Graph-->
-<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
-
-```mermaid
-%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
-
-flowchart LR
-  subgraph "✨ Example prompt with two consecutive prompts"
-
-      direction TB
-
-      input((Input)):::input
-      templateSynonym("💬 Synonym")
-      input--"{word}"-->templateSynonym
-      templateSentence("💬 Sentence")
-      input--"{word}"-->templateSentence
-      templateSynonym--"{wordSynonym}"-->templateSentence
-
-      templateSentence--"{sentenceWithTwoSynonyms}"-->output
-      output((Output)):::output
-
-      click templateSynonym href "#synonym" "💬 Synonym";
-      click templateSentence href "#sentence" "💬 Sentence";
-
-      classDef input color: grey;
-      classDef output color: grey;
-
-  end;
-```
-
-<!--/Graph-->
-
-## 💬 Synonym
-
-Synonym for word
-
--   PERSONA Joe, a linguist
-
-```text
-Write synonym for "{word}"
-```
-
-`-> {wordSynonym}`
-
-## 💬 Sentence
-
-Sentence with word and wordSynonym
-
--   PERSONA Joe
-
-```text
-Write sentence with "{word}" and "{wordSynonym}" in it
-```
-
-`-> {sentenceWithTwoSynonyms}`
-
-### Simple sentence
-
--   EXAMPLE
-
-```text
-The quick brown fox jumps over the lazy dog
-```
-
-`-> {sentenceWithTwoSynonyms}`
-
-### Dynamic sentence
-
--   EXAMPLE
-
-```text
-The brown {word} jumps over the lazy {word}
-```
-
-`-> {sentenceWithTwoSynonyms}`
+{
+    "pipelineUrl": "https://promptbook.studio/examples/two.book.md",
+    "title": "✨ Example prompt with two consecutive prompts",
+    "description": "Show how to use two consecutive prompts with one parameter each.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "The quick brown fox jumps over the lazy dog",
+                "The brown {word} jumps over the lazy {word}"
+            ]
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
+            "dependentParameterNames": [
+                "word"
+            ]
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms",
+            "personaName": "Joe",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "temperature": 0.6
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.74.0-11",
+            "usage": {
+                "price": {
+                    "value": 0.004257
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 774
+                    },
+                    "charactersCount": {
+                        "value": 2561
+                    },
+                    "wordsCount": {
+                        "value": 414
+                    },
+                    "sentencesCount": {
+                        "value": 31
+                    },
+                    "linesCount": {
+                        "value": 55
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 7
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 129
+                    },
+                    "charactersCount": {
+                        "value": 513
+                    },
+                    "wordsCount": {
+                        "value": 70
+                    },
+                    "sentencesCount": {
+                        "value": 6
+                    },
+                    "linesCount": {
+                        "value": 9
+                    },
+                    "paragraphsCount": {
+                        "value": 2
+                    },
+                    "pagesCount": {
+                        "value": 2
+                    }
+                }
+            }
+        }
+    ]
+}

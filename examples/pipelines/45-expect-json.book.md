@@ -1,76 +1,44 @@
-# ✨ Example: Parsing data to JSON
-
--   PIPELINE URL https://promptbook.studio/examples/expect-json.book.md
--   INPUT  PARAMETER {sentence} Sentence to be processed
--   OUTPUT PARAMETER `{parsedSentence}`
-
-<!--Graph-->
-<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
-
-```mermaid
-%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
-
-flowchart LR
-  subgraph "✨ Example: Parsing data to JSON"
-
-      direction TB
-
-      input((Input)):::input
-      templateQuestion("💬 Question")
-      input--"{sentence}"-->templateQuestion
-
-      templateQuestion--"{parsedSentence}"-->output
-      output((Output)):::output
-
-      click templateQuestion href "#question" "💬 Question";
-
-      classDef input color: grey;
-      classDef output color: grey;
-
-  end;
-```
-
-<!--/Graph-->
-
-## 💬 Question
-
--   MODEL VARIANT Completion
--   MODEL NAME `gpt-3.5-turbo-instruct`
--   POSTPROCESSING `trimEndOfCodeBlock`
--   FORMAT JSON
-
-```
-Dark horse hopping over the fence.
-
-\`\`\`json
 {
-  "subject": "horse",
-  "action": "hopping",
-  "object": "fence"
+    "title": "✨ Example: Parsing data to JSON",
+    "pipelineUrl": "https://promptbook.studio/examples/expect-json.book.md",
+    "parameters": [
+        {
+            "name": "sentence",
+            "description": "Sentence to be processed",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "parsedSentence",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"
+            ]
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "question",
+            "title": "💬 Question",
+            "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
+            "resultingParameterName": "parsedSentence",
+            "modelRequirements": {
+                "modelVariant": "COMPLETION",
+                "modelName": "gpt-3.5-turbo-instruct"
+            },
+            "postprocessingFunctionNames": [
+                "trimEndOfCodeBlock"
+            ],
+            "format": "JSON",
+            "dependentParameterNames": [
+                "sentence"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
 }
-\`\`\`
-
----
-
-{sentence}
-
-\`\`\`json
-```
-
-`-> {parsedSentence}`
-
-### Example
-
-Example must pass the expectations
-
--   EXAMPLE
-
-```json
-{
-    "subject": "dog",
-    "action": "running",
-    "object": "park"
-}
-```
-
-`-> {parsedSentence}`

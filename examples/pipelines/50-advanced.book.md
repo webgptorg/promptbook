@@ -1,187 +1,288 @@
-# ✨ Example: Language Capabilities
-
-Trying the language capabilities of GPT models.
-
--   PIPELINE URL https://promptbook.studio/examples/advanced.book.md
--   INPUT  PARAMETER `{word}` The word to use in the prompt.
--   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
--   OUTPUT PARAMETER `{summary}` The overall summary of the comparison
--   OUTPUT PARAMETER `{wordSynonymTested}`
-
-<!--Graph-->
-<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
-
-```mermaid
-%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
-
-flowchart LR
-  subgraph "✨ Example: Language Capabilities"
-
-      direction TB
-
-      input((Input)):::input
-      templateSynonym("💬 Synonym")
-      input--"{word}"-->templateSynonym
-      templateTestThatWordIsNotOriginalWord("⚙ Test that word is not original word")
-      input--"{word}"-->templateTestThatWordIsNotOriginalWord
-      templateSynonym--"{wordSynonym}"-->templateTestThatWordIsNotOriginalWord
-      templateSentenceWithSynonym("💬 Sentence with Synonym")
-      input--"{word}"-->templateSentenceWithSynonym
-      templateSynonym--"{wordSynonym}"-->templateSentenceWithSynonym
-      templateSentenceWithoutOriginalWord("💬 Sentence without original word")
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSentenceWithoutOriginalWord
-      input--"{word}"-->templateSentenceWithoutOriginalWord
-      templateComparison("💬 Comparison")
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateComparison
-      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateComparison
-      templateSummary("🔗 Summary")
-      input--"{word}"-->templateSummary
-      templateSynonym--"{wordSynonym}"-->templateSummary
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSummary
-      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
-      templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
-
-      templateComparison--"{comparisonOfTwoSentences}"-->output
-      templateSummary--"{summary}"-->output
-      templateTestThatWordIsNotOriginalWord--"{wordSynonymTested}"-->output
-      output((Output)):::output
-
-      click templateSynonym href "#synonym" "💬 Synonym";
-      click templateTestThatWordIsNotOriginalWord href "#test-that-word-is-not-original-word" "⚙ Test that word is not original word";
-      click templateSentenceWithSynonym href "#sentence-with-synonym" "💬 Sentence with Synonym";
-      click templateSentenceWithoutOriginalWord href "#sentence-without-original-word" "💬 Sentence without original word";
-      click templateComparison href "#comparison" "💬 Comparison";
-      click templateSummary href "#summary" "🔗 Summary";
-
-      classDef input color: grey;
-      classDef output color: grey;
-
-  end;
-```
-
-<!--/Graph-->
-
-## 💬 Synonym
-
-Synonym for word
-
--   PERSONA Joe, a linguist
--   MODEL NAME `gpt-3.5-turbo`
--   POSTPROCESSING `unwrapResult`
--   EXPECT EXACTLY 1 WORD
-
-```text
-Write synonym for "{word}"
-```
-
-`-> {wordSynonym}`
-
-## ⚙ Test that word is not original word
-
--   SCRIPT TEMPLATE
-
-```javascript
-if (word !== '' && wordSynonym === word) {
-    throw new Error(`Synonym returned from LLM is same as original word "${word}"`);
+{
+    "pipelineUrl": "https://promptbook.studio/examples/advanced.book.md",
+    "title": "✨ Example: Language Capabilities",
+    "description": "Trying the language capabilities of GPT models.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "The word to use in the prompt.",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "comparisonOfTwoSentences",
+            "description": "Comparison between two sentences",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "summary",
+            "description": "The overall summary of the comparison",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "You have entered a word **happy**. For this word the best synonym is **joyful**. The sentence with both words is **I was happy and you were joyful!**. The sentence without the original word is **I was and you were joyful!**. And the comparison between the two sentences is:\n\n> The sentence with both words is more expressive than the sentence without the original word."
+            ]
+        },
+        {
+            "name": "wordSynonymTested",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "description": "Sentence with word and wordSynonym",
+            "isInput": false,
+            "isOutput": false,
+            "exampleValues": [
+                "I was happy and you were joyful!"
+            ]
+        },
+        {
+            "name": "sentenceWithOriginalWordRemoved",
+            "description": "Sentence with both synomyms but without a original word",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
+            "modelRequirements": {
+                "modelName": "gpt-3.5-turbo"
+            },
+            "postprocessingFunctionNames": [
+                "unwrapResult"
+            ],
+            "expectations": {
+                "words": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": [
+                "word"
+            ]
+        },
+        {
+            "templateType": "SCRIPT_TEMPLATE",
+            "name": "test-that-word-is-not-original-word",
+            "title": "⚙ Test that word is not original word",
+            "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
+            "resultingParameterName": "wordSynonymTested",
+            "contentLanguage": "javascript",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "sentence-with-synonym",
+            "title": "💬 Sentence with Synonym",
+            "description": "Sentence with word and wordSynonym",
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms",
+            "personaName": "Jane",
+            "modelRequirements": {
+                "modelName": "gpt-3.5-turbo"
+            },
+            "expectations": {
+                "words": {
+                    "max": 20
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "sentence-without-original-word",
+            "title": "💬 Sentence without original word",
+            "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
+            "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> {sentenceWithTwoSynonyms}",
+            "resultingParameterName": "sentenceWithOriginalWordRemoved",
+            "personaName": "Josh",
+            "expectations": {
+                "words": {
+                    "max": 20
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "word"
+            ]
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "comparison",
+            "title": "💬 Comparison",
+            "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
+            "content": "Write a short comparison of the meaning of the two sentences, writing a maximum of 5 sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
+            "resultingParameterName": "comparisonOfTwoSentences",
+            "personaName": "Alice",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4o"
+            },
+            "expectations": {
+                "sentences": {
+                    "min": 1,
+                    "max": 5
+                }
+            },
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved"
+            ]
+        },
+        {
+            "templateType": "SIMPLE_TEMPLATE",
+            "name": "summary",
+            "title": "🔗 Summary",
+            "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
+            "resultingParameterName": "summary",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym",
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved",
+                "comparisonOfTwoSentences"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "temperature": 0.6
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "Jane",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "temperature": 0.6
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "Josh",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "temperature": 0.6
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "Alice",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "temperature": 0.6
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.74.0-11",
+            "usage": {
+                "price": {
+                    "value": 0.017028
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 3096
+                    },
+                    "charactersCount": {
+                        "value": 10244
+                    },
+                    "wordsCount": {
+                        "value": 1656
+                    },
+                    "sentencesCount": {
+                        "value": 124
+                    },
+                    "linesCount": {
+                        "value": 220
+                    },
+                    "paragraphsCount": {
+                        "value": 80
+                    },
+                    "pagesCount": {
+                        "value": 28
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 516
+                    },
+                    "charactersCount": {
+                        "value": 2052
+                    },
+                    "wordsCount": {
+                        "value": 280
+                    },
+                    "sentencesCount": {
+                        "value": 24
+                    },
+                    "linesCount": {
+                        "value": 36
+                    },
+                    "paragraphsCount": {
+                        "value": 8
+                    },
+                    "pagesCount": {
+                        "value": 8
+                    }
+                }
+            }
+        }
+    ]
 }
-
-return wordSynonym;
-```
-
-`-> {wordSynonymTested}`
-
-## 💬 Sentence with Synonym
-
-Sentence with word and wordSynonym
-
--   PERSONA Jane, a linguist
--   MODEL NAME `gpt-3.5-turbo`
--   EXPECT MAX 20 WORDS
--   EXPECT EXACTLY 1 SENTENCE
-
-```text
-Write sentence with "{word}" and "{wordSynonym}" in it
-```
-
-`-> {sentenceWithTwoSynonyms}` Sentence with word and wordSynonym
-
-### Example of sentence with word and wordSynonym
-
--   EXAMPLE
-
-```text
-I was happy and you were joyful!
-```
-
-`-> {sentenceWithTwoSynonyms}`
-
-## 💬 Sentence without original word
-
-Sentence "{sentenceWithTwoSynonyms}" without "{word}".
-
--   PERSONA Josh, a linguist
--   EXPECT MAX 20 WORDS
--   EXPECT EXACTLY 1 SENTENCE
-
-```markdown
-Remove word "{word}" from sentence and modify it so that it makes sense:
-
-## Rules:
-
--   Sentence must be grammatically correct
--   Sentence must make sense after removing the word
-
-## The Sentence:
-
-> {sentenceWithTwoSynonyms}
-```
-
-`-> {sentenceWithOriginalWordRemoved}` Sentence with both synomyms but without a original word
-
-## 💬 Comparison
-
-Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
-
--   PERSONA Alice, a linguist
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-4o`
--   EXPECT MIN 1 SENTENCE
--   EXPECT MAX 5 SENTENCES
-
-```markdown
-Write a short comparison of the meaning of the two sentences, writing a maximum of 5 sentences:
-
-## Sentence 1:
-
-> {sentenceWithTwoSynonyms}
-
-## Sentence 2:
-
-> {sentenceWithOriginalWordRemoved}
-```
-
-`-> {comparisonOfTwoSentences}` Comparison between two sentences
-
-## 🔗 Summary
-
--   SIMPLE TEMPLATE
-
-```markdown
-You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:
-
-> {comparisonOfTwoSentences}
-```
-
-`-> {summary}`
-
-### Example of summary
-
--   EXAMPLE
-
-```markdown
-You have entered a word **happy**. For this word the best synonym is **joyful**. The sentence with both words is **I was happy and you were joyful!**. The sentence without the original word is **I was and you were joyful!**. And the comparison between the two sentences is:
-
-> The sentence with both words is more expressive than the sentence without the original word.
-```
-
-`-> {summary}`

@@ -1,69 +1,41 @@
-# ✨ Example of escaping
-
-Show how to put codeblocks in the prompt _(which is already in the codeblock)_
-
--   PIPELINE URL https://promptbook.studio/examples/escaping.book.md
--   OUTPUT PARAMETER `{greeting1}`
--   OUTPUT PARAMETER `{greeting2}`
-
-<!--Graph-->
-<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
-
-```mermaid
-%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
-
-flowchart LR
-  subgraph "✨ Example of escaping"
-
-      direction TB
-
-      input((Input)):::input
-      templatePrompt("💬 Prompt")
-
-      templatePrompt--"{greeting}"-->output
-      output((Output)):::output
-
-      click templatePrompt href "#prompt" "💬 Prompt";
-
-      classDef input color: grey;
-      classDef output color: grey;
-
-  end;
-```
-
-<!--/Graph-->
-
-## Greeting 1
-
-Show how to put codeblocks in codeblocks
-
-```
-Rewrite the function below:
-
-\`\`\`javascript
-function greet() {
-  return 'Hello Anna';
+{
+    "title": "✨ Example of escaping",
+    "pipelineUrl": "https://promptbook.studio/examples/escaping.book.md",
+    "description": "Show how to put codeblocks in the prompt _(which is already in the codeblock)_",
+    "parameters": [
+        {
+            "name": "greeting1",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "greeting2",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "greeting-1",
+            "title": "Greeting 1",
+            "description": "Show how to put codeblocks in codeblocks",
+            "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n  return 'Hello Anna';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".\n",
+            "resultingParameterName": "greeting1",
+            "dependentParameterNames": []
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "greeting-2",
+            "title": "Greeting 2",
+            "description": "Show how to put codeblocks in codeblocks in different way",
+            "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n    return 'Hello Betty';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".",
+            "resultingParameterName": "greeting2",
+            "dependentParameterNames": []
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
 }
-\`\`\`
-
-To return "Goodbye" from the function instead of "Hello".
-
-```
-
-`-> {greeting1}`
-
-## Greeting 2
-
-Show how to put codeblocks in codeblocks in different way
-
-> Rewrite the function below:
->
-> ```javascript
-> function greet() {
->     return 'Hello Betty';
-> }
-> ```
->
-> To return "Goodbye" from the function instead of "Hello".
-
-`-> {greeting2}`
