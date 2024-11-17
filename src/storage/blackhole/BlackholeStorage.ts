@@ -50,5 +50,3 @@ export class BlackholeStorage<TItem> implements PromptbookStorage<TItem> {
         keepUnused(key);
     }
 }
-
-export const blackholeStorage = new BlackholeStorage();
