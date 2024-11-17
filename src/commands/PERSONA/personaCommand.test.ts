@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { personaCommandParser } from './personaCommandParser';
 
-describe('how PERSONA command in .ptbk.md files works', () => {
+describe('how PERSONA command in .book.md files works', () => {
     it('should parse PERSONA command in PIPELINE_HEAD', () => {
         expect(parseCommand('PERSONA John', 'PIPELINE_HEAD')).toEqual({
             type: 'PERSONA',

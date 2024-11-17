@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nKorálovka, an online discussion forum, held a meeting on October 27, 2023, focusing on the deteriorating quality of metal jewelry during the current economic crisis."
         },

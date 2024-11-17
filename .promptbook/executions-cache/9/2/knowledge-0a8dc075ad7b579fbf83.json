@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "To adopt a shelf, fill out a form at the bottom of the article specifying the desired shelf, quantity, and rental period. The company will then contact you to finalize details."
         },

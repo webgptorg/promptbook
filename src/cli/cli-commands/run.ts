@@ -42,7 +42,7 @@ export function initializeRunCommand(program: Program) {
 
     runCommand.argument(
         '<path>',
-        // <- Note: [🧟‍♂️] This is NOT promptbook collection directory BUT direct path to .ptbk.md file
+        // <- Note: [🧟‍♂️] This is NOT promptbook collection directory BUT direct path to .book.md file
         'Path to book file',
     );
     runCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
@@ -80,7 +80,7 @@ export function initializeRunCommand(program: Program) {
             filePathRaw,
             `${filePathRaw}.md`,
             `${filePathRaw}.book.md`,
-            `${filePathRaw}.ptbk.md`,
+            `${filePathRaw}.book.md`,
         ];
 
         for (const filePathCandidate of filePathCandidates) {

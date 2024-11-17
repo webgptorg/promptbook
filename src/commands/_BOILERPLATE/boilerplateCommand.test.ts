@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { boilerplateCommandParser } from './boilerplateCommandParser';
 
-describe('how BOILERPLATE command in .ptbk.md files works', () => {
+describe('how BOILERPLATE command in .book.md files works', () => {
     it('should parse BOILERPLATE command in PIPELINE_HEAD', () => {
         expect(parseCommand('BOILERPLATE foo', 'PIPELINE_HEAD')).toEqual({
             type: 'BOILERPLATE',

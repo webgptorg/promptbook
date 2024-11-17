@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md#knowledge",
         "parameters": {
             "knowledgeContent": "<div id=\"readability-page-1\" class=\"page\"><section id=\"center-column\"><h2>\tStránka, kterou hledáte, nebyla nalezena. </h2><div id=\"content\"><h4>Omlouváme se za vzniklé potíže.</h4><p>Vyhledejte znovu, co hledáte</p><!-- Block search module TOP --><!-- /Block search module TOP --></div></section></div>\n\n"
         },

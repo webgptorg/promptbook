@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md#knowledge",
         "parameters": {
             "knowledgeContent": "ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br>\n\n Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… ![🤯](<https://www.pavolhejny.com/_next/static/media/1F92F.4be977be.svg>)\n\nAre you leveraging the **full potential of technology** and generative AI in your business?\n\nTechnology is constantly evolving and we are currently experiencing a massive wave of the emergence of **generative AI**,<br>\n\n which is becoming more and more like the massive rise of the personal computer or the early days of the internet.\n\nIt is almost certain that virtually every sector of human activity will be affected by this revolution,<br>\n\n and there will be winners and losers from this massive change.\n\nIt is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br>\n\n**I'd be happy to help you with all of that.**\n\n"
         },

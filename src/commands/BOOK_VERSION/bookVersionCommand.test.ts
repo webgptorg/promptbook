@@ -3,7 +3,7 @@ import { BOOK_LANGUAGE_VERSION } from '../../version';
 import { parseCommand } from '../_common/parseCommand';
 import { bookVersionCommandParser } from './bookVersionCommandParser';
 
-describe('how BOOK_VERSION command in .ptbk.md files works', () => {
+describe('how BOOK_VERSION command in .book.md files works', () => {
     it('should parse BOOK_VERSION command', () => {
         expect(parseCommand('promptbook version 0.62.0', 'PIPELINE_HEAD')).toEqual({
             type: 'BOOK_VERSION',

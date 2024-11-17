@@ -9,8 +9,8 @@ import { capitalize } from '../utils/normalization/capitalize';
 /**
  * Converts promptbook in JSON format to string format
  *
- * @param pipelineJson Promptbook in JSON format (.ptbk.json)
- * @returns Promptbook in string format (.ptbk.md)
+ * @param pipelineJson Promptbook in JSON format (.book.json)
+ * @returns Promptbook in string format (.book.md)
  * @public exported from `@promptbook/core`
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
@@ -170,5 +170,5 @@ function templateParameterJsonToString(templateParameterJson: ParameterJson): st
  * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
  * TODO: [🏛] Maybe make some markdown builder
  * TODO: [🏛] Escape all
- * TODO: [🧠] Should be in generated .ptbk.md file GENERATOR_WARNING
+ * TODO: [🧠] Should be in generated .book.md file GENERATOR_WARNING
  */

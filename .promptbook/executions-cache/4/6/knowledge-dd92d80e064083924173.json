@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "A YouTube video summarizing important points from an online meeting regarding the issue of declining jewelry quality is available. The video can be accessed [here](https://www.youtube.com/embed/bj1QYerTHC8?si=idkX7Giexi2IBamV)."
         },

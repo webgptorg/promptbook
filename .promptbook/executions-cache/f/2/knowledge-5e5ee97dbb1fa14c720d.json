@@ -3,7 +3,7 @@
     "promptbookVersion": "0.69.0-10",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---"
         },

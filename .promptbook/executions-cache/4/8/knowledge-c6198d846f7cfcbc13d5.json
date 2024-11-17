@@ -3,7 +3,7 @@
     "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Korálky Katlas připravily shrnutí důležitých bodů, na které by si zákazníci měli dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace byly prezentovány během online setkání."
         },

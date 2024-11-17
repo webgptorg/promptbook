@@ -9,7 +9,7 @@ import { TemplateParameterJson } from '../../types/PipelineJson/TemplateParamete
 
 describe('how findUsableParameters works', () => {
     it('should find no usable parameter', () => {
-        const promptbook = importPipeline(`50-advanced.ptbk.json`);
+        const promptbook = importPipeline(`50-advanced.book.json`);
         const template = promptbook.templates[0];
 
         expect(findUsableParameters({ promptbook, template })).toBe([]);

@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Springfield serves as the county seat of Sangamon County and is located in the U.S. state of Illinois.\n\n---"
         },

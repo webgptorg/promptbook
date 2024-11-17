@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Current shelf pricing for 2024 is available through a provided link. Discounts are offered for longer rental periods: 7% for 3-5 months, 15% for 6-11 months, and 30% for 12 or more months."
         },

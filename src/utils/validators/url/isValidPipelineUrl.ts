@@ -21,7 +21,7 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
         return false;
     }
 
-    if (!(url.endsWith('.book.md') || url.endsWith('.book') || url.endsWith('.ptbk.md') || url.endsWith('.ptbk'))) {
+    if (!(url.endsWith('.book.md') || url.endsWith('.book') || url.endsWith('.book.md') || url.endsWith('.ptbk'))) {
         return false;
     }
 

@@ -1,3 +1,3 @@
 # 🎹 Commands
 
-In this directory, you will find all the commands that are available in `.ptbk.md` files.
+In this directory, you will find all the commands that are available in `.book.md` files.

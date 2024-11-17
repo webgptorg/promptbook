@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Key aspects of simplicity include using descriptive variable names, keeping functions short and focused, and avoiding unnecessary complexity. Developers should strive to write code that is self-explanatory and doesn't require extensive comments to understand its purpose."
         },

@@ -3,7 +3,7 @@
     "promptbookVersion": "0.61.0-10",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "content": "As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in the state of Illinois."
         },

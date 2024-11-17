@@ -58,7 +58,7 @@ async function generateExampleJsons({
     isCacheReloaded: boolean;
     isVerbose: boolean;
 }) {
-    console.info(`🏭📖  Convert examples .ptbk.md -> .ptbk.json`);
+    console.info(`🏭📖  Convert examples .book.md -> .book.json`);
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
@@ -69,11 +69,11 @@ async function generateExampleJsons({
     //                 <- Note: for example here we don`t want the [🌯]
     const executables = await $provideExecutablesForNode();
 
-    const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_EXAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
+    const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_EXAMPLES_DIR, '*.book.md').split('\\').join('/'));
 
     /*/
     // Note: Keep for testing:
-    pipelineMarkdownFilePaths = pipelineMarkdownFilePaths.filter((path) => path.includes('simple-knowledge.ptbk.md'));
+    pipelineMarkdownFilePaths = pipelineMarkdownFilePaths.filter((path) => path.includes('simple-knowledge.book.md'));
     /**/
 
     for (const pipelineMarkdownFilePath of pipelineMarkdownFilePaths) {
@@ -101,14 +101,14 @@ async function generateExampleJsons({
             await forTime(1000000);
             /**/
 
-            const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
+            const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.ptbk\.md$/, '.book.json');
 
             // Note: We want to ensure that the generated JSONs are logically correct
             validatePipeline(pipelineJson);
 
             await writeFile(pipelineJsonFilePath, stringifyPipelineJson(pipelineJson));
 
-            console.info(colors.green(`📖  Generated .ptbk.json from ${pipelineMarkdownFilePath}`));
+            console.info(colors.green(`📖  Generated .book.json from ${pipelineMarkdownFilePath}`));
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
@@ -125,14 +125,14 @@ async function generateExampleJsons({
     console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     if (isCommited) {
-        await commit([PROMPTBOOK_EXAMPLES_DIR], `📖 Convert examples \`.ptbk.md\` -> \`.ptbk.json\``);
+        await commit([PROMPTBOOK_EXAMPLES_DIR], `📖 Convert examples \`.book.md\` -> \`.book.json\``);
     }
 
-    console.info(`[ Done 📖  Convert examples .ptbk.md -> .ptbk.json]`);
+    console.info(`[ Done 📖  Convert examples .book.md -> .book.json]`);
 }
 
 /**
  * Note: [🍠] @@@ Example pipelines vs Pipelines used internally in Promptbook
- * TODO: [🍥] When using current time in `preparations` it changes all .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
+ * TODO: [🍥] When using current time in `preparations` it changes all .book.json files each time so until some more elegant solution omit the time from prepared pipeline
  * Note: [⚫] Code in this file should never be published in any package
  */

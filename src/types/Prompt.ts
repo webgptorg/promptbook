@@ -112,7 +112,7 @@ export type CommonPrompt = {
     /**
      * Unique identifier of the pipeline with specific template name as hash
      *
-     * @example https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords
+     * @example https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords
      */
     readonly pipelineUrl?: string_pipeline_url_with_hashtemplate;
 

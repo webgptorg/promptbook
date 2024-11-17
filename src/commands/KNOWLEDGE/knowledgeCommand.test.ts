@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { knowledgeCommandParser } from './knowledgeCommandParser';
 
-describe('how KNOWLEDGE command in .ptbk.md files works', () => {
+describe('how KNOWLEDGE command in .book.md files works', () => {
     it('should parse KNOWLEDGE command', () => {
         expect(parseCommand('KNOWLEDGE https://www.pavolhejny.com/', 'PIPELINE_HEAD')).toEqual({
             type: 'KNOWLEDGE',

@@ -68,20 +68,20 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 
 ## 🧔 Promptbook _(for prompt-engeneers)_
 
-**P**romp**t** **b**oo**k** markdown file (**PTBK** for short, or `.ptbk.md`) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTBK you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
+**P**romp**t** **b**oo**k** markdown file (**PTBK** for short, or `.book.md`) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTBK you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
 
 -   Multiple promptbooks forms a library which will become a **part of your application codebase**.
 -   Theese promptbooks are designed such as they **can be written by non-programmers**.
 
 ### Example:
 
-File `write-website-content.ptbk.md`:
+File `write-website-content.book.md`:
 
 > # 🌍 Create website content
 >
 > Instructions for creating web page content.
 >
-> -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md@v0.1.0
+> -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.book.md@v0.1.0
 > -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
@@ -421,14 +421,14 @@ It represents a series of prompt templates chained together to form a **pipeline
 
 Internally it can have multiple formats:
 
--   **.ptbk.md file** in custom markdown format described above
+-   **.book.md file** in custom markdown format described above
 -   _(concept)_ **.ptbk** format, custom fileextension based on markdown
--   _(internal)_ **JSON** format, parsed from the .ptbk.md file
+-   _(internal)_ **JSON** format, parsed from the .book.md file
 
 ### Promptbook **Library**
 
 Library of all promptbooks used in your application.
-Each promptbook is a separate `.ptbk.md` file with unique `PIPELINE URL`. Theese urls are used to reference promptbooks in other promptbooks or in the application code.
+Each promptbook is a separate `.book.md` file with unique `PIPELINE URL`. Theese urls are used to reference promptbooks in other promptbooks or in the application code.
 
 ### Prompt Result
 
@@ -509,7 +509,7 @@ This can be useful, for example, if you want to use some predefined data, or if 
 
 When using wildcards, you must have at least one minimum expectation. If you do not have a minimum expectation, the joker will always fulfil the expectation because it has none, so it makes no logical sense.
 
-Look at [jokers.ptbk.md](examples/pipelines/41-jokers.ptbk.md) example.
+Look at [jokers.book.md](examples/pipelines/41-jokers.book.md) example.
 
 ### Postprocessing functions
 
@@ -531,7 +531,7 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 ```markdown
 # ✨ Example: Expectations
 
--   PIPELINE URL https://promptbook.studio/examples/postprocessing-2.ptbk.md@v1
+-   PIPELINE URL https://promptbook.studio/examples/postprocessing-2.book.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero
 
@@ -559,7 +559,7 @@ There are two types of expectations which are not strictly symmetrical:
 -   `EXPECT MAX 0 ...` is valid maximal expectation. For example, you can expect 0 pages and 2 sentences.
 -   `FORMAT JSON` is both minimal and maximal expectation
 
-Look at [expectations.ptbk.md](examples/pipelines/45-expectations.ptbk.md) and [expect-json.ptbk.md](examples/pipelines/45-expect-json.ptbk.md) examples for more.
+Look at [expectations.book.md](examples/pipelines/45-expectations.book.md) and [expect-json.book.md](examples/pipelines/45-expect-json.book.md) examples for more.
 
 ### Execution report
 
@@ -637,7 +637,7 @@ A single promptbook can be written for several _(human)_ languages at once. Howe
 
 In large language models, you will get better results if you have prompts in the same language as the user input.
 
-The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
+The best way to manage this is to have suffixed promptbooks like `write-website-content.en.book.md` and `write-website-content.cs.book.md` for each supported language.
 
 ## ⌚ Changelog
 

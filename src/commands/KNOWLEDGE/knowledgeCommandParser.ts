@@ -75,7 +75,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
         }
 
         if (sourceContent.startsWith('../') || sourceContent.startsWith('/') || /^[A-Z]:[\\/]+/i.test(sourceContent)) {
-            throw new ParseError(`Source cannot be outside of the .ptbk.md folder`);
+            throw new ParseError(`Source cannot be outside of the .book.md folder`);
         }
 
         return {

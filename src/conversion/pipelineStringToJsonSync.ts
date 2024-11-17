@@ -44,8 +44,8 @@ import { titleToName } from './utils/titleToName';
  * Note: This function does not validate logic of the pipeline only the parsing
  * Note: This function acts as compilation process
  *
- * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
- * @returns {Promptbook} compiled in JSON format (.ptbk.json)
+ * @param pipelineString {Promptbook} in string markdown format (.book.md)
+ * @returns {Promptbook} compiled in JSON format (.book.json)
  * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */

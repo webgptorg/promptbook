@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { modelCommandParser } from './modelCommandParser';
 
-describe('how MODEL command in .ptbk.md files works', () => {
+describe('how MODEL command in .book.md files works', () => {
     it('should parse MODEL command', () => {
         expect(parseCommand('MODEL VARIANT Completion', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'MODEL',

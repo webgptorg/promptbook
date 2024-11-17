@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "The algorithms are described as fundamental building blocks in machine learning. Understanding these algorithms is crucial for tackling a wide range of problems and serves as a foundation for more advanced techniques. The list is particularly useful for beginners in the field of machine learning."
         },

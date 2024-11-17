@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { jokerCommandParser } from './jokerCommandParser';
 
-describe('how JOKER command in .ptbk.md files works', () => {
+describe('how JOKER command in .book.md files works', () => {
     it('should parse JOKER command', () => {
         expect(parseCommand('joker {name}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'JOKER',

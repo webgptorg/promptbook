@@ -3,7 +3,7 @@
     "promptbookVersion": "0.61.0-15",
     "prompt": {
         "title": "Make modelRequirements",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-persona.ptbk.md#make-model-requirements",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-persona.book.md#make-model-requirements",
         "parameters": {
             "context": "",
             "currentDate": "2024-08-03T16:32:49.634Z",

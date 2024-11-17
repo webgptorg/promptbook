@@ -3,7 +3,7 @@
     "promptbookVersion": "0.69.0-10",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland."
         },

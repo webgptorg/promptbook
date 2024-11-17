@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { actionCommandParser } from './actionCommandParser';
 
-describe('how ACTION command in .ptbk.md files works', () => {
+describe('how ACTION command in .book.md files works', () => {
     it('should parse ACTION command in PIPELINE_HEAD', () => {
         expect(parseCommand('ACTION', 'PIPELINE_HEAD')).toEqual({
             type: 'ACTION',

@@ -16,7 +16,7 @@ import type { ForeachCommand } from './ForeachCommand';
 /**
  * Parses the foreach command
  *
- * Note: @@@ This command is used as foreach for new commands - it should NOT be used in any `.ptbk.md` file
+ * Note: @@@ This command is used as foreach for new commands - it should NOT be used in any `.book.md` file
  *
  * @see `documentationUrl` for more details
  * @private within the commands folder
@@ -231,5 +231,5 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 };
 
 /**
- * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH with wrong parsing and logic
+ * TODO: [🍭] Make .book.md file with examples of the FOREACH with wrong parsing and logic
  */

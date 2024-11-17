@@ -16,16 +16,16 @@ import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
  * Note: This function does not validate logic of the pipeline only the parsing
  * Note: This function acts as compilation process
  *
- * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
+ * @param pipelineString {Promptbook} in string markdown format (.book.md)
  * @param tools - Tools for the preparation and scraping - if not provided together with `llm`, the preparation will be skipped
  * @param options - Options and tools for the compilation
- * @returns {Promptbook} compiled in JSON format (.ptbk.json)
+ * @returns {Promptbook} compiled in JSON format (.book.json)
  * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */
 export async function pipelineStringToJson(
     pipelineString: PipelineString,
-    tools?: Pick<ExecutionTools, 'llm'| 'fs' | 'scrapers'>,
+    tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
     let pipelineJson = pipelineStringToJsonSync(pipelineString);

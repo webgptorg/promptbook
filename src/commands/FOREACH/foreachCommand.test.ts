@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { foreachCommandParser } from './foreachCommandParser';
 
-describe('how FOREACH command in .ptbk.md files works', () => {
+describe('how FOREACH command in .book.md files works', () => {
     it('should parse FOREACH command in PIPELINE_TEMPLATE', () => {
         expect(parseCommand('FOREACH Text Line `{customers}` -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',

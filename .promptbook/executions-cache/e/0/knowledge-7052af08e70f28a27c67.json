@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nIn the current economic crisis, there is an increasing presence of fraudulent and harmful jewelry in the market. Customers have frequently reported issues and scams related to jewelry products in both the Czech Republic and abroad. To address these concerns, Korálky Katlas has prepared a summary of the most critical points to watch for when purchasing jewelry and semi-finished jewelry products."
         },

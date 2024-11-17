@@ -3,7 +3,7 @@
     "promptbookVersion": "0.69.0-10",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces."
         },

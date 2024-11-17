@@ -3,7 +3,7 @@
     "promptbookVersion": "0.69.0-10",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties."
         },

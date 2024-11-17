@@ -48,9 +48,9 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      * Example usages of the URL command
      */
     examples: [
-        'PIPELINE URL https://promptbook.studio/library/write-cv.ptbk.md',
-        'URL https://promptbook.studio/library/write-cv.ptbk.md',
-        'https://promptbook.studio/library/write-cv.ptbk.md',
+        'PIPELINE URL https://promptbook.studio/library/write-cv.book.md',
+        'URL https://promptbook.studio/library/write-cv.book.md',
+        'https://promptbook.studio/library/write-cv.book.md',
     ],
 
     /**

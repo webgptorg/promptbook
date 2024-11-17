@@ -341,7 +341,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                 promptMessage: replaceParameters(template.description || '', parameters),
                                 defaultValue: replaceParameters(preparedContent, parameters),
 
-                                // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
+                                // TODO: [🧠] !! Figure out how to define placeholder in .book.md file
                                 placeholder: undefined,
                                 priority,
                             }),

@@ -22,7 +22,7 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Get single Pipeline
 const promptbook = await getPipelineCollection().getPipelineByUrl(
-    `https://promptbook.studio/my-collection/write-article.ptbk.md`,
+    `https://promptbook.studio/my-collection/write-article.book.md`,
 );
 
 // ▶ Create executor - the function that will execute the Pipeline
@@ -49,7 +49,7 @@ There is also a javascript and json format available.
 ## Prettify
 
 ```bash
-npx ptbk prettify promptbook/**/*.ptbk.md
+npx ptbk prettify promptbook/**/*.book.md
 ```
 
 This will prettify all promptbooks in `promptbook` directory and adds Mermaid graphs to them.

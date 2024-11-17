@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { postprocessCommandParser } from './postprocessCommandParser';
 
-describe('how POSTPROCESS command in .ptbk.md files works', () => {
+describe('how POSTPROCESS command in .book.md files works', () => {
     it('should parse POSTPROCESS command', () => {
         expect(parseCommand('Postprocess spaceTrim', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'POSTPROCESS',

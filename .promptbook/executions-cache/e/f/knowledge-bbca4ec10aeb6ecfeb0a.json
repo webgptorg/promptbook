@@ -3,7 +3,7 @@
     "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Pavol is passionate about open source and shares many of his projects on GitHub."
         },

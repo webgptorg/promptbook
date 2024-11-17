@@ -3,7 +3,7 @@
     "promptbookVersion": "0.72.0-25",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "I apologize, but there is no actual document or text provided after \"Take information from this document:\". Without any content to analyze, I cannot extract or summarize any information. If you would like me to extract important knowledge from a document, please provide the full text or content that you want me to work with."
         },

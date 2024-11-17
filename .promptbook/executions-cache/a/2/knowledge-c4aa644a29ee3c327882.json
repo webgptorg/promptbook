@@ -3,7 +3,7 @@
     "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nKorálky Katlas zaznamenaly zvýšený výskyt podvodné a zdraví škodlivé bižuterie na trhu v době ekonomické krize, kdy lidé více šetří. Zákazníci hlásí problémy a podvody s bižuterií jak v České republice, tak v zahraničí."
         },

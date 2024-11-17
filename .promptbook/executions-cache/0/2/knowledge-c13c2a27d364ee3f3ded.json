@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "He developed the WebGPT web page generation service. Prior to the widespread adoption of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks called H-edu, which were used by tens of thousands of children."
         },

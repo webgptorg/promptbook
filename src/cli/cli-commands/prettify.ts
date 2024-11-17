@@ -15,7 +15,7 @@ export function initializePrettifyCommand(program: Program) {
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`
-            Iterates over \`.ptbk.md\` files and does multiple enhancing operations on them:
+            Iterates over \`.book.md\` files and does multiple enhancing operations on them:
 
             1) Adds Mermaid graph
             2) Prettifies the markdown
@@ -35,7 +35,7 @@ export function initializePrettifyCommand(program: Program) {
         //                       <- TODO: [😶]
 
         for (const filename of filenames) {
-            if (!filename.endsWith('.ptbk.md') && isVerbose) {
+            if (!filename.endsWith('.book.md') && isVerbose) {
                 console.info(colors.gray(`Skipping ${filename}`));
                 continue;
             }

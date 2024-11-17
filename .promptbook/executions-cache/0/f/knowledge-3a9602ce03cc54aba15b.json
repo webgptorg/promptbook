@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "The main online article \"KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie\" focuses on the decline in the quality of metallic jewelry, providing important insights and advice for consumers to avoid counterfeit and hazardous products. This information is accessible through an embedded YouTube video."
         },

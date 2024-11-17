@@ -34,13 +34,13 @@ export type PipelineJson = {
      * Note: It must be unique across all pipeline collections
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
-     *      For example: https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md@1.0.0
+     *      For example: https://promptbook.studio/webgpt/write-website-content-cs.book.md@1.0.0
      * Warning: Do not hash part of the URL, hash part is used for identification of the template in the pipeline
      */
     readonly pipelineUrl?: string_pipeline_url;
 
     /**
-     * Internal helper for tracking the source `.ptbk.md` file of the pipeline
+     * Internal helper for tracking the source `.book.md` file of the pipeline
      */
     readonly sourceFile?: string_filename;
 

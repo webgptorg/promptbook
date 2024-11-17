@@ -14,7 +14,7 @@ describe('createCollectionFromDirectory', () => {
 
           Show how to use a simple prompt with no parameters.
 
-          -   PIPELINE URL https://promptbook.studio/examples/simple.ptbk.md
+          -   PIPELINE URL https://promptbook.studio/examples/simple.book.md
           -   OUTPUT PARAMETER \`{greetingResponse}\`
 
 
@@ -67,7 +67,7 @@ describe('createCollectionFromDirectory', () => {
             },
         );
         let pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/examples/simple.ptbk.md',
+            'https://promptbook.studio/examples/simple.book.md',
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
@@ -89,7 +89,7 @@ describe('createCollectionFromDirectory', () => {
             },
         );
         let pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/examples/simple.ptbk.md',
+            'https://promptbook.studio/examples/simple.book.md',
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
@@ -110,7 +110,7 @@ describe('createCollectionFromDirectory', () => {
             },
         );
         let pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/examples/jokers.ptbk.md',
+            'https://promptbook.studio/examples/jokers.book.md',
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
@@ -163,7 +163,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: false,
                 });
                 const pipelineFromCollection = await collection.getPipelineByUrl(
-                    'https://promptbook.studio/webgpt/write-website-content.ptbk.md',
+                    'https://promptbook.studio/webgpt/write-website-content.book.md',
                 );
                 return pipelineFromCollection.title;
             })(),

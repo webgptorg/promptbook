@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-8",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\nPavol is a developer specializing in creating functional user applications using the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI globally."
         },

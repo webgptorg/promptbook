@@ -7,23 +7,23 @@ import { unpreparePipeline } from './unpreparePipeline';
 
 describe('how isPipelinePrepared works', () => {
     it('should tell that pipeline is prepared', () => {
-        expect(isPipelinePrepared(importPipelineJson('25-simple-knowledge.ptbk.json'))).toBe(true);
-        expect(isPipelinePrepared(importPipelineJson('01-simple.ptbk.json'))).toBe(true);
+        expect(isPipelinePrepared(importPipelineJson('25-simple-knowledge.book.json'))).toBe(true);
+        expect(isPipelinePrepared(importPipelineJson('01-simple.book.json'))).toBe(true);
     });
 
     it('should tell that simple pipeline is always prepared', () => {
-        expect(isPipelinePrepared(unpreparePipeline(importPipelineJson('01-simple.ptbk.json')))).toBe(true);
+        expect(isPipelinePrepared(unpreparePipeline(importPipelineJson('01-simple.book.json')))).toBe(true);
         expect(
-            isPipelinePrepared(pipelineStringToJsonSync(importPipelineWithoutPreparation('01-simple.ptbk.md'))),
+            isPipelinePrepared(pipelineStringToJsonSync(importPipelineWithoutPreparation('01-simple.book.md'))),
         ).toBe(true);
         // Note: [🍫]
     });
 
     it('should tell that pipeline is NOT prepared', () => {
-        expect(isPipelinePrepared(unpreparePipeline(importPipelineJson('25-simple-knowledge.ptbk.json')))).toBe(false);
+        expect(isPipelinePrepared(unpreparePipeline(importPipelineJson('25-simple-knowledge.book.json')))).toBe(false);
         expect(
             isPipelinePrepared(
-                pipelineStringToJsonSync(importPipelineWithoutPreparation('25-simple-knowledge.ptbk.md')),
+                pipelineStringToJsonSync(importPipelineWithoutPreparation('25-simple-knowledge.book.md')),
             ),
         ).toBe(false);
     });

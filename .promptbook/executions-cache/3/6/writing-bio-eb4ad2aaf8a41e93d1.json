@@ -3,7 +3,7 @@
     "promptbookVersion": "0.74.0-5",
     "prompt": {
         "title": "Writing bio",
-        "pipelineUrl": "https://promptbook.studio/examples/simple-knowledge.ptbk.md#writing-bio",
+        "pipelineUrl": "https://promptbook.studio/examples/simple-knowledge.book.md#writing-bio",
         "parameters": {
             "knowledge": "- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---",
             "eventTitle": "sss",
@@ -23,9 +23,7 @@
                 "systemMessage": "You are an experienced HR professional with extensive experience in writing professional biographies. Your expertise lies in crafting compelling and concise bios that highlight an individual's key accomplishments, skills, and experiences. Provide helpful and insightful assistance in creating, refining, or reviewing professional bios for various purposes such as LinkedIn profiles, company websites, or speaker introductions.",
                 "temperature": 0.7
             },
-            "preparationIds": [
-                1
-            ],
+            "preparationIds": [1],
             "sentences": {
                 "min": 1
             }

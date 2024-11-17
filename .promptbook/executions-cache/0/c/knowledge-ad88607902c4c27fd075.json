@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nIn recent times of crisis, the market is increasingly flooded with fraudulent and harmful jewelry. Korálky Katlas has prepared a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components, based on customer feedback and reported issues from both the Czech Republic and abroad."
         },

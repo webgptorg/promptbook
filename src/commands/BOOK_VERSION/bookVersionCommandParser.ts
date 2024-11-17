@@ -31,7 +31,7 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
     /**
      * Description of the BOOK_VERSION command
      */
-    description: `Which version of the Book language is the .ptbk.md using`,
+    description: `Which version of the Book language is the .book.md using`,
 
     /**
      * Link to documentation

@@ -55,7 +55,7 @@ export async function promptbookCli(): Promise<void> {
 }
 
 /**
- * TODO: [🧠] Maybe `run` command the default, instead of `ptbk run ./foo.ptbk.md` -> `ptbk ./foo.ptbk.md`
+ * TODO: [🧠] Maybe `run` command the default, instead of `ptbk run ./foo.book.md` -> `ptbk ./foo.book.md`
  * TODO: [🥠] Do not export, its just for CLI script
  * TODO: [🕌] When more functionalities, rename
  * Note: 11:11

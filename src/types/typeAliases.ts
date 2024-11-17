@@ -360,14 +360,14 @@ export type string_base_url = string;
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md"`
  */
-export type string_pipeline_url = string; // <- TODO: `${string}.ptbk.md`
+export type string_pipeline_url = string; // <- TODO: `${string}.book.md`
 
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords"`
  */
 export type string_pipeline_url_with_hashtemplate = string;
 

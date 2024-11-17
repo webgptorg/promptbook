@@ -19,7 +19,7 @@
 -   [x] Use `spaceTrim` more effectively
 -   [ ] [🍓][🗯] Allow chats to be continued with previous message
 -   [ ] [🍓] Allow to set top_t and other model params
--   [ ] [🧠][🗯] How to mark continued chat in .ptbk.md format?
+-   [ ] [🧠][🗯] How to mark continued chat in .book.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🍓][🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 -   [x] Register .ptbk file extension
@@ -42,6 +42,6 @@
 -   [ ] [🎶] Naming "constructor" vs "creator" vs "factory"
 -   [ ] [🍓][🧠][🔛] Auto-translate of entire pipelines
 -   [ ] [🍓][♏] Maybe auto-add expectations as text of the prompt content
--   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.ptbk.md` should not struggle with this
+-   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.book.md` should not struggle with this
 -   [ ] [🍓][🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`
 -   [ ] [🍓] Across entire project pick one of "examples" vs "examples" (vs "snippets")

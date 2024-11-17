@@ -582,6 +582,7 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   No need to explicitly define the input and output parameters
 -   Allow empty pipelines
 -   Add `BlackholeStorage`
+-   Rename `.ptbk.*` -> `.book.*`
 -   Split `PROMPTBOOK_VERSION` -> `BOOK_LANGUAGE_VERSION` + `PROMPTBOOK_ENGINE_VERSION`
 -   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
 

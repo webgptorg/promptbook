@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nSimplicity in code and design is crucial for maintaining and understanding software over time. It involves writing clear, concise code that is easy to read and modify. This principle helps reduce complexity, making it easier for developers to work with the codebase and minimize errors."
         },

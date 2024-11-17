@@ -11,7 +11,7 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
 /**
  * Parses the boilerplate command
  *
- * Note: @@@ This command is used as boilerplate for new commands - it should NOT be used in any `.ptbk.md` file
+ * Note: @@@ This command is used as boilerplate for new commands - it should NOT be used in any `.book.md` file
  *
  * @see `documentationUrl` for more details
  * @private within the commands folder
@@ -78,7 +78,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     $applyToPipelineJson(command: BoilerplateCommand, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $pipelineJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 
@@ -94,7 +94,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     ): void {
         keepUnused(command, $templateJson, $pipelineJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 
@@ -116,7 +116,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused(pipelineJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 
@@ -128,7 +128,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused($templateJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 };

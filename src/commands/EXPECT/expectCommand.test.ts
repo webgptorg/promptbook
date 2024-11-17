@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { expectCommandParser } from './expectCommandParser';
 
-describe('how EXPECT command in .ptbk.md files works', () => {
+describe('how EXPECT command in .book.md files works', () => {
     it('should parse EXPECT command', () => {
         expect(parseCommand('Expect exactly 1 character', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'EXPECT',

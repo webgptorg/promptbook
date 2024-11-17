@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Achieving simplicity often requires more effort and thought than creating complex solutions. It involves carefully considering design choices and continuously refining code to remove unnecessary elements. The end result is code that is easier to debug, test, and maintain."
         },

@@ -33,7 +33,7 @@ const tools = {
 const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -69,7 +69,7 @@ const tools = await $provideExecutionToolsForNode();
 const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -137,7 +137,7 @@ const tools = {
 const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });

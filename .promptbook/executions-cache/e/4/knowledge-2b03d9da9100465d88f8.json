@@ -3,7 +3,7 @@
     "promptbookVersion": "0.61.0-10",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "content": "I'm sorry, but I don't see any document provided in the conversation yet. Could you please share the PDF or text document you would like me to extract important information from? Once you provide the document, I'll be happy to analyze it according to the rules you specified and present the key pieces of information in a clear, concise format separated by horizontal lines. Please send over the document whenever you're ready."
         },

@@ -5,7 +5,7 @@ import { importPipelineJsonAsString } from '../validation/_importPipeline';
 import { stringifyPipelineJson } from './stringifyPipelineJson';
 
 describe('how stringifyPipelineJson works', () => {
-    it('should work with markdown-knowledge.ptbk.json', () =>
+    it('should work with markdown-knowledge.book.json', () =>
         expect(
             stringifyPipelineJson({
                 index: [
@@ -30,8 +30,8 @@ describe('how stringifyPipelineJson works', () => {
             ) + '\n',
         ));
 
-    it('should work with markdown-knowledge.ptbk.json', () =>
-        expect(stringifyPipelineJson(importPipelineJson('26-markdown-knowledge.ptbk.json'))).toBe(
-            importPipelineJsonAsString('26-markdown-knowledge.ptbk.json'),
+    it('should work with markdown-knowledge.book.json', () =>
+        expect(stringifyPipelineJson(importPipelineJson('26-markdown-knowledge.book.json'))).toBe(
+            importPipelineJsonAsString('26-markdown-knowledge.book.json'),
         ));
 });
