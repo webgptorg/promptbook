@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import { PromptbookStorage } from '../_common/PromptbookStorage';
+import type { PromptbookStorage } from '../_common/PromptbookStorage';
 /**
  * This class behaves like LocalStorage but separates keys by prefix
  *

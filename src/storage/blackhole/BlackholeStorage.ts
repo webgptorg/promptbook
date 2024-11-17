@@ -1,5 +1,5 @@
 import { keepUnused } from '../../utils/organization/keepUnused';
-import { PromptbookStorage } from '../_common/PromptbookStorage';
+import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
  * Behaves like a storage but forgets everything you put in it
