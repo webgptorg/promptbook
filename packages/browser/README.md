@@ -4,10 +4,17 @@
 
 Build responsible, controlled and transparent applications on top of LLM models!
 
+
+
+
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
+
+
+
+
 
 ## ✨ New Features
 
@@ -15,14 +22,16 @@ Build responsible, controlled and transparent applications on top of LLM models!
 -   📚 Support of `.docx`, `.doc` and `.pdf` documents
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
+
+
 <blockquote style="color: #ff8811">
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
 </blockquote>
 
 ## 📦 Package `@promptbook/browser`
 
--   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
--   This package `@promptbook/browser` is one part of the promptbook ecosystem.
+- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+- This package `@promptbook/browser` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -36,7 +45,10 @@ npm install @promptbook/browser
 
 Core of the library for Browser runtime, it contains the main logic for promptbooks which uses browser-specific things like `localStorage`.
 
+
+
 > 💡 This package does not make sense on its own, look at [all promptbook packages](#-packages) or just install all by `npm i ptbk`
+
 
 ---
 
@@ -61,6 +73,11 @@ In all of these situations, but especially in 3., the **✨ Promptbook can make 
 -   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **[anomaly detection](https://github.com/webgptorg/promptbook/discussions/40) and logging** to help you find and fix the problems.
 -   Versioning is build in. You can test multiple **A/B versions** of pipelines and see which one works best.
 -   Promptbook is designed to use [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques to bring the context of your business to generic LLM. You can use **knowledge** to improve the quality of the output.
+
+
+
+
+
 
 ## 💜 The Promptbook Project
 
@@ -103,7 +120,12 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </tbody>
 </table>
 
+
+
 ## 💙 Book language _(for prompt-engineer)_
+
+
+
 
 ## 💙 The blueprint of book language
 
@@ -178,6 +200,8 @@ Todo todo
 
 ### Examples
 
+
+
 ## 📦 Packages _(for developers)_
 
 This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -201,7 +225,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
 -   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
@@ -213,6 +237,11 @@ Or you can install them separately:
 -   **[@promptbook/website-crawler](https://www.npmjs.com/package/@promptbook/website-crawler)** - Crawl knowledge from the web
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
+
+
+
+
+
 
 ## 📚 Dictionary
 
@@ -296,6 +325,8 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   Anonymous mode
 -   Application mode
 
+
+
 ## 🔌 Usage in Typescript / Javascript
 
 -   [Simple usage](./examples/usage/simple-script)
@@ -359,6 +390,9 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
+
+
+
 
 ## 🖋️ Contributing
 
