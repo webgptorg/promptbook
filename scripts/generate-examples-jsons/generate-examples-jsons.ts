@@ -101,7 +101,7 @@ async function generateExampleJsons({
             await forTime(1000000);
             /**/
 
-            const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.ptbk\.md$/, '.book.json');
+            const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.book\.md$/, '.book.json');
 
             // Note: We want to ensure that the generated JSONs are logically correct
             validatePipeline(pipelineJson);
