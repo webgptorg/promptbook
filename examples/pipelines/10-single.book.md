@@ -1,110 +1,52 @@
-{
-    "title": "✨ Example prompt",
-    "description": "Show how to use a simple prompt with one parameter.",
-    "parameters": [
-        {
-            "name": "wordSynonym",
-            "isInput": false,
-            "isOutput": true
-        },
-        {
-            "name": "word",
-            "isInput": true,
-            "isOutput": false
-        }
-    ],
-    "templates": [
-        {
-            "templateType": "PROMPT_TEMPLATE",
-            "name": "synonym",
-            "title": "💬 Synonym",
-            "description": "Synonym for word",
-            "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym",
-            "personaName": "Joe",
-            "expectations": {
-                "words": {
-                    "min": 1,
-                    "max": 5
-                }
-            },
-            "dependentParameterNames": [
-                "word"
-            ]
-        }
-    ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
-    "personas": [
-        {
-            "name": "Joe",
-            "description": "a linguist",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
-                "temperature": 0.6
-            },
-            "preparationIds": [
-                1
-            ]
-        }
-    ],
-    "preparations": [
-        {
-            "id": 1,
-            "promptbookVersion": "0.74.0-11",
-            "usage": {
-                "price": {
-                    "value": 0.004257
-                },
-                "input": {
-                    "tokensCount": {
-                        "value": 774
-                    },
-                    "charactersCount": {
-                        "value": 2561
-                    },
-                    "wordsCount": {
-                        "value": 414
-                    },
-                    "sentencesCount": {
-                        "value": 31
-                    },
-                    "linesCount": {
-                        "value": 55
-                    },
-                    "paragraphsCount": {
-                        "value": 20
-                    },
-                    "pagesCount": {
-                        "value": 7
-                    }
-                },
-                "output": {
-                    "tokensCount": {
-                        "value": 129
-                    },
-                    "charactersCount": {
-                        "value": 513
-                    },
-                    "wordsCount": {
-                        "value": 70
-                    },
-                    "sentencesCount": {
-                        "value": 6
-                    },
-                    "linesCount": {
-                        "value": 9
-                    },
-                    "paragraphsCount": {
-                        "value": 2
-                    },
-                    "pagesCount": {
-                        "value": 2
-                    }
-                }
-            }
-        }
-    ]
-}
+# ✨ Example prompt
+
+Show how to use a simple prompt with one parameter.
+
+<!--
+Note: No need to explicitly define the input and output parameters
+-   PIPELINE URL https://promptbook.studio/examples/single.book.md
+-   INPUT  PARAMETER `{word}` Any single word
+-   OUTPUT PARAMETER `{wordSynonym}`
+-->
+
+<!--Graph-->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Example prompt"
+
+      direction TB
+
+      input((Input)):::input
+      templateSynonym("💬 Synonym")
+      input--"{word}"-->templateSynonym
+
+      templateSynonym--"{wordSynonym}"-->output
+      output((Output)):::output
+
+      click templateSynonym href "#synonym" "💬 Synonym";
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
+## 💬 Synonym
+
+Synonym for word
+
+-   PERSONA Joe, a linguist
+-   EXPECT MIN 1 WORD <!-- <- TODO: [🧠] Allow expectations to be relative to "EXPECT MIN countWords({word})" or simpler "EXPECT +-20% OF {word}" -->
+-   EXPECT MAX 5 WORDS
+
+```text
+Write synonym for "{word}"
+```
+
+`-> {wordSynonym}`

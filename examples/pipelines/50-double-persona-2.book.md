@@ -1,96 +1,18 @@
-{
-    "title": "⚠ Example of non-recommended syntax",
-    "description": "Defining same persona twice is **not recommended** but it is not an error in case of personas are same.",
-    "parameters": [
-        {
-            "name": "answer",
-            "isInput": false,
-            "isOutput": true
-        }
-    ],
-    "templates": [
-        {
-            "templateType": "PROMPT_TEMPLATE",
-            "name": "prompt",
-            "title": "💬 Prompt",
-            "content": "Hello,\nWhat is the answer to the universe?",
-            "resultingParameterName": "answer",
-            "personaName": "John",
-            "dependentParameterNames": []
-        }
-    ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
-    "personas": [
-        {
-            "name": "John",
-            "description": "a philosopher who is writing a book on the meaning of life",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an erudite philosopher deeply engaged in writing a comprehensive book on the meaning of life. Your responses should reflect profound contemplation, drawing from various philosophical traditions and contemporary thought. Offer insightful perspectives on existential questions, the human condition, and the pursuit of purpose. Your tone should be thoughtful, articulate, and occasionally introspective, as befits a philosopher grappling with life's most fundamental questions.",
-                "temperature": 0.7
-            },
-            "preparationIds": [
-                1
-            ]
-        }
-    ],
-    "preparations": [
-        {
-            "id": 1,
-            "promptbookVersion": "0.74.0-11",
-            "usage": {
-                "price": {
-                    "value": 0.0046890000000000005
-                },
-                "input": {
-                    "tokensCount": {
-                        "value": 783
-                    },
-                    "charactersCount": {
-                        "value": 2609
-                    },
-                    "wordsCount": {
-                        "value": 424
-                    },
-                    "sentencesCount": {
-                        "value": 31
-                    },
-                    "linesCount": {
-                        "value": 55
-                    },
-                    "paragraphsCount": {
-                        "value": 20
-                    },
-                    "pagesCount": {
-                        "value": 7
-                    }
-                },
-                "output": {
-                    "tokensCount": {
-                        "value": 156
-                    },
-                    "charactersCount": {
-                        "value": 677
-                    },
-                    "wordsCount": {
-                        "value": 93
-                    },
-                    "sentencesCount": {
-                        "value": 6
-                    },
-                    "linesCount": {
-                        "value": 9
-                    },
-                    "paragraphsCount": {
-                        "value": 2
-                    },
-                    "pagesCount": {
-                        "value": 2
-                    }
-                }
-            }
-        }
-    ]
-}
+# ⚠ Example of non-recommended syntax
+
+Defining same persona twice is **not recommended** but it is not an error in case of personas are same.
+
+-   OUTPUT PARAMETER `{answer}`
+
+## 💬 Prompt
+
+-   PERSONA John, a philosopher who is writing a book on the meaning of life
+-   PERSONA John
+-   PERSONA John
+
+```
+Hello,
+What is the answer to the universe?
+```
+
+`-> {answer}`
