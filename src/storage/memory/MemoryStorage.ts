@@ -1,7 +1,7 @@
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
- * Stores
+ * Stores data in memory (HEAP)
  *
  * @public exported from `@promptbook/core`
  */

@@ -1,7 +1,12 @@
-/* tslint:disable:no-empty */
-import { PromptbookStorage } from '../interfaces/PromptbookStorage';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import { PromptbookStorage } from '../_common/PromptbookStorage';
 
-export class BlackholeStorage implements PromptbookStorage<any> {
+/**
+ * Behaves like a storage but forgets everything you put in it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export class BlackholeStorage<TItem> implements PromptbookStorage<TItem> {
     /**
      * Returns the number of key/value pairs currently present in the list associated with the object.
      */
@@ -19,6 +24,7 @@ export class BlackholeStorage implements PromptbookStorage<any> {
      * @param key
      */
     public getItem(key: string): null {
+        keepUnused(key);
         return null;
     }
 
@@ -26,19 +32,23 @@ export class BlackholeStorage implements PromptbookStorage<any> {
      * Returns the name of the nth key in the list, or null if n is greater than or equal to the number of key/value pairs in the object.
      */
     public key(index: number): null {
+        keepUnused(index);
         return null;
     }
 
     /**
      * Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
      */
-    public setItem(key: string, value: any): void {}
+    public setItem(key: string, value: TItem): void {
+        keepUnused(key, value);
+    }
 
     /**
-    * Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists.
-    */
-    public removeItem(key: string): void {}
+     * Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists.
+     */
+    public removeItem(key: string): void {
+        keepUnused(key);
+    }
 }
 
-export const blackholeStorage = new BlackholeStorage(
-);
+export const blackholeStorage = new BlackholeStorage();
