@@ -7,20 +7,20 @@ describe('how BOOK_VERSION command in .ptbk.md files works', () => {
     it('should parse BOOK_VERSION command', () => {
         expect(parseCommand('promptbook version 0.62.0', 'PIPELINE_HEAD')).toEqual({
             type: 'BOOK_VERSION',
-            promptbookVersion: '0.62.0',
+            bookVersion: '0.62.0',
         });
         expect(parseCommand('PTBK version 0.62.0', 'PIPELINE_HEAD')).toEqual({
             type: 'BOOK_VERSION',
-            promptbookVersion: '0.62.0',
+            bookVersion: '0.62.0',
         });
 
         expect(parseCommand('PTBK version 0.62.0', 'PIPELINE_HEAD')).toEqual({
             type: 'BOOK_VERSION',
-            promptbookVersion: '0.62.0',
+            bookVersion: '0.62.0',
         });
         expect(parseCommand(`PROMPTBOOK version ${BOOK_LANGUAGE_VERSION}`, 'PIPELINE_HEAD')).toEqual({
             type: 'BOOK_VERSION',
-            promptbookVersion: BOOK_LANGUAGE_VERSION,
+            bookVersion: BOOK_LANGUAGE_VERSION,
         });
     });
 
