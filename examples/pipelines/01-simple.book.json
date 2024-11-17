@@ -7,7 +7,11 @@
             "name": "greetingResponse",
             "isInput": false,
             "isOutput": true,
-            "exampleValues": ["Hello, how are you?", "Dear Sir, how may I help you?", "Hey, what's up?"]
+            "exampleValues": [
+                "Hello, how are you?",
+                "Dear Sir, how may I help you?",
+                "Hey, what's up?"
+            ]
         }
     ],
     "templates": [

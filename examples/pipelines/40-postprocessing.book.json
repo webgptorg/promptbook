@@ -8,7 +8,10 @@
             "description": "Any single word",
             "isInput": true,
             "isOutput": false,
-            "exampleValues": ["Happy", "Apple"]
+            "exampleValues": [
+                "Happy",
+                "Apple"
+            ]
         },
         {
             "name": "sentence",
@@ -24,7 +27,10 @@
             "name": "wordSynonym",
             "isInput": false,
             "isOutput": false,
-            "exampleValues": ["Joyful", "Fruit"]
+            "exampleValues": [
+                "Joyful",
+                "Fruit"
+            ]
         }
     ],
     "templates": [
@@ -35,8 +41,12 @@
             "description": "Synonym for word",
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym",
-            "postprocessingFunctionNames": ["unwrapResult"],
-            "dependentParameterNames": ["word"]
+            "postprocessingFunctionNames": [
+                "unwrapResult"
+            ],
+            "dependentParameterNames": [
+                "word"
+            ]
         },
         {
             "templateType": "PROMPT_TEMPLATE",
@@ -45,8 +55,14 @@
             "description": "Sentence with word and wordSynonym",
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentence",
-            "postprocessingFunctionNames": ["unwrapResult", "spaceTrim"],
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "postprocessingFunctionNames": [
+                "unwrapResult",
+                "spaceTrim"
+            ],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         }
     ],
     "knowledgeSources": [],
