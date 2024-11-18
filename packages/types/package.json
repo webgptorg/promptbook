@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/types",
-    "version": "0.74.0-12",
+    "version": "0.74.0-13",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -51,6 +51,6 @@
     ],
     "typings": "./esm/typings/src/_packages/types.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.74.0-12"
+        "@promptbook/core": "0.74.0-13"
     }
 }
