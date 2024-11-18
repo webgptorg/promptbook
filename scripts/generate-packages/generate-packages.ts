@@ -455,7 +455,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             // <- Note: [🧃] Using only `dependencies` (not `devDependencies`)
         }
 
-        if (packageFullname === '@promptbook/cli' || packageFullname === 'ptbk') {
+        if (packageFullname === '@promptbook/cli') {
             packageJson.bin = {
                 promptbook: 'bin/promptbook-cli.js',
                 ptbk: 'bin/promptbook-cli.js',
