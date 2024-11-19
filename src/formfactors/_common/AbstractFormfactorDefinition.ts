@@ -1,7 +1,6 @@
+import { PipelineInterface } from '../../_packages/types.index';
+import type { string_markdown_text, string_name, string_promptbook_documentation_url } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../types/typeAliases';
 
 /**
  * @@@
@@ -31,4 +30,9 @@ export type AbstractFormfactorDefinition = {
      * @@@
      */
     readonly documentationUrl: string_promptbook_documentation_url;
+
+    /**
+     * @@@
+     */
+    readonly pipelineInterface: PipelineInterface;
 };
