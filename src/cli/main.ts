@@ -1,13 +1,17 @@
 import { promptbookCli } from './promptbookCli';
 
 /**
+ * Note: [🔺] Purpose of this file is to export CLI for production environment
+ */
+
+/**
  * Hidden utilities which should not be used by external consumers.
  *
  * @public exported from `@promptbook/cli`
  */
 export const _CLI = {
     // Note: [🥠]
-    _initialize: promptbookCli,
+    _initialize_promptbookCli: promptbookCli,
 };
 
 /**

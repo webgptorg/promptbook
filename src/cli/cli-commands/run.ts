@@ -182,9 +182,9 @@ export function initializeRunCommand(program: Program) {
             pipeline,
             tools,
             isNotPreparedWarningSupressed: true,
-            maxExecutionAttempts: 3, // <- TODO: !!!!!! Pass
-            //                          <- TODO: !!!!!! Why "LLM execution failed undefinedx"
-            maxParallelCount: 1, // <- TODO: !!!!!! Pass
+            maxExecutionAttempts: 3, // <- TODO: Pass via CLI argument
+            //                          <- TODO: Why "LLM execution failed undefinedx"
+            maxParallelCount: 1, // <- TODO: Pass CLI argument
         });
 
         if (isVerbose) {
@@ -292,7 +292,7 @@ export function initializeRunCommand(program: Program) {
 }
 
 /**
- * TODO: !!!!!! Catch and wrap all errors from CLI
+ * TODO: !!!!! Catch and wrap all errors from CLI
  * TODO: [🧠] Pass `maxExecutionAttempts`, `csvSettings`
  * TODO: [🥃][main] !!! Allow `ptbk run` without configuring any llm tools
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
