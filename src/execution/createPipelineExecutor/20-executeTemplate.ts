@@ -146,7 +146,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
-                        Parameter {${parameterName}} is NOT defined
+                        Parameter \`{${parameterName}}\` is NOT defined
                         BUT used in template "${currentTemplate.title || currentTemplate.name}"
 
                         This should be catched in \`validatePipeline\`

@@ -1,11 +1,8 @@
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../../config';
-import { RESERVED_PARAMETER_RESTRICTED } from '../../config';
+import { LOOP_LIMIT, RESERVED_PARAMETER_MISSING_VALUE, RESERVED_PARAMETER_RESTRICTED } from '../../config';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_template } from '../../types/typeAliases';
+import type { Parameters, string_template } from '../../types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object
@@ -19,10 +16,10 @@ import type { string_template } from '../../types/typeAliases';
 export function replaceParameters(template: string_template, parameters: Parameters): string {
     for (const [parameterName, parameterValue] of Object.entries(parameters)) {
         if (parameterValue === RESERVED_PARAMETER_MISSING_VALUE) {
-            throw new UnexpectedError(`Parameter {${parameterName}} has missing value`);
+            throw new UnexpectedError(`Parameter \`{${parameterName}}\` has missing value`);
         } else if (parameterValue === RESERVED_PARAMETER_RESTRICTED) {
             // TODO: [🍵]
-            throw new UnexpectedError(`Parameter {${parameterName}} is restricted to use`);
+            throw new UnexpectedError(`Parameter \`{${parameterName}}\` is restricted to use`);
         }
     }
 
@@ -51,13 +48,13 @@ export function replaceParameters(template: string_template, parameters: Paramet
         }
 
         if ((parameters as Parameters)[parameterName] === undefined) {
-            throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);
+            throw new PipelineExecutionError(`Parameter \`{${parameterName}}\` is not defined`);
         }
 
         let parameterValue = (parameters as Parameters)[parameterName];
 
         if (parameterValue === undefined) {
-            throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);
+            throw new PipelineExecutionError(`Parameter \`{${parameterName}}\` is not defined`);
         }
 
         parameterValue = parameterValue.toString();

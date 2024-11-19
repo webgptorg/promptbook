@@ -141,7 +141,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
                 spaceTrim(
                     (block) => `
 
-                        Parameter {${parameter.name}} can not be both input and output
+                        Parameter \`{${parameter.name}}\` can not be both input and output
 
                         ${block(pipelineIdentification)}
                     `,
@@ -159,7 +159,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             throw new PipelineLogicError(
                 spaceTrim(
                     (block) => `
-                        Parameter {${parameter.name}} is created but not used
+                        Parameter \`{${parameter.name}}\` is created but not used
 
                         You can declare {${parameter.name}} as output parameter by adding in the header:
                         - OUTPUT PARAMETER \`{${parameter.name}}\` ${parameter.description || ''}
@@ -180,11 +180,11 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             throw new PipelineLogicError(
                 spaceTrim(
                     (block) => `
-                        Parameter {${parameter.name}} is declared but not defined
+                        Parameter \`{${parameter.name}}\` is declared but not defined
 
                         You can do one of these:
-                        1) Remove declaration of {${parameter.name}}
-                        2) Add template that results in -> {${parameter.name}}
+                        1) Remove declaration of \`{${parameter.name}}\`
+                        2) Add template that results in \`-> {${parameter.name}}\`
 
                         ${block(pipelineIdentification)}
                     `,
@@ -205,7 +205,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             throw new PipelineLogicError(
                 spaceTrim(
                     (block) => `
-                        Parameter {${template.resultingParameterName}} is defined multiple times
+                        Parameter \`{${template.resultingParameterName}}\` is defined multiple times
 
                         ${block(pipelineIdentification)}
                     `,
@@ -254,7 +254,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
                     throw new PipelineLogicError(
                         spaceTrim(
                             (block) => `
-                                Parameter {${joker}} is used for {${
+                                Parameter \`{${joker}}\` is used for {${
                                 template.resultingParameterName
                             }} as joker but not in \`dependentParameterNames\`
 
@@ -359,15 +359,15 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
                             unresovedTemplates
                                 .map(
                                     ({ resultingParameterName, dependentParameterNames }) =>
-                                        `- Parameter {${resultingParameterName}} which depends on ${dependentParameterNames
-                                            .map((dependentParameterName) => `{${dependentParameterName}}`)
+                                        `- Parameter \`{${resultingParameterName}}\` which depends on ${dependentParameterNames
+                                            .map((dependentParameterName) => `\`{${dependentParameterName}}\``)
                                             .join(' and ')}`,
                                 )
                                 .join('\n'),
                         )}
 
                         Resolved:
-                        ${block(resovedParameters.map((name) => `- Parameter {${name}}`).join('\n'))}
+                        ${block(resovedParameters.map((name) => `- Parameter \`{${name}}\``).join('\n'))}
 
 
                     `,

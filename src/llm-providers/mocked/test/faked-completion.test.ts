@@ -21,7 +21,7 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example co
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [/Parameter {thing} is required as an input parameter/i],
+            errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {
                 title: 'Example prompt',
                 description: 'Show how to use a simple completion prompt',

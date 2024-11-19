@@ -39,7 +39,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
             errors: [
                 new PipelineExecutionError(
                     spaceTrim(`
-                        Parameter {thing} is not defined
+                        Parameter `{thing}` is not defined
 
                         This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
 

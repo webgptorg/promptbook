@@ -1,10 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { DEFAULT_IS_VERBOSE, IMMEDIATE_TIME, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -13,8 +10,7 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { Parameters, string_name } from '../../types/typeAliases';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
@@ -123,7 +119,9 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 {
                     isSuccessful: false,
                     errors: [
-                        new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
+                        new PipelineExecutionError(
+                            `Parameter \`{${parameter.name}}\` is required as an input parameter`,
+                        ),
                         ...errors,
                     ].map(serializeError),
                     warnings: [],
@@ -177,7 +175,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         new PipelineExecutionError(
                             spaceTrim(
                                 (block) => `
-                                    Parameter {${parameter.name}} is passed as input parameter but it is not input
+                                    Parameter \`{${parameter.name}}\` is passed as input parameter but it is not input
 
                                     ${block(pipelineIdentification)}
                                 `,
@@ -239,15 +237,15 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                                 unresovedTemplates
                                     .map(
                                         ({ resultingParameterName, dependentParameterNames }) =>
-                                            `- Parameter {${resultingParameterName}} which depends on ${dependentParameterNames
-                                                .map((dependentParameterName) => `{${dependentParameterName}}`)
+                                            `- Parameter \`{${resultingParameterName}}\` which depends on ${dependentParameterNames
+                                                .map((dependentParameterName) => `\`{${dependentParameterName}}\``)
                                                 .join(' and ')}`,
                                     )
                                     .join('\n'),
                             )}
 
                             Resolved:
-                            ${block(resovedParameterNames.map((name) => `- Parameter {${name}}`).join('\n'))}
+                            ${block(resovedParameterNames.map((name) => `- Parameter \`{${name}}\``).join('\n'))}
 
                             Note: This should be catched in \`validatePipeline\`
                         `,

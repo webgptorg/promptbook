@@ -214,7 +214,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 /*
                 Note: Remapping error
                       From: [PipelineUrlError: thing is not defined],
-                      To:   [PipelineExecutionError: Parameter {thing} is not defined],
+                      To:   [PipelineExecutionError: Parameter `{thing}` is not defined],
                 */
 
                 if (!statementToEvaluate.includes(undefinedName + '(')) {
@@ -222,7 +222,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                         _spaceTrim(
                             (block) => `
 
-                                Parameter {${undefinedName}} is not defined
+                                Parameter \`{${undefinedName}}\` is not defined
 
                                 This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
 

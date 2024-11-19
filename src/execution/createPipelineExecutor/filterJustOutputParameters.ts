@@ -50,9 +50,9 @@ export function filterJustOutputParameters(options: FilterJustOutputParametersOp
                 new PipelineExecutionError(
                     spaceTrim(
                         (block) => `
-                            Parameter {${
+                            Parameter \`{${
                                 parameter.name
-                            }} should be an output parameter, but it was not generated during pipeline execution
+                            }}\` should be an output parameter, but it was not generated during pipeline execution
 
                             ${block(pipelineIdentification)}
                         `,
