@@ -76,12 +76,11 @@ export function initializeRunCommand(program: Program) {
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
 
         let filePath: string_filename | null = null;
-        const filePathCandidates = [
-            filePathRaw,
-            `${filePathRaw}.md`,
-            `${filePathRaw}.book.md`,
-            `${filePathRaw}.book.md`,
-        ];
+        let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book.md`, `${filePathRaw}.book.md`];
+        filePathCandidates = [...filePathCandidates, ...filePathCandidates.map((path) => path.split('\\').join('/'))];
+        //                       <- Note: This line is to work with Windows paths
+        //                                File "C:Usersmeworkaihello-worldbookshello.book.md" does not exist
+        //                                @see https://collboard.fra1.cdn.digitaloceanspaces.com/usercontent/education/image/png/1/2/ad/image.png
 
         for (const filePathCandidate of filePathCandidates) {
             if (
