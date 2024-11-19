@@ -33,7 +33,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         commands.push(`BOOK VERSION ${bookVersion}`);
     }
 
-    // TODO: [main] !!!!!! This increase size of the bundle and is probbably not necessary
+    // TODO: [main] !!!!! This increases size of the bundle and is probbably not necessary
     pipelineString = prettifyMarkdown(pipelineString);
 
     for (const parameter of parameters.filter(({ isInput }) => isInput)) {

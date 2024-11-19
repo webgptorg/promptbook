@@ -1,4 +1,4 @@
-TODO: [🎦] !!!!!! Better organize the samples
+TODO: [🎦] Better organize the samples across multiple repositories
 TODO: [🍓] Standardize emojis above titles and subtitles in example pipelines
 TODO: [🍓] Standardize block types ``` vs ```text vs ```markdown in example pipelines
 TODO: [Ж] Test personas with weird non-latin names

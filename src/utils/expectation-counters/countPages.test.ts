@@ -73,9 +73,10 @@ describe('countPages', () => {
         expect(countPages(ONE_PAGE_OF_LINES)).toBe(1);
         expect(countPages(ONE_PAGE_OF_CHARACTERS)).toBe(1);
         expect(countPages(ONE_PAGE_OF_LINES + '-')).toBe(1);
-        // TODO: [🌁]> expect(countPages(ONE_PAGE_OF_LINES + 'aaaaaaaaaaaaaaa')).toBe(2);
-        // TODO: [🌁] What about line that wraps on last line
-        //     > expect(countPages(ONE_PAGE_OF_LINES + 'a'.repeat(150))).toBe(2);
+        expect(countPages(ONE_PAGE_OF_LINES + 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')).toBe(
+            2,
+        );
+        expect(countPages(ONE_PAGE_OF_LINES + 'a'.repeat(150))).toBe(2);
     });
 
     it('should return two pages', () => {
@@ -105,8 +106,6 @@ describe('countPages', () => {
         expect(countPages(ONE_PAGE_OF_LINES + ONE_PAGE_OF_CHARACTERS + ONE_PAGE_OF_CHARACTERS)).toBe(3);
         expect(countPages(ONE_PAGE_OF_CHARACTERS + ONE_PAGE_OF_CHARACTERS + '-')).toBe(3);
 
-        /*
-        TODO: [🌁] Mixing
         expect(
             countPages(
                 ONE_PAGE_OF_CHARACTERS +
@@ -121,6 +120,5 @@ describe('countPages', () => {
                     ONE_PAGE_OF_LINES,
             ),
         ).toBe(10);
-        */
     });
 });

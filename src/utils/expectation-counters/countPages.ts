@@ -1,19 +1,14 @@
 import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
-import { countCharacters } from './countCharacters';
+import { LINES_PER_STANDARD_PAGE } from './config';
 import { countLines } from './countLines';
 
 /**
  * Counts number of pages in the text
  *
+ * Note: This does not check only for the count of newlines, but also for the length of the standard line and length of the standard page.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function countPages(text: string): ExpectationAmount {
-    if (text === '') {
-        return 0;
-    }
-
-    const pagesByLinesCount = Math.ceil(countLines(text) / 44);
-    const pagesByCharactersCount = Math.ceil(countCharacters(text) / 2772);
-
-    return Math.max(pagesByLinesCount, pagesByCharactersCount);
+    return Math.ceil(countLines(text) / LINES_PER_STANDARD_PAGE);
 }

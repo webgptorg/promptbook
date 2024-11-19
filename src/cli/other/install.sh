@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Note: [🎺] !!!!!!
+# TODO: [🎺] This is a draft of installer script
 
 cd /usr/bin
 
