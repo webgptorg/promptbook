@@ -1,3 +1,5 @@
+import type { WritableDeep } from 'type-fest';
+import { $deepFreeze } from '../../_packages/utils.index';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineInterface } from './PipelineInterface';
 
@@ -10,7 +12,7 @@ export function getPipelineInterface(
     pipeline: PipelineJson,
     // <- TODO: ...pipelines: Array<PipelineJson>
 ): PipelineInterface {
-    const pipelineInterface: PipelineInterface = {
+    const pipelineInterface: WritableDeep<PipelineInterface> = {
         inputParameterNames: [],
         outputParameterNames: [],
     };
@@ -31,7 +33,7 @@ export function getPipelineInterface(
         pipelineInterface[key].sort((a, b) => a.localeCompare(b));
     }
 
-    return Object.freeze(pipelineInterface);
+    return $deepFreeze(pipelineInterface);
 }
 
 /**

@@ -9,14 +9,14 @@ export type PipelineInterface = {
      *
      * Note: Sorted alphabetically
      */
-    inputParameterNames: Array<string_parameter_name>;
+    readonly inputParameterNames: ReadonlyArray<string_parameter_name>;
 
     /**
      * @@@
      *
      * Note: Sorted alphabetically
      */
-    outputParameterNames: Array<string_parameter_name>;
+    readonly outputParameterNames: ReadonlyArray<string_parameter_name>;
 };
 
 /**
