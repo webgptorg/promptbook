@@ -2,6 +2,8 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/core`
  */
 export const ChatFormfactorDefinition = {
     name: 'CHAT',
