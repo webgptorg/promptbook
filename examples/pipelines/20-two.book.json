@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/two.book.md",
     "title": "✨ Example prompt with two consecutive prompts",
     "description": "Show how to use two consecutive prompts with one parameter each.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",

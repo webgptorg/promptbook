@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/foreach-list.book.md",
     "title": "✨ Write greeting for each customer",
     "description": "Show how to iterate over a list of customers and write a greeting for each.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "customers",

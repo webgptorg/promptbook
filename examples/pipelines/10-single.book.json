@@ -1,6 +1,7 @@
 {
     "title": "✨ Example prompt",
     "description": "Show how to use a simple prompt with one parameter.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "wordSynonym",

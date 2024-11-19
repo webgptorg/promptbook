@@ -2,6 +2,7 @@
     "title": "✨ Example of escaping",
     "pipelineUrl": "https://promptbook.studio/examples/escaping.book.md",
     "description": "Show how to put codeblocks in the prompt _(which is already in the codeblock)_",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "greeting1",

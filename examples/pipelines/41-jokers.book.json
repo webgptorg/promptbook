@@ -1,6 +1,7 @@
 {
     "title": "✨ Example: Jokers",
     "pipelineUrl": "https://promptbook.studio/examples/jokers.book.md",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "name1",

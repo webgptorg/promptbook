@@ -1,6 +1,7 @@
 {
     "title": "✨ Example: Expectations",
     "pipelineUrl": "https://promptbook.studio/examples/expectations.book.md",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "yourName",

@@ -2,6 +2,7 @@
     "title": "✨ Example: Postprocessing 1",
     "pipelineUrl": "https://promptbook.studio/examples/postprocessing-1.book.md",
     "description": "Show how to use two consecutive prompts with one parameter each.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",

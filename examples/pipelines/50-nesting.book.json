@@ -2,6 +2,7 @@
     "title": "✨ Example: Nesting",
     "pipelineUrl": "https://promptbook.studio/examples/nesting.book.md",
     "description": "How block are nested in the promptbook",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",

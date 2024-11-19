@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/advanced.book.md",
     "title": "✨ Example: Language Capabilities",
     "description": "Trying the language capabilities of GPT models.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",

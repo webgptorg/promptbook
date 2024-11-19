@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md",
     "title": "✨ Write email for each customer",
     "description": "Show how to iterate over a table of customers and write an email for each.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "customers",

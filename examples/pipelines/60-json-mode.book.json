@@ -2,6 +2,7 @@
     "title": "✨ Example: JSON mode",
     "pipelineUrl": "https://promptbook.studio/examples/json-mode.book.md",
     "description": "Trying the language capabilities of GPT models.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "unstructuredContacts",

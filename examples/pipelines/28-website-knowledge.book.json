@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/website-knowledge.book.md",
     "title": "✨ Example: Knowledge in external website",
     "description": "Show how to use knowledge",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "eventTitle",

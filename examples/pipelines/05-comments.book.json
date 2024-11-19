@@ -2,6 +2,7 @@
     "title": "✨ Example prompt with comments",
     "pipelineUrl": "https://promptbook.studio/examples/comments.book.md",
     "description": "Show how to use a simple prompt with no parameters and comments that should be ignored.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "greeting",

@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/simple-knowledge.book.md",
     "title": "✨ Example: Simple Knowledge",
     "description": "Show how to use knowledge",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "eventTitle",

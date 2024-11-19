@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/picking-model.book.md",
     "title": "✨ Pick the model",
     "description": "Show how to pick exact model",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",

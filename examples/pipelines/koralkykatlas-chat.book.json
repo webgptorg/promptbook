@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/koralkykatlas-chat.book.md",
     "title": "✨ Chat for KorarkyKatlas.cz",
     "description": "Show how to use a simple prompt with no parameters.",
+    "formfactorName": "GENERIC",
     "parameters": [],
     "templates": [],
     "knowledgeSources": [

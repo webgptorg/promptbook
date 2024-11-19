@@ -1,6 +1,7 @@
 {
     "title": "⚠ Example of non-recommended syntax",
     "description": "Defining same persona twice is **not recommended** but it is not an error in case of personas are same.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "answer",

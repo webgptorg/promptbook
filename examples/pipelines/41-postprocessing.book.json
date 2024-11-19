@@ -1,6 +1,7 @@
 {
     "title": "✨ Example: Postprocessing 2",
     "pipelineUrl": "https://promptbook.studio/examples/postprocessing-2.book.md",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "yourName",
