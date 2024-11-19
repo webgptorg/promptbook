@@ -354,7 +354,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
 
                         ${block(pipelineIdentification)}
 
-                        Can not resolve:
+                        **Can not resolve:**
                         ${block(
                             unresovedTemplates
                                 .map(
@@ -366,8 +366,27 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
                                 .join('\n'),
                         )}
 
-                        Resolved:
-                        ${block(resovedParameters.map((name) => `- Parameter \`{${name}}\``).join('\n'))}
+                        **Resolved:**
+                        ${block(
+                            resovedParameters
+                                .filter(
+                                    (name) =>
+                                        !RESERVED_PARAMETER_NAMES.includes(name as string_reserved_parameter_name),
+                                )
+                                .map((name) => `- Parameter \`{${name}}\``)
+                                .join('\n'),
+                        )}
+
+
+                        **Reserved (which are available):**
+                        ${block(
+                            resovedParameters
+                                .filter((name) =>
+                                    RESERVED_PARAMETER_NAMES.includes(name as string_reserved_parameter_name),
+                                )
+                                .map((name) => `- Parameter \`{${name}}\``)
+                                .join('\n'),
+                        )}
 
 
                     `,

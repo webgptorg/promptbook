@@ -10,7 +10,7 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters, string_name } from '../../types/typeAliases';
+import type { Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
@@ -232,7 +232,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
                             ${block(pipelineIdentification)}
 
-                            Can not resolve:
+                            **Can not resolve:**
                             ${block(
                                 unresovedTemplates
                                     .map(
@@ -244,10 +244,28 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                                     .join('\n'),
                             )}
 
-                            Resolved:
-                            ${block(resovedParameterNames.map((name) => `- Parameter \`{${name}}\``).join('\n'))}
+                            **Resolved:**
+                            ${block(
+                                resovedParameterNames
+                                    .filter(
+                                        (name) =>
+                                            !RESERVED_PARAMETER_NAMES.includes(name as string_reserved_parameter_name),
+                                    )
+                                    .map((name) => `- Parameter \`{${name}}\``)
+                                    .join('\n'),
+                            )}
 
-                            Note: This should be catched in \`validatePipeline\`
+                            **Reserved (which are available):**
+                            ${block(
+                                resovedParameterNames
+                                    .filter((name) =>
+                                        RESERVED_PARAMETER_NAMES.includes(name as string_reserved_parameter_name),
+                                    )
+                                    .map((name) => `- Parameter \`{${name}}\``)
+                                    .join('\n'),
+                            )}
+
+                            *Note: This should be catched in \`validatePipeline\`*
                         `,
                     ),
                 );
