@@ -1,5 +1,5 @@
 import type { WritableDeep } from 'type-fest';
-import { $deepFreeze } from '../../_packages/utils.index';
+import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineInterface } from './PipelineInterface';
 

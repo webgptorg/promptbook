@@ -1,4 +1,4 @@
-import type { FORMFACTOR_DEFINITIONS } from '../index';
+import { FORMFACTOR_DEFINITIONS } from '../index';
 //       <- TODO: !!!!!! Keep type import
 
 /**
