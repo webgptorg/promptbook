@@ -586,6 +586,14 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   Split `PROMPTBOOK_VERSION` -> `BOOK_LANGUAGE_VERSION` + `PROMPTBOOK_ENGINE_VERSION`
 -   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
 
+### `0.75.0` _(2024-11-)_
+
+Formfactors
+
+-   Add `FormfactorCommand`
+-   Add Pipeline interfaces
+-   Reorganize `/src` folder
+
 ## Drafts
 
 ### `0..0` _(2024-0-)_

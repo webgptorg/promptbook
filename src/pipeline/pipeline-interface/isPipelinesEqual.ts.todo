@@ -1,0 +1,22 @@
+import { PipelineJson } from '@promptbook/types';
+import { getPipelineInterface } from './getPipelineInterface';
+import { isPipelineInterfacesEqual } from './isPipelineInterfacesEqual';
+
+/**
+ * @@@
+ *
+ * @param pipelines @@@
+ */
+export function isPipelinesEqual(
+    pipeline1: PipelineJson,
+    pipeline2: PipelineJson,
+    // <- TODO: ...pipelines: Array<PipelineJson>
+): boolean {
+    return isPipelineInterfacesEqual(getPipelineInterface(pipeline1), getPipelineInterface(pipeline2));
+}
+
+/**
+ * TODO: [🔼] !!! Transfer to promptbook
+ * TODO: !!! Write unit test
+ * TODO: [🧠][🐽] Maybe instead> comparePipelines(pipeline1,pipeline2)
+ */
