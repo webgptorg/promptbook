@@ -9,6 +9,7 @@ describe('how renameParameter works', () => {
                     title: '✨ Example prompt',
                     bookVersion: '1.0.0',
                     description: 'Show how to use a simple prompt with no parameters.',
+                    formfactorName: 'GENERIC',
                     parameters: [
                         {
                             name: 'greet',
@@ -43,6 +44,7 @@ describe('how renameParameter works', () => {
                 title: '✨ Example prompt',
                 bookVersion: '1.0.0',
                 description: 'Show how to use a simple prompt with no parameters.',
+                formfactorName: 'GENERIC',
                 parameters: [
                     {
                         name: 'greeting',
@@ -79,6 +81,7 @@ describe('how renameParameter works', () => {
                     pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
                     bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
+                    formfactorName: 'GENERIC',
                     parameters: [
                         {
                             name: 'word',
@@ -139,6 +142,7 @@ describe('how renameParameter works', () => {
                 pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
                 bookVersion: '1.0.0',
                 description: 'Show how to use two consecutive prompts with one parameter each.',
+                formfactorName: 'GENERIC',
                 parameters: [
                     {
                         name: 'originalWord',
@@ -200,6 +204,7 @@ describe('how renameParameter works', () => {
                     pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
                     bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
+                    formfactorName: 'GENERIC',
                     parameters: [
                         {
                             name: 'word',

@@ -55,6 +55,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         bookVersion: undefined /* <- Note: By default no explicit version */,
         description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
+        formfactorName: 'GENERIC',
         parameters: [],
         templates: [],
         knowledgeSources: [],

@@ -1,3 +1,5 @@
+import { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
+
 /**
  * Parsed FORMFACTOR command
  *
@@ -6,5 +8,5 @@
  */
 export type FormfactorCommand = {
     readonly type: 'FORMFACTOR';
-    readonly value: string;
+    readonly formfactorName: string_formfactor_name;
 };

@@ -3,4 +3,4 @@ import { FormfactorDefinition } from './FormfactorDefinition';
 /**
  * @@@
  */
-export type FormfactorName = FormfactorDefinition['name'];
+export type string_formfactor_name = FormfactorDefinition['name'];
