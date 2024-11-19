@@ -119,7 +119,7 @@ describe('replaceParameters', () => {
 
     it('should throw error when parameter is not defined', () => {
         expect(() => replaceParameters('{greeting} {name}, how are you?', { greeting: 'Hello' })).toThrowError(
-            /Parameter \{name\} is not defined/i,
+            /Parameter `{name}` is not defined/i,
         );
     });
 

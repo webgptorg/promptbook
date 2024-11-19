@@ -4,24 +4,24 @@ import { formfactorCommandParser } from './formfactorCommandParser';
 
 describe('how FORMFACTOR command in .book.md files works', () => {
     it('should parse FORMFACTOR command in PIPELINE_HEAD', () => {
-        expect(parseCommand('FORMFACTOR chat', 'PIPELINE_HEAD')).toEqual({
+        expect(parseCommand('FORMFACTOR chatbot', 'PIPELINE_HEAD')).toEqual({
             type: 'FORMFACTOR',
-            formfactorName: 'CHAT',
+            formfactorName: 'CHATBOT',
         });
-        expect(parseCommand('FORMFACTOR `chat`', 'PIPELINE_HEAD')).toEqual({
+        expect(parseCommand('FORMFACTOR `ChatBot`', 'PIPELINE_HEAD')).toEqual({
             type: 'FORMFACTOR',
-            formfactorName: 'CHAT',
+            formfactorName: 'CHATBOT',
         });
-        expect(parseCommand('FORMFACTOR `CHAT`', 'PIPELINE_HEAD')).toEqual({
+        expect(parseCommand('FORMFACTOR `CHATBOT`', 'PIPELINE_HEAD')).toEqual({
             type: 'FORMFACTOR',
-            formfactorName: 'CHAT',
+            formfactorName: 'CHATBOT',
         });
     });
 
     it('should parse FORMFACTOR command in shortcut form', () => {
         expect(parseCommand('FF Chat', 'PIPELINE_HEAD')).toEqual({
             type: 'FORMFACTOR',
-            formfactorName: 'CHAT',
+            formfactorName: 'CHATBOT',
         });
     });
 

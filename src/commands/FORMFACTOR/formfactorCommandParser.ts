@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
+import { really_any } from '../../_packages/types.index';
 import { ParseError } from '../../errors/ParseError';
-import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
@@ -57,13 +57,19 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
             throw new ParseError(`FORMFACTOR command requires exactly one argument`);
         }
 
-        const formfactorName = args[0]!.toUpperCase() as string_formfactor_name;
+        const formfactorNameCandidate = args[0]!.toUpperCase();
 
-        if (!FORMFACTOR_DEFINITIONS.some((definition) => definition.name === formfactorName)) {
+        const formfactor = FORMFACTOR_DEFINITIONS.find((definition) =>
+            [definition.name, ...{ aliasNames: [], ...definition }.aliasNames].includes(
+                formfactorNameCandidate as really_any,
+            ),
+        );
+
+        if (formfactor === undefined) {
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Unknown formfactor name "${formfactorName}"
+                        Unknown formfactor name "${formfactorNameCandidate}"
 
                         Available formfactors:
                         ${block(FORMFACTOR_DEFINITIONS.map(({ name }) => `- ${name}`).join('\n'))}
@@ -74,7 +80,7 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
 
         return {
             type: 'FORMFACTOR',
-            formfactorName,
+            formfactorName: formfactor.name,
         } satisfies FormfactorCommand;
     },
 
