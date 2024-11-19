@@ -1,4 +1,4 @@
-import { PipelineJson } from '@promptbook/types';
+import { PipelineJson } from '../../_packages/types.index';
 import { PipelineInterface } from './PipelineInterface';
 
 /**
@@ -35,5 +35,5 @@ export function getPipelineInterface(
 }
 
 /**
- * TODO: !!! Write unit test
+ * TODO: !!!!!! Write unit test
  */

@@ -1,4 +1,4 @@
-import { string_parameter_name } from '@promptbook/types';
+import { string_parameter_name } from '../../types/typeAliases';
 
 /**
  * @@@
@@ -20,5 +20,6 @@ export type PipelineInterface = {
 };
 
 /**
+ * TODO: !!!!!! Change inputParameterNames to inputParameters<InputParameter>
  * TODO: [🧠] Better name than `PipelineInterface` to avoid confusion with typescript `interface`
  */

@@ -592,6 +592,7 @@ Formfactors
 
 -   Add `FormfactorCommand`
 -   Add Pipeline interfaces
+-   Split `ParameterJson` into `InputParameterJson`, `OutputParameterJson` and `IntermediateParameterJson`
 -   Reorganize `/src` folder
 
 ## Drafts

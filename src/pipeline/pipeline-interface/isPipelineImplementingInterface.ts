@@ -1,4 +1,4 @@
-import { PipelineJson } from '@promptbook/types';
+import { PipelineJson } from '../../_packages/types.index';
 import { getPipelineInterface } from './getPipelineInterface';
 import { isPipelineInterfacesEqual } from './isPipelineInterfacesEqual';
 import { PipelineInterface } from './PipelineInterface';
@@ -29,5 +29,6 @@ export function isPipelineImplementingInterface(options: IsPipelineImplementingI
     return isPipelineInterfacesEqual(getPipelineInterface(pipeline), pipelineInterface);
 }
 /**
- * TODO: !!! Write unit test
+ * TODO: !!!!!! Test real implementing NOT equality
+ * TODO: !!!!!! Write unit test
  */
