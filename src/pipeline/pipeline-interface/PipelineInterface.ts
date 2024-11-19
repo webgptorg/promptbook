@@ -1,4 +1,4 @@
-import { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
 
 /**
  * @@@

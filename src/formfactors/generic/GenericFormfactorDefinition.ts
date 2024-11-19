@@ -1,4 +1,4 @@
-import { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
+import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
  * @@@

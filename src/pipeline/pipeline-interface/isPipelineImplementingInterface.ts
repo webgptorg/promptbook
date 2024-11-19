@@ -1,7 +1,7 @@
-import { PipelineJson } from '../../_packages/types.index';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { getPipelineInterface } from './getPipelineInterface';
 import { isPipelineInterfacesEqual } from './isPipelineInterfacesEqual';
-import { PipelineInterface } from './PipelineInterface';
+import type { PipelineInterface } from './PipelineInterface';
 
 /**
  * @@@

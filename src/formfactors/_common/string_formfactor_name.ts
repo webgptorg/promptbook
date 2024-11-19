@@ -1,4 +1,4 @@
-import { FormfactorDefinition } from './FormfactorDefinition';
+import type { FormfactorDefinition } from './FormfactorDefinition';
 
 /**
  * @@@

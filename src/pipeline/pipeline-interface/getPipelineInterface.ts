@@ -1,5 +1,5 @@
-import { PipelineJson } from '../../_packages/types.index';
-import { PipelineInterface } from './PipelineInterface';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineInterface } from './PipelineInterface';
 
 /**
  * @@@

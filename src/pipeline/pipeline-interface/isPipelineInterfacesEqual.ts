@@ -1,4 +1,4 @@
-import { PipelineInterface } from './PipelineInterface';
+import type { PipelineInterface } from './PipelineInterface';
 
 /**
  * @@@

@@ -1,10 +1,12 @@
 import spaceTrim from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import { FORMFACTOR_DEFINITIONS } from '../../formfactors';
-import { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
+import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
+import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
-import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { FormfactorCommand } from './FormfactorCommand';
 
 /**

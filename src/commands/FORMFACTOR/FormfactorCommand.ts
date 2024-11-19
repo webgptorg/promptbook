@@ -1,4 +1,4 @@
-import { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
+import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 
 /**
  * Parsed FORMFACTOR command
