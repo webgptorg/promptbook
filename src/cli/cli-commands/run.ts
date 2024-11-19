@@ -18,7 +18,6 @@ import { executionReportJsonToString } from '../../types/execution-report/execut
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 import type { string_filename } from '../../types/typeAliases';
-import { countCharacters } from '../../utils/expectation-counters/countCharacters';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -197,9 +196,7 @@ export function initializeRunCommand(program: Program) {
                 let initial = '';
 
                 if (exampleValues && exampleValues.length > 0) {
-                    const exampleValuesFiltered = exampleValues.filter(
-                        (exampleValue) => countLines(exampleValue) <= 1 
-                    );
+                    const exampleValuesFiltered = exampleValues.filter((exampleValue) => countLines(exampleValue) <= 1);
 
                     if (exampleValuesFiltered.length !== 0) {
                         message += ` (e.g. ${exampleValuesFiltered.join(', ')})`;
