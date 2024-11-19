@@ -214,6 +214,7 @@ export function initializeRunCommand(program: Program) {
                 };
             });
 
+        // TODO: !!!!!! Change behavior according to the formfactor
         const response = await prompts(questions as TODO_any);
 
         // TODO: Maybe do some validation of the response

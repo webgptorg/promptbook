@@ -35,4 +35,6 @@ export type AbstractFormfactorDefinition = {
      * @@@
      */
     readonly pipelineInterface: PipelineInterface;
+
+    // <- TODO: !!!!!! Add here CLI interactive behavior definition
 };
