@@ -3,8 +3,8 @@ import { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefin
 /**
  * @@@
  */
-export const GenericFormfactorDefinition = {
-    name: 'GENERIC',
+export const ChatFormfactorDefinition = {
+    name: 'CHAT',
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
 } as const satisfies AbstractFormfactorDefinition;
