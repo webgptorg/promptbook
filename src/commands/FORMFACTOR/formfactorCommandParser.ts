@@ -43,7 +43,7 @@ export const formfactorCommandParser: PipelineBothCommandParser<FormfactorComman
     /**
      * Link to documentation
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/168',
 
     /**
      * Example usages of the FORMFACTOR command

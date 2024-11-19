@@ -21,7 +21,7 @@ export type IsPipelineImplementingInterfaceOptions = {
 /**
  * @@@
  *
- * @param pipelines @@@
+ * @public exported from `@promptbook/core`
  */
 export function isPipelineImplementingInterface(options: IsPipelineImplementingInterfaceOptions): boolean {
     const { pipeline, pipelineInterface } = options;
@@ -29,6 +29,5 @@ export function isPipelineImplementingInterface(options: IsPipelineImplementingI
     return isPipelineInterfacesEqual(getPipelineInterface(pipeline), pipelineInterface);
 }
 /**
- * TODO: [🔼] !!! Transfer to promptbook
  * TODO: !!! Write unit test
  */

@@ -21,5 +21,4 @@ export type PipelineInterface = {
 
 /**
  * TODO: [🧠] Better name than `PipelineInterface` to avoid confusion with typescript `interface`
- * TODO: [🔼] !!! Transfer to promptbook
  */

@@ -4,7 +4,7 @@ import { PipelineInterface } from './PipelineInterface';
 /**
  * @@@
  *
- * @param pipeline @@@
+ * @public exported from `@promptbook/core`
  */
 export function getPipelineInterface(
     pipeline: PipelineJson,
@@ -35,6 +35,5 @@ export function getPipelineInterface(
 }
 
 /**
- * TODO: [🔼] !!! Transfer to promptbook
  * TODO: !!! Write unit test
  */

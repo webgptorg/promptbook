@@ -5,7 +5,7 @@ import { isPipelineInterfacesEqual } from './isPipelineInterfacesEqual';
 /**
  * @@@
  *
- * @param pipelines @@@
+ * @public exported from `@promptbook/core`
  */
 export function isPipelinesEqual(
     pipeline1: PipelineJson,
@@ -16,7 +16,6 @@ export function isPipelinesEqual(
 }
 
 /**
- * TODO: [🔼] !!! Transfer to promptbook
  * TODO: !!! Write unit test
  * TODO: [🧠][🐽] Maybe instead> comparePipelines(pipeline1,pipeline2)
  */

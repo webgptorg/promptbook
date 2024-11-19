@@ -3,7 +3,7 @@ import { PipelineInterface } from './PipelineInterface';
 /**
  * @@@
  *
- * @param pipelines @@@
+ * @public exported from `@promptbook/core`
  */
 export function isPipelineInterfacesEqual(
     pipelineInterface1: PipelineInterface,
@@ -16,6 +16,5 @@ export function isPipelineInterfacesEqual(
 
 /**
  * TODO: [🧠] !!! Return more states than true/false - 'IDENTICAL' |'IDENTICAL_UNPREPARED' | 'IDENTICAL_INTERFACE' | 'DIFFERENT'
- * TODO: [🔼] !!! Transfer to promptbook
  * TODO: !!! Write unit test
  */
