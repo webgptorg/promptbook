@@ -199,9 +199,7 @@ export function initializeRunCommand(program: Program) {
 
                 if (exampleValues && exampleValues.length > 0) {
                     const exampleValuesFiltered = exampleValues.filter(
-                        (exampleValue) => countLines(exampleValue) <= 1 && countCharacters(exampleValue) <= 30,
-                        // <- TODO: !!!!!! Export isMultiLine into utils and use in Promptbook.studio `countLines(exampleValue) > 1 || countCharacters(exampleValue) > 30`
-                        // <- TODO: [🧠] Some better filtration heuristic
+                        (exampleValue) => countLines(exampleValue) <= 1 
                     );
 
                     if (exampleValuesFiltered.length !== 0) {

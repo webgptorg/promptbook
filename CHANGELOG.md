@@ -578,7 +578,7 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   Proposal for version `1.0.0` both in Promptbook and Book language
 -   Allow to run books directly in cli via `ptbk run ./path/to/book.ptbk.md`
 -   Fix security warnings in dependencies
--   Enhance `countPages` utility function
+-   Enhance `countLines` and `countPages` utility function
 -   No need to explicitly define the input and output parameters
 -   Allow empty pipelines
 -   Add `BlackholeStorage`
