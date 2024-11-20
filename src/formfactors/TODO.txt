@@ -1,1 +1,1 @@
-TODO: [🧠] New formfactors: EDITOR
+TODO: [🧠] New formfactors: EDITOR, MARKER, CODER
