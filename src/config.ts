@@ -57,7 +57,7 @@ export const CHARACTER_LOOP_LIMIT = 100000;
  */
 export const CONNECTION_TIMEOUT_MS = 7 * 1000;
 
-// <- TODO: [⏳] Standartize timeouts, Make DEFAULT_TIMEOUT_MS as global constant
+// <- TODO: [⏳] Standardize timeouts, Make DEFAULT_TIMEOUT_MS as global constant
 
 /**
  * How many times to retry the connections
