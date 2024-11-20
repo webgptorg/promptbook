@@ -12,5 +12,7 @@ export const TranslatorFormfactorDefinition = {
     pipelineInterface: {
         inputParameterNames: ['inputMessage'],
         outputParameterNames: ['outputMessage'],
+        // <- TODO: !!!!!! Maybe add {summary}
+        // <- TODO: !!!!!! maybe {inputText}, {inputText}
     },
 } as const satisfies AbstractFormfactorDefinition;
