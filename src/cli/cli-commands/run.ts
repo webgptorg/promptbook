@@ -17,7 +17,9 @@ import { $provideScrapersForNode } from '../../scrapers/_common/register/$provid
 import { executionReportJsonToString } from '../../types/execution-report/executionReportJsonToString';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
