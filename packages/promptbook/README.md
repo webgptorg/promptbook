@@ -18,7 +18,8 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 ## ✨ New Features
 
--   💙 Working on [the **Book** language v1](https://github.com/webgptorg/book)
+-   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
+-   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
 -   📚 Support of `.docx`, `.doc` and `.pdf` documents
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
