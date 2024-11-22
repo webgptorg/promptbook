@@ -17,12 +17,11 @@ import { $provideScrapersForNode } from '../../scrapers/_common/register/$provid
 import { executionReportJsonToString } from '../../types/execution-report/executionReportJsonToString';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 
 /**
  * Initializes `run` command for Promptbook CLI utilities
@@ -46,21 +45,30 @@ export function initializeRunCommand(program: Program) {
     );
     runCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
     runCommand.option('-v, --verbose', `Is output verbose`, false);
-    runCommand.option('--no-interactive', `Input is not interactive`, false);
+    runCommand.option(
+        '--no-interactive',
+        `Input is not interactive, if true you need to pass all the input parameters through --json`,
+    );
+    runCommand.option(
+        '-j, --json <json>',
+        `Pass all or some input parameters as JSON record, if used the output is also returned as JSON`,
+    );
     runCommand.option('-s, --save-report <path>', `Save report to file`);
 
-    // TODO: !!!!!! Implement non-interactive mode - allow to pass input parameters as JSON
-    // TODO: !!!!!! JSON output
-
     runCommand.action(async (filePathRaw, options) => {
-        const { reload: isCacheReloaded, interactive: isInteractive, verbose: isVerbose, saveReport } = options;
+        const { reload: isCacheReloaded, interactive: isInteractive, json, verbose: isVerbose, saveReport } = options;
 
         if (saveReport && !saveReport.endsWith('.json') && !saveReport.endsWith('.md')) {
             console.error(colors.red(`Report file must be .json or .md`));
             return process.exit(1);
         }
 
-        TODO_USE(isInteractive);
+        let inputParameters: Record<string_parameter_name, string_parameter_value> = {};
+
+        if (json) {
+            inputParameters = JSON.parse(json);
+            //                <- TODO: Maybe check shape of passed JSON and if its valid parameters Record
+        }
 
         // TODO: DRY [◽]
         const prepareAndScrapeOptions = {
@@ -191,6 +199,7 @@ export function initializeRunCommand(program: Program) {
 
         const questions = pipeline.parameters
             .filter(({ isInput }) => isInput)
+            .filter(({ name }) => typeof inputParameters[name] !== 'string')
             .map(({ name, exampleValues }) => {
                 let message = name;
                 let initial = '';
@@ -214,12 +223,52 @@ export function initializeRunCommand(program: Program) {
                 };
             });
 
-        // TODO: !!!!!! Change behavior according to the formfactor
+        if (isInteractive === false && questions.length !== 0) {
+            console.error(
+                colors.red(
+                    spaceTrim(
+                        (block) => `
+                              When using --no-interactive you need to pass all the input parameters through --json
+
+                              You are missing:
+                              ${block(
+                                  pipeline.parameters
+                                      .filter(({ isInput }) => isInput)
+                                      .filter(
+                                          ({ name: parameterName }) =>
+                                              !questions.some(
+                                                  ({ name: questionName }) => questionName === parameterName,
+                                              ),
+                                      )
+                                      .map(({ name, description }) => `- **${name}** ${description}`)
+                                      .join('\n'),
+                              )}
+
+                              Example:
+                              --json '${JSON.stringify(
+                                  Object.fromEntries(
+                                      pipeline.parameters
+                                          .filter(({ isInput }) => isInput)
+                                          .map(({ name, exampleValues }) => [
+                                              name,
+                                              inputParameters[name] || (exampleValues || [])[0] || '...',
+                                          ]),
+                                  ),
+                              )
+                                  .split("'")
+                                  .join("\\'")}'
+                        `,
+                    ),
+                ),
+            );
+            return process.exit(1);
+        }
+
         const response = await prompts(questions as TODO_any);
+        //                     <- TODO: !!!!!! Change behavior according to the formfactor
+        inputParameters = { ...inputParameters, ...response };
 
-        // TODO: Maybe do some validation of the response
-
-        const inputParameters = response;
+        // TODO: Maybe do some validation of the response (and --json argument which is passed)
 
         if (isVerbose) {
             console.info(colors.gray('--- Executing ---'));
@@ -264,7 +313,9 @@ export function initializeRunCommand(program: Program) {
             console.info(colors.cyan(usageToHuman(result.usage)));
         }
 
-        console.info(colors.gray('--- Result ---'));
+        if (json === undefined || isVerbose === true) {
+            console.info(colors.gray('--- Result ---'));
+        }
 
         // TODO: [🧠] Should be errors or warnings shown first
 
@@ -276,10 +327,21 @@ export function initializeRunCommand(program: Program) {
             console.error(colors.red(colors.bold(warning.name) + ': ' + warning.message));
         }
 
-        for (const key of Object.keys(outputParameters)) {
-            const value = outputParameters[key] || colors.grey(colors.italic('(nothing)'));
-            const separator = countLines(value) > 1 || countWords(value) > 100 ? ':\n' : ': ';
-            console.info(colors.green(colors.bold(key) + separator + value));
+        if (json === undefined) {
+            for (const key of Object.keys(outputParameters)) {
+                const value = outputParameters[key] || colors.grey(colors.italic('(nothing)'));
+                const separator = countLines(value) > 1 || countWords(value) > 100 ? ':\n' : ': ';
+                console.info(colors.green(colors.bold(key) + separator + value));
+            }
+        } else {
+            console.info(
+                JSON.stringify(
+                    outputParameters,
+                    null,
+                    4,
+                    // <- TODO: Allow to set --pretty
+                ),
+            );
         }
 
         return process.exit(0);
