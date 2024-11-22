@@ -1,12 +1,12 @@
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
- * Boilerplate is form of app that @@@
+ * Matcher is form of app that @@@
  *
  * @public exported from `@promptbook/core`
  */
-export const BoilerplateFormfactorDefinition = {
-    name: 'BOILERPLATE',
+export const MatcherFormfactorDefinition = {
+    name: 'EXPERIMENTAL_MATCHER',
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
     pipelineInterface: {
