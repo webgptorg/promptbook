@@ -1,5 +1,6 @@
 import { ChatFormfactorDefinition } from './chat/ChatFormfactorDefinition';
 import { GenericFormfactorDefinition } from './generic/GenericFormfactorDefinition';
+import { MatcherFormfactorDefinition } from './matcher/MatcherFormfactorDefinition';
 import { SheetsFormfactorDefinition } from './sheets/SheetsFormfactorDefinition';
 import { TranslatorFormfactorDefinition } from './translator/TranslatorFormfactorDefinition';
 
@@ -13,4 +14,5 @@ export const FORMFACTOR_DEFINITIONS = [
     ChatFormfactorDefinition,
     TranslatorFormfactorDefinition,
     SheetsFormfactorDefinition,
+    MatcherFormfactorDefinition,
 ] as const;
