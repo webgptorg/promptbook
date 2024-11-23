@@ -133,6 +133,13 @@
             "focus": true
         },
         {
+            "name": "🔎🩹 Find name discrepancies",
+            "commands": ["npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧸 Playground (💸)",
             "command": "npx ts-node ./other/playground/playground.ts",
             "onlySingle": true,
