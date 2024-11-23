@@ -35,7 +35,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     /**
      * Description of the MODEL command
      */
-    description: `Tells which \`modelRequirements\` (for example which model) to use for the prompt template execution`,
+    description: `Tells which \`modelRequirements\` (for example which model) to use for the prompt task execution`,
 
     /**
      * Link to documentation
@@ -156,18 +156,18 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     /**
      * Apply the MODEL command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ModelCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
-        if ($templateJson.taskType !== 'PROMPT_TEMPLATE') {
+    $applyToTaskJson(command: ModelCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        if ($taskJson.taskType !== 'PROMPT_TEMPLATE') {
             throw new ParseError(`MODEL command can only be used in PROMPT_TEMPLATE block`);
         }
 
-        $templateJson.modelRequirements = $templateJson.modelRequirements || {};
+        $taskJson.modelRequirements = $taskJson.modelRequirements || {};
 
         // TODO: [🚜] DRY
-        if ($templateJson.modelRequirements[command.key] !== undefined) {
-            if ($templateJson.modelRequirements[command.key] === command.value) {
+        if ($taskJson.modelRequirements[command.key] !== undefined) {
+            if ($taskJson.modelRequirements[command.key] === command.value) {
                 console.warn(
                     `Multiple commands \`MODEL ${
                         (
@@ -177,17 +177,17 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
                                 maxTokens: '???',
                             } as Record<keyof ModelRequirements, string>
                         )[command.key]
-                    } ${command.value}\` in the template "${$templateJson.title || $templateJson.name}"`,
+                    } ${command.value}\` in the task "${$taskJson.title || $taskJson.name}"`,
                 );
             } else {
                 throw new ParseError(
                     spaceTrim(`
-                              Redefinition of MODEL \`${command.key}\` in the template "${
-                        $templateJson.title || $templateJson.name
+                              Redefinition of MODEL \`${command.key}\` in the task "${
+                        $taskJson.title || $taskJson.name
                     }"
 
                               You have used:
-                              - MODEL ${command.key} ${$templateJson.modelRequirements[command.key]}
+                              - MODEL ${command.key} ${$taskJson.modelRequirements[command.key]}
                               - MODEL ${command.key} ${command.value}
                           `),
                 );
@@ -197,20 +197,20 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if (command.value === ($pipelineJson.defaultModelRequirements || {})[command.key]) {
             console.log(
                 spaceTrim(`
-                    Setting MODEL \`${command.key}\` in the template "${
-                    $templateJson.title || $templateJson.name
+                    Setting MODEL \`${command.key}\` in the task "${
+                    $taskJson.title || $taskJson.name
                 }" to the same value as in the pipeline head
 
                     In pipeline head:
                     - MODEL ${command.key} ${($pipelineJson.defaultModelRequirements || {})[command.key]}
 
-                    But same value is used in the template:
+                    But same value is used in the task:
                     - MODEL ${command.key} ${command.value}
                 `),
             );
         }
 
-        $templateJson.modelRequirements[command.key] = command.value;
+        $taskJson.modelRequirements[command.key] = command.value;
     },
 
     /**
@@ -238,8 +238,8 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ModelCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<ModelCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

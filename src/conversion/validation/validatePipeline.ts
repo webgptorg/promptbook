@@ -119,14 +119,14 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
     }
 
     // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
-    if (!Array.isArray(pipeline.templates)) {
+    if (!Array.isArray(pipeline.tasks)) {
         // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
         throw new ParseError(
             spaceTrim(
                 (block) => `
                     Pipeline is valid JSON but with wrong structure
 
-                    \`PipelineJson.templates\` expected to be an array, but got ${typeof pipeline.templates}
+                    \`PipelineJson.tasks\` expected to be an array, but got ${typeof pipeline.tasks}
 
                     ${block(pipelineIdentification)}
                 `,
@@ -156,7 +156,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         if (
             !parameter.isInput &&
             !parameter.isOutput &&
-            !pipeline.templates.some((template) => template.dependentParameterNames.includes(parameter.name))
+            !pipeline.tasks.some((task) => task.dependentParameterNames.includes(parameter.name))
         ) {
             throw new PipelineLogicError(
                 spaceTrim(
@@ -174,10 +174,10 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             );
         }
 
-        // Note: Testing that parameter is either input or result of some template
+        // Note: Testing that parameter is either input or result of some task
         if (
             !parameter.isInput &&
-            !pipeline.templates.some((template) => template.resultingParameterName === parameter.name)
+            !pipeline.tasks.some((task) => task.resultingParameterName === parameter.name)
         ) {
             throw new PipelineLogicError(
                 spaceTrim(
@@ -186,7 +186,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
 
                         You can do one of these:
                         1) Remove declaration of \`{${parameter.name}}\`
-                        2) Add template that results in \`-> {${parameter.name}}\`
+                        2) Add task that results in \`-> {${parameter.name}}\`
 
                         ${block(pipelineIdentification)}
                     `,
@@ -196,18 +196,18 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         }
     }
 
-    // Note: All input parameters are defined - so that they can be used as result of some template
+    // Note: All input parameters are defined - so that they can be used as result of some task
     const definedParameters: Set<string> = new Set(
         pipeline.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
     );
 
-    // Note: Checking each template individually
-    for (const template of pipeline.templates) {
-        if (definedParameters.has(template.resultingParameterName)) {
+    // Note: Checking each task individually
+    for (const task of pipeline.tasks) {
+        if (definedParameters.has(task.resultingParameterName)) {
             throw new PipelineLogicError(
                 spaceTrim(
                     (block) => `
-                        Parameter \`{${template.resultingParameterName}}\` is defined multiple times
+                        Parameter \`{${task.resultingParameterName}}\` is defined multiple times
 
                         ${block(pipelineIdentification)}
                     `,
@@ -216,11 +216,11 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             );
         }
 
-        if (RESERVED_PARAMETER_NAMES.includes(template.resultingParameterName as string_reserved_parameter_name)) {
+        if (RESERVED_PARAMETER_NAMES.includes(task.resultingParameterName as string_reserved_parameter_name)) {
             throw new PipelineLogicError(
                 spaceTrim(
                     (block) => `
-                        Parameter name {${template.resultingParameterName}} is reserved, please use different name
+                        Parameter name {${task.resultingParameterName}} is reserved, please use different name
 
                         ${block(pipelineIdentification)}
                     `,
@@ -230,18 +230,18 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             );
         }
 
-        definedParameters.add(template.resultingParameterName);
+        definedParameters.add(task.resultingParameterName);
 
-        if (template.jokerParameterNames && template.jokerParameterNames.length > 0) {
+        if (task.jokerParameterNames && task.jokerParameterNames.length > 0) {
             if (
-                !template.format &&
-                !template.expectations /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
+                !task.format &&
+                !task.expectations /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
             ) {
                 throw new PipelineLogicError(
                     spaceTrim(
                         (block) => `
                             Joker parameters are used for {${
-                                template.resultingParameterName
+                                task.resultingParameterName
                             }} but no expectations are defined
 
                             ${block(pipelineIdentification)}
@@ -251,13 +251,13 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
                 );
             }
 
-            for (const joker of template.jokerParameterNames) {
-                if (!template.dependentParameterNames.includes(joker)) {
+            for (const joker of task.jokerParameterNames) {
+                if (!task.dependentParameterNames.includes(joker)) {
                     throw new PipelineLogicError(
                         spaceTrim(
                             (block) => `
                                 Parameter \`{${joker}}\` is used for {${
-                                template.resultingParameterName
+                                task.resultingParameterName
                             }} as joker but not in \`dependentParameterNames\`
 
                                 ${block(pipelineIdentification)}
@@ -269,8 +269,8 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             }
         }
 
-        if (template.expectations) {
-            for (const [unit, { min, max }] of Object.entries(template.expectations)) {
+        if (task.expectations) {
+            for (const [unit, { min, max }] of Object.entries(task.expectations)) {
                 if (min !== undefined && max !== undefined && min > max) {
                     throw new PipelineLogicError(
                         spaceTrim(
@@ -323,7 +323,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         resovedParameters = [...resovedParameters, reservedParameterName];
     }
 
-    let unresovedTemplates: ReadonlyArray<TaskJson> = [...pipeline.templates];
+    let unresovedTemplates: ReadonlyArray<TaskJson> = [...pipeline.tasks];
 
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {
@@ -341,8 +341,8 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             );
         }
 
-        const currentlyResovedTemplates = unresovedTemplates.filter((template) =>
-            template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
+        const currentlyResovedTemplates = unresovedTemplates.filter((task) =>
+            task.dependentParameterNames.every((name) => resovedParameters.includes(name)),
         );
 
         if (currentlyResovedTemplates.length === 0) {
@@ -402,7 +402,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             ...currentlyResovedTemplates.map(({ resultingParameterName }) => resultingParameterName),
         ];
 
-        unresovedTemplates = unresovedTemplates.filter((template) => !currentlyResovedTemplates.includes(template));
+        unresovedTemplates = unresovedTemplates.filter((task) => !currentlyResovedTemplates.includes(task));
     }
 
     // TODO: !!!!!! Test that pipeline interface implements declared formfactor interface

@@ -113,8 +113,8 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<PersonaCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<PersonaCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
@@ -122,21 +122,17 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
 /**
  * Apply the PERSONA command to the `pipelineJson`
  *
- * Note: `$` is used to indicate that this function mutates given `templateJson`
+ * Note: `$` is used to indicate that this function mutates given `taskJson`
  */
-function $applyToTaskJson(
-    command: PersonaCommand,
-    $templateJson: $TaskJson | null,
-    $pipelineJson: $PipelineJson,
-): void {
+function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, $pipelineJson: $PipelineJson): void {
     const { personaName, personaDescription } = command;
 
-    if ($templateJson !== null) {
-        if ($templateJson.taskType !== 'PROMPT_TEMPLATE') {
+    if ($taskJson !== null) {
+        if ($taskJson.taskType !== 'PROMPT_TEMPLATE') {
             throw new ParseError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
         }
 
-        $templateJson.personaName = personaName;
+        $taskJson.personaName = personaName;
     } else {
         // TODO: [🛳] Default PERSONA for the pipeline `defaultPersonaName` (same as `defaultModelRequirements`)
     }

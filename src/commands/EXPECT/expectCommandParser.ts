@@ -129,34 +129,34 @@ export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
     /**
      * Apply the FORMAT command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ExpectCommand, $templateJson: $TaskJson): void {
+    $applyToTaskJson(command: ExpectCommand, $taskJson: $TaskJson): void {
         // eslint-disable-next-line no-case-declarations
         const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
-        $templateJson.expectations = $templateJson.expectations || {};
-        $templateJson.expectations[unit] = $templateJson.expectations[unit] || {};
+        $taskJson.expectations = $taskJson.expectations || {};
+        $taskJson.expectations[unit] = $taskJson.expectations[unit] || {};
 
         if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
-            if ($templateJson.expectations[unit]!.min !== undefined) {
+            if ($taskJson.expectations[unit]!.min !== undefined) {
                 throw new ParseError(
                     `Already defined minumum ${
-                        $templateJson.expectations![unit]!.min
+                        $taskJson.expectations![unit]!.min
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );
             }
-            $templateJson.expectations[unit]!.min = command.amount;
+            $taskJson.expectations[unit]!.min = command.amount;
         } /* not else */
         if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
-            if ($templateJson.expectations[unit]!.max !== undefined) {
+            if ($taskJson.expectations[unit]!.max !== undefined) {
                 throw new ParseError(
                     `Already defined maximum ${
-                        $templateJson.expectations![unit]!.max
+                        $taskJson.expectations![unit]!.max
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );
             }
-            $templateJson.expectations[unit]!.max = command.amount;
+            $taskJson.expectations[unit]!.max = command.amount;
         }
     },
 
@@ -175,8 +175,8 @@ export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ExpectCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<ExpectCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

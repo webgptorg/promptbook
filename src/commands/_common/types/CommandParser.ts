@@ -139,16 +139,16 @@ export type PipelineTaskCommandParser<TCommand extends CommandBase> = CommonComm
     /**
      * Apply the command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson` and/or `pipelineJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson` and/or `pipelineJson`
      */
-    $applyToTaskJson(command: TCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void;
+    $applyToTaskJson(command: TCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void;
 
     /**
      * Reads the command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<TCommand>;
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<TCommand>;
 };
 
 /**

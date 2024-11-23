@@ -64,14 +64,14 @@ export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {
     /**
      * Apply the FORMAT command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: FormatCommand, $templateJson: $TaskJson): void {
-        if ($templateJson.format !== undefined && command.format !== $templateJson.format) {
-            throw new ParseError(`Format format is already defined to "${$templateJson.format}".
+    $applyToTaskJson(command: FormatCommand, $taskJson: $TaskJson): void {
+        if ($taskJson.format !== undefined && command.format !== $taskJson.format) {
+            throw new ParseError(`Format format is already defined to "${$taskJson.format}".
                 Now you try to redefine it by "${command.format}"`);
         }
-        $templateJson.format = command.format;
+        $taskJson.format = command.format;
     },
 
     /**
@@ -89,8 +89,8 @@ export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<FormatCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<FormatCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

@@ -87,10 +87,10 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     /**
      * Apply the BOILERPLATE command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: BoilerplateCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
-        keepUnused(command, $templateJson, $pipelineJson);
+    $applyToTaskJson(command: BoilerplateCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $taskJson, $pipelineJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
@@ -123,8 +123,8 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<BoilerplateCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<BoilerplateCommand> {
+        keepUnused($taskJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );

@@ -139,10 +139,10 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
     /**
      * Apply the TEMPLATE command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: TemplateCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
-        if ($templateJson.isTaskTypeSet === true) {
+    $applyToTaskJson(command: TemplateCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        if ($taskJson.isTaskTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`
                     Template type is already defined in the template.
@@ -151,38 +151,36 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
             );
         }
 
-        $templateJson.isTaskTypeSet = true;
+        $taskJson.isTaskTypeSet = true;
 
         // TODO: [🍧] Rearrange better - but at bottom and unwrap from function
         const expectResultingParameterName = () => {
-            if ($templateJson.resultingParameterName) {
+            if ($taskJson.resultingParameterName) {
                 return;
             }
 
             throw new ParseError(` Template section must end with -> {parameterName}`);
         };
 
-        if ($templateJson.content === undefined) {
+        if ($taskJson.content === undefined) {
             throw new UnexpectedError(
-                `Content is missing in the templateJson - probbably commands are applied in wrong order`,
+                `Content is missing in the taskJson - probbably commands are applied in wrong order`,
             );
         }
 
         if (command.taskType === 'EXAMPLE') {
             expectResultingParameterName();
 
-            const parameter = $pipelineJson.parameters.find(
-                (param) => param.name === $templateJson.resultingParameterName,
-            );
+            const parameter = $pipelineJson.parameters.find((param) => param.name === $taskJson.resultingParameterName);
             if (parameter === undefined) {
                 throw new ParseError(
-                    `Can not find parameter {${$templateJson.resultingParameterName}} to assign example value on it`,
+                    `Can not find parameter {${$taskJson.resultingParameterName}} to assign example value on it`,
                 );
             }
             parameter.exampleValues = parameter.exampleValues || [];
-            parameter.exampleValues.push($templateJson.content);
+            parameter.exampleValues.push($taskJson.content);
 
-            $templateJson.isTask = false;
+            $taskJson.isTask = false;
             return;
         }
 
@@ -190,33 +188,33 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
             knowledgeCommandParser.$applyToPipelineJson(
                 {
                     type: 'KNOWLEDGE',
-                    sourceContent: $templateJson.content, // <- TODO: [🐝][main] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
+                    sourceContent: $taskJson.content, // <- TODO: [🐝][main] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                 },
                 $pipelineJson,
             );
 
-            $templateJson.isTask = false;
+            $taskJson.isTask = false;
             return;
         }
 
         if (command.taskType === 'ACTION') {
             console.error(new NotYetImplementedError('Actions are not implemented yet'));
 
-            $templateJson.isTask = false;
+            $taskJson.isTask = false;
             return;
         }
 
         if (command.taskType === 'INSTRUMENT') {
             console.error(new NotYetImplementedError('Instruments are not implemented yet'));
 
-            $templateJson.isTask = false;
+            $taskJson.isTask = false;
             return;
         }
 
         expectResultingParameterName();
-        ($templateJson as WritableDeep<TaskJson>).taskType = command.taskType;
+        ($taskJson as WritableDeep<TaskJson>).taskType = command.taskType;
 
-        $templateJson.isTask = true;
+        $taskJson.isTask = true;
     },
 
     /**
@@ -234,8 +232,8 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<TemplateCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<TemplateCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

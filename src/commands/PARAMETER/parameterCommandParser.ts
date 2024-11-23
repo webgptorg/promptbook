@@ -112,10 +112,10 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     /**
      * Apply the PARAMETER command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ParameterCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
-        keepUnused(command, $templateJson, $pipelineJson);
+    $applyToTaskJson(command: ParameterCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $taskJson, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
 
@@ -144,8 +144,8 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ParameterCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<ParameterCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

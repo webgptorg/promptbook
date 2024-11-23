@@ -62,11 +62,11 @@ export const jokerCommandParser: PipelineTaskCommandParser<JokerCommand> = {
     /**
      * Apply the JOKER command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: JokerCommand, $templateJson: $TaskJson): void {
-        $templateJson.jokerParameterNames = $templateJson.jokerParameterNames || [];
-        $templateJson.jokerParameterNames.push(command.parameterName);
+    $applyToTaskJson(command: JokerCommand, $taskJson: $TaskJson): void {
+        $taskJson.jokerParameterNames = $taskJson.jokerParameterNames || [];
+        $taskJson.jokerParameterNames.push(command.parameterName);
     },
 
     /**
@@ -84,8 +84,8 @@ export const jokerCommandParser: PipelineTaskCommandParser<JokerCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<JokerCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<JokerCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

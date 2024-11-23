@@ -189,15 +189,15 @@ export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
     /**
      * Apply the FOREACH command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ForeachCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: ForeachCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
         const { formatName, subformatName, parameterName, inputSubparameterNames, outputSubparameterName } = command;
 
         // TODO: [🍭] Detect double use
         // TODO: [🍭] Detect usage with JOKER and don't allow it
 
-        $templateJson.foreach = {
+        $taskJson.foreach = {
             formatName,
             subformatName,
             parameterName,
@@ -225,8 +225,8 @@ export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ForeachCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<ForeachCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

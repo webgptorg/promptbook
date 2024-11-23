@@ -326,7 +326,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description = undefined;
         }
 
-        const $templateJson: $TaskJson = {
+        const $taskJson: $TaskJson = {
             isTaskTypeSet: false,
             isTask: true,
             taskType: undefined /* <- Note: [🍙] Putting here placeholder to keep `taskType` on top at final JSON */,
@@ -344,7 +344,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             resultingParameterNameMatch.groups !== undefined &&
             resultingParameterNameMatch.groups.resultingParamName !== undefined
         ) {
-            $templateJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
+            $taskJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
         }
 
         // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommands`
@@ -357,7 +357,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         if (commands.some(({ command }) => command.type === 'TEMPLATE') === false) {
             templateCommandParser.$applyToTaskJson(
                 { type: 'TEMPLATE', taskType: 'PROMPT_TEMPLATE' },
-                $templateJson,
+                $taskJson,
                 $pipelineJson,
             );
         }
@@ -385,7 +385,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 (commandParser as PipelineTaskCommandParser<CommandBase>).$applyToTaskJson(
                     //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
                     command,
-                    $templateJson,
+                    $taskJson,
                     $pipelineJson,
                 );
             } catch (error) {
@@ -402,7 +402,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                             ${block((error as ParseError).message)}
 
                             Current state of the template:
-                            ${block(JSON.stringify($templateJson, null, 4))}
+                            ${block(JSON.stringify($taskJson, null, 4))}
                                <- Maybe wrong order of commands?
 
                             Raw command:
@@ -424,7 +424,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] Should be done in TEMPLATE command
-        if (($templateJson as WritableDeep<TaskJson>).taskType === 'SCRIPT_TEMPLATE') {
+        if (($taskJson as WritableDeep<TaskJson>).taskType === 'SCRIPT_TEMPLATE') {
             if (!language) {
                 throw new ParseError(
                     spaceTrim(
@@ -453,18 +453,17 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
 
-            ($templateJson as Partial<$TaskJson> as Writable<ScriptTaskJson>).contentLanguage =
-                language as ScriptLanguage;
+            ($taskJson as Partial<$TaskJson> as Writable<ScriptTaskJson>).contentLanguage = language as ScriptLanguage;
         }
 
-        $templateJson.dependentParameterNames = Array.from(
+        $taskJson.dependentParameterNames = Array.from(
             extractParameterNamesFromTask(
-                $templateJson as TaskJson,
+                $taskJson as TaskJson,
                 // <- TODO: [3]
             ),
         );
 
-        for (const parameterName of $templateJson.dependentParameterNames) {
+        for (const parameterName of $taskJson.dependentParameterNames) {
             // TODO: [🧠] This definition should be made first in the template
             defineParam({
                 parameterName,
@@ -477,12 +476,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         /*
         // TODO: [🍧] This should be checked in `MODEL` command + better error message
-        if ($templateJson.taskType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
+        if ($taskJson.taskType !== 'PROMPT_TEMPLATE' && $taskJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
                         Model requirements are defined for the block type ${
-                            $templateJson.taskType
+                            $taskJson.taskType
                         } which is not a PROMPT TEMPLATE
 
                         This should be avoided by the \`modelCommandParser\`
@@ -494,14 +493,14 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
         */
 
-        if ($templateJson.isTask) {
-            delete ($templateJson as Partial<$TaskJson>).isTaskTypeSet;
-            delete ($templateJson as Partial<$TaskJson>).isTask;
+        if ($taskJson.isTask) {
+            delete ($taskJson as Partial<$TaskJson>).isTaskTypeSet;
+            delete ($taskJson as Partial<$TaskJson>).isTask;
 
-            // TODO: [🍙] Maybe do reorder of `$templateJson` here
+            // TODO: [🍙] Maybe do reorder of `$taskJson` here
 
             $pipelineJson.templates.push(
-                $templateJson as TaskJson,
+                $taskJson as TaskJson,
                 // <- TODO: [3] Do not do `as TaskJson` BUT make 100% sure that nothing is missing
             );
         }

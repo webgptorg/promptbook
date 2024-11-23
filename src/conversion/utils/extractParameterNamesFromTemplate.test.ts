@@ -2,17 +2,17 @@ import { describe, expect, it } from '@jest/globals';
 import { extractParameterNamesFromTask } from './extractParameterNamesFromTask';
 
 describe('extractParameterNamesFromTask', () => {
-    it('should parse parameters from template', () => {
-        const template = {
+    it('should parse parameters from task', () => {
+        const task = {
             title: 'name of {foo}',
             description: 'description of {foo} and {bar}',
             taskType: 'PROMPT_TEMPLATE',
             content: 'hello {name}',
         } as const;
 
-        expect(extractParameterNamesFromTask(template)).toContain('foo');
-        expect(extractParameterNamesFromTask(template)).toContain('bar');
-        expect(extractParameterNamesFromTask(template)).toContain('name');
+        expect(extractParameterNamesFromTask(task)).toContain('foo');
+        expect(extractParameterNamesFromTask(task)).toContain('bar');
+        expect(extractParameterNamesFromTask(task)).toContain('name');
     });
 
     it('should parse parameters from javascript script', () => {

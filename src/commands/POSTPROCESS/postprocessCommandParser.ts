@@ -72,11 +72,11 @@ export const postprocessCommandParser: PipelineTaskCommandParser<PostprocessComm
     /**
      * Apply the POSTPROCESS command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: PostprocessCommand, $templateJson: $TaskJson): void {
-        $templateJson.postprocessingFunctionNames = $templateJson.postprocessingFunctionNames || [];
-        $templateJson.postprocessingFunctionNames.push(command.functionName);
+    $applyToTaskJson(command: PostprocessCommand, $taskJson: $TaskJson): void {
+        $taskJson.postprocessingFunctionNames = $taskJson.postprocessingFunctionNames || [];
+        $taskJson.postprocessingFunctionNames.push(command.functionName);
     },
 
     /**
@@ -94,8 +94,8 @@ export const postprocessCommandParser: PipelineTaskCommandParser<PostprocessComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<PostprocessCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<PostprocessCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
