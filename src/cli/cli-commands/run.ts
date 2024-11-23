@@ -177,7 +177,7 @@ export function initializeRunCommand(program: Program) {
             console.info(colors.gray('--- Validating pipeline ---'));
         }
 
-        // TODO: !!!!!! Same try-catch for LogicError
+        // TODO: Same try-catch for LogicError
         validatePipeline(pipeline);
 
         if (isVerbose) {
@@ -265,7 +265,7 @@ export function initializeRunCommand(program: Program) {
         }
 
         const response = await prompts(questions as TODO_any);
-        //                     <- TODO: !!!!!! Change behavior according to the formfactor
+        //                     <- TODO: [🧠] Change behavior according to the formfactor
         inputParameters = { ...inputParameters, ...response };
 
         // TODO: Maybe do some validation of the response (and --json argument which is passed)
