@@ -14,7 +14,7 @@ import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePl
 import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
 import type { ForeachJson } from '../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
-import type { TaskType } from '../commands/TEMPLATE/TaskTypes';
+import type { SectionType } from '../commands/TEMPLATE/SectionTypes';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
 import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
 import type { CallbackInterfaceToolsOptions } from '../dialogs/callback/CallbackInterfaceToolsOptions';
@@ -414,6 +414,7 @@ export type {
     ScriptExecutionToolsExecuteOptions,
     ScriptLanguage,
     ScriptTaskJson,
+    SectionType,
     SimpleTaskJson,
     string_absolute_dirname,
     string_absolute_filename,
@@ -511,7 +512,6 @@ export type {
     TaskJson,
     TaskJsonCommon,
     TaskProgress,
-    TaskType,
     TODO_any,
     UncertainNumber,
     UserInterfaceTools,

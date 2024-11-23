@@ -13,7 +13,7 @@ import type {
     CommandParserInput,
     PipelineTaskCommandParser,
 } from '../_common/types/CommandParser';
-import { TaskTypes } from './TaskTypes';
+import { SectionTypes } from './SectionTypes';
 import type { TemplateCommand } from './TemplateCommand';
 
 /**
@@ -113,7 +113,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
         let { normalized } = input;
 
         normalized = normalized.split('SAMPLE').join('EXAMPLE');
-        const taskTypes = TaskTypes.filter((taskType) => normalized.includes(taskType.split('_TEMPLATE').join('')));
+        const taskTypes = SectionTypes.filter((taskType) => normalized.includes(taskType.split('_TEMPLATE').join('')));
 
         if (taskTypes.length !== 1) {
             throw new ParseError(
@@ -122,7 +122,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
                         Unknown template type in TEMPLATE command
 
                         Supported template types are:
-                        ${template(TaskTypes.join(', '))}
+                        ${template(SectionTypes.join(', '))}
                     `, // <- TODO: [🚞]
                 ),
             );
@@ -142,7 +142,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
     $applyToTaskJson(command: TemplateCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
-        if ($taskJson.isTaskTypeSet === true) {
+        if ($taskJson.isSectionTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`
                     Template type is already defined in the template.
@@ -151,7 +151,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
             );
         }
 
-        $taskJson.isTaskTypeSet = true;
+        $taskJson.isSectionTypeSet = true;
 
         // TODO: [🍧] Rearrange better - but at bottom and unwrap from function
         const expectResultingParameterName = () => {

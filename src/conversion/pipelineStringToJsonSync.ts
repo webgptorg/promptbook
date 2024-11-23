@@ -327,7 +327,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         const $taskJson: $TaskJson = {
-            isTaskTypeSet: false,
+            isSectionTypeSet: false,
             isTask: true,
             taskType: undefined /* <- Note: [🍙] Putting here placeholder to keep `taskType` on top at final JSON */,
             name: titleToName(section.title),
@@ -494,7 +494,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         */
 
         if ($taskJson.isTask) {
-            delete ($taskJson as Partial<$TaskJson>).isTaskTypeSet;
+            delete ($taskJson as Partial<$TaskJson>).isSectionTypeSet;
             delete ($taskJson as Partial<$TaskJson>).isTask;
 
             // TODO: [🍙] Maybe do reorder of `$taskJson` here

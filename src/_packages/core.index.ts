@@ -6,8 +6,8 @@ import { createCollectionFromJson } from '../collection/constructors/createColle
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
-import type { TaskType } from '../commands/TEMPLATE/TaskTypes';
-import { TaskTypes } from '../commands/TEMPLATE/TaskTypes';
+import type { SectionType } from '../commands/TEMPLATE/SectionTypes';
+import { SectionTypes } from '../commands/TEMPLATE/SectionTypes';
 import {
     CLAIM,
     DEFAULT_CSV_SETTINGS,
@@ -206,9 +206,9 @@ export {
     prepareTasks,
     prettifyPipelineString,
     RESERVED_PARAMETER_NAMES,
+    SectionTypes,
     SheetsFormfactorDefinition,
     stringifyPipelineJson,
-    TaskTypes,
     TextFormatDefinition,
     TranslatorFormfactorDefinition,
     UNCERTAIN_USAGE,
@@ -219,4 +219,4 @@ export {
     validatePipeline,
     ZERO_USAGE,
 };
-export type { CallbackInterfaceToolsOptions, ExecutionReportStringOptions, TaskType };
+export type { CallbackInterfaceToolsOptions, ExecutionReportStringOptions, SectionType };

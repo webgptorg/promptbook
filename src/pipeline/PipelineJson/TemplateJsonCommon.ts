@@ -1,6 +1,6 @@
 import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
-import type { TaskType } from '../../commands/TEMPLATE/TaskTypes';
+import type { SectionType } from '../../commands/TEMPLATE/SectionTypes';
 import type {
     string_javascript,
     string_markdown,
@@ -64,7 +64,7 @@ export type TaskJsonCommon = {
      * Type of the execution
      * This determines if the template is send to LLM, user or some scripting evaluation
      */
-    readonly taskType: TaskType;
+    readonly taskType: SectionType;
 
     /**
      * Content of the template with {placeholders} for parameters

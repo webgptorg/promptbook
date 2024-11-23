@@ -1,4 +1,4 @@
-import type { TaskType } from './TaskTypes';
+import type { SectionType } from './SectionTypes';
 
 /**
  * Parsed TEMPLATE command
@@ -8,5 +8,5 @@ import type { TaskType } from './TaskTypes';
  */
 export type TemplateCommand = {
     readonly type: 'TEMPLATE';
-    readonly taskType: TaskType;
+    readonly taskType: SectionType;
 };

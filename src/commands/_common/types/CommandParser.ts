@@ -159,7 +159,7 @@ export type PipelineTaskCommandParser<TCommand extends CommandBase> = CommonComm
  * @private internal helper for command parsers
  */
 export type $TaskJson = {
-    isTaskTypeSet: boolean;
+    isSectionTypeSet: boolean;
     isTask: boolean;
 } & Partial<WritableDeep<TaskJson>>;
 //                         <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY

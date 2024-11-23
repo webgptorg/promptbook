@@ -6,7 +6,7 @@ import type { TupleToUnion } from 'type-fest';
  * @see https://github.com/webgptorg/promptbook#template-type
  * @public exported from `@promptbook/core`
  */
-export type TaskType = TupleToUnion<typeof TaskTypes>;
+export type SectionType = TupleToUnion<typeof SectionTypes>;
 
 /**
  * Template type describes the way how the template is templated
@@ -14,7 +14,7 @@ export type TaskType = TupleToUnion<typeof TaskTypes>;
  * @see https://github.com/webgptorg/promptbook#template-type
  * @public exported from `@promptbook/core`
  */
-export const TaskTypes = [
+export const SectionTypes = [
     'PROMPT_TEMPLATE',
     'SIMPLE_TEMPLATE',
     'SCRIPT_TEMPLATE',
