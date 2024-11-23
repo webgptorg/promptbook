@@ -1,15 +1,75 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_parameter_value } from '../typeAliases';
-
-// TODO: !!!!!! Split `ParameterJson` into `InputParameterJson`, `OutputParameterJson` and `IntermediateParameterJson`
+import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../typeAliases';
 
 /**
- * Describes one parameter of the promptbook
+ * Describes one parameter of the pipeline
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type ParameterJson = {
+export type ParameterJson = InputParameterJson | IntermediateParameterJson | OutputParameterJson;
+
+/**
+ * Describes input parameter of the pipeline
+ *
+ * 🔴 -> ⚪ -> ⚪
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type InputParameterJson = CommonParameterJson & {
+    /**
+     * The parameter is input of the pipeline
+     */
+    readonly isInput: true;
+
+    /**
+     * The parameter is NOT output of the pipeline
+     */
+    readonly isOutput: false;
+};
+
+/**
+ * Describes intermediate parameter of the pipeline
+ *
+ * ⚪ -> 🔴 -> ⚪
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type IntermediateParameterJson = CommonParameterJson & {
+    /**
+     * The parameter is NOT input of the pipeline
+     */
+    readonly isInput: false;
+
+    /**
+     * The parameter is NOT output of the pipeline
+     */
+    readonly isOutput: false;
+};
+
+/**
+ * Describes output parameter of the pipeline
+ *
+ * ⚪ -> ⚪ -> 🔴
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type OutputParameterJson = CommonParameterJson & {
+    /**
+     * The parameter is NOT input of the pipeline
+     */
+    readonly isInput: false;
+
+    /**
+     * The parameter is output of the pipeline
+     */
+    readonly isOutput: true;
+};
+
+/**
+ * Describes commons of one parameter of the pipeline
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type CommonParameterJson = {
     /**
      * Name of the parameter
      * - It must be unique across the pipeline

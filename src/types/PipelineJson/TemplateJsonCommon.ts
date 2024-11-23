@@ -11,6 +11,9 @@ import type { string_prompt } from '../typeAliases';
 import type { string_template } from '../typeAliases';
 import type { Expectations } from './Expectations';
 
+
+// TODO: !!!!!! Rename to CommonTaskJson
+
 /**
  * Common properties of all templates
  */

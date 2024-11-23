@@ -4,11 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TemplateJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTemplateCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -208,12 +210,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             existingParameter.isInput = existingParameter.isInput || isInput;
             existingParameter.isOutput = existingParameter.isOutput || isOutput;
         } else {
-            $pipelineJson.parameters.push({
-                name: parameterName,
-                description: parameterDescription || undefined,
-                isInput,
-                isOutput,
-            });
+            $pipelineJson.parameters.push(
+                {
+                    name: parameterName,
+                    description: parameterDescription || undefined,
+                    isInput,
+                    isOutput,
+                } as ParameterJson,
+                // <- Note: This type assertion is safe, only conflict is that in type definition `isInput` and `isOutput` cannot be both true
+                //          but in this implementation it is possible, but it is not a problem it just does not make sense and its checked in [🆑] logic validaton
+            );
         }
     };
 
