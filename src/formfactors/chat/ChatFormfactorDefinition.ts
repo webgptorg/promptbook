@@ -14,7 +14,7 @@ export const ChatFormfactorDefinition = {
         inputParameterNames: ['previousTitle', 'previousConversationSummary', 'userMessage'],
         outputParameterNames: ['title', 'conversationSummary', 'chatbotResponse'],
         /*
-        <- TODO: !!!!!! Change to 
+        <- TODO: !!!!!! Change to full inrwefaces
 
         -   INPUT PARAMETER `{previousTitle}` Previous title of the conversation
         -   INPUT PARAMETER `{previousConversationSummary}` Previous conversation summary

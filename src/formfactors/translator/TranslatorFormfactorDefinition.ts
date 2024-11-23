@@ -13,6 +13,6 @@ export const TranslatorFormfactorDefinition = {
         inputParameterNames: ['inputMessage'],
         outputParameterNames: ['outputMessage'],
         // <- TODO: !!!!!! Maybe add {summary}
-        // <- TODO: !!!!!! maybe {inputText}, {inputText}
+        // <- TODO: [🧠] maybe change to {inputText}, {inputText} / or make system for any name of first input and first outpur parameter
     },
 } as const satisfies AbstractFormfactorDefinition;
