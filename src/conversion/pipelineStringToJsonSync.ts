@@ -18,7 +18,7 @@ import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { ScriptTemplateJson } from '../pipeline/PipelineJson/ScriptTemplateJson';
 import type { TemplateJson } from '../pipeline/PipelineJson/TemplateJson';
-import type { PipelineString } from '../types/PipelineString';
+import type { PipelineString } from '../pipeline/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';

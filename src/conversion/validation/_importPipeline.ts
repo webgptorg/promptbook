@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { PipelineString } from '../../types/PipelineString';
 import type { string_filename, string_json } from '../../types/typeAliases';
 
 /**

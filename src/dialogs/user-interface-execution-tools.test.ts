@@ -4,7 +4,7 @@ import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../types/PipelineString';
+import type { PipelineString } from '../pipeline/PipelineString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';
 
 describe('createPipelineExecutor + executing user interface prompts in promptbook', () => {

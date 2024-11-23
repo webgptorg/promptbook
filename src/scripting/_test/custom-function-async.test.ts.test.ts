@@ -5,7 +5,7 @@ import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPipelineExecutor + custom async function ', () => {

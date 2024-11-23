@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 
 describe('createCollectionFromPromise', () => {
