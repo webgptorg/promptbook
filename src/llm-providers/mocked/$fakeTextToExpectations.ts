@@ -4,8 +4,8 @@ import { CHARACTER_LOOP_LIMIT } from '../../config';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
+import type { Expectations } from '../../pipeline/PipelineJson/Expectations';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { Expectations } from '../../types/PipelineJson/Expectations';
 import type { string_postprocessing_function_name } from '../../types/typeAliases';
 
 /**

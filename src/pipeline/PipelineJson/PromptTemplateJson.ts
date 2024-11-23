@@ -1,5 +1,5 @@
-import type { ModelRequirements } from '../ModelRequirements';
-import type { string_name } from '../typeAliases';
+import type { ModelRequirements } from '../../types/ModelRequirements';
+import type { string_name } from '../../types/typeAliases';
 import type { TemplateJsonCommon } from './TemplateJsonCommon';
 
 /**

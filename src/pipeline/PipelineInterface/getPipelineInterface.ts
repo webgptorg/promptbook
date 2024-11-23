@@ -1,10 +1,12 @@
 import type { WritableDeep } from 'type-fest';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../PipelineJson/PipelineJson';
 import type { PipelineInterface } from './PipelineInterface';
 
 /**
  * @@@
+ * 
+ * @see https://github.com/webgptorg/promptbook/discussions/171
  *
  * @public exported from `@promptbook/core`
  */

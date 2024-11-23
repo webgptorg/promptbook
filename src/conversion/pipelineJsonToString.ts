@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
-import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { string_markdown } from '../types/typeAliases';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';

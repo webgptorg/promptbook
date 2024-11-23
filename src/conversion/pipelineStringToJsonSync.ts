@@ -14,10 +14,10 @@ import type {
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { ScriptTemplateJson } from '../types/PipelineJson/ScriptTemplateJson';
-import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
+import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { ScriptTemplateJson } from '../pipeline/PipelineJson/ScriptTemplateJson';
+import type { TemplateJson } from '../pipeline/PipelineJson/TemplateJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';

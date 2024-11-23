@@ -1,15 +1,13 @@
 import spaceTrim from 'spacetrim';
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -17,8 +15,8 @@ import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSucc
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';

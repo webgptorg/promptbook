@@ -3,14 +3,16 @@ import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
+import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { TemplateCommand } from './TemplateCommand';
 import { TemplateTypes } from './TemplateTypes';
 

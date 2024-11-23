@@ -2,8 +2,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -12,12 +11,11 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';

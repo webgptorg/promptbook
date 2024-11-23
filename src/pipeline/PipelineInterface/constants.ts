@@ -2,6 +2,8 @@ import type { PipelineInterface } from './PipelineInterface';
 
 /**
  * @@@
+ * 
+ * @see https://github.com/webgptorg/promptbook/discussions/171
  *
  * @public exported from `@promptbook/core`
  */

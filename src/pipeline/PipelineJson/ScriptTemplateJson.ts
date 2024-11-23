@@ -1,4 +1,4 @@
-import type { ScriptLanguage } from '../ScriptLanguage';
+import type { ScriptLanguage } from '../../types/ScriptLanguage';
 import type { TemplateJsonCommon } from './TemplateJsonCommon';
 
 /**

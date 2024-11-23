@@ -1,6 +1,6 @@
-import type { KnowledgeSourcePreparedJson } from '../types/PipelineJson/KnowledgeSourceJson';
-import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
+import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 
 /**
  * Determine if the pipeline is fully prepared

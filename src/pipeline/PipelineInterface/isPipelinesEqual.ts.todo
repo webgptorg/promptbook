@@ -4,6 +4,8 @@ import { isPipelineInterfacesEqual } from './isPipelineInterfacesEqual';
 
 /**
  * @@@
+
+ @see https://github.com/webgptorg/promptbook/discussions/171
  *
  * @public exported from `@promptbook/core`
  */

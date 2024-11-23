@@ -1,6 +1,6 @@
 import type { ErrorJson } from '../../errors/utils/ErrorJson';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { Prompt } from '../Prompt';
+import type { Prompt } from '../../types/Prompt';
+import type { PromptResult } from '../PromptResult';
 
 /**
  * Report of single prompt execution

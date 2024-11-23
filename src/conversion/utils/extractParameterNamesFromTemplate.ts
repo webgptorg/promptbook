@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
+import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
 import type { string_parameter_name } from '../../types/typeAliases';
 import { extractParameterNames } from '../../utils/parameters/extractParameterNames';
 import { extractVariables } from './extractVariables';

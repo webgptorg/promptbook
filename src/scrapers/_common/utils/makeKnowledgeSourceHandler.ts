@@ -7,8 +7,8 @@ import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchErr
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
+import type { KnowledgeSourceJson } from '../../../pipeline/PipelineJson/KnowledgeSourceJson';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
-import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { isFileExisting } from '../../../utils/files/isFileExisting';

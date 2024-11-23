@@ -2,8 +2,8 @@ import { spaceTrim } from 'spacetrim';
 import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { TemplateJson } from '../pipeline/PipelineJson/TemplateJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 

@@ -1,8 +1,8 @@
-import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
+import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
 
 /**
  * Counts number of characters in the text
- * 
+ *
  * @public exported from `@promptbook/utils`
  */
 export function countCharacters(text: string): ExpectationAmount {

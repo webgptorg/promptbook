@@ -1,6 +1,5 @@
 import type { TupleToUnion } from 'type-fest';
-import type { number_integer } from '../typeAliases';
-import type { number_positive } from '../typeAliases';
+import type { number_integer, number_positive } from '../../types/typeAliases';
 
 /**
  * Expect this amount of each unit in the answer

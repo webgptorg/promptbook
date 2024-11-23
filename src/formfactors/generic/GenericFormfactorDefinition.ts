@@ -1,4 +1,4 @@
-import { GENERIC_PIPELINE_INTERFACE } from '../../pipeline/pipeline-interface/constants';
+import { GENERIC_PIPELINE_INTERFACE } from '../../pipeline/PipelineInterface/constants';
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**

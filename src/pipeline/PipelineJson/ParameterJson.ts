@@ -1,4 +1,4 @@
-import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../typeAliases';
+import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 
 /**
  * Describes one parameter of the pipeline
