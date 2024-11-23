@@ -8,7 +8,7 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
 export const SheetsFormfactorDefinition = {
     name: 'SHEETS',
     description: `@@@`,
-    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
+    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/176`,
     pipelineInterface: {
         inputParameterNames: ['inputSheet'],
         outputParameterNames: ['outputSheet'],

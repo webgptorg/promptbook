@@ -8,7 +8,7 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
 export const TranslatorFormfactorDefinition = {
     name: 'TRANSLATOR',
     description: `@@@`,
-    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
+    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/175`,
     pipelineInterface: {
         inputParameterNames: ['inputMessage'],
         outputParameterNames: ['outputMessage'],

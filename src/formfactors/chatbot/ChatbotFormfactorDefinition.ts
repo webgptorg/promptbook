@@ -5,11 +5,11 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
  *
  * @public exported from `@promptbook/core`
  */
-export const ChatFormfactorDefinition = {
+export const ChatbotFormfactorDefinition = {
     name: 'CHATBOT',
     aliasNames: ['CHAT'],
     description: `@@@`,
-    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
+    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/174`,
     pipelineInterface: {
         inputParameterNames: ['previousTitle', 'previousConversationSummary', 'userMessage'],
         outputParameterNames: ['title', 'conversationSummary', 'chatbotResponse'],

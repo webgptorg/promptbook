@@ -9,6 +9,6 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
 export const GenericFormfactorDefinition = {
     name: 'GENERIC',
     description: `@@@`,
-    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
+    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/173`,
     pipelineInterface: GENERIC_PIPELINE_INTERFACE,
 } as const satisfies AbstractFormfactorDefinition;

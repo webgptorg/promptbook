@@ -4,6 +4,9 @@ import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeT
 
 /**
  * @@@
+ * 
+ * Note: [🚉] This is fully serializable as JSON
+ * @see https://github.com/webgptorg/promptbook/discussions/172
  */
 export type AbstractFormfactorDefinition = {
     /**

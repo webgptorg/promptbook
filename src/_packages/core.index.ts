@@ -66,7 +66,7 @@ import { CsvFormatError } from '../formats/csv/CsvFormatError';
 import { MANDATORY_CSV_SETTINGS } from '../formats/csv/CsvSettings';
 import { TextFormatDefinition } from '../formats/text/TextFormatDefinition';
 import { BoilerplateFormfactorDefinition } from '../formfactors/_boilerplate/BoilerplateFormfactorDefinition';
-import { ChatFormfactorDefinition } from '../formfactors/chat/ChatFormfactorDefinition';
+import { ChatFormfactorDefinition } from '../formfactors/chatbot/ChatbotFormfactorDefinition';
 import { GenericFormfactorDefinition } from '../formfactors/generic/GenericFormfactorDefinition';
 import { FORMFACTOR_DEFINITIONS } from '../formfactors/index';
 import { SheetsFormfactorDefinition } from '../formfactors/sheets/SheetsFormfactorDefinition';

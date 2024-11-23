@@ -8,7 +8,7 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
 export const MatcherFormfactorDefinition = {
     name: 'EXPERIMENTAL_MATCHER',
     description: `@@@`,
-    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
+    documentationUrl: `https://github.com/webgptorg/promptbook/discussions/177`,
     pipelineInterface: {
         inputParameterNames: [
             /* @@@ */

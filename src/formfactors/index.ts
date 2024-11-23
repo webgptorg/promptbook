@@ -1,4 +1,4 @@
-import { ChatFormfactorDefinition } from './chat/ChatFormfactorDefinition';
+import { ChatFormfactorDefinition } from './chatbot/ChatbotFormfactorDefinition';
 import { GenericFormfactorDefinition } from './generic/GenericFormfactorDefinition';
 import { MatcherFormfactorDefinition } from './matcher/MatcherFormfactorDefinition';
 import { SheetsFormfactorDefinition } from './sheets/SheetsFormfactorDefinition';
