@@ -8,13 +8,13 @@ import { CommandUsagePlaces } from './types/CommandUsagePlaces';
 describe('parsing the commands', () => {
     // Note: Other working cases and better tests for each command is in the corresponding command test file
 
-    for (const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, examples } of COMMANDS) {
+    for (const { name, isUsedInPipelineHead, isUsedInPipelineTask, examples } of COMMANDS) {
         for (const usagePlace of CommandUsagePlaces) {
             if (just(false)) {
                 keepUnused(/* for better indentation */);
             } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
                 continue;
-            } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTemplate) {
+            } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTask) {
                 continue;
             }
 

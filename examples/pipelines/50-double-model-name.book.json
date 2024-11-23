@@ -11,7 +11,7 @@
     ],
     "templates": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TEMPLATE",
             "name": "prompt",
             "title": "💬 Prompt",
             "content": "Hello,\nWhat is the answer to the universe?",

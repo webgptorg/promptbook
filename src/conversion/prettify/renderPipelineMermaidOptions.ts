@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../utils/titleToName';
@@ -13,7 +13,7 @@ export type renderPipelineMermaidOptions = {
     /**
      * Callback for creating from template graph node
      */
-    linkTemplate?(template: TemplateJson): { href: string_href; title: string } | null;
+    linkTemplate?(template: TaskJson): { href: string_href; title: string } | null;
 };
 
 /**

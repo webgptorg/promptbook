@@ -13,27 +13,18 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "exampleValues": [
-                "NHOJ OLLEH",
-                "HSOJ IH"
-            ]
+            "exampleValues": ["NHOJ OLLEH", "HSOJ IH"]
         }
     ],
     "templates": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
             "content": "Hello {yourName}!",
             "resultingParameterName": "greeting",
-            "postprocessingFunctionNames": [
-                "reverse",
-                "removeDiacritics",
-                "normalizeTo_SCREAMING_CASE"
-            ],
-            "dependentParameterNames": [
-                "yourName"
-            ]
+            "postprocessingFunctionNames": ["reverse", "removeDiacritics", "normalizeTo_SCREAMING_CASE"],
+            "dependentParameterNames": ["yourName"]
         }
     ],
     "knowledgeSources": [],

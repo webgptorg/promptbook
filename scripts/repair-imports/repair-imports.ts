@@ -31,7 +31,7 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
 
 /**
  * VSCode sometimes offers auto-import which is malformed, for example:
- * > import type { PipelineJson, TemplateJson } from '../../_packages/types.index';
+ * > import type { PipelineJson, TaskJson } from '../../_packages/types.index';
  *
  * This script fixes that
  */

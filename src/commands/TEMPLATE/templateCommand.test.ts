@@ -6,7 +6,7 @@ describe('how TEMPLATE command in .book.md files works', () => {
     it('should parse TEMPLATE command in recommended form', () => {
         expect(parseCommand('PROMPT TEMPLATE', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'TEMPLATE',
-            templateType: 'PROMPT_TEMPLATE',
+            taskType: 'PROMPT_TEMPLATE',
         });
 
         // Note: No need to test all types, because it is tested from `templateCommandParser.examples`
@@ -15,19 +15,19 @@ describe('how TEMPLATE command in .book.md files works', () => {
     it('should work with deprecated EXECUTE command', () => {
         expect(parseCommand('EXECUTE Prompt block', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'TEMPLATE',
-            templateType: 'PROMPT_TEMPLATE',
+            taskType: 'PROMPT_TEMPLATE',
         });
         expect(parseCommand('EXECUTE simple block', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'TEMPLATE',
-            templateType: 'SIMPLE_TEMPLATE',
+            taskType: 'SIMPLE_TEMPLATE',
         });
         expect(parseCommand('EXECUTE script', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'TEMPLATE',
-            templateType: 'SCRIPT_TEMPLATE',
+            taskType: 'SCRIPT_TEMPLATE',
         });
         expect(parseCommand('EXECUTE dialog', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'TEMPLATE',
-            templateType: 'DIALOG_TEMPLATE',
+            taskType: 'DIALOG_TEMPLATE',
         });
     });
 

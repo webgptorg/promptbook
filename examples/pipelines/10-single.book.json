@@ -16,7 +16,7 @@
     ],
     "templates": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -29,9 +29,7 @@
                     "max": 5
                 }
             },
-            "dependentParameterNames": [
-                "word"
-            ]
+            "dependentParameterNames": ["word"]
         }
     ],
     "knowledgeSources": [],
@@ -46,9 +44,7 @@
                 "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
                 "temperature": 0.6
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [

@@ -1,4 +1,4 @@
-import type { TemplateJsonCommon } from './TemplateJsonCommon';
+import type { TaskJsonCommon } from './TaskJsonCommon';
 
 /**
  * Template for simple concatenation of strings
@@ -6,8 +6,8 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/17
  */
-export type SimpleTemplateJson = TemplateJsonCommon & {
-    readonly templateType: 'SIMPLE_TEMPLATE';
+export type SimpleTaskJson = TaskJsonCommon & {
+    readonly taskType: 'SIMPLE_TEMPLATE';
 };
 
 /**

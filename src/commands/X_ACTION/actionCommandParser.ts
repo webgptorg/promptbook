@@ -22,7 +22,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      * ACTION command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
+    isUsedInPipelineTask: false, // <- [👙] Maybe allow to use here and make relevant for just this template
 
     /**
      * Description of the ACTION command

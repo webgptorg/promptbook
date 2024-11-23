@@ -11,7 +11,7 @@ import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './Knowled
 import type { ParameterJson } from './ParameterJson';
 import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
-import type { TemplateJson } from './TemplateJson';
+import type { TaskJson } from './TaskJson';
 
 /**
  * Promptbook is the **core concept of this package**.
@@ -81,9 +81,9 @@ export type PipelineJson = {
     readonly defaultModelRequirements?: Partial<ModelRequirements>;
 
     /**
-     * Sequence of templates that are chained together to form a pipeline
+     * Sequence of tasks that are chained together to form a pipeline
      */
-    readonly templates: Array<TemplateJson>;
+    readonly templates: Array<TaskJson>;
     //                   <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**

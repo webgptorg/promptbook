@@ -6,18 +6,18 @@ import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import type {
     $PipelineJson,
-    $TemplateJson,
+    $TaskJson,
     CommandBase,
     PipelineHeadCommandParser,
-    PipelineTemplateCommandParser,
+    PipelineTaskCommandParser,
 } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { ScriptTemplateJson } from '../pipeline/PipelineJson/ScriptTemplateJson';
-import type { TemplateJson } from '../pipeline/PipelineJson/TemplateJson';
+import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
+import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
@@ -30,7 +30,7 @@ import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSe
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
-import { extractParameterNamesFromTemplate } from './utils/extractParameterNamesFromTemplate';
+import { extractParameterNamesFromTask } from './utils/extractParameterNamesFromTask';
 import { titleToName } from './utils/titleToName';
 
 /**
@@ -326,11 +326,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description = undefined;
         }
 
-        const $templateJson: $TemplateJson = {
-            isTemplateTypeSet: false,
-            isTemplate: true,
-            templateType:
-                undefined /* <- Note: [🍙] Putting here placeholder to keep `templateType` on top at final JSON */,
+        const $templateJson: $TaskJson = {
+            isTaskTypeSet: false,
+            isTask: true,
+            taskType: undefined /* <- Note: [🍙] Putting here placeholder to keep `taskType` on top at final JSON */,
             name: titleToName(section.title),
             title: section.title,
             description,
@@ -356,8 +355,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
         if (commands.some(({ command }) => command.type === 'TEMPLATE') === false) {
-            templateCommandParser.$applyToTemplateJson(
-                { type: 'TEMPLATE', templateType: 'PROMPT_TEMPLATE' },
+            templateCommandParser.$applyToTaskJson(
+                { type: 'TEMPLATE', taskType: 'PROMPT_TEMPLATE' },
                 $templateJson,
                 $pipelineJson,
             );
@@ -368,7 +367,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         for (const { listItem, command } of commands) {
             const commandParser = getParserForCommand(command);
 
-            if (commandParser.isUsedInPipelineTemplate !== true /* <- Note: [🦦][4] */) {
+            if (commandParser.isUsedInPipelineTask !== true /* <- Note: [🦦][4] */) {
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
@@ -383,7 +382,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
 
             try {
-                (commandParser as PipelineTemplateCommandParser<CommandBase>).$applyToTemplateJson(
+                (commandParser as PipelineTaskCommandParser<CommandBase>).$applyToTaskJson(
                     //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
                     command,
                     $templateJson,
@@ -425,7 +424,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] Should be done in TEMPLATE command
-        if (($templateJson as WritableDeep<TemplateJson>).templateType === 'SCRIPT_TEMPLATE') {
+        if (($templateJson as WritableDeep<TaskJson>).taskType === 'SCRIPT_TEMPLATE') {
             if (!language) {
                 throw new ParseError(
                     spaceTrim(
@@ -454,13 +453,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
 
-            ($templateJson as Partial<$TemplateJson> as Writable<ScriptTemplateJson>).contentLanguage =
+            ($templateJson as Partial<$TaskJson> as Writable<ScriptTaskJson>).contentLanguage =
                 language as ScriptLanguage;
         }
 
         $templateJson.dependentParameterNames = Array.from(
-            extractParameterNamesFromTemplate(
-                $templateJson as TemplateJson,
+            extractParameterNamesFromTask(
+                $templateJson as TaskJson,
                 // <- TODO: [3]
             ),
         );
@@ -478,12 +477,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         /*
         // TODO: [🍧] This should be checked in `MODEL` command + better error message
-        if ($templateJson.templateType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
+        if ($templateJson.taskType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
                         Model requirements are defined for the block type ${
-                            $templateJson.templateType
+                            $templateJson.taskType
                         } which is not a PROMPT TEMPLATE
 
                         This should be avoided by the \`modelCommandParser\`
@@ -495,15 +494,15 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
         */
 
-        if ($templateJson.isTemplate) {
-            delete ($templateJson as Partial<$TemplateJson>).isTemplateTypeSet;
-            delete ($templateJson as Partial<$TemplateJson>).isTemplate;
+        if ($templateJson.isTask) {
+            delete ($templateJson as Partial<$TaskJson>).isTaskTypeSet;
+            delete ($templateJson as Partial<$TaskJson>).isTask;
 
             // TODO: [🍙] Maybe do reorder of `$templateJson` here
 
             $pipelineJson.templates.push(
-                $templateJson as TemplateJson,
-                // <- TODO: [3] Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
+                $templateJson as TaskJson,
+                // <- TODO: [3] Do not do `as TaskJson` BUT make 100% sure that nothing is missing
             );
         }
     }

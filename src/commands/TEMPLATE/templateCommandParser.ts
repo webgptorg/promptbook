@@ -3,18 +3,18 @@ import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
 import type {
     $PipelineJson,
-    $TemplateJson,
+    $TaskJson,
     CommandParserInput,
-    PipelineTemplateCommandParser,
+    PipelineTaskCommandParser,
 } from '../_common/types/CommandParser';
+import { TaskTypes } from './TaskTypes';
 import type { TemplateCommand } from './TemplateCommand';
-import { TemplateTypes } from './TemplateTypes';
 
 /**
  * Parses the template command
@@ -22,7 +22,7 @@ import { TemplateTypes } from './TemplateTypes';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const templateCommandParser: PipelineTemplateCommandParser<TemplateCommand> = {
+export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> = {
     /**
      * Name of the command
      */
@@ -52,7 +52,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the TEMPLATE command
@@ -113,28 +113,26 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         let { normalized } = input;
 
         normalized = normalized.split('SAMPLE').join('EXAMPLE');
-        const templateTypes = TemplateTypes.filter((templateType) =>
-            normalized.includes(templateType.split('_TEMPLATE').join('')),
-        );
+        const taskTypes = TaskTypes.filter((taskType) => normalized.includes(taskType.split('_TEMPLATE').join('')));
 
-        if (templateTypes.length !== 1) {
+        if (taskTypes.length !== 1) {
             throw new ParseError(
                 spaceTrim(
                     (template) => `
                         Unknown template type in TEMPLATE command
 
                         Supported template types are:
-                        ${template(TemplateTypes.join(', '))}
+                        ${template(TaskTypes.join(', '))}
                     `, // <- TODO: [🚞]
                 ),
             );
         }
 
-        const templateType = templateTypes[0]!;
+        const taskType = taskTypes[0]!;
 
         return {
             type: 'TEMPLATE',
-            templateType,
+            taskType,
         } satisfies TemplateCommand;
     },
 
@@ -143,8 +141,8 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: TemplateCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        if ($templateJson.isTemplateTypeSet === true) {
+    $applyToTaskJson(command: TemplateCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        if ($templateJson.isTaskTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`
                     Template type is already defined in the template.
@@ -153,7 +151,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
             );
         }
 
-        $templateJson.isTemplateTypeSet = true;
+        $templateJson.isTaskTypeSet = true;
 
         // TODO: [🍧] Rearrange better - but at bottom and unwrap from function
         const expectResultingParameterName = () => {
@@ -170,7 +168,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
             );
         }
 
-        if (command.templateType === 'EXAMPLE') {
+        if (command.taskType === 'EXAMPLE') {
             expectResultingParameterName();
 
             const parameter = $pipelineJson.parameters.find(
@@ -184,11 +182,11 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
             parameter.exampleValues = parameter.exampleValues || [];
             parameter.exampleValues.push($templateJson.content);
 
-            $templateJson.isTemplate = false;
+            $templateJson.isTask = false;
             return;
         }
 
-        if (command.templateType === 'KNOWLEDGE') {
+        if (command.taskType === 'KNOWLEDGE') {
             knowledgeCommandParser.$applyToPipelineJson(
                 {
                     type: 'KNOWLEDGE',
@@ -197,28 +195,28 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
                 $pipelineJson,
             );
 
-            $templateJson.isTemplate = false;
+            $templateJson.isTask = false;
             return;
         }
 
-        if (command.templateType === 'ACTION') {
+        if (command.taskType === 'ACTION') {
             console.error(new NotYetImplementedError('Actions are not implemented yet'));
 
-            $templateJson.isTemplate = false;
+            $templateJson.isTask = false;
             return;
         }
 
-        if (command.templateType === 'INSTRUMENT') {
+        if (command.taskType === 'INSTRUMENT') {
             console.error(new NotYetImplementedError('Instruments are not implemented yet'));
 
-            $templateJson.isTemplate = false;
+            $templateJson.isTask = false;
             return;
         }
 
         expectResultingParameterName();
-        ($templateJson as WritableDeep<TemplateJson>).templateType = command.templateType;
+        ($templateJson as WritableDeep<TaskJson>).taskType = command.taskType;
 
-        $templateJson.isTemplate = true;
+        $templateJson.isTask = true;
     },
 
     /**
@@ -232,11 +230,11 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
     },
 
     /**
-     * Reads the TEMPLATE command from the `TemplateJson`
+     * Reads the TEMPLATE command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<TemplateCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<TemplateCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

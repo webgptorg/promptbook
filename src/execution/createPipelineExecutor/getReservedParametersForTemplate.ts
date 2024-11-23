@@ -7,10 +7,10 @@ import {
 } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ReservedParameters } from '../../types/typeAliases';
 import { getContextForTemplate } from './getContextForTemplate';
-import { getExamplesForTemplate } from './getExamplesForTemplate';
+import { getExamplesForTask } from './getExamplesForTask';
 import { getKnowledgeForTemplate } from './getKnowledgeForTemplate';
 
 /**
@@ -27,7 +27,7 @@ type GetReservedParametersForTemplateOptions = {
     /**
      * @@@
      */
-    readonly template: ReadonlyDeep<TemplateJson>;
+    readonly template: ReadonlyDeep<TaskJson>;
 
     /**
      * @@@
@@ -47,7 +47,7 @@ export async function getReservedParametersForTemplate(
 
     const context = await getContextForTemplate(template); // <- [🏍]
     const knowledge = await getKnowledgeForTemplate({ preparedPipeline, template });
-    const examples = await getExamplesForTemplate(template);
+    const examples = await getExamplesForTask(template);
     const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;
 

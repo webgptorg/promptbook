@@ -6,7 +6,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type {
     $PipelineJson,
-    $TemplateJson,
+    $TaskJson,
     CommandParserInput,
     PipelineBothCommandParser,
 } from '../_common/types/CommandParser';
@@ -33,7 +33,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      * PERSONA command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the PERSONA command
@@ -83,10 +83,10 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): void {
-        $applyToTemplateJson(command, null, $pipelineJson);
+        $applyToTaskJson(command, null, $pipelineJson);
     },
 
-    $applyToTemplateJson,
+    $applyToTaskJson,
 
     /**
      * Converts the PERSONA command back to string
@@ -109,11 +109,11 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
     },
 
     /**
-     * Reads the PERSONA command from the `TemplateJson`
+     * Reads the PERSONA command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<PersonaCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<PersonaCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -124,15 +124,15 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
  *
  * Note: `$` is used to indicate that this function mutates given `templateJson`
  */
-function $applyToTemplateJson(
+function $applyToTaskJson(
     command: PersonaCommand,
-    $templateJson: $TemplateJson | null,
+    $templateJson: $TaskJson | null,
     $pipelineJson: $PipelineJson,
 ): void {
     const { personaName, personaDescription } = command;
 
     if ($templateJson !== null) {
-        if ($templateJson.templateType !== 'PROMPT_TEMPLATE') {
+        if ($templateJson.taskType !== 'PROMPT_TEMPLATE') {
             throw new ParseError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
         }
 

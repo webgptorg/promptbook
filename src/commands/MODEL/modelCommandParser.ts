@@ -8,7 +8,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type {
     $PipelineJson,
-    $TemplateJson,
+    $TaskJson,
     CommandParserInput,
     PipelineBothCommandParser,
 } from '../_common/types/CommandParser';
@@ -30,7 +30,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true, //  <- TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the MODEL command
@@ -158,8 +158,8 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ModelCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        if ($templateJson.templateType !== 'PROMPT_TEMPLATE') {
+    $applyToTaskJson(command: ModelCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        if ($templateJson.taskType !== 'PROMPT_TEMPLATE') {
             throw new ParseError(`MODEL command can only be used in PROMPT_TEMPLATE block`);
         }
 
@@ -234,11 +234,11 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     },
 
     /**
-     * Reads the MODEL command from the `TemplateJson`
+     * Reads the MODEL command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ModelCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ModelCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

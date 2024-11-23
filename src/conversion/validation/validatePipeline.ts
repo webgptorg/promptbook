@@ -5,7 +5,7 @@ import { ParseError } from '../../errors/ParseError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
@@ -323,7 +323,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         resovedParameters = [...resovedParameters, reservedParameterName];
     }
 
-    let unresovedTemplates: ReadonlyArray<TemplateJson> = [...pipeline.templates];
+    let unresovedTemplates: ReadonlyArray<TaskJson> = [...pipeline.templates];
 
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {

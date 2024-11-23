@@ -17,7 +17,7 @@ import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
-import { prepareTemplates } from './prepareTemplates';
+import { prepareTasks } from './prepareTasks';
 
 /**
  * Prepare pipeline from string (markdown) format to JSON format
@@ -84,7 +84,7 @@ export async function preparePipeline(
     // ----- /ID -----
 
     // ----- Personas preparation -----
-    // TODO: !! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTasks`
     // TODO: [🖌][🧠] Implement some `mapAsync` function
     const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
@@ -114,7 +114,7 @@ export async function preparePipeline(
     // ----- /Personas preparation -----
 
     // ----- Knowledge preparation -----
-    // TODO: !! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTasks`
     const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
         ...source,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
@@ -139,7 +139,7 @@ export async function preparePipeline(
     // ----- /Knowledge preparation -----
 
     // ----- Templates preparation -----
-    const { templatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTemplates(
+    const { templatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTasks(
         {
             parameters,
             templates,

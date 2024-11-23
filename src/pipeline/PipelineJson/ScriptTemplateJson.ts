@@ -1,5 +1,5 @@
 import type { ScriptLanguage } from '../../types/ScriptLanguage';
-import type { TemplateJsonCommon } from './TemplateJsonCommon';
+import type { TaskJsonCommon } from './TaskJsonCommon';
 
 /**
  * Template for script execution
@@ -7,12 +7,12 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/77
  */
-export type ScriptTemplateJson = TemplateJsonCommon & {
-    readonly templateType: 'SCRIPT_TEMPLATE';
+export type ScriptTaskJson = TaskJsonCommon & {
+    readonly taskType: 'SCRIPT_TEMPLATE';
 
     /**
      * Language of the script
-     * - This is required only for templateType SCRIPT
+     * - This is required only for taskType SCRIPT
      *
      */
     readonly contentLanguage?: ScriptLanguage;

@@ -3,9 +3,7 @@ import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -14,7 +12,7 @@ import type { JokerCommand } from './JokerCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
+export const jokerCommandParser: PipelineTaskCommandParser<JokerCommand> = {
     /**
      * Name of the command
      */
@@ -24,7 +22,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the JOKER command
@@ -66,7 +64,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: JokerCommand, $templateJson: $TemplateJson): void {
+    $applyToTaskJson(command: JokerCommand, $templateJson: $TaskJson): void {
         $templateJson.jokerParameterNames = $templateJson.jokerParameterNames || [];
         $templateJson.jokerParameterNames.push(command.parameterName);
     },
@@ -82,11 +80,11 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     },
 
     /**
-     * Reads the JOKER command from the `TemplateJson`
+     * Reads the JOKER command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<JokerCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<JokerCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

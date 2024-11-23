@@ -1,6 +1,6 @@
 import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
-import type { TemplateType } from '../../commands/TEMPLATE/TemplateTypes';
+import type { TaskType } from '../../commands/TEMPLATE/TaskTypes';
 import type {
     string_javascript,
     string_markdown,
@@ -18,7 +18,7 @@ import type { Expectations } from './Expectations';
 /**
  * Common properties of all templates
  */
-export type TemplateJsonCommon = {
+export type TaskJsonCommon = {
     /**
      * Name of the template
      * - It must be unique across the pipeline
@@ -64,7 +64,7 @@ export type TemplateJsonCommon = {
      * Type of the execution
      * This determines if the template is send to LLM, user or some scripting evaluation
      */
-    readonly templateType: TemplateType;
+    readonly taskType: TaskType;
 
     /**
      * Content of the template with {placeholders} for parameters

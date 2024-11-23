@@ -13,14 +13,12 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "exampleValues": [
-                "Hello John!"
-            ]
+            "exampleValues": ["Hello John!"]
         }
     ],
     "templates": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
             "content": "Hello {yourName}!",
@@ -46,9 +44,7 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": [
-                "yourName"
-            ]
+            "dependentParameterNames": ["yourName"]
         }
     ],
     "knowledgeSources": [],

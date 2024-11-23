@@ -1,10 +1,10 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
+import { extractParameterNamesFromTask } from '../../conversion/utils/extractParameterNamesFromTask';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
@@ -23,7 +23,7 @@ type executeSingleTemplateOptions = CreatePipelineExecutorOptions & {
     /**
      * @@@
      */
-    readonly currentTemplate: ReadonlyDeep<TemplateJson>;
+    readonly currentTemplate: ReadonlyDeep<TaskJson>;
 
     /**
      * @@@
@@ -77,14 +77,14 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         title,
         isStarted: false,
         isDone: false,
-        templateType: currentTemplate.templateType,
+        taskType: currentTemplate.taskType,
         parameterName: currentTemplate.resultingParameterName,
         parameterValue: null,
         // <- [🍸]
     });
 
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
-    const usedParameterNames = extractParameterNamesFromTemplate(currentTemplate);
+    const usedParameterNames = extractParameterNamesFromTask(currentTemplate);
     const dependentParameterNames = new Set(currentTemplate.dependentParameterNames);
     // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
     if (
@@ -162,7 +162,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: [👨‍👨‍👧] Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
-    const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- Note: [💂]
+    const maxAttempts = currentTemplate.taskType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- Note: [💂]
     const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
     const preparedContent = (currentTemplate.preparedContent || '{content}')
@@ -188,7 +188,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         title,
         isStarted: true,
         isDone: true,
-        templateType: currentTemplate.templateType,
+        taskType: currentTemplate.taskType,
         parameterName: currentTemplate.resultingParameterName,
         parameterValue: resultString,
         // <- [🍸]

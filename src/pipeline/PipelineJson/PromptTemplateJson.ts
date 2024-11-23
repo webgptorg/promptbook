@@ -1,14 +1,14 @@
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { string_name } from '../../types/typeAliases';
-import type { TemplateJsonCommon } from './TemplateJsonCommon';
+import type { TaskJsonCommon } from './TaskJsonCommon';
 
 /**
  * Template for prompt to LLM
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PromptTemplateJson = TemplateJsonCommon & {
-    readonly templateType: 'PROMPT_TEMPLATE';
+export type PromptTaskJson = TaskJsonCommon & {
+    readonly taskType: 'PROMPT_TEMPLATE';
 
     /**
      * Name of the persona who will be responding to this prompt
@@ -17,7 +17,7 @@ export type PromptTemplateJson = TemplateJsonCommon & {
 
     /**
      * Requirements for the model
-     * - This is required only for templateType PROMPT_TEMPLATE
+     * - This is required only for taskType PROMPT_TEMPLATE
      */
     readonly modelRequirements?: Partial<ModelRequirements>;
 };

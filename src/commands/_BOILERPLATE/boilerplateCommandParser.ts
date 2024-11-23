@@ -4,7 +4,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type {
     $PipelineJson,
-    $TemplateJson,
+    $TaskJson,
     CommandParserInput,
     PipelineBothCommandParser,
 } from '../_common/types/CommandParser';
@@ -33,7 +33,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the BOILERPLATE command
@@ -89,11 +89,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(
-        command: BoilerplateCommand,
-        $templateJson: $TemplateJson,
-        $pipelineJson: $PipelineJson,
-    ): void {
+    $applyToTaskJson(command: BoilerplateCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $templateJson, $pipelineJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
@@ -123,11 +119,11 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     },
 
     /**
-     * Reads the BOILERPLATE command from the `TemplateJson`
+     * Reads the BOILERPLATE command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<BoilerplateCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused($templateJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,

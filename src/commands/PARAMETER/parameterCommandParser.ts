@@ -7,7 +7,7 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type {
     $PipelineJson,
-    $TemplateJson,
+    $TaskJson,
     CommandParserInput,
     PipelineBothCommandParser,
 } from '../_common/types/CommandParser';
@@ -38,7 +38,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the PARAMETER command
@@ -114,7 +114,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ParameterCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: ParameterCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $templateJson, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
@@ -140,11 +140,11 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     },
 
     /**
-     * Reads the PARAMETER command from the `TemplateJson`
+     * Reads the PARAMETER command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ParameterCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ParameterCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

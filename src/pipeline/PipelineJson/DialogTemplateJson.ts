@@ -1,4 +1,4 @@
-import type { TemplateJsonCommon } from './TemplateJsonCommon';
+import type { TaskJsonCommon } from './TaskJsonCommon';
 
 /**
  * Template for prompt to user
@@ -6,8 +6,8 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/76
  */
-export type DialogTemplateJson = TemplateJsonCommon & {
-    readonly templateType: 'DIALOG_TEMPLATE';
+export type DialogTaskJson = TaskJsonCommon & {
+    readonly taskType: 'DIALOG_TEMPLATE';
 };
 
 /**

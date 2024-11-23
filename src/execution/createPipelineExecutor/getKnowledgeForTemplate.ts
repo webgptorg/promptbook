@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_markdown, string_parameter_value } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 
@@ -18,7 +18,7 @@ type GetKnowledgeForTemplateOptions = {
     /**
      * @@@
      */
-    readonly template: ReadonlyDeep<TemplateJson>;
+    readonly template: ReadonlyDeep<TaskJson>;
 };
 
 /**

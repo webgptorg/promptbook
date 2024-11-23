@@ -2,15 +2,16 @@ import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_markdown_text, string_parameter_name } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineTaskCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -21,7 +22,7 @@ import type { ForeachCommand } from './ForeachCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand> = {
+export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
     /**
      * Name of the command
      */
@@ -36,7 +37,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * FOREACH command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the FOREACH command
@@ -190,7 +191,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: ForeachCommand, $templateJson: $TaskJson, $pipelineJson: $PipelineJson): void {
         const { formatName, subformatName, parameterName, inputSubparameterNames, outputSubparameterName } = command;
 
         // TODO: [🍭] Detect double use
@@ -220,11 +221,11 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     },
 
     /**
-     * Reads the FOREACH command from the `TemplateJson`
+     * Reads the FOREACH command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ForeachCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ForeachCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

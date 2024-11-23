@@ -26,7 +26,7 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false,
+    isUsedInPipelineTask: false,
 
     /**
      * Description of the BOOK_VERSION command

@@ -46,7 +46,7 @@ export type ExecutionReportJson = {
     readonly description?: string_markdown_text;
 
     /**
-     * Sequence of templates in order which were executed
+     * Sequence of tasks in order which were executed
      */
     readonly promptExecutions: ReadonlyArray<ExecutionPromptReportJson>;
 };

@@ -30,7 +30,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false,
+    isUsedInPipelineTask: false,
 
     /**
      * Description of the URL command

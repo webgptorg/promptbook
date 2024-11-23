@@ -3,9 +3,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { FormatCommand } from './FormatCommand';
 
 /**
@@ -14,7 +12,7 @@ import type { FormatCommand } from './FormatCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> = {
+export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {
     /**
      * Name of the command
      */
@@ -24,7 +22,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the FORMAT command
@@ -68,7 +66,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: FormatCommand, $templateJson: $TemplateJson): void {
+    $applyToTaskJson(command: FormatCommand, $templateJson: $TaskJson): void {
         if ($templateJson.format !== undefined && command.format !== $templateJson.format) {
             throw new ParseError(`Format format is already defined to "${$templateJson.format}".
                 Now you try to redefine it by "${command.format}"`);
@@ -87,11 +85,11 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
     },
 
     /**
-     * Reads the FORMAT command from the `TemplateJson`
+     * Reads the FORMAT command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<FormatCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<FormatCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

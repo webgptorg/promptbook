@@ -54,7 +54,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             description,
             /* Note: dependentParameterNames, */
             jokerParameterNames: jokers,
-            templateType,
+            taskType,
             content,
             postprocessingFunctionNames: postprocessing,
             expectations,
@@ -73,7 +73,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         const commands: Array<string> = [];
         let contentLanguage: 'markdown' | 'text' | 'javascript' | 'typescript' | 'python' | '' = 'text';
 
-        if (templateType === 'PROMPT_TEMPLATE') {
+        if (taskType === 'PROMPT_TEMPLATE') {
             const { modelRequirements } = template;
             const { modelName, modelVariant } = modelRequirements || {};
 
@@ -86,17 +86,17 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             if (modelName) {
                 commands.push(`MODEL NAME \`${modelName}\``);
             }
-        } else if (templateType === 'SIMPLE_TEMPLATE') {
+        } else if (taskType === 'SIMPLE_TEMPLATE') {
             commands.push(`SIMPLE TEMPLATE`);
             // Note: Nothing special here
-        } else if (templateType === 'SCRIPT_TEMPLATE') {
+        } else if (taskType === 'SCRIPT_TEMPLATE') {
             commands.push(`SCRIPT TEMPLATE`);
             if (template.contentLanguage) {
                 contentLanguage = template.contentLanguage;
             } else {
                 contentLanguage = '';
             }
-        } else if (templateType === 'DIALOG_TEMPLATE') {
+        } else if (taskType === 'DIALOG_TEMPLATE') {
             commands.push(`DIALOG TEMPLATE`);
             // Note: Nothing special here
         } // <- }else if([🅱]

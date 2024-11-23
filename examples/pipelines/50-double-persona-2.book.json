@@ -11,7 +11,7 @@
     ],
     "templates": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TEMPLATE",
             "name": "prompt",
             "title": "💬 Prompt",
             "content": "Hello,\nWhat is the answer to the universe?",
@@ -32,9 +32,7 @@
                 "systemMessage": "You are an erudite philosopher deeply engaged in writing a comprehensive book on the meaning of life. Your responses should reflect profound contemplation, drawing from various philosophical traditions and contemporary thought. Offer insightful perspectives on existential questions, the human condition, and the pursuit of purpose. Your tone should be thoughtful, articulate, and occasionally introspective, as befits a philosopher grappling with life's most fundamental questions.",
                 "temperature": 0.7
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [

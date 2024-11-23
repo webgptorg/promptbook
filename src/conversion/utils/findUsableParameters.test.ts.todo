@@ -1,10 +1,10 @@
 
-// TODO: [👜] This probbably does not make sence because in TemplateJson already are listed dependencies
+// TODO: [👜] This probbably does not make sence because in TaskJson already are listed dependencies
 
 import { describe, expect, it } from '@jest/globals';
 import { importPipeline } from '../validation/_importPipeline';
 import { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import { TemplateJson } from '../../types/PipelineJson/TemplateJson';
+import { TaskJson } from '../../types/PipelineJson/TaskJson';
 import { TemplateParameterJson } from '../../types/PipelineJson/TemplateParameterJson';
 
 describe('how findUsableParameters works', () => {
@@ -25,7 +25,7 @@ type FindUsableParametersOptions = {
     /**
      * Template that searches for potentially usable parameters
      */
-    template: TemplateJson;
+    template: TaskJson;
 };
 
 /**

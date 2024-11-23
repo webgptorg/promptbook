@@ -8,13 +8,13 @@ import type {
     CommandParserInput,
     PipelineBothCommandParser,
     PipelineHeadCommandParser,
-    PipelineTemplateCommandParser,
+    PipelineTaskCommandParser,
 } from '../commands/_common/types/CommandParser';
 import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePlaces';
 import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
 import type { ForeachJson } from '../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
-import type { TemplateType } from '../commands/TEMPLATE/TemplateTypes';
+import type { TaskType } from '../commands/TEMPLATE/TaskTypes';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
 import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
 import type { CallbackInterfaceToolsOptions } from '../dialogs/callback/CallbackInterfaceToolsOptions';
@@ -88,7 +88,7 @@ import type {
 } from '../llm-providers/remote/interfaces/RemoteServerOptions';
 import type { IsPipelineImplementingInterfaceOptions } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
 import type { PipelineInterface } from '../pipeline/PipelineInterface/PipelineInterface';
-import type { DialogTemplateJson } from '../pipeline/PipelineJson/DialogTemplateJson';
+import type { DialogTaskJson } from '../pipeline/PipelineJson/DialogTaskJson';
 import type { ExpectationAmount, Expectations, ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
 import type { KnowledgePiecePreparedJson } from '../pipeline/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
@@ -102,11 +102,11 @@ import type {
 import type { PersonaJson, PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
-import type { PromptTemplateJson } from '../pipeline/PipelineJson/PromptTemplateJson';
-import type { ScriptTemplateJson } from '../pipeline/PipelineJson/ScriptTemplateJson';
-import type { SimpleTemplateJson } from '../pipeline/PipelineJson/SimpleTemplateJson';
-import type { TemplateJson } from '../pipeline/PipelineJson/TemplateJson';
-import type { TemplateJsonCommon } from '../pipeline/PipelineJson/TemplateJsonCommon';
+import type { PromptTaskJson } from '../pipeline/PipelineJson/PromptTaskJson';
+import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
+import type { SimpleTaskJson } from '../pipeline/PipelineJson/SimpleTaskJson';
+import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
+import type { TaskJsonCommon } from '../pipeline/PipelineJson/TaskJsonCommon';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { Converter } from '../scrapers/_common/Converter';
@@ -291,7 +291,7 @@ export type {
     Converter,
     CreatePipelineExecutorOptions,
     CsvSettings,
-    DialogTemplateJson,
+    DialogTaskJson,
     EmbeddingModelRequirements,
     EmbeddingPrompt,
     EmbeddingPromptResult,
@@ -377,7 +377,7 @@ export type {
     PipelineInterface,
     PipelineJson,
     PipelineString,
-    PipelineTemplateCommandParser,
+    PipelineTaskCommandParser,
     PostprocessingFunction,
     PreparationJson,
     PrepareAndScrapeOptions,
@@ -397,7 +397,7 @@ export type {
     PromptResult,
     PromptResultUsage,
     PromptResultUsageCounts,
-    PromptTemplateJson,
+    PromptTaskJson,
     really_any,
     Registered,
     Registration,
@@ -413,8 +413,8 @@ export type {
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptLanguage,
-    ScriptTemplateJson,
-    SimpleTemplateJson,
+    ScriptTaskJson,
+    SimpleTaskJson,
     string_absolute_dirname,
     string_absolute_filename,
     string_app_id,
@@ -508,10 +508,10 @@ export type {
     string_uuid,
     string_version_dependency,
     string_xml,
+    TaskJson,
+    TaskJsonCommon,
     TaskProgress,
-    TemplateJson,
-    TemplateJsonCommon,
-    TemplateType,
+    TaskType,
     TODO_any,
     UncertainNumber,
     UserInterfaceTools,

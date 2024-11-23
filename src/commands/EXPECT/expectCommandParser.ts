@@ -6,7 +6,7 @@ import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
@@ -15,7 +15,7 @@ import type { ExpectCommand } from './ExpectCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> = {
+export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
     /**
      * Name of the command
      */
@@ -25,7 +25,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the FORMAT command
@@ -131,7 +131,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ExpectCommand, $templateJson: $TemplateJson): void {
+    $applyToTaskJson(command: ExpectCommand, $templateJson: $TaskJson): void {
         // eslint-disable-next-line no-case-declarations
         const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
@@ -171,11 +171,11 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Reads the FORMAT command from the `TemplateJson`
+     * Reads the FORMAT command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ExpectCommand> {
+    takeFromTaskJson($templateJson: $TaskJson): ReadonlyArray<ExpectCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

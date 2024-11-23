@@ -6,7 +6,7 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
@@ -199,7 +199,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         let resovedParameterNames: ReadonlyArray<string_name> = preparedPipeline.parameters
             .filter(({ isInput }) => isInput)
             .map(({ name }) => name);
-        let unresovedTemplates: ReadonlyArray<ReadonlyDeep<TemplateJson>> = [...preparedPipeline.templates];
+        let unresovedTemplates: ReadonlyArray<ReadonlyDeep<TaskJson>> = [...preparedPipeline.templates];
         let resolving: Array<Promise<void>> = [];
 
         let loopLimit = LOOP_LIMIT;

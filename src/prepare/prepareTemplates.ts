@@ -3,7 +3,7 @@ import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../pipeline/PipelineJson/TemplateJson';
+import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 
@@ -18,7 +18,7 @@ type PreparedTemplates = {
     /**
      * @@@ Sequence of templates that are chained together to form a pipeline
      */
-    readonly templatesPrepared: ReadonlyArray<TemplateJson>;
+    readonly templatesPrepared: ReadonlyArray<TaskJson>;
 };
 
 /**
@@ -26,7 +26,7 @@ type PreparedTemplates = {
  *
  * @public exported from `@promptbook/core`
  */
-export async function prepareTemplates(
+export async function prepareTasks(
     pipeline: PrepareTemplateInput,
     tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
@@ -38,7 +38,7 @@ export async function prepareTemplates(
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const templatesPrepared: Array<TemplateJson> = new Array(templates.length);
+    const templatesPrepared: Array<TaskJson> = new Array(templates.length);
     await forEachAsync(
         templates,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
@@ -63,7 +63,7 @@ export async function prepareTemplates(
                 ];
             }
 
-            const preparedTemplate: TemplateJson = {
+            const preparedTemplate: TaskJson = {
                 ...template,
                 dependentParameterNames,
                 preparedContent,

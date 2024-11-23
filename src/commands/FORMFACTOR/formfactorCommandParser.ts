@@ -30,7 +30,7 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
      * FORMFACTOR command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false,
+    isUsedInPipelineTask: false,
 
     /**
      * Description of the FORMFACTOR command

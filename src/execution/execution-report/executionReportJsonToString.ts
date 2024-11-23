@@ -157,7 +157,7 @@ export function executionReportJsonToString(
     for (const promptExecution of executionReportJson.promptExecutions) {
         executionReportString += '\n\n\n\n' + `## ${promptExecution.prompt.title}`;
 
-        const templateList: Array<string> = [];
+        const taskList: Array<string> = [];
 
         // TODO: What if startedAt OR/AND completedAt is not defined?
         const startedAt = moment(promptExecution.result?.timing?.start);
@@ -165,19 +165,19 @@ export function executionReportJsonToString(
         const duration = moment.duration(completedAt.diff(startedAt));
 
         // Not need here:
-        // > templateList.push(`STARTED AT ${moment(startedAt).calendar()}`);
-        templateList.push(`DURATION ${duration.humanize(MOMENT_ARG_THRESHOLDS)}`);
+        // > taskList.push(`STARTED AT ${moment(startedAt).calendar()}`);
+        taskList.push(`DURATION ${duration.humanize(MOMENT_ARG_THRESHOLDS)}`);
 
         if (typeof promptExecution.result?.usage?.price === 'number') {
-            templateList.push(
+            taskList.push(
                 `COST $${formatNumber(promptExecution.result.usage.price * (1 + taxRate))}` +
                     (taxRate !== 0 ? ` *(with tax ${taxRate * 100}%)*` : ''),
             );
         } else {
-            templateList.push(`COST UNKNOWN`);
+            taskList.push(`COST UNKNOWN`);
         }
 
-        executionReportString += '\n\n' + templateList.map((header) => `- ${header}`).join('\n');
+        executionReportString += '\n\n' + taskList.map((header) => `- ${header}`).join('\n');
 
         /*
           -   MODEL VARIANT ${promptExecution.prompt.modelRequirements.modelVariant}
