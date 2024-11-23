@@ -167,7 +167,7 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
             keepUnused(/* for better indentation */);
         } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
             continue;
-        } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTask) {
+        } else if (usagePlace === 'PIPELINE_TASK' && !isUsedInPipelineTask) {
             continue;
         }
 

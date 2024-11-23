@@ -181,7 +181,7 @@ export type CommandParserInput = {
      * @@@
      *
      * @example 'PIPELINE_HEAD'
-     * @example 'PIPELINE_TEMPLATE'
+     * @example 'PIPELINE_TASK'
      */
     readonly usagePlace: CommandUsagePlace;
 

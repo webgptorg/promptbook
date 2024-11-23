@@ -8,7 +8,7 @@ import type { TaskJsonCommon } from './TaskJsonCommon';
  * @see https://github.com/webgptorg/promptbook/discussions/77
  */
 export type ScriptTaskJson = TaskJsonCommon & {
-    readonly taskType: 'SCRIPT_TEMPLATE';
+    readonly taskType: 'SCRIPT_TEMPLATE_TASK';
 
     /**
      * Language of the script

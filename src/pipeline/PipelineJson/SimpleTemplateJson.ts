@@ -7,7 +7,7 @@ import type { TaskJsonCommon } from './TaskJsonCommon';
  * @see https://github.com/webgptorg/promptbook/discussions/17
  */
 export type SimpleTaskJson = TaskJsonCommon & {
-    readonly taskType: 'SIMPLE_TEMPLATE';
+    readonly taskType: 'SIMPLE_TEMPLATE_TASK';
 };
 
 /**

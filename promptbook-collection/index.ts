@@ -9,7 +9,7 @@ export default [
         ],
         tasks: [
             {
-                taskType: 'PROMPT_TEMPLATE',
+                taskType: 'PROMPT_TEMPLATE_TASK',
                 name: 'knowledge',
                 title: 'Knowledge',
                 content:
@@ -34,7 +34,7 @@ export default [
         ],
         tasks: [
             {
-                taskType: 'PROMPT_TEMPLATE',
+                taskType: 'PROMPT_TEMPLATE_TASK',
                 name: 'knowledge',
                 title: 'Knowledge',
                 content:
@@ -59,7 +59,7 @@ export default [
         ],
         tasks: [
             {
-                taskType: 'PROMPT_TEMPLATE',
+                taskType: 'PROMPT_TEMPLATE_TASK',
                 name: 'knowledge',
                 title: 'Knowledge',
                 content:
@@ -96,7 +96,7 @@ export default [
         ],
         tasks: [
             {
-                taskType: 'PROMPT_TEMPLATE',
+                taskType: 'PROMPT_TEMPLATE_TASK',
                 name: 'make-model-requirements',
                 title: 'Make modelRequirements',
                 content:

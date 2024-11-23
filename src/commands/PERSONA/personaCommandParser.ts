@@ -128,8 +128,8 @@ function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, 
     const { personaName, personaDescription } = command;
 
     if ($taskJson !== null) {
-        if ($taskJson.taskType !== 'PROMPT_TEMPLATE') {
-            throw new ParseError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
+        if ($taskJson.taskType !== 'PROMPT_TEMPLATE_TASK') {
+            throw new ParseError(`PERSONA command can be used only in PROMPT_TEMPLATE_TASK block`);
         }
 
         $taskJson.personaName = personaName;

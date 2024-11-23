@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
-import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
+import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import type {
@@ -350,13 +350,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommands`
         const commands = listItems.map((listItem) => ({
             listItem,
-            command: parseCommand(listItem, 'PIPELINE_TEMPLATE'),
+            command: parseCommand(listItem, 'PIPELINE_TASK'),
         }));
 
-        // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
+        // Note: If block type is not set, set it to 'PROMPT_TEMPLATE_TASK'
         if (commands.some(({ command }) => command.type === 'TEMPLATE') === false) {
-            templateCommandParser.$applyToTaskJson(
-                { type: 'TEMPLATE', taskType: 'PROMPT_TEMPLATE' },
+            sectionCommandParser.$applyToTaskJson(
+                { type: 'TEMPLATE', taskType: 'PROMPT_TEMPLATE_TASK' },
                 $taskJson,
                 $pipelineJson,
             );
@@ -424,7 +424,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] Should be done in TEMPLATE command
-        if (($taskJson as WritableDeep<TaskJson>).taskType === 'SCRIPT_TEMPLATE') {
+        if (($taskJson as WritableDeep<TaskJson>).taskType === 'SCRIPT_TEMPLATE_TASK') {
             if (!language) {
                 throw new ParseError(
                     spaceTrim(
@@ -476,7 +476,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         /*
         // TODO: [🍧] This should be checked in `MODEL` command + better error message
-        if ($taskJson.taskType !== 'PROMPT_TEMPLATE' && $taskJson.modelRequirements !== undefined) {
+        if ($taskJson.taskType !== 'PROMPT_TEMPLATE_TASK' && $taskJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `

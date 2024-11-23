@@ -8,7 +8,7 @@ import type { TaskJsonCommon } from './TaskJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptTaskJson = TaskJsonCommon & {
-    readonly taskType: 'PROMPT_TEMPLATE';
+    readonly taskType: 'PROMPT_TEMPLATE_TASK';
 
     /**
      * Name of the persona who will be responding to this prompt
@@ -17,7 +17,7 @@ export type PromptTaskJson = TaskJsonCommon & {
 
     /**
      * Requirements for the model
-     * - This is required only for taskType PROMPT_TEMPLATE
+     * - This is required only for taskType PROMPT_TEMPLATE_TASK
      */
     readonly modelRequirements?: Partial<ModelRequirements>;
 };

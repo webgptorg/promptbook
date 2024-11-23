@@ -6,7 +6,7 @@ describe('extractParameterNamesFromTask', () => {
         const task = {
             title: 'name of {foo}',
             description: 'description of {foo} and {bar}',
-            taskType: 'PROMPT_TEMPLATE',
+            taskType: 'PROMPT_TEMPLATE_TASK',
             content: 'hello {name}',
         } as const;
 
@@ -19,7 +19,7 @@ describe('extractParameterNamesFromTask', () => {
         expect(
             extractParameterNamesFromTask({
                 title: 'Script',
-                taskType: 'SCRIPT_TEMPLATE',
+                taskType: 'SCRIPT_TEMPLATE_TASK',
                 content: 'const greeting = hello;',
             }),
         ).toContain('hello');

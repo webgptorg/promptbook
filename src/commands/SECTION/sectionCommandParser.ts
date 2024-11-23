@@ -17,19 +17,19 @@ import { SectionTypes } from './SectionTypes';
 import type { TemplateCommand } from './TemplateCommand';
 
 /**
- * Parses the template command
+ * Parses the section command
  *
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> = {
+export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = {
     /**
      * Name of the command
      */
-    name: 'TEMPLATE',
+    name: 'SECTION',
 
     /**
-     * Aliases for the TEMPLATE command
+     * Aliases for the SECTION command
      */
     aliasNames: [
         'PROMPT',
@@ -44,9 +44,9 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
     ],
 
     /**
-     * Aliases for the TEMPLATE command
+     * Aliases for the SECTION command
      */
-    deprecatedNames: ['BLOCK', 'EXECUTE'],
+    deprecatedNames: ['TEMPLATE', 'BLOCK', 'EXECUTE'],
 
     /**
      * BOILERPLATE command can be used in:
@@ -55,9 +55,9 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
     isUsedInPipelineTask: true,
 
     /**
-     * Description of the TEMPLATE command
+     * Description of the SECTION command
      */
-    description: `What should the code template template do`,
+    description: `Defines the purpose of the markdown section - if its a task and which type or something else`,
 
     /**
      * Link to documentation
@@ -65,7 +65,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/64',
 
     /**
-     * Example usages of the TEMPLATE command
+     * Example usages of the SECTION command
      */
     examples: [
         // Short form:
@@ -81,45 +81,45 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
 
         // -----------------
         // Recommended (reversed) form:
-        'PROMPT TEMPLATE',
-        'SIMPLE TEMPLATE',
-        'SCRIPT TEMPLATE',
-        'DIALOG TEMPLATE',
+        'PROMPT SECTION',
+        'SIMPLE SECTION',
+        'SCRIPT SECTION',
+        'DIALOG SECTION',
         // <- [🅱]
-        'SAMPLE TEMPLATE',
-        'KNOWLEDGE TEMPLATE',
-        'INSTRUMENT TEMPLATE',
-        'ACTION TEMPLATE',
+        'SAMPLE SECTION',
+        'KNOWLEDGE SECTION',
+        'INSTRUMENT SECTION',
+        'ACTION SECTION',
 
         // -----------------
         // Standard form:
-        'TEMPLATE PROMPT',
-        'TEMPLATE SIMPLE',
-        'TEMPLATE SCRIPT',
-        'TEMPLATE DIALOG',
+        'SECTION PROMPT',
+        'SECTION SIMPLE',
+        'SECTION SCRIPT',
+        'SECTION DIALOG',
         // <- [🅱]
-        'SAMPLE TEMPLATE',
-        'KNOWLEDGE TEMPLATE',
-        'INSTRUMENT TEMPLATE',
-        'ACTION TEMPLATE',
+        'SECTION SAMPLE',
+        'SECTION KNOWLEDGE',
+        'SECTION INSTRUMENT',
+        'SECTION ACTION',
     ],
 
     // TODO: [♓️] order: -10 /* <- Note: Putting before other commands */
 
     /**
-     * Parses the TEMPLATE command
+     * Parses the SECTION command
      */
     parse(input: CommandParserInput): TemplateCommand {
         let { normalized } = input;
 
         normalized = normalized.split('SAMPLE').join('EXAMPLE');
-        const taskTypes = SectionTypes.filter((taskType) => normalized.includes(taskType.split('_TEMPLATE').join('')));
+        const taskTypes = SectionTypes.filter((taskType) => normalized.includes(taskType.split('_SECTION').join('')));
 
         if (taskTypes.length !== 1) {
             throw new ParseError(
                 spaceTrim(
                     (template) => `
-                        Unknown template type in TEMPLATE command
+                        Unknown template type in SECTION command
 
                         Supported template types are:
                         ${template(SectionTypes.join(', '))}
@@ -131,13 +131,13 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
         const taskType = taskTypes[0]!;
 
         return {
-            type: 'TEMPLATE',
+            type: 'SECTION',
             taskType,
         } satisfies TemplateCommand;
     },
 
     /**
-     * Apply the TEMPLATE command to the `pipelineJson`
+     * Apply the SECTION command to the `pipelineJson`
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
@@ -218,7 +218,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
     },
 
     /**
-     * Converts the TEMPLATE command back to string
+     * Converts the SECTION command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
@@ -228,7 +228,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
     },
 
     /**
-     * Reads the TEMPLATE command from the `TaskJson`
+     * Reads the SECTION command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
@@ -242,8 +242,8 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
  * Note: [⛱] There are two types of KNOWLEDGE, ACTION and INSTRUMENT commands:
  * 1) There are commands `KNOWLEDGE`, `ACTION` and `INSTRUMENT` used in the pipeline head, they just define the knowledge, action or instrument as single line after the command
  *    - KNOWLEDGE Look at https://en.wikipedia.org/wiki/Artificial_intelligence
- * 2) `KNOWLEDGE TEMPLATE` which has short form `KNOWLEDGE` is used in the template, does not refer the line itself, but the content of the template
- *   - KNOWLEDGE TEMPLATE
+ * 2) `KNOWLEDGE SECTION` which has short form `KNOWLEDGE` is used in the template, does not refer the line itself, but the content of the template
+ *   - KNOWLEDGE SECTION
  *
  *   ```
  *   Look at https://en.wikipedia.org/wiki/Artificial_intelligence

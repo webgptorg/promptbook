@@ -14,12 +14,12 @@ describe('how BOILERPLATE command in .book.md files works', () => {
         });
     });
 
-    it('should parse BOILERPLATE command in PIPELINE_TEMPLATE', () => {
-        expect(parseCommand('BOILERPLATE foo', 'PIPELINE_TEMPLATE')).toEqual({
+    it('should parse BOILERPLATE command in PIPELINE_TASK', () => {
+        expect(parseCommand('BOILERPLATE foo', 'PIPELINE_TASK')).toEqual({
             type: 'BOILERPLATE',
             value: 'foo',
         });
-        expect(parseCommand('BOILERPLATE bar', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('BOILERPLATE bar', 'PIPELINE_TASK')).toEqual({
             type: 'BOILERPLATE',
             value: 'bar',
         });
@@ -30,7 +30,7 @@ describe('how BOILERPLATE command in .book.md files works', () => {
             type: 'BOILERPLATE',
             value: 'foo',
         });
-        expect(parseCommand('BP bar', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('BP bar', 'PIPELINE_TASK')).toEqual({
             type: 'BOILERPLATE',
             value: 'bar',
         });
@@ -48,7 +48,7 @@ describe('how BOILERPLATE command in .book.md files works', () => {
         for (const example of boilerplateCommandParser.examples) {
             // TODO: @@ Remove places not using the command:
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
-            expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();
+            expect(() => parseCommand(example, 'PIPELINE_TASK')).not.toThrowError();
         }
     });
 });
