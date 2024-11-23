@@ -15,7 +15,7 @@ import type { TaskJson } from './TaskJson';
 
 /**
  * Promptbook is the **core concept of this package**.
- * It represents a series of templates chained together to form a pipeline / one big template with input and result parameters.
+ * It represents a series of tasks chained together to form a pipeline / one big template with input and result parameters.
  *
  * Note: [🚉] This is fully serializable as JSON
  *
@@ -76,14 +76,14 @@ export type PipelineJson = {
     //                    <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
-     * Default model requirements for the model for all `templates`
+     * Default model requirements for the model for all `tasks`
      */
     readonly defaultModelRequirements?: Partial<ModelRequirements>;
 
     /**
      * Sequence of tasks that are chained together to form a pipeline
      */
-    readonly templates: Array<TaskJson>;
+    readonly tasks: Array<TaskJson>;
     //                   <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**

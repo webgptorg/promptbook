@@ -8,11 +8,11 @@ import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeepl
  * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
-    let { personas, knowledgeSources, templates } = pipeline;
+    let { personas, knowledgeSources, tasks } = pipeline;
 
     personas = personas.map((persona) => ({ ...persona, modelRequirements: undefined, preparationIds: undefined }));
     knowledgeSources = knowledgeSources.map((knowledgeSource) => ({ ...knowledgeSource, preparationIds: undefined }));
-    templates = templates.map((template) => {
+    tasks = tasks.map((template) => {
         let { dependentParameterNames } = template;
 
         const parameterNames = extractParameterNames(template.preparedContent || '');
@@ -30,7 +30,7 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
 
     return $asDeeplyFrozenSerializableJson('Unprepared PipelineJson', {
         ...pipeline,
-        templates,
+        tasks,
         knowledgeSources,
         knowledgePieces: [],
         personas,

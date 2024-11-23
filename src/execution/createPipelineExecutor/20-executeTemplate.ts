@@ -70,7 +70,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
 
     const name = `pipeline-executor-frame-${currentTemplate.name}`;
     const title = currentTemplate.title;
-    const priority = preparedPipeline.templates.length - preparedPipeline.templates.indexOf(currentTemplate);
+    const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTemplate);
 
     await onProgress({
         name,

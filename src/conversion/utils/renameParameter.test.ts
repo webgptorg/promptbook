@@ -17,7 +17,7 @@ describe('how renameParameter works', () => {
                             isOutput: true,
                         },
                     ],
-                    templates: [
+                    tasks: [
                         {
                             name: 'prompt',
                             title: '💬 Prompt',
@@ -52,7 +52,7 @@ describe('how renameParameter works', () => {
                         isOutput: true,
                     },
                 ],
-                templates: [
+                tasks: [
                     {
                         name: 'prompt',
                         title: '💬 Prompt',
@@ -100,7 +100,7 @@ describe('how renameParameter works', () => {
                             isOutput: false,
                         },
                     ],
-                    templates: [
+                    tasks: [
                         {
                             name: 'synonym',
                             title: '💬 Synonym',
@@ -161,7 +161,7 @@ describe('how renameParameter works', () => {
                         isOutput: false,
                     },
                 ],
-                templates: [
+                tasks: [
                     {
                         name: 'synonym',
                         title: '💬 Synonym',
@@ -223,7 +223,7 @@ describe('how renameParameter works', () => {
                             isOutput: false,
                         },
                     ],
-                    templates: [
+                    tasks: [
                         {
                             name: 'synonym',
                             title: '💬 Synonym',

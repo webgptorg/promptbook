@@ -57,7 +57,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
         formfactorName: 'GENERIC',
         parameters: [],
-        templates: [],
+        tasks: [],
         knowledgeSources: [],
         knowledgePieces: [],
         personas: [],
@@ -499,7 +499,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             // TODO: [🍙] Maybe do reorder of `$taskJson` here
 
-            $pipelineJson.templates.push(
+            $pipelineJson.tasks.push(
                 $taskJson as TaskJson,
                 // <- TODO: [3] Do not do `as TaskJson` BUT make 100% sure that nothing is missing
             );
@@ -510,7 +510,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // Note: 5️⃣ Mark parameters as INPUT if not explicitly set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isInput)) {
         for (const parameter of $pipelineJson.parameters) {
-            const isThisParameterResulting = $pipelineJson.templates.some(
+            const isThisParameterResulting = $pipelineJson.tasks.some(
                 (template) => template.resultingParameterName === parameter.name,
             );
             if (!isThisParameterResulting) {
@@ -531,10 +531,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     // =============================================================
     // Note: 7️⃣ Cleanup of undefined values
-    $pipelineJson.templates.forEach((templates) => {
-        for (const [key, value] of Object.entries(templates)) {
+    $pipelineJson.tasks.forEach((tasks) => {
+        for (const [key, value] of Object.entries(tasks)) {
             if (value === undefined) {
-                delete (templates as really_any)[key];
+                delete (tasks as really_any)[key];
             }
         }
     });
@@ -557,7 +557,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
  * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
- * TODO: [♈] Probbably move expectations from templates to parameters
+ * TODO: [♈] Probbably move expectations from tasks to parameters
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  * TODO: [🍙] Make some standard order of json properties
  */

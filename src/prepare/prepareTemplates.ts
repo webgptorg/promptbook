@@ -7,7 +7,7 @@ import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 
-type PrepareTemplateInput = Pick<PipelineJson, 'templates' | 'parameters'> & {
+type PrepareTemplateInput = Pick<PipelineJson, 'tasks' | 'parameters'> & {
     /**
      * @@@
      */
@@ -16,9 +16,9 @@ type PrepareTemplateInput = Pick<PipelineJson, 'templates' | 'parameters'> & {
 
 type PreparedTemplates = {
     /**
-     * @@@ Sequence of templates that are chained together to form a pipeline
+     * @@@ Sequence of tasks that are chained together to form a pipeline
      */
-    readonly templatesPrepared: ReadonlyArray<TaskJson>;
+    readonly tasksPrepared: ReadonlyArray<TaskJson>;
 };
 
 /**
@@ -32,15 +32,15 @@ export async function prepareTasks(
     options: PrepareAndScrapeOptions,
 ): Promise<PreparedTemplates> {
     const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT } = options;
-    const { templates, parameters, knowledgePiecesCount } = pipeline;
+    const { tasks, parameters, knowledgePiecesCount } = pipeline;
 
     // TODO: [main] !! Apply examples to each template (if missing and is for the template defined)
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const templatesPrepared: Array<TaskJson> = new Array(templates.length);
+    const tasksPrepared: Array<TaskJson> = new Array(tasks.length);
     await forEachAsync(
-        templates,
+        tasks,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (template, index) => {
             let { /* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames } = template;
@@ -70,17 +70,17 @@ export async function prepareTasks(
                 // <- TODO: [🍙] Make some standard order of json properties
             };
 
-            templatesPrepared[index] = preparedTemplate;
+            tasksPrepared[index] = preparedTemplate;
         },
     );
 
-    return { templatesPrepared };
+    return { tasksPrepared };
 }
 
 /**
  * TODO: [🧠] Add context to each template (if missing)
  * TODO: [🧠] What is better name `prepareTemplate` or `prepareTemplateAndParameters`
- * TODO: [♨][main] !!! Prepare index the examples and maybe templates
+ * TODO: [♨][main] !!! Prepare index the examples and maybe tasks
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time

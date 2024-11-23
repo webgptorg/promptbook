@@ -24,8 +24,8 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
     }
 
     /*
-    TODO: [🧠][🍫] `templates` can not be determined if they are fully prepared SO ignoring them
-    > if (!pipeline.templates.every(({ preparedContent }) => preparedContent === undefined)) {
+    TODO: [🧠][🍫] `tasks` can not be determined if they are fully prepared SO ignoring them
+    > if (!pipeline.tasks.every(({ preparedContent }) => preparedContent === undefined)) {
     >     return false;
     > }
     */
@@ -40,5 +40,5 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
  * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
  *     - [🏍] ? Is context in each template
  *     - [♨] Are examples prepared
- *     - [♨] Are templates prepared
+ *     - [♨] Are tasks prepared
  */

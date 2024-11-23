@@ -103,6 +103,6 @@ export type CommonParameterJson = {
 
 /**
  * TODO: [🧠] Should be here registered subparameters from foreach or not?
- * TODO: [♈] Probbably move expectations from templates to parameters
+ * TODO: [♈] Probbably move expectations from tasks to parameters
  * TODO: [🍙] Make some standard order of json properties
  */

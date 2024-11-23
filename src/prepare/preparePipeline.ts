@@ -39,7 +39,7 @@ export async function preparePipeline(
     const { rootDirname, maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, isVerbose = DEFAULT_IS_VERBOSE } = options;
     const {
         parameters,
-        templates,
+        tasks,
         /*
         <- TODO: [🧠][🪑] `promptbookVersion` */
         knowledgeSources /*
@@ -139,10 +139,10 @@ export async function preparePipeline(
     // ----- /Knowledge preparation -----
 
     // ----- Templates preparation -----
-    const { templatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTasks(
+    const { tasksPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTasks(
         {
             parameters,
-            templates,
+            tasks,
             knowledgePiecesCount: knowledgePiecesPrepared.length,
         },
         { ...tools, llm: llmToolsWithUsage },
@@ -159,8 +159,8 @@ export async function preparePipeline(
 
     return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
-        templates: [...templatesPrepared],
-        // <- TODO: [🪓] Here should be no need for spreading new array, just ` templates: templatesPrepared`
+        tasks: [...tasksPrepared],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,

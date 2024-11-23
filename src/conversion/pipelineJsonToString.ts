@@ -14,7 +14,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  * @public exported from `@promptbook/core`
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
-    const { title, pipelineUrl, bookVersion, description, parameters, templates } = pipelineJson;
+    const { title, pipelineUrl, bookVersion, description, parameters, tasks } = pipelineJson;
 
     let pipelineString: string_markdown = `# ${title}`;
 
@@ -47,7 +47,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
     pipelineString += '\n\n';
     pipelineString += commands.map((command) => `- ${command}`).join('\n');
 
-    for (const template of templates) {
+    for (const template of tasks) {
         const {
             /* Note: Not using:> name, */
             title,

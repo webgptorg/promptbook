@@ -75,7 +75,7 @@ export const templateCommandParser: PipelineTaskCommandParser<TemplateCommand> =
         'DIALOG',
         // <- [🅱]
         'EXAMPLE',
-        'KNOWLEDGE', // <- Note:  [⛱] Thare can not be confusion with KNOWLEDGE command because KNOWLEDGE command is not used in templates but in pipeline head
+        'KNOWLEDGE', // <- Note:  [⛱] Thare can not be confusion with KNOWLEDGE command because KNOWLEDGE command is not used in tasks but in pipeline head
         'INSTRUMENT', // <- Note: [⛱] -- || --
         'ACTION', // <- Note:     [⛱] -- || --
 

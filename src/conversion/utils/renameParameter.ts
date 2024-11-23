@@ -41,7 +41,7 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
         ...(pipeline as $PipelineJson),
         // <- TODO: [🪓] This should be without `as $PipelineJson`
         parameters: [...pipeline.parameters],
-        templates: [...pipeline.templates],
+        tasks: [...pipeline.tasks],
     };
 
     for (const parameter of renamedPipeline.parameters) {
@@ -51,7 +51,7 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
         parameter.name = newParameterName;
     }
 
-    for (const template of renamedPipeline.templates) {
+    for (const template of renamedPipeline.tasks) {
         if (template.resultingParameterName === oldParameterName) {
             template.resultingParameterName = newParameterName;
         }

@@ -37,7 +37,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
             return 'input';
         }
 
-        const template = pipelineJson.templates.find((template) => template.resultingParameterName === parameterName);
+        const template = pipelineJson.tasks.find((template) => template.resultingParameterName === parameterName);
 
         if (!template) {
             throw new Error(`Could not find template for {${parameterName}}`);
@@ -58,7 +58,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 
                   input((Input)):::input
                   ${block(
-                      pipelineJson.templates
+                      pipelineJson.tasks
                           .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
                               `${parameterNameToTemplateName(resultingParameterName)}("${title}")`,
                               ...dependentParameterNames.map(
@@ -82,7 +82,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
                   output((Output)):::output
 
                   ${block(
-                      pipelineJson.templates
+                      pipelineJson.tasks
                           .map((template) => {
                               const link = linkTemplate(template);
 

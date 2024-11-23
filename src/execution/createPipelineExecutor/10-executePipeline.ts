@@ -199,7 +199,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         let resovedParameterNames: ReadonlyArray<string_name> = preparedPipeline.parameters
             .filter(({ isInput }) => isInput)
             .map(({ name }) => name);
-        let unresovedTemplates: ReadonlyArray<ReadonlyDeep<TaskJson>> = [...preparedPipeline.templates];
+        let unresovedTemplates: ReadonlyArray<ReadonlyDeep<TaskJson>> = [...preparedPipeline.tasks];
         let resolving: Array<Promise<void>> = [];
 
         let loopLimit = LOOP_LIMIT;
@@ -321,7 +321,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         resolving = resolving.filter((w) => w !== work);
                     });
                 // <- Note: Errors are catched here [3]
-                //    TODO: BUT if in multiple templates are errors, only the first one is catched so maybe we should catch errors here and save them to errors array here
+                //    TODO: BUT if in multiple tasks are errors, only the first one is catched so maybe we should catch errors here and save them to errors array here
 
                 resolving.push(work);
             }

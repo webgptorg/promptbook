@@ -16,7 +16,7 @@ import type { Expectations } from './Expectations';
 // TODO: !!!!!! Rename to CommonTaskJson
 
 /**
- * Common properties of all templates
+ * Common properties of all tasks
  */
 export type TaskJsonCommon = {
     /**
@@ -117,5 +117,5 @@ export type TaskJsonCommon = {
 
 /**
  * TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template
- * TODO: [♈] Probbably move expectations from templates to parameters
+ * TODO: [♈] Probbably move expectations from tasks to parameters
  */
