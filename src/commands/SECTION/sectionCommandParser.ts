@@ -113,13 +113,14 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
         let { normalized } = input;
 
         normalized = normalized.split('SAMPLE').join('EXAMPLE');
-        const taskTypes = SectionTypes.filter((taskType) => normalized.includes(taskType.split('_SECTION').join('')));
+        normalized = normalized.split('EXECUTE_').join('');
+        const taskTypes = SectionTypes.filter((taskType) => normalized.includes(taskType.split('_TASK').join('')));
 
         if (taskTypes.length !== 1) {
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Unknown section type in SECTION command
+                        Unknown section type "${normalized}"
 
                         Supported section types are:
                         ${block(SectionTypes.join(', '))}

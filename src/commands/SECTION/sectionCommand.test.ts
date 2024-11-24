@@ -6,7 +6,7 @@ describe('how SECTION command in .book.md files works', () => {
     it('should parse SECTION command in recommended form', () => {
         expect(parseCommand('PROMPT SECTION', 'PIPELINE_TASK')).toEqual({
             type: 'SECTION',
-            taskType: 'PROMPT_SECTION',
+            taskType: 'PROMPT_TASK',
         });
 
         // Note: No need to test all types, because it is tested from `sectionCommandParser.examples`
@@ -15,19 +15,19 @@ describe('how SECTION command in .book.md files works', () => {
     it('should work with deprecated EXECUTE command', () => {
         expect(parseCommand('EXECUTE Prompt', 'PIPELINE_TASK')).toEqual({
             type: 'SECTION',
-            taskType: 'PROMPT_SECTION',
+            taskType: 'PROMPT_TASK',
         });
         expect(parseCommand('EXECUTE simple', 'PIPELINE_TASK')).toEqual({
             type: 'SECTION',
-            taskType: 'SIMPLE_SECTION',
+            taskType: 'SIMPLE_TASK',
         });
         expect(parseCommand('EXECUTE script', 'PIPELINE_TASK')).toEqual({
             type: 'SECTION',
-            taskType: 'SCRIPT_SECTION',
+            taskType: 'SCRIPT_TASK',
         });
         expect(parseCommand('EXECUTE dialog', 'PIPELINE_TASK')).toEqual({
             type: 'SECTION',
-            taskType: 'DIALOG_SECTION',
+            taskType: 'DIALOG_TASK',
         });
     });
 
