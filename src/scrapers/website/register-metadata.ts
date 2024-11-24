@@ -29,3 +29,7 @@ export const websiteScraperMetadata = $deepFreeze({
  */
 export const _WebsiteScraperMetadataRegistration: Registration =
     $scrapersMetadataRegister.register(websiteScraperMetadata);
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

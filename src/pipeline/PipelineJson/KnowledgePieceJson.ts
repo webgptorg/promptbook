@@ -82,4 +82,5 @@ export type KnowledgePiecePreparedJson = {
 
 /**
  * TODO: [🍙] Make some standard order of json properties
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

@@ -29,3 +29,7 @@ export const markdownScraperMetadata = $deepFreeze({
  */
 export const _MarkdownScraperMetadataRegistration: Registration =
     $scrapersMetadataRegister.register(markdownScraperMetadata);
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

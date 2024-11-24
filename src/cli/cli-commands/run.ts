@@ -352,6 +352,7 @@ export function initializeRunCommand(program: Program) {
  * TODO: !!!!! Catch and wrap all errors from CLI
  * TODO: [🧠] Pass `maxExecutionAttempts`, `csvSettings`
  * TODO: [🥃][main] !!! Allow `ptbk run` without configuring any llm tools
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  */

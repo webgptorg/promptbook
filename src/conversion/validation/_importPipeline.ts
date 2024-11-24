@@ -57,5 +57,6 @@ export function importPipelineJsonAsString(path: `${string}.book.json`): string_
 }
 
 /**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [⚫] Code in this file should never be published in any package
  */

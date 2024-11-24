@@ -22,4 +22,5 @@ export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAm
 
 /**
  * TODO: [🧠][🤠] This should be probbably as part of `TextFormatDefinition`
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

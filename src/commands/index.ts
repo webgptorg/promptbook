@@ -40,3 +40,8 @@ export const COMMANDS = [
 
     // <- Note: [♓️] This is the order of the commands in the pipeline, BUT its not used in parsing and before usage maybe it should be done better
 ] as const;
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

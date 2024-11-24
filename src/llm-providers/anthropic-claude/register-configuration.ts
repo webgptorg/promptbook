@@ -48,3 +48,8 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
         return null;
     },
 });
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

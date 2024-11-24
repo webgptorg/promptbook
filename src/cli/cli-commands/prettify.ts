@@ -74,6 +74,7 @@ export function initializePrettifyCommand(program: Program) {
 
 /**
  * TODO: [😶] Unite floder listing
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  */

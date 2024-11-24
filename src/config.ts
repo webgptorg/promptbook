@@ -278,5 +278,6 @@ export const IS_COST_PREVENTED: boolean = just(
 
 /**
  * TODO: Extract `constants.ts` from `config.ts`
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
  */
