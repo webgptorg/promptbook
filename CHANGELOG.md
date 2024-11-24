@@ -598,6 +598,7 @@ Formfactors, Rebranding
 -   Rename `TemplateCommand` -> `SectionCommand` command
 -   Make alongside `SectionType` the `TaskType`
 -   🤍 Change Whitepaper to Abstract
+-   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
 
 ## Drafts
 
