@@ -588,7 +588,7 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 
 ### `0.75.0` _(2024-11-)_
 
-Formfactors
+Formfactors, Rebranding
 
 -   Add `FormfactorCommand`
 -   Add Pipeline interfaces
@@ -597,6 +597,7 @@ Formfactors
 -   Rename `Template` -> `Task`
 -   Rename `TemplateCommand` -> `SectionCommand` command
 -   Make alongside `SectionType` the `TaskType`
+-   🤍 Change Whitepaper to Abstract
 
 ## Drafts
 
