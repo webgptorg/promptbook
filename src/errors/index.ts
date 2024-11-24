@@ -29,3 +29,8 @@ export const ERRORS = {
     UnexpectedError,
     // TODO: [🪑]> VersionMismatchError,
 } as const;
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

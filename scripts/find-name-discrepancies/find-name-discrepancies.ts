@@ -3,6 +3,7 @@
 
 import colors from 'colors';
 import commander from 'commander';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
 /*
@@ -42,15 +43,28 @@ async function findNameDiscrepancies() {
         ({ filename, entities }) => !entities.some(({ name }) => filename.includes(name)),
     );
 
+    const filenamesWithDiscrepanciesNotIgnored: /*WritableDeep<Awaited<ReturnType<typeof findAllProjectFilesWithEntities>>>*/ Array<string> =
+        [];
+
     for (const file of filesWithDiscrepancies) {
         const { filename } = file;
+        const content = await readFile(filename, 'utf-8');
+
+        const isIgnored = content.includes('[💞]');
+
+        if (!isIgnored) {
+            filenamesWithDiscrepanciesNotIgnored.push(filename);
+        }
+    }
+
+    for (const filename of filenamesWithDiscrepanciesNotIgnored) {
         console.info(colors.yellow(`${filename}`));
     }
 
-    if (filesWithDiscrepancies.length > 0) {
-        console.info(colors.gray(`Found ${filesWithDiscrepancies.length} files with name discrepancies`));
+    if (filenamesWithDiscrepanciesNotIgnored.length !== 0) {
+        console.info(colors.gray(`Found ${filenamesWithDiscrepanciesNotIgnored.length} files with name discrepancies`));
     } else {
-        console.info(colors.green(`No files with name discrepancies found`));
+        console.info(colors.green(`No name discrepancies found`));
     }
 }
 

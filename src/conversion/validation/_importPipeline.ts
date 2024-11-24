@@ -3,8 +3,7 @@ import { join } from 'path';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_json } from '../../types/typeAliases';
+import type { string_filename, string_json } from '../../types/typeAliases';
 
 /**
  * Import the pipeline.book.md or pipeline.book.json file
@@ -58,5 +57,6 @@ export function importPipelineJsonAsString(path: `${string}.book.json`): string_
 }
 
 /**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [⚫] Code in this file should never be published in any package
  */

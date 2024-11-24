@@ -14,3 +14,8 @@ export const FORMAT_DEFINITIONS = [
     TextFormatDefinition,
     CsvFormatDefinition,
 ] as const;
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

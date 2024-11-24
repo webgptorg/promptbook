@@ -21,3 +21,4 @@ See [TODO.md](./TODO.md)
 -   [🟢] Code in this file should never be published into packages that could be imported into browser environment
 -   [🔵] Code in this file should never be published outside of `@promptbook/browser`
 -   [🟡] Code in this file should never be published outside of `@promptbook/cli`
+-   [💞] Ignore a discrepancy between file name and entity name

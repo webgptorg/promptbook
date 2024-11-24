@@ -28,3 +28,7 @@ export const documentScraperMetadata = $deepFreeze({
  */
 export const _DocumentScraperMetadataRegistration: Registration =
     $scrapersMetadataRegister.register(documentScraperMetadata);
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

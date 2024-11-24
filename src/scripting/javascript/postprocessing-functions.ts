@@ -31,10 +31,9 @@ const trim = (str: string) => str.trim();
 // TODO: DRY [🍯]
 const reverse = (str: string) => str.split('').reverse().join('');
 
-
 /**
  * @@@
- * 
+ *
  * @public exported from `@promptbook/execute-javascript`
  */
 export const POSTPROCESSING_FUNCTIONS = {
@@ -64,4 +63,5 @@ export const POSTPROCESSING_FUNCTIONS = {
 
 /**
  * TODO: DRY [🍯], [🧠] Where should be POSTPROCESSING_FUNCTIONS located and how it should be named
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

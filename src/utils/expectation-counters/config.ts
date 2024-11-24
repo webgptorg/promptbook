@@ -11,3 +11,8 @@ export const CHARACTERS_PER_STANDARD_LINE = 63;
  * @public exported from `@promptbook/utils`
  */
 export const LINES_PER_STANDARD_PAGE = 44;
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

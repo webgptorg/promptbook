@@ -277,5 +277,6 @@ export const IS_COST_PREVENTED: boolean = just(
 );
 
 /**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
  */
