@@ -17,7 +17,7 @@ export const GENERATOR_WARNING = `⚠️ WARNING: This code has been generated s
  *
  * @public exported from `@promptbook/core`
  */
-export const CLAIM = `Build responsible, controlled and transparent applications on top of LLM models!`;
+export const CLAIM = `It's time for a paradigm shift. The future of software in plain English, French or Latin`;
 //            <- TODO: [🐊] Pick the best claim
 
 /**
