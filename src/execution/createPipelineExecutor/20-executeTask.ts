@@ -12,18 +12,18 @@ import { union } from '../../utils/sets/union';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeFormatSubvalues } from './30-executeFormatSubvalues';
-import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
+import { getReservedParametersForTask } from './getReservedParametersForTask';
 
 /**
  * @@@
  *
- * @private internal type of `executeTemplate`
+ * @private internal type of `executeTask`
  */
-type executeSingleTemplateOptions = CreatePipelineExecutorOptions & {
+type executeSingleTaskOptions = CreatePipelineExecutorOptions & {
     /**
      * @@@
      */
-    readonly currentTemplate: ReadonlyDeep<TaskJson>;
+    readonly currentTask: ReadonlyDeep<TaskJson>;
 
     /**
      * @@@
@@ -56,9 +56,9 @@ type executeSingleTemplateOptions = CreatePipelineExecutorOptions & {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export async function executeTemplate(options: executeSingleTemplateOptions): Promise<Readonly<Parameters>> {
+export async function executeTask(options: executeSingleTaskOptions): Promise<Readonly<Parameters>> {
     const {
-        currentTemplate,
+        currentTask,
         preparedPipeline,
         parametersToPass,
         tools,
@@ -68,24 +68,24 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         maxExecutionAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS,
     } = options;
 
-    const name = `pipeline-executor-frame-${currentTemplate.name}`;
-    const title = currentTemplate.title;
-    const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTemplate);
+    const name = `pipeline-executor-frame-${currentTask.name}`;
+    const title = currentTask.title;
+    const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
 
     await onProgress({
         name,
         title,
         isStarted: false,
         isDone: false,
-        taskType: currentTemplate.taskType,
-        parameterName: currentTemplate.resultingParameterName,
+        taskType: currentTask.taskType,
+        parameterName: currentTask.resultingParameterName,
         parameterValue: null,
         // <- [🍸]
     });
 
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
-    const usedParameterNames = extractParameterNamesFromTask(currentTemplate);
-    const dependentParameterNames = new Set(currentTemplate.dependentParameterNames);
+    const usedParameterNames = extractParameterNamesFromTask(currentTask);
+    const dependentParameterNames = new Set(currentTask.dependentParameterNames);
     // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
     if (
         union(
@@ -117,9 +117,9 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     }
 
     const definedParameters: Parameters = Object.freeze({
-        ...(await getReservedParametersForTemplate({
+        ...(await getReservedParametersForTask({
             preparedPipeline,
-            template: currentTemplate,
+            task: currentTask,
             pipelineIdentification,
         })),
         ...parametersToPass,
@@ -128,7 +128,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     const definedParameterNames = new Set(Object.keys(definedParameters));
     const parameters: Parameters = {};
 
-    // Note: [2] Check that all used parameters are defined and removing unused parameters for this template
+    // Note: [2] Check that all used parameters are defined and removing unused parameters for this task
     // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
     for (const parameterName of Array.from(union(definedParameterNames, usedParameterNames, dependentParameterNames))) {
         // Situation: Parameter is defined and used
@@ -147,7 +147,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                 spaceTrim(
                     (block) => `
                         Parameter \`{${parameterName}}\` is NOT defined
-                        BUT used in template "${currentTemplate.title || currentTemplate.name}"
+                        BUT used in task "${currentTask.title || currentTask.name}"
 
                         This should be catched in \`validatePipeline\`
 
@@ -162,12 +162,10 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: [👨‍👨‍👧] Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
-    const maxAttempts = currentTemplate.taskType === 'DIALOG_TASK' ? Infinity : maxExecutionAttempts; // <- Note: [💂]
-    const jokerParameterNames = currentTemplate.jokerParameterNames || [];
+    const maxAttempts = currentTask.taskType === 'DIALOG_TASK' ? Infinity : maxExecutionAttempts; // <- Note: [💂]
+    const jokerParameterNames = currentTask.jokerParameterNames || [];
 
-    const preparedContent = (currentTemplate.preparedContent || '{content}')
-        .split('{content}')
-        .join(currentTemplate.content);
+    const preparedContent = (currentTask.preparedContent || '{content}').split('{content}').join(currentTask.content);
     //    <- TODO: [🍵] Use here `replaceParameters` to replace {websiteContent} with option to ignore missing parameters
 
     const resultString = await executeFormatSubvalues({
@@ -176,7 +174,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         maxAttempts,
         preparedContent,
         parameters,
-        template: currentTemplate,
+        task: currentTask,
         preparedPipeline,
         tools,
         $executionReport,
@@ -188,14 +186,14 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         title,
         isStarted: true,
         isDone: true,
-        taskType: currentTemplate.taskType,
-        parameterName: currentTemplate.resultingParameterName,
+        taskType: currentTask.taskType,
+        parameterName: currentTask.resultingParameterName,
         parameterValue: resultString,
         // <- [🍸]
     });
 
     return Object.freeze({
-        [currentTemplate.resultingParameterName]:
+        [currentTask.resultingParameterName]:
             // <- Note: [👩‍👩‍👧] No need to detect parameter collision here because pipeline checks logic consistency during construction
             resultString,
     });

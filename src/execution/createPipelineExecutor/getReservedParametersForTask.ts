@@ -11,7 +11,7 @@ import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ReservedParameters } from '../../types/typeAliases';
 import { getContextForTask } from './getContextForTask';
 import { getExamplesForTask } from './getExamplesForTask';
-import { getKnowledgeFoTask } from './getKnowledgeFoTask';
+import { getKnowledgeForTask } from './getKnowledgeForTask';
 
 /**
  * @@@
@@ -46,7 +46,7 @@ export async function getReservedParametersForTask(
     const { preparedPipeline, task, pipelineIdentification } = options;
 
     const context = await getContextForTask(task); // <- [🏍]
-    const knowledge = await getKnowledgeFoTask({ preparedPipeline, task });
+    const knowledge = await getKnowledgeForTask({ preparedPipeline, task });
     const examples = await getExamplesForTask(task);
     const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;

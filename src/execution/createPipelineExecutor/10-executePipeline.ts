@@ -17,7 +17,7 @@ import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage } from '../utils/addUsage';
 import { ZERO_USAGE } from '../utils/usage-constants';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
-import { executeTemplate } from './20-executeTemplate';
+import { executeTask } from './20-executeTask';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
 /**
@@ -199,11 +199,11 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         let resovedParameterNames: ReadonlyArray<string_name> = preparedPipeline.parameters
             .filter(({ isInput }) => isInput)
             .map(({ name }) => name);
-        let unresovedTemplates: ReadonlyArray<ReadonlyDeep<TaskJson>> = [...preparedPipeline.tasks];
+        let unresovedTasks: ReadonlyArray<ReadonlyDeep<TaskJson>> = [...preparedPipeline.tasks];
         let resolving: Array<Promise<void>> = [];
 
         let loopLimit = LOOP_LIMIT;
-        while (unresovedTemplates.length > 0) {
+        while (unresovedTasks.length > 0) {
             if (loopLimit-- < 0) {
                 // Note: Really UnexpectedError not LimitReachedError - this should be catched during validatePipeline
                 throw new UnexpectedError(
@@ -217,13 +217,13 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 );
             }
 
-            const currentTemplate = unresovedTemplates.find((template) =>
-                template.dependentParameterNames.every((name) =>
+            const currentTask = unresovedTasks.find((task) =>
+                task.dependentParameterNames.every((name) =>
                     [...resovedParameterNames, ...RESERVED_PARAMETER_NAMES].includes(name),
                 ),
             );
 
-            if (!currentTemplate && resolving.length === 0) {
+            if (!currentTask && resolving.length === 0) {
                 throw new UnexpectedError(
                     // TODO: [🐎] DRY
                     spaceTrim(
@@ -234,7 +234,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
                             **Can not resolve:**
                             ${block(
-                                unresovedTemplates
+                                unresovedTasks
                                     .map(
                                         ({ resultingParameterName, dependentParameterNames }) =>
                                             `- Parameter \`{${resultingParameterName}}\` which depends on ${dependentParameterNames
@@ -269,14 +269,14 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         `,
                     ),
                 );
-            } else if (!currentTemplate) {
+            } else if (!currentTask) {
                 /* [🤹‍♂️] */ await Promise.race(resolving);
             } else {
-                unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
+                unresovedTasks = unresovedTasks.filter((task) => task !== currentTask);
 
-                const work = /* [🤹‍♂️] not await */ executeTemplate({
+                const work = /* [🤹‍♂️] not await */ executeTask({
                     ...options,
-                    currentTemplate,
+                    currentTask,
                     preparedPipeline,
                     parametersToPass,
                     tools,
@@ -308,14 +308,14 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     pipelineIdentification: spaceTrim(
                         (block) => `
                             ${block(pipelineIdentification)}
-                            Template name: ${currentTemplate.name}
-                            Template title: ${currentTemplate.title}
+                            Task name: ${currentTask.name}
+                            Task title: ${currentTask.title}
                         `,
                     ),
                 })
                     .then((newParametersToPass) => {
                         parametersToPass = { ...newParametersToPass, ...parametersToPass };
-                        resovedParameterNames = [...resovedParameterNames, currentTemplate.resultingParameterName];
+                        resovedParameterNames = [...resovedParameterNames, currentTask.resultingParameterName];
                     })
                     .then(() => {
                         resolving = resolving.filter((w) => w !== work);

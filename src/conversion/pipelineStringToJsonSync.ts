@@ -354,9 +354,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }));
 
         // Note: If block type is not set, set it to 'PROMPT_TASK'
-        if (commands.some(({ command }) => command.type === 'TEMPLATE') === false) {
+        if (commands.some(({ command }) => command.type === 'SECTION') === false) {
             sectionCommandParser.$applyToTaskJson(
-                { type: 'TEMPLATE', taskType: 'PROMPT_TASK' },
+                { type: 'SECTION', taskType: 'PROMPT_TASK' },
                 $taskJson,
                 $pipelineJson,
             );

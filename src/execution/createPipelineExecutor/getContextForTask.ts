@@ -10,8 +10,8 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
  * @private internal utility of `createPipelineExecutor`
  */
 export async function getContextForTask(
-    template: ReadonlyDeep<TaskJson>,
+    task: ReadonlyDeep<TaskJson>,
 ): Promise<string_parameter_value & string_markdown> {
-    TODO_USE(template);
+    TODO_USE(task);
     return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [🏍] Implement */;
 }
