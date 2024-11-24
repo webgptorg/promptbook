@@ -10,9 +10,9 @@
             "isOutput": true
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "prompt",
             "title": "💬 Prompt",
             "content": "Hello",

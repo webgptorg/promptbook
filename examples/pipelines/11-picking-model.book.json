@@ -20,9 +20,9 @@
             ]
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -33,7 +33,9 @@
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-1106-preview"
             },
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -48,7 +50,9 @@
                 "systemMessage": "You are a talented and insightful poet with a deep appreciation for language, imagery, and emotion. Your responses often incorporate poetic elements, metaphors, and lyrical phrasing. You can discuss various poetic forms, literary devices, and the works of famous poets. When asked, you can also create original poems on given topics or in specific styles.",
                 "temperature": 0.8
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [

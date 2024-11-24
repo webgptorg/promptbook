@@ -21,24 +21,29 @@
             "isOutput": false
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "sentence",
             "title": "Sentence",
             "description": "Sentence with word and wordSynonym",
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms",
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "Synonym",
             "description": "Synonym for word",
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym",
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         }
     ],
     "knowledgeSources": [],

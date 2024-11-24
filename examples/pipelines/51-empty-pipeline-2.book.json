@@ -4,7 +4,7 @@
     "description": "Show how to use an empty pipeline.",
     "formfactorName": "GENERIC",
     "parameters": [],
-    "templates": [],
+    "tasks": [],
     "knowledgeSources": [],
     "knowledgePieces": [],
     "personas": [],

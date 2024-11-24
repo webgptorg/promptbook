@@ -4,7 +4,7 @@
     "description": "Show how to use a simple prompt with no parameters.",
     "formfactorName": "GENERIC",
     "parameters": [],
-    "templates": [],
+    "tasks": [],
     "knowledgeSources": [
         {
             "name": "source-https-koralkykatla-ad3ccd3c9253cbf6017c",
