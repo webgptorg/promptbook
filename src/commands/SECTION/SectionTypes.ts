@@ -13,16 +13,15 @@ export type SectionType = TupleToUnion<typeof SectionTypes>;
  * @public exported from `@promptbook/core`
  */
 export const SectionTypes = [
-    'PROMPT_TEMPLATE_TASK',
-    'SIMPLE_TEMPLATE_TASK',
-    'SCRIPT_TEMPLATE_TASK',
-    'DIALOG_TEMPLATE_TASK',
+    'PROMPT_TASK',
+    'SIMPLE_TASK',
+    'SCRIPT_TASK',
+    'DIALOG_TASK',
     'EXAMPLE',
     'KNOWLEDGE',
     'INSTRUMENT',
     'ACTION',
     // <- [🅱]
 ] as const;
-
 
 // TODO: !!!!!! Make alongside TaskType, TaskType and ACRY

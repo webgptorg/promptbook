@@ -152,11 +152,11 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         try {
             if (!isJokerAttempt) {
                 taskType: switch (template.taskType) {
-                    case 'SIMPLE_TEMPLATE_TASK':
+                    case 'SIMPLE_TASK':
                         $ongoingTaskResult.$resultString = replaceParameters(preparedContent, parameters);
                         break taskType;
 
-                    case 'PROMPT_TEMPLATE_TASK':
+                    case 'PROMPT_TASK':
                         {
                             const modelRequirements = {
                                 modelVariant: 'CHAT',
@@ -239,7 +239,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         }
                         break;
 
-                    case 'SCRIPT_TEMPLATE_TASK':
+                    case 'SCRIPT_TASK':
                         if (arrayableToArray(tools.script).length === 0) {
                             throw new PipelineExecutionError(
                                 spaceTrim(
@@ -317,7 +317,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         // Note: This line is unreachable because of the break taskType above
                         break taskType;
 
-                    case 'DIALOG_TEMPLATE_TASK':
+                    case 'DIALOG_TASK':
                         if (tools.userInterface === undefined) {
                             throw new PipelineExecutionError(
                                 spaceTrim(
@@ -452,7 +452,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         } finally {
             if (
                 !isJokerAttempt &&
-                template.taskType === 'PROMPT_TEMPLATE_TASK' &&
+                template.taskType === 'PROMPT_TASK' &&
                 $ongoingTaskResult.$prompt!
                 //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
                 //              In that case we don’t want to make a report about it because it’s not a llm execution error

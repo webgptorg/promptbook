@@ -7,9 +7,9 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
 /**
  * @@@
  *
- * @private internal type of `getKnowledgeForTemplate`
+ * @private internal type of `getKnowledgeFoTask`
  */
-type GetKnowledgeForTemplateOptions = {
+type GetKnowledgeForTaskOptions = {
     /**
      * @@@
      */
@@ -18,7 +18,7 @@ type GetKnowledgeForTemplateOptions = {
     /**
      * @@@
      */
-    readonly template: ReadonlyDeep<TaskJson>;
+    readonly task: ReadonlyDeep<TaskJson>;
 };
 
 /**
@@ -26,14 +26,14 @@ type GetKnowledgeForTemplateOptions = {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export async function getKnowledgeForTemplate(
-    options: GetKnowledgeForTemplateOptions,
+export async function getKnowledgeForTask(
+    options: GetKnowledgeForTaskOptions,
 ): Promise<string_parameter_value & string_markdown> {
-    const { preparedPipeline, template } = options;
+    const { preparedPipeline, task } = options;
 
-    // TODO: [♨] Implement Better - use real index and keyword search from `template` and {examples}
+    // TODO: [♨] Implement Better - use real index and keyword search from `task` and {examples}
 
-    TODO_USE(template);
+    TODO_USE(task);
     return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
     //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
 }

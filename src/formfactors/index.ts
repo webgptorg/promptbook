@@ -16,3 +16,7 @@ export const FORMFACTOR_DEFINITIONS = [
     SheetsFormfactorDefinition,
     MatcherFormfactorDefinition,
 ] as const;
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

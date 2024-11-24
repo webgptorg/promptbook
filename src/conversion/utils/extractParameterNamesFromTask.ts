@@ -32,7 +32,7 @@ export function extractParameterNamesFromTask(
         parameterNames.add(parameterName);
     }
 
-    if (taskType === 'SCRIPT_TEMPLATE_TASK') {
+    if (taskType === 'SCRIPT_TASK') {
         for (const parameterName of extractVariables(content)) {
             parameterNames.add(parameterName);
         }

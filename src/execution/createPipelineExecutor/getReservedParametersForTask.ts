@@ -9,16 +9,16 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ReservedParameters } from '../../types/typeAliases';
-import { getContextForTemplate } from './getContextForTemplate';
+import { getContextForTask } from './getContextForTask';
 import { getExamplesForTask } from './getExamplesForTask';
-import { getKnowledgeForTemplate } from './getKnowledgeForTemplate';
+import { getKnowledgeFoTask } from './getKnowledgeFoTask';
 
 /**
  * @@@
  *
- * @private internal type of `getReservedParametersForTemplate`
+ * @private internal type of `getReservedParametersForTask`
  */
-type GetReservedParametersForTemplateOptions = {
+type GetReservedParametersForTaskOptions = {
     /**
      * @@@
      */
@@ -27,7 +27,7 @@ type GetReservedParametersForTemplateOptions = {
     /**
      * @@@
      */
-    readonly template: ReadonlyDeep<TaskJson>;
+    readonly task: ReadonlyDeep<TaskJson>;
 
     /**
      * @@@
@@ -40,14 +40,14 @@ type GetReservedParametersForTemplateOptions = {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export async function getReservedParametersForTemplate(
-    options: GetReservedParametersForTemplateOptions,
+export async function getReservedParametersForTask(
+    options: GetReservedParametersForTaskOptions,
 ): Promise<Readonly<ReservedParameters>> {
-    const { preparedPipeline, template, pipelineIdentification } = options;
+    const { preparedPipeline, task, pipelineIdentification } = options;
 
-    const context = await getContextForTemplate(template); // <- [🏍]
-    const knowledge = await getKnowledgeForTemplate({ preparedPipeline, template });
-    const examples = await getExamplesForTask(template);
+    const context = await getContextForTask(task); // <- [🏍]
+    const knowledge = await getKnowledgeFoTask({ preparedPipeline, task });
+    const examples = await getExamplesForTask(task);
     const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;
 
