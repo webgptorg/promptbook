@@ -13,8 +13,8 @@ import type {
     CommandParserInput,
     PipelineTaskCommandParser,
 } from '../_common/types/CommandParser';
+import type { SectionCommand } from './SectionCommand';
 import { SectionTypes } from './SectionTypes';
-import type { TemplateCommand } from './TemplateCommand';
 
 /**
  * Parses the section command
@@ -22,7 +22,7 @@ import type { TemplateCommand } from './TemplateCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = {
+export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
     /**
      * Name of the command
      */
@@ -109,7 +109,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
     /**
      * Parses the SECTION command
      */
-    parse(input: CommandParserInput): TemplateCommand {
+    parse(input: CommandParserInput): SectionCommand {
         let { normalized } = input;
 
         normalized = normalized.split('SAMPLE').join('EXAMPLE');
@@ -118,11 +118,11 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
         if (taskTypes.length !== 1) {
             throw new ParseError(
                 spaceTrim(
-                    (template) => `
-                        Unknown template type in SECTION command
+                    (block) => `
+                        Unknown section type in SECTION command
 
-                        Supported template types are:
-                        ${template(SectionTypes.join(', '))}
+                        Supported section types are:
+                        ${block(SectionTypes.join(', '))}
                     `, // <- TODO: [🚞]
                 ),
             );
@@ -133,7 +133,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
         return {
             type: 'SECTION',
             taskType,
-        } satisfies TemplateCommand;
+        } satisfies SectionCommand;
     },
 
     /**
@@ -141,11 +141,11 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: TemplateCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: SectionCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
         if ($taskJson.isSectionTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`
-                    Template type is already defined in the template.
+                    Section type is already defined in the section.
                     It can be defined only once.
                 `),
             );
@@ -159,7 +159,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
                 return;
             }
 
-            throw new ParseError(` Template section must end with -> {parameterName}`);
+            throw new ParseError(`Task section and example section must end with return statement -> {parameterName}`);
         };
 
         if ($taskJson.content === undefined) {
@@ -222,7 +222,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    stringify(command: TemplateCommand): string_markdown_text {
+    stringify(command: SectionCommand): string_markdown_text {
         keepUnused(command);
         return `---`; // <- TODO: [🛋] Implement
     },
@@ -232,7 +232,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<TemplateCommand> {
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<SectionCommand> {
         keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -242,7 +242,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<TemplateCommand> = 
  * Note: [⛱] There are two types of KNOWLEDGE, ACTION and INSTRUMENT commands:
  * 1) There are commands `KNOWLEDGE`, `ACTION` and `INSTRUMENT` used in the pipeline head, they just define the knowledge, action or instrument as single line after the command
  *    - KNOWLEDGE Look at https://en.wikipedia.org/wiki/Artificial_intelligence
- * 2) `KNOWLEDGE SECTION` which has short form `KNOWLEDGE` is used in the template, does not refer the line itself, but the content of the template
+ * 2) `KNOWLEDGE SECTION` which has short form `KNOWLEDGE` is used in the sectiom, does not refer the line itself, but the content of the section block
  *   - KNOWLEDGE SECTION
  *
  *   ```

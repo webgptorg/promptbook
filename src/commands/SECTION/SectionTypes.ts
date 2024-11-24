@@ -1,14 +1,14 @@
 import type { TupleToUnion } from 'type-fest';
 
 /**
- * Template type describes the way how the template is templated
+ * Section type describes the way how the section is sectiond
  *
  * @public exported from `@promptbook/core`
  */
 export type SectionType = TupleToUnion<typeof SectionTypes>;
 
 /**
- * Template type describes the way how the template is templated
+ * Section type describes the way how the section is sectiond
  *
  * @public exported from `@promptbook/core`
  */

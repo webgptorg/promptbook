@@ -32,9 +32,9 @@ describe('how SECTION command in .book.md files works', () => {
     });
 
     it('should fail parsing SECTION command', () => {
-        expect(() => parseCommand('template fooo', 'PIPELINE_TASK')).toThrowError(/Unknown template type/i);
-        expect(() => parseCommand('template script prompt template', 'PIPELINE_TASK')).toThrowError(
-            /Unknown template type/i,
+        expect(() => parseCommand('section fooo', 'PIPELINE_TASK')).toThrowError(/Unknown section type/i);
+        expect(() => parseCommand('section script prompt template', 'PIPELINE_TASK')).toThrowError(
+            /Unknown section type/i,
         );
     });
 
