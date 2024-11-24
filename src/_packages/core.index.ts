@@ -6,8 +6,8 @@ import { createCollectionFromJson } from '../collection/constructors/createColle
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
-import type { SectionType } from '../commands/SECTION/SectionTypes';
-import { SectionTypes } from '../commands/SECTION/SectionTypes';
+import type { SectionType } from '../commands/SECTION/SectionType';
+import { SectionTypes } from '../commands/SECTION/SectionType';
 import {
     CLAIM,
     DEFAULT_CSV_SETTINGS,

@@ -1,4 +1,4 @@
-import type { SectionType } from '../commands/SECTION/SectionTypes';
+import type { SectionType } from '../commands/SECTION/SectionType';
 import type { string_markdown_text, string_name } from './typeAliases';
 
 /**

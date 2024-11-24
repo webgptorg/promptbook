@@ -1,4 +1,4 @@
-import type { SectionType } from './SectionTypes';
+import type { SectionType } from './SectionType';
 
 /**
  * Parsed SECTION command

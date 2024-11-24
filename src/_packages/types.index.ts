@@ -14,7 +14,7 @@ import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePl
 import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
 import type { ForeachJson } from '../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
-import type { SectionType } from '../commands/SECTION/SectionTypes';
+import type { SectionType } from '../commands/SECTION/SectionType';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
 import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
 import type { CallbackInterfaceToolsOptions } from '../dialogs/callback/CallbackInterfaceToolsOptions';

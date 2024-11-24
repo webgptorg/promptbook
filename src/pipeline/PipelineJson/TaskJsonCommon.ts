@@ -1,6 +1,6 @@
 import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
-import type { SectionType } from '../../commands/SECTION/SectionTypes';
+import type { SectionType } from '../../commands/SECTION/SectionType';
 import type {
     string_javascript,
     string_markdown,

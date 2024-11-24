@@ -14,7 +14,7 @@ import type {
     PipelineTaskCommandParser,
 } from '../_common/types/CommandParser';
 import type { SectionCommand } from './SectionCommand';
-import { SectionTypes } from './SectionTypes';
+import { SectionTypes } from './SectionType';
 
 /**
  * Parses the section command
@@ -86,7 +86,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
         'SCRIPT SECTION',
         'DIALOG SECTION',
         // <- [🅱]
-        'SAMPLE SECTION',
+        'EXAMPLE SECTION',
         'KNOWLEDGE SECTION',
         'INSTRUMENT SECTION',
         'ACTION SECTION',
@@ -98,7 +98,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
         'SECTION SCRIPT',
         'SECTION DIALOG',
         // <- [🅱]
-        'SECTION SAMPLE',
+        'SECTION EXAMPLE',
         'SECTION KNOWLEDGE',
         'SECTION INSTRUMENT',
         'SECTION ACTION',

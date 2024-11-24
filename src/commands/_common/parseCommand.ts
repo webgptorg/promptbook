@@ -35,7 +35,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
     normalized = normalized.split('(').join('');
     normalized = normalized.split(')').join('');
     normalized = normalizeTo_SCREAMING_CASE(normalized);
-    normalized = normalized.split('DIALOGUE').join('DIALOG');
+    normalized = normalized.split('DIALOGUE').join('DIALOG'); // <- TODO: !!!!!! Move to sectionCommandParser
 
     const items = raw
         .trim()

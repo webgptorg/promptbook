@@ -13,11 +13,11 @@ describe('how SECTION command in .book.md files works', () => {
     });
 
     it('should work with deprecated EXECUTE command', () => {
-        expect(parseCommand('EXECUTE Prompt block', 'PIPELINE_TASK')).toEqual({
+        expect(parseCommand('EXECUTE Prompt', 'PIPELINE_TASK')).toEqual({
             type: 'SECTION',
             taskType: 'PROMPT_SECTION',
         });
-        expect(parseCommand('EXECUTE simple block', 'PIPELINE_TASK')).toEqual({
+        expect(parseCommand('EXECUTE simple', 'PIPELINE_TASK')).toEqual({
             type: 'SECTION',
             taskType: 'SIMPLE_SECTION',
         });
