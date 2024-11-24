@@ -6,7 +6,7 @@ describe('how createMarkdownChart works', () => {
     it('should work advanced chart', () => {
         expect(
             createMarkdownChart({
-                nameHeader: 'Template',
+                nameHeader: 'Task',
                 valueHeader: 'Timeline',
                 items: [
                     { title: 'Task 1', from: 0, to: 10 },
@@ -20,13 +20,13 @@ describe('how createMarkdownChart works', () => {
             }),
         ).toBe(
             spaceTrim(`
-                | Template   | Timeline     |
-                |------------|--------------|
-                | Template 1 | ██████████░░ |
-                | Template 2 | ░░░░██░░░░░░ |
-                | Template 3 | ░░░██████░░░ |
-                | Template 4 | ░░░░░░█████░ |
-                | Template 5 | ░░░░░░░░░░░█ |
+                | Task   | Timeline     |
+                |--------|--------------|
+                | Task 1 | ██████████░░ |
+                | Task 2 | ░░░░██░░░░░░ |
+                | Task 3 | ░░░██████░░░ |
+                | Task 4 | ░░░░░░█████░ |
+                | Task 5 | ░░░░░░░░░░░█ |
 
                 _Note: Each █ represents 1 seconds, width of timeline is 12 seconds = 12 squares_
             `),
@@ -36,7 +36,7 @@ describe('how createMarkdownChart works', () => {
     it('should round boxes to nearest whole number', () => {
         expect(
             createMarkdownChart({
-                nameHeader: 'Template',
+                nameHeader: 'Task',
                 valueHeader: 'Timeline',
                 items: [
                     { title: 'Task 1', from: -1.2, to: 9 },
@@ -48,11 +48,11 @@ describe('how createMarkdownChart works', () => {
             }),
         ).toBe(
             spaceTrim(`
-              | Template   | Timeline |
-              |------------|----------|
-              | Template 1 | ████     |
-              | Template 2 | ░░░░     |
-              | Template 3 | ░░██     |
+              | Task   | Timeline |
+              |--------|----------|
+              | Task 1 | ████     |
+              | Task 2 | ░░░░     |
+              | Task 3 | ░░██     |
 
               _Note: Each █ represents 2.55 seconds, width of timeline is 10.2 seconds = 4 squares_
 
