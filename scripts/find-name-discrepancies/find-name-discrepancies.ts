@@ -5,12 +5,8 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import spaceTrim from 'spacetrim';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
-/*
-import { findAllProjectFiles } from '../utils/findAllProjectFiles';
-import { execCommands } from '../utils/execCommand/execCommands';
-import { splitArrayIntoChunks } from './utils/splitArrayIntoChunks';
-*/
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -62,9 +58,22 @@ async function findNameDiscrepancies() {
     }
 
     if (filenamesWithDiscrepanciesNotIgnored.length !== 0) {
-        console.info(colors.gray(`Found ${filenamesWithDiscrepanciesNotIgnored.length} files with name discrepancies`));
+        console.error(
+            colors.red(
+                spaceTrim(`
+                    Found ${filenamesWithDiscrepanciesNotIgnored.length} files with name discrepancies
+
+                    Review the files listed above:
+                    1) Rename the entity in the file according to the file name
+                    2) Rename file to match the entity name
+                    3) Add Note: [💞] Ignore a discrepancy between file name and entity name
+                `),
+            ),
+        );
+        process.exit(1);
     } else {
         console.info(colors.green(`No name discrepancies found`));
+        process.exit(0);
     }
 }
 
