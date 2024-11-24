@@ -594,6 +594,9 @@ Formfactors
 -   Add Pipeline interfaces
 -   Split `ParameterJson` into `InputParameterJson`, `OutputParameterJson` and `IntermediateParameterJson`
 -   Reorganize `/src` folder
+-   Rename `Template` -> `Task`
+-   Rename `TemplateCommand` -> `SectionCommand` command
+-   Make alongside `SectionType` the `TaskType`
 
 ## Drafts
 
