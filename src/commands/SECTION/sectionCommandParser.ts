@@ -7,12 +7,10 @@ import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type {
-    $PipelineJson,
-    $TaskJson,
-    CommandParserInput,
-    PipelineTaskCommandParser,
-} from '../_common/types/CommandParser';
+import type { $PipelineJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { SectionCommand } from './SectionCommand';
 import { SectionTypes } from './SectionType';
 

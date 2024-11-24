@@ -1,5 +1,7 @@
 import type { ChatModelRequirements } from '../../types/ModelRequirements';
-import type { number_id, string_name, string_persona_description } from '../../types/typeAliases';
+import type { number_id } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
+import type { string_persona_description } from '../../types/typeAliases';
 
 /**
  * Defines a persona in the pipeline

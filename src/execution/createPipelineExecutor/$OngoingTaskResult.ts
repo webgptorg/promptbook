@@ -1,6 +1,9 @@
 import { ExpectError } from '../../errors/ExpectError';
 import type { Prompt } from '../../types/Prompt';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../PromptResult';
+import type { ChatPromptResult } from '../PromptResult';
+import type { CompletionPromptResult } from '../PromptResult';
+import type { EmbeddingPromptResult } from '../PromptResult';
+import type { PromptResult } from '../PromptResult';
 
 /**
  * @@@
