@@ -40,7 +40,9 @@
             "description": "Sentence with word and wordSynonym",
             "isInput": false,
             "isOutput": false,
-            "exampleValues": ["I was happy and you were joyful!"]
+            "exampleValues": [
+                "I was happy and you were joyful!"
+            ]
         },
         {
             "name": "sentenceWithOriginalWordRemoved",
@@ -49,9 +51,9 @@
             "isOutput": false
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -61,26 +63,33 @@
             "modelRequirements": {
                 "modelName": "gpt-3.5-turbo"
             },
-            "postprocessingFunctionNames": ["unwrapResult"],
+            "postprocessingFunctionNames": [
+                "unwrapResult"
+            ],
             "expectations": {
                 "words": {
                     "min": 1,
                     "max": 1
                 }
             },
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         },
         {
-            "taskType": "SCRIPT_TEMPLATE",
+            "taskType": "SCRIPT_TASK",
             "name": "test-that-word-is-not-original-word",
             "title": "⚙ Test that word is not original word",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested",
             "contentLanguage": "javascript",
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "sentence-with-synonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
@@ -99,10 +108,13 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "sentence-without-original-word",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
@@ -118,10 +130,13 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": ["sentenceWithTwoSynonyms", "word"]
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "word"
+            ]
         },
         {
-            "taskType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
@@ -138,10 +153,13 @@
                     "max": 5
                 }
             },
-            "dependentParameterNames": ["sentenceWithTwoSynonyms", "sentenceWithOriginalWordRemoved"]
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved"
+            ]
         },
         {
-            "taskType": "SIMPLE_TEMPLATE",
+            "taskType": "SIMPLE_TASK",
             "name": "summary",
             "title": "🔗 Summary",
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
@@ -167,7 +185,9 @@
                 "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
                 "temperature": 0.6
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         },
         {
             "name": "Jane",
@@ -178,7 +198,9 @@
                 "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
                 "temperature": 0.6
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         },
         {
             "name": "Josh",
@@ -189,7 +211,9 @@
                 "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
                 "temperature": 0.6
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         },
         {
             "name": "Alice",
@@ -200,7 +224,9 @@
                 "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
                 "temperature": 0.6
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [
