@@ -1,6 +1,6 @@
 import type { WritableDeep } from 'type-fest';
-import { TODO_any } from '../../_packages/types.index';
-import { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
+import type { TODO_any } from '../../utils/organization/TODO_any';
+import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { PipelineJson } from '../PipelineJson/PipelineJson';
 import type { PipelineInterface } from './PipelineInterface';

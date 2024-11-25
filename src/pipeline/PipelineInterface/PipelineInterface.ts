@@ -1,5 +1,6 @@
 import type { string_parameter_name } from '../../types/typeAliases';
-import { InputParameterJson, OutputParameterJson } from '../PipelineJson/ParameterJson';
+import type { InputParameterJson } from '../PipelineJson/ParameterJson';
+import type { OutputParameterJson } from '../PipelineJson/ParameterJson';
 
 /**
  * @@@
