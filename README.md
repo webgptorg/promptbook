@@ -85,13 +85,10 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td>Promptbook studio</td>
       <td>Studio to write Books and instantly publish them as miniapps</td>
-      
       <td>
         https://promptbook.studio<br/>
         https://github.com/hejny/promptbook-studio</td>
-      </tr>
-    
-    <tr>
+      </tr><tr>
       <td>Hello World</td>
       <td>Simple starter kit with Books integrated into the sample applications</td>
        <td>
