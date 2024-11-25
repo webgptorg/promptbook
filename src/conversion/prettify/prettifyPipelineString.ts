@@ -21,7 +21,7 @@ export async function prettifyPipelineString(
         const pipelineJson = await pipelineStringToJson(pipelineString);
 
         const promptbookMermaid = renderPromptbookMermaid(pipelineJson, {
-            linkTemplate(task) {
+            linkTask(task) {
                 return { href: `#${task.name}`, title: task.title };
             },
         });

@@ -2,8 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../utils/titleToName';
 
@@ -14,7 +13,7 @@ export type renderPipelineMermaidOptions = {
     /**
      * Callback for creating from template graph node
      */
-    linkTemplate?(template: TaskJson): { href: string_href; title: string } | null;
+    linkTask?(template: TaskJson): { href: string_href; title: string } | null;
 };
 
 /**
@@ -25,7 +24,7 @@ export type renderPipelineMermaidOptions = {
  * @public exported from `@promptbook/utils`
  */
 export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: renderPipelineMermaidOptions): string {
-    const { linkTemplate = () => null } = options || {};
+    const { linkTask = () => null } = options || {};
 
     const parameterNameToTemplateName = (parameterName: string_name) => {
         const parameter = pipelineJson.parameters.find((parameter) => parameter.name === parameterName);
@@ -85,7 +84,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
                   ${block(
                       pipelineJson.tasks
                           .map((template) => {
-                              const link = linkTemplate(template);
+                              const link = linkTask(template);
 
                               if (link === null) {
                                   return '';
