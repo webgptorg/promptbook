@@ -9,6 +9,9 @@ export const BoilerplateFormfactorDefinition = {
     name: 'BOILERPLATE',
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
+    //                                                                     <- TODO: https://github.com/webgptorg/promptbook/discussions/new?category=concepts
+    //                                                                              "🔠 Boilerplate Formfactor"
+
     pipelineInterface: {
         inputParameterNames: [
             /* @@@ */
