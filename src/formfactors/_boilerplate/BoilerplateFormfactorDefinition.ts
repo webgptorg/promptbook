@@ -13,10 +13,10 @@ export const BoilerplateFormfactorDefinition = {
     //                                                                              "🔠 Boilerplate Formfactor"
 
     pipelineInterface: {
-        inputParameterNames: [
+        inputParameters: [
             /* @@@ */
         ],
-        outputParameterNames: [
+        outputParameters: [
             /* @@@ */
         ],
     },

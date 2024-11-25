@@ -10,7 +10,21 @@ export const SheetsFormfactorDefinition = {
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/176`,
     pipelineInterface: {
-        inputParameterNames: ['inputSheet'],
-        outputParameterNames: ['outputSheet'],
+        inputParameters: [
+            {
+                name: 'inputSheet',
+                description: `Input sheet to be processed as csv`,
+                isInput: true,
+                isOutput: false,
+            },
+        ],
+        outputParameters: [
+            {
+                name: 'outputSheet',
+                description: `Output sheet as csv`,
+                isInput: false,
+                isOutput: true,
+            },
+        ],
     },
 } as const satisfies AbstractFormfactorDefinition;

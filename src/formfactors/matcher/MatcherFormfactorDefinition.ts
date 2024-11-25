@@ -10,10 +10,10 @@ export const MatcherFormfactorDefinition = {
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/177`,
     pipelineInterface: {
-        inputParameterNames: [
+        inputParameters: [
             /* @@@ */
         ],
-        outputParameterNames: [
+        outputParameters: [
             /* @@@ */
         ],
     },

@@ -11,18 +11,25 @@ export const ChatbotFormfactorDefinition = {
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/174`,
     pipelineInterface: {
-        inputParameterNames: ['previousTitle', 'previousConversationSummary', 'userMessage'],
-        outputParameterNames: ['title', 'conversationSummary', 'chatbotResponse'],
-        /*
-        <- TODO: !!!!!! Change to full interfaces
-
-        -   INPUT PARAMETER `{previousTitle}` Previous title of the conversation
-        -   INPUT PARAMETER `{previousConversationSummary}` Previous conversation summary
-        -   INPUT PARAMETER `{userMessage}` User message
-        -   OUTPUT PARAMETER `{title}` Title of the conversation
-        -   OUTPUT PARAMETER `{conversationSummary}` Summary of the conversation
-        -   OUTPUT PARAMETER `{chatbotResponse}` Chatbot response
-
-        */
+        inputParameters: [
+            {
+                name: 'previousTitle',
+                description: `Previous title of the conversation`,
+                isInput: true,
+                isOutput: false,
+            },
+            {
+                name: 'previousConversationSummary',
+                description: `Previous conversation summary`,
+                isInput: true,
+                isOutput: false,
+            },
+            { name: 'userMessage', description: `User message`, isInput: true, isOutput: false },
+        ],
+        outputParameters: [
+            { name: 'title', description: `Title of the conversation`, isInput: false, isOutput: true },
+            { name: 'conversationSummary', description: `Summary of the conversation`, isInput: false, isOutput: true },
+            { name: 'chatbotResponse', description: `Chatbot response`, isInput: false, isOutput: true },
+        ],
     },
 } as const satisfies AbstractFormfactorDefinition;

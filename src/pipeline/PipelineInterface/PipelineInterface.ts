@@ -1,4 +1,5 @@
 import type { string_parameter_name } from '../../types/typeAliases';
+import { InputParameterJson, OutputParameterJson } from '../PipelineJson/ParameterJson';
 
 /**
  * @@@
@@ -12,17 +13,17 @@ export type PipelineInterface = {
      *
      * Note: Sorted alphabetically
      */
-    readonly inputParameterNames: ReadonlyArray<string_parameter_name>;
+    readonly inputParameters: ReadonlyArray<InputParameterJson>;
 
     /**
      * @@@
      *
      * Note: Sorted alphabetically
      */
-    readonly outputParameterNames: ReadonlyArray<string_parameter_name>;
+    readonly outputParameters: ReadonlyArray<OutputParameterJson>;
 };
 
 /**
- * TODO: !!!!!! Change inputParameterNames to Array<InputParameter>
+ * TODO: [🧠][🤓] How to pass optional parameters - for example summary in FORMFACTOR Translator
  * TODO: [🧠] Better name than `PipelineInterface` to avoid confusion with typescript `interface`
  */

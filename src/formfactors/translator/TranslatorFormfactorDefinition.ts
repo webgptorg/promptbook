@@ -10,9 +10,23 @@ export const TranslatorFormfactorDefinition = {
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/175`,
     pipelineInterface: {
-        inputParameterNames: ['inputMessage'],
-        outputParameterNames: ['outputMessage'],
-        // <- TODO: !!!!!! Maybe add {summary}
+        inputParameters: [
+            {
+                name: 'inputMessage',
+                description: `Input message to be translated`,
+                isInput: true,
+                isOutput: false,
+            },
+        ],
+        outputParameters: [
+            {
+                name: 'outputMessage',
+                description: `Translated output message`,
+                isInput: false,
+                isOutput: true,
+            },
+        ],
+        // <- TODO: [🤓] Maybe add {summary}
         // <- TODO: [🧠] maybe change to {inputText}, {inputText} / or make system for any name of first input and first outpur parameter
     },
 } as const satisfies AbstractFormfactorDefinition;

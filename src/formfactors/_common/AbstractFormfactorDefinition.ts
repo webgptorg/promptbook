@@ -41,3 +41,7 @@ export type AbstractFormfactorDefinition = {
 
     // <- TODO: [🍼] Add here CLI interactive behavior definition
 };
+
+/**
+ * TODO: [🧠][🤓] How to pass optional parameters - for example summary in FORMFACTOR Translator
+ */

@@ -10,10 +10,10 @@ export const GeneratorFormfactorDefinition = {
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/184`,
     pipelineInterface: {
-        inputParameterNames: [
+        inputParameters: [
             /* @@@ */
         ],
-        outputParameterNames: [
+        outputParameters: [
             /* @@@ */
         ],
     },

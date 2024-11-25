@@ -1,5 +1,5 @@
 import { FORMFACTOR_DEFINITIONS } from '../index';
-//       <- TODO: !!!!!! Keep type import
+//       <- TODO: Keep this a type import even if the entity is runtime but used as a type
 
 /**
  * @@@

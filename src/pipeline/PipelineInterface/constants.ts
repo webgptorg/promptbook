@@ -8,8 +8,8 @@ import type { PipelineInterface } from './PipelineInterface';
  * @public exported from `@promptbook/core`
  */
 export const GENERIC_PIPELINE_INTERFACE = {
-    inputParameterNames: [],
-    outputParameterNames: [],
+    inputParameters: [],
+    outputParameters: [],
 } as const satisfies PipelineInterface;
 
 /**
