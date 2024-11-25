@@ -17,9 +17,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -267,7 +265,7 @@ export function initializeRunCommand(program: Program) {
         }
 
         const response = await prompts(questions as TODO_any);
-        //                     <- TODO: [🧠] Change behavior according to the formfactor
+        //                     <- TODO: [🧠][🍼] Change behavior according to the formfactor
         inputParameters = { ...inputParameters, ...response };
 
         // TODO: Maybe do some validation of the response (and --json argument which is passed)
