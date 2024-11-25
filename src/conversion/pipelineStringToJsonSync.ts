@@ -4,13 +4,11 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type {
-    $PipelineJson,
-    $TaskJson,
-    CommandBase,
-    PipelineHeadCommandParser,
-    PipelineTaskCommandParser,
-} from '../commands/_common/types/CommandParser';
+import type { $PipelineJson } from '../commands/_common/types/CommandParser';
+import type { $TaskJson } from '../commands/_common/types/CommandParser';
+import type { CommandBase } from '../commands/_common/types/CommandParser';
+import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -256,9 +254,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Command \`${
-                            command.type
-                        }\` is not allowed in the head of the pipeline ONLY at the pipeline task
+                        Command \`${command.type}\` is not allowed in the head of the pipeline ONLY at the pipeline task
 
                         ${block(getPipelineIdentification())}
                     `,
