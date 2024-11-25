@@ -2,7 +2,7 @@ import type { string_parameter_name } from '../../types/typeAliases';
 
 /**
  * @@@
- * 
+ *
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/171
  */
@@ -23,6 +23,6 @@ export type PipelineInterface = {
 };
 
 /**
- * TODO: !!!!!! Change inputParameterNames to inputParameters<InputParameter>
+ * TODO: !!!!!! Change inputParameterNames to Array<InputParameter>
  * TODO: [🧠] Better name than `PipelineInterface` to avoid confusion with typescript `interface`
  */

@@ -1,13 +1,13 @@
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { string_name } from '../../types/typeAliases';
-import type { TaskJsonCommon } from './TaskJsonCommon';
+import type { CommonTaskJson } from './CommonTaskJson';
 
 /**
  * Task for prompt to LLM
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PromptTaskJson = TaskJsonCommon & {
+export type PromptTaskJson = CommonTaskJson & {
     readonly taskType: 'PROMPT_TASK';
 
     /**

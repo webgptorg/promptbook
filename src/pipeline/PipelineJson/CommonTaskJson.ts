@@ -13,12 +13,10 @@ import type {
 } from '../../types/typeAliases';
 import type { Expectations } from './Expectations';
 
-// TODO: !!!!!! Rename to CommonTaskJson
-
 /**
  * Common properties of all tasks
  */
-export type TaskJsonCommon = {
+export type CommonTaskJson = {
     /**
      * Name of the task
      * - It must be unique across the pipeline

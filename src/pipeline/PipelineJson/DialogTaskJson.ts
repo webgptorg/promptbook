@@ -1,4 +1,4 @@
-import type { TaskJsonCommon } from './TaskJsonCommon';
+import type { CommonTaskJson } from './CommonTaskJson';
 
 /**
  * Task for prompt to user
@@ -6,7 +6,7 @@ import type { TaskJsonCommon } from './TaskJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/76
  */
-export type DialogTaskJson = TaskJsonCommon & {
+export type DialogTaskJson = CommonTaskJson & {
     readonly taskType: 'DIALOG_TASK';
 };
 

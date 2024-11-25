@@ -87,6 +87,7 @@ import type {
 } from '../llm-providers/remote/interfaces/RemoteServerOptions';
 import type { IsPipelineImplementingInterfaceOptions } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
 import type { PipelineInterface } from '../pipeline/PipelineInterface/PipelineInterface';
+import type { CommonTaskJson } from '../pipeline/PipelineJson/CommonTaskJson';
 import type { DialogTaskJson } from '../pipeline/PipelineJson/DialogTaskJson';
 import type { ExpectationAmount, Expectations, ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
 import type { KnowledgePiecePreparedJson } from '../pipeline/PipelineJson/KnowledgePieceJson';
@@ -105,7 +106,6 @@ import type { PromptTaskJson } from '../pipeline/PipelineJson/PromptTaskJson';
 import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
 import type { SimpleTaskJson } from '../pipeline/PipelineJson/SimpleTaskJson';
 import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
-import type { TaskJsonCommon } from '../pipeline/PipelineJson/TaskJsonCommon';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { Converter } from '../scrapers/_common/Converter';
@@ -508,7 +508,7 @@ export type {
     string_version_dependency,
     string_xml,
     TaskJson,
-    TaskJsonCommon,
+    CommonTaskJson as TaskJsonCommon,
     TaskProgress,
     TODO_any,
     UncertainNumber,
