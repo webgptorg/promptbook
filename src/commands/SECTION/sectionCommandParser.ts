@@ -4,15 +4,12 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
+import { SectionTypes } from '../../types/SectionType';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { SectionCommand } from './SectionCommand';
-import { SectionTypes } from './SectionType';
 
 /**
  * Parses the section command
@@ -112,7 +109,9 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
 
         normalized = normalized.split('SAMPLE').join('EXAMPLE');
         normalized = normalized.split('EXECUTE_').join('');
-        const taskTypes = SectionTypes.filter((taskType) => normalized.includes(taskType.split('_TASK').join('')));
+        const taskTypes = SectionTypes.filter((sectionType) =>
+            normalized.includes(sectionType.split('_TASK').join('')),
+        );
 
         if (taskTypes.length !== 1) {
             throw new ParseError(
