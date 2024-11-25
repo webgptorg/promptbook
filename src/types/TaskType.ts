@@ -2,8 +2,6 @@ import type { TupleToUnion } from 'type-fest';
 
 /**
  * Type of the task
- *
- * @public exported from `@promptbook/types`
  */
 export type TaskType = TupleToUnion<typeof TaskTypes>;
 

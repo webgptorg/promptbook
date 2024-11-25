@@ -3,8 +3,6 @@ import { TaskTypes } from './TaskType';
 
 /**
  * Type of the section
- *
- * @public exported from `@promptbook/types`
  */
 export type SectionType = TupleToUnion<typeof SectionTypes>;
 
