@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/simple-knowledge.book.md",
     "title": "✨ Example: Simple Knowledge",
     "description": "Show how to use knowledge",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "eventTitle",
@@ -34,9 +35,9 @@
             ]
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "writing-bio",
             "title": "Writing bio",
             "content": "You are writing a bio for Pavol Hejný for the event {eventTitle}.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"{eventTitle}\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   {rules}\n\n## {eventTitle}\n\n> {eventDescription}",
@@ -388,7 +389,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.74.0",
+            "promptbookVersion": "0.75.0-4",
             "usage": {
                 "price": {
                     "value": 0.00447

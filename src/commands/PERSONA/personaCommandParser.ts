@@ -1,11 +1,11 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
@@ -31,7 +31,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      * PERSONA command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the PERSONA command
@@ -81,10 +81,10 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): void {
-        $applyToTemplateJson(command, null, $pipelineJson);
+        $applyToTaskJson(command, null, $pipelineJson);
     },
 
-    $applyToTemplateJson,
+    $applyToTaskJson,
 
     /**
      * Converts the PERSONA command back to string
@@ -107,12 +107,12 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
     },
 
     /**
-     * Reads the PERSONA command from the `TemplateJson`
+     * Reads the PERSONA command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<PersonaCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<PersonaCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
@@ -120,21 +120,17 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
 /**
  * Apply the PERSONA command to the `pipelineJson`
  *
- * Note: `$` is used to indicate that this function mutates given `templateJson`
+ * Note: `$` is used to indicate that this function mutates given `taskJson`
  */
-function $applyToTemplateJson(
-    command: PersonaCommand,
-    $templateJson: $TemplateJson | null,
-    $pipelineJson: $PipelineJson,
-): void {
+function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, $pipelineJson: $PipelineJson): void {
     const { personaName, personaDescription } = command;
 
-    if ($templateJson !== null) {
-        if ($templateJson.templateType !== 'PROMPT_TEMPLATE') {
-            throw new ParseError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
+    if ($taskJson !== null) {
+        if ($taskJson.taskType !== 'PROMPT_TASK') {
+            throw new ParseError(`PERSONA command can be used only in PROMPT_TASK block`);
         }
 
-        $templateJson.personaName = personaName;
+        $taskJson.personaName = personaName;
     } else {
         // TODO: [🛳] Default PERSONA for the pipeline `defaultPersonaName` (same as `defaultModelRequirements`)
     }

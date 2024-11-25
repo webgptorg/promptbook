@@ -2,6 +2,7 @@
     "title": "✨ Example: Postprocessing 1",
     "pipelineUrl": "https://promptbook.studio/examples/postprocessing-1.book.md",
     "description": "Show how to use two consecutive prompts with one parameter each.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",
@@ -33,9 +34,9 @@
             ]
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -49,7 +50,7 @@
             ]
         },
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",

@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { Parameters } from '../../types/typeAliases';
 
 /**
@@ -50,9 +50,9 @@ export function filterJustOutputParameters(options: FilterJustOutputParametersOp
                 new PipelineExecutionError(
                     spaceTrim(
                         (block) => `
-                            Parameter {${
+                            Parameter \`{${
                                 parameter.name
-                            }} should be an output parameter, but it was not generated during pipeline execution
+                            }}\` should be an output parameter, but it was not generated during pipeline execution
 
                             ${block(pipelineIdentification)}
                         `,

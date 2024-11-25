@@ -2,7 +2,7 @@
 
 Instrukce pro napsání úvodník do městského časopisu za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).
 
--   PIPELINE URL https://webgpt.cz/promptbook-collection/ruka/web.book.md
+-   PIPELINE URL https://webgpt.cz/books/ruka/web.book.md
 -   Input param `{inputText}` Vstupní text
 -   Output param `{outputText}` Text emailu
 

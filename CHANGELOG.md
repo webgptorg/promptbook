@@ -586,6 +586,21 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   Split `PROMPTBOOK_VERSION` -> `BOOK_LANGUAGE_VERSION` + `PROMPTBOOK_ENGINE_VERSION`
 -   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
 
+### `0.75.0` _(2024-11-)_
+
+Formfactors, Rebranding
+
+-   Add `FormfactorCommand`
+-   Add Pipeline interfaces
+-   Split `ParameterJson` into `InputParameterJson`, `OutputParameterJson` and `IntermediateParameterJson`
+-   Reorganize `/src` folder
+-   Rename `Template` -> `Task`
+-   Rename `TemplateCommand` -> `SectionCommand` command
+-   Make alongside `SectionType` the `TaskType`
+-   🤍 Change Whitepaper to Abstract
+-   Rename default folder for your books from `promptbook-collection` -> `books`
+-   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
+
 ## Drafts
 
 ### `0..0` _(2024-0-)_
@@ -661,4 +676,4 @@ Across the repository there are marked [🍓] places that are required to be don
 
 <!-- Note: All places marked by [➕] to add new NPM package -->
 <!-- Note: All places marked by [🤖] to add new model variant -->
-<!-- Note: All places marked by [🅱] to add new (execution) block type -->
+<!-- Note: All places marked by [🅱] to add new task type -->

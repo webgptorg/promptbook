@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -24,12 +24,12 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      * INSTRUMENT command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
+    isUsedInPipelineTask: false, // <- [👙] Maybe allow to use here and make relevant for just this task
 
     /**
      * Description of the INSTRUMENT command
      */
-    description: `Instrument command is used to specify the instrument to be used in the pipeline or template like search, calculate, etc.`,
+    description: `Instrument command is used to specify the instrument to be used in the pipeline or task like search, calculate, etc.`,
 
     /**
      * Link to documentation

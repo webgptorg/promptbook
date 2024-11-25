@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../types/PipelineString';
-import type { string_filename, string_json } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
+import type { string_json } from '../../types/typeAliases';
 
 /**
  * Import the pipeline.book.md or pipeline.book.json file

@@ -3,9 +3,9 @@ import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -14,7 +14,7 @@ import type { JokerCommand } from './JokerCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
+export const jokerCommandParser: PipelineTaskCommandParser<JokerCommand> = {
     /**
      * Name of the command
      */
@@ -24,12 +24,12 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the JOKER command
      */
-    description: `Joker parameter is used instead of executing the template result if jokers value meets the expectations requirements`,
+    description: `Joker parameter is used instead of executing the task result if jokers value meets the expectations requirements`,
 
     /**
      * Link to documentation
@@ -64,11 +64,11 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     /**
      * Apply the JOKER command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTemplateJson(command: JokerCommand, $templateJson: $TemplateJson): void {
-        $templateJson.jokerParameterNames = $templateJson.jokerParameterNames || [];
-        $templateJson.jokerParameterNames.push(command.parameterName);
+    $applyToTaskJson(command: JokerCommand, $taskJson: $TaskJson): void {
+        $taskJson.jokerParameterNames = $taskJson.jokerParameterNames || [];
+        $taskJson.jokerParameterNames.push(command.parameterName);
     },
 
     /**
@@ -82,12 +82,12 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     },
 
     /**
-     * Reads the JOKER command from the `TemplateJson`
+     * Reads the JOKER command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<JokerCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<JokerCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

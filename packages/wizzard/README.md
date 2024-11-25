@@ -501,7 +501,7 @@ It is constructed by combining execution tools and promptbook to execute togethe
 ### 🃏 Jokers
 
 Joker is a previously defined parameter that is used to bypass some parts of the pipeline.
-If the joker is present in the template, it is checked to see if it meets the requirements (without postprocessing), and if so, it is used instead of executing that prompt template. There can be multiple wildcards in a prompt template, if so they are checked in order and the first one that meets the requirements is used.
+If the joker is present in the task, it is checked to see if it meets the requirements (without postprocessing), and if so, it is used instead of executing that prompt template. There can be multiple wildcards in a prompt template, if so they are checked in order and the first one that meets the requirements is used.
 
 If none of the jokers meet the requirements, the prompt template is executed as usual.
 

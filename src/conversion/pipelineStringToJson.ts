@@ -1,8 +1,8 @@
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../types/PipelineString';
 import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
 
 /**

@@ -4,7 +4,7 @@ import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { countCharacters } from '../../utils/expectation-counters/countCharacters';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';

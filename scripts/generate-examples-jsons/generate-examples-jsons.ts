@@ -17,10 +17,10 @@ import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../src/executables/$provideExecutablesForNode';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { PipelineString } from '../../src/pipeline/PipelineString';
 import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
-import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 

@@ -1,4 +1,4 @@
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 
 /**
  * @@@
@@ -17,8 +17,9 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
         title,
         bookVersion,
         description,
+        formfactorName,
         parameters,
-        templates,
+        tasks,
         knowledgeSources,
         knowledgePieces,
         personas,
@@ -31,8 +32,9 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
         title,
         bookVersion,
         description,
+        formfactorName,
         parameters,
-        templates,
+        tasks,
         knowledgeSources,
         knowledgePieces,
         personas,

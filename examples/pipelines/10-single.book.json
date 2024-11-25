@@ -1,6 +1,7 @@
 {
     "title": "✨ Example prompt",
     "description": "Show how to use a simple prompt with one parameter.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "wordSynonym",
@@ -13,9 +14,9 @@
             "isOutput": false
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -53,7 +54,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.74.0",
+            "promptbookVersion": "0.75.0-4",
             "usage": {
                 "price": {
                     "value": 0.004257

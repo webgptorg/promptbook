@@ -5,6 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
+import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
@@ -37,7 +38,7 @@ export function initializeMakeCommand(program: Program) {
         '[path]',
         // <- TODO: [🧟‍♂️] Unite path to promptbook collection argument
         'Path to promptbook collection directory',
-        './promptbook-collection',
+        DEFAULT_BOOKS_DIRNAME,
     );
     makeCommand.option('--project-name', `Name of the project for whom collection is`, 'Untitled Promptbook project');
     makeCommand.option(

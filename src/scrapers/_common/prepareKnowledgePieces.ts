@@ -3,9 +3,9 @@ import { DEFAULT_IS_VERBOSE } from '../../config';
 import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
+import type { KnowledgeSourceJson } from '../../pipeline/PipelineJson/KnowledgeSourceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { arrayableToArray } from '../../utils/arrayableToArray';

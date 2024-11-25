@@ -1,5 +1,5 @@
-import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
-import { LINES_PER_STANDARD_PAGE } from './config';
+import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
+import { LINES_PER_STANDARD_PAGE } from './constants';
 import { countLines } from './countLines';
 
 /**

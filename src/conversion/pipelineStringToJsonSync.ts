@@ -1,22 +1,22 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
-import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
+import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TemplateJson } from '../commands/_common/types/CommandParser';
+import type { $TaskJson } from '../commands/_common/types/CommandParser';
 import type { CommandBase } from '../commands/_common/types/CommandParser';
 import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { ScriptTemplateJson } from '../types/PipelineJson/ScriptTemplateJson';
-import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
-import type { PipelineString } from '../types/PipelineString';
+import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
+import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
+import type { PipelineString } from '../pipeline/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -28,7 +28,7 @@ import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSe
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
-import { extractParameterNamesFromTemplate } from './utils/extractParameterNamesFromTemplate';
+import { extractParameterNamesFromTask } from './utils/extractParameterNamesFromTask';
 import { titleToName } from './utils/titleToName';
 
 /**
@@ -53,8 +53,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         bookVersion: undefined /* <- Note: By default no explicit version */,
         description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
+        formfactorName: 'GENERIC',
         parameters: [],
-        templates: [],
+        tasks: [],
         knowledgeSources: [],
         knowledgePieces: [],
         personas: [],
@@ -185,7 +186,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Parameter {${parameterName}} is defined multiple times with different description:
+                        Parameter \`{${parameterName}}\` is defined multiple times with different description:
 
                         ${block(getPipelineIdentification())}
 
@@ -207,12 +208,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             existingParameter.isInput = existingParameter.isInput || isInput;
             existingParameter.isOutput = existingParameter.isOutput || isOutput;
         } else {
-            $pipelineJson.parameters.push({
-                name: parameterName,
-                description: parameterDescription || undefined,
-                isInput,
-                isOutput,
-            });
+            $pipelineJson.parameters.push(
+                {
+                    name: parameterName,
+                    description: parameterDescription || undefined,
+                    isInput,
+                    isOutput,
+                } as ParameterJson,
+                // <- Note: This type assertion is safe, only conflict is that in type definition `isInput` and `isOutput` cannot be both true
+                //          but in this implementation it is possible, but it is not a problem it just does not make sense and its checked in [🆑] logic validaton
+            );
         }
     };
 
@@ -249,9 +254,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Command ${
-                            command.type
-                        } is not allowed in the head of the promptbook ONLY at the pipeline template
+                        Command \`${command.type}\` is not allowed in the head of the pipeline ONLY at the pipeline task
 
                         ${block(getPipelineIdentification())}
                     `,
@@ -294,10 +297,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 4️⃣ Process each template of the pipeline
+    // Note: 4️⃣ Process each section of the pipeline
 
     for (const section of pipelineSections) {
-        // TODO: Parse template description (the content out of the codeblock and lists)
+        // TODO: Parse section's description (the content out of the codeblock and lists)
 
         const listItems = extractAllListItemsFromMarkdown(section.content);
 
@@ -319,11 +322,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description = undefined;
         }
 
-        const $templateJson: $TemplateJson = {
-            isTemplateTypeSet: false,
-            isTemplate: true,
-            templateType:
-                undefined /* <- Note: [🍙] Putting here placeholder to keep `templateType` on top at final JSON */,
+        const $taskJson: $TaskJson = {
+            isSectionTypeSet: false,
+            isTask: true,
+            taskType: undefined /* <- Note: [🍙] Putting here placeholder to keep `taskType` on top at final JSON */,
             name: titleToName(section.title),
             title: section.title,
             description,
@@ -338,20 +340,20 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             resultingParameterNameMatch.groups !== undefined &&
             resultingParameterNameMatch.groups.resultingParamName !== undefined
         ) {
-            $templateJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
+            $taskJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
         }
 
-        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommands`
+        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTaskCommands`
         const commands = listItems.map((listItem) => ({
             listItem,
-            command: parseCommand(listItem, 'PIPELINE_TEMPLATE'),
+            command: parseCommand(listItem, 'PIPELINE_TASK'),
         }));
 
-        // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
-        if (commands.some(({ command }) => command.type === 'TEMPLATE') === false) {
-            templateCommandParser.$applyToTemplateJson(
-                { type: 'TEMPLATE', templateType: 'PROMPT_TEMPLATE' },
-                $templateJson,
+        // Note: If block type is not set, set it to 'PROMPT_TASK'
+        if (commands.some(({ command }) => command.type === 'SECTION') === false) {
+            sectionCommandParser.$applyToTaskJson(
+                { type: 'SECTION', taskType: 'PROMPT_TASK' },
+                $taskJson,
                 $pipelineJson,
             );
         }
@@ -361,13 +363,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         for (const { listItem, command } of commands) {
             const commandParser = getParserForCommand(command);
 
-            if (commandParser.isUsedInPipelineTemplate !== true /* <- Note: [🦦][4] */) {
+            if (commandParser.isUsedInPipelineTask !== true /* <- Note: [🦦][4] */) {
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
-                            Command ${
+                            Command \`${
                                 command.type
-                            } is not allowed in the template of the promptbook ONLY at the pipeline head
+                            }\` is not allowed in the task of the promptbook ONLY at the pipeline head
 
                             ${block(getPipelineIdentification())}
                         `,
@@ -376,10 +378,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
 
             try {
-                (commandParser as PipelineTemplateCommandParser<CommandBase>).$applyToTemplateJson(
+                (commandParser as PipelineTaskCommandParser<CommandBase>).$applyToTaskJson(
                     //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
                     command,
-                    $templateJson,
+                    $taskJson,
                     $pipelineJson,
                 );
             } catch (error) {
@@ -390,14 +392,14 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
-                            Command ${command.type} failed to apply to the template
+                            Command \`${command.type}\` failed to apply to the task
 
                             The error:
                             ${block((error as ParseError).message)}
 
-                            Current state of the template:
-                            ${block(JSON.stringify($templateJson, null, 4))}
-                               <- Maybe wrong order of commands?
+                            Current state of the task:
+                            ${block(JSON.stringify($taskJson, null, 4))}
+                               *<- Maybe wrong order of commands?*
 
                             Raw command:
                             - ${listItem}
@@ -417,13 +419,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
-        // TODO: [🍧] Should be done in TEMPLATE command
-        if (($templateJson as WritableDeep<TemplateJson>).templateType === 'SCRIPT_TEMPLATE') {
+        // TODO: [🍧] Should be done in SECTION command
+        if (($taskJson as WritableDeep<TaskJson>).taskType === 'SCRIPT_TASK') {
             if (!language) {
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
-                            You must specify the language of the script in the SCRIPT TEMPLATE
+                            You must specify the language of the script in the \`SCRIPT\` task
 
                             ${block(getPipelineIdentification())}
                         `,
@@ -447,19 +449,18 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
 
-            ($templateJson as Partial<$TemplateJson> as Writable<ScriptTemplateJson>).contentLanguage =
-                language as ScriptLanguage;
+            ($taskJson as Partial<$TaskJson> as Writable<ScriptTaskJson>).contentLanguage = language as ScriptLanguage;
         }
 
-        $templateJson.dependentParameterNames = Array.from(
-            extractParameterNamesFromTemplate(
-                $templateJson as TemplateJson,
+        $taskJson.dependentParameterNames = Array.from(
+            extractParameterNamesFromTask(
+                $taskJson as TaskJson,
                 // <- TODO: [3]
             ),
         );
 
-        for (const parameterName of $templateJson.dependentParameterNames) {
-            // TODO: [🧠] This definition should be made first in the template
+        for (const parameterName of $taskJson.dependentParameterNames) {
+            // TODO: [🧠] This definition should be made first in the task
             defineParam({
                 parameterName,
                 parameterDescription: null,
@@ -471,13 +472,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         /*
         // TODO: [🍧] This should be checked in `MODEL` command + better error message
-        if ($templateJson.templateType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
+        if ($taskJson.taskType !== 'PROMPT_TASK' && $taskJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
                         Model requirements are defined for the block type ${
-                            $templateJson.templateType
-                        } which is not a PROMPT TEMPLATE
+                            $taskJson.taskType
+                        } which is not a \`PROMPT\` task
 
                         This should be avoided by the \`modelCommandParser\`
 
@@ -488,15 +489,15 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
         */
 
-        if ($templateJson.isTemplate) {
-            delete ($templateJson as Partial<$TemplateJson>).isTemplateTypeSet;
-            delete ($templateJson as Partial<$TemplateJson>).isTemplate;
+        if ($taskJson.isTask) {
+            delete ($taskJson as Partial<$TaskJson>).isSectionTypeSet;
+            delete ($taskJson as Partial<$TaskJson>).isTask;
 
-            // TODO: [🍙] Maybe do reorder of `$templateJson` here
+            // TODO: [🍙] Maybe do reorder of `$taskJson` here
 
-            $pipelineJson.templates.push(
-                $templateJson as TemplateJson,
-                // <- TODO: [3] Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
+            $pipelineJson.tasks.push(
+                $taskJson as TaskJson,
+                // <- TODO: [3] Do not do `as TaskJson` BUT make 100% sure that nothing is missing
             );
         }
     }
@@ -505,8 +506,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // Note: 5️⃣ Mark parameters as INPUT if not explicitly set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isInput)) {
         for (const parameter of $pipelineJson.parameters) {
-            const isThisParameterResulting = $pipelineJson.templates.some(
-                (template) => template.resultingParameterName === parameter.name,
+            const isThisParameterResulting = $pipelineJson.tasks.some(
+                (task) => task.resultingParameterName === parameter.name,
             );
             if (!isThisParameterResulting) {
                 parameter.isInput = true;
@@ -526,10 +527,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     // =============================================================
     // Note: 7️⃣ Cleanup of undefined values
-    $pipelineJson.templates.forEach((templates) => {
-        for (const [key, value] of Object.entries(templates)) {
+    $pipelineJson.tasks.forEach((tasks) => {
+        for (const [key, value] of Object.entries(tasks)) {
             if (value === undefined) {
-                delete (templates as really_any)[key];
+                delete (tasks as really_any)[key];
             }
         }
     });
@@ -552,7 +553,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
  * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
- * TODO: [♈] Probbably move expectations from templates to parameters
+ * TODO: [♈] Probbably move expectations from tasks to parameters
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  * TODO: [🍙] Make some standard order of json properties
  */

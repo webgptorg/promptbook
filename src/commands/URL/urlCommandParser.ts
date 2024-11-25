@@ -1,6 +1,6 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
@@ -32,7 +32,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false,
+    isUsedInPipelineTask: false,
 
     /**
      * Description of the URL command
@@ -85,7 +85,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
                 spaceTrim(
                     `
                         URL must not contain hash
-                        Hash is used for identification of the template in the pipeline
+                        Hash is used for identification of the section of the pipeline
                     `,
                 ),
             );

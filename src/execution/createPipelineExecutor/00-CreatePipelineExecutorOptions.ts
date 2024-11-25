@@ -1,6 +1,6 @@
 import type { CsvSettings } from '../../formats/csv/CsvSettings';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { ExecutionTools } from '../ExecutionTools';
 
 /**

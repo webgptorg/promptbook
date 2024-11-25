@@ -1,7 +1,8 @@
 {
     "title": "✨ Empty pipeline",
+    "formfactorName": "GENERIC",
     "parameters": [],
-    "templates": [],
+    "tasks": [],
     "knowledgeSources": [],
     "knowledgePieces": [],
     "personas": [],

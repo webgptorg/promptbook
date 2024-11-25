@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/picking-model.book.md",
     "title": "✨ Pick the model",
     "description": "Show how to pick exact model",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",
@@ -19,9 +20,9 @@
             ]
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -57,7 +58,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.74.0",
+            "promptbookVersion": "0.75.0-4",
             "usage": {
                 "price": {
                     "value": 0.0043890000000000005

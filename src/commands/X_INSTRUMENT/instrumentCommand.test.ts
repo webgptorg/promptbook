@@ -13,7 +13,7 @@ describe('how INSTRUMENT command in .book.md files works', () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of instrumentCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
-            expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();
+            expect(() => parseCommand(example, 'PIPELINE_TASK')).not.toThrowError();
         }
     });
 });

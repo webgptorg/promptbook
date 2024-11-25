@@ -19,20 +19,20 @@ import type { string_template } from '../../types/typeAliases';
 export function replaceParameters(template: string_template, parameters: Parameters): string {
     for (const [parameterName, parameterValue] of Object.entries(parameters)) {
         if (parameterValue === RESERVED_PARAMETER_MISSING_VALUE) {
-            throw new UnexpectedError(`Parameter {${parameterName}} has missing value`);
+            throw new UnexpectedError(`Parameter \`{${parameterName}}\` has missing value`);
         } else if (parameterValue === RESERVED_PARAMETER_RESTRICTED) {
             // TODO: [🍵]
-            throw new UnexpectedError(`Parameter {${parameterName}} is restricted to use`);
+            throw new UnexpectedError(`Parameter \`{${parameterName}}\` is restricted to use`);
         }
     }
 
-    let replacedTemplate = template;
+    let replacedTemplates = template;
     let match: RegExpExecArray | null;
 
     let loopLimit = LOOP_LIMIT;
     while (
         (match = /^(?<precol>.*){(?<parameterName>\w+)}(.*)/m /* <- Not global */
-            .exec(replacedTemplate))
+            .exec(replacedTemplates))
     ) {
         if (loopLimit-- < 0) {
             throw new LimitReachedError('Loop limit reached during parameters replacement in `replaceParameters`');
@@ -51,13 +51,13 @@ export function replaceParameters(template: string_template, parameters: Paramet
         }
 
         if ((parameters as Parameters)[parameterName] === undefined) {
-            throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);
+            throw new PipelineExecutionError(`Parameter \`{${parameterName}}\` is not defined`);
         }
 
         let parameterValue = (parameters as Parameters)[parameterName];
 
         if (parameterValue === undefined) {
-            throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);
+            throw new PipelineExecutionError(`Parameter \`{${parameterName}}\` is not defined`);
         }
 
         parameterValue = parameterValue.toString();
@@ -69,21 +69,21 @@ export function replaceParameters(template: string_template, parameters: Paramet
                 .join('\n');
         }
 
-        replacedTemplate =
-            replacedTemplate.substring(0, match.index + precol.length) +
+        replacedTemplates =
+            replacedTemplates.substring(0, match.index + precol.length) +
             parameterValue +
-            replacedTemplate.substring(match.index + precol.length + parameterName.length + 2);
+            replacedTemplates.substring(match.index + precol.length + parameterName.length + 2);
     }
 
     // [💫] Check if there are parameters that are not closed properly
-    if (/{\w+$/.test(replacedTemplate)) {
+    if (/{\w+$/.test(replacedTemplates)) {
         throw new PipelineExecutionError('Parameter is not closed');
     }
 
     // [💫] Check if there are parameters that are not opened properly
-    if (/^\w+}/.test(replacedTemplate)) {
+    if (/^\w+}/.test(replacedTemplates)) {
         throw new PipelineExecutionError('Parameter is not opened');
     }
 
-    return replacedTemplate;
+    return replacedTemplates;
 }

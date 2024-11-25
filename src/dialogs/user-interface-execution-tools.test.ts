@@ -4,7 +4,7 @@ import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../types/PipelineString';
+import type { PipelineString } from '../pipeline/PipelineString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';
 
 describe('createPipelineExecutor + executing user interface prompts in promptbook', () => {
@@ -29,7 +29,7 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
 
         expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [/Parameter {thing} is required as an input parameter/i],
+            errors: [/Parameter `{thing}` is required as an input parameter/i],
         });
 
         expect(() => pipelineExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
@@ -51,7 +51,7 @@ async function getPipelineExecutor() {
 
             ## Thing
 
-            -   DIALOG TEMPLATE
+            -   DIALOG
 
             What is your favorite {thing} to buy?
 

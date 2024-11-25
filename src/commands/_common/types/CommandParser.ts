@@ -1,6 +1,6 @@
 import type { WritableDeep } from 'type-fest';
-import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../../types/PipelineJson/TemplateJson';
+import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
+import type { TaskJson } from '../../../pipeline/PipelineJson/TaskJson';
 import type { string_markdown_text } from '../../../types/typeAliases';
 import type { string_name } from '../../../types/typeAliases';
 import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
@@ -20,7 +20,7 @@ export type CommandBase = { type: string_name & string_SCREAMING_CASE };
  */
 export type CommandParser<TCommand extends CommandBase> =
     | PipelineHeadCommandParser<TCommand>
-    | PipelineTemplateCommandParser<TCommand>
+    | PipelineTaskCommandParser<TCommand>
     | PipelineBothCommandParser<TCommand>;
 
 /**
@@ -42,7 +42,7 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
     /**
      * @@@
      */
-    readonly isUsedInPipelineTemplate: boolean;
+    readonly isUsedInPipelineTask: boolean;
 
     /**
      * @@@
@@ -86,8 +86,8 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
  * @@@
  */
 export type PipelineBothCommandParser<TCommand extends CommandBase> = ___and___ &
-    Omit<PipelineHeadCommandParser<TCommand>, 'isUsedInPipelineTemplate'> &
-    Omit<PipelineTemplateCommandParser<TCommand>, 'isUsedInPipelineHead'>;
+    Omit<PipelineHeadCommandParser<TCommand>, 'isUsedInPipelineTask'> &
+    Omit<PipelineTaskCommandParser<TCommand>, 'isUsedInPipelineHead'>;
 
 /**
  * @@@
@@ -101,7 +101,7 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
     /**
      * @@@
      */
-    readonly isUsedInPipelineTemplate: false;
+    readonly isUsedInPipelineTask: false;
 
     /**
      * Apply the command to the `pipelineJson`
@@ -121,7 +121,7 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
 /**
  * @@@
  */
-export type PipelineTemplateCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
+export type PipelineTaskCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
     /**
      * @@@
      */
@@ -130,21 +130,21 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
     /**
      * @@@
      */
-    readonly isUsedInPipelineTemplate: true;
+    readonly isUsedInPipelineTask: true;
 
     /**
      * Apply the command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson` and/or `pipelineJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson` and/or `pipelineJson`
      */
-    $applyToTemplateJson(command: TCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void;
+    $applyToTaskJson(command: TCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void;
 
     /**
-     * Reads the command from the `TemplateJson`
+     * Reads the command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<TCommand>;
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<TCommand>;
 };
 
 /**
@@ -154,10 +154,10 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
  *
  * @private internal helper for command parsers
  */
-export type $TemplateJson = {
-    isTemplateTypeSet: boolean;
-    isTemplate: boolean;
-} & Partial<WritableDeep<TemplateJson>>;
+export type $TaskJson = {
+    isSectionTypeSet: boolean;
+    isTask: boolean;
+} & Partial<WritableDeep<TaskJson>>;
 //                         <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
 
 /**
@@ -177,7 +177,7 @@ export type CommandParserInput = {
      * @@@
      *
      * @example 'PIPELINE_HEAD'
-     * @example 'PIPELINE_TEMPLATE'
+     * @example 'PIPELINE_TASK'
      */
     readonly usagePlace: CommandUsagePlace;
 

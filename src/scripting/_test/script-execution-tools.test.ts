@@ -5,7 +5,7 @@ import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterface
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPipelineExecutor + executing scripts in promptbook', () => {
@@ -39,7 +39,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
             errors: [
                 new PipelineExecutionError(
                     spaceTrim(`
-                        Parameter {thing} is not defined
+                        Parameter `{thing}` is not defined
 
                         This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
 

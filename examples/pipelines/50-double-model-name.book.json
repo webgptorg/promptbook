@@ -1,6 +1,7 @@
 {
     "title": "⚠ Example of non-recommended syntax",
     "description": "Defining same model name twice is **not recommended** but it is not an error in case of model names are same.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "answer",
@@ -8,9 +9,9 @@
             "isOutput": true
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "prompt",
             "title": "💬 Prompt",
             "content": "Hello,\nWhat is the answer to the universe?",

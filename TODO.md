@@ -15,7 +15,7 @@
 -   [ ] All entities must have public / private / protected modifiers
 -   [ ] Everything not needed should be private or not exported
 -   [x] Refactor circular dependencies
--   [ ][🍓] Importing subtemplates
+-   [ ][🍓] Importing subtasks
 -   [x] Use `spaceTrim` more effectively
 -   [ ] [🍓][🗯] Allow chats to be continued with previous message
 -   [ ] [🍓] Allow to set top_t and other model params

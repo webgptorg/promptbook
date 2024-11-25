@@ -2,6 +2,7 @@
     "title": "✨ Example of escaping",
     "pipelineUrl": "https://promptbook.studio/examples/escaping.book.md",
     "description": "Show how to put codeblocks in the prompt _(which is already in the codeblock)_",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "greeting1",
@@ -14,9 +15,9 @@
             "isOutput": true
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "greeting-1",
             "title": "Greeting 1",
             "description": "Show how to put codeblocks in codeblocks",
@@ -25,7 +26,7 @@
             "dependentParameterNames": []
         },
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "greeting-2",
             "title": "Greeting 2",
             "description": "Show how to put codeblocks in codeblocks in different way",

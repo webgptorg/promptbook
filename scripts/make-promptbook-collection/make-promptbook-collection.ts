@@ -58,7 +58,7 @@ async function makePipelineCollection({
         throw new Error(`Working tree is not clean`);
     }
 
-    const promptbookSourceDir = 'promptbook-collection';
+    const promptbookSourceDir = 'books';
 
     const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });

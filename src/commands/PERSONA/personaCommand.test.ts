@@ -36,8 +36,8 @@ describe('how PERSONA command in .book.md files works', () => {
         });
     });
 
-    it('should parse PERSONA command in PIPELINE_TEMPLATE', () => {
-        expect(parseCommand('PERSONA John', 'PIPELINE_TEMPLATE')).toEqual({
+    it('should parse PERSONA command in PIPELINE_TASK', () => {
+        expect(parseCommand('PERSONA John', 'PIPELINE_TASK')).toEqual({
             type: 'PERSONA',
             personaName: 'John',
             personaDescription: null,
@@ -96,7 +96,7 @@ describe('how PERSONA command in .book.md files works', () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of personaCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
-            expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();
+            expect(() => parseCommand(example, 'PIPELINE_TASK')).not.toThrowError();
         }
     });
 });

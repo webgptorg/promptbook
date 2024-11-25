@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 
 /**
  * Initializes `prettify` command for Promptbook CLI utilities

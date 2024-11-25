@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import type { PipelineString } from '../../types/PipelineString';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 

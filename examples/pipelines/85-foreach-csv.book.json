@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md",
     "title": "✨ Write email for each customer",
     "description": "Show how to iterate over a table of customers and write an email for each.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "customers",
@@ -19,9 +20,9 @@
             "isOutput": true
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "write-a-email",
             "title": "Write a email",
             "content": "Write an email from Coolstore shop to customer \"{firstName} {lastName}\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   {note}",
@@ -228,7 +229,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.74.0",
+            "promptbookVersion": "0.75.0-4",
             "usage": {
                 "price": {
                     "value": 0.004446

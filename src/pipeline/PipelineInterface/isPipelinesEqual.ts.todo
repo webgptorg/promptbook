@@ -1,0 +1,23 @@
+import { PipelineJson } from '@promptbook/types';
+import { getPipelineInterface } from './getPipelineInterface';
+import { isPipelineInterfacesEqual } from './isPipelineInterfacesEqual';
+
+/**
+ * @@@
+
+ @see https://github.com/webgptorg/promptbook/discussions/171
+ *
+ * @public exported from `@promptbook/core`
+ */
+export function isPipelinesEqual(
+    pipeline1: PipelineJson,
+    pipeline2: PipelineJson,
+    // <- TODO: ...pipelines: Array<PipelineJson>
+): boolean {
+    return isPipelineInterfacesEqual(getPipelineInterface(pipeline1), getPipelineInterface(pipeline2));
+}
+
+/**
+ * TODO: !!! Write unit test
+ * TODO: [🧠][🐽] Maybe instead> comparePipelines(pipeline1,pipeline2)
+ */

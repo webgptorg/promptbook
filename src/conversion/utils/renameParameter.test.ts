@@ -9,6 +9,7 @@ describe('how renameParameter works', () => {
                     title: '✨ Example prompt',
                     bookVersion: '1.0.0',
                     description: 'Show how to use a simple prompt with no parameters.',
+                    formfactorName: 'GENERIC',
                     parameters: [
                         {
                             name: 'greet',
@@ -16,12 +17,12 @@ describe('how renameParameter works', () => {
                             isOutput: true,
                         },
                     ],
-                    templates: [
+                    tasks: [
                         {
                             name: 'prompt',
                             title: '💬 Prompt',
                             dependentParameterNames: [],
-                            templateType: 'PROMPT_TEMPLATE',
+                            taskType: 'PROMPT_TASK',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -43,6 +44,7 @@ describe('how renameParameter works', () => {
                 title: '✨ Example prompt',
                 bookVersion: '1.0.0',
                 description: 'Show how to use a simple prompt with no parameters.',
+                formfactorName: 'GENERIC',
                 parameters: [
                     {
                         name: 'greeting',
@@ -50,12 +52,12 @@ describe('how renameParameter works', () => {
                         isOutput: true,
                     },
                 ],
-                templates: [
+                tasks: [
                     {
                         name: 'prompt',
                         title: '💬 Prompt',
                         dependentParameterNames: [],
-                        templateType: 'PROMPT_TEMPLATE',
+                        taskType: 'PROMPT_TASK',
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -79,6 +81,7 @@ describe('how renameParameter works', () => {
                     pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
                     bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
+                    formfactorName: 'GENERIC',
                     parameters: [
                         {
                             name: 'word',
@@ -97,13 +100,13 @@ describe('how renameParameter works', () => {
                             isOutput: false,
                         },
                     ],
-                    templates: [
+                    tasks: [
                         {
                             name: 'synonym',
                             title: '💬 Synonym',
                             description: 'Synonym for word',
                             dependentParameterNames: ['word'],
-                            templateType: 'PROMPT_TEMPLATE',
+                            taskType: 'PROMPT_TASK',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -116,7 +119,7 @@ describe('how renameParameter works', () => {
                             title: '💬 Sentence',
                             description: 'Sentence with word and wordSynonym',
                             dependentParameterNames: ['word', 'wordSynonym'],
-                            templateType: 'PROMPT_TEMPLATE',
+                            taskType: 'PROMPT_TASK',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -139,6 +142,7 @@ describe('how renameParameter works', () => {
                 pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
                 bookVersion: '1.0.0',
                 description: 'Show how to use two consecutive prompts with one parameter each.',
+                formfactorName: 'GENERIC',
                 parameters: [
                     {
                         name: 'originalWord',
@@ -157,13 +161,13 @@ describe('how renameParameter works', () => {
                         isOutput: false,
                     },
                 ],
-                templates: [
+                tasks: [
                     {
                         name: 'synonym',
                         title: '💬 Synonym',
                         description: 'Synonym for word',
                         dependentParameterNames: ['originalWord'],
-                        templateType: 'PROMPT_TEMPLATE',
+                        taskType: 'PROMPT_TASK',
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -176,7 +180,7 @@ describe('how renameParameter works', () => {
                         title: '💬 Sentence',
                         description: 'Sentence with word and wordSynonym',
                         dependentParameterNames: ['originalWord', 'wordSynonym'],
-                        templateType: 'PROMPT_TEMPLATE',
+                        taskType: 'PROMPT_TASK',
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -200,6 +204,7 @@ describe('how renameParameter works', () => {
                     pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
                     bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
+                    formfactorName: 'GENERIC',
                     parameters: [
                         {
                             name: 'word',
@@ -218,13 +223,13 @@ describe('how renameParameter works', () => {
                             isOutput: false,
                         },
                     ],
-                    templates: [
+                    tasks: [
                         {
                             name: 'synonym',
                             title: '💬 Synonym',
                             description: 'Synonym for word',
                             dependentParameterNames: ['word'],
-                            templateType: 'PROMPT_TEMPLATE',
+                            taskType: 'PROMPT_TASK',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -237,7 +242,7 @@ describe('how renameParameter works', () => {
                             title: '💬 Sentence',
                             description: 'Sentence with word and wordSynonym',
                             dependentParameterNames: ['word', 'wordSynonym'],
-                            templateType: 'PROMPT_TEMPLATE',
+                            taskType: 'PROMPT_TASK',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',

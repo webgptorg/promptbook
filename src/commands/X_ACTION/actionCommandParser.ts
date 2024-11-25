@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -24,12 +24,12 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      * ACTION command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
+    isUsedInPipelineTask: false, // <- [👙] Maybe allow to use here and make relevant for just this task
 
     /**
      * Description of the ACTION command
      */
-    description: `Actions influences from the pipeline or template into external world. Like turning on a light, sending an email, etc.`,
+    description: `Actions influences from the pipeline or task into external world. Like turning on a light, sending an email, etc.`,
 
     /**
      * Link to documentation

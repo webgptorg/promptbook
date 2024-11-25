@@ -8,10 +8,10 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../types/PipelineString';
 
 /**
  * Initializes `test` command for Promptbook CLI utilities

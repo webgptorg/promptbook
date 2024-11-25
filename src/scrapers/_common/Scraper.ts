@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import type { string_filename } from '../../types/typeAliases';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
 import type { string_mime_type } from '../../types/typeAliases';

@@ -2,6 +2,7 @@
     "title": "✨ Example: Nesting",
     "pipelineUrl": "https://promptbook.studio/examples/nesting.book.md",
     "description": "How block are nested in the promptbook",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",
@@ -25,9 +26,9 @@
             "isOutput": false
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -51,7 +52,7 @@
             ]
         },
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with the both words",
@@ -75,7 +76,7 @@
             ]
         },
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "make-a-document",
             "title": "Make a document",
             "content": "Write poem with starting sentence:\n\n```text\n{sentence}\n```",

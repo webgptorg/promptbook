@@ -147,8 +147,8 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
         } else if (errors.length > 1) {
             throw new PipelineExecutionError(
                 // TODO: Tell which execution tools failed like
-                //     1) OpenAI throw PipelineExecutionError: Parameter {knowledge} is not defined
-                //     2) AnthropicClaude throw PipelineExecutionError: Parameter {knowledge} is not defined
+                //     1) OpenAI throw PipelineExecutionError: Parameter `{knowledge}` is not defined
+                //     2) AnthropicClaude throw PipelineExecutionError: Parameter `{knowledge}` is not defined
                 //     3) ...
                 spaceTrim(
                     (block) => `

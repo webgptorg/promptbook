@@ -3,7 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
 import { CallbackInterfaceTools } from '../../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import type { PipelineString } from '../../../types/PipelineString';
+import type { PipelineString } from '../../../pipeline/PipelineString';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../version';
 import { MockedFackedLlmExecutionTools } from '../MockedFackedLlmExecutionTools';
 
@@ -21,7 +21,7 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example co
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [/Parameter {thing} is required as an input parameter/i],
+            errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {
                 title: 'Example prompt',
                 description: 'Show how to use a simple completion prompt',

@@ -8,16 +8,18 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
+import { executionReportJsonToString } from '../../execution/execution-report/executionReportJsonToString';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import { executionReportJsonToString } from '../../types/execution-report/executionReportJsonToString';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../types/PipelineString';
-import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -83,12 +85,11 @@ export function initializeRunCommand(program: Program) {
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
 
         let filePath: string_filename | null = null;
-        const filePathCandidates = [
-            filePathRaw,
-            `${filePathRaw}.md`,
-            `${filePathRaw}.book.md`,
-            `${filePathRaw}.book.md`,
-        ];
+        let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book.md`, `${filePathRaw}.book.md`];
+        filePathCandidates = [...filePathCandidates, ...filePathCandidates.map((path) => path.split('\\').join('/'))];
+        //                       <- Note: This line is to work with Windows paths
+        //                                File "C:Usersmeworkaihello-worldbookshello.book.md" does not exist
+        //                                @see https://collboard.fra1.cdn.digitaloceanspaces.com/usercontent/education/image/png/1/2/ad/image.png
 
         for (const filePathCandidate of filePathCandidates) {
             if (
@@ -178,7 +179,7 @@ export function initializeRunCommand(program: Program) {
             console.info(colors.gray('--- Validating pipeline ---'));
         }
 
-        // TODO: !!!!!! Same try-catch for LogicError
+        // TODO: Same try-catch for LogicError
         validatePipeline(pipeline);
 
         if (isVerbose) {
@@ -266,6 +267,7 @@ export function initializeRunCommand(program: Program) {
         }
 
         const response = await prompts(questions as TODO_any);
+        //                     <- TODO: [🧠][🍼] Change behavior according to the formfactor
         inputParameters = { ...inputParameters, ...response };
 
         // TODO: Maybe do some validation of the response (and --json argument which is passed)

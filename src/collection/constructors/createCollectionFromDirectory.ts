@@ -12,10 +12,10 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../types/PipelineString';
 import type { string_dirname } from '../../types/typeAliases';
 import type { string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';

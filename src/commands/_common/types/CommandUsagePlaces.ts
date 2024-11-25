@@ -10,4 +10,4 @@ export type CommandUsagePlace = TupleToUnion<typeof CommandUsagePlaces>;
  *
  * @private internal base for `CommandUsagePlace`
  */
-export const CommandUsagePlaces = ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'] as const;
+export const CommandUsagePlaces = ['PIPELINE_HEAD', 'PIPELINE_TASK'] as const;

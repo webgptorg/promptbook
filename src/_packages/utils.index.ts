@@ -3,7 +3,7 @@
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
-import { extractParameterNamesFromTemplate } from '../conversion/utils/extractParameterNamesFromTemplate';
+import { extractParameterNamesFromTask } from '../conversion/utils/extractParameterNamesFromTask';
 import { extractVariables } from '../conversion/utils/extractVariables';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
@@ -15,8 +15,8 @@ import { $currentDate } from '../utils/$currentDate';
 import { $isRunningInBrowser } from '../utils/environment/$isRunningInBrowser';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../utils/environment/$isRunningInWebWorker';
-import { CHARACTERS_PER_STANDARD_LINE } from '../utils/expectation-counters/config';
-import { LINES_PER_STANDARD_PAGE } from '../utils/expectation-counters/config';
+import { CHARACTERS_PER_STANDARD_LINE } from '../utils/expectation-counters/constants';
+import { LINES_PER_STANDARD_PAGE } from '../utils/expectation-counters/constants';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
@@ -82,7 +82,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 // Note: Entities of the `@promptbook/utils`
 export { renderPromptbookMermaid };
-export { extractParameterNamesFromTemplate };
+export { extractParameterNamesFromTask };
 export { extractVariables };
 export { renameParameter };
 export { titleToName };

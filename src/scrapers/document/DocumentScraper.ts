@@ -1,6 +1,6 @@
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
-// import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
+// import PipelineCollection from '../../../books/books';
 import { readFile } from 'fs/promises';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';

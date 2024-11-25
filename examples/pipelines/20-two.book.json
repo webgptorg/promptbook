@@ -2,6 +2,7 @@
     "pipelineUrl": "https://promptbook.studio/examples/two.book.md",
     "title": "✨ Example prompt with two consecutive prompts",
     "description": "Show how to use two consecutive prompts with one parameter each.",
+    "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "word",
@@ -24,9 +25,9 @@
             "isOutput": false
         }
     ],
-    "templates": [
+    "tasks": [
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -38,7 +39,7 @@
             ]
         },
         {
-            "templateType": "PROMPT_TEMPLATE",
+            "taskType": "PROMPT_TASK",
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
@@ -71,7 +72,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.74.0",
+            "promptbookVersion": "0.75.0-4",
             "usage": {
                 "price": {
                     "value": 0.004257

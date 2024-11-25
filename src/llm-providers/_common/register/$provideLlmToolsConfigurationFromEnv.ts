@@ -23,6 +23,8 @@ export function $provideLlmToolsConfigurationFromEnv(): LlmToolsConfiguration {
     }
 
     dotenv.config();
+    //   TODO: Walk to the root of the project and find the nearest `.env` file
+    //         @see https://collboard.fra1.cdn.digitaloceanspaces.com/usercontent/education/image/png/1/2/ad/image.png
 
     const llmToolsConfiguration: LlmToolsConfiguration = $llmToolsMetadataRegister
         .list()

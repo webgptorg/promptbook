@@ -67,6 +67,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
                 /**
                  * TODO: string_promptbook_version should be constrained to the all versions of Promptbook engine
+                 * Note: [💞] Ignore a discrepancy between file name and entity name
                  */
 
 
