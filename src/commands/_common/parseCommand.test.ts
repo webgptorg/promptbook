@@ -33,12 +33,8 @@ describe('parsing the commands', () => {
     }
 
     it('should fail parsing multi-line command', () => {
-        expect(() => parseCommand('execute\nprompt template', 'PIPELINE_HEAD')).toThrowError(
-            /Can not contain new line/i,
-        );
-        expect(() => parseCommand('execute prompt template\n', 'PIPELINE_HEAD')).toThrowError(
-            /Can not contain new line/i,
-        );
+        expect(() => parseCommand('\nprompt section', 'PIPELINE_HEAD')).toThrowError(/Can not contain new line/i);
+        expect(() => parseCommand('prompt section\n', 'PIPELINE_HEAD')).toThrowError(/Can not contain new line/i);
     });
 
     it('should fail parsing unknown command', () => {

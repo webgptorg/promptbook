@@ -323,10 +323,10 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         resovedParameters = [...resovedParameters, reservedParameterName];
     }
 
-    let unresovedTemplates: ReadonlyArray<TaskJson> = [...pipeline.tasks];
+    let unresovedTasks: ReadonlyArray<TaskJson> = [...pipeline.tasks];
 
     let loopLimit = LOOP_LIMIT;
-    while (unresovedTemplates.length > 0) {
+    while (unresovedTasks.length > 0) {
         if (loopLimit-- < 0) {
             // Note: Really UnexpectedError not LimitReachedError - this should not happen and be caught below
             throw new UnexpectedError(
@@ -341,11 +341,11 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             );
         }
 
-        const currentlyResovedTemplates = unresovedTemplates.filter((task) =>
+        const currentlyResovedTasks = unresovedTasks.filter((task) =>
             task.dependentParameterNames.every((name) => resovedParameters.includes(name)),
         );
 
-        if (currentlyResovedTemplates.length === 0) {
+        if (currentlyResovedTasks.length === 0) {
             throw new PipelineLogicError(
                 // TODO: [🐎] DRY
                 spaceTrim(
@@ -358,7 +358,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
 
                         **Can not resolve:**
                         ${block(
-                            unresovedTemplates
+                            unresovedTasks
                                 .map(
                                     ({ resultingParameterName, dependentParameterNames }) =>
                                         `- Parameter \`{${resultingParameterName}}\` which depends on ${dependentParameterNames
@@ -399,10 +399,10 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
 
         resovedParameters = [
             ...resovedParameters,
-            ...currentlyResovedTemplates.map(({ resultingParameterName }) => resultingParameterName),
+            ...currentlyResovedTasks.map(({ resultingParameterName }) => resultingParameterName),
         ];
 
-        unresovedTemplates = unresovedTemplates.filter((task) => !currentlyResovedTemplates.includes(task));
+        unresovedTasks = unresovedTasks.filter((task) => !currentlyResovedTasks.includes(task));
     }
 
     // TODO: !!!!!! Test that pipeline interface implements declared formfactor interface

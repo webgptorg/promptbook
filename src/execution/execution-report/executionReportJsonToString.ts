@@ -121,7 +121,7 @@ export function executionReportJsonToString(
                         hash = '-' + hash;
                     }
 
-                    // TODO: Make working hash link for the template in md + pdf
+                    // TODO: Make working hash link for the task in md + pdf
 
                     return `- [${promptExecution.prompt.title}](#${hash})`;
                 })
@@ -132,7 +132,7 @@ export function executionReportJsonToString(
             '## ⌚ Time chart' +
             '\n\n' +
             createMarkdownChart({
-                nameHeader: 'Template',
+                nameHeader: 'Task',
                 valueHeader: 'Timeline',
                 items: timingItems,
                 width: chartsWidth,
@@ -144,7 +144,7 @@ export function executionReportJsonToString(
             '## 💸 Cost chart' +
             '\n\n' +
             createMarkdownChart({
-                nameHeader: 'Template',
+                nameHeader: 'Task',
                 valueHeader: 'Cost',
                 items: costItems,
                 width: chartsWidth,

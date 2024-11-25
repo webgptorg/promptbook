@@ -11,9 +11,9 @@ import { titleToName } from '../utils/titleToName';
  */
 export type renderPipelineMermaidOptions = {
     /**
-     * Callback for creating from template graph node
+     * Callback for creating from task graph node
      */
-    linkTask?(template: TaskJson): { href: string_href; title: string } | null;
+    linkTask?(task: TaskJson): { href: string_href; title: string } | null;
 };
 
 /**
@@ -26,7 +26,7 @@ export type renderPipelineMermaidOptions = {
 export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: renderPipelineMermaidOptions): string {
     const { linkTask = () => null } = options || {};
 
-    const parameterNameToTemplateName = (parameterName: string_name) => {
+    const parameterNameToTaskName = (parameterName: string_name) => {
         const parameter = pipelineJson.parameters.find((parameter) => parameter.name === parameterName);
 
         if (!parameter) {
@@ -37,13 +37,13 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
             return 'input';
         }
 
-        const template = pipelineJson.tasks.find((template) => template.resultingParameterName === parameterName);
+        const task = pipelineJson.tasks.find((task) => task.resultingParameterName === parameterName);
 
-        if (!template) {
-            throw new Error(`Could not find template for {${parameterName}}`);
+        if (!task) {
+            throw new Error(`Could not find task for {${parameterName}}`);
         }
 
-        return normalizeTo_camelCase('template-' + titleToName(template.title));
+        return normalizeTo_camelCase('task-' + titleToName(task.title));
     };
 
     const promptbookMermaid = spaceTrim(
@@ -60,12 +60,12 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
                   ${block(
                       pipelineJson.tasks
                           .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
-                              `${parameterNameToTemplateName(resultingParameterName)}("${title}")`,
+                              `${parameterNameToTaskName(resultingParameterName)}("${title}")`,
                               ...dependentParameterNames.map(
                                   (dependentParameterName) =>
-                                      `${parameterNameToTemplateName(
+                                      `${parameterNameToTaskName(
                                           dependentParameterName,
-                                      )}--"{${dependentParameterName}}"-->${parameterNameToTemplateName(
+                                      )}--"{${dependentParameterName}}"-->${parameterNameToTaskName(
                                           resultingParameterName,
                                       )}`,
                               ),
@@ -76,15 +76,15 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
                   ${block(
                       pipelineJson.parameters
                           .filter(({ isOutput }) => isOutput)
-                          .map(({ name }) => `${parameterNameToTemplateName(name)}--"{${name}}"-->output`)
+                          .map(({ name }) => `${parameterNameToTaskName(name)}--"{${name}}"-->output`)
                           .join('\n'),
                   )}
                   output((Output)):::output
 
                   ${block(
                       pipelineJson.tasks
-                          .map((template) => {
-                              const link = linkTask(template);
+                          .map((task) => {
+                              const link = linkTask(task);
 
                               if (link === null) {
                                   return '';
@@ -92,9 +92,9 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 
                               const { href, title } = link;
 
-                              const templateName = parameterNameToTemplateName(template.resultingParameterName);
+                              const taskName = parameterNameToTaskName(task.resultingParameterName);
 
-                              return `click ${templateName} href "${href}" "${title}";`;
+                              return `click ${taskName} href "${href}" "${title}";`;
                           })
                           .filter((line) => line !== '')
                           .join('\n'),

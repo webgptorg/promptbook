@@ -369,7 +369,7 @@ export type string_pipeline_url = string; // <- TODO: `${string}.book.md`
  *
  * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords"`
  */
-export type string_pipeline_url_with_hashtemplate = string;
+export type string_pipeline_url_with_task_hash = string;
 
 /**
  * Semantic helper

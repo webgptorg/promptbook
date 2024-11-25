@@ -3,9 +3,7 @@ import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -29,7 +27,7 @@ export const jokerCommandParser: PipelineTaskCommandParser<JokerCommand> = {
     /**
      * Description of the JOKER command
      */
-    description: `Joker parameter is used instead of executing the template result if jokers value meets the expectations requirements`,
+    description: `Joker parameter is used instead of executing the task result if jokers value meets the expectations requirements`,
 
     /**
      * Link to documentation

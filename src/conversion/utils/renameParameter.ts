@@ -22,8 +22,8 @@ type RenameParameterOptions = {
 };
 
 /**
- * Function `renameParameter` will find all usable parameters for given template
- * In other words, it will find all parameters that are not used in the template itseld and all its dependencies
+ * Function `renameParameter` will find all usable parameters for given task
+ * In other words, it will find all parameters that are not used in the task itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
  * @public exported from `@promptbook/utils`
@@ -51,22 +51,22 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
         parameter.name = newParameterName;
     }
 
-    for (const template of renamedPipeline.tasks) {
-        if (template.resultingParameterName === oldParameterName) {
-            template.resultingParameterName = newParameterName;
+    for (const task of renamedPipeline.tasks) {
+        if (task.resultingParameterName === oldParameterName) {
+            task.resultingParameterName = newParameterName;
         }
-        template.dependentParameterNames = template.dependentParameterNames.map((dependentParameterName) =>
+        task.dependentParameterNames = task.dependentParameterNames.map((dependentParameterName) =>
             dependentParameterName === oldParameterName ? newParameterName : dependentParameterName,
         );
 
-        template.content = template.content.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
+        task.content = task.content.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
 
-        template.title = template.title.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
+        task.title = task.title.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
 
-        template.description =
-            template.description === undefined
+        task.description =
+            task.description === undefined
                 ? undefined
-                : template.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
+                : task.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
     }
 
     return renamedPipeline;

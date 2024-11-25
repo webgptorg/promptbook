@@ -12,20 +12,20 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
 
     personas = personas.map((persona) => ({ ...persona, modelRequirements: undefined, preparationIds: undefined }));
     knowledgeSources = knowledgeSources.map((knowledgeSource) => ({ ...knowledgeSource, preparationIds: undefined }));
-    tasks = tasks.map((template) => {
-        let { dependentParameterNames } = template;
+    tasks = tasks.map((task) => {
+        let { dependentParameterNames } = task;
 
-        const parameterNames = extractParameterNames(template.preparedContent || '');
+        const parameterNames = extractParameterNames(task.preparedContent || '');
 
         dependentParameterNames = dependentParameterNames.filter(
             (dependentParameterName) => !parameterNames.has(dependentParameterName),
             // <- [🏷] This is the reverse process to remove {knowledge} from `dependentParameterNames`
         );
 
-        const templateUnprepared = { ...template, dependentParameterNames };
-        delete templateUnprepared.preparedContent;
+        const taskUnprepared = { ...task, dependentParameterNames };
+        delete taskUnprepared.preparedContent;
 
-        return templateUnprepared;
+        return taskUnprepared;
     });
 
     return $asDeeplyFrozenSerializableJson('Unprepared PipelineJson', {

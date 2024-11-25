@@ -19,5 +19,5 @@ export function $parseAndApplyPipelineHeadCommands(raw: string_markdown_text, $p
 
 /**
  * TODO: [🥥] Maybe implement this function
- * TODO: [🥥] DRY `$parseAndApplyPipelineHeadCommands` and `$parseAndApplyPipelineTemplateCommands`
+ * TODO: [🥥] DRY `$parseAndApplyPipelineHeadCommands` and `$parseAndApplyPipelineTaskCommands`
  */

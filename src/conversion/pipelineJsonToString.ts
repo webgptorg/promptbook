@@ -37,17 +37,17 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
     pipelineString = prettifyMarkdown(pipelineString);
 
     for (const parameter of parameters.filter(({ isInput }) => isInput)) {
-        commands.push(`INPUT PARAMETER ${templateParameterJsonToString(parameter)}`);
+        commands.push(`INPUT PARAMETER ${taskParameterJsonToString(parameter)}`);
     }
 
     for (const parameter of parameters.filter(({ isOutput }) => isOutput)) {
-        commands.push(`OUTPUT PARAMETER ${templateParameterJsonToString(parameter)}`);
+        commands.push(`OUTPUT PARAMETER ${taskParameterJsonToString(parameter)}`);
     }
 
     pipelineString += '\n\n';
     pipelineString += commands.map((command) => `- ${command}`).join('\n');
 
-    for (const template of tasks) {
+    for (const task of tasks) {
         const {
             /* Note: Not using:> name, */
             title,
@@ -60,7 +60,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             expectations,
             format,
             resultingParameterName,
-        } = template;
+        } = task;
 
         pipelineString += '\n\n';
         pipelineString += `## ${title}`;
@@ -74,10 +74,11 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         let contentLanguage: 'markdown' | 'text' | 'javascript' | 'typescript' | 'python' | '' = 'text';
 
         if (taskType === 'PROMPT_TASK') {
-            const { modelRequirements } = template;
+            const { modelRequirements } = task;
             const { modelName, modelVariant } = modelRequirements || {};
 
-            commands.push(`EXECUTE PROMPT TEMPLATE`);
+            // Note: Do nothing, it is default
+            // commands.push(`PROMPT`);
 
             if (modelVariant) {
                 commands.push(`MODEL VARIANT ${capitalize(modelVariant)}`);
@@ -90,14 +91,14 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             commands.push(`SIMPLE TEMPLATE`);
             // Note: Nothing special here
         } else if (taskType === 'SCRIPT_TASK') {
-            commands.push(`SCRIPT TEMPLATE`);
-            if (template.contentLanguage) {
-                contentLanguage = template.contentLanguage;
+            commands.push(`SCRIPT`);
+            if (task.contentLanguage) {
+                contentLanguage = task.contentLanguage;
             } else {
                 contentLanguage = '';
             }
         } else if (taskType === 'DIALOG_TASK') {
-            commands.push(`DIALOG TEMPLATE`);
+            commands.push(`DIALOG`);
             // Note: Nothing special here
         } // <- }else if([🅱]
 
@@ -145,7 +146,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         pipelineString += '```';
 
         pipelineString += '\n\n';
-        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: [main] !!! If the parameter here has description, add it and use templateParameterJsonToString
+        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: [main] !!! If the parameter here has description, add it and use taskParameterJsonToString
     }
 
     return pipelineString as PipelineString;
@@ -154,8 +155,8 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
 /**
  * @private internal utility of `pipelineJsonToString`
  */
-function templateParameterJsonToString(templateParameterJson: ParameterJson): string {
-    const { name, description } = templateParameterJson;
+function taskParameterJsonToString(taskParameterJson: ParameterJson): string {
+    const { name, description } = taskParameterJson;
 
     let parameterString = `{${name}}`;
 
@@ -166,7 +167,7 @@ function templateParameterJsonToString(templateParameterJson: ParameterJson): st
 }
 
 /**
- * TODO: [🛋] Implement new features and commands into `pipelineJsonToString` + `templateParameterJsonToString` , use `stringifyCommand`
+ * TODO: [🛋] Implement new features and commands into `pipelineJsonToString` + `taskParameterJsonToString` , use `stringifyCommand`
  * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
  * TODO: [🏛] Maybe make some markdown builder
  * TODO: [🏛] Escape all

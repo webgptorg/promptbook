@@ -1,7 +1,5 @@
 import type { ChatModelRequirements } from '../../types/ModelRequirements';
-import type { number_id } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_persona_description } from '../../types/typeAliases';
+import type { number_id, string_name, string_persona_description } from '../../types/typeAliases';
 
 /**
  * Defines a persona in the pipeline
@@ -12,7 +10,7 @@ import type { string_persona_description } from '../../types/typeAliases';
  */
 export type PersonaJson = {
     /**
-     * Name of the template
+     * Name of the persona
      * - It must be unique across the pipeline
      * - It should start uppercase and can contain letters and numbers
      */

@@ -139,7 +139,7 @@ export async function preparePipeline(
     }));
     // ----- /Knowledge preparation -----
 
-    // ----- Templates preparation -----
+    // ----- Tasks preparation -----
     const { tasksPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTasks(
         {
             parameters,
@@ -153,7 +153,7 @@ export async function preparePipeline(
             isVerbose,
         },
     );
-    // ----- /Templates preparation -----
+    // ----- /Tasks preparation -----
 
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();

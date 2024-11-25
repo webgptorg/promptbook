@@ -3,9 +3,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { FormatCommand } from './FormatCommand';
 
 /**
@@ -30,7 +28,7 @@ export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {
      * Description of the FORMAT command
      */
     description: spaceTrim(`
-        Format command describes the desired output of the template (after post-processing)
+        Format command describes the desired output of the task (after post-processing)
         It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs or some other shape of the output.
     `),
 

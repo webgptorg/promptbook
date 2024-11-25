@@ -3,7 +3,7 @@ import type { Parameters } from '../types/typeAliases';
 import type { string_script } from '../types/typeAliases';
 
 /**
- * Represents all the tools needed to execute SCRIPT TEMPLATE
+ * Represents all the tools needed to execute `SCRIPT` tasks
  *
  * @see https://github.com/webgptorg/promptbook#script-execution-tools
  */

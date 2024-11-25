@@ -1,21 +1,21 @@
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_markdown_text,
+    string_pipeline_url,
+    string_semantic_version,
+} from '../../types/typeAliases';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
 import type { ParameterJson } from './ParameterJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { TaskJson } from './TaskJson';
 
 /**
  * Promptbook is the **core concept of this package**.
- * It represents a series of tasks chained together to form a pipeline / one big template with input and result parameters.
+ * It represents a series of tasks chained together to form a pipeline / one big task with input and result parameters.
  *
  * Note: [🚉] This is fully serializable as JSON
  *
@@ -36,7 +36,7 @@ export type PipelineJson = {
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
      *      For example: https://promptbook.studio/webgpt/write-website-content-cs.book.md@1.0.0
-     * Warning: Do not hash part of the URL, hash part is used for identification of the template in the pipeline
+     * Warning: Do not hash part of the URL, hash part is used for identification of the task in the pipeline
      */
     readonly pipelineUrl?: string_pipeline_url;
 

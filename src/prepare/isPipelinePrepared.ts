@@ -38,7 +38,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
  * TODO: [🐠] Maybe base this on `makeValidator`
  * TODO: [🧊] Pipeline can be partially prepared, this should return true ONLY if fully prepared
  * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
- *     - [🏍] ? Is context in each template
+ *     - [🏍] ? Is context in each task
  *     - [♨] Are examples prepared
  *     - [♨] Are tasks prepared
  */

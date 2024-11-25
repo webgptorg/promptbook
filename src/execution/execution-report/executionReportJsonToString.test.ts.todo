@@ -22,10 +22,10 @@ Summary of all failing tests
 
       ## ⌚ Time chart
 
-    - | Template | Timeline |
+    - | Task | Timeline |
     - | -------- | -------- |
     - | Prompt   |          |
-    + | Template | Timeline                             |
+    + | Task     | Timeline                             |
     + | -------- | ------------------------------------ |
     + | Prompt   | ████████████████████████████████████ |
 
@@ -34,7 +34,7 @@ Summary of all failing tests
 
       ## �� Cost chart
 
-      | Template | Cost |
+      | Task | Cost |
       | -------- | ---- |
 
       22 |                     ),

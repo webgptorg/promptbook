@@ -4,11 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TaskJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -254,9 +256,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Command ${
+                        Command \`${
                             command.type
-                        } is not allowed in the head of the promptbook ONLY at the pipeline template
+                        }\` is not allowed in the head of the pipeline ONLY at the pipeline task
 
                         ${block(getPipelineIdentification())}
                     `,
@@ -299,10 +301,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 4️⃣ Process each template of the pipeline
+    // Note: 4️⃣ Process each section of the pipeline
 
     for (const section of pipelineSections) {
-        // TODO: Parse template description (the content out of the codeblock and lists)
+        // TODO: Parse section's description (the content out of the codeblock and lists)
 
         const listItems = extractAllListItemsFromMarkdown(section.content);
 
@@ -345,7 +347,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             $taskJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
         }
 
-        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommands`
+        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTaskCommands`
         const commands = listItems.map((listItem) => ({
             listItem,
             command: parseCommand(listItem, 'PIPELINE_TASK'),
@@ -369,9 +371,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
-                            Command ${
+                            Command \`${
                                 command.type
-                            } is not allowed in the template of the promptbook ONLY at the pipeline head
+                            }\` is not allowed in the task of the promptbook ONLY at the pipeline head
 
                             ${block(getPipelineIdentification())}
                         `,
@@ -394,14 +396,14 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
-                            Command ${command.type} failed to apply to the template
+                            Command \`${command.type}\` failed to apply to the task
 
                             The error:
                             ${block((error as ParseError).message)}
 
-                            Current state of the template:
+                            Current state of the task:
                             ${block(JSON.stringify($taskJson, null, 4))}
-                               <- Maybe wrong order of commands?
+                               *<- Maybe wrong order of commands?*
 
                             Raw command:
                             - ${listItem}
@@ -421,13 +423,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
-        // TODO: [🍧] Should be done in TEMPLATE command
+        // TODO: [🍧] Should be done in SECTION command
         if (($taskJson as WritableDeep<TaskJson>).taskType === 'SCRIPT_TASK') {
             if (!language) {
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
-                            You must specify the language of the script in the SCRIPT TEMPLATE
+                            You must specify the language of the script in the \`SCRIPT\` task
 
                             ${block(getPipelineIdentification())}
                         `,
@@ -462,7 +464,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         );
 
         for (const parameterName of $taskJson.dependentParameterNames) {
-            // TODO: [🧠] This definition should be made first in the template
+            // TODO: [🧠] This definition should be made first in the task
             defineParam({
                 parameterName,
                 parameterDescription: null,
@@ -480,7 +482,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     (block) => `
                         Model requirements are defined for the block type ${
                             $taskJson.taskType
-                        } which is not a PROMPT TEMPLATE
+                        } which is not a \`PROMPT\` task
 
                         This should be avoided by the \`modelCommandParser\`
 
@@ -509,7 +511,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     if ($pipelineJson.parameters.every((parameter) => !parameter.isInput)) {
         for (const parameter of $pipelineJson.parameters) {
             const isThisParameterResulting = $pipelineJson.tasks.some(
-                (template) => template.resultingParameterName === parameter.name,
+                (task) => task.resultingParameterName === parameter.name,
             );
             if (!isThisParameterResulting) {
                 parameter.isInput = true;

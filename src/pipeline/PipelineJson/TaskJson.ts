@@ -5,7 +5,7 @@ import type { ScriptTaskJson } from './ScriptTaskJson';
 import type { SimpleTaskJson } from './SimpleTaskJson';
 
 /**
- * Describes one (prompt) template in the promptbook
+ * Describes one (prompt) task in the pipeline
  *
  * Note: [🚉] This is fully serializable as JSON
  */

@@ -20,8 +20,6 @@ The following glossary is used to clarify certain concepts:
 -   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
-
-
 _Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
 
 ### Promptbook core
@@ -58,7 +56,7 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 
 -   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
 -   [📯 Pipeline](https://github.com/webgptorg/promptbook/discussions/64)
--   [🎺 Pipeline templates](https://github.com/webgptorg/promptbook/discussions/88)
+-   [🙇‍♂️ Tasks and pipeline sections](https://github.com/webgptorg/promptbook/discussions/88)
 -   [🤼 Personas](https://github.com/webgptorg/promptbook/discussions/22)
 -   [⭕ Parameters](https://github.com/webgptorg/promptbook/discussions/83)
 -   [🚀 Pipeline execution](https://github.com/webgptorg/promptbook/discussions/84)

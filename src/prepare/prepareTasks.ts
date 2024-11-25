@@ -7,14 +7,14 @@ import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 
-type PrepareTemplateInput = Pick<PipelineJson, 'tasks' | 'parameters'> & {
+type PrepareTaskInput = Pick<PipelineJson, 'tasks' | 'parameters'> & {
     /**
      * @@@
      */
     readonly knowledgePiecesCount: number;
 };
 
-type PreparedTemplates = {
+type PreparedTasks = {
     /**
      * @@@ Sequence of tasks that are chained together to form a pipeline
      */
@@ -27,14 +27,14 @@ type PreparedTemplates = {
  * @public exported from `@promptbook/core`
  */
 export async function prepareTasks(
-    pipeline: PrepareTemplateInput,
+    pipeline: PrepareTaskInput,
     tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
-): Promise<PreparedTemplates> {
+): Promise<PreparedTasks> {
     const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT } = options;
     const { tasks, parameters, knowledgePiecesCount } = pipeline;
 
-    // TODO: [main] !! Apply examples to each template (if missing and is for the template defined)
+    // TODO: [main] !! Apply examples to each task (if missing and is for the task defined)
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function
@@ -42,8 +42,8 @@ export async function prepareTasks(
     await forEachAsync(
         tasks,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
-        async (template, index) => {
-            let { /* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames } = template;
+        async (task, index) => {
+            let { /* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames } = task;
             let preparedContent: string | undefined = undefined;
 
             if (knowledgePiecesCount > 0 && !dependentParameterNames.includes('knowledge')) {
@@ -63,14 +63,14 @@ export async function prepareTasks(
                 ];
             }
 
-            const preparedTemplate: TaskJson = {
-                ...template,
+            const preparedTask: TaskJson = {
+                ...task,
                 dependentParameterNames,
                 preparedContent,
                 // <- TODO: [🍙] Make some standard order of json properties
             };
 
-            tasksPrepared[index] = preparedTemplate;
+            tasksPrepared[index] = preparedTask;
         },
     );
 
@@ -78,8 +78,8 @@ export async function prepareTasks(
 }
 
 /**
- * TODO: [🧠] Add context to each template (if missing)
- * TODO: [🧠] What is better name `prepareTemplate` or `prepareTemplateAndParameters`
+ * TODO: [🧠] Add context to each task (if missing)
+ * TODO: [🧠] What is better name `prepareTask` or `prepareTaskAndParameters`
  * TODO: [♨][main] !!! Prepare index the examples and maybe tasks
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch

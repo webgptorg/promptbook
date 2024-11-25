@@ -5,22 +5,22 @@ import { extractParameterNames } from '../../utils/parameters/extractParameterNa
 import { extractVariables } from './extractVariables';
 
 /**
- * Parses the template and returns the set of all used parameters
+ * Parses the task and returns the set of all used parameters
  *
- * @param template the template with used parameters
+ * @param task the task with used parameters
  * @returns the set of parameter names
  * @throws {ParseError} if the script is invalid
  * @public exported from `@promptbook/utils`
  */
 export function extractParameterNamesFromTask(
-    template: ReadonlyDeep<
+    task: ReadonlyDeep<
         Pick<
             TaskJson,
             'title' | 'description' | 'taskType' | 'content' | 'preparedContent' | 'jokerParameterNames' | 'foreach'
         >
     >,
 ): Set<string_parameter_name> {
-    const { title, description, taskType, content, preparedContent, jokerParameterNames, foreach } = template;
+    const { title, description, taskType, content, preparedContent, jokerParameterNames, foreach } = task;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [

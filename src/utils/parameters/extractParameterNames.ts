@@ -5,7 +5,7 @@ import type { string_template } from '../../types/typeAliases';
 /**
  * Parses the task and returns the list of all parameter names
  *
- * @param template the task with parameters in {curly} braces
+ * @param template the string template with parameters in {curly} braces
  * @returns the list of parameter names
  * @public exported from `@promptbook/utils`
  */

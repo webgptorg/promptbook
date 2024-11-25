@@ -42,7 +42,7 @@ export async function $fakeTextToExpectations(
                 script: `${postprocessingFunctionName}(result)`,
                 parameters: {
                     result: textToCheck || '',
-                    // Note: No ...parametersForTemplate, because working with result only
+                    // Note: No ...parametersForTask, because working with result only
                 },
             });
         }
