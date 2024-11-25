@@ -5,10 +5,10 @@ CLI utils for Promptbook. After install you can use `promptbook` command in term
 You can prebuild your own Promptbook library with `ptbk make` command:
 
 ```bash
-npx ptbk make ./promptbook-collection --format typescript --verbose
+npx ptbk make ./books --format typescript --verbose
 ```
 
-This will emit `index.ts` with `getPipelineCollection` function file in `promptbook-collection` directory.
+This will emit `index.ts` with `getPipelineCollection` function file in `books` directory.
 
 Then just use it:
 
@@ -16,7 +16,7 @@ Then just use it:
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
-import { getPipelineCollection } from './promptbook-collection'; // <- Importing from pre-built library
+import { getPipelineCollection } from './books'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 

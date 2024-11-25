@@ -124,7 +124,7 @@ export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOKS_DIRNAME = './promptbook-collection';
+export const DEFAULT_BOOKS_DIRNAME = './books';
 
 /**
  * Where to store the cache of executions for promptbook CLI

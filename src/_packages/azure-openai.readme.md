@@ -34,7 +34,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
+const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
@@ -107,7 +107,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
+const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);

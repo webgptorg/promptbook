@@ -1,4 +1,4 @@
-import PipelineCollection from '../../promptbook-collection/index.json';
+import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
