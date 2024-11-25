@@ -119,13 +119,21 @@ export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
 export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 
 /**
+ * Where to store your books
+ * This is kind of a "src" for your books
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_BOOKS_DIRNAME = './promptbook-collection';
+
+/**
  * Where to store the cache of executions for promptbook CLI
  *
  * Note: When the folder does not exist, it is created recursively
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
+export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = './.promptbook/executions-cache';
 
 /**
  * Where to store the scrape cache
@@ -134,7 +142,7 @@ export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_SCRAPE_CACHE_DIRNAME = '/.promptbook/scrape-cache';
+export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
 
 /**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
