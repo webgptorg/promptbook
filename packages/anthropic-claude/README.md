@@ -2,8 +2,6 @@
 
 # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-It's time for a paradigm shift! The future of software is in plain English, French or Latin.
-
 
 
 
@@ -24,10 +22,6 @@ It's time for a paradigm shift! The future of software is in plain English, Fren
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
 
-
-<blockquote style="color: #ff8811">
-    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
-</blockquote>
 
 ## 📦 Package `@promptbook/anthropic-claude`
 
@@ -221,7 +215,7 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 🤍 The Book Abstract
 
-> It's time for a paradigm shift! **The future of software is in plain English**, French or Latin.
+**It's time for a paradigm shift! The future of software is in plain English, French or Latin.**
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
 
@@ -231,11 +225,17 @@ The incredible growth in power of microprocessors and the Moore's Law have been 
 
 This shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.
 
-> **Join us in this journey!**
+**Join us in this journey!**
 
 
 
+## 🚀 Get started
 
+Take a look at the simple starter kit with books integrated into the **Hello World** sample applications:
+
+-   [Hello Book](https://github.com/webgptorg/hello-world)
+-   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
+-   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
 
 
@@ -255,7 +255,7 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   <tbody>
     <tr>
       <td>Core</td>
-      <td>Promptbook core is a description and documentation of basic innerworkings how should be Promptbook implemented and defines which fetures must be descriable by book language</td>
+      <td>Promptbook Core is a description and documentation of the basic concepts, ideas and inner workings of how Promptbook should be implemented, and defines what features must be describable by book language.</td>
       <td rowspan=2>https://ptbk.io<br/>https://github.com/webgptorg/book</td>
     </tr>
     <tr>
@@ -266,17 +266,23 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     </tr>
     <tr>
       <td>Promptbook typescript project</td>
-      <td>Implementation of Promptbook in TypeScript published into multiple packages to NPM</td>
+      <td>Promptbook implementation in TypeScript released as multiple NPM packages</td>
       <td>https://github.com/webgptorg/promptbook + Multiple packages on NPM</td>
     </tr>
     <tr>
       <td>Promptbook studio</td>
-      <td>No-code studio to write book without need to write even the markdown</td>
-      <td rowspan=2>https://promptbook.studio<br/>https://github.com/hejny/promptbook-studio</td>
-    </tr>
-    <tr>
-      <td>Promptbook miniapps</td>
-      <td>Builder of LLM miniapps from book notation</td>
+      <td>Studio to write Books and instantly publish them as miniapps</td>
+      <td>
+        https://promptbook.studio<br/>
+        https://github.com/hejny/promptbook-studio</td>
+      </tr><tr>
+      <td>Hello World</td>
+      <td>Simple starter kit with Books integrated into the sample applications</td>
+       <td>
+          https://github.com/webgptorg/hello-world<br/>
+          https://github.com/webgptorg/hello-world-node-js<br/>
+          https://github.com/webgptorg/hello-world-next-js
+       </td>
     </tr>
   </tbody>
 </table>
