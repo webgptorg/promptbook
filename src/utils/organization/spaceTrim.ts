@@ -6,6 +6,7 @@ import { spaceTrim as spaceTrimReexported } from 'spacetrim';
  * Note: This is a re-exported function from the `spacetrim` package which is
  *       Developed by same author @hejny as this package
  *
+ * @public exported from `@promptbook/utils`
  * @see https://github.com/hejny/spacetrim#usage
  */
 export const spaceTrim = spaceTrimReexported;
