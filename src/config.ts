@@ -1,5 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
+import { string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -28,6 +29,24 @@ export const NAME = `Promptbook`;
  */
 export const CLAIM = `It's time for a paradigm shift. The future of software in plain English, French or Latin`;
 //            <- TODO: [🐊] Pick the best claim
+
+/**
+ * Logo for the light theme
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const LOGO_LIGHT_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo.b21f0c70.png`;
+
+/**
+ * Logo for the dark theme
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo-white.09887cbc.png`;
 
 /**
  * When the title is not provided, the default title is used
