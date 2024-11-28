@@ -601,6 +601,28 @@ Formfactors, Rebranding
 -   Rename default folder for your books from `promptbook-collection` -> `books`
 -   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
 
+### `0. .0` _(202--)_
+
+compatibility
+
+[🐠] - to PROGRAMMING
+isXxx
+validateXxx
+checkXxx
+
+is
+check
+validate
+
+ACRY DoesNotMakeSenseError search for sense
+
+'IDENTICAL'
+'IDENTICAL_UNPREPARED'
+'IDENTICAL_INTERFACE'
+'IDENTICAL_NAMES'
+'INTERSECTING'
+'NON_INTERSECTING'
+
 ## Drafts
 
 ### `0..0` _(2024-0-)_
