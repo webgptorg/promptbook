@@ -1,15 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import type { ParameterJson } from '../../pipeline/PipelineJson/ParameterJson';
-import { IS_PIPELINE_LOGIC_VALIDATED } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { IS_PIPELINE_LOGIC_VALIDATED, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParseError } from '../../errors/ParseError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import type { ParameterJson } from '../../pipeline/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -405,7 +402,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         unresovedTasks = unresovedTasks.filter((task) => !currentlyResovedTasks.includes(task));
     }
 
-    // TODO: !!!!!! Test that pipeline interface implements declared formfactor interface
+    // TODO: !!!!!!! Test that pipeline interface implements declared formfactor interface
 }
 
 /**
