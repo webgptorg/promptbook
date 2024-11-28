@@ -229,7 +229,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.75.1",
+            "promptbookVersion": "0.75.2",
             "usage": {
                 "price": {
                     "value": 0.004446
