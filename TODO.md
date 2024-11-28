@@ -1,5 +1,7 @@
 # 🎯 TODOs
 
+There are a lot of TODOs in the repository, in the future there will probably be some kind of agent system that can automatically go through the TODOs and implement them one by one according to priority and rules.
+
 -   [ ] [🧠] `folder` vs `directory`
 -   [x] Annotate all entities
 -   [ ] Make internal string aliases
