@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.75.1",
+    "version": "0.75.2",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
