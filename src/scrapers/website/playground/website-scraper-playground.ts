@@ -31,15 +31,15 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const example = 'https://www.pavolhejny.com/'; // <- TODO: Not scraping really important information, just one-two paragraph
-    //const example = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
+    //const example = 'https://www.pavolhejny.com/'; // <- TODO: Not scraping really important information, just one-two paragraph
+    const example = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
 
     const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, 'examples');
 
     const websiteScraper = new WebsiteScraper(
-        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground(), fs: $provideFilesystemForNode() },
         {
             rootDirname,
         },
