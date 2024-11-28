@@ -404,6 +404,8 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
 
         unresovedTasks = unresovedTasks.filter((task) => !currentlyResovedTasks.includes(task));
     }
+
+    // TODO: !!!!!!! Test that pipeline interface implements declared formfactor interface
 }
 
 /**
