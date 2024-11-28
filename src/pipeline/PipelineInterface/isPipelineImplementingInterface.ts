@@ -23,6 +23,7 @@ export type IsPipelineImplementingInterfaceOptions = {
 /**
  * @@@
  *
+ * @deprecated https://github.com/webgptorg/promptbook/pull/186
  * @see https://github.com/webgptorg/promptbook/discussions/171
  *
  * @public exported from `@promptbook/core`
@@ -32,7 +33,3 @@ export function isPipelineImplementingInterface(options: IsPipelineImplementingI
 
     return isPipelineInterfacesEqual(getPipelineInterface(pipeline), pipelineInterface);
 }
-/**
- * TODO: !!!!!! Test real implementing NOT equality
- * TODO: !!!!!! Write unit test
- */

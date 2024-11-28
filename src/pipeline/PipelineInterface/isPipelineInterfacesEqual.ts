@@ -3,6 +3,7 @@ import type { PipelineInterface } from './PipelineInterface';
 /**
  * @@@
  * 
+ * @deprecated https://github.com/webgptorg/promptbook/pull/186
  * @see https://github.com/webgptorg/promptbook/discussions/171
  *
  * @public exported from `@promptbook/core`
@@ -10,13 +11,7 @@ import type { PipelineInterface } from './PipelineInterface';
 export function isPipelineInterfacesEqual(
     pipelineInterface1: PipelineInterface,
     pipelineInterface2: PipelineInterface,
-    // <- TODO: ...pipelineInterfaces: Array<PipelineInterface>
 ): boolean {
-    // TODO: [🧠] !!! Implement better
-    return JSON.stringify(pipelineInterface1) === JSON.stringify(pipelineInterface2);
+    return JSON.stringify(Object.keys(pipelineInterface1)) === JSON.stringify(Object.keys(pipelineInterface2));
 }
 
-/**
- * TODO: [🧠] !!! Return more states than true/false - 'IDENTICAL' |'IDENTICAL_UNPREPARED' | 'IDENTICAL_INTERFACE' | 'DIFFERENT'
- * TODO: !!! Write unit test
- */
