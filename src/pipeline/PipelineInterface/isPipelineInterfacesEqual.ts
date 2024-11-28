@@ -13,7 +13,11 @@ export function isPipelineInterfacesEqual(
     // <- TODO: ...pipelineInterfaces: Array<PipelineInterface>
 ): boolean {
     // TODO: [🧠] !!! Implement better
+    // TODO: [🧠] !!! Probbably do not check the description
+    //       + @see https://github.com/webgptorg/promptbook/discussions/53
+    //       + @see https://github.com/webgptorg/book/blob/main/pips/pip-0002.md
     return JSON.stringify(pipelineInterface1) === JSON.stringify(pipelineInterface2);
+
 }
 
 /**

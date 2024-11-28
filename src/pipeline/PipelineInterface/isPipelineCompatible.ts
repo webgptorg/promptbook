@@ -1,38 +1,41 @@
 import type { PipelineJson } from '../PipelineJson/PipelineJson';
 import { getPipelineInterface } from './getPipelineInterface';
+import { isInterfaceCompatible } from './isInterfaceCompatible';
 import { isPipelineInterfacesEqual } from './isPipelineInterfacesEqual';
 import type { PipelineInterface } from './PipelineInterface';
 
 /**
- * @@@
+ * Options for `isPipelineCompatible` function
  *
  * @see https://github.com/webgptorg/promptbook/discussions/171
  */
-export type IsPipelineImplementingInterfaceOptions = {
+export type isPipelineCompatibleOptions = {
     /**
      * @@@
      */
-    pipeline: PipelineJson;
+    testee: PipelineJson;
 
     /**
      * @@@
      */
-    pipelineInterface: PipelineInterface;
+    tester: PipelineInterface;
 };
 
 /**
- * @@@
+ * Test that tested pipeline is compatible with the testee pipeline interface
  *
  * @see https://github.com/webgptorg/promptbook/discussions/171
  *
  * @public exported from `@promptbook/core`
  */
-export function isPipelineImplementingInterface(options: IsPipelineImplementingInterfaceOptions): boolean {
-    const { pipeline, pipelineInterface } = options;
+export function isPipelineCompatible(options: isPipelineCompatibleOptions): boolean {
+    const { testee, tester } = options;
 
-    return isPipelineInterfacesEqual(getPipelineInterface(pipeline), pipelineInterface);
+    return isInterfaceCompatible({
+        testee: getPipelineInterface(testee),
+        tester,
+    });
 }
 /**
- * TODO: !!!!!! Test real implementing NOT equality
  * TODO: !!!!!! Write unit test
  */

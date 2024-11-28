@@ -12,10 +12,7 @@ import type { PipelineInterface } from './PipelineInterface';
  *
  * @public exported from `@promptbook/core`
  */
-export function getPipelineInterface(
-    pipeline: PipelineJson,
-    // <- TODO: ...pipelines: Array<PipelineJson>
-): PipelineInterface {
+export function getPipelineInterface(pipeline: PipelineJson): PipelineInterface {
     const pipelineInterface: WritableDeep<PipelineInterface> = {
         inputParameters: [],
         outputParameters: [],
