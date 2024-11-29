@@ -1,4 +1,4 @@
-import { CsvFormatError } from '../_packages/core.index';
+import { CsvFormatError } from '../formats/csv/CsvFormatError';
 import { AbstractFormatError } from './AbstractFormatError';
 import { CollectionError } from './CollectionError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
