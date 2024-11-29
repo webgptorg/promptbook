@@ -1,3 +1,4 @@
+import { CsvFormatError } from '../_packages/core.index';
 import { AbstractFormatError } from './AbstractFormatError';
 import { CollectionError } from './CollectionError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
@@ -20,6 +21,7 @@ import { UnexpectedError } from './UnexpectedError';
  */
 export const ERRORS = {
     AbstractFormatError,
+    CsvFormatError,
     CollectionError,
     EnvironmentMismatchError,
     ExpectError,
