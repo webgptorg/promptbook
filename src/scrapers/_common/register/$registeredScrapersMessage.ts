@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { string_markdown } from '../../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import { just } from '../../../utils/organization/just';
 import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
@@ -59,26 +59,28 @@ export function $registeredScrapersMessage(): string_markdown {
             Available scrapers are:
             ${block(
                 metadata
-                    .map(({ packageName, className, isMetadataAviailable, isInstalled }, i) => {
-                        let more: string;
+                    .map(({ packageName, className, isMetadataAviailable, isInstalled, mimeTypes }, i) => {
+                        let more: string_markdown_text;
 
                         if (just(false)) {
                             more = '';
                         } else if (!isMetadataAviailable && !isInstalled) {
                             // TODO: [�][�] Maybe do allow to do auto-install if package not registered and not found
-                            more = `(not installed and no metadata, looks like a unexpected behavior)`;
+                            more = `*(not installed and no metadata, looks like a unexpected behavior)*`;
                         } else if (isMetadataAviailable && !isInstalled) {
                             // TODO: [�][�]
-                            more = `(not installed)`;
+                            more = `*(not installed)*`;
                         } else if (!isMetadataAviailable && isInstalled) {
-                            more = `(no metadata, looks like a unexpected behavior)`;
+                            more = `*(no metadata, looks like a unexpected behavior)*`;
                         } else if (isMetadataAviailable && isInstalled) {
                             more = `(installed)`;
                         } else {
-                            more = `(unknown state, looks like a unexpected behavior)`;
+                            more = `*(unknown state, looks like a unexpected behavior)*`;
                         }
 
-                        return `${i + 1}) \`${className}\` from \`${packageName}\` ${more}`;
+                        return `${i + 1}) \`${className}\` from \`${packageName}\` compatible to scrape ${mimeTypes.map(
+                            ', ', // <- TODO: Some smart join A, B, C and D
+                        )} ${more}`;
                     })
                     .join('\n'),
             )}

@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
@@ -55,7 +54,14 @@ export async function prepareKnowledgePieces(
             throw new KnowledgeScrapeError(
                 spaceTrim(
                     (block) => `
-                        Cannot scrape knowledge from source: ${knowledgeSource.sourceContent}
+                        Cannot scrape knowledge from source:
+                        
+                        > ${block(
+                            knowledgeSource.sourceContent
+                                .split('\n')
+                                .map((line) => `> ${line}`)
+                                .join('\n'),
+                        )}
 
                         No scraper found for the mime type "${sourceHandler.mimeType}"
 
