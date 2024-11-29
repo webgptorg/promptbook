@@ -1,4 +1,4 @@
-import { ERRORS } from '../index';
+import { ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';
 
 /**

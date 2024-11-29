@@ -1,4 +1,4 @@
-import type { ERRORS } from '../index'; // <- TODO: [🤛] This should be this automatically repared to type import, but its not
+import type { ERRORS } from '../0-index'; // <- TODO: [🤛] This should be this automatically repared to type import, but its not
 
 /**
  * Represents a serialized error or custom Promptbook error

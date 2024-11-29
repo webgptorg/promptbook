@@ -1,7 +1,10 @@
+import { AbstractFormatError } from './AbstractFormatError';
 import { CollectionError } from './CollectionError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
 import { ExpectError } from './ExpectError';
+import { KnowledgeScrapeError } from './KnowledgeScrapeError';
 import { LimitReachedError } from './LimitReachedError';
+import { MissingToolsError } from './MissingToolsError';
 import { NotFoundError } from './NotFoundError';
 import { NotYetImplementedError } from './NotYetImplementedError';
 import { ParseError } from './ParseError';
@@ -16,10 +19,13 @@ import { UnexpectedError } from './UnexpectedError';
  * @public exported from `@promptbook/core`
  */
 export const ERRORS = {
-    ExpectError,
+    AbstractFormatError,
     CollectionError,
     EnvironmentMismatchError,
+    ExpectError,
+    KnowledgeScrapeError,
     LimitReachedError,
+    MissingToolsError,
     NotFoundError,
     NotYetImplementedError,
     ParseError,
@@ -29,7 +35,6 @@ export const ERRORS = {
     UnexpectedError,
     // TODO: [🪑]> VersionMismatchError,
 } as const;
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { ERRORS } from '../index';
+import { ERRORS } from '../0-index';
 import { UnexpectedError } from '../UnexpectedError';
 import type { ErrorJson } from './ErrorJson';
 
