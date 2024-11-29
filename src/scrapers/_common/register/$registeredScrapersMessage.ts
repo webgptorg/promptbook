@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
 import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
 import { $scrapersRegister } from './$scrapersRegister';
@@ -113,11 +112,11 @@ export function $registeredScrapersMessage(): string_markdown {
                                 more += ` *(not available in browser)*`;
                             }
 
-                            return `${
-                                i + 1
-                            }) \`${className}\` from \`${packageName}\` compatible to scrape ${mimeTypes.join(
-                                ', ', // <- TODO: Some smart join A, B, C and D
-                            )} ${more}`;
+                            return `${i + 1}) \`${className}\` from \`${packageName}\` compatible to scrape ${mimeTypes
+                                .map((mimeType) => `"${mimeType}"`)
+                                .join(
+                                    ', ', // <- TODO: Some smart join A, B, C and D
+                                )} ${more}`;
                         },
                     )
                     .join('\n'),
