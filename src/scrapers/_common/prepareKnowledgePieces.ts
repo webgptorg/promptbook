@@ -31,8 +31,9 @@ export async function prepareKnowledgePieces(
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource, index) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
         const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, tools, { rootDirname, isVerbose });
+        const scrapers = arrayableToArray(tools.scrapers);
 
-        for (const scraper of arrayableToArray(tools.scrapers)) {
+        for (const scraper of scrapers) {
             if (
                 !scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards
@@ -64,7 +65,7 @@ export async function prepareKnowledgePieces(
                                 .join('\n'),
                         )}
 
-                        ${block($registeredScrapersMessage())}
+                        ${block($registeredScrapersMessage(scrapers))}
 
 
                     `,
@@ -88,7 +89,7 @@ export async function prepareKnowledgePieces(
 
                         No scraper found for the mime type "${sourceHandler.mimeType}"
 
-                        ${block($registeredScrapersMessage())}
+                        ${block($registeredScrapersMessage(scrapers))}
 
 
                     `,

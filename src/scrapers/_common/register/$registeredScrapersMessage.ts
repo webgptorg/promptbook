@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import type { string_markdown, string_markdown_text } from '../../../types/typeAliases';
-import { just } from '../../../utils/organization/just';
+import { Scraper } from '../Scraper';
 import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
 import { $scrapersRegister } from './$scrapersRegister';
 import type { ScraperAndConverterMetadata } from './ScraperAndConverterMetadata';
@@ -12,7 +12,7 @@ import type { ScraperAndConverterMetadata } from './ScraperAndConverterMetadata'
  *
  * @private internal function of `createScrapersFromConfiguration` and `createScrapersFromEnv`
  */
-export function $registeredScrapersMessage(): string_markdown {
+export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scraper>): string_markdown {
     /**
      * Mixes registered scrapers from $scrapersMetadataRegister and $scrapersRegister
      */
@@ -49,6 +49,10 @@ export function $registeredScrapersMessage(): string_markdown {
         all.push({ packageName, className, mimeTypes, documentationUrl, isAvilableInBrowser });
     }
 
+    for (const { metadata } of availableScrapers) {
+        all.push(metadata);
+    }
+
     const metadata = all.map((metadata) => {
         const isMetadataAviailable = $scrapersMetadataRegister
             .list()
@@ -64,11 +68,21 @@ export function $registeredScrapersMessage(): string_markdown {
                     metadata.packageName === packageName && metadata.className === className,
             );
 
-        return { ...metadata, isMetadataAviailable, isInstalled };
+        const isAvilableInTools = availableScrapers.some(
+            ({ metadata: { packageName, className } }) =>
+                metadata.packageName === packageName && metadata.className === className,
+        );
+
+        return { ...metadata, isMetadataAviailable, isInstalled, isAvilableInTools };
     });
 
     if (metadata.length === 0) {
-        return `No scrapers are available`;
+        return spaceTrim(`
+            **No scrapers are available**
+
+            This is a unexpected behavior, you are probably using some broken version of Promptbook
+            At least there should be available the metadata of the scrapers
+        `);
     }
 
     return spaceTrim(
@@ -85,42 +99,58 @@ export function $registeredScrapersMessage(): string_markdown {
                                 isInstalled,
                                 mimeTypes,
                                 isAvilableInBrowser,
+                                isAvilableInTools,
                             },
                             i,
                         ) => {
-                            let more: string_markdown_text;
+                            const more: Array<string_markdown_text> = [];
 
-                            // TODO: Use documentationUrl
+                            // TODO: [🧠] Maybe use `documentationUrl`
 
-                            if (just(false)) {
-                                more = '';
-                            } else if (!isMetadataAviailable && !isInstalled) {
-                                // TODO: [�][�] Maybe do allow to do auto-install if package not registered and not found
-                                more = `*(not installed and no metadata, looks like a unexpected behavior)*`;
-                            } else if (isMetadataAviailable && !isInstalled) {
-                                // TODO: [�][�]
-                                more = `*(not installed)*`;
-                            } else if (!isMetadataAviailable && isInstalled) {
-                                more = `*(no metadata, looks like a unexpected behavior)*`;
-                            } else if (isMetadataAviailable && isInstalled) {
-                                more = `(installed)`;
-                            } else {
-                                more = `*(unknown state, looks like a unexpected behavior)*`;
-                            }
+                            if (isMetadataAviailable) {
+                                more.push(`⬜ Metadata registered`);
+                            } // not else
+
+                            if (isInstalled) {
+                                more.push(`🟩 Installed`);
+                            } // not else
+                            if (isAvilableInTools) {
+                                more.push(`🟦 Available in tools`);
+                            } // not else
+
+                            if (!isMetadataAviailable && isInstalled) {
+                                more.push(
+                                    `When no metadata registered but scraper is installed, it is an unexpected behavior`,
+                                );
+                            } // not else
+
+                            if (!isInstalled && isAvilableInTools) {
+                                more.push(
+                                    `When the scraper is not installed but available in tools, it is an unexpected compatibility behavior`,
+                                );
+                            } // not else
 
                             if (!isAvilableInBrowser) {
-                                more += ` *(not available in browser)*`;
+                                more.push(`Not usable in browser`);
                             }
+
+                            const moreText = more.length === 0 ? '' : ` *(${more.join('; ')})*`;
 
                             return `${i + 1}) \`${className}\` from \`${packageName}\` compatible to scrape ${mimeTypes
                                 .map((mimeType) => `"${mimeType}"`)
                                 .join(
                                     ', ', // <- TODO: Some smart join A, B, C and D
-                                )} ${more}`;
+                                )}${moreText}`;
                         },
                     )
                     .join('\n'),
             )}
+
+            Legend:
+            - ⬜ **Metadata registered** means that Promptbook knows about the scraper, it is similar to registration in some registry
+            - 🟩 **Installed** means that you have imported package with particular scraper
+            - 🟦 **Available in tools** means that you have passed scraper as dependency into prepare or execution process
+
         `,
     );
 }
