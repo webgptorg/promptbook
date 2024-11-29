@@ -261,7 +261,18 @@ export const DEFAULT_CSV_SETTINGS: CsvSettings = Object.freeze({
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_IS_VERBOSE = false;
+export let DEFAULT_IS_VERBOSE = false;
+
+/**
+ * @@@
+ *
+ * Note: This is experimental feature
+ *
+ * @public exported from `@promptbook/core`
+ */
+export function SET_IS_VERBOSE(isVerbose: boolean): void {
+    DEFAULT_IS_VERBOSE = isVerbose;
+}
 
 /**
  * @@@
