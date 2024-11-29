@@ -1,4 +1,4 @@
-import { really_any } from '../../_packages/types.index';
+import type { really_any } from '../../utils/organization/really_any';
 import type { PipelineInterface } from './PipelineInterface';
 
 /**

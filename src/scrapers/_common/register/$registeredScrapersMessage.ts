@@ -1,9 +1,10 @@
 import spaceTrim from 'spacetrim';
-import type { string_markdown, string_markdown_text } from '../../../types/typeAliases';
+import type { string_markdown } from '../../../types/typeAliases';
+import type { string_markdown_text } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
 import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
 import { $scrapersRegister } from './$scrapersRegister';
-import { ScraperAndConverterMetadata } from './ScraperAndConverterMetadata';
+import type { ScraperAndConverterMetadata } from './ScraperAndConverterMetadata';
 
 /**
  * Creates a message with all registered scrapers
