@@ -1,10 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -12,9 +9,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
@@ -30,7 +25,7 @@ import { filterJustOutputParameters } from './filterJustOutputParameters';
  *
  * @private internal type of `executePipeline`
  */
-type ExecutePipelineOptions = CreatePipelineExecutorOptions & {
+type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * @@@
      */
@@ -79,7 +74,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         pipelineIdentification,
         maxParallelCount,
         rootDirname,
-        isVerbose = DEFAULT_IS_VERBOSE,
+        isVerbose,
     } = options;
     let { preparedPipeline } = options;
 

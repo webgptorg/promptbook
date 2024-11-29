@@ -1,9 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import {
+    DEFAULT_CSV_SETTINGS,
+    DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+    DEFAULT_IS_AUTO_INSTALLED,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_EXECUTION_ATTEMPTS,
+    DEFAULT_MAX_PARALLEL_COUNT,
+    DEFAULT_SCRAPE_CACHE_DIRNAME,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
@@ -30,6 +35,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         csvSettings = DEFAULT_CSV_SETTINGS,
         isVerbose = DEFAULT_IS_VERBOSE,
         isNotPreparedWarningSupressed = false,
+        cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
+        intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+        isAutoInstalled = DEFAULT_IS_AUTO_INSTALLED,
+
         rootDirname = null,
     } = options;
 
@@ -100,6 +109,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             isVerbose,
             isNotPreparedWarningSupressed,
             rootDirname,
+            cacheDirname,
+            intermediateFilesStrategy,
+            isAutoInstalled,
         });
     };
 

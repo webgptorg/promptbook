@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
-import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { extractParameterNamesFromTask } from '../../conversion/utils/extractParameterNamesFromTask';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
@@ -19,7 +18,7 @@ import { getReservedParametersForTask } from './getReservedParametersForTask';
  *
  * @private internal type of `executeTask`
  */
-type executeSingleTaskOptions = CreatePipelineExecutorOptions & {
+type executeSingleTaskOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * @@@
      */
@@ -65,7 +64,15 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         onProgress,
         $executionReport,
         pipelineIdentification,
-        maxExecutionAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS,
+        maxExecutionAttempts,
+        maxParallelCount,
+        csvSettings,
+        isVerbose,
+        rootDirname,
+        cacheDirname,
+        intermediateFilesStrategy,
+        isAutoInstalled,
+        isNotPreparedWarningSupressed,
     } = options;
 
     const name = `pipeline-executor-frame-${currentTask.name}`;
@@ -179,6 +186,15 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         tools,
         $executionReport,
         pipelineIdentification,
+        maxExecutionAttempts,
+        maxParallelCount,
+        csvSettings,
+        isVerbose,
+        rootDirname,
+        cacheDirname,
+        intermediateFilesStrategy,
+        isAutoInstalled,
+        isNotPreparedWarningSupressed,
     });
 
     await onProgress({
