@@ -62,11 +62,6 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @promptbook/langtail
-              working-directory: ./packages/langtail
-              run: npm publish --provenance --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/legacy-documents
               working-directory: ./packages/legacy-documents
               run: npm publish --provenance --access public
