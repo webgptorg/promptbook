@@ -258,6 +258,18 @@ export type string_markdown_section_content = string;
 export type string_markdown_text = string;
 
 /**
+ * Semantic helper
+ *
+ * Markdown code block language
+ *
+ * For example ```js -> `"js"`
+ *
+ * @public exported from `@promptbook/markdown-utils`
+ */
+export type string_markdown_codeblock_language = 'book' | 'markdown' | 'javascript' | 'css' | 'json';
+//          <- TODO: [🏥] DRY
+
+/**
  * @@@
  */
 export type string_promptbook_documentation_url = `https://github.com/webgptorg/promptbook/discussions/${
