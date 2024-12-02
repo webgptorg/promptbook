@@ -2,8 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../utils/titleToName';
 
@@ -32,6 +31,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 
         if (!parameter) {
             throw new UnexpectedError(`Could not find {${parameterName}}`);
+            // <- TODO: !!!!!! This causes problems when {knowledge} and other reserved parameters are used
         }
 
         if (parameter.isInput) {
