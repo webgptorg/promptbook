@@ -266,7 +266,7 @@ export type string_markdown_text = string;
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export type string_markdown_codeblock_language = 'book' | 'markdown' | 'javascript' | 'css' | 'json';
+export type string_markdown_codeblock_language = 'book' | 'markdown' | 'text' | 'javascript' | 'css' | 'json';
 //          <- TODO: [🏥] DRY
 
 /**
