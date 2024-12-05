@@ -256,7 +256,7 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td>Core</td>
       <td>Promptbook Core is a description and documentation of the basic concepts, ideas and inner workings of how Promptbook should be implemented, and defines what features must be describable by book language.</td>
-      <td rowspan=2>https://ptbk.io<br/>https://github.com/webgptorg/book</td>
+      <td rowspan=2>https://github.com/webgptorg/book</td>
     </tr>
     <tr>
       <td>Book language</td>
@@ -267,7 +267,7 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td>Promptbook typescript project</td>
       <td>Promptbook implementation in TypeScript released as multiple NPM packages</td>
-      <td>https://github.com/webgptorg/promptbook + Multiple packages on NPM</td>
+      <td>https://github.com/webgptorg/promptbook + <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">Multiple packages published on NPM</a></td>
     </tr>
     <tr>
       <td>Promptbook studio</td>
@@ -286,6 +286,12 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     </tr>
   </tbody>
 </table>
+
+Also we have a community of developers and users:
+
+-   [Discord](https://discord.gg/x3QWNaa89N)
+-   [Landing page](https://ptbk.io)
+-   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 
 
 
