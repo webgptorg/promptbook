@@ -1,13 +1,13 @@
 import type { createOpenAI } from '@ai-sdk/openai'; // <- TODO: This shoud be installed just as dev dependency in the `@promptbook/vercel` package, because it is only used as a type
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { UNCERTAIN_USAGE } from '../../_packages/core.index';
-import { replaceParameters } from '../../_packages/utils.index';
+import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
+import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import { Prompt } from '../../types/Prompt';
-import { string_date_iso8601 } from '../../types/typeAliases';
+import type { Prompt } from '../../types/Prompt';
+import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';

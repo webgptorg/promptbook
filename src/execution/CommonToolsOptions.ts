@@ -1,4 +1,4 @@
-import { string_user_id } from '../types/typeAliases';
+import type { string_user_id } from '../types/typeAliases';
 
 /**
  * @@@
