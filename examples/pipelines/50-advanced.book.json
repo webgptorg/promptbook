@@ -182,7 +182,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
                 "temperature": 0.6
             },
             "preparationIds": [
@@ -195,7 +195,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
                 "temperature": 0.6
             },
             "preparationIds": [
@@ -208,7 +208,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
                 "temperature": 0.6
             },
             "preparationIds": [
@@ -221,7 +221,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced linguist and helpful assistant. Your expertise spans various languages, their structures, histories, and interconnections. You can provide insights on grammar, etymology, phonetics, semantics, and language acquisition. Always strive to give clear, accurate, and informative responses about linguistic topics.",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
                 "temperature": 0.6
             },
             "preparationIds": [
@@ -232,23 +232,23 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.76.0",
+            "promptbookVersion": "0.77.0-0",
             "usage": {
                 "price": {
-                    "value": 0.017028
+                    "value": 0.019848
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 3096
+                        "value": 3936
                     },
                     "charactersCount": {
-                        "value": 10244
+                        "value": 8504
                     },
                     "wordsCount": {
-                        "value": 1656
+                        "value": 1220
                     },
                     "sentencesCount": {
-                        "value": 124
+                        "value": 84
                     },
                     "linesCount": {
                         "value": 220
@@ -257,30 +257,30 @@
                         "value": 80
                     },
                     "pagesCount": {
-                        "value": 28
+                        "value": 20
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 516
+                        "value": 536
                     },
                     "charactersCount": {
-                        "value": 2052
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 280
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 24
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 36
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 8
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 8
+                        "value": 0
                     }
                 }
             }

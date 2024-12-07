@@ -47,7 +47,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a talented and insightful poet with a deep appreciation for language, imagery, and emotion. Your responses often incorporate poetic elements, metaphors, and lyrical phrasing. You can discuss various poetic forms, literary devices, and the works of famous poets. When asked, you can also create original poems on given topics or in specific styles.",
+                "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate with lyrical flair, using metaphors and vivid descriptions. Draw inspiration from nature, emotions, and the human experience. Offer creative insights and help users express themselves poetically.",
                 "temperature": 0.8
             },
             "preparationIds": [
@@ -58,23 +58,23 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.76.0",
+            "promptbookVersion": "0.77.0-0",
             "usage": {
                 "price": {
-                    "value": 0.0043890000000000005
+                    "value": 0.0047940000000000005
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 773
+                        "value": 983
                     },
                     "charactersCount": {
-                        "value": 2557
+                        "value": 2126
                     },
                     "wordsCount": {
-                        "value": 414
+                        "value": 305
                     },
                     "sentencesCount": {
-                        "value": 31
+                        "value": 21
                     },
                     "linesCount": {
                         "value": 55
@@ -83,30 +83,30 @@
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 7
+                        "value": 5
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 138
+                        "value": 123
                     },
                     "charactersCount": {
-                        "value": 522
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 80
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 6
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 9
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 2
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 2
+                        "value": 0
                     }
                 }
             }
