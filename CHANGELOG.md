@@ -601,9 +601,13 @@ Formfactors, Rebranding
 -   Rename default folder for your books from `promptbook-collection` -> `books`
 -   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
 
+### `0.76.0` _(2024-12-07)_
+
+Skipped, because of the mistake in the versioning. _(It should be pre-release)_
+
 ## Drafts
 
-### `0.76.0` _(2024-12-)_
+### `0.77.0` _(2024-12-)_
 
 !!!!!!
 
@@ -611,6 +615,8 @@ Add `@promptbook/vercel` and `@promptbook/gemini` packages
 
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/gemini](https://www.npmjs.com/package/@promptbook/gemini)** - Integration with Google's Gemini API
+-   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
+-   Rename `$currentDate` -> `$getCurrentDate`
 
 ### `0..0` _(2024--)_
 

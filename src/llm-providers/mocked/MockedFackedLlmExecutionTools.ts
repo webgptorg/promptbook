@@ -2,15 +2,11 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
@@ -85,8 +81,8 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             content,
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,
@@ -143,8 +139,8 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             content,
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,

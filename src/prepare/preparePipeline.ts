@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -72,7 +71,7 @@ export async function preparePipeline(
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {
         id: 1, // <- TODO: [🧊] Make incremental
-        // TODO: [🍥]> date: $currentDate(),
+        // TODO: [🍥]> date: $getCurrentDate(),
         promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
         usage: ZERO_USAGE,
     };

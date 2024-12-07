@@ -2,14 +2,11 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -78,8 +75,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             ),
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,
@@ -116,8 +113,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             ),
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,

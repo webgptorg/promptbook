@@ -7,12 +7,14 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
@@ -116,7 +118,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
             // <- TODO: Add user identification here> user: this.options.user,
         };
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
@@ -183,7 +185,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         //                                                     <- TODO: [🧠] There are also annotations, maybe use them
 
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = UNCERTAIN_USAGE;
         // <- TODO: [🥘] Compute real usage for assistant
         //       ?> const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
