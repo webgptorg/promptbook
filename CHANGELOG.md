@@ -603,7 +603,7 @@ Formfactors, Rebranding
 
 ## Drafts
 
-### `0..0` _(2024-0-)_
+### `0.76.0` _(2024-12-)_
 
 !!!!!!
 
@@ -612,25 +612,25 @@ Add `@promptbook/vercel` and `@promptbook/gemini` packages
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/gemini](https://www.npmjs.com/package/@promptbook/gemini)** - Integration with Google's Gemini API
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 `createLibraryFromDirectory` uses prebuild library
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better expectation format in `PromptbookJson`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Allow to split parameters into multiple values and iterate over them
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!-- Search ACRY "MODEL NAME " -->
 
 -   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better script execution
 
@@ -638,17 +638,17 @@ Better script execution
 -   List all default postprocessing functions in `@promptbook/utils` README
 -   Implement `PythonExecutionTools` for executing Python scripts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
 More options to create `PromptbookLibrary`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Intagration with Langtail
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
