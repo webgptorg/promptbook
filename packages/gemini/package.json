@@ -1,5 +1,5 @@
 {
-    "name": "promptbook",
+    "name": "@promptbook/gemini",
     "version": "0.75.10",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
@@ -50,29 +50,10 @@
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
     ],
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/gemini.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.75.10"
-    },
-    "dependencies": {
-        "@promptbook/anthropic-claude": "0.75.10",
-        "@promptbook/azure-openai": "0.75.10",
-        "@promptbook/browser": "0.75.10",
-        "@promptbook/cli": "0.75.10",
-        "@promptbook/core": "0.75.10",
-        "@promptbook/documents": "0.75.10",
-        "@promptbook/execute-javascript": "0.75.10",
-        "@promptbook/fake-llm": "0.75.10",
-        "@promptbook/gemini": "0.75.10",
-        "@promptbook/legacy-documents": "0.75.10",
-        "@promptbook/markdown-utils": "0.75.10",
-        "@promptbook/node": "0.75.10",
-        "@promptbook/openai": "0.75.10",
-        "@promptbook/pdf": "0.75.10",
-        "@promptbook/remote-client": "0.75.10",
-        "@promptbook/remote-server": "0.75.10",
-        "@promptbook/types": "0.75.10",
-        "@promptbook/utils": "0.75.10",
-        "@promptbook/vercel": "0.75.10",
-        "@promptbook/website-crawler": "0.75.10"
     }
 }

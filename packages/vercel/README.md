@@ -23,10 +23,10 @@
 
 
 
-## 📦 Package `@promptbook/browser`
+## 📦 Package `@promptbook/vercel`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/browser` is one part of the promptbook ecosystem.
+- This package `@promptbook/vercel` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -35,14 +35,10 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm install @promptbook/browser
+npm install @promptbook/vercel
 ```
 
-Core of the library for Browser runtime, it contains the main logic for promptbooks which uses browser-specific things like `localStorage`.
 
-
-
-> 💡 This package does not make sense on its own, look at [all promptbook packages](#-packages) or just install all by `npm i ptbk`
 
 
 ---

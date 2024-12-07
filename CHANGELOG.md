@@ -605,6 +605,15 @@ Formfactors, Rebranding
 
 ### `0..0` _(2024-0-)_
 
+!!!!!!
+
+Add `@promptbook/vercel` and `@promptbook/gemini` packages
+
+-   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
+-   **[@promptbook/gemini](https://www.npmjs.com/package/@promptbook/gemini)** - Integration with Google's Gemini API
+
+### `0..0` _(2024-0-)_
+
 `createLibraryFromDirectory` uses prebuild library
 
 ### `0..0` _(2024-0-)_
