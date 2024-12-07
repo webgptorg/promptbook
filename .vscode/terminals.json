@@ -158,6 +158,12 @@
             "focus": true
         },
         {
+            "name": "🧸 Vercel playground (💸)",
+            "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧸 Azure OpenAI playground (💸)",
             "command": "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
             "onlySingle": true,
