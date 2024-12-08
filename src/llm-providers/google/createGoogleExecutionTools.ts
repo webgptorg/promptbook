@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
