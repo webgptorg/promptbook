@@ -10,7 +10,7 @@ import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
-import { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
+import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
 
 /**
  * !!!!!!

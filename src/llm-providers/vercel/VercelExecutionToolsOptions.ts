@@ -1,6 +1,6 @@
-import { AvailableModel } from '../../execution/AvailableModel';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import { VercelProvider } from './VercelProvider';
+import type { VercelProvider } from './VercelProvider';
 
 /**
  * Options for `createExecutionToolsFromVercelProvider`
