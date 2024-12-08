@@ -2,7 +2,6 @@ import type { createGoogleGenerativeAI } from '@ai-sdk/google'; // <- TODO: This
 import type { createOpenAI } from '@ai-sdk/openai'; // <- TODO: This shoud be installed just as dev dependency in the `@promptbook/vercel` package, because it is only used as a type
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
@@ -12,8 +11,9 @@ import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
 
-type ProviderV1 = ReturnType<typeof createOpenAI> | ReturnType<typeof createGoogleGenerativeAI>;
+export type VercelProviderV1 = ReturnType<typeof createOpenAI> | ReturnType<typeof createGoogleGenerativeAI>;
 // <- TODO: Is there some way to get the type of the provider directly, NOT this stupid way via inferring the return type from a specific vercel provider⁉
 
 /**
@@ -22,9 +22,10 @@ type ProviderV1 = ReturnType<typeof createOpenAI> | ReturnType<typeof createGoog
  * @public exported from `@promptbook/vercel`
  */
 export function createExecutionToolsFromVercelProvider(
-    vercelProvider: ProviderV1,
-    options: CommonToolsOptions = {},
+    vercelProvider: VercelProviderV1,
+    options: VercelExecutionToolsOptions = {},
 ): LlmExecutionTools {
+    const { userId, additionalChatSettings = {} } = options;
     keepUnused(vercelProvider);
 
     return {
@@ -52,7 +53,8 @@ export function createExecutionToolsFromVercelProvider(
 
             const modelName = modelRequirements.modelName || 'gpt-4'; //<- TODO: !!!!!! 'gpt-4';
             const model = await vercelProvider.chat(modelName, {
-                user: options.userId?.toString() || undefined,
+                user: userId?.toString() || undefined,
+                ...additionalChatSettings,
             });
 
             const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
