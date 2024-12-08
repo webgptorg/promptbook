@@ -1,0 +1,19 @@
+{
+    "name": "vercel",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@ai-sdk/openai": "1.0.7",
+        "@promptbook/core": "0.77.0-0",
+        "@promptbook/types": "0.77.0-0",
+        "@promptbook/vercel": "0.77.0-0",
+        "colors": "1.4.0",
+        "dotenv": "16.4.7"
+    }
+}
