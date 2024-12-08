@@ -34,7 +34,15 @@ async function playground() {
         compatibility: 'strict', // strict mode, enable when using the OpenAI API
     });
 
-    const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider(openaiVercelProvider);
+    const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
+        vercelProvider: openaiVercelProvider,
+        availableModels: [
+            {
+                modelName: 'gpt-3.5-turbo',
+                modelVariant: 'CHAT',
+            },
+        ],
+    });
 
     keepUnused(openaiPromptbookExecutionTools);
     keepUnused(embeddingVectorToString);

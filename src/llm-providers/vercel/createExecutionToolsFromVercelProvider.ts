@@ -1,6 +1,5 @@
-import type { createGoogleGenerativeAI } from '@ai-sdk/google'; // <- TODO: This shoud be installed just as dev dependency in the `@promptbook/vercel` package, because it is only used as a type
-import type { createOpenAI } from '@ai-sdk/openai'; // <- TODO: This shoud be installed just as dev dependency in the `@promptbook/vercel` package, because it is only used as a type
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
@@ -13,19 +12,13 @@ import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
 
-export type VercelProviderV1 = ReturnType<typeof createOpenAI> | ReturnType<typeof createGoogleGenerativeAI>;
-// <- TODO: Is there some way to get the type of the provider directly, NOT this stupid way via inferring the return type from a specific vercel provider⁉
-
 /**
  * !!!!!!
  *
  * @public exported from `@promptbook/vercel`
  */
-export function createExecutionToolsFromVercelProvider(
-    vercelProvider: VercelProviderV1,
-    options: VercelExecutionToolsOptions = {},
-): LlmExecutionTools {
-    const { userId, additionalChatSettings = {} } = options;
+export function createExecutionToolsFromVercelProvider(options: VercelExecutionToolsOptions): LlmExecutionTools {
+    const { vercelProvider, availableModels, userId, additionalChatSettings = {} } = options;
     keepUnused(vercelProvider);
 
     return {
@@ -37,9 +30,7 @@ export function createExecutionToolsFromVercelProvider(
         },
 
         async listModels() {
-            return [
-                /* TODO: !!!!! */
-            ];
+            return availableModels;
         },
 
         async callChatModel(
@@ -51,7 +42,23 @@ export function createExecutionToolsFromVercelProvider(
                 throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
             }
 
-            const modelName = modelRequirements.modelName || 'gpt-4'; //<- TODO: !!!!!! 'gpt-4';
+            const modelName =
+                modelRequirements.modelName ||
+                availableModels.find(({ modelVariant }) => modelVariant === 'CHAT')?.modelName;
+
+            if (!modelName) {
+                throw new PipelineExecutionError(
+                    spaceTrim(`
+                        Can not determine which model to use.
+
+                        You need to provide at least one of:
+                        1) In \`createExecutionToolsFromVercelProvider\` options, provide \`availableModels\` with at least one model
+                        2) In \`prompt.modelRequirements\`, provide \`modelName\` with the name of the model to use
+                  
+                    `),
+                );
+            }
+
             const model = await vercelProvider.chat(modelName, {
                 user: userId?.toString() || undefined,
                 ...additionalChatSettings,

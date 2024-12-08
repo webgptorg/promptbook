@@ -1,5 +1,6 @@
+import { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import { VercelProviderV1 } from './createExecutionToolsFromVercelProvider';
+import { VercelProvider } from './VercelProvider';
 
 /**
  * Options for `createExecutionToolsFromVercelProvider`
@@ -8,7 +9,20 @@ import { VercelProviderV1 } from './createExecutionToolsFromVercelProvider';
  */
 export type VercelExecutionToolsOptions = CommonToolsOptions & {
     /**
+     * Vercel provider for the execution tools
+     */
+    readonly vercelProvider: VercelProvider;
+
+    /**
+     * List of available models for given Vercel provider
+     */
+    readonly availableModels: ReadonlyArray<AvailableModel>;
+    // ^^^^
+    // TODO: This is stupid, because good design would be to have list of models as a part of the Vercel provider itself
+    //       and not to pass it as a separate parameter
+
+    /**
      * Additional settings for chat models when calling `vercelProvider.chat('model-name', settings)`
      */
-    additionalChatSettings?: Partial<Parameters<VercelProviderV1['chat']>[1]>;
+    readonly additionalChatSettings?: Partial<Parameters<VercelProvider['chat']>[1]>;
 };

@@ -16,7 +16,28 @@ export const createGoogleExecutionTools = Object.assign(
             /// apiKey: process.env.GOOGLE_GEMINI_API_KEY,
         });
 
-        return createExecutionToolsFromVercelProvider(googleGeminiVercelProvider, options);
+        return createExecutionToolsFromVercelProvider({
+            vercelProvider: googleGeminiVercelProvider,
+            availableModels: [
+                // TODO: !!!!!! Maybe list models in same way as in other providers
+                'gemini-1.5-flash',
+                'gemini-1.5-flash-latest',
+                'gemini-1.5-flash-001',
+                'gemini-1.5-flash-002',
+                'gemini-1.5-flash-exp-0827',
+                'gemini-1.5-flash-8b',
+                'gemini-1.5-flash-8b-latest',
+                'gemini-1.5-flash-8b-exp-0924',
+                'gemini-1.5-flash-8b-exp-0827',
+                'gemini-1.5-pro-latest',
+                'gemini-1.5-pro',
+                'gemini-1.5-pro-001',
+                'gemini-1.5-pro-002',
+                'gemini-1.5-pro-exp-0827',
+                'gemini-1.0-pro',
+            ].map((modelName) => ({ modelName, modelVariant: 'CHAT' })),
+            ...options,
+        });
     },
     {
         packageName: '@promptbook/google',
