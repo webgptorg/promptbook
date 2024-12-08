@@ -235,6 +235,12 @@
             "focus": true
         },
         {
+            "name": "👨🏽‍💻 Force reinstall of node modules",
+            "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🍴🔍 Git list unmerged changes",
             "commands": ["git branch --no-merged main"],
             "onlySingle": true,
