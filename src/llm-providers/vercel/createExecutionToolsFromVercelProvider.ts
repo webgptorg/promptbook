@@ -1,18 +1,19 @@
+import type { createGoogleGenerativeAI } from '@ai-sdk/google'; // <- TODO: This shoud be installed just as dev dependency in the `@promptbook/vercel` package, because it is only used as a type
 import type { createOpenAI } from '@ai-sdk/openai'; // <- TODO: This shoud be installed just as dev dependency in the `@promptbook/vercel` package, because it is only used as a type
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
-type ProviderV1 = ReturnType<typeof createOpenAI>;
+type ProviderV1 = ReturnType<typeof createOpenAI> & ReturnType<typeof createGoogleGenerativeAI>;
 // <- TODO: Is there some way to get the type of the provider directly, NOT this stupid way via inferring the return type from a specific vercel provider⁉
 
 /**

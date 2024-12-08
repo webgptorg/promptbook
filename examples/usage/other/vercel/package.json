@@ -9,6 +9,7 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
+        "@ai-sdk/google": "1.0.5",
         "@ai-sdk/openai": "1.0.7",
         "@promptbook/core": "0.77.0-0",
         "@promptbook/types": "0.77.0-0",
