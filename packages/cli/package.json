@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.77.0-0",
+    "version": "0.77.0-2",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -51,6 +51,7 @@
         }
     ],
     "dependencies": {
+        "@ai-sdk/google": "1.0.5",
         "@anthropic-ai/sdk": "0.26.1",
         "@azure/openai": "1.0.0-beta.12",
         "@mozilla/readability": "0.5.0",
