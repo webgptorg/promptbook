@@ -7,7 +7,7 @@ import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions'
 /**
  * Execution Tools for calling Google Gemini API.
  *
- * @public exported from `@promptbook/gemini`
+ * @public exported from `@promptbook/google`
  */
 export const createGoogleExecutionTools = Object.assign(
     (options: GoogleExecutionToolsOptions): LlmExecutionTools => {
@@ -19,7 +19,7 @@ export const createGoogleExecutionTools = Object.assign(
         return createExecutionToolsFromVercelProvider(googleGeminiVercelProvider, options);
     },
     {
-        packageName: '@promptbook/gemini',
+        packageName: '@promptbook/google',
         className: 'GoogleExecutionTools',
     },
 ) satisfies LlmExecutionToolsConstructor;

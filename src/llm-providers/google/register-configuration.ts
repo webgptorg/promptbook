@@ -1,5 +1,4 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
@@ -15,13 +14,13 @@ import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfigur
  */
 export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
     title: 'Google Gemini',
-    packageName: '@promptbook/gemini',
+    packageName: '@promptbook/google',
     className: 'GoogleExecutionTools',
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
             title: 'Google Gemini (boilerplate)',
-            packageName: '@promptbook/gemini',
+            packageName: '@promptbook/google',
             className: 'GoogleExecutionTools',
             options: {
                 apiKey: 'sk-ant-api03-',
@@ -37,7 +36,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
         if (typeof env.GOOGLE_GEMINI_API_KEY === 'string') {
             return {
                 title: 'Google Gemini (from env)',
-                packageName: '@promptbook/gemini',
+                packageName: '@promptbook/google',
                 className: 'GoogleExecutionTools',
                 options: {
                     apiKey: env.GOOGLE_GEMINI_API_KEY!,
@@ -48,7 +47,6 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
         return null;
     },
 });
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -62,7 +62,7 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @promptbook/gemini
+            - name: Publish @promptbook/google
               working-directory: ./packages/gemini
               run: npm publish --provenance --access public
               env:

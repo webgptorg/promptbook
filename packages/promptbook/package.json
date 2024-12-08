@@ -62,7 +62,7 @@
         "@promptbook/documents": "0.77.0-0",
         "@promptbook/execute-javascript": "0.77.0-0",
         "@promptbook/fake-llm": "0.77.0-0",
-        "@promptbook/gemini": "0.77.0-0",
+        "@promptbook/google": "0.77.0-0",
         "@promptbook/legacy-documents": "0.77.0-0",
         "@promptbook/markdown-utils": "0.77.0-0",
         "@promptbook/node": "0.77.0-0",

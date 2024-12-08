@@ -611,10 +611,10 @@ Skipped, because of the mistake in the versioning. _(It should be pre-release)_
 
 !!!!!!
 
-Add `@promptbook/vercel` and `@promptbook/gemini` packages
+Add `@promptbook/vercel` and `@promptbook/google` packages
 
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
--   **[@promptbook/gemini](https://www.npmjs.com/package/@promptbook/gemini)** - Integration with Google's Gemini API
+-   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
 -   Rename `$currentDate` -> `$getCurrentDate`
 
