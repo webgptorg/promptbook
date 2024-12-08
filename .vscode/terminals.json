@@ -37,14 +37,6 @@
             "focus": false
         },
         {
-            "name": "👨‍💻🔽 Install promptbook for usage examples",
-            "cwd": "./examples/usage/",
-            "command": "npm i",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
             "name": "🧪 Lint",
             "command": "npm run lint",
             "execute": false,
@@ -158,6 +150,12 @@
             "focus": true
         },
         {
+            "name": "🧸 Vercel playground (💸)",
+            "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧸 Azure OpenAI playground (💸)",
             "command": "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
             "onlySingle": true,
@@ -233,6 +231,12 @@
         {
             "name": "📖 Make Promptbook collection (💸) [🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "👨🏽‍💻 Force reinstall of node modules",
+            "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
             "onlySingle": true,
             "focus": true
         },

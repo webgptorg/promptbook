@@ -601,27 +601,42 @@ Formfactors, Rebranding
 -   Rename default folder for your books from `promptbook-collection` -> `books`
 -   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
 
+### `0.76.0` _(2024-12-07)_
+
+Skipped, because of the mistake in the versioning. _(It should be pre-release)_
+
 ## Drafts
 
-### `0..0` _(2024-0-)_
+### `0.77.0` _(2024-12-)_
+
+!!!!!!
+
+Add `@promptbook/vercel` and `@promptbook/google` packages
+
+-   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
+-   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
+-   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
+-   Rename `$currentDate` -> `$getCurrentDate`
+
+### `0..0` _(2024--)_
 
 `createLibraryFromDirectory` uses prebuild library
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better expectation format in `PromptbookJson`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Allow to split parameters into multiple values and iterate over them
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!-- Search ACRY "MODEL NAME " -->
 
 -   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better script execution
 
@@ -629,17 +644,17 @@ Better script execution
 -   List all default postprocessing functions in `@promptbook/utils` README
 -   Implement `PythonExecutionTools` for executing Python scripts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
 More options to create `PromptbookLibrary`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Intagration with Langtail
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 

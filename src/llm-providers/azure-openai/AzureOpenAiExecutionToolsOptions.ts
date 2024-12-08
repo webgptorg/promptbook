@@ -37,6 +37,6 @@ export type AzureOpenAiExecutionToolsOptions = CommonToolsOptions & {
      *
      * @see https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids (document from OpenAI not Azure, but same concept)
      */
-    readonly userId: string_user_id | null;
+    readonly userId?: string_user_id;
     // <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
 };

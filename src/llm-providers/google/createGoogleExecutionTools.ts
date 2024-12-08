@@ -1,0 +1,54 @@
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
+import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
+
+/**
+ * Execution Tools for calling Google Gemini API.
+ *
+ * @public exported from `@promptbook/google`
+ */
+export const createGoogleExecutionTools = Object.assign(
+    (options: GoogleExecutionToolsOptions): LlmExecutionTools => {
+        const googleGeminiVercelProvider = createGoogleGenerativeAI({
+            ...options,
+            /// apiKey: process.env.GOOGLE_GEMINI_API_KEY,
+        });
+
+        return createExecutionToolsFromVercelProvider({
+            vercelProvider: googleGeminiVercelProvider,
+            availableModels: [
+                // TODO: !!!!!! Maybe list models in same way as in other providers
+                'gemini-1.5-flash',
+                'gemini-1.5-flash-latest',
+                'gemini-1.5-flash-001',
+                'gemini-1.5-flash-002',
+                'gemini-1.5-flash-exp-0827',
+                'gemini-1.5-flash-8b',
+                'gemini-1.5-flash-8b-latest',
+                'gemini-1.5-flash-8b-exp-0924',
+                'gemini-1.5-flash-8b-exp-0827',
+                'gemini-1.5-pro-latest',
+                'gemini-1.5-pro',
+                'gemini-1.5-pro-001',
+                'gemini-1.5-pro-002',
+                'gemini-1.5-pro-exp-0827',
+                'gemini-1.0-pro',
+            ].map((modelName) => ({ modelName, modelVariant: 'CHAT' })),
+            ...options,
+        });
+    },
+    {
+        packageName: '@promptbook/google',
+        className: 'GoogleExecutionTools',
+    },
+) satisfies LlmExecutionToolsConstructor;
+
+/**
+ * TODO: [🧠][main] !!!! Make anonymous this with all LLM providers
+ * TODO: [🧠][🧱][main] !!!! Maybe change all `new GoogleExecutionTools` -> `createGoogleExecutionTools` in manual
+ * TODO: [🧠] Maybe auto-detect usage in browser and determine default value of `isProxied`
+ * TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
+ * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+ */

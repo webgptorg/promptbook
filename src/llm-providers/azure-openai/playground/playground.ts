@@ -46,21 +46,6 @@ async function playground() {
     console.info({ models });
     /**/
 
-    /*/
-    const completionPrompt = {
-        title: 'Hello',
-        parameters: {},
-        content: `Hello, my name is Alice.`,
-        modelRequirements: {
-            modelVariant: 'COMPLETION',
-        },
-    } as const satisfies Prompt;
-    const completionPromptResult = await azureOpenAiExecutionTools.callCompletionModel(completionPrompt);
-    console.info({ completionPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
-    /**/
-
     /**/
     const chatPrompt = {
         title: 'Poem about Prague',
@@ -77,6 +62,21 @@ async function playground() {
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
     console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
+    /**/
+
+    /*/
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'COMPLETION',
+        },
+    } as const satisfies Prompt;
+    const completionPromptResult = await azureOpenAiExecutionTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/

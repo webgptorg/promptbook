@@ -76,21 +76,6 @@ async function playground() {
     /**/
 
     /*/
-    const completionPrompt = {
-        title: 'Hello',
-        parameters: {},
-        content: `Hello, my name is Alice.`,
-        modelRequirements: {
-            modelVariant: 'COMPLETION',
-        },
-    } as const satisfies Prompt;
-    const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
-    console.info({ completionPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
-    /**/
-
-    /*/
     const chatPrompt = {
         title: 'Hello',
         parameters: {},
@@ -105,6 +90,21 @@ async function playground() {
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
+    /**/
+
+    /*/
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'COMPLETION',
+        },
+    } as const satisfies Prompt;
+    const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
