@@ -13,7 +13,7 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
-type ProviderV1 = ReturnType<typeof createOpenAI> & ReturnType<typeof createGoogleGenerativeAI>;
+type ProviderV1 = ReturnType<typeof createOpenAI> | ReturnType<typeof createGoogleGenerativeAI>;
 // <- TODO: Is there some way to get the type of the provider directly, NOT this stupid way via inferring the return type from a specific vercel provider⁉
 
 /**
@@ -50,7 +50,7 @@ export function createExecutionToolsFromVercelProvider(
                 throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
             }
 
-            const modelName = 'gpt-4';
+            const modelName = modelRequirements.modelName || 'gpt-4'; //<- TODO: !!!!!! 'gpt-4';
             const model = await vercelProvider.chat(modelName, {
                 user: options.userId?.toString() || undefined,
             });
