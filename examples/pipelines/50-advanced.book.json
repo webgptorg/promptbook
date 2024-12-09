@@ -181,9 +181,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
-                "temperature": 0.6
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "temperature": 0.7
             },
             "preparationIds": [
                 1
@@ -194,9 +194,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
-                "temperature": 0.6
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "temperature": 0.7
             },
             "preparationIds": [
                 1
@@ -207,9 +207,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
-                "temperature": 0.6
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "temperature": 0.7
             },
             "preparationIds": [
                 1
@@ -220,9 +220,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
-                "temperature": 0.6
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "temperature": 0.7
             },
             "preparationIds": [
                 1
@@ -232,55 +232,55 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.77.0-3",
+            "promptbookVersion": "0.77.0-4",
             "usage": {
                 "price": {
-                    "value": 0.019848
+                    "value": 0.023760000000000003
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 3936
+                        "value": 4660
                     },
                     "charactersCount": {
-                        "value": 8504
+                        "value": 12856
                     },
                     "wordsCount": {
-                        "value": 1220
+                        "value": 2300
                     },
                     "sentencesCount": {
-                        "value": 84
+                        "value": 212
                     },
                     "linesCount": {
-                        "value": 220
+                        "value": 284
                     },
                     "paragraphsCount": {
                         "value": 80
                     },
                     "pagesCount": {
-                        "value": 20
+                        "value": 8
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 536
+                        "value": 652
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 2844
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 400
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 24
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 68
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 8
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 4
                     }
                 }
             }

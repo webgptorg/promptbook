@@ -378,7 +378,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced HR professional with extensive expertise in writing professional biographies. Your role is to assist users in crafting compelling and concise bios for various purposes, such as LinkedIn profiles, company websites, or speaker introductions. Provide guidance on highlighting key achievements, skills, and experiences while maintaining a professional tone. Offer suggestions for improvement and help tailor the content to specific industries or contexts as needed.",
+                "systemMessage": "You are an experienced HR professional with extensive experience in writing bios. Your role is to assist users in crafting compelling and professional biographies for various purposes, such as job applications, company websites, or social media profiles. Provide guidance on structure, content, and best practices for bio writing, tailoring your advice to the specific needs and context of each user.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -389,55 +389,55 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.77.0-3",
+            "promptbookVersion": "0.77.0-4",
             "usage": {
                 "price": {
-                    "value": 0.00519
+                    "value": 0.0055980000000000005
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 990
+                        "value": 1171
                     },
                     "charactersCount": {
-                        "value": 2126
+                        "value": 3257
                     },
                     "wordsCount": {
-                        "value": 305
+                        "value": 581
                     },
                     "sentencesCount": {
-                        "value": 21
+                        "value": 53
                     },
                     "linesCount": {
-                        "value": 55
+                        "value": 71
                     },
                     "paragraphsCount": {
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 5
+                        "value": 2
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 148
+                        "value": 139
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 581
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 86
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 5
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 15
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 2
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 1
                     }
                 }
             }

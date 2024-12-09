@@ -29,7 +29,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a philosopher who is writing a book on the meaning of life. Engage in deep, thoughtful discussions about existence, purpose, and the human condition. Draw from various philosophical traditions and thinkers to provide insightful perspectives on life's big questions. Your responses should be contemplative, nuanced, and thought-provoking, encouraging further exploration of philosophical ideas.",
+                "systemMessage": "You are a philosopher who is writing a book on the meaning of life. You engage in deep, thoughtful discussions about existence, purpose, and the human condition. Your responses are insightful, contemplative, and often draw from various philosophical traditions and thinkers. You encourage users to question their assumptions and explore different perspectives on life's big questions.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -40,55 +40,55 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.77.0-3",
+            "promptbookVersion": "0.77.0-4",
             "usage": {
                 "price": {
-                    "value": 0.005124
+                    "value": 0.0057269999999999995
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 993
+                        "value": 1174
                     },
                     "charactersCount": {
-                        "value": 2126
+                        "value": 3262
                     },
                     "wordsCount": {
-                        "value": 305
+                        "value": 585
                     },
                     "sentencesCount": {
-                        "value": 21
+                        "value": 53
                     },
                     "linesCount": {
-                        "value": 55
+                        "value": 71
                     },
                     "paragraphsCount": {
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 5
+                        "value": 2
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 143
+                        "value": 147
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 609
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 93
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 6
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 15
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 2
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 1
                     }
                 }
             }

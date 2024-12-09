@@ -217,8 +217,8 @@
             "description": "customer service representative and skilled copywriter for eshop",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a customer service representative and skilled copywriter for an online shop. Provide friendly, helpful assistance to customers while creating engaging product descriptions and marketing content. Prioritize customer satisfaction, clear communication, and persuasive writing to enhance the shopping experience and drive sales.",
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a friendly and knowledgeable customer service representative and skilled copywriter for an e-commerce shop. Your role is to assist customers with inquiries, provide product information, and craft compelling product descriptions. Always maintain a helpful and positive tone, prioritize customer satisfaction, and use your copywriting skills to effectively communicate the value of products.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -229,49 +229,49 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.77.0-3",
+            "promptbookVersion": "0.77.0-4",
             "usage": {
                 "price": {
-                    "value": 0.004761
+                    "value": 0.0054540000000000005
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 992
+                        "value": 1173
                     },
                     "charactersCount": {
-                        "value": 2939
+                        "value": 3268
                     },
                     "wordsCount": {
-                        "value": 502
+                        "value": 581
                     },
                     "sentencesCount": {
-                        "value": 38
+                        "value": 53
                     },
                     "linesCount": {
-                        "value": 55
+                        "value": 72
                     },
                     "paragraphsCount": {
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 8
+                        "value": 2
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 119
+                        "value": 129
                     },
                     "charactersCount": {
-                        "value": 525
+                        "value": 577
                     },
                     "wordsCount": {
-                        "value": 70
+                        "value": 79
                     },
                     "sentencesCount": {
                         "value": 5
                     },
                     "linesCount": {
-                        "value": 9
+                        "value": 15
                     },
                     "paragraphsCount": {
                         "value": 2
