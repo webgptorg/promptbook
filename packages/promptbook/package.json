@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.77.0-3",
+    "version": "0.77.0-5",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -51,28 +51,28 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.77.0-3"
+        "@promptbook/core": "0.77.0-5"
     },
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.77.0-3",
-        "@promptbook/azure-openai": "0.77.0-3",
-        "@promptbook/browser": "0.77.0-3",
-        "@promptbook/cli": "0.77.0-3",
-        "@promptbook/core": "0.77.0-3",
-        "@promptbook/documents": "0.77.0-3",
-        "@promptbook/execute-javascript": "0.77.0-3",
-        "@promptbook/fake-llm": "0.77.0-3",
-        "@promptbook/google": "0.77.0-3",
-        "@promptbook/legacy-documents": "0.77.0-3",
-        "@promptbook/markdown-utils": "0.77.0-3",
-        "@promptbook/node": "0.77.0-3",
-        "@promptbook/openai": "0.77.0-3",
-        "@promptbook/pdf": "0.77.0-3",
-        "@promptbook/remote-client": "0.77.0-3",
-        "@promptbook/remote-server": "0.77.0-3",
-        "@promptbook/types": "0.77.0-3",
-        "@promptbook/utils": "0.77.0-3",
-        "@promptbook/vercel": "0.77.0-3",
-        "@promptbook/website-crawler": "0.77.0-3"
+        "@promptbook/anthropic-claude": "0.77.0-5",
+        "@promptbook/azure-openai": "0.77.0-5",
+        "@promptbook/browser": "0.77.0-5",
+        "@promptbook/cli": "0.77.0-5",
+        "@promptbook/core": "0.77.0-5",
+        "@promptbook/documents": "0.77.0-5",
+        "@promptbook/execute-javascript": "0.77.0-5",
+        "@promptbook/fake-llm": "0.77.0-5",
+        "@promptbook/google": "0.77.0-5",
+        "@promptbook/legacy-documents": "0.77.0-5",
+        "@promptbook/markdown-utils": "0.77.0-5",
+        "@promptbook/node": "0.77.0-5",
+        "@promptbook/openai": "0.77.0-5",
+        "@promptbook/pdf": "0.77.0-5",
+        "@promptbook/remote-client": "0.77.0-5",
+        "@promptbook/remote-server": "0.77.0-5",
+        "@promptbook/types": "0.77.0-5",
+        "@promptbook/utils": "0.77.0-5",
+        "@promptbook/vercel": "0.77.0-5",
+        "@promptbook/website-crawler": "0.77.0-5"
     }
 }
