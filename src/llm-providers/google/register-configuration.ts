@@ -16,7 +16,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
     title: 'Google Gemini',
     packageName: '@promptbook/google',
     className: 'GoogleExecutionTools',
-    envVariables: ['GOOGLE_GEMINI_API_KEY'],
+    envVariables: ['GOOGLE_GENERATIVE_AI_API_KEY'],
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
@@ -34,13 +34,13 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
         // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
-        if (typeof env.GOOGLE_GEMINI_API_KEY === 'string') {
+        if (typeof env.GOOGLE_GENERATIVE_AI_API_KEY === 'string') {
             return {
                 title: 'Google Gemini (from env)',
                 packageName: '@promptbook/google',
                 className: 'GoogleExecutionTools',
                 options: {
-                    apiKey: env.GOOGLE_GEMINI_API_KEY!,
+                    apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY!,
                 },
             };
         }

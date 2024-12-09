@@ -10,7 +10,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 const googleGeminiVercelProvider = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_GEMINI_API_KEY,
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 
 const googleGeminiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
