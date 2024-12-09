@@ -13,10 +13,13 @@ const googleGeminiVercelProvider = createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_GEMINI_API_KEY,
 });
 
-const googleGeminiPromptbookExecutionTools = createExecutionToolsFromVercelProvider(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    googleGeminiVercelProvider as any /* <- TODO: !!!!!! Remove any */,
-);
+const googleGeminiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
+    vercelProvider: googleGeminiVercelProvider,
+    availableModels: [],
+    additionalChatSettings: {
+        // ...
+    },
+});
 
 /**/
 const chatPrompt = {
@@ -25,6 +28,7 @@ const chatPrompt = {
     content: `Write a joke`,
     modelRequirements: {
         modelVariant: 'CHAT',
+        modelName: 'gemini-1.5-flash',
         systemMessage: 'You are an assistant who only speaks in rhymes.',
         temperature: 1.5,
     },

@@ -13,7 +13,13 @@ const openaiVercelProvider = createOpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider(openaiVercelProvider);
+const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
+    vercelProvider: openaiVercelProvider,
+    availableModels: [],
+    additionalChatSettings: {
+        // ...
+    },
+});
 
 /**/
 const chatPrompt = {
@@ -22,6 +28,7 @@ const chatPrompt = {
     content: `Write a joke`,
     modelRequirements: {
         modelVariant: 'CHAT',
+        modelName: 'gpt-3.5-turbo',
         systemMessage: 'You are an assistant who only speaks in rhymes.',
         temperature: 1.5,
     },
