@@ -23,7 +23,7 @@ SyntaxError: Unexpected token 'export'
 ```
 
 ```bash
-$ npm ls eventsource-parser
+npm ls eventsource-parser
 promptbook@0.77.0-2 C:\Users\me\work\ai\promptbook
 └─┬ @ai-sdk/google@1.0.5
   └─┬ @ai-sdk/provider-utils@2.0.3
