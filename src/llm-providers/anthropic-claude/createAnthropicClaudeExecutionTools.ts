@@ -13,7 +13,6 @@ export const createAnthropicClaudeExecutionTools = Object.assign(
         if (options.isProxied) {
             return new RemoteLlmExecutionTools({
                 ...options,
-                userId: null,
                 isAnonymous: true,
                 llmToolsConfiguration: [
                     {

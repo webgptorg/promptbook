@@ -16,7 +16,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_model_name } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import type { string_token } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -155,7 +155,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             ],
             user: this.options.userId?.toString(),
         };
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
@@ -183,7 +183,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
 
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
         if (resultContent === null) {
@@ -241,7 +241,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             prompt: rawPromptContent,
             user: this.options.userId?.toString(),
         };
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
@@ -269,7 +269,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
 
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
         return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools CompletionPromptResult', {
@@ -314,7 +314,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             model: modelName,
         };
 
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
@@ -341,7 +341,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         const resultContent = rawResponse.data[0]!.embedding;
 
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = computeOpenAiUsage(
             content || '',
             '',

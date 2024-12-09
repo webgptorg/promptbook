@@ -16,7 +16,7 @@ import type { string_date_iso8601 } from '../../types/typeAliases';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
@@ -133,7 +133,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 },
             ];
 
-            const start: string_date_iso8601 = getCurrentIsoDate();
+            const start: string_date_iso8601 = $getCurrentDate();
             let complete: string_date_iso8601;
 
             if (this.options.isVerbose) {
@@ -167,7 +167,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
 
             const resultContent = rawResponse.choices[0].message.content;
             // eslint-disable-next-line prefer-const
-            complete = getCurrentIsoDate();
+            complete = $getCurrentDate();
             const usage = {
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
                 input: {
@@ -232,7 +232,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 // <- Note: [🧆]
             }; // <- TODO: Guard here types better
 
-            const start: string_date_iso8601 = getCurrentIsoDate();
+            const start: string_date_iso8601 = $getCurrentDate();
             let complete: string_date_iso8601;
 
             if (this.options.isVerbose) {
@@ -269,7 +269,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
 
             const resultContent = rawResponse.choices[0].text;
             // eslint-disable-next-line prefer-const
-            complete = getCurrentIsoDate();
+            complete = $getCurrentDate();
 
             const usage = {
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,

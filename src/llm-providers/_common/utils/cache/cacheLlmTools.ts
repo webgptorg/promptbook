@@ -11,7 +11,7 @@ import type { CompletionPromptResult } from '../../../../execution/PromptResult'
 import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
-import { $currentDate } from '../../../../utils/$currentDate';
+import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
 import type { really_any } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
@@ -91,7 +91,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         // promptResult.timing: FromtoItems
 
         await storage.setItem(key, {
-            date: $currentDate(),
+            date: $getCurrentDate(),
             promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
             prompt,
             promptResult,

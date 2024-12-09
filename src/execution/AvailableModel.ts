@@ -9,7 +9,7 @@ export type AvailableModel = {
     /**
      * The model title
      */
-    readonly modelTitle: string_title;
+    readonly modelTitle?: string_title;
 
     /**
      * The model name aviailable
@@ -21,3 +21,8 @@ export type AvailableModel = {
      */
     readonly modelVariant: ModelVariant;
 };
+
+/**
+ * TODO: !!!!!! Maybe remove `modelTitle`
+ * TODO: !!!!!! Put pricing information here
+ */

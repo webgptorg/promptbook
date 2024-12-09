@@ -1,3 +1,4 @@
+import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { string_name } from '../../../types/typeAliases';
 import type { string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
@@ -13,6 +14,11 @@ export type LlmToolsMetadata = Registered & {
      * @@@
      */
     readonly title: string_title;
+
+    /**
+     * @@@
+     */
+    readonly envVariables: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
      * @@@

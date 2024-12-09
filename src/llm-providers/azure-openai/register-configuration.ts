@@ -16,6 +16,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
     title: 'Azure Open AI',
     packageName: '@promptbook/azure-openai',
     className: 'AzureOpenAiExecutionTools',
+    envVariables: ['AZUREOPENAI_RESOURCE_NAME', 'AZUREOPENAI_DEPLOYMENT_NAME', 'AZUREOPENAI_API_KEY'],
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
@@ -68,7 +69,6 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
         return null;
     },
 });
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
