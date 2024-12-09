@@ -1,7 +1,7 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
+import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 
@@ -34,6 +34,14 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
     },
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        if (
+            $isRunningInJest()
+            // <- TODO: Maybe check `env.JEST_WORKER_ID` directly here or pass `env` into `$isRunningInJest`
+        ) {
+            // Note: [🔘] Gemini makes problems in Jest environment
+            return null;
+        }
+
         // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
         if (typeof env.GOOGLE_GENERATIVE_AI_API_KEY === 'string') {
             return {

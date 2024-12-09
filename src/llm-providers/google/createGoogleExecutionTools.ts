@@ -1,5 +1,6 @@
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
 
@@ -10,6 +11,11 @@ import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions'
  */
 export const createGoogleExecutionTools = Object.assign(
     (options: GoogleExecutionToolsOptions): LlmExecutionTools => {
+        if ($isRunningInJest()) {
+            // Note: [🔘]
+            throw new Error('GoogleExecutionTools are not supported in Jest environment');
+        }
+
         // Note: [🔘] There is a compatibility when using import from '@ai-sdk/google'
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { createGoogleGenerativeAI } = require('@ai-sdk/google');
