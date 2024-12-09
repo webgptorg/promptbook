@@ -1,10 +1,10 @@
 import spaceTrim from 'spacetrim';
 import type { string_markdown } from '../../../types/typeAliases';
-import { Registered } from '../../../utils/$Register';
+import type { Registered } from '../../../utils/$Register';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';
-import { LlmToolsMetadata } from './LlmToolsMetadata';
+import type { LlmToolsMetadata } from './LlmToolsMetadata';
 
 /**
  * Creates a message with all registered LLM tools
