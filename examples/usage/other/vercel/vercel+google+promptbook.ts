@@ -23,7 +23,7 @@ const googleGeminiPromptbookExecutionTools = createExecutionToolsFromVercelProvi
 
 /**/
 const chatPrompt = {
-    title: 'Promptbook speech',
+    title: 'Joke',
     parameters: {},
     content: `Write a joke`,
     modelRequirements: {

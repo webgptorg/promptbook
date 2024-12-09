@@ -11,9 +11,7 @@
     "dependencies": {
         "@ai-sdk/google": "1.0.5",
         "@ai-sdk/openai": "1.0.7",
-        "@promptbook/core": "0.77.0-3",
-        "@promptbook/types": "0.77.0-3",
-        "@promptbook/vercel": "0.77.0-3",
+        "ptbk": "0.77.0-3",
         "colors": "1.4.0",
         "dotenv": "16.4.7"
     }
