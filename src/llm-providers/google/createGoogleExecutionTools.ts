@@ -10,7 +10,8 @@ import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions'
  */
 export const createGoogleExecutionTools = Object.assign(
     (options: GoogleExecutionToolsOptions): LlmExecutionTools => {
-        // Note: [🔘] There is a compatibility when using import '@ai-sdk/google'
+        // Note: [🔘] There is a compatibility when using import from '@ai-sdk/google'
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { createGoogleGenerativeAI } = require('@ai-sdk/google');
 
         const googleGeminiVercelProvider = createGoogleGenerativeAI({
