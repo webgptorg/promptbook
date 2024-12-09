@@ -3,6 +3,7 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
+import { $llmToolsMetadataRegister } from '../../_packages/core.index';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
@@ -17,9 +18,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -120,14 +119,23 @@ export function initializeRunCommand(program: Program) {
 
             console.error(
                 colors.red(
-                    spaceTrim(`
-                        You need to configure LLM tools first
+                    spaceTrim(
+                        (block) => `
+                            You need to configure LLM tools first
 
-                        1) Create .env file
-                        2) Add OPENAI_API_KEY=...
-                        3) *(and/or)* Add ANTHROPIC_CLAUDE_API_KEY=...
-                    `),
-                    // <- TODO: List configuration keys dynamically
+                           
+                            1) Create .env file at the root of your project
+                            2) Configure API keys for LLM tools
+                            
+                            For example:
+                            ${block(
+                                $llmToolsMetadataRegister
+                                    .list()
+                                    .map(({ title, envVariables }) => `- ${envVariables.join(' + ')} (${title})`)
+                                    .join('\n'),
+                            )}
+                        `,
+                    ),
                 ),
             );
             return process.exit(1);

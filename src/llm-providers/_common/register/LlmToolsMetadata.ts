@@ -1,5 +1,5 @@
-import type { string_name } from '../../../types/typeAliases';
-import type { string_title } from '../../../types/typeAliases';
+import { string_SCREAMING_CASE } from '../../../_packages/types.index';
+import type { string_name, string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
@@ -13,6 +13,11 @@ export type LlmToolsMetadata = Registered & {
      * @@@
      */
     readonly title: string_title;
+
+    /**
+     * @@@
+     */
+    readonly envVariables: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
      * @@@

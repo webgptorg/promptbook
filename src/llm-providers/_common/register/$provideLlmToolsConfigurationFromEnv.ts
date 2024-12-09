@@ -13,6 +13,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`
  * - `process.env.ANTHROPIC_CLAUDE_API_KEY`
+ * - ...
  *
  * @returns @@@
  * @public exported from `@promptbook/node`

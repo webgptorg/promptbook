@@ -1,5 +1,4 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
@@ -17,6 +16,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
     title: 'Google Gemini',
     packageName: '@promptbook/google',
     className: 'GoogleExecutionTools',
+    envVariables: ['GOOGLE_GEMINI_API_KEY'],
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {

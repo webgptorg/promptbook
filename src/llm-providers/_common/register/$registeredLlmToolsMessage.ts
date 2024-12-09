@@ -1,9 +1,10 @@
 import spaceTrim from 'spacetrim';
 import type { string_markdown } from '../../../types/typeAliases';
-import type { Registered } from '../../../utils/$Register';
+import { Registered } from '../../../utils/$Register';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';
+import { LlmToolsMetadata } from './LlmToolsMetadata';
 
 /**
  * Creates a message with all registered LLM tools
@@ -16,13 +17,13 @@ export function $registeredLlmToolsMessage(): string_markdown {
     /**
      * Mixes registered LLM tools from $llmToolsMetadataRegister and $llmToolsRegister
      */
-    const all: Array<Registered> = [];
+    const all: Array<Registered & Partial<Pick<LlmToolsMetadata, 'envVariables'>>> = [];
 
-    for (const { packageName, className } of $llmToolsMetadataRegister.list()) {
+    for (const { packageName, className, envVariables } of $llmToolsMetadataRegister.list()) {
         if (all.some((item) => item.packageName === packageName && item.className === className)) {
             continue;
         }
-        all.push({ packageName, className });
+        all.push({ packageName, className, envVariables });
     }
 
     for (const { packageName, className } of $llmToolsRegister.list()) {
@@ -59,7 +60,7 @@ export function $registeredLlmToolsMessage(): string_markdown {
             Available LLM providers are:
             ${block(
                 metadata
-                    .map(({ packageName, className, isMetadataAviailable, isInstalled }, i) => {
+                    .map(({ packageName, className, envVariables, isMetadataAviailable, isInstalled }, i) => {
                         let more: string;
 
                         if (just(false)) {
@@ -78,7 +79,18 @@ export function $registeredLlmToolsMessage(): string_markdown {
                             more = `(unknown state, looks like a unexpected behavior)`;
                         }
 
-                        return `${i + 1}) \`${className}\` from \`${packageName}\` ${more}`;
+                        let envVariablesMessage: string = '';
+
+                        if (envVariables) {
+                            envVariablesMessage = 'Configured by ' + envVariables.join(' + ');
+                        }
+
+                        return spaceTrim(`
+                            ${i + 1}) \`${className}\` from \`${packageName}\`
+                                      ${more}
+                                      ${envVariablesMessage}
+                        `);
+                        // <- TODO: !!!!!! Is this indented correctly?
                     })
                     .join('\n'),
             )}

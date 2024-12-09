@@ -17,6 +17,7 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
     title: 'Anthropic Claude',
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
+    envVariables: ['ANTHROPIC_CLAUDE_API_KEY'],
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
