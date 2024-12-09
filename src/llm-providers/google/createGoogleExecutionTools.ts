@@ -1,4 +1,3 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
@@ -11,6 +10,9 @@ import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions'
  */
 export const createGoogleExecutionTools = Object.assign(
     (options: GoogleExecutionToolsOptions): LlmExecutionTools => {
+        // Note: [🔘] There is a compatibility when using import '@ai-sdk/google'
+        const { createGoogleGenerativeAI } = require('@ai-sdk/google');
+
         const googleGeminiVercelProvider = createGoogleGenerativeAI({
             ...options,
             /// apiKey: process.env.GOOGLE_GEMINI_API_KEY,
