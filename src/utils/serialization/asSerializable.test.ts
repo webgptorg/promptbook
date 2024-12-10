@@ -12,11 +12,11 @@ describe('how `asSerializable` works', () => {
         }));
 
     it('should serialize the date', () =>
-        toEqual(
+        expect(
             asSerializable({
-                value: new Date(),
+                value: new Date(`2024-12-10T13:04:19.025Z`),
             }),
-        ).toBe({
-            value: ``,
+        ).toEqual({
+            value: `2024-12-10T13:04:19.025Z`,
         }));
 });
