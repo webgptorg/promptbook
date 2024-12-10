@@ -111,16 +111,15 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
             if (options.isVerbose) {
                 console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
             }
-            const rawResponse = await model.doGenerate(rawRequest);
-            /*
-            TODO: !!!!!! Handle errors
-            .catch((error) => {
+            const rawResponse = await (async () => await model.doGenerate(rawRequest))().catch((error) => {
+                // <- Note: This weird structure is here to catch errors in both sync and async `doGenerate`
                 if (options.isVerbose) {
                     console.info(colors.bgRed('error'), error);
                 }
                 throw error;
             });
-            */
+
+            await model.doGenerate(rawRequest);
 
             if (options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
