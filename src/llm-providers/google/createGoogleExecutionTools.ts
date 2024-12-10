@@ -57,9 +57,5 @@ export const createGoogleExecutionTools = Object.assign(
 ) satisfies LlmExecutionToolsConstructor;
 
 /**
- * TODO: [🧠][main] !!!! Make anonymous this with all LLM providers
- * TODO: [🧠][🧱][main] !!!! Maybe change all `new GoogleExecutionTools` -> `createGoogleExecutionTools` in manual
- * TODO: [🧠] Maybe auto-detect usage in browser and determine default value of `isProxied`
- * TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
  */

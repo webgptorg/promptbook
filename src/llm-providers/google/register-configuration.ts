@@ -1,5 +1,3 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
@@ -26,10 +24,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
             packageName: '@promptbook/google',
             className: 'GoogleExecutionTools',
             options: {
-                apiKey: 'sk-ant-api03-',
-                isProxied: true,
-                remoteUrl: DEFAULT_REMOTE_URL,
-                path: DEFAULT_REMOTE_URL_PATH,
+                apiKey: 'AI',
             },
         };
     },
