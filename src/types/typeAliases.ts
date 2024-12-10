@@ -168,11 +168,18 @@ export type ReservedParameters = Record<string_reserved_parameter_name, string_p
 export type string_title = string;
 
 /**
- * Description of persona
+ * Unstructured description of the persona
  *
  * For example `"Skilled copywriter"`
  */
 export type string_persona_description = string;
+
+/**
+ * Unstructured description of the model
+ *
+ * For example `"Model with logical reasoning and creative mindset"`
+ */
+export type string_model_description = string;
 
 /**
  * Source of one knowledge
