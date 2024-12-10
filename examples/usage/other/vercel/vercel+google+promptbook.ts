@@ -14,6 +14,7 @@ const googleGeminiVercelProvider = createGoogleGenerativeAI({
 });
 
 const googleGeminiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
+    title: 'Google',
     vercelProvider: googleGeminiVercelProvider,
     availableModels: [],
     additionalChatSettings: {

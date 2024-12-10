@@ -14,6 +14,7 @@ const openaiVercelProvider = createOpenAI({
 });
 
 const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
+    title: 'OpenAI',
     vercelProvider: openaiVercelProvider,
     availableModels: [],
     additionalChatSettings: {
