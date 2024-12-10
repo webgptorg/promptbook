@@ -1,9 +1,8 @@
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type { string_markdown, string_name } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';
@@ -17,7 +16,13 @@ import type { LlmToolsMetadata } from './LlmToolsMetadata';
  * @private internal function of `createLlmToolsFromConfiguration` and `$provideLlmToolsFromEnv`
  */
 export function $registeredLlmToolsMessage(): string_markdown {
-    const env = process.env as Record<string_name, string>;
+    let env: Record<string_name, string>;
+    if ($isRunningInNode()) {
+        env = process.env as Record<string_name, string>;
+        // <- TODO: [⚛] Some DRY way how to get to `process.env` and pass it into functions - ACRY search for `env`
+    } else {
+        env = {};
+    }
 
     /**
      * Mixes registered LLM tools from $llmToolsMetadataRegister and $llmToolsRegister
