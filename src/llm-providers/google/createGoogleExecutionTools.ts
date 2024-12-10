@@ -30,7 +30,7 @@ export const createGoogleExecutionTools = Object.assign(
             description: 'Implementation of Google models',
             vercelProvider: googleGeminiVercelProvider,
             availableModels: [
-                // TODO: !!!!!! Maybe list models in same way as in other providers
+                // TODO: [🕘] Maybe list models in same way as in other providers - in separate file with metadata
                 'gemini-1.5-flash',
                 'gemini-1.5-flash-latest',
                 'gemini-1.5-flash-001',

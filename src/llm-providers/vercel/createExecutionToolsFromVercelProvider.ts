@@ -133,7 +133,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
             const complete: string_date_iso8601 = $getCurrentDate();
 
             /*
-            TODO: !!!!!! Usage count
+            TODO: [🕘] Usage count
             const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
             */
             const usage = UNCERTAIN_USAGE;

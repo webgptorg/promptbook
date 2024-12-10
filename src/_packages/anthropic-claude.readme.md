@@ -98,6 +98,7 @@ import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
+import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
 // ▶ Prepare multiple tools
 const fs = $provideFilesystemForNode();
@@ -158,9 +159,14 @@ console.info(outputParameters);
 
 ## 💙 Integration with other models
 
-See the other models available in the Promptbook package:
+<!-- TODO: [🕑] DRY-->
+
+See the other model integrations:
 
 -   [OpenAI](https://www.npmjs.com/package/@promptbook/openai)
+-   [Anthropic Claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)
+-   [Google Gemini](https://www.npmjs.com/package/@promptbook/google)
+-   [Vercel](https://www.npmjs.com/package/@promptbook/vercel)
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
 
 <!-- TODO: [👩‍🚒] Should be this package named `@promptbook/anthropic-claude` or just `@promptbook/anthropic` -->

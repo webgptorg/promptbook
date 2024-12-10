@@ -1,7 +1,5 @@
 import type { ModelVariant } from '../types/ModelVariant';
-import type { string_model_description } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
+import type { string_model_description, string_model_name, string_title } from '../types/typeAliases';
 
 /**
  * Represents a model that can be used for prompt execution
@@ -39,5 +37,5 @@ export type AvailableModel = {
 };
 
 /**
- * TODO: !!!!!! Put pricing information here
+ * TODO: (not only [🕘]) Put pricing information here
  */
