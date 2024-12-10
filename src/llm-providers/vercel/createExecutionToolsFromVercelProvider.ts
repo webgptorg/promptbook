@@ -82,7 +82,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                 mode: {
                     type: 'regular',
                     tools: [
-                        /* !!!!!! */
+                        /* <- TODO: Pass the tools */
                     ],
                 },
                 prompt: [
