@@ -92,6 +92,13 @@
             "focus": false
         },
         {
+            "name": "🏭📚 Generate documentation",
+            "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
             "name": "🏭📖 Generate examples .book.md -> .book.json (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
