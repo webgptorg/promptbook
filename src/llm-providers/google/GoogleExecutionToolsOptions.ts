@@ -1,5 +1,5 @@
 import type { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptions';
+import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptions';
 
 /**
  * Options for `GoogleExecutionTools`

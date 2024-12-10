@@ -1,7 +1,8 @@
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import { $isRunningInNode } from '../../../_packages/utils.index';
-import type { string_markdown, string_name } from '../../../types/typeAliases';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import type { string_markdown } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';

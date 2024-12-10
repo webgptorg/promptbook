@@ -1,8 +1,12 @@
 import type { Promisable } from 'type-fest';
 import type { Prompt } from '../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../types/typeAliases';
+import type { string_markdown } from '../types/typeAliases';
+import type { string_markdown_text } from '../types/typeAliases';
+import type { string_title } from '../types/typeAliases';
 import type { AvailableModel } from './AvailableModel';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
+import type { ChatPromptResult } from './PromptResult';
+import type { CompletionPromptResult } from './PromptResult';
+import type { EmbeddingPromptResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4

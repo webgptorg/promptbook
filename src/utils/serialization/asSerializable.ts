@@ -1,5 +1,5 @@
-import { really_any } from '../organization/really_any';
-import { really_unknown } from '../organization/really_unknown';
+import type { really_any } from '../organization/really_any';
+import type { really_unknown } from '../organization/really_unknown';
 
 /**
  * Function `asSerializable` will convert values which are not serializable to serializable values

@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { VercelProvider } from './VercelProvider';
 
 /**
