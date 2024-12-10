@@ -1,4 +1,3 @@
-import spaceTrim from 'spacetrim';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
@@ -51,7 +50,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
             typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ||
             typeof env.AZUREOPENAI_API_KEY === 'string'
         ) {
-          return null;
+            return null;
             /*
             Note: [🗨] Partial configuration is handled more gracefully elsewhere
             > throw new Error(
