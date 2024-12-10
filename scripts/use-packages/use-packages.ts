@@ -86,6 +86,7 @@ async function usePackages() {
             cwd: remoteFolder,
             crashOnError: false,
             command: `npm i`,
+            isVerbose: true,
         });
 
         if (!remoteFolder.startsWith('..')) {
