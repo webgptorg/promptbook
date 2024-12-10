@@ -35,6 +35,7 @@ async function playground() {
     });
 
     const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
+        title: 'OpenAI',
         vercelProvider: openaiVercelProvider,
         availableModels: [
             {

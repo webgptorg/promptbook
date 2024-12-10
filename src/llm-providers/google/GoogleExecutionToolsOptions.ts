@@ -7,5 +7,8 @@ import { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptio
  * This combines options for Promptbook, Google and Vercel together
  * @public exported from `@promptbook/google`
  */
-export type GoogleExecutionToolsOptions = Omit<VercelExecutionToolsOptions, 'vercelProvider' | 'availableModels'> &
+export type GoogleExecutionToolsOptions = Omit<
+    VercelExecutionToolsOptions,
+    'title' | 'description' | 'vercelProvider' | 'availableModels'
+> &
     Parameters<typeof createGoogleGenerativeAI>[0];

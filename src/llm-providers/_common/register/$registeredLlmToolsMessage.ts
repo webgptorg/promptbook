@@ -21,13 +21,13 @@ export function $registeredLlmToolsMessage(): string_markdown {
     /**
      * Mixes registered LLM tools from $llmToolsMetadataRegister and $llmToolsRegister
      */
-    const all: Array<Registered & Partial<Pick<LlmToolsMetadata, 'envVariables'>>> = [];
+    const all: Array<Registered & Partial<Pick<LlmToolsMetadata, 'title' | 'envVariables'>>> = [];
 
-    for (const { packageName, className, envVariables } of $llmToolsMetadataRegister.list()) {
+    for (const { title, packageName, className, envVariables } of $llmToolsMetadataRegister.list()) {
         if (all.some((item) => item.packageName === packageName && item.className === className)) {
             continue;
         }
-        all.push({ packageName, className, envVariables });
+        all.push({ title, packageName, className, envVariables });
     }
 
     for (const { packageName, className } of $llmToolsRegister.list()) {
@@ -83,6 +83,7 @@ export function $registeredLlmToolsMessage(): string_markdown {
                     .map(
                         (
                             {
+                                title,
                                 packageName,
                                 className,
                                 envVariables,
@@ -130,7 +131,7 @@ export function $registeredLlmToolsMessage(): string_markdown {
                             }
 
                             let providerMessage = spaceTrim(`
-                                ${i + 1}) \`${className}\` from \`${packageName}\`
+                                ${i + 1}) **${title}** \`${className}\` from \`${packageName}\`
                                     ${morePieces.join('; ')}
                             `);
 

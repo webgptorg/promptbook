@@ -7,25 +7,36 @@ import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
-import { keepUnused } from '../../utils/organization/keepUnused';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
 
 /**
- * !!!!!!
+ * Adapter which creates Promptbook execution tools from Vercel provider
  *
  * @public exported from `@promptbook/vercel`
  */
 export function createExecutionToolsFromVercelProvider(options: VercelExecutionToolsOptions): LlmExecutionTools {
+    let { title, description } = options;
     const { vercelProvider, availableModels, userId, additionalChatSettings = {} } = options;
-    keepUnused(vercelProvider);
+
+    if (!/Vercel/i.test(title)) {
+        title = `${title} (through Vercel)`;
+    } /* not else */
+
+    if (description === undefined) {
+        description = `Implementation of ${title} through Vercel`;
+    } /* not else */
+
+    if (!/Vercel/i.test(description)) {
+        description = `${description} (through Vercel)`;
+    } /* not else */
 
     return {
-        title: '!!!',
-        description: `!!! (through Vercel)`,
+        title,
+        description,
         checkConfiguration() {
-            // TODO: !!!!!!
+            // Note: There is no way how to check configuration of Vercel provider
             return Promise.resolve();
         },
 

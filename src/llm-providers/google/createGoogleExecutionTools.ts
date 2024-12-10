@@ -26,6 +26,8 @@ export const createGoogleExecutionTools = Object.assign(
         });
 
         return createExecutionToolsFromVercelProvider({
+            title: 'Google',
+            description: 'Implementation of Google models',
             vercelProvider: googleGeminiVercelProvider,
             availableModels: [
                 // TODO: !!!!!! Maybe list models in same way as in other providers
