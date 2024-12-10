@@ -58,9 +58,8 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
     title: 'Open AI Assistant',
     packageName: '@promptbook/openai',
     className: 'OpenAiAssistantExecutionTools',
-    envVariables: [
-        /* TODO: 'OPENAI_API_KEY', 'OPENAI_ASSISTANT_ID' */
-    ],
+    envVariables: null,
+    //            <- TODO: ['OPENAI_API_KEY', 'OPENAI_ASSISTANT_ID']
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {

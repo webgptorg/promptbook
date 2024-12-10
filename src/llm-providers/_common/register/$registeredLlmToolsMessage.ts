@@ -1,5 +1,7 @@
+import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import type { string_markdown } from '../../../types/typeAliases';
+import { $isRunningInNode } from '../../../_packages/utils.index';
+import type { string_markdown, string_name } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
@@ -14,6 +16,8 @@ import type { LlmToolsMetadata } from './LlmToolsMetadata';
  * @private internal function of `createLlmToolsFromConfiguration` and `$provideLlmToolsFromEnv`
  */
 export function $registeredLlmToolsMessage(): string_markdown {
+    const env = process.env as Record<string_name, string>;
+
     /**
      * Mixes registered LLM tools from $llmToolsMetadataRegister and $llmToolsRegister
      */
@@ -48,7 +52,13 @@ export function $registeredLlmToolsMessage(): string_markdown {
                     metadata.packageName === packageName && metadata.className === className,
             );
 
-        return { ...metadata, isMetadataAviailable, isInstalled };
+        const isFullyConfigured =
+            metadata.envVariables?.every((envVariableName) => env[envVariableName] !== undefined) || false;
+        const isPartiallyConfigured =
+            metadata.envVariables?.some((envVariableName) => env[envVariableName] !== undefined) || false;
+        // <- Note: [🗨]
+
+        return { ...metadata, isMetadataAviailable, isInstalled, isFullyConfigured, isPartiallyConfigured };
     });
 
     if (metadata.length === 0) {
@@ -57,41 +67,86 @@ export function $registeredLlmToolsMessage(): string_markdown {
 
     return spaceTrim(
         (block) => `
+            Relevant environment variables:
+            ${block(
+                Object.keys(env)
+                    .filter((envVariableName) =>
+                        metadata.some(({ envVariables }) => envVariables?.includes(envVariableName)),
+                    )
+                    .map((envVariableName) => `- \`${envVariableName}\``)
+                    .join('\n'),
+            )}
+
             Available LLM providers are:
             ${block(
                 metadata
-                    .map(({ packageName, className, envVariables, isMetadataAviailable, isInstalled }, i) => {
-                        let more: string;
+                    .map(
+                        (
+                            {
+                                packageName,
+                                className,
+                                envVariables,
+                                isMetadataAviailable,
+                                isInstalled,
+                                isFullyConfigured,
+                                isPartiallyConfigured,
+                            },
+                            i,
+                        ) => {
+                            const morePieces: Array<string> = [];
 
-                        if (just(false)) {
-                            more = '';
-                        } else if (!isMetadataAviailable && !isInstalled) {
-                            // TODO: [�][�] Maybe do allow to do auto-install if package not registered and not found
-                            more = `(not installed and no metadata, looks like a unexpected behavior)`;
-                        } else if (isMetadataAviailable && !isInstalled) {
-                            // TODO: [�][�]
-                            more = `(not installed)`;
-                        } else if (!isMetadataAviailable && isInstalled) {
-                            more = `(no metadata, looks like a unexpected behavior)`;
-                        } else if (isMetadataAviailable && isInstalled) {
-                            more = `(installed)`;
-                        } else {
-                            more = `(unknown state, looks like a unexpected behavior)`;
-                        }
+                            if (just(false)) {
+                                // Keep for prettier formatting
+                            } else if (!isMetadataAviailable && !isInstalled) {
+                                // TODO: [�][�] Maybe do allow to do auto-install if package not registered and not found
+                                morePieces.push(`Not installed and no metadata, looks like a unexpected behavior`);
+                            } else if (isMetadataAviailable && !isInstalled) {
+                                // TODO: [�][�]
+                                morePieces.push(`Not installed`);
+                            } else if (!isMetadataAviailable && isInstalled) {
+                                morePieces.push(`No metadata but installed, looks like a unexpected behavior`);
+                            } else if (isMetadataAviailable && isInstalled) {
+                                morePieces.push(`Installed`);
+                            } else {
+                                morePieces.push(`unknown state, looks like a unexpected behavior`);
+                            } /* not else */
 
-                        let envVariablesMessage: string = '';
+                            if (isFullyConfigured) {
+                                morePieces.push(`Configured`);
+                            } else if (isPartiallyConfigured) {
+                                morePieces.push(
+                                    `Partially confugured, missing ${envVariables
+                                        ?.filter((envVariable) => env[envVariable] === undefined)
+                                        .join(' + ')}`,
+                                );
+                            } else {
+                                if (envVariables !== null) {
+                                    morePieces.push(
+                                        `Not configured, to configure set env ${envVariables?.join(' + ')}`,
+                                    );
+                                } else {
+                                    morePieces.push(`Not configured`); // <- Note: Can not be configured via environment variables
+                                }
+                            }
 
-                        if (envVariables) {
-                            envVariablesMessage = 'Configured by ' + envVariables.join(' + ');
-                        }
+                            let providerMessage = spaceTrim(`
+                                ${i + 1}) \`${className}\` from \`${packageName}\`
+                                    ${morePieces.join('; ')}
+                            `);
 
-                        return spaceTrim(`
-                            ${i + 1}) \`${className}\` from \`${packageName}\`
-                                      ${more}
-                                      ${envVariablesMessage}
-                        `);
-                        // <- TODO: !!!!!! Is this indented correctly?
-                    })
+                            if ($isRunningInNode) {
+                                if (isInstalled && isFullyConfigured) {
+                                    providerMessage = colors.green(providerMessage);
+                                } else if (isInstalled && isPartiallyConfigured) {
+                                    providerMessage = colors.yellow(providerMessage);
+                                } else {
+                                    providerMessage = colors.gray(providerMessage);
+                                }
+                            }
+
+                            return providerMessage;
+                        },
+                    )
                     .join('\n'),
             )}
         `,
@@ -100,4 +155,5 @@ export function $registeredLlmToolsMessage(): string_markdown {
 
 /**
  * TODO: [®] DRY Register logic
+ * TODO: [🧠][⚛] Maybe pass env as argument
  */

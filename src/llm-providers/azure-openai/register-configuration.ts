@@ -51,19 +51,23 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
             typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ||
             typeof env.AZUREOPENAI_API_KEY === 'string'
         ) {
-            throw new Error(
-                spaceTrim(`
-                    You must provide all of the following environment variables:
-
-                    - AZUREOPENAI_RESOURCE_NAME (${
-                        typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' ? 'defined' : 'not defined'
-                    })
-                    - AZUREOPENAI_DEPLOYMENT_NAME (${
-                        typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ? 'defined' : 'not defined'
-                    })
-                    - AZUREOPENAI_API_KEY (${typeof env.AZUREOPENAI_API_KEY === 'string' ? 'defined' : 'not defined'})
-                `),
-            );
+          return null;
+            /*
+            Note: [🗨] Partial configuration is handled more gracefully elsewhere
+            > throw new Error(
+            >     spaceTrim(`
+            >         You must provide all of the following environment variables:
+            > 
+            >         - AZUREOPENAI_RESOURCE_NAME (${
+            >             typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' ? 'defined' : 'not defined'
+            >         })
+            >         - AZUREOPENAI_DEPLOYMENT_NAME (${
+            >             typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ? 'defined' : 'not defined'
+            >         })
+            >         - AZUREOPENAI_API_KEY (${typeof env.AZUREOPENAI_API_KEY === 'string' ? 'defined' : 'not defined'})
+            >     `),
+            > );
+            */
         }
 
         return null;

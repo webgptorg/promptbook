@@ -3,7 +3,6 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { $llmToolsMetadataRegister } from '../../llm-providers/_common/register/$llmToolsMetadataRegister';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
@@ -13,14 +12,14 @@ import { executionReportJsonToString } from '../../execution/execution-report/ex
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
+import { $llmToolsMetadataRegister } from '../../llm-providers/_common/register/$llmToolsMetadataRegister';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -125,7 +124,6 @@ export function initializeRunCommand(program: Program) {
                         (block) => `
                             You need to configure LLM tools first
 
-                           
                             1) Create .env file at the root of your project
                             2) Configure API keys for LLM tools
                             
@@ -133,9 +131,13 @@ export function initializeRunCommand(program: Program) {
                             ${block(
                                 $llmToolsMetadataRegister
                                     .list()
-                                    .map(({ title, envVariables }) => `- ${envVariables.join(' + ')} (${title})`)
+                                    .map(
+                                        ({ title, envVariables }) => `- ${(envVariables || []).join(' + ')} (${title})`,
+                                    )
                                     .join('\n'),
                             )}
+
+                            ${block($registeredLlmToolsMessage())}
                         `,
                     ),
                 ),
