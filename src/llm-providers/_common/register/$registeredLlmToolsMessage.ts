@@ -1,6 +1,7 @@
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import type { string_markdown, string_name } from '../../../types/typeAliases';
+import type { string_markdown } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { just } from '../../../utils/organization/just';
