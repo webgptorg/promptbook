@@ -9,6 +9,7 @@ import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { asSerializable } from '../../utils/serialization/asSerializable';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
 
 /**
@@ -147,9 +148,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                 usage,
                 rawPromptContent,
                 rawRequest,
-                rawResponse: {
-                    /* TODO: !!!!!! UnexpectedError: createExecutionToolsFromVercelProvider ChatPromptResult.rawResponse.response.timestamp is Date */
-                },
+                rawResponse: asSerializable(rawResponse),
                 // <- [🗯]
             });
         },
