@@ -88,9 +88,9 @@ async function usePackages() {
             command: `npm i`,
         });
 
-        if (remoteFolder === './examples/usage') {
+        if (!remoteFolder.startsWith('..')) {
             // Note: No need to check that folder is clean, because this script is executed only after new version which can be triggered only from clean state
-            await commit([remoteFolder], `⏫ Update promptbook to version ${currentVersion} in examples`);
+            await commit([remoteFolder], `⏫ Update Promptbook to \`${currentVersion}\` in \`${remoteFolder}\``);
         }
     }
 
