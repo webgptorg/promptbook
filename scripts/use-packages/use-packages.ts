@@ -59,7 +59,10 @@ async function usePackages() {
     }
 
     // Note: Update the version in all packages
-    for (const remoteFolder of (process.env.USE_THIS_PACKAGE_PATHS || '').split(',')) {
+    for (const remoteFolder of [
+        'examples/usage/other/vercel',
+        ...(process.env.USE_THIS_PACKAGE_PATHS || '').split(','),
+    ]) {
         const remotePackageJsonPath = join(remoteFolder, 'package.json');
         const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
 
