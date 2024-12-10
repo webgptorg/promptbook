@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.77.0-5",
+    "version": "0.77.0-6",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -54,6 +54,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/core.index.d.ts",
     "dependencies": {
+        "colors": "1.4.0",
         "crypto-js": "4.2.0",
         "moment": "2.30.1",
         "papaparse": "5.4.1",
