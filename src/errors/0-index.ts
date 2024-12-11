@@ -19,7 +19,7 @@ import { UnexpectedError } from './UnexpectedError';
  *
  * @public exported from `@promptbook/core`
  */
-export const ERRORS = {
+export const PROMPTBOOK_ERRORS = {
     AbstractFormatError,
     CsvFormatError,
     CollectionError,
@@ -36,6 +36,40 @@ export const ERRORS = {
     PipelineUrlError,
     UnexpectedError,
     // TODO: [🪑]> VersionMismatchError,
+} as const;
+
+/**
+ * Index of all javascript errors
+ *
+ * @private for internal usage
+ */
+export const COMMON_JAVASCRIPT_ERRORS = {
+    Error,
+    EvalError,
+    RangeError,
+    ReferenceError,
+    SyntaxError,
+    TypeError,
+    URIError,
+    AggregateError,
+    /*
+  Note: Not widely supported
+  > InternalError,
+  > ModuleError,
+  > HeapError,
+  > WebAssemblyCompileError,
+  > WebAssemblyRuntimeError,
+  */
+} as const;
+
+/**
+ * Index of all errors
+ *
+ * @private for internal usage
+ */
+export const ALL_ERRORS = {
+    ...PROMPTBOOK_ERRORS,
+    ...COMMON_JAVASCRIPT_ERRORS,
 } as const;
 
 /**

@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { ERRORS } from '../0-index';
-import { UnexpectedError } from '../UnexpectedError';
+import { ALL_ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';
 
 /**
@@ -12,8 +11,10 @@ import type { ErrorJson } from './ErrorJson';
 export function serializeError(error: Error): ErrorJson {
     const { name, message, stack } = error;
 
-    if (!['Error', ...Object.keys(ERRORS)].includes(name)) {
-        throw new UnexpectedError(
+    if (
+        !Object.keys(ALL_ERRORS).includes(name)
+    ) {
+        console.error(
             spaceTrim(
                 (block) => `
           

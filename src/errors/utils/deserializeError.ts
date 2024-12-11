@@ -1,4 +1,4 @@
-import { ERRORS } from '../0-index';
+import { ALL_ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';
 
 /**
@@ -8,11 +8,11 @@ import type { ErrorJson } from './ErrorJson';
  */
 
 export function deserializeError(error: ErrorJson): Error {
-    if (error.name === 'Error') {
-        return new Error(error.message);
+    const ErrorClass = ALL_ERRORS[error.name as keyof typeof ALL_ERRORS];
+
+    if (ErrorClass === undefined) {
+        return new Error(`${error.name}: ${error.message}`);
     }
 
-    const CustomError = ERRORS[error.name as keyof typeof ERRORS];
-
-    return new CustomError(error.message);
+    return new ErrorClass(error.message);
 }

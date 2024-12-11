@@ -1,4 +1,4 @@
-import type { ERRORS } from '../0-index'; // <- TODO: [🤛] This should be this automatically repared to type import, but its not
+import type { ALL_ERRORS } from '../0-index'; // <- TODO: [🤛] This should be this automatically repared to type import, but its not
 
 /**
  * Represents a serialized error or custom Promptbook error
@@ -9,7 +9,7 @@ export type ErrorJson = {
     /**
      * The type of the error
      */
-    readonly name: keyof typeof ERRORS | 'Error';
+    readonly name: keyof typeof ALL_ERRORS;
 
     /**
      * The message of the error
