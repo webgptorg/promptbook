@@ -614,6 +614,15 @@ Support for more models, add `@promptbook/vercel` and `@promptbook/google` packa
 -   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
 -   Rename `$currentDate` -> `$getCurrentDate`
 
+### In pre-release
+
+### `0.78.0` _(2024-12-)_
+
+Parameter types to establish forseen [type system](https://github.com/webgptorg/book/tree/main/pips/pip-0002)
+
+-   Move `expectations` and `format` from `Task` to `Parameter` <!-- <- TODO: !!!!!! -->
+-   Implicit formfactors - no need to explicitly define them, they are inferred from the pipeline interface <!-- <- TODO: !!!!!! -->
+
 ## Drafts
 
 ### `0..0` _(2024--)_
