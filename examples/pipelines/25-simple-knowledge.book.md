@@ -22,15 +22,15 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskWritingBio("Writing bio")
-      input--"{eventTitle}"-->taskWritingBio
-      input--"{rules}"-->taskWritingBio
-      input--"{eventDescription}"-->taskWritingBio
+      writing-bio("Writing bio")
+      input--"{eventTitle}"-->writing-bio
+      input--"{rules}"-->writing-bio
+      input--"{eventDescription}"-->writing-bio
 
-      taskWritingBio--"{bio}"-->output
+      writing-bio--"{bio}"-->output
       output((Output)):::output
 
-      click taskWritingBio href "#writing-bio" "Writing bio";
+      click writing-bio href "#writing-bio" "Writing bio";
 
       classDef input color: grey;
       classDef output color: grey;

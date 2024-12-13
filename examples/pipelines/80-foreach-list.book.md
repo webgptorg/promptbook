@@ -18,13 +18,13 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskWriteAGreeting("Write a greeting")
-      input--"{customers}"-->taskWriteAGreeting
+      write-a-greeting("Write a greeting")
+      input--"{customers}"-->write-a-greeting
 
-      taskWriteAGreeting--"{greetings}"-->output
+      write-a-greeting--"{greetings}"-->output
       output((Output)):::output
 
-      click taskWriteAGreeting href "#write-a-greeting" "Write a greeting";
+      click write-a-greeting href "#write-a-greeting" "Write a greeting";
 
       classDef input color: grey;
       classDef output color: grey;

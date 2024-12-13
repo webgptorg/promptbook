@@ -18,17 +18,17 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskSynonym("💬 Synonym")
-      input--"{word}"-->taskSynonym
-      taskSentence("💬 Sentence")
-      input--"{word}"-->taskSentence
-      taskSynonym--"{wordSynonym}"-->taskSentence
+      synonym("💬 Synonym")
+      input--"{word}"-->synonym
+      sentence("💬 Sentence")
+      input--"{word}"-->sentence
+      synonym--"{wordSynonym}"-->sentence
 
-      taskSentence--"{sentence}"-->output
+      sentence--"{sentence}"-->output
       output((Output)):::output
 
-      click taskSynonym href "#synonym" "💬 Synonym";
-      click taskSentence href "#sentence" "💬 Sentence";
+      click synonym href "#synonym" "💬 Synonym";
+      click sentence href "#sentence" "💬 Sentence";
 
       classDef input color: grey;
       classDef output color: grey;

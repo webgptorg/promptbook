@@ -21,12 +21,12 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskPrompt("💬 Prompt")
+      prompt("💬 Prompt")
 
-      taskPrompt--"{greetingResponse}"-->output
+      prompt--"{greetingResponse}"-->output
       output((Output)):::output
 
-      click taskPrompt href "#prompt" "💬 Prompt";
+      click prompt href "#prompt" "💬 Prompt";
 
       classDef input color: grey;
       classDef output color: grey;

@@ -21,6 +21,7 @@ import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
+import { number_integer, number_positive, string_name } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
@@ -299,8 +300,39 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 4️⃣ Process each section of the pipeline
+    // Note: 4️⃣ Prepare unique section names with indexes when needed
 
+    const sectionCounts: Record<
+        string_name,
+        { count: number_integer & number_positive; currentIndex: number_integer & number_positive }
+    > = {};
+
+    for (const section of pipelineSections) {
+        const name = titleToName(section.title);
+
+        if (sectionCounts[name] === undefined) {
+            sectionCounts[name] = { count: 0, currentIndex: 0 };
+        }
+
+        sectionCounts[name].count++;
+    }
+
+    const getUniqueSectionName = (title: string) => {
+        const name = titleToName(title);
+        const count = sectionCounts[name]!;
+
+        if (count.count === 1) {
+            return name;
+        }
+
+        const nameWithSuffix = `${name}-${count.currentIndex}`;
+        count.currentIndex++;
+
+        return nameWithSuffix;
+    };
+
+    // =============================================================
+    // Note: 5️⃣ Process each section of the pipeline
     for (const section of pipelineSections) {
         // TODO: Parse section's description (the content out of the codeblock and lists)
 
@@ -328,7 +360,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             isSectionTypeSet: false,
             isTask: true,
             taskType: undefined /* <- Note: [🍙] Putting here placeholder to keep `taskType` on top at final JSON */,
-            name: titleToName(section.title),
+            name: getUniqueSectionName(section.title),
             title: section.title,
             description,
             content,
@@ -505,7 +537,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 5️⃣ Mark parameters as INPUT if not explicitly set
+    // Note: 6️⃣ Mark parameters as INPUT if not explicitly set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isInput)) {
         for (const parameter of $pipelineJson.parameters) {
             const isThisParameterResulting = $pipelineJson.tasks.some(
@@ -518,7 +550,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 6️⃣ Mark all non-INPUT parameters as OUTPUT if any OUTPUT is not set
+    // Note: 7️⃣ Mark all non-INPUT parameters as OUTPUT if any OUTPUT is not set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isOutput)) {
         for (const parameter of $pipelineJson.parameters) {
             if (!parameter.isInput) {
@@ -528,7 +560,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 7️⃣ Cleanup of undefined values
+    // Note: 8️⃣ Cleanup of undefined values
     $pipelineJson.tasks.forEach((tasks) => {
         for (const [key, value] of Object.entries(tasks)) {
             if (value === undefined) {

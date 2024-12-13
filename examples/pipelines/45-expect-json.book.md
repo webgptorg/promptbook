@@ -16,13 +16,13 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskQuestion("💬 Question")
-      input--"{sentence}"-->taskQuestion
+      question("💬 Question")
+      input--"{sentence}"-->question
 
-      taskQuestion--"{parsedSentence}"-->output
+      question--"{parsedSentence}"-->output
       output((Output)):::output
 
-      click taskQuestion href "#question" "💬 Question";
+      click question href "#question" "💬 Question";
 
       classDef input color: grey;
       classDef output color: grey;

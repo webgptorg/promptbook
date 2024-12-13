@@ -18,32 +18,32 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskVycisteniVstupu("Vyčištění vstupu")
-      input--"{inputText}"-->taskVycisteniVstupu
-      taskNazevWebu("Název webu")
-      taskVycisteniVstupu--"{inputTextCleaned}"-->taskNazevWebu
-      taskDomeny("Domény")
-      taskNazevWebu--"{title}"-->taskDomeny
-      taskVycisteniVstupu--"{inputTextCleaned}"-->taskDomeny
-      taskDomeny("Domény")
-      taskDomeny--"{domainsCommaSeparated}"-->taskDomeny
-      taskZadani("Zadání")
-      taskNazevWebu--"{title}"-->taskZadani
-      taskVycisteniVstupu--"{inputTextCleaned}"-->taskZadani
-      taskEmail("Email")
-      taskNazevWebu--"{title}"-->taskEmail
-      taskZadani--"{assignment}"-->taskEmail
-      taskDomeny--"{domains}"-->taskEmail
+      vycisteni-vstupu("Vyčištění vstupu")
+      input--"{inputText}"-->vycisteni-vstupu
+      nazev-webu("Název webu")
+      vycisteni-vstupu--"{inputTextCleaned}"-->nazev-webu
+      domeny-0("Domény")
+      nazev-webu--"{title}"-->domeny-0
+      vycisteni-vstupu--"{inputTextCleaned}"-->domeny-0
+      domeny-1("Domény")
+      domeny-0--"{domainsCommaSeparated}"-->domeny-1
+      zadani("Zadání")
+      nazev-webu--"{title}"-->zadani
+      vycisteni-vstupu--"{inputTextCleaned}"-->zadani
+      email("Email")
+      nazev-webu--"{title}"-->email
+      zadani--"{assignment}"-->email
+      domeny-1--"{domains}"-->email
 
-      taskEmail--"{outputText}"-->output
+      email--"{outputText}"-->output
       output((Output)):::output
 
-      click taskVycisteniVstupu href "#vycisteni-vstupu" "Vyčištění vstupu";
-      click taskNazevWebu href "#nazev-webu" "Název webu";
-      click taskDomeny href "#domeny" "Domény";
-      click taskDomeny href "#domeny" "Domény";
-      click taskZadani href "#zadani" "Zadání";
-      click taskEmail href "#email" "Email";
+      click vycisteni-vstupu href "#vycisteni-vstupu" "Vyčištění vstupu";
+      click nazev-webu href "#nazev-webu" "Název webu";
+      click domeny-0 href "#domeny-0" "Domény";
+      click domeny-1 href "#domeny-1" "Domény";
+      click zadani href "#zadani" "Zadání";
+      click email href "#email" "Email";
 
       classDef input color: grey;
       classDef output color: grey;

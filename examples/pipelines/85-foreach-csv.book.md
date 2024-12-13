@@ -18,13 +18,13 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskWriteAEmail("Write a email")
-      input--"{customers}"-->taskWriteAEmail
+      write-a-email("Write a email")
+      input--"{customers}"-->write-a-email
 
-      taskWriteAEmail--"{emails}"-->output
+      write-a-email--"{emails}"-->output
       output((Output)):::output
 
-      click taskWriteAEmail href "#write-a-email" "Write a email";
+      click write-a-email href "#write-a-email" "Write a email";
 
       classDef input color: grey;
       classDef output color: grey;

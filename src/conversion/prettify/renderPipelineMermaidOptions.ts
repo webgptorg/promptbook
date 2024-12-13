@@ -44,7 +44,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
             throw new Error(`Could not find task for {${parameterName}}`);
         }
 
-        return normalizeTo_camelCase('task-' + titleToName(task.title));
+        return task.name || normalizeTo_camelCase('task-' + titleToName(task.title));
     };
 
     const promptbookMermaid = spaceTrim(
@@ -113,7 +113,6 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 }
 
 /**
- * TODO: !!!!!! Problem when task has same title
  * TODO: [🧠] !! FOREACH in mermaid graph
  * TODO: [🧠] !! Knowledge in mermaid graph
  * TODO: [🧠] !! Personas in mermaid graph

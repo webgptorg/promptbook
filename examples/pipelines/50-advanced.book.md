@@ -20,38 +20,38 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskSynonym("💬 Synonym")
-      input--"{word}"-->taskSynonym
-      taskTestThatWordIsNotOriginalWord("⚙ Test that word is not original word")
-      input--"{word}"-->taskTestThatWordIsNotOriginalWord
-      taskSynonym--"{wordSynonym}"-->taskTestThatWordIsNotOriginalWord
-      taskSentenceWithSynonym("💬 Sentence with Synonym")
-      input--"{word}"-->taskSentenceWithSynonym
-      taskSynonym--"{wordSynonym}"-->taskSentenceWithSynonym
-      taskSentenceWithoutOriginalWord("💬 Sentence without original word")
-      taskSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->taskSentenceWithoutOriginalWord
-      input--"{word}"-->taskSentenceWithoutOriginalWord
-      taskComparison("💬 Comparison")
-      taskSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->taskComparison
-      taskSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->taskComparison
-      taskSummary("🔗 Summary")
-      input--"{word}"-->taskSummary
-      taskSynonym--"{wordSynonym}"-->taskSummary
-      taskSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->taskSummary
-      taskSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->taskSummary
-      taskComparison--"{comparisonOfTwoSentences}"-->taskSummary
+      synonym("💬 Synonym")
+      input--"{word}"-->synonym
+      test-that-word-is-not-original-word("⚙ Test that word is not original word")
+      input--"{word}"-->test-that-word-is-not-original-word
+      synonym--"{wordSynonym}"-->test-that-word-is-not-original-word
+      sentence-with-synonym("💬 Sentence with Synonym")
+      input--"{word}"-->sentence-with-synonym
+      synonym--"{wordSynonym}"-->sentence-with-synonym
+      sentence-without-original-word("💬 Sentence without original word")
+      sentence-with-synonym--"{sentenceWithTwoSynonyms}"-->sentence-without-original-word
+      input--"{word}"-->sentence-without-original-word
+      comparison("💬 Comparison")
+      sentence-with-synonym--"{sentenceWithTwoSynonyms}"-->comparison
+      sentence-without-original-word--"{sentenceWithOriginalWordRemoved}"-->comparison
+      summary("🔗 Summary")
+      input--"{word}"-->summary
+      synonym--"{wordSynonym}"-->summary
+      sentence-with-synonym--"{sentenceWithTwoSynonyms}"-->summary
+      sentence-without-original-word--"{sentenceWithOriginalWordRemoved}"-->summary
+      comparison--"{comparisonOfTwoSentences}"-->summary
 
-      taskComparison--"{comparisonOfTwoSentences}"-->output
-      taskSummary--"{summary}"-->output
-      taskTestThatWordIsNotOriginalWord--"{wordSynonymTested}"-->output
+      comparison--"{comparisonOfTwoSentences}"-->output
+      summary--"{summary}"-->output
+      test-that-word-is-not-original-word--"{wordSynonymTested}"-->output
       output((Output)):::output
 
-      click taskSynonym href "#synonym" "💬 Synonym";
-      click taskTestThatWordIsNotOriginalWord href "#test-that-word-is-not-original-word" "⚙ Test that word is not original word";
-      click taskSentenceWithSynonym href "#sentence-with-synonym" "💬 Sentence with Synonym";
-      click taskSentenceWithoutOriginalWord href "#sentence-without-original-word" "💬 Sentence without original word";
-      click taskComparison href "#comparison" "💬 Comparison";
-      click taskSummary href "#summary" "🔗 Summary";
+      click synonym href "#synonym" "💬 Synonym";
+      click test-that-word-is-not-original-word href "#test-that-word-is-not-original-word" "⚙ Test that word is not original word";
+      click sentence-with-synonym href "#sentence-with-synonym" "💬 Sentence with Synonym";
+      click sentence-without-original-word href "#sentence-without-original-word" "💬 Sentence without original word";
+      click comparison href "#comparison" "💬 Comparison";
+      click summary href "#summary" "🔗 Summary";
 
       classDef input color: grey;
       classDef output color: grey;

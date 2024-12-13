@@ -18,15 +18,15 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      taskGreeting1("Greeting 1")
-      taskGreeting2("Greeting 2")
+      greeting-1("Greeting 1")
+      greeting-2("Greeting 2")
 
-      taskGreeting1--"{greeting1}"-->output
-      taskGreeting2--"{greeting2}"-->output
+      greeting-1--"{greeting1}"-->output
+      greeting-2--"{greeting2}"-->output
       output((Output)):::output
 
-      click taskGreeting1 href "#greeting-1" "Greeting 1";
-      click taskGreeting2 href "#greeting-2" "Greeting 2";
+      click greeting-1 href "#greeting-1" "Greeting 1";
+      click greeting-2 href "#greeting-2" "Greeting 2";
 
       classDef input color: grey;
       classDef output color: grey;
