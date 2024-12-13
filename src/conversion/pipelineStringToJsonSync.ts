@@ -314,7 +314,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             sectionCounts[name] = { count: 0, currentIndex: 0 };
         }
 
-        sectionCounts[name].count++;
+        sectionCounts[name]!.count++;
     }
 
     const getUniqueSectionName = (title: string) => {
