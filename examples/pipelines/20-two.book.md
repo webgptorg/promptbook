@@ -18,17 +18,17 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSynonym("💬 Synonym")
-      input--"{word}"-->templateSynonym
-      templateSentence("💬 Sentence")
-      input--"{word}"-->templateSentence
-      templateSynonym--"{wordSynonym}"-->templateSentence
+      taskSynonym("💬 Synonym")
+      input--"{word}"-->taskSynonym
+      taskSynonym("💬 Synonym")
+      input--"{word}"-->taskSynonym
+      taskSynonym--"{wordSynonym}"-->taskSynonym
 
-      templateSentence--"{sentenceWithTwoSynonyms}"-->output
+      taskSynonym--"{sentenceWithTwoSynonyms}"-->output
       output((Output)):::output
 
-      click templateSynonym href "#synonym" "💬 Synonym";
-      click templateSentence href "#sentence" "💬 Sentence";
+      click taskSynonym href "#synonym" "💬 Synonym";
+      click taskSynonym href "#synonym" "💬 Synonym";
 
       classDef input color: grey;
       classDef output color: grey;
@@ -50,7 +50,13 @@ Write synonym for "{word}"
 
 `-> {wordSynonym}`
 
+## 💬 Synonym
+
+<!--
+!!!!!!
+Problem when task has same title
 ## 💬 Sentence
+-->
 
 Sentence with word and wordSynonym
 

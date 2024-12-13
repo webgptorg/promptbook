@@ -20,38 +20,38 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSynonym("💬 Synonym")
-      input--"{word}"-->templateSynonym
-      templateTestThatWordIsNotOriginalWord("⚙ Test that word is not original word")
-      input--"{word}"-->templateTestThatWordIsNotOriginalWord
-      templateSynonym--"{wordSynonym}"-->templateTestThatWordIsNotOriginalWord
-      templateSentenceWithSynonym("💬 Sentence with Synonym")
-      input--"{word}"-->templateSentenceWithSynonym
-      templateSynonym--"{wordSynonym}"-->templateSentenceWithSynonym
-      templateSentenceWithoutOriginalWord("💬 Sentence without original word")
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSentenceWithoutOriginalWord
-      input--"{word}"-->templateSentenceWithoutOriginalWord
-      templateComparison("💬 Comparison")
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateComparison
-      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateComparison
-      templateSummary("🔗 Summary")
-      input--"{word}"-->templateSummary
-      templateSynonym--"{wordSynonym}"-->templateSummary
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSummary
-      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
-      templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
+      taskSynonym("💬 Synonym")
+      input--"{word}"-->taskSynonym
+      taskTestThatWordIsNotOriginalWord("⚙ Test that word is not original word")
+      input--"{word}"-->taskTestThatWordIsNotOriginalWord
+      taskSynonym--"{wordSynonym}"-->taskTestThatWordIsNotOriginalWord
+      taskSentenceWithSynonym("💬 Sentence with Synonym")
+      input--"{word}"-->taskSentenceWithSynonym
+      taskSynonym--"{wordSynonym}"-->taskSentenceWithSynonym
+      taskSentenceWithoutOriginalWord("💬 Sentence without original word")
+      taskSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->taskSentenceWithoutOriginalWord
+      input--"{word}"-->taskSentenceWithoutOriginalWord
+      taskComparison("💬 Comparison")
+      taskSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->taskComparison
+      taskSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->taskComparison
+      taskSummary("🔗 Summary")
+      input--"{word}"-->taskSummary
+      taskSynonym--"{wordSynonym}"-->taskSummary
+      taskSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->taskSummary
+      taskSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->taskSummary
+      taskComparison--"{comparisonOfTwoSentences}"-->taskSummary
 
-      templateComparison--"{comparisonOfTwoSentences}"-->output
-      templateSummary--"{summary}"-->output
-      templateTestThatWordIsNotOriginalWord--"{wordSynonymTested}"-->output
+      taskComparison--"{comparisonOfTwoSentences}"-->output
+      taskSummary--"{summary}"-->output
+      taskTestThatWordIsNotOriginalWord--"{wordSynonymTested}"-->output
       output((Output)):::output
 
-      click templateSynonym href "#synonym" "💬 Synonym";
-      click templateTestThatWordIsNotOriginalWord href "#test-that-word-is-not-original-word" "⚙ Test that word is not original word";
-      click templateSentenceWithSynonym href "#sentence-with-synonym" "💬 Sentence with Synonym";
-      click templateSentenceWithoutOriginalWord href "#sentence-without-original-word" "💬 Sentence without original word";
-      click templateComparison href "#comparison" "💬 Comparison";
-      click templateSummary href "#summary" "🔗 Summary";
+      click taskSynonym href "#synonym" "💬 Synonym";
+      click taskTestThatWordIsNotOriginalWord href "#test-that-word-is-not-original-word" "⚙ Test that word is not original word";
+      click taskSentenceWithSynonym href "#sentence-with-synonym" "💬 Sentence with Synonym";
+      click taskSentenceWithoutOriginalWord href "#sentence-without-original-word" "💬 Sentence without original word";
+      click taskComparison href "#comparison" "💬 Comparison";
+      click taskSummary href "#summary" "🔗 Summary";
 
       classDef input color: grey;
       classDef output color: grey;

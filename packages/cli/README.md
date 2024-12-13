@@ -92,7 +92,7 @@ There is also a javascript and json format available.
 ## Prettify
 
 ```bash
-npx ptbk prettify promptbook/**/*.book.md
+npx ptbk prettify 'promptbook/**/*.book.md'
 ```
 
 This will prettify all promptbooks in `promptbook` directory and adds Mermaid graphs to them.

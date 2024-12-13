@@ -18,13 +18,13 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateExtrakceKontaktnichUdaju("🖋 Extrakce kontaktních údajů")
-      input--"{unstructuredContacts}"-->templateExtrakceKontaktnichUdaju
+      taskExtrakceKontaktnichUdaju("🖋 Extrakce kontaktních údajů")
+      input--"{unstructuredContacts}"-->taskExtrakceKontaktnichUdaju
 
-      templateExtrakceKontaktnichUdaju--"{contactlist}"-->output
+      taskExtrakceKontaktnichUdaju--"{contactlist}"-->output
       output((Output)):::output
 
-      click templateExtrakceKontaktnichUdaju href "#extrakce-kontaktnich-udaju" "🖋 Extrakce kontaktních údajů";
+      click taskExtrakceKontaktnichUdaju href "#extrakce-kontaktnich-udaju" "🖋 Extrakce kontaktních údajů";
 
       classDef input color: grey;
       classDef output color: grey;

@@ -20,17 +20,17 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSentence("Sentence")
-      input--"{word}"-->templateSentence
-      templateSynonym--"{wordSynonym}"-->templateSentence
-      templateSynonym("Synonym")
-      input--"{word}"-->templateSynonym
+      taskSentence("Sentence")
+      input--"{word}"-->taskSentence
+      taskSynonym--"{wordSynonym}"-->taskSentence
+      taskSynonym("Synonym")
+      input--"{word}"-->taskSynonym
 
-      templateSentence--"{sentenceWithTwoSynonyms}"-->output
+      taskSentence--"{sentenceWithTwoSynonyms}"-->output
       output((Output)):::output
 
-      click templateSentence href "#sentence" "Sentence";
-      click templateSynonym href "#synonym" "Synonym";
+      click taskSentence href "#sentence" "Sentence";
+      click taskSynonym href "#synonym" "Synonym";
 
       classDef input color: grey;
       classDef output color: grey;

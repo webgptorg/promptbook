@@ -53,14 +53,14 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateUpravy("🖋 Úpravy")
-      input--"{suggestedAssignment}"-->templateUpravy
-      input--"{oldContent}"-->templateUpravy
+      taskUpravy("🖋 Úpravy")
+      input--"{suggestedAssignment}"-->taskUpravy
+      input--"{oldContent}"-->taskUpravy
 
-      templateUpravy--"{newContent}"-->output
+      taskUpravy--"{newContent}"-->output
       output((Output)):::output
 
-      click templateUpravy href "#upravy" "🖋 Úpravy";
+      click taskUpravy href "#upravy" "🖋 Úpravy";
 
       classDef input color: grey;
       classDef output color: grey;

@@ -6,6 +6,34 @@ Show how to iterate over a table of customers and write an email for each.
 -   INPUT PARAMETER `{customers}` Customer names each customer on each row
 -   OUTPUT PARAMETER `{emails}` Greeting to each customer on each row
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Write email for each customer"
+
+      direction TB
+
+      input((Input)):::input
+      taskWriteAEmail("Write a email")
+      input--"{customers}"-->taskWriteAEmail
+
+      taskWriteAEmail--"{emails}"-->output
+      output((Output)):::output
+
+      click taskWriteAEmail href "#write-a-email" "Write a email";
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## About eshop
 
 -   KNOWLEDGE

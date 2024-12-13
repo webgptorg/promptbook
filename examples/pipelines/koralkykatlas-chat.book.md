@@ -7,3 +7,30 @@ Show how to use a simple prompt with no parameters.
 -   PIPELINE URL https://promptbook.studio/examples/koralkykatlas-chat.book.md
 -   KNOWLEDGE https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html
 -   KNOWLEDGE https://koralkykatlas.cz/cs/blog/prispevek/adoptuj-si-svou-policku.html
+
+<!--Graph-->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Chat for KorarkyKatlas.cz"
+
+      direction TB
+
+      input((Input)):::input
+
+
+
+      output((Output)):::output
+
+
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->

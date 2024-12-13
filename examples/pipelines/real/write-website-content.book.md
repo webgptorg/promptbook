@@ -19,42 +19,42 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSpecifyingTheAssigment("👤 Specifying the assigment")
-      input--"{rawAssigment}"-->templateSpecifyingTheAssigment
-      templateImprovingTheTitle("✨ Improving the title")
-      input--"{rawTitle}"-->templateImprovingTheTitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
-      templateWebsiteTitleApproval("👤 Website title approval")
-      templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
-      templateCunningSubtitle("🐰 Cunning subtitle")
-      templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
-      templateKeywordAnalysis("🚦 Keyword analysis")
-      templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
-      templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
-      templateCombineTheBeginning("🔗 Combine the beginning")
-      templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
-      templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
-      templateWriteTheContent("🖋 Write the content")
-      templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
-      templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
-      templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
-      templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
-      templateCombineTheContent("🔗 Combine the content")
-      templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
-      templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
+      taskSpecifyingTheAssigment("👤 Specifying the assigment")
+      input--"{rawAssigment}"-->taskSpecifyingTheAssigment
+      taskImprovingTheTitle("✨ Improving the title")
+      input--"{rawTitle}"-->taskImprovingTheTitle
+      taskSpecifyingTheAssigment--"{assigment}"-->taskImprovingTheTitle
+      taskWebsiteTitleApproval("👤 Website title approval")
+      taskImprovingTheTitle--"{enhancedTitle}"-->taskWebsiteTitleApproval
+      taskCunningSubtitle("🐰 Cunning subtitle")
+      taskWebsiteTitleApproval--"{title}"-->taskCunningSubtitle
+      taskSpecifyingTheAssigment--"{assigment}"-->taskCunningSubtitle
+      taskKeywordAnalysis("🚦 Keyword analysis")
+      taskWebsiteTitleApproval--"{title}"-->taskKeywordAnalysis
+      taskSpecifyingTheAssigment--"{assigment}"-->taskKeywordAnalysis
+      taskCombineTheBeginning("🔗 Combine the beginning")
+      taskWebsiteTitleApproval--"{title}"-->taskCombineTheBeginning
+      taskCunningSubtitle--"{claim}"-->taskCombineTheBeginning
+      taskWriteTheContent("🖋 Write the content")
+      taskWebsiteTitleApproval--"{title}"-->taskWriteTheContent
+      taskSpecifyingTheAssigment--"{assigment}"-->taskWriteTheContent
+      taskKeywordAnalysis--"{keywords}"-->taskWriteTheContent
+      taskCombineTheBeginning--"{contentBeginning}"-->taskWriteTheContent
+      taskCombineTheContent("🔗 Combine the content")
+      taskCombineTheBeginning--"{contentBeginning}"-->taskCombineTheContent
+      taskWriteTheContent--"{contentBody}"-->taskCombineTheContent
 
-      templateCombineTheContent--"{websiteContent}"-->output
+      taskCombineTheContent--"{websiteContent}"-->output
       output((Output)):::output
 
-      click templateSpecifyingTheAssigment href "#specifying-the-assigment" "👤 Specifying the assigment";
-      click templateImprovingTheTitle href "#improving-the-title" "✨ Improving the title";
-      click templateWebsiteTitleApproval href "#website-title-approval" "👤 Website title approval";
-      click templateCunningSubtitle href "#cunning-subtitle" "🐰 Cunning subtitle";
-      click templateKeywordAnalysis href "#keyword-analysis" "🚦 Keyword analysis";
-      click templateCombineTheBeginning href "#combine-the-beginning" "🔗 Combine the beginning";
-      click templateWriteTheContent href "#write-the-content" "🖋 Write the content";
-      click templateCombineTheContent href "#combine-the-content" "🔗 Combine the content";
+      click taskSpecifyingTheAssigment href "#specifying-the-assigment" "👤 Specifying the assigment";
+      click taskImprovingTheTitle href "#improving-the-title" "✨ Improving the title";
+      click taskWebsiteTitleApproval href "#website-title-approval" "👤 Website title approval";
+      click taskCunningSubtitle href "#cunning-subtitle" "🐰 Cunning subtitle";
+      click taskKeywordAnalysis href "#keyword-analysis" "🚦 Keyword analysis";
+      click taskCombineTheBeginning href "#combine-the-beginning" "🔗 Combine the beginning";
+      click taskWriteTheContent href "#write-the-content" "🖋 Write the content";
+      click taskCombineTheContent href "#combine-the-content" "🔗 Combine the content";
 
       classDef input color: grey;
       classDef output color: grey;

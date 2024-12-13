@@ -18,32 +18,32 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateVycisteniVstupu("Vyčištění vstupu")
-      input--"{inputText}"-->templateVycisteniVstupu
-      templateNazevWebu("Název webu")
-      templateVycisteniVstupu--"{inputTextCleaned}"-->templateNazevWebu
-      templateDomeny("Domény")
-      templateNazevWebu--"{title}"-->templateDomeny
-      templateVycisteniVstupu--"{inputTextCleaned}"-->templateDomeny
-      templateDomeny("Domény")
-      templateDomeny--"{domainsCommaSeparated}"-->templateDomeny
-      templateZadani("Zadání")
-      templateNazevWebu--"{title}"-->templateZadani
-      templateVycisteniVstupu--"{inputTextCleaned}"-->templateZadani
-      templateEmail("Email")
-      templateNazevWebu--"{title}"-->templateEmail
-      templateZadani--"{assignment}"-->templateEmail
-      templateDomeny--"{domains}"-->templateEmail
+      taskVycisteniVstupu("Vyčištění vstupu")
+      input--"{inputText}"-->taskVycisteniVstupu
+      taskNazevWebu("Název webu")
+      taskVycisteniVstupu--"{inputTextCleaned}"-->taskNazevWebu
+      taskDomeny("Domény")
+      taskNazevWebu--"{title}"-->taskDomeny
+      taskVycisteniVstupu--"{inputTextCleaned}"-->taskDomeny
+      taskDomeny("Domény")
+      taskDomeny--"{domainsCommaSeparated}"-->taskDomeny
+      taskZadani("Zadání")
+      taskNazevWebu--"{title}"-->taskZadani
+      taskVycisteniVstupu--"{inputTextCleaned}"-->taskZadani
+      taskEmail("Email")
+      taskNazevWebu--"{title}"-->taskEmail
+      taskZadani--"{assignment}"-->taskEmail
+      taskDomeny--"{domains}"-->taskEmail
 
-      templateEmail--"{outputText}"-->output
+      taskEmail--"{outputText}"-->output
       output((Output)):::output
 
-      click templateVycisteniVstupu href "#vycisteni-vstupu" "Vyčištění vstupu";
-      click templateNazevWebu href "#nazev-webu" "Název webu";
-      click templateDomeny href "#domeny" "Domény";
-      click templateDomeny href "#domeny" "Domény";
-      click templateZadani href "#zadani" "Zadání";
-      click templateEmail href "#email" "Email";
+      click taskVycisteniVstupu href "#vycisteni-vstupu" "Vyčištění vstupu";
+      click taskNazevWebu href "#nazev-webu" "Název webu";
+      click taskDomeny href "#domeny" "Domény";
+      click taskDomeny href "#domeny" "Domény";
+      click taskZadani href "#zadani" "Zadání";
+      click taskEmail href "#email" "Email";
 
       classDef input color: grey;
       classDef output color: grey;
@@ -83,7 +83,7 @@ Vyčisti email pro další zpracování
 -   POSTPROCESS `spaceTrim`
 -   EXPECT MAX 3 WORDS
 -   EXPECT MAX 1 LINE
--   EXPECTED MAX 30 CHARACTERS
+-   EXPECT MAX 30 CHARACTERS
 
 ```
 Jsi zkušený copywrighter a dostal jsi zakázku na vytvoření názvu pro nový web. Zákazník ti poslal zadání.

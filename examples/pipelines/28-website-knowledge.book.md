@@ -7,6 +7,34 @@ Show how to use knowledge
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 -   KNOWLEDGE https://pavolhejny.com/
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Example: Knowledge in external website"
+
+      direction TB
+
+      input((Input)):::input
+      taskWritingBio("Writing bio")
+      input--"{eventTitle}"-->taskWritingBio
+
+      taskWritingBio--"{bio}"-->output
+      output((Output)):::output
+
+      click taskWritingBio href "#writing-bio" "Writing bio";
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## Writing bio
 
 -   EXPECT MIN 1 Sentence

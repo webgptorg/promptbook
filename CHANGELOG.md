@@ -199,7 +199,7 @@ After install you can use `promptbook` command in terminal:
 
 ```bash
 npm i @promptbook/utils
-npx ptbk prettify promptbook/**/*.ptbk.md
+npx ptbk prettify 'promptbook/**/*.ptbk.md'
 ```
 
 ### `0.44.0` _(2024-04-26)_

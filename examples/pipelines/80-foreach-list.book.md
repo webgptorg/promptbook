@@ -6,6 +6,34 @@ Show how to iterate over a list of customers and write a greeting for each.
 -   INPUT PARAMETER `{customers}` Customer names each customer on each row
 -   OUTPUT PARAMETER `{greetings}` Greeting to each customer on each row
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Write greeting for each customer"
+
+      direction TB
+
+      input((Input)):::input
+      taskWriteAGreeting("Write a greeting")
+      input--"{customers}"-->taskWriteAGreeting
+
+      taskWriteAGreeting--"{greetings}"-->output
+      output((Output)):::output
+
+      click taskWriteAGreeting href "#write-a-greeting" "Write a greeting";
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## Write a greeting
 
 -   FOREACH Text Line `{customers}` -> `{customer}`
