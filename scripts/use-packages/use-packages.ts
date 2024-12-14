@@ -54,9 +54,12 @@ async function usePackages() {
             break;
         }
 
-        console.warn(colors.gray(`Waiting for version ${currentVersion} to be available in NPM`));
+        console.warn(colors.gray(`Waiting for version ${currentVersion} to be available on NPM`));
         await forTime(1111 + 3333 * Math.random());
     }
+
+    console.warn(colors.green(`Version ${currentVersion} is available on NPM`));
+    await forTime(5 * 1000);
 
     // Note: Update the version in all packages
     for (const remoteFolder of [
