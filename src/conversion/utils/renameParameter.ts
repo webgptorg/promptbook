@@ -22,13 +22,13 @@ type RenameParameterOptions = {
 };
 
 /**
- * Function `renameParameter` will find all usable parameters for given task
+ * Function `renamePipelineParameter` will find all usable parameters for given task
  * In other words, it will find all parameters that are not used in the task itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
  * @public exported from `@promptbook/utils`
  */
-export function renameParameter(options: RenameParameterOptions): PipelineJson {
+export function renamePipelineParameter(options: RenameParameterOptions): PipelineJson {
     const { pipeline: pipeline, oldParameterName, newParameterName } = options;
 
     if (pipeline.parameters.some((parameter) => parameter.name === newParameterName)) {

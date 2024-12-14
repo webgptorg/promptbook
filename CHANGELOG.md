@@ -614,6 +614,13 @@ Support for more models, add `@promptbook/vercel` and `@promptbook/google` packa
 -   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
 -   Rename `$currentDate` -> `$getCurrentDate`
 
+### `0.78.0` _(2024-12-14)_
+
+Utility functions
+
+- Rename util `renameParameter` -> `renamePipelineParameter`
+
+
 ## Drafts
 
 ### `0..0` _(2024--)_
