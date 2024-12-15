@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { PipelineString } from '../../_packages/types.index';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { just } from '../../utils/organization/just';
 import { removePipelineCommand } from './removePipelineCommand';
 

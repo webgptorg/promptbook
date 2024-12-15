@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
-import { CommandType } from '../../commands/_common/types/CommandType';
-import { PipelineString } from '../../pipeline/PipelineString';
+import type { CommandType } from '../../commands/_common/types/CommandType';
+import type { PipelineString } from '../../pipeline/PipelineString';
 
 /**
  * Options for `removePipelineCommand`

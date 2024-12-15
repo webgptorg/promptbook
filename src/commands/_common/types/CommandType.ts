@@ -1,4 +1,4 @@
-import { Command } from './Command';
+import type { Command } from './Command';
 
 /**
  * Command is one piece of the book file section which adds some logic to the task or the whole pipeline.
@@ -7,8 +7,6 @@ import { Command } from './Command';
  * This is a type of the command like "KNOWLEDGE" or "PERSONA"
  */
 export type CommandType = Command['type'];
-
-
 
 /**
  * Command is one piece of the book file section which adds some logic to the task or the whole pipeline.
