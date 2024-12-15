@@ -618,7 +618,10 @@ Support for more models, add `@promptbook/vercel` and `@promptbook/google` packa
 
 Utility functions
 
+- Add `removePipelineCommand`
 - Rename util `renameParameter` -> `renamePipelineParameter`
+-
+
 
 
 ## Drafts
