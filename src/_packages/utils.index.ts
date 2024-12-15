@@ -1,7 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/utils`
 
-import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
+import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
 import { extractParameterNamesFromTask } from '../conversion/utils/extractParameterNamesFromTask';
 import { extractVariablesFromScript } from '../conversion/utils/extractVariablesFromScript';
 import { renamePipelineParameter } from '../conversion/utils/renamePipelineParameter';
