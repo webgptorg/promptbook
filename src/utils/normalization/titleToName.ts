@@ -1,8 +1,8 @@
 import { basename } from 'path';
-import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
-import { removeEmojis } from '../../utils/removeEmojis';
-import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
+import { removeEmojis } from '../removeEmojis';
+import { isValidFilePath } from '../validators/filePath/isValidFilePath';
+import { isValidUrl } from '../validators/url/isValidUrl';
+import { normalizeToKebabCase } from './normalize-to-kebab-case';
 
 /**
  * @@@

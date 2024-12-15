@@ -5,7 +5,6 @@ import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMe
 import { extractParameterNamesFromTask } from '../conversion/utils/extractParameterNamesFromTask';
 import { extractVariables } from '../conversion/utils/extractVariables';
 import { renamePipelineParameter } from '../conversion/utils/renamePipelineParameter';
-import { titleToName } from '../conversion/utils/titleToName';
 import { deserializeError } from '../errors/utils/deserializeError';
 import { serializeError } from '../errors/utils/serializeError';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -44,6 +43,7 @@ import { parseKeywords } from '../utils/normalization/parseKeywords';
 import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics } from '../utils/normalization/removeDiacritics';
 import { searchKeywords } from '../utils/normalization/searchKeywords';
+import { titleToName } from '../utils/normalization/titleToName';
 import { spaceTrim } from '../utils/organization/spaceTrim';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
 import { replaceParameters } from '../utils/parameters/replaceParameters';
