@@ -3,7 +3,7 @@
 
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractParameterNamesFromTask } from '../conversion/utils/extractParameterNamesFromTask';
-import { extractVariables } from '../conversion/utils/extractVariables';
+import { extractVariablesFromScript } from '../conversion/utils/extractVariablesFromScript';
 import { renamePipelineParameter } from '../conversion/utils/renamePipelineParameter';
 import { deserializeError } from '../errors/utils/deserializeError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -104,7 +104,7 @@ export {
     difference,
     extractParameterNames,
     extractParameterNamesFromTask,
-    extractVariables,
+    extractVariablesFromScript,
     forEachAsync,
     intersection,
     isHostnameOnPrivateNetwork,

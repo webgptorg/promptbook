@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_javascript_name } from '../../types/typeAliases';
+import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
@@ -10,7 +9,7 @@ import type { string_javascript_name } from '../../types/typeAliases';
  * @throws {ParseError} if the script is invalid
  * @public exported from `@promptbook/utils`
  */
-export function extractVariables(script: string_javascript): Set<string_javascript_name> {
+export function extractVariablesFromScript(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();
 
     script = `(()=>{${script}})()`;
@@ -52,7 +51,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
 
                     ${block((error as Error).toString())}}
                 `,
-                // <- TODO: [🚞] Pass from consumer(s) of `extractVariables`
+                // <- TODO: [🚞] Pass from consumer(s) of `extractVariablesFromScript`
             ),
         );
     }
