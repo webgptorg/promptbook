@@ -58,6 +58,15 @@ describe('how `removePipelineCommand` works', () => {
                     <!--
                     - KNOWLEDGE Foooo
                     -->
+
+                    ## Task
+
+                    - KNOWLEDGE Foooo bar
+                    - PERSONA Paul, developer of the Promptbook
+
+                    \`\`\`
+                    - KNOWLEDGE https://pavolhejny.com/
+                    \`\`\`
                 `) as PipelineString,
             }),
         ).toBe(
@@ -72,7 +81,13 @@ describe('how `removePipelineCommand` works', () => {
                     - KNOWLEDGE Foooo
                     -->
 
+                    ## Task
 
+                    - PERSONA Paul, developer of the Promptbook
+
+                    \`\`\`
+                    - KNOWLEDGE https://pavolhejny.com/
+                    \`\`\`
                 `),
             ),
         ));

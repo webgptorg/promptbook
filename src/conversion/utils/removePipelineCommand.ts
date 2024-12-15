@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { CommandType } from '../../commands/_common/types/CommandType';
 import { PipelineString } from '../../pipeline/PipelineString';
 
@@ -25,5 +26,38 @@ type RemovePipelineCommandOptions = {
 export function removePipelineCommand(options: RemovePipelineCommandOptions): PipelineString {
     const { command, pipeline } = options;
 
-    return pipeline;
+    const lines = pipeline.split('\n');
+
+    // TODO: [🧽] DRY
+    let currentType: 'MARKDOWN' | 'CODE_BLOCK' | 'COMMENT' = 'MARKDOWN';
+
+    const newLines: Array<string> = [];
+
+    for (const line of lines) {
+        if (currentType === 'MARKDOWN') {
+            if (line.startsWith('```')) {
+                currentType = 'CODE_BLOCK';
+            } else if (line.includes('<!--')) {
+                currentType = 'COMMENT';
+            }
+        } else if (currentType === 'CODE_BLOCK') {
+            if (line.startsWith('```')) {
+                currentType = 'MARKDOWN';
+            }
+        } else if (currentType === 'COMMENT') {
+            if (line.includes('-->')) {
+                currentType = 'MARKDOWN';
+            }
+        }
+
+        if (currentType === 'MARKDOWN' && /^(-|\d\))/m.test(line) && line.toUpperCase().includes(command)) {
+            continue;
+        }
+
+        newLines.push(line);
+    }
+
+    const newPipeline = spaceTrim(newLines.join('\n'));
+
+    return newPipeline as PipelineString;
 }
