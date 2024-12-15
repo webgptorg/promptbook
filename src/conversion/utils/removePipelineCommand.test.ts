@@ -1,54 +1,79 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { just } from '../just';
+import { PipelineString } from '../../_packages/types.index';
+import { just } from '../../utils/organization/just';
+import { removePipelineCommand } from './removePipelineCommand';
 
 describe('how `removePipelineCommand` works', () => {
-    it('should work with foo', () =>
+    it('should keep the pipeline when command is not there', () =>
         expect(
-            removePipelineCommand(
-                spaceTrim(`
-                    Foo
+            removePipelineCommand({
+                command: 'PERSONA',
+                pipeline: spaceTrim(`
+                    # Book
 
-                    Bar
-
-                    Baz
-                `),
-            ),
+                    - KNOWLEDGE https://pavolhejny.com/
+                `) as PipelineString,
+            }),
         ).toBe(
             just(
                 spaceTrim(`
-                    Foo
+                    # Book
 
-                    Bar
-
-                    Baz
+                    - KNOWLEDGE https://pavolhejny.com/
                 `),
             ),
-        )
-    );
+        ));
 
-    it('should NOT work with bar', () =>
+    it('should remove the command', () =>
         expect(
-            removePipelineCommand(
+            removePipelineCommand({
+                command: 'KNOWLEDGE',
+                pipeline: spaceTrim(`
+                    # Book
+
+                    - KNOWLEDGE https://pavolhejny.com/
+                `) as PipelineString,
+            }),
+        ).toBe(
+            just(
                 spaceTrim(`
-                    bar
+                    # Book
+
                 `),
             ),
-        ).toBe(false)
-    );
+        ));
+
+    it('should work in advanced case', () =>
+        expect(
+            removePipelineCommand({
+                command: 'KNOWLEDGE',
+                pipeline: spaceTrim(`
+                    # Book
+
+                    - KNOWLEDGE https://pavolhejny.com/
+                    - PERSONA Paul, developer of the Promptbook
+
+                    <!-- - KNOWLEDGE https://pavolhejny.com/ -->
+                    <!--
+                    - KNOWLEDGE Foooo
+                    -->
+                `) as PipelineString,
+            }),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Book
+
+                    - PERSONA Paul, developer of the Promptbook
+
+                    <!-- - KNOWLEDGE https://pavolhejny.com/ -->
+                    <!--
+                    - KNOWLEDGE Foooo
+                    -->
+
+
+                `),
+            ),
+        ));
 });
-
-/**
- * Function `removePipelineCommand` will @@@
- *
- * @public exported from `@promptbook/core` <- Note: [👖] This utility is so tightly interconnected with the Promptbook that it is not exported as util but in core
- */
-export function removePipelineCommand(value: string): boolean {
-    // TODO: [main] !!! Implement the function
-    return value === 'Foo';
-}
-
-
-/**
- * TODO: [main] !!! Extract `removePipelineCommand` to separate file
- */
