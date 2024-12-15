@@ -7,7 +7,7 @@ import type { string_javascript, string_javascript_name } from '../../types/type
  * @param script from which to extract the variables
  * @returns the list of variable names
  * @throws {ParseError} if the script is invalid
- * @public exported from `@promptbook/utils`
+ * @public exported from `@promptbook/utils` <- Note: [👖] This is usable elsewhere than in Promptbook, so keeping in utils
  */
 export function extractVariablesFromScript(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();

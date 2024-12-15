@@ -621,7 +621,7 @@ Utility functions
 -   Add `removePipelineCommand`
 -   Rename util `renameParameter` -> `renamePipelineParameter`
 -   Rename util `extractVariables` -> `extractVariablesFromScript`
--
+-   [👖] Utilities `extractParameterNamesFromTask` and `renamePipelineParameter` are not exported from `@promptbook/utils` but `@promptbook/core` because they are tightly interconnected with the Promptbook and cannot be used as universal utility
 
 ## Drafts
 
