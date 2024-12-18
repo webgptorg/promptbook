@@ -92,6 +92,6 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
 }
 
 /**
- * TODO: [🧠][🍡] Some better (non-hardcoded) way how to filter non-entities looking like entities
+ * TODO: [🧠][🍡][💩] Some better (non-hardcoded) way how to filter non-entities looking like entities
  * Note: [⚫] Code in this file should never be published in any package
  */

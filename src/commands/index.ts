@@ -38,7 +38,7 @@ export const COMMANDS = [
     foreachCommandParser,
     boilerplateCommandParser, // <- TODO: !! Only in development, remove in production
 
-    // <- Note: [♓️] This is the order of the commands in the pipeline, BUT its not used in parsing and before usage maybe it should be done better
+    // <- Note: [♓️][💩] This is the order of the commands in the pipeline, BUT its not used in parsing and before usage maybe it should be done better
 ] as const;
 
 
