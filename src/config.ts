@@ -1,6 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_url_image } from './types/typeAliases';
+import type { string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -19,6 +19,11 @@ export const GENERATOR_WARNING = `⚠️ WARNING: This code has been generated s
  * @public exported from `@promptbook/core`
  */
 export const NAME = `Promptbook`;
+
+/**
+ * Name of the responsible person for the Promptbook on GitHub
+ */
+export const ADMIN_GITHUB_NAME: string_name = ('hejny');
 
 /**
  * Claim for the Promptbook

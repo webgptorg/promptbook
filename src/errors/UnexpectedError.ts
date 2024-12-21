@@ -1,8 +1,9 @@
 import { spaceTrim } from 'spacetrim';
+import { getErrorReportUrl } from './utils/getErrorReportUrl';
 
 /**
  * This error type indicates that the error should not happen and its last check before crashing with some other error
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export class UnexpectedError extends Error {
@@ -17,7 +18,7 @@ export class UnexpectedError extends Error {
                     It's probbably a bug in the pipeline collection
 
                     Please report issue:
-                    https://github.com/webgptorg/promptbook/issues
+                    ${block(getErrorReportUrl(this).href)}
 
                     Or contact us on me@pavolhejny.com
 
