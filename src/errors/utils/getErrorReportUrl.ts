@@ -16,7 +16,7 @@ export function getErrorReportUrl(error: Error): URL {
 
             \`\`\`
             ${block(error.message || '(no error message)')}
-            \`\`\`stacktrace
+            \`\`\`
 
 
             ## More info:
