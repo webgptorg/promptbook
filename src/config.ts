@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -23,11 +21,15 @@ export const NAME = `Promptbook`;
 
 /**
  * Email of the responsible person
+ *
+ * @public exported from `@promptbook/core`
  */
 export const ADMIN_EMAIL: string_email = 'me@pavolhejny.com';
 
 /**
  * Name of the responsible person for the Promptbook on GitHub
+ *
+ * @public exported from `@promptbook/core`
  */
 export const ADMIN_GITHUB_NAME: string_name = 'hejny';
 
