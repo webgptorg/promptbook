@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_javascript_name } from '../../types/typeAliases';
+import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
@@ -13,6 +12,7 @@ import type { string_javascript_name } from '../../types/typeAliases';
 export function extractVariablesFromScript(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();
 
+    const originalScript = script;
     script = `(()=>{${script}})()`;
 
     try {
@@ -51,6 +51,20 @@ export function extractVariablesFromScript(script: string_javascript): Set<strin
                     Can not extract variables from the script
 
                     ${block((error as Error).toString())}}
+
+
+                    Found variables:
+
+                    ${Array.from(variables)
+                        .map((variableName, i) => `${i + 1}) ${variableName}`)
+                        .join('\n')}
+
+
+                    The script:
+
+                    \`\`\`javascript
+                    ${block(originalScript)}
+                    \`\`\`
                 `,
                 // <- TODO: [🚞] Pass from consumer(s) of `extractVariablesFromScript`
             ),
