@@ -289,7 +289,6 @@ export type {
     CommandParser,
     CommandParserInput,
     CommandType,
-    CommandTypeOrAlias,
     CommandUsagePlace,
     CommonParameterJson,
     CommonTaskJson,
