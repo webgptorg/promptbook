@@ -8,6 +8,8 @@ import { createCollectionFromPromise } from '../collection/constructors/createCo
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
 import { NAME } from '../config';
+import { ADMIN_EMAIL } from '../config';
+import { ADMIN_GITHUB_NAME } from '../config';
 import { CLAIM } from '../config';
 import { LOGO_LIGHT_SRC } from '../config';
 import { LOGO_DARK_SRC } from '../config';
@@ -132,6 +134,8 @@ export { createCollectionFromPromise };
 export { createCollectionFromUrl };
 export { createSubcollection };
 export { NAME };
+export { ADMIN_EMAIL };
+export { ADMIN_GITHUB_NAME };
 export { CLAIM };
 export { LOGO_LIGHT_SRC };
 export { LOGO_DARK_SRC };
