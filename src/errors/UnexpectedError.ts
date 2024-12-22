@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { ADMIN_EMAIL } from '../config';
 import { getErrorReportUrl } from './utils/getErrorReportUrl';
 
 /**
@@ -20,7 +21,7 @@ export class UnexpectedError extends Error {
                     Please report issue:
                     ${block(getErrorReportUrl(this).href)}
 
-                    Or contact us on me@pavolhejny.com
+                    Or contact us on ${ADMIN_EMAIL}
 
                 `,
             ),
