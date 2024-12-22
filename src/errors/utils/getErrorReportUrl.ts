@@ -6,6 +6,8 @@ import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Make error report URL for the given error
+ *
+ * @private !!!!!!
  */
 export function getErrorReportUrl(error: Error): URL {
     const report = {
