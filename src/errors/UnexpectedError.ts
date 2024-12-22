@@ -19,7 +19,7 @@ export class UnexpectedError extends Error {
                     It's probbably a bug in the pipeline collection
 
                     Please report issue:
-                    ${block(getErrorReportUrl(this).href)}
+                    ${block(getErrorReportUrl(new Error(message)).href)}
 
                     Or contact us on ${ADMIN_EMAIL}
 
