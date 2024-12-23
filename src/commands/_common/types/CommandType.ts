@@ -14,6 +14,6 @@ export type CommandType = Command['type'];
  *
  * This is a type of the command like "KNOWLEDGE" or "PERSONA"
  *
-export type CommandTypeOrAlias = Command['type'] | Command['aliasNames'] | Command['deprecatedNames'];
+ex--rt type CommandTypeOrAlias = Command['type'] | Command['aliasNames'] | Command['deprecatedNames'];
 // <- TODO: [🧘] Implement
 */
