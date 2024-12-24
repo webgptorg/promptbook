@@ -1,6 +1,6 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
+# ❄ Promptbook
 
 
 
@@ -14,7 +14,7 @@
 
 
 
-## ✨ New Features
+## ❄ New Features
 
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
 -   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
