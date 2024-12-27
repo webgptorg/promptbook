@@ -16,6 +16,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
     title: 'Open AI',
     packageName: '@promptbook/openai',
     className: 'OpenAiExecutionTools',
+    envVariables: ['OPENAI_API_KEY'],
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
@@ -57,6 +58,8 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
     title: 'Open AI Assistant',
     packageName: '@promptbook/openai',
     className: 'OpenAiAssistantExecutionTools',
+    envVariables: null,
+    //            <- TODO: ['OPENAI_API_KEY', 'OPENAI_ASSISTANT_ID']
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
@@ -91,7 +94,6 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
         */
     },
 });
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

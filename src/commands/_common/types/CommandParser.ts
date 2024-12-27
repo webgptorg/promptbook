@@ -1,4 +1,4 @@
-import type { WritableDeep } from 'type-fest';
+import type { SetOptional, WritableDeep } from 'type-fest';
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../../pipeline/PipelineJson/TaskJson';
 import type { string_markdown_text } from '../../../types/typeAliases';
@@ -48,11 +48,13 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
      * @@@
      */
     readonly aliasNames?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
+    // <- TODO: [🧘] Make it non-optional
 
     /**
      * @@@
      */
     readonly deprecatedNames?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
+    // <- TODO: [🧘] Make it non-optional
 
     /**
      * @@@
@@ -167,7 +169,7 @@ export type $TaskJson = {
  *
  * @private internal helper for command parsers
  */
-export type $PipelineJson = WritableDeep<PipelineJson>;
+export type $PipelineJson = WritableDeep<SetOptional<PipelineJson, 'formfactorName'>>;
 
 /**
  * @@@

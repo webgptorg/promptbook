@@ -12,7 +12,9 @@ import { executionReportJsonToString } from '../../execution/execution-report/ex
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
+import { $llmToolsMetadataRegister } from '../../llm-providers/_common/register/$llmToolsMetadataRegister';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
@@ -120,14 +122,26 @@ export function initializeRunCommand(program: Program) {
 
             console.error(
                 colors.red(
-                    spaceTrim(`
-                        You need to configure LLM tools first
+                    spaceTrim(
+                        (block) => `
+                            You need to configure LLM tools first
 
-                        1) Create .env file
-                        2) Add OPENAI_API_KEY=...
-                        3) *(and/or)* Add ANTHROPIC_CLAUDE_API_KEY=...
-                    `),
-                    // <- TODO: List configuration keys dynamically
+                            1) Create .env file at the root of your project
+                            2) Configure API keys for LLM tools
+                            
+                            For example:
+                            ${block(
+                                $llmToolsMetadataRegister
+                                    .list()
+                                    .map(
+                                        ({ title, envVariables }) => `- ${(envVariables || []).join(' + ')} (${title})`,
+                                    )
+                                    .join('\n'),
+                            )}
+
+                            ${block($registeredLlmToolsMessage())}
+                        `,
+                    ),
                 ),
             );
             return process.exit(1);

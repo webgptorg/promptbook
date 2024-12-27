@@ -199,7 +199,7 @@ After install you can use `promptbook` command in terminal:
 
 ```bash
 npm i @promptbook/utils
-npx ptbk prettify promptbook/**/*.ptbk.md
+npx ptbk prettify 'promptbook/**/*.ptbk.md'
 ```
 
 ### `0.44.0` _(2024-04-26)_
@@ -601,7 +601,38 @@ Formfactors, Rebranding
 -   Rename default folder for your books from `promptbook-collection` -> `books`
 -   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
 
-### `0. .0` _(202--)_
+### `0.76.0` _(2024-12-07)_
+
+Skipped, because of the mistake in the versioning. _(It should be pre-release)_
+
+### `0.77.0` _(2024-12-10)_
+
+Support for more models, add `@promptbook/vercel` and `@promptbook/google` packages.
+
+-   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
+-   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
+-   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
+-   Rename `$currentDate` -> `$getCurrentDate`
+
+### `0.78.0` _(2024-12-14)_
+
+Utility functions
+
+-   Add `removePipelineCommand`
+-   Rename util `renameParameter` -> `renamePipelineParameter`
+-   Rename util `extractVariables` -> `extractVariablesFromScript`
+-   [👖] Utilities `extractParameterNamesFromTask` and `renamePipelineParameter` are not exported from `@promptbook/utils` but `@promptbook/core` because they are tightly interconnected with the Promptbook and cannot be used as universal utility
+
+### `0.79.0` _(2024-12-27)_
+
+Implicit formfactors
+
+-   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
+-   Fix in deep cloning of arrays
+
+## In Pre-release
+
+### `0.!!!!!!.0` _(202--)_
 
 compatibility
 
@@ -625,25 +656,25 @@ ACRY DoesNotMakeSenseError search for sense
 
 ## Drafts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 `createLibraryFromDirectory` uses prebuild library
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better expectation format in `PromptbookJson`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Allow to split parameters into multiple values and iterate over them
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!-- Search ACRY "MODEL NAME " -->
 
 -   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better script execution
 
@@ -651,17 +682,17 @@ Better script execution
 -   List all default postprocessing functions in `@promptbook/utils` README
 -   Implement `PythonExecutionTools` for executing Python scripts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
 More options to create `PromptbookLibrary`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Intagration with Langtail
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 

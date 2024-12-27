@@ -33,15 +33,19 @@ import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
+import { extractParameterNamesFromTask } from '../conversion/utils/extractParameterNamesFromTask';
+import { removePipelineCommand } from '../conversion/utils/removePipelineCommand';
+import { renamePipelineParameter } from '../conversion/utils/renamePipelineParameter';
 import { stringifyPipelineJson } from '../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CallbackInterfaceTools } from '../dialogs/callback/CallbackInterfaceTools';
 import type { CallbackInterfaceToolsOptions } from '../dialogs/callback/CallbackInterfaceToolsOptions';
+import { BoilerplateError } from '../errors/0-BoilerplateError';
+import { PROMPTBOOK_ERRORS } from '../errors/0-index';
 import { AbstractFormatError } from '../errors/AbstractFormatError';
 import { CollectionError } from '../errors/CollectionError';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { ExpectError } from '../errors/ExpectError';
-import { ERRORS } from '../errors/index';
 import { KnowledgeScrapeError } from '../errors/KnowledgeScrapeError';
 import { LimitReachedError } from '../errors/LimitReachedError';
 import { MissingToolsError } from '../errors/MissingToolsError';
@@ -83,6 +87,7 @@ import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usag
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
 import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic-claude/register-configuration';
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
+import { _GoogleMetadataRegistration } from '../llm-providers/google/register-configuration';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import {

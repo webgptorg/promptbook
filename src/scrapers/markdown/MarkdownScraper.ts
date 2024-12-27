@@ -10,7 +10,6 @@ import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
 import { DEFAULT_IS_VERBOSE } from '../../config';
 import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
-import { titleToName } from '../../conversion/utils/titleToName';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
@@ -20,6 +19,7 @@ import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecu
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { arrayableToArray } from '../../utils/arrayableToArray';
+import { titleToName } from '../../utils/normalization/titleToName';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import { markdownScraperMetadata } from './register-metadata';

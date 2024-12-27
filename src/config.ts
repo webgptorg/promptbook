@@ -1,8 +1,9 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
+import type { string_email } from './types/typeAliases';
+import type { string_name } from './types/typeAliases';
 import type { string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
-import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**
  * Warning message for the generated sections and files files
@@ -19,6 +20,20 @@ export const GENERATOR_WARNING = `⚠️ WARNING: This code has been generated s
  * @public exported from `@promptbook/core`
  */
 export const NAME = `Promptbook`;
+
+/**
+ * Email of the responsible person
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const ADMIN_EMAIL: string_email = 'me@pavolhejny.com';
+
+/**
+ * Name of the responsible person for the Promptbook on GitHub
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const ADMIN_GITHUB_NAME: string_name = 'hejny';
 
 /**
  * Claim for the Promptbook
@@ -191,18 +206,19 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
  *
  * @public exported from `@promptbook/core`
  */
-export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson('RESERVED_PARAMETER_NAMES', [
-    'content',
-    'context', // <- [🧠][🏍] Is parameter {context} good for anything?
-    'knowledge',
-    'examples',
-    'modelName',
-    'currentDate',
+export const RESERVED_PARAMETER_NAMES =
+    /* !!!!!! $asDeeplyFrozenSerializableJson('RESERVED_PARAMETER_NAMES', _____ as const); */ [
+        'content',
+        'context', // <- [🧠][🏍] Is parameter {context} good for anything?
+        'knowledge',
+        'examples',
+        'modelName',
+        'currentDate',
 
-    // <- TODO: list here all command names
-    // <- TODO: Add more like 'date', 'modelName',...
-    // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
-] as const);
+        // <- TODO: list here all command names
+        // <- TODO: Add more like 'date', 'modelName',...
+        // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
+    ] as const;
 
 /**
  * @@@
@@ -261,7 +277,18 @@ export const DEFAULT_CSV_SETTINGS: CsvSettings = Object.freeze({
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_IS_VERBOSE = false;
+export let DEFAULT_IS_VERBOSE = false;
+
+/**
+ * @@@
+ *
+ * Note: This is experimental feature
+ *
+ * @public exported from `@promptbook/core`
+ */
+export function SET_IS_VERBOSE(isVerbose: boolean): void {
+    DEFAULT_IS_VERBOSE = isVerbose;
+}
 
 /**
  * @@@

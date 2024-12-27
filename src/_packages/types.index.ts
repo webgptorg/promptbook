@@ -61,7 +61,7 @@ import type {
     AnthropicClaudeExecutionToolsProxiedOptions,
 } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-openai/AzureOpenAiExecutionToolsOptions';
-import type { LangtailExecutionToolsOptions } from '../llm-providers/langtail/LangtailExecutionToolsOptions';
+import type { GoogleExecutionToolsOptions } from '../llm-providers/google/GoogleExecutionToolsOptions';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import type { PromptbookServer_Error } from '../llm-providers/remote/interfaces/PromptbookServer_Error';

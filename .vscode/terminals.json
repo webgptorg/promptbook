@@ -37,14 +37,6 @@
             "focus": false
         },
         {
-            "name": "👨‍💻🔽 Install promptbook for usage examples",
-            "cwd": "./examples/usage/",
-            "command": "npm i",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
             "name": "🧪 Lint",
             "command": "npm run lint",
             "execute": false,
@@ -100,6 +92,13 @@
             "focus": false
         },
         {
+            "name": "🏭📚 Generate documentation",
+            "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
             "name": "🏭📖 Generate examples .book.md -> .book.json (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
@@ -112,7 +111,7 @@
         {
             "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
             "commands": [
-                "npx ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify examples/pipelines/**/*.book.md --ignore \"examples/pipelines/errors/**/*.book.md\""
+                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book.md' --ignore 'examples/pipelines/errors/**/*.book.md'"
             ],
             "execute": false,
             "onlySingle": false,
@@ -154,6 +153,12 @@
         {
             "name": "🧸 Anthropic Claude playground (💸)",
             "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Vercel playground (💸)",
+            "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
@@ -233,6 +238,12 @@
         {
             "name": "📖 Make Promptbook collection (💸) [🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "👨🏽‍💻 Force reinstall of node modules",
+            "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
             "onlySingle": true,
             "focus": true
         },

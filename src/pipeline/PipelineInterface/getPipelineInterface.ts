@@ -1,5 +1,5 @@
 import type { WritableDeep } from 'type-fest';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import { deepClone } from '../../utils/serialization/deepClone';
 import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { PipelineJson } from '../PipelineJson/PipelineJson';
@@ -22,11 +22,17 @@ export function getPipelineInterface(pipeline: PipelineJson): PipelineInterface 
         const { isInput, isOutput } = parameter;
 
         if (isInput) {
-            pipelineInterface.inputParameters.push(parameter as TODO_any);
+            pipelineInterface.inputParameters.push(
+                deepClone(parameter),
+                // <- Note: Clone to prevent mutation when `$deepFreeze` is called at the end
+            );
         }
 
         if (isOutput) {
-            pipelineInterface.outputParameters.push(parameter as TODO_any);
+            pipelineInterface.outputParameters.push(
+                deepClone(parameter),
+                // <- Note: Clone to prevent mutation when `$deepFreeze` is called at the end
+            );
         }
     }
 

@@ -168,11 +168,18 @@ export type ReservedParameters = Record<string_reserved_parameter_name, string_p
 export type string_title = string;
 
 /**
- * Description of persona
+ * Unstructured description of the persona
  *
  * For example `"Skilled copywriter"`
  */
 export type string_persona_description = string;
+
+/**
+ * Unstructured description of the model
+ *
+ * For example `"Model with logical reasoning and creative mindset"`
+ */
+export type string_model_description = string;
 
 /**
  * Source of one knowledge
@@ -256,6 +263,18 @@ export type string_markdown_section_content = string;
  * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_text = string;
+
+/**
+ * Semantic helper
+ *
+ * Markdown code block language
+ *
+ * For example ```js -> `"js"`
+ *
+ * @public exported from `@promptbook/markdown-utils`
+ */
+export type string_markdown_codeblock_language = 'book' | 'markdown' | 'text' | 'javascript' | 'css' | 'json';
+//          <- TODO: [🏥] DRY
 
 /**
  * @@@

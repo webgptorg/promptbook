@@ -115,7 +115,7 @@ export function executionReportJsonToString(
             '\n\n' +
             executionReportJson.promptExecutions
                 .map((promptExecution) => {
-                    // TODO: Make some better system to convert hedings to links
+                    // TODO: [💩] Make some better system to convert headings to links
                     let hash = normalizeToKebabCase(promptExecution.prompt.title);
                     if (/^\s*\p{Extended_Pictographic}/u.test(promptExecution.prompt.title)) {
                         hash = '-' + hash;

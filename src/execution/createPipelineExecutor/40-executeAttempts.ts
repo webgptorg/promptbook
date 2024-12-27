@@ -32,7 +32,7 @@ import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorO
  *
  * @private internal type of `executeAttempts`
  */
-export type ExecuteAttemptsOptions = Omit<CreatePipelineExecutorOptions, 'pipeline'> & {
+export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions, 'pipeline'>> & {
     /**
      * @@@
      */

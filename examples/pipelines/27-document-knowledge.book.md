@@ -8,6 +8,34 @@ Show how to use knowledge
 -   KNOWLEDGE ./27-document-knowledge.docx <!-- <- TODO: Test also `./27-document-knowledge.pdf` -->
 <!--            <- TODO: [😿] Allow ONLY files scoped in the (sub)directory NOT ../ -->
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Example: Knowledge in external document"
+
+      direction TB
+
+      input((Input)):::input
+      writing-bio("Writing bio")
+      input--"{eventTitle}"-->writing-bio
+
+      writing-bio--"{bio}"-->output
+      output((Output)):::output
+
+      click writing-bio href "#writing-bio" "Writing bio";
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## Writing bio
 
 -   PERSONA Jane, HR professional with prior experience in writing bios

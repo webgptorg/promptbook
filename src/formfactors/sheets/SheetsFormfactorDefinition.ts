@@ -7,6 +7,7 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
  */
 export const SheetsFormfactorDefinition = {
     name: 'SHEETS',
+    aliasNames: ['SHEETS', 'SHEET'],
     description: `@@@`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/176`,
     pipelineInterface: {

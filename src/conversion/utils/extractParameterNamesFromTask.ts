@@ -2,7 +2,7 @@ import type { ReadonlyDeep } from 'type-fest';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_parameter_name } from '../../types/typeAliases';
 import { extractParameterNames } from '../../utils/parameters/extractParameterNames';
-import { extractVariables } from './extractVariables';
+import { extractVariablesFromScript } from './extractVariablesFromScript';
 
 /**
  * Parses the task and returns the set of all used parameters
@@ -10,7 +10,7 @@ import { extractVariables } from './extractVariables';
  * @param task the task with used parameters
  * @returns the set of parameter names
  * @throws {ParseError} if the script is invalid
- * @public exported from `@promptbook/utils`
+ * @public exported from `@promptbook/core` <- Note: [👖] This utility is so tightly interconnected with the Promptbook that it is not exported as util but in core
  */
 export function extractParameterNamesFromTask(
     task: ReadonlyDeep<
@@ -33,7 +33,7 @@ export function extractParameterNamesFromTask(
     }
 
     if (taskType === 'SCRIPT_TASK') {
-        for (const parameterName of extractVariables(content)) {
+        for (const parameterName of extractVariablesFromScript(content)) {
             parameterNames.add(parameterName);
         }
     }

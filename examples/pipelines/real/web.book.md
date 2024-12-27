@@ -18,32 +18,32 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateVycisteniVstupu("Vyčištění vstupu")
-      input--"{inputText}"-->templateVycisteniVstupu
-      templateNazevWebu("Název webu")
-      templateVycisteniVstupu--"{inputTextCleaned}"-->templateNazevWebu
-      templateDomeny("Domény")
-      templateNazevWebu--"{title}"-->templateDomeny
-      templateVycisteniVstupu--"{inputTextCleaned}"-->templateDomeny
-      templateDomeny("Domény")
-      templateDomeny--"{domainsCommaSeparated}"-->templateDomeny
-      templateZadani("Zadání")
-      templateNazevWebu--"{title}"-->templateZadani
-      templateVycisteniVstupu--"{inputTextCleaned}"-->templateZadani
-      templateEmail("Email")
-      templateNazevWebu--"{title}"-->templateEmail
-      templateZadani--"{assignment}"-->templateEmail
-      templateDomeny--"{domains}"-->templateEmail
+      vycisteni-vstupu("Vyčištění vstupu")
+      input--"{inputText}"-->vycisteni-vstupu
+      nazev-webu("Název webu")
+      vycisteni-vstupu--"{inputTextCleaned}"-->nazev-webu
+      domeny-0("Domény")
+      nazev-webu--"{title}"-->domeny-0
+      vycisteni-vstupu--"{inputTextCleaned}"-->domeny-0
+      domeny-1("Domény")
+      domeny-0--"{domainsCommaSeparated}"-->domeny-1
+      zadani("Zadání")
+      nazev-webu--"{title}"-->zadani
+      vycisteni-vstupu--"{inputTextCleaned}"-->zadani
+      email("Email")
+      nazev-webu--"{title}"-->email
+      zadani--"{assignment}"-->email
+      domeny-1--"{domains}"-->email
 
-      templateEmail--"{outputText}"-->output
+      email--"{outputText}"-->output
       output((Output)):::output
 
-      click templateVycisteniVstupu href "#vycisteni-vstupu" "Vyčištění vstupu";
-      click templateNazevWebu href "#nazev-webu" "Název webu";
-      click templateDomeny href "#domeny" "Domény";
-      click templateDomeny href "#domeny" "Domény";
-      click templateZadani href "#zadani" "Zadání";
-      click templateEmail href "#email" "Email";
+      click vycisteni-vstupu href "#vycisteni-vstupu" "Vyčištění vstupu";
+      click nazev-webu href "#nazev-webu" "Název webu";
+      click domeny-0 href "#domeny-0" "Domény";
+      click domeny-1 href "#domeny-1" "Domény";
+      click zadani href "#zadani" "Zadání";
+      click email href "#email" "Email";
 
       classDef input color: grey;
       classDef output color: grey;
@@ -83,7 +83,7 @@ Vyčisti email pro další zpracování
 -   POSTPROCESS `spaceTrim`
 -   EXPECT MAX 3 WORDS
 -   EXPECT MAX 1 LINE
--   EXPECTED MAX 30 CHARACTERS
+-   EXPECT MAX 30 CHARACTERS
 
 ```
 Jsi zkušený copywrighter a dostal jsi zakázku na vytvoření názvu pro nový web. Zákazník ti poslal zadání.

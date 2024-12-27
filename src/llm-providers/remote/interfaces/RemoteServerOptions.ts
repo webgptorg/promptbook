@@ -85,7 +85,7 @@ export type CollectionRemoteServerClientOptions<TCustomOptions> = {
     /**
      * @@@
      */
-    readonly userId: string_user_id | null;
+    readonly userId?: string_user_id;
 
     /**
      * @@@

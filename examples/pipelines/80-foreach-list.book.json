@@ -53,8 +53,8 @@
             "description": "customer service representative",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure a positive experience. You have extensive knowledge of company policies, products, and services. Always maintain a polite and helpful demeanor, even in challenging situations.",
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure a positive experience. Provide clear, concise, and helpful information while maintaining a polite and empathetic tone.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -65,55 +65,55 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.75.1",
+            "promptbookVersion": "0.79.0",
             "usage": {
                 "price": {
-                    "value": 0.004197
+                    "value": 0.0051600000000000005
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 774
+                        "value": 1165
                     },
                     "charactersCount": {
-                        "value": 2582
+                        "value": 3235
                     },
                     "wordsCount": {
-                        "value": 415
+                        "value": 576
                     },
                     "sentencesCount": {
-                        "value": 31
+                        "value": 53
                     },
                     "linesCount": {
-                        "value": 55
+                        "value": 71
                     },
                     "paragraphsCount": {
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 7
+                        "value": 2
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 125
+                        "value": 111
                     },
                     "charactersCount": {
-                        "value": 526
+                        "value": 458
                     },
                     "wordsCount": {
-                        "value": 74
+                        "value": 63
                     },
                     "sentencesCount": {
-                        "value": 6
+                        "value": 5
                     },
                     "linesCount": {
-                        "value": 9
+                        "value": 13
                     },
                     "paragraphsCount": {
                         "value": 2
                     },
                     "pagesCount": {
-                        "value": 2
+                        "value": 1
                     }
                 }
             }

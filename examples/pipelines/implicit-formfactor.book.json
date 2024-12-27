@@ -1,0 +1,34 @@
+{
+    "title": "✨ Implicit formfactor",
+    "pipelineUrl": "https://promptbook.studio/examples/implicit-formfactor.book.md",
+    "description": "Show that you don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.",
+    "formfactorName": "TRANSLATOR",
+    "parameters": [
+        {
+            "name": "outputMessage",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "inputMessage",
+            "isInput": true,
+            "isOutput": false
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "translate",
+            "title": "Translate",
+            "content": "Translate the following text to Esperanto:\n\n> {inputMessage}",
+            "resultingParameterName": "outputMessage",
+            "dependentParameterNames": [
+                "inputMessage"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
+}

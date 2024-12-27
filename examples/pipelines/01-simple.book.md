@@ -21,12 +21,12 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templatePrompt("💬 Prompt")
+      prompt("💬 Prompt")
 
-      templatePrompt--"{greeting}"-->output
+      prompt--"{greetingResponse}"-->output
       output((Output)):::output
 
-      click templatePrompt href "#prompt" "💬 Prompt";
+      click prompt href "#prompt" "💬 Prompt";
 
       classDef input color: grey;
       classDef output color: grey;

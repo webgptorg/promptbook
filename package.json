@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.75.1",
+    "version": "0.79.0",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -55,10 +55,11 @@
         "test-types": "tsc",
         "lint": "eslint src",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "generate-documentation": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "preversion": "git pull && ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
-        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages && git push && git push --tags && npm run use-packages"
+        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages --commit && npm run generate-documentation --commit && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
         "@rollup/plugin-json": "6.1.0",
@@ -77,12 +78,14 @@
         "yaml": "2.3.3"
     },
     "dependencies": {
+        "@ai-sdk/google": "1.0.5",
+        "@ai-sdk/openai": "^1.0.7",
         "@anthropic-ai/sdk": "0.26.1",
         "@azure/openai": "1.0.0-beta.12",
         "@mozilla/readability": "0.5.0",
         "@types/jsdom": "^21.1.7",
         "@types/mime-types": "^2.1.4",
-        "@types/papaparse": "5.3.14",
+        "@types/papaparse": "5.3.15",
         "@types/prompts": "^2.4.9",
         "@types/showdown": "^2.0.6",
         "colors": "1.4.0",

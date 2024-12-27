@@ -32,7 +32,7 @@ export async function getKnowledgeForTask(
 ): Promise<string_parameter_value & string_markdown> {
     const { preparedPipeline, task } = options;
 
-    // TODO: [♨] Implement Better - use real index and keyword search from `task` and {examples}
+    // TODO: [♨][💩] Implement Better - use real index and keyword search from `task` and {examples}
 
     TODO_USE(task);
     return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');

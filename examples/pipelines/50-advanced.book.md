@@ -20,38 +20,38 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSynonym("💬 Synonym")
-      input--"{word}"-->templateSynonym
-      templateTestThatWordIsNotOriginalWord("⚙ Test that word is not original word")
-      input--"{word}"-->templateTestThatWordIsNotOriginalWord
-      templateSynonym--"{wordSynonym}"-->templateTestThatWordIsNotOriginalWord
-      templateSentenceWithSynonym("💬 Sentence with Synonym")
-      input--"{word}"-->templateSentenceWithSynonym
-      templateSynonym--"{wordSynonym}"-->templateSentenceWithSynonym
-      templateSentenceWithoutOriginalWord("💬 Sentence without original word")
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSentenceWithoutOriginalWord
-      input--"{word}"-->templateSentenceWithoutOriginalWord
-      templateComparison("💬 Comparison")
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateComparison
-      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateComparison
-      templateSummary("🔗 Summary")
-      input--"{word}"-->templateSummary
-      templateSynonym--"{wordSynonym}"-->templateSummary
-      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSummary
-      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
-      templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
+      synonym("💬 Synonym")
+      input--"{word}"-->synonym
+      test-that-word-is-not-original-word("⚙ Test that word is not original word")
+      input--"{word}"-->test-that-word-is-not-original-word
+      synonym--"{wordSynonym}"-->test-that-word-is-not-original-word
+      sentence-with-synonym("💬 Sentence with Synonym")
+      input--"{word}"-->sentence-with-synonym
+      synonym--"{wordSynonym}"-->sentence-with-synonym
+      sentence-without-original-word("💬 Sentence without original word")
+      sentence-with-synonym--"{sentenceWithTwoSynonyms}"-->sentence-without-original-word
+      input--"{word}"-->sentence-without-original-word
+      comparison("💬 Comparison")
+      sentence-with-synonym--"{sentenceWithTwoSynonyms}"-->comparison
+      sentence-without-original-word--"{sentenceWithOriginalWordRemoved}"-->comparison
+      summary("🔗 Summary")
+      input--"{word}"-->summary
+      synonym--"{wordSynonym}"-->summary
+      sentence-with-synonym--"{sentenceWithTwoSynonyms}"-->summary
+      sentence-without-original-word--"{sentenceWithOriginalWordRemoved}"-->summary
+      comparison--"{comparisonOfTwoSentences}"-->summary
 
-      templateComparison--"{comparisonOfTwoSentences}"-->output
-      templateSummary--"{summary}"-->output
-      templateTestThatWordIsNotOriginalWord--"{wordSynonymTested}"-->output
+      comparison--"{comparisonOfTwoSentences}"-->output
+      summary--"{summary}"-->output
+      test-that-word-is-not-original-word--"{wordSynonymTested}"-->output
       output((Output)):::output
 
-      click templateSynonym href "#synonym" "💬 Synonym";
-      click templateTestThatWordIsNotOriginalWord href "#test-that-word-is-not-original-word" "⚙ Test that word is not original word";
-      click templateSentenceWithSynonym href "#sentence-with-synonym" "💬 Sentence with Synonym";
-      click templateSentenceWithoutOriginalWord href "#sentence-without-original-word" "💬 Sentence without original word";
-      click templateComparison href "#comparison" "💬 Comparison";
-      click templateSummary href "#summary" "🔗 Summary";
+      click synonym href "#synonym" "💬 Synonym";
+      click test-that-word-is-not-original-word href "#test-that-word-is-not-original-word" "⚙ Test that word is not original word";
+      click sentence-with-synonym href "#sentence-with-synonym" "💬 Sentence with Synonym";
+      click sentence-without-original-word href "#sentence-without-original-word" "💬 Sentence without original word";
+      click comparison href "#comparison" "💬 Comparison";
+      click summary href "#summary" "🔗 Summary";
 
       classDef input color: grey;
       classDef output color: grey;

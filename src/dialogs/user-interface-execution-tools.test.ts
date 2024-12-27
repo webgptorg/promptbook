@@ -33,7 +33,7 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
         });
 
         expect(() => pipelineExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is required as an input parameter/i,
+            /Parameter `\{thing\}` is required as an input parameter/i,
         );
     });
 });

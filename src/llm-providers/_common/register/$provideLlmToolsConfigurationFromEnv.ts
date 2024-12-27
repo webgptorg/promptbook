@@ -13,6 +13,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`
  * - `process.env.ANTHROPIC_CLAUDE_API_KEY`
+ * - ...
  *
  * @returns @@@
  * @public exported from `@promptbook/node`
@@ -42,5 +43,5 @@ export function $provideLlmToolsConfigurationFromEnv(): LlmToolsConfiguration {
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  * TODO: This should be maybe not under `_common` but under `utils`
- * TODO: [🧠] Maybe pass env as argument
+ * TODO: [🧠][⚛] Maybe pass env as argument
  * TODO: [®] DRY Register logic */

@@ -1,6 +1,6 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
+# ❄ Promptbook
 
 
 
@@ -14,7 +14,7 @@
 
 
 
-## ✨ New Features
+## ❄ New Features
 
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
 -   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
@@ -95,7 +95,7 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td>Core</td>
       <td>Promptbook Core is a description and documentation of the basic concepts, ideas and inner workings of how Promptbook should be implemented, and defines what features must be describable by book language.</td>
-      <td rowspan=2>https://ptbk.io<br/>https://github.com/webgptorg/book</td>
+      <td rowspan=2>https://github.com/webgptorg/book</td>
     </tr>
     <tr>
       <td>Book language</td>
@@ -106,7 +106,7 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td>Promptbook typescript project</td>
       <td>Promptbook implementation in TypeScript released as multiple NPM packages</td>
-      <td>https://github.com/webgptorg/promptbook + Multiple packages on NPM</td>
+      <td>https://github.com/webgptorg/promptbook + <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">Multiple packages published on NPM</a></td>
     </tr>
     <tr>
       <td>Promptbook studio</td>
@@ -125,6 +125,12 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     </tr>
   </tbody>
 </table>
+
+Also we have a community of developers and users:
+
+-   [Discord](https://discord.gg/x3QWNaa89N)
+-   [Landing page](https://ptbk.io)
+-   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 
 
 
@@ -234,6 +240,8 @@ Or you can install them separately:
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
 -   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
+-   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
 -   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
@@ -253,11 +261,6 @@ Or you can install them separately:
 
 ## 📚 Dictionary
 
-
-
-
-
-
 ### 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
@@ -272,8 +275,6 @@ The following glossary is used to clarify certain concepts:
 -   **Meta-learning** is a machine learning paradigm where a model is trained on a variety of tasks and is able to learn new tasks with minimal additional training. This is achieved by learning a set of meta-parameters that can be quickly adapted to new tasks.
 -   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
-
-
 
 _Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
 
@@ -334,8 +335,6 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
-
-
 
 ### Terms specific to Promptbook TypeScript implementation
 

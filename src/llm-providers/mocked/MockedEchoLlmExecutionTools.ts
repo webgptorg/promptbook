@@ -9,7 +9,7 @@ import type { Prompt } from '../../types/Prompt';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -78,8 +78,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             ),
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,
@@ -116,8 +116,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             ),
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,

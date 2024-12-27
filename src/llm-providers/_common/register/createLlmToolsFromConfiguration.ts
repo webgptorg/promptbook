@@ -27,7 +27,7 @@ export type CreateLlmToolsFromConfigurationOptions = {
      *
      * Note: This is passed to the LLM tools providers to identify misuse
      */
-    readonly userId?: string_user_id | null;
+    readonly userId?: string_user_id ;
 };
 
 /**

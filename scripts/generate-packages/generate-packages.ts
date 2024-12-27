@@ -3,7 +3,7 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'fs/promises';
+import fs, { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
@@ -12,6 +12,7 @@ import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { GENERATOR_WARNING } from '../../src/config';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
+import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
@@ -430,7 +431,15 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }
 
         if (isBuilded) {
-            const indexContent = await readFile(`./packages/${packageBasename}/esm/index.es.js`, 'utf-8');
+            const bundleName = `./packages/${packageBasename}/esm/index.es.js`;
+
+            let indexContent = '';
+            if (await isFileExisting(bundleName, fs)) {
+                indexContent = await readFile(bundleName, 'utf-8');
+            } else {
+                console.warn(colors.yellow(`Bundle file ${bundleName} does not exist`));
+            }
+
             for (const dependencyName of Object.keys(allDependencies)) {
                 if (
                     indexContent.includes(`from '${dependencyName}'`) ||
@@ -492,13 +501,13 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                         steps: [
                             {
                                 name: 'Checkout',
-                                uses: 'actions/checkout@v2',
+                                uses: 'actions/checkout@v4',
                             },
                             {
                                 name: 'Setup Node.js',
-                                uses: 'actions/setup-node@v1',
+                                uses: 'actions/setup-node@v4',
                                 with: {
-                                    'node-version': 18,
+                                    'node-version': 22,
                                     'registry-url': 'https://registry.npmjs.org/',
                                 },
                             },

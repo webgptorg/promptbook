@@ -19,42 +19,42 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSpecifyingTheAssigment("👤 Specifying the assigment")
-      input--"{rawAssigment}"-->templateSpecifyingTheAssigment
-      templateImprovingTheTitle("✨ Improving the title")
-      input--"{rawTitle}"-->templateImprovingTheTitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
-      templateWebsiteTitleApproval("👤 Website title approval")
-      templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
-      templateCunningSubtitle("🐰 Cunning subtitle")
-      templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
-      templateKeywordAnalysis("🚦 Keyword analysis")
-      templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
-      templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
-      templateCombineTheBeginning("🔗 Combine the beginning")
-      templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
-      templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
-      templateWriteTheContent("🖋 Write the content")
-      templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
-      templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
-      templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
-      templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
-      templateCombineTheContent("🔗 Combine the content")
-      templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
-      templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
+      specifying-the-assigment("👤 Specifying the assigment")
+      input--"{rawAssigment}"-->specifying-the-assigment
+      improving-the-title("✨ Improving the title")
+      input--"{rawTitle}"-->improving-the-title
+      specifying-the-assigment--"{assigment}"-->improving-the-title
+      website-title-approval("👤 Website title approval")
+      improving-the-title--"{enhancedTitle}"-->website-title-approval
+      cunning-subtitle("🐰 Cunning subtitle")
+      website-title-approval--"{title}"-->cunning-subtitle
+      specifying-the-assigment--"{assigment}"-->cunning-subtitle
+      keyword-analysis("🚦 Keyword analysis")
+      website-title-approval--"{title}"-->keyword-analysis
+      specifying-the-assigment--"{assigment}"-->keyword-analysis
+      combine-the-beginning("🔗 Combine the beginning")
+      website-title-approval--"{title}"-->combine-the-beginning
+      cunning-subtitle--"{claim}"-->combine-the-beginning
+      write-the-content("🖋 Write the content")
+      website-title-approval--"{title}"-->write-the-content
+      specifying-the-assigment--"{assigment}"-->write-the-content
+      keyword-analysis--"{keywords}"-->write-the-content
+      combine-the-beginning--"{contentBeginning}"-->write-the-content
+      combine-the-content("🔗 Combine the content")
+      combine-the-beginning--"{contentBeginning}"-->combine-the-content
+      write-the-content--"{contentBody}"-->combine-the-content
 
-      templateCombineTheContent--"{websiteContent}"-->output
+      combine-the-content--"{websiteContent}"-->output
       output((Output)):::output
 
-      click templateSpecifyingTheAssigment href "#specifying-the-assigment" "👤 Specifying the assigment";
-      click templateImprovingTheTitle href "#improving-the-title" "✨ Improving the title";
-      click templateWebsiteTitleApproval href "#website-title-approval" "👤 Website title approval";
-      click templateCunningSubtitle href "#cunning-subtitle" "🐰 Cunning subtitle";
-      click templateKeywordAnalysis href "#keyword-analysis" "🚦 Keyword analysis";
-      click templateCombineTheBeginning href "#combine-the-beginning" "🔗 Combine the beginning";
-      click templateWriteTheContent href "#write-the-content" "🖋 Write the content";
-      click templateCombineTheContent href "#combine-the-content" "🔗 Combine the content";
+      click specifying-the-assigment href "#specifying-the-assigment" "👤 Specifying the assigment";
+      click improving-the-title href "#improving-the-title" "✨ Improving the title";
+      click website-title-approval href "#website-title-approval" "👤 Website title approval";
+      click cunning-subtitle href "#cunning-subtitle" "🐰 Cunning subtitle";
+      click keyword-analysis href "#keyword-analysis" "🚦 Keyword analysis";
+      click combine-the-beginning href "#combine-the-beginning" "🔗 Combine the beginning";
+      click write-the-content href "#write-the-content" "🖋 Write the content";
+      click combine-the-content href "#combine-the-content" "🔗 Combine the content";
 
       classDef input color: grey;
       classDef output color: grey;

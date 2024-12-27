@@ -28,7 +28,7 @@ export type LlmExecutionTools = {
      *
      * @example "Use all models from OpenAI"
      */
-    readonly description: string_markdown;
+    readonly description?: string_markdown;
 
     /**
      * Check comfiguration

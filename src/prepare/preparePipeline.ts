@@ -72,7 +72,7 @@ export async function preparePipeline(
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {
         id: 1, // <- TODO: [🧊] Make incremental
-        // TODO: [🍥]> date: $currentDate(),
+        // TODO: [🍥]> date: $getCurrentDate(),
         promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
         usage: ZERO_USAGE,
     };

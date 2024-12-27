@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { DEFAULT_IS_VERBOSE } from '../../config';
 import { IMMEDIATE_TIME } from '../../config';
 import { LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../config';
@@ -30,7 +29,7 @@ import { filterJustOutputParameters } from './filterJustOutputParameters';
  *
  * @private internal type of `executePipeline`
  */
-type ExecutePipelineOptions = CreatePipelineExecutorOptions & {
+type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * @@@
      */
@@ -79,7 +78,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         pipelineIdentification,
         maxParallelCount,
         rootDirname,
-        isVerbose = DEFAULT_IS_VERBOSE,
+        isVerbose,
     } = options;
     let { preparedPipeline } = options;
 

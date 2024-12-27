@@ -14,7 +14,7 @@ import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_model_name } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -117,7 +117,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
             ],
             // TODO: Is here some equivalent of user identification?> user: this.options.user,
         };
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
@@ -151,7 +151,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         const resultContent = contentBlock.text;
 
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse);
 
         return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools ChatPromptResult', {
@@ -199,7 +199,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
             prompt: rawPromptContent,
             user: this.options.user,
         };
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
@@ -228,7 +228,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
 
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } satisfies PromptResultUsage;
 
 

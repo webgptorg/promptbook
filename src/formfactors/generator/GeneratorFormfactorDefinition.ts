@@ -12,6 +12,12 @@ export const GeneratorFormfactorDefinition = {
     pipelineInterface: {
         inputParameters: [
             /* @@@ */
+            {
+                name: 'nonce',
+                description: 'Just to prevent GENERATOR to be set as implicit formfactor',
+                isInput: true,
+                isOutput: false,
+            },
         ],
         outputParameters: [
             /* @@@ */
