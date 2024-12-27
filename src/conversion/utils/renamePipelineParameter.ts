@@ -2,6 +2,7 @@ import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_name } from '../../types/typeAliases';
+import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
 
 type RenameParameterOptions = {
     /**
@@ -22,13 +23,13 @@ type RenameParameterOptions = {
 };
 
 /**
- * Function `renameParameter` will find all usable parameters for given task
+ * Function `renamePipelineParameter` will find all usable parameters for given task
  * In other words, it will find all parameters that are not used in the task itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
- * @public exported from `@promptbook/utils`
+ * @public exported from `@promptbook/core` <- Note: [👖] This utility is so tightly interconnected with the Promptbook that it is not exported as util but in core
  */
-export function renameParameter(options: RenameParameterOptions): PipelineJson {
+export function renamePipelineParameter(options: RenameParameterOptions): PipelineJson {
     const { pipeline: pipeline, oldParameterName, newParameterName } = options;
 
     if (pipeline.parameters.some((parameter) => parameter.name === newParameterName)) {
@@ -38,7 +39,7 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
     }
 
     const renamedPipeline: $PipelineJson = {
-        ...(pipeline as $PipelineJson),
+        ...(pipeline as TODO_remove_as<$PipelineJson>),
         // <- TODO: [🪓] This should be without `as $PipelineJson`
         parameters: [...pipeline.parameters],
         tasks: [...pipeline.tasks],
@@ -69,5 +70,5 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
                 : task.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
     }
 
-    return renamedPipeline;
+    return renamedPipeline as TODO_remove_as<PipelineJson>;
 }

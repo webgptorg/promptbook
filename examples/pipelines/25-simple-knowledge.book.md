@@ -10,6 +10,36 @@ Show how to use knowledge
 
 <!-- TODO: [main] !!!! Make every knowledge with identical interface as `simple-knowledge.book.md` -->
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Example: Simple Knowledge"
+
+      direction TB
+
+      input((Input)):::input
+      writing-bio("Writing bio")
+      input--"{eventTitle}"-->writing-bio
+      input--"{rules}"-->writing-bio
+      input--"{eventDescription}"-->writing-bio
+
+      writing-bio--"{bio}"-->output
+      output((Output)):::output
+
+      click writing-bio href "#writing-bio" "Writing bio";
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## Pavol Hejný (Website)
 
 -   KNOWLEDGE

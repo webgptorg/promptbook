@@ -160,9 +160,7 @@ export async function createCollectionFromDirectory(
                 } else {
                     if (isVerbose) {
                         console.info(
-                            colors.gray(
-                                `Skipped file ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Not a pipeline`,
-                            ),
+                            colors.gray(`Skipped file ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Not a book`),
                         );
                     }
                 }
@@ -236,14 +234,21 @@ export async function createCollectionFromDirectory(
                     throw error;
                 }
 
-                const wrappedErrorMessage = spaceTrim(
-                    (block) => `
+                const wrappedErrorMessage =
+                    spaceTrim(
+                        (block) => `
                         ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
 
+                        Original error message:
                         ${block((error as Error).message)}
 
+                        Original stack trace:
+                        ${block((error as Error).stack || '')}
+
+                        ---
+
                     `,
-                );
+                    ) + '\n';
 
                 if (isCrashedOnError) {
                     throw new CollectionError(wrappedErrorMessage);

@@ -14,6 +14,7 @@ See [TODO.md](./TODO.md)
 -   `[🔼]` Marks an entity (function, class, type,...) in other project (like Promptbook.studio) which should be moved to this repository
 -   `[🚉]` Marks an types / interfaces / structures fully serializable as JSON, not marking `string_` and `number_` prefixed aliases
 -   `[🐣]` Easter eggs
+-   `[💩]` Shitty code that needs refactoring
 -   `$` When entity (function, class) starts by `$`, it means it is not pure and can have side effects.
 -   `!!!` Marks a place that needs to be fixed before releasing a pre-release version.
 -   `!!!!` (and more) Marks a place that needs to be fixed as soon as possible.

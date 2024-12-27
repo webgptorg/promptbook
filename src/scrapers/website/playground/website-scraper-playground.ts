@@ -8,9 +8,9 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
-import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { titleToName } from '../../../utils/normalization/titleToName';
 import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { WebsiteScraper } from '../WebsiteScraper';

@@ -12,6 +12,7 @@ export function splitMarkdownIntoSections(markdown: string_markdown): ReadonlyAr
     const lines = markdown.split('\n');
     const sections: Array<string_markdown> = [];
 
+    // TODO: [🧽] DRY
     let currentType: 'MARKDOWN' | 'CODE_BLOCK' | 'COMMENT' = 'MARKDOWN';
     let buffer: Array<string_markdown> = [];
 

@@ -9,5 +9,5 @@ export type PipelineString = string & {
 };
 
 /**
- * TODO: !! Better validation (validatePipelineString) or remove branded type and make it just string
+ * TODO: [💩] Better validation (validatePipelineString) or remove branded type and make it just string
  */

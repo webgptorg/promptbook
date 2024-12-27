@@ -18,13 +18,13 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSynonym("💬 Synonym")
-      input--"{word}"-->templateSynonym
+      synonym("💬 Synonym")
+      input--"{word}"-->synonym
 
-      templateSynonym--"{poem}"-->output
+      synonym--"{poem}"-->output
       output((Output)):::output
 
-      click templateSynonym href "#synonym" "💬 Synonym";
+      click synonym href "#synonym" "💬 Synonym";
 
       classDef input color: grey;
       classDef output color: grey;

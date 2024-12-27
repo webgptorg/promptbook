@@ -125,7 +125,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
-        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
+        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
 
         if (format === 'JSON') {
             modelSettings.response_format = {

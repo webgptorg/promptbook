@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { validatePipeline } from '../validation/validatePipeline';
-import { renameParameter } from './renameParameter';
-describe('how renameParameter works', () => {
+import { renamePipelineParameter } from './renamePipelineParameter';
+describe('how renamePipelineParameter works', () => {
     it('should rename parameter in simple promptbook', () => {
         expect(
-            renameParameter({
+            renamePipelineParameter({
                 pipeline: validatePipeline({
                     title: '✨ Example prompt',
                     bookVersion: '1.0.0',
@@ -75,7 +75,7 @@ describe('how renameParameter works', () => {
     });
     it('should rename parameter in normal promptbook', () => {
         expect(
-            renameParameter({
+            renamePipelineParameter({
                 pipeline: validatePipeline({
                     title: '✨ Example prompt with two consecutive prompts',
                     pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
@@ -198,7 +198,7 @@ describe('how renameParameter works', () => {
     });
     it('should detect name collision', () => {
         expect(() =>
-            renameParameter({
+            renamePipelineParameter({
                 pipeline: validatePipeline({
                     title: '✨ Example prompt with two consecutive prompts',
                     pipelineUrl: 'https://promptbook.studio/examples/two.book.md',

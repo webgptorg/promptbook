@@ -8,6 +8,7 @@ import type { PipelineBothCommandParser } from '../commands/_common/types/Comman
 import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
 import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
 import type { CommandParserInput } from '../commands/_common/types/CommandParser';
+import type { CommandType } from '../commands/_common/types/CommandType';
 import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePlaces';
 import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
 import type { ForeachJson } from '../commands/FOREACH/ForeachJson';
@@ -268,6 +269,7 @@ export type { PipelineBothCommandParser };
 export type { PipelineHeadCommandParser };
 export type { PipelineTaskCommandParser };
 export type { CommandParserInput };
+export type { CommandType };
 export type { CommandUsagePlace };
 export type { ExpectCommand };
 export type { ForeachJson };

@@ -5,7 +5,7 @@ import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_href } from '../../types/typeAliases';
 import type { string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
-import { titleToName } from '../utils/titleToName';
+import { titleToName } from '../../utils/normalization/titleToName';
 
 /**
  * Addtional options for rendering Mermaid graph
@@ -45,7 +45,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
             throw new Error(`Could not find task for {${parameterName}}`);
         }
 
-        return normalizeTo_camelCase('task-' + titleToName(task.title));
+        return task.name || normalizeTo_camelCase('task-' + titleToName(task.title));
     };
 
     const promptbookMermaid = spaceTrim(

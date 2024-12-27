@@ -8,11 +8,12 @@ import type { string_javascript_name } from '../../types/typeAliases';
  * @param script from which to extract the variables
  * @returns the list of variable names
  * @throws {ParseError} if the script is invalid
- * @public exported from `@promptbook/utils`
+ * @public exported from `@promptbook/utils` <- Note: [👖] This is usable elsewhere than in Promptbook, so keeping in utils
  */
-export function extractVariables(script: string_javascript): Set<string_javascript_name> {
+export function extractVariablesFromScript(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();
 
+    const originalScript = script;
     script = `(()=>{${script}})()`;
 
     try {
@@ -23,21 +24,35 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                 if (!(error instanceof ReferenceError)) {
                     throw error;
                 }
-                const undefinedName = error.message.split(' ')[0];
+
                 /*
                 Note: Parsing the error
+                      🌟 Most devices:
                       [PipelineUrlError: thing is not defined]
+
+                      🍏 iPhone`s Safari:
+                      [PipelineUrlError: Can't find variable: thing]
                 */
 
-                if (!undefinedName) {
+                let variableName: string | undefined = undefined;
+
+                if (error.message.startsWith(`Can't`)) {
+                    // 🍏 Case
+                    variableName = error.message.split(' ').pop();
+                } else {
+                    // 🌟 Case
+                    variableName = error.message.split(' ').shift();
+                }
+
+                if (variableName === undefined) {
                     throw error;
                 }
 
-                if (script.includes(undefinedName + '(')) {
-                    script = `const ${undefinedName} = ()=>'';` + script;
+                if (script.includes(variableName + '(')) {
+                    script = `const ${variableName} = ()=>'';` + script;
                 } else {
-                    variables.add(undefinedName);
-                    script = `const ${undefinedName} = '';` + script;
+                    variables.add(variableName);
+                    script = `const ${variableName} = '';` + script;
                 }
             }
     } catch (error) {
@@ -51,8 +66,22 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                     Can not extract variables from the script
 
                     ${block((error as Error).toString())}}
+
+
+                    Found variables:
+
+                    ${Array.from(variables)
+                        .map((variableName, i) => `${i + 1}) ${variableName}`)
+                        .join('\n')}
+
+
+                    The script:
+
+                    \`\`\`javascript
+                    ${block(originalScript)}
+                    \`\`\`
                 `,
-                // <- TODO: [🚞] Pass from consumer(s) of `extractVariables`
+                // <- TODO: [🚞] Pass from consumer(s) of `extractVariablesFromScript`
             ),
         );
     }

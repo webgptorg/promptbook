@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
+import { isPipelineImplementingInterface } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
@@ -9,9 +10,11 @@ import type { $TaskJson } from '../commands/_common/types/CommandParser';
 import type { CommandBase } from '../commands/_common/types/CommandParser';
 import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
 import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
+import { DEFAULT_TITLE } from '../config';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { FORMFACTOR_DEFINITIONS } from '../formfactors/index';
 import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
@@ -19,17 +22,19 @@ import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
+import type { number_integer } from '../types/typeAliases';
+import type { number_positive } from '../types/typeAliases';
+import type { string_name } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
 import { parseMarkdownSection } from '../utils/markdown/parseMarkdownSection';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
-import type { TODO_any } from '../utils/organization/TODO_any';
+import { titleToName } from '../utils/normalization/titleToName';
 import type { really_any } from '../utils/organization/really_any';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { extractParameterNamesFromTask } from './utils/extractParameterNamesFromTask';
-import { titleToName } from './utils/titleToName';
 
 /**
  * Compile pipeline from string (markdown) format to JSON format synchronously
@@ -49,18 +54,13 @@ import { titleToName } from './utils/titleToName';
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
     const $pipelineJson: $PipelineJson = {
-        title: undefined as TODO_any /* <- Note: [🍙] Putting here placeholder to keep `title` on top at final JSON */,
-        pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
-        bookVersion: undefined /* <- Note: By default no explicit version */,
-        description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
-        formfactorName: 'GENERIC',
+        title: DEFAULT_TITLE,
         parameters: [],
         tasks: [],
         knowledgeSources: [],
         knowledgePieces: [],
         personas: [],
         preparations: [],
-        // <- TODO: [🍙] Some standard order of properties
     };
 
     function getPipelineIdentification() {
@@ -297,8 +297,39 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 4️⃣ Process each section of the pipeline
+    // Note: 4️⃣ Prepare unique section names with indexes when needed
 
+    const sectionCounts: Record<
+        string_name,
+        { count: number_integer & number_positive; currentIndex: number_integer & number_positive }
+    > = {};
+
+    for (const section of pipelineSections) {
+        const name = titleToName(section.title);
+
+        if (sectionCounts[name] === undefined) {
+            sectionCounts[name] = { count: 0, currentIndex: 0 };
+        }
+
+        sectionCounts[name]!.count++;
+    }
+
+    const getUniqueSectionName = (title: string) => {
+        const name = titleToName(title);
+        const count = sectionCounts[name]!;
+
+        if (count.count === 1) {
+            return name;
+        }
+
+        const nameWithSuffix = `${name}-${count.currentIndex}`;
+        count.currentIndex++;
+
+        return nameWithSuffix;
+    };
+
+    // =============================================================
+    // Note: 5️⃣ Process each section of the pipeline
     for (const section of pipelineSections) {
         // TODO: Parse section's description (the content out of the codeblock and lists)
 
@@ -326,7 +357,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             isSectionTypeSet: false,
             isTask: true,
             taskType: undefined /* <- Note: [🍙] Putting here placeholder to keep `taskType` on top at final JSON */,
-            name: titleToName(section.title),
+            name: getUniqueSectionName(section.title),
             title: section.title,
             description,
             content,
@@ -503,7 +534,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 5️⃣ Mark parameters as INPUT if not explicitly set
+    // Note: 6️⃣ Mark parameters as INPUT if not explicitly set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isInput)) {
         for (const parameter of $pipelineJson.parameters) {
             const isThisParameterResulting = $pipelineJson.tasks.some(
@@ -511,22 +542,27 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
             if (!isThisParameterResulting) {
                 parameter.isInput = true;
+                // <- TODO: [💔] Why this is making typescript error in vscode but not in cli
+                //        > Type 'true' is not assignable to type 'false'.ts(2322)
+                //        > (property) isInput: false
+                //        > The parameter is input of the pipeline The parameter is NOT input of the pipeline
             }
         }
     }
 
     // =============================================================
-    // Note: 6️⃣ Mark all non-INPUT parameters as OUTPUT if any OUTPUT is not set
+    // Note: 7️⃣ Mark all non-INPUT parameters as OUTPUT if any OUTPUT is not set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isOutput)) {
         for (const parameter of $pipelineJson.parameters) {
             if (!parameter.isInput) {
                 parameter.isOutput = true;
+                // <- TODO: [💔]
             }
         }
     }
 
     // =============================================================
-    // Note: 7️⃣ Cleanup of undefined values
+    // Note: 8️⃣ Cleanup of undefined values
     $pipelineJson.tasks.forEach((tasks) => {
         for (const [key, value] of Object.entries(tasks)) {
             if (value === undefined) {
@@ -541,10 +577,73 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
     });
+
+    // =============================================================
+    // Note: 9️⃣ Implicit and default formfactor
+
+    for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
+        // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
+
+        const { name, pipelineInterface } = formfactorDefinition;
+
+        // Note: Skip GENERIC formfactor, it will be used as a fallback if no other formfactor is compatible
+        if (name === 'GENERIC') {
+            continue;
+        }
+
+        const isCompatible = isPipelineImplementingInterface({
+            pipeline: {
+                formfactorName: name,
+                // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
+                //           but it is needed to satisfy the typescript
+
+                ...$pipelineJson,
+            },
+            pipelineInterface,
+        });
+
+        /*/
+        console.log({
+            subject: `${$pipelineJson.title} implements ${name}`,
+            pipelineTitle: $pipelineJson.title,
+            formfactorName: name,
+            isCompatible,
+            formfactorInterface: pipelineInterface,
+            pipelineInterface: getPipelineInterface($pipelineJson as PipelineJson),
+        });
+        /**/
+
+        if (isCompatible) {
+            $pipelineJson.formfactorName = name;
+            break;
+        }
+    }
+
+    // Note: [🔆] If formfactor is still not set, set it to 'GENERIC'
+    if ($pipelineJson.formfactorName === undefined) {
+        $pipelineJson.formfactorName = 'GENERIC';
+    }
+
     // =============================================================
 
     // TODO: [🍙] Maybe do reorder of `$pipelineJson` here
-    return $asDeeplyFrozenSerializableJson('pipelineJson', $pipelineJson);
+    return $asDeeplyFrozenSerializableJson('pipelineJson', {
+        title: DEFAULT_TITLE,
+        pipelineUrl: undefined,
+        bookVersion: undefined,
+        description: undefined,
+        formfactorName: 'GENERIC',
+        // <- Note: [🔆] Setting `formfactorName` is redundant to satisfy the typescript
+        parameters: [],
+        tasks: [],
+        knowledgeSources: [],
+        knowledgePieces: [],
+        personas: [],
+        preparations: [],
+        // <- TODO: [🍙] Some standard order of properties
+
+        ...($pipelineJson as Partial<$PipelineJson>),
+    });
 }
 
 /**

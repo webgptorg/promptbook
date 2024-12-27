@@ -115,7 +115,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
-            }; // <- TODO: Guard here types better
+            }; // <- TODO: [💩] TODO: Guard here types better
 
             const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
             const messages = [
@@ -230,7 +230,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
-            }; // <- TODO: Guard here types better
+            }; // <- TODO: [💩] Guard here types better
 
             const start: string_date_iso8601 = $getCurrentDate();
             let complete: string_date_iso8601;

@@ -199,7 +199,7 @@ After install you can use `promptbook` command in terminal:
 
 ```bash
 npm i @promptbook/utils
-npx ptbk prettify promptbook/**/*.ptbk.md
+npx ptbk prettify 'promptbook/**/*.ptbk.md'
 ```
 
 ### `0.44.0` _(2024-04-26)_
@@ -614,9 +614,25 @@ Support for more models, add `@promptbook/vercel` and `@promptbook/google` packa
 -   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
 -   Rename `$currentDate` -> `$getCurrentDate`
 
+### `0.78.0` _(2024-12-14)_
+
+Utility functions
+
+-   Add `removePipelineCommand`
+-   Rename util `renameParameter` -> `renamePipelineParameter`
+-   Rename util `extractVariables` -> `extractVariablesFromScript`
+-   [👖] Utilities `extractParameterNamesFromTask` and `renamePipelineParameter` are not exported from `@promptbook/utils` but `@promptbook/core` because they are tightly interconnected with the Promptbook and cannot be used as universal utility
+
+### `0.79.0` _(2024-12-27)_
+
+Implicit formfactors
+
+-   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
+-   Fix in deep cloning of arrays
+
 ### In pre-release
 
-### `0.78.0` _(2024-12-)_
+### `0.!!!.0` _(2024-12-)_
 
 Parameter types to establish forseen [type system](https://github.com/webgptorg/book/tree/main/pips/pip-0002)
 

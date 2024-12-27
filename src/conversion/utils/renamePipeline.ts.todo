@@ -1,0 +1,1 @@
+TODO: Maybe make utility `renamePipeline(pipeline: PipelineJson|PipelineString)` (simmilar util as `removePipelineCommand`)

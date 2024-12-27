@@ -46,7 +46,7 @@ export async function getReservedParametersForTask(
     const context = await getContextForTask(task); // <- [🏍]
     const knowledge = await getKnowledgeForTask({ preparedPipeline, task });
     const examples = await getExamplesForTask(task);
-    const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
+    const currentDate = new Date().toISOString(); // <- TODO: [🧠][💩] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;
 
     const reservedParameters: ReservedParameters = {

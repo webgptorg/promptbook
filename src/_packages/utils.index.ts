@@ -3,10 +3,7 @@
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
-import { extractParameterNamesFromTask } from '../conversion/utils/extractParameterNamesFromTask';
-import { extractVariables } from '../conversion/utils/extractVariables';
-import { renameParameter } from '../conversion/utils/renameParameter';
-import { titleToName } from '../conversion/utils/titleToName';
+import { extractVariablesFromScript } from '../conversion/utils/extractVariablesFromScript';
 import { deserializeError } from '../errors/utils/deserializeError';
 import { serializeError } from '../errors/utils/serializeError';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -48,6 +45,7 @@ import { parseKeywords } from '../utils/normalization/parseKeywords';
 import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics } from '../utils/normalization/removeDiacritics';
 import { searchKeywords } from '../utils/normalization/searchKeywords';
+import { titleToName } from '../utils/normalization/titleToName';
 import { spaceTrim } from '../utils/organization/spaceTrim';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
 import { replaceParameters } from '../utils/parameters/replaceParameters';
@@ -84,10 +82,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 // Note: Entities of the `@promptbook/utils`
 export { renderPromptbookMermaid };
-export { extractParameterNamesFromTask };
-export { extractVariables };
-export { renameParameter };
-export { titleToName };
+export { extractVariablesFromScript };
 export { deserializeError };
 export { serializeError };
 export { forEachAsync };
@@ -129,6 +124,7 @@ export { parseKeywords };
 export { parseKeywordsFromString };
 export { removeDiacritics };
 export { searchKeywords };
+export { titleToName };
 export { spaceTrim };
 export { extractParameterNames };
 export { replaceParameters };
