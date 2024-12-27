@@ -2,7 +2,7 @@
     "title": "✨ Implicit formfactor",
     "pipelineUrl": "https://promptbook.studio/examples/implicit-formfactor.book.md",
     "description": "Show that you don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.",
-    "formfactorName": "GENERIC",
+    "formfactorName": "TRANSLATOR",
     "parameters": [
         {
             "name": "outputMessage",

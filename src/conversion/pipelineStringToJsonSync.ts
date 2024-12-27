@@ -12,7 +12,7 @@ import type {
     PipelineHeadCommandParser,
     PipelineTaskCommandParser,
 } from '../commands/_common/types/CommandParser';
-import { RESERVED_PARAMETER_NAMES } from '../config';
+import { DEFAULT_TITLE, RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { FORMFACTOR_DEFINITIONS } from '../formfactors';
@@ -31,7 +31,6 @@ import { parseMarkdownSection } from '../utils/markdown/parseMarkdownSection';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 import { titleToName } from '../utils/normalization/titleToName';
-import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { extractParameterNamesFromTask } from './utils/extractParameterNamesFromTask';
@@ -54,19 +53,13 @@ import { extractParameterNamesFromTask } from './utils/extractParameterNamesFrom
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
     const $pipelineJson: $PipelineJson = {
-        title: undefined as TODO_any /* <- Note: [🍙] Putting here placeholder to keep `title` on top at final JSON */,
-        pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
-        bookVersion: undefined /* <- Note: By default no explicit version */,
-        description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
-        formfactorName:
-            undefined /* <- Note: [🍙] + When undefined at the end of the parsing, it will be set to 'GENERIC' */,
+        title: DEFAULT_TITLE,
         parameters: [],
         tasks: [],
         knowledgeSources: [],
         knowledgePieces: [],
         personas: [],
         preparations: [],
-        // <- TODO: [🍙] Some standard order of properties
     };
 
     function getPipelineIdentification() {
@@ -303,36 +296,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 4️⃣ Implicit and default formfactor
-
-    for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
-        // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
-
-        const { name, pipelineInterface } = formfactorDefinition;
-
-        const isCompatible = isPipelineImplementingInterface({
-            pipeline: {
-                ...$pipelineJson,
-                formfactorName: name,
-                // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
-                //           but it is needed to satisfy the typescript
-            },
-            pipelineInterface,
-        });
-
-        if (isCompatible) {
-            $pipelineJson.formfactorName = name;
-            break;
-        }
-    }
-
-    // Note: [🔆] If formfactor is still not set, set it to 'GENERIC'
-    if ($pipelineJson.formfactorName === undefined) {
-        $pipelineJson.formfactorName = 'GENERIC';
-    }
-
-    // =============================================================
-    // Note: 5️⃣ Prepare unique section names with indexes when needed
+    // Note: 4️⃣ Prepare unique section names with indexes when needed
 
     const sectionCounts: Record<
         string_name,
@@ -364,7 +328,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     };
 
     // =============================================================
-    // Note: 6️⃣ Process each section of the pipeline
+    // Note: 5️⃣ Process each section of the pipeline
     for (const section of pipelineSections) {
         // TODO: Parse section's description (the content out of the codeblock and lists)
 
@@ -569,7 +533,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 7️⃣ Mark parameters as INPUT if not explicitly set
+    // Note: 6️⃣ Mark parameters as INPUT if not explicitly set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isInput)) {
         for (const parameter of $pipelineJson.parameters) {
             const isThisParameterResulting = $pipelineJson.tasks.some(
@@ -586,7 +550,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 8️⃣ Mark all non-INPUT parameters as OUTPUT if any OUTPUT is not set
+    // Note: 7️⃣ Mark all non-INPUT parameters as OUTPUT if any OUTPUT is not set
     if ($pipelineJson.parameters.every((parameter) => !parameter.isOutput)) {
         for (const parameter of $pipelineJson.parameters) {
             if (!parameter.isInput) {
@@ -597,7 +561,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
 
     // =============================================================
-    // Note: 9️⃣ Cleanup of undefined values
+    // Note: 8️⃣ Cleanup of undefined values
     $pipelineJson.tasks.forEach((tasks) => {
         for (const [key, value] of Object.entries(tasks)) {
             if (value === undefined) {
@@ -612,13 +576,72 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
     });
+
+    // =============================================================
+    // Note: 9️⃣ Implicit and default formfactor
+
+    for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
+        // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
+
+        const { name, pipelineInterface } = formfactorDefinition;
+
+        // Note: Skip GENERIC formfactor, it will be used as a fallback if no other formfactor is compatible
+        if (name === 'GENERIC') {
+            continue;
+        }
+
+        const isCompatible = isPipelineImplementingInterface({
+            pipeline: {
+                formfactorName: name,
+                // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
+                //           but it is needed to satisfy the typescript
+
+                ...$pipelineJson,
+            },
+            pipelineInterface,
+        });
+
+        /*/
+        console.log({
+            subject: `${$pipelineJson.title} implements ${name}`,
+            pipelineTitle: $pipelineJson.title,
+            formfactorName: name,
+            isCompatible,
+            formfactorInterface: pipelineInterface,
+            pipelineInterface: getPipelineInterface($pipelineJson as PipelineJson),
+        });
+        /**/
+
+        if (isCompatible) {
+            $pipelineJson.formfactorName = name;
+            break;
+        }
+    }
+
+    // Note: [🔆] If formfactor is still not set, set it to 'GENERIC'
+    if ($pipelineJson.formfactorName === undefined) {
+        $pipelineJson.formfactorName = 'GENERIC';
+    }
+
     // =============================================================
 
     // TODO: [🍙] Maybe do reorder of `$pipelineJson` here
     return $asDeeplyFrozenSerializableJson('pipelineJson', {
-        ...$pipelineJson,
+        title: DEFAULT_TITLE,
+        pipelineUrl: undefined,
+        bookVersion: undefined,
+        description: undefined,
         formfactorName: 'GENERIC',
-        // <- Note: [🔆] This is redundant to satisfy the typescript
+        // <- Note: [🔆] Setting `formfactorName` is redundant to satisfy the typescript
+        parameters: [],
+        tasks: [],
+        knowledgeSources: [],
+        knowledgePieces: [],
+        personas: [],
+        preparations: [],
+        // <- TODO: [🍙] Some standard order of properties
+
+        ...($pipelineJson as Partial<$PipelineJson>),
     });
 }
 
