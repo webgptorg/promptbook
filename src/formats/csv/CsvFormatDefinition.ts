@@ -59,7 +59,14 @@ export const CsvFormatDefinition: FormatDefinition<
                             (block) => `
                                 CSV parsing error
 
+                                Error(s) from CSV parsing:
                                 ${block(csv.errors.map((error) => error.message).join('\n\n'))}
+
+                                The CSV setings:
+                                ${block(JSON.stringify({ ...settings, ...MANDATORY_CSV_SETTINGS }, null, 2))}
+
+                                The CSV data:
+                                ${block(value)}
                             `,
                         ),
                     );
@@ -95,7 +102,14 @@ export const CsvFormatDefinition: FormatDefinition<
                             (block) => `
                                 CSV parsing error
 
+                                Error(s) from CSV parsing:
                                 ${block(csv.errors.map((error) => error.message).join('\n\n'))}
+
+                                The CSV setings:
+                                ${block(JSON.stringify({ ...settings, ...MANDATORY_CSV_SETTINGS }, null, 2))}
+
+                                The CSV data:
+                                ${block(value)}
                             `,
                         ),
                     );

@@ -3,7 +3,7 @@
     "promptbookVersion": "0.63.4",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md#knowledge",
         "parameters": {
             "knowledgeContent": "Hi I am Pavol,\n\na developer who is passionate about using new tools and technologies. I specialise in creating fully functional user applications using the latest artificial intelligence models. I am a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world.\nI develop the WebGPT web page generation service.\nBefore the massive emergence of generative AI, I created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. I have also worked on many scientific projects for the Czech Ornithological Society. I regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions. I have a special heart for this, and I love open-source – you can find many of my things on my GitHub."
         },

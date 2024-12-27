@@ -20,19 +20,18 @@ import type { really_any } from '../../utils/organization/really_any';
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
  *
  * Note: Internal utility of `joinLlmExecutionTools` but exposed type
- * @public exported from `@promptbook/types`
+ * @public exported from `@promptbook/core`
  */
-
-export class MultipleLlmExecutionTools implements LlmExecutionTools {
+export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
      * Array of execution tools in order of priority
      */
-    public readonly llmExecutionTools: Array<LlmExecutionTools>;
+    public readonly llmExecutionTools: ReadonlyArray<LlmExecutionTools>;
 
     /**
      * Gets array of execution tools in order of priority
      */
-    public constructor(...llmExecutionTools: Array<LlmExecutionTools>) {
+    public constructor(...llmExecutionTools: ReadonlyArray<LlmExecutionTools>) {
         this.llmExecutionTools = llmExecutionTools;
     }
 
@@ -58,7 +57,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
      * List all available models that can be used
      * This lists is a combination of all available models from all execution tools
      */
-    public async listModels(): Promise<Array<AvailableModel>> {
+    public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
         const availableModels: Array<AvailableModel> = [];
 
         for (const llmExecutionTools of this.llmExecutionTools) {
@@ -148,8 +147,8 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
         } else if (errors.length > 1) {
             throw new PipelineExecutionError(
                 // TODO: Tell which execution tools failed like
-                //     1) OpenAI throw PipelineExecutionError: Parameter {knowledge} is not defined
-                //     2) AnthropicClaude throw PipelineExecutionError: Parameter {knowledge} is not defined
+                //     1) OpenAI throw PipelineExecutionError: Parameter `{knowledge}` is not defined
+                //     2) AnthropicClaude throw PipelineExecutionError: Parameter `{knowledge}` is not defined
                 //     3) ...
                 spaceTrim(
                     (block) => `

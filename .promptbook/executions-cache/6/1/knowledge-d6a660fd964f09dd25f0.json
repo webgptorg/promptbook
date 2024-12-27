@@ -1,45 +1,41 @@
 {
-    "date": "2024-08-05T07:27:37.881Z",
-    "promptbookVersion": "0.61.0-24",
+    "date": "2024-10-08T12:29:35.365Z",
+    "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md#knowledge",
         "parameters": {
             "knowledgeContent": "Springfield is a city in the U.S. state of Illinois. It is the county seat of Sangamon County. The city's population of 10566 as of 2019 makes it the sixth most populous city in the state."
         },
         "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
         "modelRequirements": {
-            "modelVariant": "CHAT",
-            "modelName": "claude-3-opus-20240229"
+            "modelVariant": "CHAT"
         },
-        "expectations": {},
-        "postprocessing": []
+        "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield is a city located in Illinois, United States.\n---\nSpringfield is the county seat of Sangamon County.\n---\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.",
-        "modelName": "claude-3-opus-20240229",
+        "content": "---\n\nSpringfield is the county seat of Sangamon County, located in the U.S. state of Illinois.\n\n---\n\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.",
+        "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-08-05T07:27:34.653Z",
-            "complete": "2024-08-05T07:27:37.880Z"
+            "start": "2024-10-08T12:29:33.875Z",
+            "complete": "2024-10-08T12:29:35.364Z"
         },
         "usage": {
             "price": {
-                "value": 0,
-                "isUncertain": true
+                "value": 0.001317
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 159
                 },
                 "charactersCount": {
-                    "value": 482
+                    "value": 652
                 },
                 "wordsCount": {
-                    "value": 59
+                    "value": 96
                 },
                 "sentencesCount": {
-                    "value": 2
+                    "value": 6
                 },
                 "linesCount": {
                     "value": 16
@@ -48,50 +44,60 @@
                     "value": 6
                 },
                 "pagesCount": {
-                    "value": 1
+                    "value": 2
                 }
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 56
                 },
                 "charactersCount": {
-                    "value": 482
+                    "value": 204
                 },
                 "wordsCount": {
-                    "value": 59
+                    "value": 35
                 },
                 "sentencesCount": {
-                    "value": 2
+                    "value": 4
                 },
                 "linesCount": {
-                    "value": 16
+                    "value": 7
                 },
                 "paragraphsCount": {
-                    "value": 6
+                    "value": 4
                 },
                 "pagesCount": {
                     "value": 1
                 }
             }
         },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Springfield is a city in the U.S. state of Illinois. It is the county seat of Sangamon County. The city's population of 10566 as of 2019 makes it the sixth most populous city in the state.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Springfield is a city in the U.S. state of Illinois. It is the county seat of Sangamon County. The city's population of 10566 as of 2019 makes it the sixth most populous city in the state."
+                }
+            ]
+        },
         "rawResponse": {
-            "id": "msg_01QUtzmn3MZ7RzsbJjJBRg1W",
+            "id": "msg_01H2eZegQsbwtSjNs5WWTTQ8",
             "type": "message",
             "role": "assistant",
-            "model": "claude-3-opus-20240229",
+            "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield is a city located in Illinois, United States.\n---\nSpringfield is the county seat of Sangamon County.\n---\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
+                    "text": "---\n\nSpringfield is the county seat of Sangamon County, located in the U.S. state of Illinois.\n\n---\n\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 159,
-                "output_tokens": 57
+                "output_tokens": 56
             }
         }
     }

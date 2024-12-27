@@ -1,7 +1,8 @@
 {
     "name": "@promptbook/types",
-    "version": "0.70.0-1",
-    "description": "Supercharge your use of large language models",
+    "version": "0.79.0",
+    "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
+    "--note-0": "    <- [🐊]",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -11,6 +12,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
+    "--todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -30,7 +32,8 @@
         "o1",
         "o1-mini",
         "o1-preview",
-        "anthropic"
+        "anthropic",
+        "LLMOps"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
@@ -49,6 +52,6 @@
     ],
     "typings": "./esm/typings/src/_packages/types.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.70.0-1"
+        "@promptbook/core": "0.79.0"
     }
 }

@@ -2,30 +2,36 @@
     "autokill": true,
     "terminals": [
         {
-            "name": "👨‍💻⚪ Run simple-script sample (💸)",
-            "command": "npx ts-node ./samples/usage/simple-script/simple-script.ts",
+            "name": "👨‍💻⚫ Run CLI example (💸)",
+            "command": "ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔴 Run logging sample (💸)",
-            "command": "npx ts-node ./samples/usage/logging/logging.ts",
+            "name": "👨‍💻⚪ Run simple-script example (💸)",
+            "command": "npx ts-node ./examples/usage/simple-script/simple-script.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔵 Run remote sample (💸)",
-            "command": "npx ts-node ./samples/usage/remote/server.ts",
+            "name": "👨‍💻🔴 Run logging example (💸)",
+            "command": "npx ts-node ./examples/usage/logging/logging.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔽 Install promptbook for usage samples",
-            "cwd": "./samples/usage/",
-            "command": "npm i",
+            "name": "👨‍💻🔵 Run remote example (💸)",
+            "command": "npx ts-node ./examples/usage/remote/server.ts",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "👨‍💻🔵 Run CLI `ptbk about`",
+            "command": "ts-node ./src/cli/test/ptbk.ts about",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -38,8 +44,8 @@
             "focus": false
         },
         {
-            "name": "🧪 Lint (samples)",
-            "command": "npx eslint samples",
+            "name": "🧪 Lint (examples)",
+            "command": "npx eslint examples",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -72,6 +78,13 @@
             "focus": true
         },
         {
+            "name": "🏭💉 Import markdowns",
+            "commands": ["./book/scripts/import-markdown/import-markdown.ts"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭📦 Generate packages",
             "commands": ["npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler"],
             "execute": false,
@@ -79,19 +92,26 @@
             "focus": false
         },
         {
-            "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json (💸) [🍠]",
+            "name": "🏭📚 Generate documentation",
+            "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
+            "name": "🏭📖 Generate examples .book.md -> .book.json (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --verbose"
+                "npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
             ],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🏭📖 Prettify samples and add mermaid graphs -> .ptbk.md",
+            "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
             "commands": [
-                "npx ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify samples/pipelines/**/*.ptbk.md --ignore \"samples/pipelines/errors/**/*.ptbk.md\""
+                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book.md' --ignore 'examples/pipelines/errors/**/*.book.md'"
             ],
             "execute": false,
             "onlySingle": false,
@@ -99,7 +119,7 @@
         },
         {
             "name": "🏭📖 Generate reports .report.json -> .report.md",
-            "commands": ["npx ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
+            "commands": ["npx ts-node ./scripts/generate-example-reports/generate-example-reports.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -107,6 +127,13 @@
         {
             "name": "🏭🩹 Repair imports",
             "commands": ["npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔎🩹 Find name discrepancies",
+            "commands": ["npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -126,6 +153,12 @@
         {
             "name": "🧸 Anthropic Claude playground (💸)",
             "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Vercel playground (💸)",
+            "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
@@ -154,17 +187,63 @@
             "focus": true
         },
         {
-            "name": "🧸💡 Prepare knowledge from Markdown (playground) (💸) [🍠]",
+            "name": "🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-knowledge-playground.ts"
+                "npx ts-node ./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
         },
         {
+            "name": "🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/document/playground/document-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
+            "name": "🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
+            "name": "🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/pdf/playground/pdf-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
+            "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
             "name": "📖 Make Promptbook collection (💸) [🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "👨🏽‍💻 Force reinstall of node modules",
+            "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
             "onlySingle": true,
             "focus": true
         },

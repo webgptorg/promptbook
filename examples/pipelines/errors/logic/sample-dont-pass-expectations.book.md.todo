@@ -1,0 +1,35 @@
+# 🟡 Example: Example don't pass expectations
+
+Example of wrong pipeline that has a example that doesn't pass the expectations
+
+-   OUTPUT PARAMETER `{name}`
+
+## 💬 Question
+
+-   EXPECT MAX 3 WORDS
+
+```markdown
+Write some name for hero
+```
+
+`-> {name}`
+
+### Example Hero
+
+-   EXAMPLE
+
+```
+John Doe
+```
+
+`-> {name}`
+
+### Wrong example Hero
+
+-   EXAMPLE
+
+```
+John Doe With More Than 5 Words
+```
+
+`-> {name}`

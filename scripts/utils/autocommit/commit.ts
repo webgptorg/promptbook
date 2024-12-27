@@ -2,10 +2,10 @@ import colors from 'colors';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import { execCommand } from '../execCommand/execCommand';
+import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
-export async function commit(addPaths: Array<string>, message: string): Promise<void> {
+export async function commit(addPaths: ReadonlyArray<string>, message: string): Promise<void> {
     const projectPath = process.cwd();
     // const addPath = '.';
 
@@ -25,7 +25,7 @@ export async function commit(addPaths: Array<string>, message: string): Promise<
 
     try {
         for (const addPath of addPaths) {
-            await execCommand({
+            await $execCommand({
                 cwd: projectPath,
                 crashOnError: false,
                 command: `git add ${addPath}`,
@@ -33,15 +33,15 @@ export async function commit(addPaths: Array<string>, message: string): Promise<
         }
 
         await mkdir(dirname(commitMessageFilePath), { recursive: true });
-        await writeFile(commitMessageFilePath, commitMessage, 'utf8');
+        await writeFile(commitMessageFilePath, commitMessage, 'utf-8');
 
-        await execCommand({
+        await $execCommand({
             cwd: projectPath,
             crashOnError: false,
             command: `git commit --file ${commitMessageFilePath}`,
         });
 
-        await execCommand({
+        await $execCommand({
             cwd: projectPath,
             crashOnError: false,
             command: `git push --quiet`,
@@ -52,3 +52,7 @@ export async function commit(addPaths: Array<string>, message: string): Promise<
         await unlink(commitMessageFilePath);
     }
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

@@ -3,7 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { extractAllListItemsFromMarkdown } from './extractAllListItemsFromMarkdown';
 
 describe('how extractAllListItemsFromMarkdown works', () => {
-    it('should work with sample with no items', () => {
+    it('should work with example with no items', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
@@ -32,7 +32,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         ).toEqual([]);
     });
 
-    it('should work with sample with one item', () => {
+    it('should work with example with one item', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
@@ -52,7 +52,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         ).toEqual(['Item with **bold** and *italic* text']);
     });
 
-    it('should work with sample with multiple items', () => {
+    it('should work with example with multiple items', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
@@ -71,7 +71,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         ).toEqual(['First item', 'Second item', 'Third item', 'Fourth item']);
     });
 
-    it('should work with sample with multiple items and nested lists', () => {
+    it('should work with example with multiple items and nested lists', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
@@ -89,7 +89,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         ).toEqual(['First item', 'Second item', 'Nested item 1', 'Nested item 2', 'Third item', 'Fourth item']);
     });
 
-    it('should work with sample with multiple items and nested lists and markdown', () => {
+    it('should work with example with multiple items and nested lists and markdown', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`

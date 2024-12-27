@@ -3,7 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 
 describe('how extractAllBlocksFromMarkdown works', () => {
-    it('should work with sample with no code blocks', () => {
+    it('should work with example with no code blocks', () => {
         expect(
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
@@ -56,7 +56,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ).toEqual([]);
     });
 
-    it('should work with sample with one code block of one line', () => {
+    it('should work with example with one code block of one line', () => {
         expect(
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
@@ -128,7 +128,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ]);
     });
 
-    it('should work with sample with one multiline code block made by gt char', () => {
+    it('should work with example with one multiline code block made by gt char', () => {
         expect(
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
@@ -153,14 +153,14 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ]);
     });
 
-    it('should work with sample with one code block of multiple lines', () => {
+    it('should work with example with one code block of multiple lines', () => {
         expect(
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
 
-                    # Sample
+                    # Example
 
-                    Sample python code:
+                    Example python code:
 
                     \`\`\`python
                     print('Hello World')
@@ -239,7 +239,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ]);
     });
 
-    it('should work with sample with multiple code blocks of one line', () => {
+    it('should work with example with multiple code blocks of one line', () => {
         expect(
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
@@ -278,7 +278,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ]);
     });
 
-    it('should work with sample with multiple mixed style code blocks', () => {
+    it('should work with example with multiple mixed style code blocks', () => {
         expect(
             extractAllBlocksFromMarkdown(
                 spaceTrim(`

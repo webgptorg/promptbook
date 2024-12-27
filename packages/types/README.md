@@ -1,8 +1,6 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
-
-Supercharge your use of large language models
+# ❄ Promptbook
 
 
 
@@ -16,9 +14,14 @@ Supercharge your use of large language models
 
 
 
-## ✨ New Features
+## ❄ New Features
 
+-   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
+-   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
+-   📚 Support of `.docx`, `.doc` and `.pdf` documents
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
+
+
 
 ## 📦 Package `@promptbook/types`
 
@@ -43,7 +46,7 @@ import { pipelineStringToJson } from '@promptbook/core';
 const promptbook: PipelineJson = pipelineStringToJson(
     spaceTrim(`
 
-        # ✨ Sample prompt
+        # ✨ Example prompt
 
         -   OUTPUT PARAMETER {greeting}
 
@@ -67,262 +70,174 @@ _Note: `@promptbook/types` does not export brand-specific types like `OpenAiExec
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
 
-## 🤍 The Promptbook Whitepaper
 
 
 
-If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
+## 🤍 The Book Abstract
 
-But often you will struggle with the limitations of LLMs, such as hallucinations, off-topic responses, poor quality output, language drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd responses. When this happens, you generally have three options:
+**It's time for a paradigm shift! The future of software is in plain English, French or Latin.**
 
-1. **Fine-tune** the model to your specifications or even train your own.
-2. **Prompt-engineer** the prompt to the best shape you can achieve.
-3. Orchestrate **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
+During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
 
-In all of these situations, but especially in 3., the Promptbook library can make your life easier.
+It's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!
 
--   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic.
--   Establishes a [**common format `.ptbk.md`**](https://github.com/webgptorg/promptbook/discussions/85) that can be used to describe your prompt business logic without having to write code or deal with the technicalities of LLMs.
--   **Forget** about **low-level details** like choosing the right model, tokens, context size, temperature, top-k, top-p, or kernel sampling. **Just write your intent** and [**persona**](https://github.com/webgptorg/promptbook/discussions/22) who should be responsible for the task and let the library do the rest.
--   Has built-in **orchestration** of [pipeline](https://github.com/webgptorg/promptbook/discussions/64) execution and many tools to make the process easier, more reliable, and more efficient, such as caching, [compilation+preparation](https://github.com/webgptorg/promptbook/discussions/78), [just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33), [expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37), [agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39), and more.
--   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **[anomaly detection](https://github.com/webgptorg/promptbook/discussions/40) and logging** to help you find and fix the problems.
--   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
--   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
+The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
+
+This shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.
+
+**Join us in this journey!**
 
 
 
-## 🧔 Pipeline _(for prompt-engeneers)_
+## 🚀 Get started
 
-**P**romp**t** **b**oo**k** markdown file (or `.ptbk.md` file) is document that describes a **pipeline** - a series of prompts that are chained together to form somewhat reciepe for transforming natural language input.
+Take a look at the simple starter kit with books integrated into the **Hello World** sample applications:
 
--   Multiple pipelines forms a **collection** which will handle core **know-how of your LLM application**.
--   Theese pipelines are designed such as they **can be written by non-programmers**.
-
-
-
-### Sample:
-
-File `write-website-content.ptbk.md`:
+-   [Hello Book](https://github.com/webgptorg/hello-world)
+-   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
+-   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
 
 
 
+## 💜 The Promptbook Project
 
-> # 🌍 Create website content
->
-> Instructions for creating web page content.
->
-> -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md
-> -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
-> -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
-> -   OUTPUT PARAM `{websiteContent}` Web content
-> -   OUTPUT PARAM `{keywords}` Keywords
->
-> ## 👤 Specifying the assigment
->
-> What is your web about?
->
-> -   DIALOG TEMPLATE
->
-> ```
-> {rawAssigment}
-> ```
->
-> `-> {assigment}` Website assignment and specification
->
-> ## ✨ Improving the title
->
-> -   PERSONA Jane, Copywriter and Marketing Specialist.
->
-> ```
-> As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.
->
-> A suggested name from a client:
-> "{rawTitle}"
->
-> Assignment from customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Write only one name suggestion
-> -   The name will be used on the website, business cards, visuals, etc.
-> ```
->
-> `-> {enhancedTitle}` Enhanced title
->
-> ## 👤 Website title approval
->
-> Is the title for your website okay?
->
-> -   DIALOG TEMPLATE
->
-> ```
-> {enhancedTitle}
-> ```
->
-> `-> {title}` Title for the website
->
-> ## 🐰 Cunning subtitle
->
-> -   PERSONA Josh, a copywriter, tasked with creating a claim for the website.
->
-> ```
-> As an experienced copywriter, you have been entrusted with creating a claim for the "{title}" web page.
->
-> A website assignment from a customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Write only one name suggestion
-> -   Claim will be used on website, business cards, visuals, etc.
-> -   Claim should be punchy, funny, original
-> ```
->
-> `-> {claim}` Claim for the web
->
-> ## 🚦 Keyword analysis
->
-> -   PERSONA Paul, extremely creative SEO specialist.
->
-> ```
-> As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
->
-> Website assignment from the customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Write a list of keywords
-> -   Keywords are in basic form
->
-> ## Example:
->
-> -   Ice cream
-> -   Olomouc
-> -   Quality
-> -   Family
-> -   Tradition
-> -   Italy
-> -   Craft
->
-> ```
->
-> `-> {keywords}` Keywords
->
-> ## 🔗 Combine the beginning
->
-> -   SIMPLE TEMPLATE
->
-> ```
->
-> # {title}
->
-> > {claim}
->
-> ```
->
-> `-> {contentBeginning}` Beginning of web content
->
-> ## 🖋 Write the content
->
-> -   PERSONA Jane
->
-> ```
-> As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.
->
-> A website assignment from a customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Text formatting is in Markdown
-> -   Be concise and to the point
-> -   Use keywords, but they should be naturally in the text
-> -   This is the complete content of the page, so don't forget all the important information and elements the page should contain
-> -   Use headings, bullets, text formatting
->
-> ## Keywords:
->
-> {keywords}
->
-> ## Web Content:
->
-> {contentBeginning}
-> ```
->
-> `-> {contentBody}` Middle of the web content
->
-> ## 🔗 Combine the content
->
-> -   SIMPLE TEMPLATE
->
-> ```markdown
-> {contentBeginning}
->
-> {contentBody}
-> ```
->
-> `-> {websiteContent}`
+Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
+
+<table>
+  <thead>
+    <tr>
+      <th>Project</th>
+      <th>Description</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Core</td>
+      <td>Promptbook Core is a description and documentation of the basic concepts, ideas and inner workings of how Promptbook should be implemented, and defines what features must be describable by book language.</td>
+      <td rowspan=2>https://github.com/webgptorg/book</td>
+    </tr>
+    <tr>
+      <td>Book language</td>
+      <td>
+          Book is a markdown-like language to define core entities like projects, pipelines, knowledge,.... It is designed to be understandable by non-programmers and non-technical people
+      </td>
+    </tr>
+    <tr>
+      <td>Promptbook typescript project</td>
+      <td>Promptbook implementation in TypeScript released as multiple NPM packages</td>
+      <td>https://github.com/webgptorg/promptbook + <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">Multiple packages published on NPM</a></td>
+    </tr>
+    <tr>
+      <td>Promptbook studio</td>
+      <td>Studio to write Books and instantly publish them as miniapps</td>
+      <td>
+        https://promptbook.studio<br/>
+        https://github.com/hejny/promptbook-studio</td>
+      </tr><tr>
+      <td>Hello World</td>
+      <td>Simple starter kit with Books integrated into the sample applications</td>
+       <td>
+          https://github.com/webgptorg/hello-world<br/>
+          https://github.com/webgptorg/hello-world-node-js<br/>
+          https://github.com/webgptorg/hello-world-next-js
+       </td>
+    </tr>
+  </tbody>
+</table>
+
+Also we have a community of developers and users:
+
+-   [Discord](https://discord.gg/x3QWNaa89N)
+-   [Landing page](https://ptbk.io)
+-   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 
 
 
-Following is the scheme how the promptbook above is executed:
+## 💙 Book language _(for prompt-engineer)_
 
-```mermaid
-%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
-flowchart LR
-  subgraph "🌍 Create website content"
 
-      direction TB
 
-      input((Input)):::input
-      templateSpecifyingTheAssigment(👤 Specifying the assigment)
-      input--"{rawAssigment}"-->templateSpecifyingTheAssigment
-      templateImprovingTheTitle(✨ Improving the title)
-      input--"{rawTitle}"-->templateImprovingTheTitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
-      templateWebsiteTitleApproval(👤 Website title approval)
-      templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
-      templateCunningSubtitle(🐰 Cunning subtitle)
-      templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
-      templateKeywordAnalysis(🚦 Keyword analysis)
-      templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
-      templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
-      templateCombineTheBeginning(🔗 Combine the beginning)
-      templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
-      templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
-      templateWriteTheContent(🖋 Write the content)
-      templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
-      templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
-      templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
-      templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
-      templateCombineTheContent(🔗 Combine the content)
-      templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
-      templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
+## 💙 The blueprint of book language
 
-      templateCombineTheContent--"{websiteContent}"-->output
-      output((Output)):::output
+Following is the documentation and blueprint of the Book language.
 
-      classDef input color: grey;
-      classDef output color: grey;
+### Example
 
-  end;
+```markdown
+# 🌟 My first Book
+
+-   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
+-   KNOWLEDGE https://ptbk.io
+-   KNOWLEDGE ./promptbook.pdf
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 1 Paragraph
+
+> Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
+> Look specifically at the impact of Promptbook on the AI industry.
+
+-> {article}
 ```
 
--   [More template samples](./samples/pipelines/)
--   [Read more about `.ptbk.md` file format here](https://github.com/webgptorg/promptbook/discussions/categories/concepts?discussions_q=is%3Aopen+label%3A.ptbk.md+category%3AConcepts)
+### Goals and principles of book language
 
-_Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
+File is designed to be easy to read and write. It is strict subset of markdown. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
 
-## 📦 Packages
+It has file with `.book.md` or `.book` extension with `UTF-8` non BOM encoding.
+
+As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
+
+But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
+
+### Structure
+
+Book is divided into sections. Each section starts with heading. The language itself is not sensitive to the type of heading _(`h1`, `h2`, `h3`, ...)_ but it is recommended to use `h1` for header section and `h2` for other sections.
+
+### Header
+
+Header is the first section of the book. It contains metadata about the pipeline. It is recommended to use `h1` heading for header section but it is not required.
+
+### Parameter
+
+Foo bar
+
+#### Parameter names
+
+Reserved words:
+
+-   _each command_ like `PERSONA`, `EXPECT`, `KNOWLEDGE`, etc.
+-   `content`
+-   `context`
+-   `knowledge`
+-   `examples`
+-   `modelName`
+-   `currentDate`
+
+#### Parameter notation
+
+### Task
+
+### Task type
+
+Todo todo
+
+### Command
+
+Todo todo
+
+### Block
+
+Todo todo
+
+### Return parameter
+
+### Examples
+
+
+
+## 📦 Packages _(for developers)_
 
 This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
 You can install all of them at once:
@@ -346,27 +261,79 @@ Or you can install them separately:
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
 -   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
+-   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
 -   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
 -   **[@promptbook/remote-client](https://www.npmjs.com/package/@promptbook/remote-client)** - Remote client for remote execution of promptbooks
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
+-   **[@promptbook/pdf](https://www.npmjs.com/package/@promptbook/pdf)** - Read knowledge from `.pdf` documents
+-   **[@promptbook/documents](https://www.npmjs.com/package/@promptbook/documents)** - Read knowledge from documents like `.docx`, `.odt`,…
+-   **[@promptbook/legacy-documents](https://www.npmjs.com/package/@promptbook/legacy-documents)** - Read knowledge from legacy documents like `.doc`, `.rtf`,…
+-   **[@promptbook/website-crawler](https://www.npmjs.com/package/@promptbook/website-crawler)** - Crawl knowledge from the web
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 
 
 
+
+
+
 ## 📚 Dictionary
+
+### 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
 
+#### General LLM / AI terms
 
+-   **Prompt drift** is a phenomenon where the AI model starts to generate outputs that are not aligned with the original prompt. This can happen due to the model's training data, the prompt's wording, or the model's architecture.
+-   **Pipeline, workflow or chain** is a sequence of tasks that are executed in a specific order. In the context of AI, a pipeline can refer to a sequence of AI models that are used to process data.
+-   **Fine-tuning** is a process where a pre-trained AI model is further trained on a specific dataset to improve its performance on a specific task.
+-   **Zero-shot learning** is a machine learning paradigm where a model is trained to perform a task without any labeled examples. Instead, the model is provided with a description of the task and is expected to generate the correct output.
+-   **Few-shot learning** is a machine learning paradigm where a model is trained to perform a task with only a few labeled examples. This is in contrast to traditional machine learning, where models are trained on large datasets.
+-   **Meta-learning** is a machine learning paradigm where a model is trained on a variety of tasks and is able to learn new tasks with minimal additional training. This is achieved by learning a set of meta-parameters that can be quickly adapted to new tasks.
+-   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
+-   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
-### Core concepts
+_Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
+
+#### Promptbook core
+
+-   **Organization** _(legacy name collection)_ group jobs, workforce, knowledge, instruments, and actions into one package. Entities in one organization can share resources (= import resources from each other).
+    -   **Jobs**
+        -   **Task**
+        -   **Subtask**
+    -   **Workforce**
+        -   **Persona**
+        -   **Team**
+        -   **Role**
+    -   **Knowledge**
+        -   **Public**
+        -   **Private**
+        -   **Protected**
+    -   **Instruments**
+    -   **Actions**
+
+#### Book language
+
+-   **Book file**
+    -   **Section**
+        -   **Heading**
+        -   **Description**
+        -   **Command**
+        -   **Block**
+        -   **Return statement**
+    -   **Comment**
+    -   **Import**
+    -   **Scope**
+
+#### 💯 Core concepts
 
 -   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
 -   [📯 Pipeline](https://github.com/webgptorg/promptbook/discussions/64)
--   [🎺 Pipeline templates](https://github.com/webgptorg/promptbook/discussions/88)
+-   [🙇‍♂️ Tasks and pipeline sections](https://github.com/webgptorg/promptbook/discussions/88)
 -   [🤼 Personas](https://github.com/webgptorg/promptbook/discussions/22)
 -   [⭕ Parameters](https://github.com/webgptorg/promptbook/discussions/83)
 -   [🚀 Pipeline execution](https://github.com/webgptorg/promptbook/discussions/84)
@@ -375,7 +342,7 @@ The following glossary is used to clarify certain concepts:
 -   [🔣 Words not tokens](https://github.com/webgptorg/promptbook/discussions/29)
 -   [☯ Separation of concerns](https://github.com/webgptorg/promptbook/discussions/32)
 
-### Advanced concepts
+##### Advanced concepts
 
 -   [📚 Knowledge (Retrieval-augmented generation)](https://github.com/webgptorg/promptbook/discussions/41)
 -   [🌏 Remote server](https://github.com/webgptorg/promptbook/discussions/89)
@@ -390,10 +357,17 @@ The following glossary is used to clarify certain concepts:
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
 
+### Terms specific to Promptbook TypeScript implementation
+
+-   Anonymous mode
+-   Application mode
+
+
+
 ## 🔌 Usage in Typescript / Javascript
 
--   [Simple usage](./samples/usage/simple-script)
--   [Usage with client and remote server](./samples/usage/remote)
+-   [Simple usage](./examples/usage/simple-script)
+-   [Usage with client and remote server](./examples/usage/remote)
 
 ## ➕➖ When to use Promptbook?
 

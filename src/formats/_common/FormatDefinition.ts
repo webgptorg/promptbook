@@ -19,21 +19,21 @@ export type FormatDefinition<
     TSchema extends empty_object,
 > = {
     /**
-     * The name of the format used in .ptbk.md files
+     * The name of the format used in .book.md files
      *
-     * @sample "JSON"
+     * @example "JSON"
      */
     readonly formatName: string_name & string_SCREAMING_CASE;
 
     /**
      * Aliases for the `formatName`
      */
-    readonly aliases?: Array<string_name & string_SCREAMING_CASE>;
+    readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
      * The mime type of the format (if any)
      *
-     * @sample "application/json"
+     * @example "application/json"
      */
     readonly mimeType?: string_mime_type;
 
@@ -70,7 +70,7 @@ export type FormatDefinition<
     /**
      * @@@
      */
-    readonly subvalueDefinitions: Array<FormatSubvalueDefinition<TValue, TSettings>>;
+    readonly subvalueDefinitions: ReadonlyArray<FormatSubvalueDefinition<TValue, TSettings>>;
 };
 
 /**

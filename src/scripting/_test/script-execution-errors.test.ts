@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPipelineExecutor + executing scripts in promptbook', () => {
@@ -43,7 +43,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 isSuccessful: false,
                 errors: [/Error: I do not like Apples!/i],
                 warnings: [
-                    /PipelineExecutionError: Parameter {bhing} should be an output parameter, but it was not generated/i,
+                    /PipelineExecutionError: Parameter `{bhing}` should be an output parameter, but it was not generated/i,
                 ],
             });
 
@@ -57,7 +57,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to execute a script
 
@@ -82,28 +82,19 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                { isVerbose: true },
-            ),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptExecutionTools(
-                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                    {
-                        isVerbose: true,
-                        // Note: [🕎] Custom functions are tested elsewhere
-                    },
-                ),
-            ],
-            userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
+                new JavascriptExecutionTools({
                     isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
 

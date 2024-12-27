@@ -6,7 +6,7 @@ import type { CompletionPromptResult } from '../../../../execution/PromptResult'
 import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { addUsage } from '../../../../execution/utils/addUsage';
-import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
+import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { ChatPrompt } from '../../../../types/Prompt';
 import type { CompletionPrompt } from '../../../../types/Prompt';
 import type { EmbeddingPrompt } from '../../../../types/Prompt';
@@ -37,7 +37,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
             return /* not await */ llmTools.checkConfiguration();
         },
 
-        listModels(): Promisable<Array<AvailableModel>> {
+        listModels(): Promisable<ReadonlyArray<AvailableModel>> {
             return /* not await */ llmTools.listModels();
         },
 

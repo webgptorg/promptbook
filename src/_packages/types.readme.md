@@ -7,7 +7,7 @@ import { pipelineStringToJson } from '@promptbook/core';
 const promptbook: PipelineJson = pipelineStringToJson(
     spaceTrim(`
 
-        # ✨ Sample prompt
+        # ✨ Example prompt
 
         -   OUTPUT PARAMETER {greeting}
 

@@ -1,4 +1,4 @@
-import { IS_VERBOSE } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
 import type { string_url } from '../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -31,7 +31,7 @@ export async function createCollectionFromUrl(
     url: string_url | URL,
     options: CreatePipelineCollectionFromUrlyOptions,
 ): Promise<PipelineCollection> {
-    const { isVerbose = IS_VERBOSE, isLazyLoaded = false } = options || {};
+    const { isVerbose = DEFAULT_IS_VERBOSE, isLazyLoaded = false } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
@@ -49,7 +49,7 @@ export async function createCollectionFromUrl(
 
     // TODO: [main] !!! [🏳‍🌈] Allow variant with .json .js and .ts files
     // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function of the collection
-    // TODO: Look at WebGPT "📖 Make Promptbook collection" and https://webgpt.cz/_promptbook-collection.json
+    // TODO: Look at WebGPT "📖 Make Promptbook collection" and https://webgpt.cz/_books.json
     // TODO: !! Implement via createCollectionFromPromise
 }
 

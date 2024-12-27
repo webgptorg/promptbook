@@ -1,7 +1,6 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { RemoteLlmExecutionToolsOptions } from '../remote/interfaces/RemoteLlmExecutionToolsOptions';
-
 
 /**
  * Options for `AnthropicClaudeExecutionTools`
@@ -19,7 +18,7 @@ export type AnthropicClaudeExecutionToolsOptions =
  * This extends Anthropic's `ClientOptions` with are directly passed to the Anthropic client.
  * @public exported from `@promptbook/anthropic-claude`
  */
-export type AnthropicClaudeExecutionToolsDirectOptions = CommonExecutionToolsOptions &
+export type AnthropicClaudeExecutionToolsDirectOptions = CommonToolsOptions &
     ClientOptions & {
         isProxied?: false;
     };
@@ -30,11 +29,11 @@ export type AnthropicClaudeExecutionToolsDirectOptions = CommonExecutionToolsOpt
  * This extends Anthropic's `ClientOptions` with are directly passed to the Anthropic client.
  * @public exported from `@promptbook/anthropic-claude`
  */
-export type AnthropicClaudeExecutionToolsProxiedOptions = CommonExecutionToolsOptions &
+export type AnthropicClaudeExecutionToolsProxiedOptions = CommonToolsOptions &
     ClientOptions & {
         isProxied: true;
-    } & Pick<RemoteLlmExecutionToolsOptions, 'remoteUrl' | 'path'>;
+    } & Pick<RemoteLlmExecutionToolsOptions<undefined>, 'remoteUrl' | 'path'>;
 
 /**
- * TODO: [🧠][🤺] Detecting `user`
+ * TODO: [🧠][🤺] Pass `userId`
  */

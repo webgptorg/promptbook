@@ -1,1 +1,1 @@
-<!-- TODO: [🍓][main] !!! Sample of use + interlink server and client -->
+<!-- TODO: [🍓][main] !!! Example of use + interlink server and client -->

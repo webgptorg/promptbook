@@ -1,0 +1,25 @@
+import { string_url } from '../../../../types/typeAliases';
+
+/**
+ * Tests if given string is valid DataURL.
+ *
+ * @collboard-modules-sdk
+ */
+export function isValidDataurl(url: string_url): boolean {
+    try {
+        const urlObject = new URL(url);
+
+        if (!['data:'].includes(urlObject.protocol)) {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * TODO: [🧺] In future uncomment
+ * TODO: [🧺] Export via `@promptbook/pdf` and `@promptbook/docx`
+ */

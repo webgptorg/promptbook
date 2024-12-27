@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { personaCommandParser } from './personaCommandParser';
 
-describe('how PERSONA command in .ptbk.md files works', () => {
+describe('how PERSONA command in .book.md files works', () => {
     it('should parse PERSONA command in PIPELINE_HEAD', () => {
         expect(parseCommand('PERSONA John', 'PIPELINE_HEAD')).toEqual({
             type: 'PERSONA',
@@ -36,8 +36,8 @@ describe('how PERSONA command in .ptbk.md files works', () => {
         });
     });
 
-    it('should parse PERSONA command in PIPELINE_TEMPLATE', () => {
-        expect(parseCommand('PERSONA John', 'PIPELINE_TEMPLATE')).toEqual({
+    it('should parse PERSONA command in PIPELINE_TASK', () => {
+        expect(parseCommand('PERSONA John', 'PIPELINE_TASK')).toEqual({
             type: 'PERSONA',
             personaName: 'John',
             personaDescription: null,
@@ -92,12 +92,11 @@ describe('how PERSONA command in .ptbk.md files works', () => {
         expect(() => parseCommand('PERSONA ,', 'PIPELINE_HEAD')).toThrowError(/You must set name for the persona/i);
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of personaCommandParser.examples) {
-
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
-            expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();
+            expect(() => parseCommand(example, 'PIPELINE_TASK')).not.toThrowError();
         }
     });
 });

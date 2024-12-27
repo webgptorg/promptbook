@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { DEFAULT_TITLE } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import { parseMarkdownSection } from './parseMarkdownSection';
 import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
@@ -8,14 +9,14 @@ import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
  *
  * - It always have h1 - if there is no h1 in the markdown, it will be added "# Untitled"
  * - All other headings are normalized to h2
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export function flattenMarkdown<TContent extends string_markdown>(markdown: TContent): TContent {
     const sections = splitMarkdownIntoSections(markdown);
 
     if (sections.length === 0) {
-        return '# Untitled' as TContent;
+        return `# ${DEFAULT_TITLE}` as TContent;
     }
 
     let flattenedMarkdown: string_markdown = '';
@@ -28,7 +29,7 @@ export function flattenMarkdown<TContent extends string_markdown>(markdown: TCon
         flattenedMarkdown += firstSection.content + `\n\n`; // <- [🧠] Maybe 3 new lines?
     } else {
         parsedSections.unshift(firstSection);
-        flattenedMarkdown += `# Untitled` + `\n\n`; // <- [🧠] Maybe 3 new lines?
+        flattenedMarkdown += `# ${DEFAULT_TITLE}` + `\n\n`; // <- [🧠] Maybe 3 new lines?
     }
 
     for (const { title, content } of parsedSections) {

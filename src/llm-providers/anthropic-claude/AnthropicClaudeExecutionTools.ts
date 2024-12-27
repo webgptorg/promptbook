@@ -1,7 +1,7 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -14,7 +14,7 @@ import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_model_name } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -28,7 +28,7 @@ import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
  * @public exported from `@promptbook/anthropic-claude`
  * @deprecated use `createAnthropicClaudeExecutionTools` instead
  */
-export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
+export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
      * Anthropic Claude API client.
      */
@@ -39,7 +39,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(private readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {}
+    public constructor(protected readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Anthropic Claude';
@@ -72,7 +72,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
      * List all available Anthropic Claude models that can be used
      */
-    public listModels(): Array<AvailableModel> {
+    public listModels(): ReadonlyArray<AvailableModel> {
         return ANTHROPIC_CLAUDE_MODELS;
     }
 
@@ -117,13 +117,19 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             ],
             // TODO: Is here some equivalent of user identification?> user: this.options.user,
         };
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.messages.create(rawRequest);
+        const rawResponse = await client.messages.create(rawRequest).catch((error) => {
+            if (this.options.isVerbose) {
+                console.info(colors.bgRed('error'), error);
+            }
+            throw error;
+        });
+
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -145,7 +151,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const resultContent = contentBlock.text;
 
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse);
 
         return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools ChatPromptResult', {
@@ -193,13 +199,20 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             prompt: rawPromptContent,
             user: this.options.user,
         };
-        const start: string_date_iso8601 = getCurrentIsoDate();
+        const start: string_date_iso8601 = $getCurrentDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.completions.create(rawRequest);
+        const rawResponse = await this.client.completions.create(rawRequest).catch((error) => {
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
+
+
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -215,7 +228,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
+        complete = $getCurrentDate();
         const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } satisfies PromptResultUsage;
 
 

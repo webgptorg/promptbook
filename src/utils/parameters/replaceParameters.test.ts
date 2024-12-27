@@ -82,7 +82,7 @@ describe('replaceParameters', () => {
         ).toBe('Hello World, how are you? Hello World');
     });
 
-    it('should replace multi-line templates', () => {
+    it('should replace multi-line tasks', () => {
         expect(
             replaceParameters(
                 spaceTrim(`
@@ -119,7 +119,7 @@ describe('replaceParameters', () => {
 
     it('should throw error when parameter is not defined', () => {
         expect(() => replaceParameters('{greeting} {name}, how are you?', { greeting: 'Hello' })).toThrowError(
-            /Parameter \{name\} is not defined/i,
+            /Parameter `{name}` is not defined/i,
         );
     });
 
@@ -133,7 +133,7 @@ describe('replaceParameters', () => {
         ).toThrowError(/Parameter is not opened/i);
     });
 
-    it('should preserve indentation in multi-line templates', () => {
+    it('should preserve indentation in multi-line tasks', () => {
         expect(
             replaceParameters(
                 spaceTrim(`
@@ -165,7 +165,7 @@ describe('replaceParameters', () => {
         );
     });
 
-    it('should preserve multiple indentations in multi-line templates', () => {
+    it('should preserve multiple indentations in multi-line tasks', () => {
         expect(
             replaceParameters(
                 spaceTrim(`
@@ -197,7 +197,7 @@ describe('replaceParameters', () => {
         );
     });
 
-    it('should preserve col-chars in multi-line templates', () => {
+    it('should preserve col-chars in multi-line tasks', () => {
         expect(
             replaceParameters(
                 spaceTrim(`
@@ -258,7 +258,7 @@ describe('replaceParameters', () => {
         );
     });
 
-    it('should not-preserve non-col-chars in multi-line templates', () => {
+    it('should not-preserve non-col-chars in multi-line tasks', () => {
         expect(
             replaceParameters(
                 spaceTrim(`
@@ -290,7 +290,7 @@ describe('replaceParameters', () => {
         );
     });
 
-    it('should work with combination of col-chars and non-col-chars in multi-line templates', () => {
+    it('should work with combination of col-chars and non-col-chars in multi-line tasks', () => {
         expect(
             replaceParameters(
                 spaceTrim(`

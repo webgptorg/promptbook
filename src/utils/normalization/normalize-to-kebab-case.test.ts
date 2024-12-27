@@ -13,6 +13,8 @@ describe('how normalizing to kebab-case works', () => {
         expect(normalizeToKebabCase('   hello world')).toEqual('hello-world');
         expect(normalizeToKebabCase('helloWorld')).toEqual('hello-world');
         expect(normalizeToKebabCase('hello___world')).toEqual('hello-world');
+        expect(normalizeToKebabCase('hello_/_world')).toEqual('hello-world');
+        expect(normalizeToKebabCase('hello_\\_world')).toEqual('hello-world');
         expect(normalizeToKebabCase('hello.world')).toEqual('hello-world');
         expect(normalizeToKebabCase('hello\nworld')).toEqual('hello-world');
     });

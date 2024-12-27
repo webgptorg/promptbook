@@ -5,9 +5,9 @@ import type { ChatPromptResult } from '../../../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
-import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
-import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
+import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
+import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import type { ChatPrompt } from '../../../../types/Prompt';
 import type { CompletionPrompt } from '../../../../types/Prompt';
 import type { EmbeddingPrompt } from '../../../../types/Prompt';
@@ -44,11 +44,7 @@ export function limitTotalUsage(
     llmTools: LlmExecutionTools,
     options: Partial<LimitTotalUsageOptions> = {},
 ): LlmExecutionToolsWithTotalUsage {
-    const {
-        maxTotalUsage = ZERO_USAGE,
-        storage = new MemoryStorage(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    } = options;
+    const { maxTotalUsage = ZERO_USAGE, storage = new MemoryStorage() } = options;
 
     TODO_USE(storage);
 

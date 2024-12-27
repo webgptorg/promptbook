@@ -1,20 +1,20 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/utils`
 
-import { PROMPTBOOK_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
-import { extractParameterNamesFromTemplate } from '../conversion/utils/extractParameterNamesFromTemplate';
-import { extractVariables } from '../conversion/utils/extractVariables';
-import { renameParameter } from '../conversion/utils/renameParameter';
-import { titleToName } from '../conversion/utils/titleToName';
+import { extractVariablesFromScript } from '../conversion/utils/extractVariablesFromScript';
 import { deserializeError } from '../errors/utils/deserializeError';
 import { serializeError } from '../errors/utils/serializeError';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
-import { $currentDate } from '../utils/$currentDate';
+import { $getCurrentDate } from '../utils/$getCurrentDate';
 import { $isRunningInBrowser } from '../utils/environment/$isRunningInBrowser';
+import { $isRunningInJest } from '../utils/environment/$isRunningInJest';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../utils/environment/$isRunningInWebWorker';
+import { CHARACTERS_PER_STANDARD_LINE } from '../utils/expectation-counters/constants';
+import { LINES_PER_STANDARD_PAGE } from '../utils/expectation-counters/constants';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
@@ -27,7 +27,7 @@ import { capitalize } from '../utils/normalization/capitalize';
 import { decapitalize } from '../utils/normalization/decapitalize';
 import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
 import type { string_keyword } from '../utils/normalization/IKeywords';
-import type { IKeywords } from '../utils/normalization/IKeywords';
+import type { Keywords } from '../utils/normalization/IKeywords';
 import { isValidKeyword } from '../utils/normalization/isValidKeyword';
 import { nameToUriPart } from '../utils/normalization/nameToUriPart';
 import { nameToUriParts } from '../utils/normalization/nameToUriParts';
@@ -45,6 +45,8 @@ import { parseKeywords } from '../utils/normalization/parseKeywords';
 import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics } from '../utils/normalization/removeDiacritics';
 import { searchKeywords } from '../utils/normalization/searchKeywords';
+import { titleToName } from '../utils/normalization/titleToName';
+import { spaceTrim } from '../utils/organization/spaceTrim';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
 import { replaceParameters } from '../utils/parameters/replaceParameters';
 import { parseNumber } from '../utils/parseNumber';
@@ -75,23 +77,23 @@ import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
 
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
+export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/utils`
 export { renderPromptbookMermaid };
-export { extractParameterNamesFromTemplate };
-export { extractVariables };
-export { renameParameter };
-export { titleToName };
+export { extractVariablesFromScript };
 export { deserializeError };
 export { serializeError };
 export { forEachAsync };
 export { isValidJsonString };
-export { $currentDate };
+export { $getCurrentDate };
 export { $isRunningInBrowser };
+export { $isRunningInJest };
 export { $isRunningInNode };
 export { $isRunningInWebWorker };
+export { CHARACTERS_PER_STANDARD_LINE };
+export { LINES_PER_STANDARD_PAGE };
 export { countCharacters };
 export { countLines };
 export { countPages };
@@ -104,7 +106,7 @@ export { capitalize };
 export { decapitalize };
 export { DIACRITIC_VARIANTS_LETTERS };
 export type { string_keyword };
-export type { IKeywords };
+export type { Keywords };
 export { isValidKeyword };
 export { nameToUriPart };
 export { nameToUriParts };
@@ -122,6 +124,8 @@ export { parseKeywords };
 export { parseKeywordsFromString };
 export { removeDiacritics };
 export { searchKeywords };
+export { titleToName };
+export { spaceTrim };
 export { extractParameterNames };
 export { replaceParameters };
 export { parseNumber };

@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
 import { parameterCommandParser } from './parameterCommandParser';
 
-describe('how PARAMETER command in .ptbk.md files works', () => {
+describe('how PARAMETER command in .book.md files works', () => {
     it('should parse PARAMETER command', () => {
         expect(parseCommand('parameter {name} Name for the hero1', 'PIPELINE_HEAD')).toEqual({
             type: 'PARAMETER',
@@ -182,11 +182,11 @@ describe('how PARAMETER command in .ptbk.md files works', () => {
         );
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of parameterCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
-            expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();
+            expect(() => parseCommand(example, 'PIPELINE_TASK')).not.toThrowError();
         }
     });
 });

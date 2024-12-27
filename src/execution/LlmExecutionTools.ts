@@ -28,7 +28,7 @@ export type LlmExecutionTools = {
      *
      * @example "Use all models from OpenAI"
      */
-    readonly description: string_markdown;
+    readonly description?: string_markdown;
 
     /**
      * Check comfiguration
@@ -41,7 +41,7 @@ export type LlmExecutionTools = {
     /**
      * List all available models that can be used
      */
-    listModels(): Promisable<Array<AvailableModel>>;
+    listModels(): Promisable<ReadonlyArray<AvailableModel>>;
 
     /**
      * Calls a chat model
@@ -60,7 +60,7 @@ export type LlmExecutionTools = {
 };
 
 /**
- * TODO: Implement destroyable pattern to free resources
+ * TODO: [🍚] Implement destroyable pattern to free resources
  * TODO: [🏳] Add `callTranslationModel`
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
  * TODO: [🍓][♐] Some heuristic to pick the best model in listed models

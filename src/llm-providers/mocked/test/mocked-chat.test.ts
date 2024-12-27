@@ -1,23 +1,23 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
+import { CallbackInterfaceTools } from '../../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
-import type { PipelineString } from '../../../types/PipelineString';
-import { PROMPTBOOK_VERSION } from '../../../version';
+import type { PipelineString } from '../../../pipeline/PipelineString';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../version';
 import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 
-describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample chat prompt', () => {
+describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             executionReport: {
-                title: 'Sample prompt',
+                title: 'Example prompt',
                 promptbookRequestedVersion: '1.0.0',
-                pipelineUrl: 'https://promptbook.studio/samples/pipeline.ptbk.md',
-                promptbookUsedVersion: PROMPTBOOK_VERSION,
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book.md',
+                promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
             outputParameters: {
                 response: spaceTrim(`
@@ -33,14 +33,14 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample chat 
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [/Parameter {thing} is required as an input parameter/i],
+            errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {
-                title: 'Sample prompt',
+                title: 'Example prompt',
                 description: 'Show how to use a simple chat prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://promptbook.studio/samples/pipeline.ptbk.md',
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book.md',
                 promptbookRequestedVersion: '1.0.0',
-                promptbookUsedVersion: PROMPTBOOK_VERSION,
+                promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
             outputParameters: {},
             usage: {
@@ -108,12 +108,12 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample chat 
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to use a simple chat prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/samples/pipeline.ptbk.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book.md
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {thing} Any thing to buy
@@ -132,20 +132,14 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                { isVerbose: true },
-            ),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],
-            userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
     return pipelineExecutor;

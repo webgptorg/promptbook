@@ -1,22 +1,9 @@
-import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
+import type { ExecutionTools } from '../execution/ExecutionTools';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../pipeline/PipelineString';
+import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../types/PipelineString';
 import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
-
-/**
- * Options for `pipelineStringToJson`
- *
- * @public exported from `@promptbook/core`
- */
-export type PipelineStringToJsonOptions = {
-    /**
-     * Tools for processing required for preparation of knowledge *(not for actual execution)*
-     *
-     * Note: If you provide `null`, the knowledge will not be prepared
-     */
-    readonly llmTools: LlmExecutionTools | null;
-};
 
 /**
  * Compile pipeline from string (markdown) format to JSON format
@@ -29,22 +16,28 @@ export type PipelineStringToJsonOptions = {
  * Note: This function does not validate logic of the pipeline only the parsing
  * Note: This function acts as compilation process
  *
- * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
+ * @param pipelineString {Promptbook} in string markdown format (.book.md)
+ * @param tools - Tools for the preparation and scraping - if not provided together with `llm`, the preparation will be skipped
  * @param options - Options and tools for the compilation
- * @returns {Promptbook} compiled in JSON format (.ptbk.json)
+ * @returns {Promptbook} compiled in JSON format (.book.json)
  * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */
 export async function pipelineStringToJson(
     pipelineString: PipelineString,
-    options: PipelineStringToJsonOptions = { llmTools: null },
+    tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
+    options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
-    const { llmTools } = options;
-
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
-    if (llmTools !== null) {
-        pipelineJson = await preparePipeline(pipelineJson, { llmTools });
+    if (tools !== undefined && tools.llm !== undefined) {
+        pipelineJson = await preparePipeline(
+            pipelineJson,
+            tools,
+            options || {
+                rootDirname: null,
+            },
+        );
     }
 
     // Note: No need to use `$asDeeplyFrozenSerializableJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that

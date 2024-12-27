@@ -9,7 +9,7 @@ import type { Arrayable } from '../types/Arrayable';
  *
  * @private internal utility
  */
-export function arrayableToArray<TItem>(input?: Arrayable<TItem>): Array<TItem> {
+export function arrayableToArray<TItem>(input?: Arrayable<TItem>): ReadonlyArray<TItem> {
     if (input === undefined) {
         return [];
     }

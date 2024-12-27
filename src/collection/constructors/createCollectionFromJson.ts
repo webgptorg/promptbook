@@ -1,4 +1,4 @@
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineCollection } from '../PipelineCollection';
 import { SimplePipelineCollection } from '../SimplePipelineCollection';
 
@@ -12,9 +12,6 @@ import { SimplePipelineCollection } from '../SimplePipelineCollection';
  * @returns PipelineCollection
  * @public exported from `@promptbook/core`
  */
-export function createCollectionFromJson(...promptbooks: Array<PipelineJson>): PipelineCollection {
-    return new SimplePipelineCollection(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        ...promptbooks,
-    );
+export function createCollectionFromJson(...promptbooks: ReadonlyArray<PipelineJson>): PipelineCollection {
+    return new SimplePipelineCollection(...promptbooks);
 }

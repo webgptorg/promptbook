@@ -1,11 +1,11 @@
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
+import type { Expectations } from '../pipeline/PipelineJson/Expectations';
 import type { ChatModelRequirements } from './ModelRequirements';
 import type { CompletionModelRequirements } from './ModelRequirements';
 import type { EmbeddingModelRequirements } from './ModelRequirements';
 import type { ModelRequirements } from './ModelRequirements';
-import type { Expectations } from './PipelineJson/Expectations';
 import type { Parameters } from './typeAliases';
-import type { string_pipeline_url_with_hashtemplate } from './typeAliases';
+import type { string_pipeline_url_with_task_hash } from './typeAliases';
 import type { string_postprocessing_function_name } from './typeAliases';
 import type { string_prompt } from './typeAliases';
 import type { string_template } from './typeAliases';
@@ -91,7 +91,7 @@ export type CommonPrompt = {
     /**
      * List of postprocessing steps that are executed after the prompt
      */
-    readonly postprocessingFunctionNames?: Array<string_postprocessing_function_name>;
+    readonly postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>;
 
     /**
      * Expectations for the answer
@@ -110,11 +110,11 @@ export type CommonPrompt = {
     readonly format?: FormatCommand['format'];
 
     /**
-     * Unique identifier of the pipeline with specific template name as hash
+     * Unique identifier of the pipeline with specific task name as hash
      *
-     * @example https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords
+     * @example https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords
      */
-    readonly pipelineUrl?: string_pipeline_url_with_hashtemplate;
+    readonly pipelineUrl?: string_pipeline_url_with_task_hash;
 
     /**
      * Parameters used in the `content`
@@ -128,4 +128,5 @@ export type CommonPrompt = {
  * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
  * TODO: [✔] Check ModelRequirements in runtime
  * TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
+ * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
  */

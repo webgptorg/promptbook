@@ -1,4 +1,4 @@
-import type { string_file_path } from '../../../types/typeAliases';
+import type { string_filename } from '../../../types/typeAliases';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**
@@ -7,25 +7,25 @@ import type { really_unknown } from '../../organization/really_unknown';
  * Note: This does not check if the file exists only if the path is valid
  * @public exported from `@promptbook/utils`
  */
-export function isValidFilePath(filePath: really_unknown): filePath is string_file_path {
-    if (typeof filePath !== 'string') {
+export function isValidFilePath(filename: really_unknown): filename is string_filename {
+    if (typeof filename !== 'string') {
         return false;
     }
 
-    const filePathSlashes = filePath.split('\\').join('/');
+    const filenameSlashes = filename.split('\\').join('/');
 
     // Absolute Unix path: /hello.txt
-    if (/^(\/)/i.test(filePathSlashes)) {
+    if (/^(\/)/i.test(filenameSlashes)) {
         return true;
     }
 
     // Absolute Windows path: /hello.txt
-    if (/^([A-Z]{1,2}:\/?)\//i.test(filePathSlashes)) {
+    if (/^([A-Z]{1,2}:\/?)\//i.test(filenameSlashes)) {
         return true;
     }
 
     // Relative path: ./hello.txt
-    if (/^(\.\.?\/)+/i.test(filePathSlashes)) {
+    if (/^(\.\.?\/)+/i.test(filenameSlashes)) {
         return true;
     }
 

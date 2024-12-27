@@ -1,12 +1,12 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
@@ -14,7 +14,7 @@ import type { ParameterCommand } from './ParameterCommand';
 /**
  * Parses the parameter command
  *
- * @see ./PARAMETER-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {
@@ -36,15 +36,15 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the PARAMETER command
      */
-    description: `Describes one parameter of the template`,
+    description: `Describes one parameter of the task`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/68',
 
@@ -68,7 +68,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Parameter {${parameterNameRaw}} can not contain another parameter in description
+                        Parameter \`{${parameterNameRaw}}\` can not contain another parameter in description
 
                         The description:
                         ${block(parameterDescriptionRaw)}
@@ -110,10 +110,10 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     /**
      * Apply the PARAMETER command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTemplateJson(command: ParameterCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        keepUnused(command, $templateJson, $pipelineJson);
+    $applyToTaskJson(command: ParameterCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $taskJson, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
 
@@ -132,18 +132,18 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ParameterCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ParameterCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 
     /**
-     * Reads the PARAMETER command from the `TemplateJson`
+     * Reads the PARAMETER command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ParameterCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<ParameterCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

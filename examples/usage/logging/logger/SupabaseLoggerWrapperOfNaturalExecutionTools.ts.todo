@@ -1,0 +1,121 @@
+import type {
+    LlmExecutionTools,
+    Prompt,
+    PromptChatResult,
+    CompletionPromptResult,
+    PromptResult,
+} from '../../../src/_packages/types.index';
+import { spaceTrim } from 'spacetrim';
+import { isRunningInNode } from '../../../utils/isRunningInWhatever';
+import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServer';
+import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLoggerWrapperOfLlmExecutionToolsOptions';
+
+/**
+ * Wrapper for any PromptbookExecutionTools which logs every request+result to Supabase.
+ */
+export class SupabaseLoggerWrapperOfLlmExecutionTools
+
+    public constructor(protected readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
+        if (!isRunningInNode()) {
+            throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
+        }
+    }
+
+    /**
+     * Calls a chat model and logs the request+result
+     */
+    public callChatModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<PromptChatResult> {
+        return /* not await */ this.callCommonModel(prompt);
+    }
+
+    /**
+     * Calls a completion model and logs the request+result
+     */
+    public callCompletionModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<CompletionPromptResult> {
+        return /* not await */ this.callCommonModel(prompt);
+    }
+
+    /**
+     * Calls both completion or chat model and logs the request+result
+     */
+    public async callCommonModel(prompt: Prompt): Promise<PromptResult> {
+        const mark = 'gpt-call';
+        const promptAt = new Date();
+        performance.mark(`${mark}-start`);
+
+        let promptResult: PromptResult;
+        switch (prompt.modelRequirements.variant) {
+            case 'CHAT':
+                promptResult = await this.options.llmExecutionTools.callChatModel(prompt);
+                break;
+
+            case 'COMPLETION':
+                promptResult = await this.options.llmExecutionTools.callCompletionModel(prompt);
+                break;
+
+            // <- case [🤖]:
+
+            default:
+                throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
+        }
+
+        performance.mark(`${mark}-end`);
+        const resultAt = new Date();
+
+        if (this.options.isVerbose) {
+            console.info(
+                spaceTrim(
+                    (block) => `
+                        ===========================[ Chat: ]===
+                        User:   ${block(prompt.content)}
+                        System: ${block(promptResult.content)}
+                        ---
+                        Executed in ${block(
+                            performance.measure(mark, `${mark}-start`, `${mark}-end`).duration.toString(),
+                        )}ms
+                        ${(promptResult.rawResponse as any).usage?.total_tokens} tokens used
+                        ===========================[ /Chat ]===
+                    `,
+                ),
+            );
+        }
+
+        // Note: We do not want to wait for the insert to the database
+        /* not await */ getSupabaseForServer()
+            .from('PromptExecution')
+            .insert(
+                {
+                    userId: this.options.userId,// <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
+                    pipelineUrl: prompt.pipelineUrl,
+                    promptAt,
+                    promptContent: prompt.content,
+                    promptModelRequirements: prompt.modelRequirements,
+                    promPromptbookarameters: prompt.parameters,
+                    resultAt,
+                    resultContent: promptResult.content,
+                    usedModel: promptResult.model,
+                    rawResponse: promptResult.rawResponse,
+
+                    // <- TODO: [💹] There should be link to wallpaper site which is the prompt for (to analyze cost per wallpaper)
+                    // <- TODO: Maybe use here more precise performance measure
+                } as any /* <- TODO: [🖍] It is working in runtime BUT for some strange reason it invokes typescript error */,
+            )
+            .then((insertResult) => {
+                // TODO: !! Util isInsertSuccessfull
+
+                if (this.options.isVerbose) {
+                    console.info('ChatThread', { insertResult });
+                }
+            });
+
+        return promptResult;
+    }
+}
+
+/**
+ * TODO: [⚾️][🧠] Best name for this class "SupabaseLoggerWrapperOfLlmExecutionTools" vs "LlmExecutionToolsWithSupabaseLogger" or just helper "withSupabaseLogger"
+ * TODO: [⚾️] Log also failed results
+ * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
+ * TODO: [⚾️] Create abstract LoggerWrapperOfLlmExecutionTools which can be extended to implement more loggers
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
+ */

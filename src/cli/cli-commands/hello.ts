@@ -23,10 +23,12 @@ export function initializeHelloCommand(program: Program) {
         console.info(colors.cyan(`${greeting} ${name}`));
         await forTime(1000);
         console.info(colors.rainbow(`Nice to meet you!`));
-        process.exit(0);
+        return process.exit(0);
     });
 }
 
 /**
- * Note: [🟡] This code should never be published outside of `@promptbook/cli`
+ * TODO: [🧠][🐣] Make here some easter egg with generated hello greeting via LLM models
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

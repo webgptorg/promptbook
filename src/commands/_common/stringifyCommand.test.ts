@@ -5,13 +5,13 @@ import { stringifyCommand } from './stringifyCommand';
 describe('stringify the commands', () => {
     /*
     TODO: [🛋] Uncomment
-    for (const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, examples } of COMMANDS) {
+    for (const { name, isUsedInPipelineHead, isUsedInPipelineTask, examples } of COMMANDS) {
         for (const usagePlace of CommandUsagePlaces) {
             if (just(false)) {
                 keepUnused(/* for better indentation * /);
             } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
                 continue;
-            } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTemplate) {
+            } else if (usagePlace === 'PIPELINE_TASK' && !isUsedInPipelineTask) {
                 continue;
             }
 

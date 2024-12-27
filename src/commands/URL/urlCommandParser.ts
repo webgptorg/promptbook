@@ -1,6 +1,6 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
@@ -12,7 +12,7 @@ import type { UrlCommand } from './UrlCommand';
 /**
  * Parses the url command
  *
- * @see ./URL-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
@@ -32,7 +32,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false,
+    isUsedInPipelineTask: false,
 
     /**
      * Description of the URL command
@@ -40,7 +40,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
     description: `Declares unique URL for the pipeline`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/70',
 
@@ -48,9 +48,9 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      * Example usages of the URL command
      */
     examples: [
-        'PIPELINE URL https://promptbook.studio/library/write-cv.ptbk.md',
-        'URL https://promptbook.studio/library/write-cv.ptbk.md',
-        'https://promptbook.studio/library/write-cv.ptbk.md',
+        'PIPELINE URL https://promptbook.studio/library/write-cv.book.md',
+        'URL https://promptbook.studio/library/write-cv.book.md',
+        'https://promptbook.studio/library/write-cv.book.md',
     ],
 
     /**
@@ -85,7 +85,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
                 spaceTrim(
                     `
                         URL must not contain hash
-                        Hash is used for identification of the template in the pipeline
+                        Hash is used for identification of the section of the pipeline
                     `,
                 ),
             );
@@ -122,7 +122,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<UrlCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<UrlCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

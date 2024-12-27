@@ -8,7 +8,7 @@ import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptio
  * Warning: This is not implemented yet
  */
 export class JavascriptExecutionTools implements ScriptExecutionTools {
-    private readonly options: JavascriptExecutionToolsOptions;
+    protected readonly options: JavascriptExecutionToolsOptions;
 
     public constructor(options?: JavascriptExecutionToolsOptions) {
         this.options = options || {};

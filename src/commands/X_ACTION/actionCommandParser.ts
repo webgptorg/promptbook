@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -11,7 +11,7 @@ import type { ActionCommand } from './ActionCommand';
 /**
  * Parses the action command
  *
- * @see ./ACTION-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
@@ -24,15 +24,15 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      * ACTION command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
+    isUsedInPipelineTask: false, // <- [👙] Maybe allow to use here and make relevant for just this task
 
     /**
      * Description of the ACTION command
      */
-    description: `Actions influences from the pipeline or template into external world. Like turning on a light, sending an email, etc.`,
+    description: `Actions influences from the pipeline or task into external world. Like turning on a light, sending an email, etc.`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/72',
 
@@ -79,7 +79,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ActionCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ActionCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError('[🛠] Actions are not implemented yet');
     },

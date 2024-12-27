@@ -31,7 +31,7 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
 
 /**
  * VSCode sometimes offers auto-import which is malformed, for example:
- * > import type { PipelineJson, TemplateJson } from '../../_packages/types.index';
+ * > import type { PipelineJson, TaskJson } from '../../_packages/types.index';
  *
  * This script fixes that
  */
@@ -127,7 +127,7 @@ async function repairImports({
                             );
                         }
 
-                        let importFrom = relative(dirname(file.path), entity.filePath)
+                        let importFrom = relative(dirname(file.path), entity.filename)
                             // Note: Changing Windows path to Unix path (\ to /)
                             .split('\\')
                             .join('/')
@@ -190,3 +190,7 @@ async function repairImports({
     }
     */
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

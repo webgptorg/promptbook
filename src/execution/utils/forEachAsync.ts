@@ -16,18 +16,19 @@ type ForEachAsyncOptions = {
  * @param options - Options for the function
  * @param callbackfunction - Function to call for each item
  * @public exported from `@promptbook/utils`
+ * @deprecated [🪂] Use queues instead
  */
 export async function forEachAsync<TItem>(
-    array: Array<TItem>,
+    array: ReadonlyArray<TItem>,
     options: ForEachAsyncOptions,
-    callbackfunction: (value: TItem, index: number, array: Array<TItem>) => Promisable<void>,
+    callbackfunction: (value: TItem, index: number, array: ReadonlyArray<TItem>) => Promisable<void>,
 ) {
     const { maxParallelCount = Infinity } = options;
     let index = 0;
 
     let runningTasks: Promisable<void>[] = [];
     const tasks: Promisable<void>[] = [];
-    for (const item of array as Array<TItem>) {
+    for (const item of array as ReadonlyArray<TItem>) {
         const currentIndex = index++;
 
         const task = callbackfunction(item, currentIndex, array);

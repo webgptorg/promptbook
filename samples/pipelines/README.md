@@ -1,1 +1,0 @@
-Note: [🍠] @@@ Sample pipelines vs Pipelines used internally in Promptbook

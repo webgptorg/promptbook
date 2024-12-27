@@ -17,7 +17,9 @@ import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
  *
  * @public exported from `@promptbook/core`
  */
-export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTools>): MultipleLlmExecutionTools {
+export function joinLlmExecutionTools(
+    ...llmExecutionTools: ReadonlyArray<LlmExecutionTools>
+): MultipleLlmExecutionTools {
     if (llmExecutionTools.length === 0) {
         const warningMessage = spaceTrim(`
             You have not provided any \`LlmExecutionTools\`
@@ -51,10 +53,7 @@ export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTo
         */
     }
 
-    return new MultipleLlmExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        ...llmExecutionTools,
-    );
+    return new MultipleLlmExecutionTools(...llmExecutionTools);
 }
 
 /**

@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
@@ -37,6 +37,7 @@ async function playground() {
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
+                    userId: 'playground',
                     apiKey: process.env.OPENAI_API_KEY!,
                 },
             ),
@@ -51,6 +52,7 @@ async function playground() {
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
+                    userId: 'playground',
                     resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
                     deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
                     apiKey: process.env.AZUREOPENAI_API_KEY!,
@@ -58,10 +60,7 @@ async function playground() {
             ),
             // TODO: [🦻] Add langtail
         ],
-        script: [
-            new JavascriptExecutionTools(),
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        ],
+        script: [new JavascriptExecutionTools()],
     };
     const llmTools = joinLlmExecutionTools(...tools.llm);
 
@@ -74,21 +73,6 @@ async function playground() {
     const models = await llmTools.listModels();
     console.info(llmTools.title, llmTools.description);
     console.info({ models });
-    /**/
-
-    /*/
-    const completionPrompt = {
-        title: 'Hello',
-        parameters: {},
-        content: `Hello, my name is Alice.`,
-        modelRequirements: {
-            modelVariant: 'COMPLETION',
-        },
-    } as const satisfies Prompt;
-    const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
-    console.info({ completionPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -106,6 +90,21 @@ async function playground() {
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
+    /**/
+
+    /*/
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'COMPLETION',
+        },
+    } as const satisfies Prompt;
+    const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -135,3 +134,7 @@ async function playground() {
 
     //========================================/
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

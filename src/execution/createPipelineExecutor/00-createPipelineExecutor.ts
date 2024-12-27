@@ -1,12 +1,15 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
 import { DEFAULT_CSV_SETTINGS } from '../../config';
-import { IS_VERBOSE } from '../../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
+import { DEFAULT_IS_AUTO_INSTALLED } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import type { PipelineExecutor } from '../PipelineExecutor';
@@ -22,14 +25,20 @@ import { executePipeline } from './10-executePipeline';
  * @public exported from `@promptbook/core`
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
-    const { pipeline, tools, settings = {} } = options;
     const {
-        maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
-        maxParallelCount = MAX_PARALLEL_COUNT,
+        pipeline,
+        tools,
+        maxExecutionAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS,
+        maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT,
         csvSettings = DEFAULT_CSV_SETTINGS,
-        isVerbose = IS_VERBOSE,
+        isVerbose = DEFAULT_IS_VERBOSE,
         isNotPreparedWarningSupressed = false,
-    } = settings;
+        cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
+        intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+        isAutoInstalled = DEFAULT_IS_AUTO_INSTALLED,
+
+        rootDirname = null,
+    } = options;
 
     validatePipeline(pipeline);
 
@@ -92,19 +101,20 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     ${runCount === 1 ? '' : `Run #${runCount}`}
                 `,
             ),
-            settings: {
-                maxExecutionAttempts,
-                maxParallelCount,
-                csvSettings,
-                isVerbose,
-                isNotPreparedWarningSupressed,
-            },
+            maxExecutionAttempts,
+            maxParallelCount,
+            csvSettings,
+            isVerbose,
+            isNotPreparedWarningSupressed,
+            rootDirname,
+            cacheDirname,
+            intermediateFilesStrategy,
+            isAutoInstalled,
         });
     };
 
     return pipelineExecutor;
 }
-
 
 /**
  * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited

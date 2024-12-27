@@ -11,6 +11,8 @@ describe('how normalizing to camelCase works', () => {
         expect(normalizeTo_PascalCase('hello world')).toEqual('HelloWorld');
         expect(normalizeTo_PascalCase('helloWorld')).toEqual('HelloWorld');
         expect(normalizeTo_PascalCase('hello___world')).toEqual('HelloWorld');
+        expect(normalizeTo_PascalCase('hello_/_world')).toEqual('HelloWorld');
+        expect(normalizeTo_PascalCase('hello_\\_world')).toEqual('HelloWorld');
         expect(normalizeTo_PascalCase('hello.world')).toEqual('HelloWorld');
         expect(normalizeTo_PascalCase('hello\nworld')).toEqual('HelloWorld');
     });

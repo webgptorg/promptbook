@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
 import type { string_name } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 
@@ -10,16 +10,16 @@ import type { empty_object } from '../../utils/organization/empty_object';
  */
 export type FormatSubvalueDefinition<TValue extends string, TSettings extends empty_object> = {
     /**
-     * The name of the format used in .ptbk.md files
+     * The name of the format used in .book.md files
      *
-     * @sample "CELL"
+     * @example "CELL"
      */
     readonly subvalueName: string_name & string_SCREAMING_CASE;
 
     /**
      * Aliases for the `subvalueName`
      */
-    readonly aliases?: Array<string_name & string_SCREAMING_CASE>;
+    readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
      * Maps values

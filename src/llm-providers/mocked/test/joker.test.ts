@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
+import { CallbackInterfaceTools } from '../../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
-import type { PipelineString } from '../../../types/PipelineString';
+import type { PipelineString } from '../../../pipeline/PipelineString';
 import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 
-describe('createPipelineExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+describe('createPipelineExecutor + MockedEchoExecutionTools with example chat prompt', () => {
     it('should work when joker is used', async () => {
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
@@ -36,7 +36,7 @@ describe('createPipelineExecutor + MockedEchoExecutionTools with sample chat pro
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # ✨ Sample: Jokers
+            # ✨ Example: Jokers
 
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo
@@ -58,20 +58,14 @@ async function getPipelineExecutor() {
     return createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                { isVerbose: true },
-            ),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],
-            userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
 }

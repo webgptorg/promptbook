@@ -1,4 +1,4 @@
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { AutomaticTranslator } from './AutomaticTranslator';
 
 /**

@@ -12,7 +12,7 @@ export type EntityMetadata = {
     /**
      * Where is it
      */
-    readonly filePath: string;
+    readonly filename: string;
 
     /**
      * What is it - type, class, function,...
@@ -41,10 +41,13 @@ export type EntityMetadata = {
     // TODO: Detect other things like abstract, async...
 };
 
-export async function findAllProjectEntities(): Promise<EntityMetadata[]> {
+/**
+ * @@@
+ */
+export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMetadata>> {
     const files = await readAllProjectFiles();
 
-    const entitities: EntityMetadata[] = [];
+    const entitities: Array<EntityMetadata> = [];
     for (const file of files) {
         for (const match of file.content.matchAll(
             /(?<anotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
@@ -59,20 +62,20 @@ export async function findAllProjectEntities(): Promise<EntityMetadata[]> {
                 isType = true;
             }
 
-            const filePath = file.path;
+            const filename = file.path;
 
-            if (filePath.endsWith('/src/cli/cli-commands/make.ts') && name === 'getPipelineCollection') {
+            if (filename.endsWith('/src/cli/cli-commands/make.ts') && name === 'getPipelineCollection') {
                 // Note: [🍡] This is not a real entity, but an entity enclosed in a string.
                 continue;
             }
 
-            if (entitities.some((entity) => entity.name === name && entity.filePath === filePath)) {
+            if (entitities.some((entity) => entity.name === name && entity.filename === filename)) {
                 // Note: This is probably overloaded function or interface, so we skip it
                 continue;
             }
 
             entitities.push({
-                filePath,
+                filename,
                 type: type as EntityType,
                 name,
                 anotation,
@@ -89,5 +92,6 @@ export async function findAllProjectEntities(): Promise<EntityMetadata[]> {
 }
 
 /**
- * TODO: [🧠][🍡] Some better (non-hardcoded) way how to filter non-entities looking like entities
+ * TODO: [🧠][🍡][💩] Some better (non-hardcoded) way how to filter non-entities looking like entities
+ * Note: [⚫] Code in this file should never be published in any package
  */

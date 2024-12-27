@@ -11,7 +11,7 @@ import { computeUsage } from '../openai/computeUsage';
  * @see https://docs.anthropic.com/en/docs/models-overview
  * @public exported from `@promptbook/anthropic-claude`
  */
-export const ANTHROPIC_CLAUDE_MODELS: Array<
+export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
     AvailableModel & {
         pricing?: {
             readonly prompt: number_usd;
@@ -92,4 +92,5 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
  * TODO: [🧠] Some mechanism to propagate unsureness
  * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
  * TODO: [🎰] Some mechanism to auto-update available models
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

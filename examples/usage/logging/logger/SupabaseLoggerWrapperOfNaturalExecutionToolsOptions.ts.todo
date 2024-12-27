@@ -1,0 +1,18 @@
+import type { CommonExecutionToolsOptions, LlmExecutionTools } from '../../../src/_packages/types.index';
+import type { uuid } from '../../../utils/typeAliases';
+
+/**
+ * Options for `SupabaseLoggerWrapperOfLlmExecutionTools`
+ */
+export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToolsOptions & CollectionRemoteServerClientOptions<TCustomOptions> & {
+    /**
+     * Execution tools to use
+     * Theese tools will be wrapped in a logger for each client to log all requests
+     */
+    readonly llmExecutionTools: LlmExecutionTools;
+
+}
+
+/**
+ * TODO: [⚾️]
+ */

@@ -12,7 +12,7 @@ import { computeUsage } from './computeUsage';
  * @see https://openai.com/api/pricing/
  * @public exported from `@promptbook/openai`
  */
-export const OPENAI_MODELS: Array<
+export const OPENAI_MODELS: ReadonlyArray<
     AvailableModel & {
         pricing?: {
             readonly prompt: number_usd;
@@ -386,7 +386,7 @@ export const OPENAI_MODELS: Array<
         modelVariant: 'CHAT',
         modelTitle: 'o1-preview-2024-09-12',
         modelName: 'o1-preview-2024-09-12',
-        //             <- TODO: [main] !!! Some better system to organize theese date suffixes and versions
+        //             <- TODO: [💩] Some better system to organize theese date suffixes and versions
         pricing: {
             prompt: computeUsage(`$15.00 / 1M tokens`),
             output: computeUsage(`$60.00 / 1M tokens`),
@@ -440,7 +440,8 @@ export const OPENAI_MODELS: Array<
  * @see https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4
  * @see https://openai.com/api/pricing/
  * @see /other/playground/playground.ts
- * TODO: [🍓] Make better
+ * TODO: [🍓][💩] Make better
  * TODO: Change model titles to human eg: "gpt-4-turbo-2024-04-09" -> "GPT-4 Turbo (2024-04-09)"
  * TODO: [🚸] Not all models are compatible with JSON mode, add this information here and use it
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

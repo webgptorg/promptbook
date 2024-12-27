@@ -5,36 +5,28 @@ CLI utils for Promptbook. After install you can use `promptbook` command in term
 You can prebuild your own Promptbook library with `ptbk make` command:
 
 ```bash
-npx ptbk make ./promptbook-collection --format typescript --verbose
+npx ptbk make ./books --format typescript --verbose
 ```
 
-This will emit `index.ts` with `getPipelineCollection` function file in `promptbook-collection` directory.
+This will emit `index.ts` with `getPipelineCollection` function file in `books` directory.
 
 Then just use it:
 
 ```typescript
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { createLlmToolsFromEnv } from '@promptbook/node';
-import { getPipelineCollection } from './promptbook-collection'; // <- Importing from pre-built library
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
+import { getPipelineCollection } from './books'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Get single Pipeline
 const promptbook = await getPipelineCollection().getPipelineByUrl(
-    `https://promptbook.studio/my-collection/write-article.ptbk.md`,
+    `https://promptbook.studio/my-collection/write-article.book.md`,
 );
 
-// ▶ Prepare tools
-const tools = {
-    llm: createLlmToolsFromEnv(),
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
-
 // ▶ Create executor - the function that will execute the Pipeline
-const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provideExecutionToolsForNode() });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'cat' };
@@ -57,7 +49,7 @@ There is also a javascript and json format available.
 ## Prettify
 
 ```bash
-npx ptbk prettify promptbook/**/*.ptbk.md
+npx ptbk prettify 'promptbook/**/*.book.md'
 ```
 
 This will prettify all promptbooks in `promptbook` directory and adds Mermaid graphs to them.

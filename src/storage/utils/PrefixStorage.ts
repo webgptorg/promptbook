@@ -33,4 +33,3 @@ export class PrefixStorage<TItem> implements PromptbookStorage<TItem> {
         this.baseStorage.removeItem(this.keyPrefix + this.separator + key);
     }
 }
-

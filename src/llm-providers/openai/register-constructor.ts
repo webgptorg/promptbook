@@ -1,5 +1,17 @@
-import { $llmToolsRegister } from '../_common/$llmToolsRegister';
+import type { Registration } from '../../utils/$Register';
+import { $llmToolsRegister } from '../_common/register/$llmToolsRegister';
+import { createOpenAiAssistantExecutionTools } from './createOpenAiAssistantExecutionTools';
 import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
+
+/**
+ * Registration of LLM provider
+ *
+ * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
+ *
+ * @public exported from `@promptbook/openai`
+ * @public exported from `@promptbook/cli`
+ */
+export const _OpenAiRegistration: Registration = $llmToolsRegister.register(createOpenAiExecutionTools);
 
 /**
  * @@@ registration2
@@ -9,8 +21,9 @@ import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
  * @public exported from `@promptbook/openai`
  * @public exported from `@promptbook/cli`
  */
-export const _OpenAiRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);
+export const _OpenAiAssistantRegistration = $llmToolsRegister.register(createOpenAiAssistantExecutionTools);
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

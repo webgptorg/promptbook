@@ -1,4 +1,4 @@
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { Prompt } from '../../types/Prompt';
 import type { string_pipeline_url } from '../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -25,7 +25,9 @@ import { createCollectionFromJson } from './createCollectionFromJson';
  * @public exported from `@promptbook/core`
  */
 export function createCollectionFromPromise(
-    promptbookSourcesPromiseOrFactory: Promise<Array<PipelineJson>> | (() => Promise<Array<PipelineJson>>),
+    promptbookSourcesPromiseOrFactory:
+        | Promise<ReadonlyArray<PipelineJson>>
+        | (() => Promise<ReadonlyArray<PipelineJson>>),
 ): PipelineCollection {
     let collection: PipelineCollection | null = null;
 
@@ -41,7 +43,7 @@ export function createCollectionFromPromise(
         collection = createCollectionFromJson(...promptbookSources);
     }
 
-    async function listPipelines(): Promise<Array<string_pipeline_url>> {
+    async function listPipelines(): Promise<ReadonlyArray<string_pipeline_url>> {
         await load();
         return /* not await */ collection!.listPipelines();
     }

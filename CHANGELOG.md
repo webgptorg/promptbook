@@ -199,7 +199,7 @@ After install you can use `promptbook` command in terminal:
 
 ```bash
 npm i @promptbook/utils
-npx ptbk prettify promptbook/**/*.ptbk.md
+npx ptbk prettify 'promptbook/**/*.ptbk.md'
 ```
 
 ### `0.44.0` _(2024-04-26)_
@@ -322,7 +322,7 @@ Rename and reorganize libraries
 
 -   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
 -   Rename `@promptbook/fake-llmed` -> `@promptbook/fake-llm`
--   Export `PROMPTBOOK_VERSION` from each package
+-   Export `PROMPTBOOK_ENGINE_VERSION` from each package
 -   Use `export type` in `@promptbook/types`
 
 ### `0.57.0` _(2024-06-15)_
@@ -522,38 +522,135 @@ Support for local models - integrate [Ollama](https://ollama.com/)
 
 Knowledge scrapers [🐝]
 
+-   Make new package [`@promptbook/pdf`](https://www.npmjs.com/package/@promptbook/pdf)
+-   Make new package [`@promptbook/documents`](https://www.npmjs.com/package/@promptbook/documents)
+-   Make new package [`@promptbook/legacy-documents`](https://www.npmjs.com/package/@promptbook/legacy-documents)
+-   Make new package [`@promptbook/website-crawler`](https://www.npmjs.com/package/@promptbook/website-crawler)
+-   Remove llm tools from `PrepareAndScrapeOptions` and add second arcument to misc preparation functions
 -   Allow to import markdown files with knowledge
 -   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md`
 -   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
 -   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
+-   Allow to import websites with knowledge
+-   Add new error `KnowledgeScrapeError`
+-   Filesystem is passed as dependency
+-   External programs are passed as dependency
+-   Remove `PipelineStringToJsonOptions` in favour of `PrepareAndScrapeOptions`
+-   Add `MissingToolsError`
+-   Change `FileStorage` -> `FileCacheStorage`
+-   Changed behavior of `titleToName` when passing URLs or file paths
+-   Fix normalize functions when normalizing string containing slash char "/", "\"
+-   Pass `fs` through `ExecutionTools`
+-   Pass `executables` through `ExecutionTools`
+-   Pass `scrapers` through `ExecutionTools`
+-   Add utilities `$provideExecutionToolsForBrowser` and `$provideExecutionToolsForNode` and use them in samples
+-   Add utilities `$provideScrapersForBrowser` and `$provideScrapersForNode`
+-   Rename `createLlmToolsFromConfigurationFromEnv` -> `$provideLlmToolsConfigurationFromEnv` and `createLlmToolsFromEnv` -> `$provideLlmToolsFromEnv`
+-   Rename `getLlmToolsForTestingAndScriptsAndPlayground` -> `$provideLlmToolsForTestingAndScriptsAndPlayground`
+-   Rename `getLlmToolsForCli` -> `$provideLlmToolsForCli`
+-   Change most `Array` -> `ReadonlyArray`
+-   Unite `CreatePipelineExecutorOptions` and `CreatePipelineExecutorSettings`
+-   Change `--reload-cache` to `--reload` in CLI
+-   Prefix default values with `DEFAULT_`
 
-### `0.72.0` _(2024-09-)_
+### `0.72.0` _(2024-11-07)_
 
 Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
 
-- `getClient` methods are public
+-   Add `OpenAiAssistantExecutionTools`
+-   `OpenAiExecutionTools.createAssistantSubtools`
+-   Add `UNCERTAIN_USAGE`
+-   LLM Tools `getClient` method are public
+-   LLM Tools `options` are not `private` anymore but `protected`
+-   `getClient` methods are public
+-   In remote server allow to pass not only `userId` but also `appId` and `customOptions`
+-   In remote server `userId` can not be `undefined` anymore but `null`
+-   `OpenAiExecutionTools` recieves `userId` (not `user`)
+-   Change Collection mode -> Application mode
+
+### `0.73.0` _(2024-11-08)_
+
+-   Split [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
+-   Rename "sample" -> "example"
+
+### `0.74.0` _(2024-11-11)_
+
+-   Proposal for version `1.0.0` both in Promptbook and Book language
+-   Allow to run books directly in cli via `ptbk run ./path/to/book.ptbk.md`
+-   Fix security warnings in dependencies
+-   Enhance `countLines` and `countPages` utility function
+-   No need to explicitly define the input and output parameters
+-   Allow empty pipelines
+-   Add `BlackholeStorage`
+-   Rename `.ptbk.*` -> `.book.*`
+-   Split `PROMPTBOOK_VERSION` -> `BOOK_LANGUAGE_VERSION` + `PROMPTBOOK_ENGINE_VERSION`
+-   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
+
+### `0.75.0` _(2024-11-)_
+
+Formfactors, Rebranding
+
+-   Add `FormfactorCommand`
+-   Add Pipeline interfaces
+-   Split `ParameterJson` into `InputParameterJson`, `OutputParameterJson` and `IntermediateParameterJson`
+-   Reorganize `/src` folder
+-   Rename `Template` -> `Task`
+-   Rename `TemplateCommand` -> `SectionCommand` command
+-   Make alongside `SectionType` the `TaskType`
+-   🤍 Change Whitepaper to Abstract
+-   Rename default folder for your books from `promptbook-collection` -> `books`
+-   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
+
+### `0.76.0` _(2024-12-07)_
+
+Skipped, because of the mistake in the versioning. _(It should be pre-release)_
+
+### `0.77.0` _(2024-12-10)_
+
+Support for more models, add `@promptbook/vercel` and `@promptbook/google` packages.
+
+-   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
+-   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
+-   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
+-   Rename `$currentDate` -> `$getCurrentDate`
+
+### `0.78.0` _(2024-12-14)_
+
+Utility functions
+
+-   Add `removePipelineCommand`
+-   Rename util `renameParameter` -> `renamePipelineParameter`
+-   Rename util `extractVariables` -> `extractVariablesFromScript`
+-   [👖] Utilities `extractParameterNamesFromTask` and `renamePipelineParameter` are not exported from `@promptbook/utils` but `@promptbook/core` because they are tightly interconnected with the Promptbook and cannot be used as universal utility
+
+### `0.79.0` _(2024-12-27)_
+
+Implicit formfactors
+
+-   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
+-   Fix in deep cloning of arrays
 
 ## Drafts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 `createLibraryFromDirectory` uses prebuild library
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better expectation format in `PromptbookJson`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Allow to split parameters into multiple values and iterate over them
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!-- Search ACRY "MODEL NAME " -->
 
 -   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better script execution
 
@@ -561,17 +658,17 @@ Better script execution
 -   List all default postprocessing functions in `@promptbook/utils` README
 -   Implement `PythonExecutionTools` for executing Python scripts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
 More options to create `PromptbookLibrary`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Intagration with Langtail
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
@@ -608,4 +705,4 @@ Across the repository there are marked [🍓] places that are required to be don
 
 <!-- Note: All places marked by [➕] to add new NPM package -->
 <!-- Note: All places marked by [🤖] to add new model variant -->
-<!-- Note: All places marked by [🅱] to add new (execution) block type -->
+<!-- Note: All places marked by [🅱] to add new task type -->

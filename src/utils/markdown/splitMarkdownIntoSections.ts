@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { DEFAULT_TITLE } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_section } from '../../types/typeAliases';
 
@@ -7,10 +8,11 @@ import type { string_markdown_section } from '../../types/typeAliases';
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function splitMarkdownIntoSections(markdown: string_markdown): Array<string_markdown_section> {
+export function splitMarkdownIntoSections(markdown: string_markdown): ReadonlyArray<string_markdown_section> {
     const lines = markdown.split('\n');
     const sections: Array<string_markdown> = [];
 
+    // TODO: [🧽] DRY
     let currentType: 'MARKDOWN' | 'CODE_BLOCK' | 'COMMENT' = 'MARKDOWN';
     let buffer: Array<string_markdown> = [];
 
@@ -26,7 +28,7 @@ export function splitMarkdownIntoSections(markdown: string_markdown): Array<stri
         }
 
         if (!section.startsWith('#')) {
-            section = `# Untitled\n\n${section}`;
+            section = `# ${DEFAULT_TITLE}\n\n${section}`;
         }
 
         sections.push(section);

@@ -52,7 +52,7 @@ describe('extractParameterNames', () => {
         ]);
     });
 
-    it('should parse multi-line templates', () => {
+    it('should parse multi-line tasks', () => {
         expect([
             ...extractParameterNames(
                 spaceTrim(`

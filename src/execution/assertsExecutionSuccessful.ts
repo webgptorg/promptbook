@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { deserializeError } from '../errors/utils/deserializeError';
-import type { PipelineExecutor } from './PipelineExecutor';
+import type { PipelineExecutorResult } from './PipelineExecutorResult';
 
 /**
  * Asserts that the execution of a Promptbook is successful
@@ -11,7 +11,7 @@ import type { PipelineExecutor } from './PipelineExecutor';
  * @public exported from `@promptbook/core`
  */
 export function assertsExecutionSuccessful(
-    executionResult: Pick<Awaited<ReturnType<PipelineExecutor>>, 'isSuccessful' | 'errors'>,
+    executionResult: Pick<PipelineExecutorResult, 'isSuccessful' | 'errors'>,
 ): void {
     const { isSuccessful, errors } = executionResult;
 
@@ -47,5 +47,6 @@ export function assertsExecutionSuccessful(
 }
 
 /**
+ * TODO: [🐚] This function should be removed OR changed OR be completely rewritten
  * TODO: [🧠] Can this return type be better typed than void
  */

@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
@@ -43,22 +43,6 @@ async function playground() {
     console.info({ models });
     /**/
 
-    /*/
-    // TODO: [👏] Make Claude completion models work
-    const completionPrompt = {
-        title: 'Hello',
-        parameters: {},
-        content: `Hello, my name is Alice.`,
-        modelRequirements: {
-            modelVariant: 'COMPLETION',
-        },
-    } as const satisfies Prompt;
-    const completionPromptResult = await anthropicClaudeExecutionTools.callCompletionModel(completionPrompt);
-    console.info({ completionPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
-    /**/
-
     /**/
     const chatPrompt = {
         title: 'Poem about Prague',
@@ -75,7 +59,23 @@ async function playground() {
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
+    /**/
+
+    /*/
+    // TODO: [👏] Make Claude completion models work
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'COMPLETION',
+        },
+    } as const satisfies Prompt;
+    const completionPromptResult = await anthropicClaudeExecutionTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -96,4 +96,5 @@ async function playground() {
 /**
  * TODO: [main] !!! Playground with WebGPT / Promptbook.studio anonymous server
  * TODO: [main] !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
+ * Note: [⚫] Code in this file should never be published in any package
  */

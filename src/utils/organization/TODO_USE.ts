@@ -10,7 +10,7 @@ import type { really_any } from './really_any';
  * @returns void
  * @private within the repository
  */
-export function TODO_USE(...value: Array<really_any>): void {
+export function TODO_USE(...value: ReadonlyArray<really_any>): void {
     // Note: Do nothing
     value;
 }

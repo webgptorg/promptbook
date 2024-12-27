@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { Prompt } from '../types/Prompt';
 import type { string_pipeline_url } from '../types/typeAliases';
 
@@ -12,7 +12,7 @@ export type PipelineCollection = {
     /**
      * Gets all pipelines in the collection
      */
-    listPipelines(): Promisable<Array<string_pipeline_url>>;
+    listPipelines(): Promisable<ReadonlyArray<string_pipeline_url>>;
 
     /**
      * Gets pipeline by its URL

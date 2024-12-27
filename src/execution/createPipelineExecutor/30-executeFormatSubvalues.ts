@@ -22,9 +22,9 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { template, jokerParameterNames, parameters, priority, pipelineIdentification, settings } = options;
+    const { task, jokerParameterNames, parameters, priority, csvSettings, pipelineIdentification } = options;
 
-    if (template.foreach === undefined) {
+    if (task.foreach === undefined) {
         return /* not await */ executeAttempts(options);
     }
 
@@ -42,11 +42,11 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
         );
     }
 
-    const parameterValue = parameters[template.foreach.parameterName] || '';
+    const parameterValue = parameters[task.foreach.parameterName] || '';
 
     const formatDefinition = FORMAT_DEFINITIONS.find(
         (formatDefinition) =>
-            [formatDefinition.formatName, ...(formatDefinition.aliases || [])].includes(template.foreach!.formatName),
+            [formatDefinition.formatName, ...(formatDefinition.aliases || [])].includes(task.foreach!.formatName),
         // <- Note: All names here are already normalized
     );
 
@@ -55,7 +55,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
             // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
             spaceTrim(
                 (block) => `
-                    Unsupported format "${template.foreach!.formatName}"
+                    Unsupported format "${task.foreach!.formatName}"
 
                     Available formats:
                     ${block(
@@ -75,7 +75,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
     const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
         (subvalueDefinition) =>
             [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(
-                template.foreach!.subformatName,
+                task.foreach!.subformatName,
             ),
         // <- Note: All names here are already normalized
     );
@@ -85,8 +85,8 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
             // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
             spaceTrim(
                 (block) => `
-                    Unsupported subformat name "${template.foreach!.subformatName}" for format "${
-                    template.foreach!.formatName
+                    Unsupported subformat name "${task.foreach!.subformatName}" for format "${
+                    task.foreach!.formatName
                 }"
 
                     Available subformat names for format "${formatDefinition.formatName}":
@@ -108,13 +108,13 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
     let formatSettings: TODO_any;
 
     if (formatDefinition.formatName === 'CSV') {
-        formatSettings = settings.csvSettings;
+        formatSettings = csvSettings;
         // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
     }
 
     const resultString = await subvalueDefinition.mapValues(
         parameterValue,
-        template.foreach.outputSubparameterName,
+        task.foreach.outputSubparameterName,
         formatSettings,
         async (subparameters, index) => {
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;
@@ -125,7 +125,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
             try {
                 mappedParameters = mapAvailableToExpectedParameters({
                     expectedParameters: Object.fromEntries(
-                        template.foreach!.inputSubparameterNames.map((subparameterName) => [subparameterName, null]),
+                        task.foreach!.inputSubparameterNames.map((subparameterName) => [subparameterName, null]),
                     ),
                     availableParameters: subparameters,
                 });

@@ -11,6 +11,8 @@ describe('how normalizing to camelCase works', () => {
         expect(normalizeTo_camelCase('hello world')).toEqual('helloWorld');
         expect(normalizeTo_camelCase('helloWorld')).toEqual('helloWorld');
         expect(normalizeTo_camelCase('hello___world')).toEqual('helloWorld');
+        expect(normalizeTo_camelCase('hello_/_world')).toEqual('helloWorld');
+        expect(normalizeTo_camelCase('hello_\\_world')).toEqual('helloWorld');
         expect(normalizeTo_camelCase('hello.world')).toEqual('helloWorld');
         expect(normalizeTo_camelCase('hello\nworld')).toEqual('helloWorld');
     });

@@ -24,6 +24,7 @@ export type ForeachJson = {
      * @@@
      */
     readonly inputSubparameterNames: Array<string_parameter_name>;
+    //                                <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * @@@

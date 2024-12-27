@@ -1,0 +1,111 @@
+{
+    "title": "✨ Example prompt",
+    "description": "Show how to use a simple prompt with one parameter.",
+    "formfactorName": "GENERIC",
+    "parameters": [
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "word",
+            "isInput": true,
+            "isOutput": false
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
+            "expectations": {
+                "words": {
+                    "min": 1,
+                    "max": 5
+                }
+            },
+            "dependentParameterNames": [
+                "word"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.70.0-1",
+            "usage": {
+                "price": {
+                    "value": 0.005940000000000001
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 1165
+                    },
+                    "charactersCount": {
+                        "value": 3214
+                    },
+                    "wordsCount": {
+                        "value": 575
+                    },
+                    "sentencesCount": {
+                        "value": 53
+                    },
+                    "linesCount": {
+                        "value": 71
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 2
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 163
+                    },
+                    "charactersCount": {
+                        "value": 711
+                    },
+                    "wordsCount": {
+                        "value": 100
+                    },
+                    "sentencesCount": {
+                        "value": 6
+                    },
+                    "linesCount": {
+                        "value": 17
+                    },
+                    "paragraphsCount": {
+                        "value": 2
+                    },
+                    "pagesCount": {
+                        "value": 1
+                    }
+                }
+            }
+        }
+    ]
+}

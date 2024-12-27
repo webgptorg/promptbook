@@ -1,9 +1,9 @@
 import { ParseError } from '../../errors/ParseError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
@@ -11,9 +11,9 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
 /**
  * Parses the boilerplate command
  *
- * Note: @@@ This command is used as boilerplate for new commands - it should NOT be used in any `.ptbk.md` file
+ * Note: @@@ This command is used as boilerplate for new commands - it should NOT be used in any `.book.md` file
  *
- * @see ./BOILERPLATE-README.md for more details <- TODO: @@@ Write theese README files OR remove this link + add annotation here (to all commands)
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateCommand> = {
@@ -31,7 +31,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the BOILERPLATE command
@@ -39,7 +39,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     description: `@@`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
@@ -78,23 +78,19 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     $applyToPipelineJson(command: BoilerplateCommand, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $pipelineJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 
     /**
      * Apply the BOILERPLATE command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTemplateJson(
-        command: BoilerplateCommand,
-        $templateJson: $TemplateJson,
-        $pipelineJson: $PipelineJson,
-    ): void {
-        keepUnused(command, $templateJson, $pipelineJson);
+    $applyToTaskJson(command: BoilerplateCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $taskJson, $pipelineJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 
@@ -113,22 +109,22 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<BoilerplateCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused(pipelineJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 
     /**
-     * Reads the BOILERPLATE command from the `TemplateJson`
+     * Reads the BOILERPLATE command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<BoilerplateCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<BoilerplateCommand> {
+        keepUnused($taskJson);
         throw new ParseError(
-            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+            `BOILERPLATE command is only for testing purposes and should not be used in the .book.md file`,
         );
     },
 };

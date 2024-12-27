@@ -1,5 +1,5 @@
 import type { KebabCase } from 'type-fest';
-import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
+import type { ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
 import type { UncertainNumber } from './UncertainNumber';
 
 /**

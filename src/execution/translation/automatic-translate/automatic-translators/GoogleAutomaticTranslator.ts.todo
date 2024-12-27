@@ -14,7 +14,7 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
     private browser: Browser;
     private page: Page;
 
-    public constructor(private readonly options: GoogleAutomaticTranslatorOptions) {
+    public constructor(protected readonly options: GoogleAutomaticTranslatorOptions) {
         this.whenReady = this.init();
     }
 

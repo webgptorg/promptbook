@@ -37,7 +37,7 @@ export type CodeBlock = {
  * @throws {ParseError} if block is not closed properly
  * @public exported from `@promptbook/markdown-utils`
  */
-export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<CodeBlock> {
+export function extractAllBlocksFromMarkdown(markdown: string_markdown): ReadonlyArray<CodeBlock> {
     const codeBlocks: Array<CodeBlock> = [];
     const lines = markdown.split('\n');
 

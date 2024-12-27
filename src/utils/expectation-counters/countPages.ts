@@ -1,13 +1,14 @@
-import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
+import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
+import { LINES_PER_STANDARD_PAGE } from './constants';
+import { countLines } from './countLines';
 
 /**
  * Counts number of pages in the text
- * 
+ *
+ * Note: This does not check only for the count of newlines, but also for the length of the standard line and length of the standard page.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function countPages(text: string): ExpectationAmount {
-    const sentencesPerPage = 5; // Assuming each page has 5 sentences
-    const sentences = text.split(/[.!?]+/).filter((sentence) => sentence.trim() !== '');
-    const pageCount = Math.ceil(sentences.length / sentencesPerPage);
-    return pageCount;
+    return Math.ceil(countLines(text) / LINES_PER_STANDARD_PAGE);
 }

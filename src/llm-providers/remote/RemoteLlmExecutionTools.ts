@@ -32,8 +32,9 @@ import type { RemoteLlmExecutionToolsOptions } from './interfaces/RemoteLlmExecu
  * @see https://github.com/webgptorg/promptbook#remote-server
  * @public exported from `@promptbook/remote-client`
  */
-export class RemoteLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}
+export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmExecutionTools {
+    /* <- TODO: [🍚] `, Destroyable` */
+    public constructor(protected readonly options: RemoteLlmExecutionToolsOptions<TCustomOptions>) {}
 
     public get title(): string_title & string_markdown_text {
         // TODO: [🧠] Maybe fetch title+description from the remote server (as well as if model methods are defined)
@@ -58,7 +59,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * List all available models that can be used
      */
-    public async listModels(): Promise<Array<AvailableModel>> {
+    public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         const socket = await this.makeConnection();
 
@@ -67,19 +68,23 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 'listModels-request',
                 {
                     isAnonymous: true,
+                    userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
-                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         } else {
             socket.emit(
                 'listModels-request',
                 {
                     isAnonymous: false,
-                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+                    appId: this.options.appId,
+                    userId: this.options.userId,
+                    customOptions: this.options.customOptions,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         }
 
-        const promptResult = await new Promise<Array<AvailableModel>>((resolve, reject) => {
+        const promptResult = await new Promise<ReadonlyArray<AvailableModel>>((resolve, reject) => {
             socket.on('listModels-response', (response: PromptbookServer_ListModels_Response) => {
                 resolve(response.models);
                 socket.disconnect();
@@ -99,30 +104,27 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      * Creates a connection to the remote proxy server.
      */
     private makeConnection(): Promise<Socket> {
-        return new Promise(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            (resolve, reject) => {
-                const socket = io(this.options.remoteUrl, {
-                    retries: CONNECTION_RETRIES_LIMIT,
-                    timeout: CONNECTION_TIMEOUT_MS,
-                    path: this.options.path,
-                    // path: `${this.remoteUrl.pathname}/socket.io`,
-                    transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
-                });
+        return new Promise((resolve, reject) => {
+            const socket = io(this.options.remoteUrl, {
+                retries: CONNECTION_RETRIES_LIMIT,
+                timeout: CONNECTION_TIMEOUT_MS,
+                path: this.options.path,
+                // path: `${this.remoteUrl.pathname}/socket.io`,
+                transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+            });
 
-                // console.log('Connecting to', this.options.remoteUrl.href, { socket });
+            // console.log('Connecting to', this.options.remoteUrl.href, { socket });
 
-                socket.on('connect', () => {
-                    resolve(socket);
-                });
+            socket.on('connect', () => {
+                resolve(socket);
+            });
 
-                // TODO: [main] !!!! Better timeout handling
+            // TODO: [💩] Better timeout handling
 
-                setTimeout(() => {
-                    reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
-                }, CONNECTION_TIMEOUT_MS);
-            },
-        );
+            setTimeout(() => {
+                reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
+            }, CONNECTION_TIMEOUT_MS);
+        });
     }
 
     /**
@@ -171,16 +173,18 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                     userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         } else {
             socket.emit(
                 'prompt-request',
                 {
                     isAnonymous: false,
+                    appId: this.options.appId,
                     userId: this.options.userId,
+                    customOptions: this.options.customOptions,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         }
 

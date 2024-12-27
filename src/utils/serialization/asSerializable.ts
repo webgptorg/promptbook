@@ -1,0 +1,30 @@
+import type { really_any } from '../organization/really_any';
+import type { really_unknown } from '../organization/really_unknown';
+
+/**
+ * Function `asSerializable` will convert values which are not serializable to serializable values
+ * It walks deeply through the object and converts all values
+ *
+ * For example:
+ * - `Date` objects will be converted to string
+ *
+ * @private Internal helper function
+ */
+
+export function asSerializable(value: really_any): really_any {
+    if (value instanceof Date) {
+        return value.toISOString();
+    } else if (Array.isArray(value)) {
+        return value.map(asSerializable);
+    } else if (value !== null && typeof value === 'object') {
+        const result: really_unknown = {};
+        for (const key in value) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                (result as really_any)[key] = asSerializable(value[key]);
+            }
+        }
+        return result;
+    } else {
+        return value;
+    }
+}

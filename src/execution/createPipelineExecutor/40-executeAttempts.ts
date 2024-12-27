@@ -1,16 +1,15 @@
 import { spaceTrim } from 'spacetrim';
-import type { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep, WritableDeep } from 'type-fest';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
-import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
-import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { ChatPrompt } from '../../types/Prompt';
 import type { CompletionPrompt } from '../../types/Prompt';
 import type { Prompt } from '../../types/Prompt';
@@ -23,21 +22,21 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import type { ExecutionTools } from '../ExecutionTools';
+import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import { checkExpectations } from '../utils/checkExpectations';
-import type { $OngoingTemplateResult } from './$OngoingTemplateResult';
-import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
+import type { $OngoingTaskResult } from './$OngoingTaskResult';
+import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 
 /**
  * @@@
  *
  * @private internal type of `executeAttempts`
  */
-export type ExecuteAttemptsOptions = {
+export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions, 'pipeline'>> & {
     /**
      * @@@
      */
-    readonly jokerParameterNames: Readonly<Array<string_parameter_name>>;
+    readonly jokerParameterNames: Readonly<ReadonlyArray<string_parameter_name>>;
 
     /**
      * @@@
@@ -46,8 +45,12 @@ export type ExecuteAttemptsOptions = {
 
     /**
      * @@@
+     *
+     * Note: [💂] There are two distinct variabiles
+     * 1) `maxExecutionAttempts` - the amount of attempts LLM model
+     * 2) `maxAttempts` - the amount of attempts for any task - LLM, SCRIPT, DIALOG, etc.
      */
-    readonly maxAttempts: number; // <- [🤹‍♂️] In `ExecuteAttemptsOptions` should be just `setting` or `maxAttempts`
+    readonly maxAttempts: number;
 
     /**
      * @@@
@@ -62,7 +65,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly template: ReadonlyDeep<TemplateJson>;
+    readonly task: ReadonlyDeep<TaskJson>;
 
     /**
      * @@@
@@ -72,22 +75,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly tools: Omit<ExecutionTools, 'llm'>;
-
-    /**
-     * @@@
-     */
-    readonly llmTools: MultipleLlmExecutionTools;
-
-    /**
-     * Settings for the pipeline executor
-     */
-    readonly settings: CreatePipelineExecutorSettings; // <- [🤹‍♂️] In `ExecuteAttemptsOptions` should be just `setting` or `maxAttempts`
-
-    /**
-     * @@@
-     */
-    readonly $executionReport: ExecutionReportJson;
+    readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
      * @@@
@@ -104,25 +92,27 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
     const {
         jokerParameterNames,
         priority,
-        maxAttempts,
+        maxAttempts, // <- Note: [💂]
         preparedContent,
         parameters,
-        template,
+        task,
         preparedPipeline,
         tools,
-        llmTools,
-        settings,
         $executionReport,
         pipelineIdentification,
+        maxExecutionAttempts,
     } = options;
-    const { maxExecutionAttempts } = settings;
 
-    const $ongoingTemplateResult: $OngoingTemplateResult = {
+    const $ongoingTaskResult: $OngoingTaskResult = {
         $result: null,
         $resultString: null,
         $expectError: null,
         $scriptPipelineExecutionErrors: [],
     };
+
+    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+    const _llms = arrayableToArray(tools.llm);
+    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
     attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
         const isJokerAttempt = attempt < 0;
@@ -141,9 +131,9 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             );
         }
 
-        $ongoingTemplateResult.$result = null;
-        $ongoingTemplateResult.$resultString = null;
-        $ongoingTemplateResult.$expectError = null;
+        $ongoingTaskResult.$result = null;
+        $ongoingTaskResult.$resultString = null;
+        $ongoingTaskResult.$expectError = null;
 
         if (isJokerAttempt) {
             if (parameters[jokerParameterName!] === undefined) {
@@ -158,63 +148,63 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 );
                 // <- TODO: This is maybe `PipelineLogicError` which should be detected in `validatePipeline` and here just thrown as `UnexpectedError`
             } else {
-                $ongoingTemplateResult.$resultString = parameters[jokerParameterName!]!;
+                $ongoingTaskResult.$resultString = parameters[jokerParameterName!]!;
             }
         }
 
         try {
             if (!isJokerAttempt) {
-                templateType: switch (template.templateType) {
-                    case 'SIMPLE_TEMPLATE':
-                        $ongoingTemplateResult.$resultString = replaceParameters(preparedContent, parameters);
-                        break templateType;
+                taskType: switch (task.taskType) {
+                    case 'SIMPLE_TASK':
+                        $ongoingTaskResult.$resultString = replaceParameters(preparedContent, parameters);
+                        break taskType;
 
-                    case 'PROMPT_TEMPLATE':
+                    case 'PROMPT_TASK':
                         {
                             const modelRequirements = {
                                 modelVariant: 'CHAT',
                                 ...(preparedPipeline.defaultModelRequirements || {}),
-                                ...(template.modelRequirements || {}),
-                            } satisfies ModelRequirements;
+                                ...(task.modelRequirements || {}),
+                            } satisfies ModelRequirements; /* <- TODO: [🤛] */
 
-                            $ongoingTemplateResult.$prompt = {
-                                title: template.title,
+                            $ongoingTaskResult.$prompt = {
+                                title: task.title,
                                 pipelineUrl: `${
                                     preparedPipeline.pipelineUrl
                                         ? preparedPipeline.pipelineUrl
                                         : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                 }#${
-                                    template.name
-                                    // <- TODO: Here should be maybe also subformat index to distinguish between same template with different subformat values
+                                    task.name
+                                    // <- TODO: Here should be maybe also subformat index to distinguish between same task with different subformat values
                                 }`,
                                 parameters,
                                 content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
                                 modelRequirements,
                                 expectations: {
-                                    ...(preparedPipeline.personas.find(({ name }) => name === template.personaName) ||
-                                        {}),
-                                    ...template.expectations,
+                                    ...(preparedPipeline.personas.find(({ name }) => name === task.personaName) || {}),
+                                    ...task.expectations,
                                 },
-                                format: template.format,
-                                postprocessingFunctionNames: template.postprocessingFunctionNames,
+                                format: task.format,
+                                postprocessingFunctionNames: task.postprocessingFunctionNames,
                             } as Prompt; // <- TODO: Not very good type guard
 
                             variant: switch (modelRequirements.modelVariant) {
                                 case 'CHAT':
-                                    $ongoingTemplateResult.$chatResult = await llmTools.callChatModel(
-                                        $deepFreeze($ongoingTemplateResult.$prompt) as ChatPrompt,
+                                    $ongoingTaskResult.$chatResult = await llmTools.callChatModel!(
+                                        // <- TODO: [🧁] Check that `callChatModel` is defined
+                                        $deepFreeze($ongoingTaskResult.$prompt) as ChatPrompt,
                                     );
                                     // TODO: [🍬] Destroy chatThread
-                                    $ongoingTemplateResult.$result = $ongoingTemplateResult.$chatResult;
-                                    $ongoingTemplateResult.$resultString = $ongoingTemplateResult.$chatResult.content;
+                                    $ongoingTaskResult.$result = $ongoingTaskResult.$chatResult;
+                                    $ongoingTaskResult.$resultString = $ongoingTaskResult.$chatResult.content;
                                     break variant;
                                 case 'COMPLETION':
-                                    $ongoingTemplateResult.$completionResult = await llmTools.callCompletionModel(
-                                        $deepFreeze($ongoingTemplateResult.$prompt) as CompletionPrompt,
+                                    $ongoingTaskResult.$completionResult = await llmTools.callCompletionModel!(
+                                        // <- TODO: [🧁] Check that `callCompletionModel` is defined
+                                        $deepFreeze($ongoingTaskResult.$prompt) as CompletionPrompt,
                                     );
-                                    $ongoingTemplateResult.$result = $ongoingTemplateResult.$completionResult;
-                                    $ongoingTemplateResult.$resultString =
-                                        $ongoingTemplateResult.$completionResult.content;
+                                    $ongoingTaskResult.$result = $ongoingTaskResult.$completionResult;
+                                    $ongoingTaskResult.$resultString = $ongoingTaskResult.$completionResult.content;
                                     break variant;
 
                                 case 'EMBEDDING':
@@ -239,7 +229,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                         spaceTrim(
                                             (block) => `
                                                 Unknown model variant "${
-                                                    (template as really_any).modelRequirements.modelVariant
+                                                    (task as really_any).modelRequirements.modelVariant
                                                 }"
 
                                                 ${block(pipelineIdentification)}
@@ -251,7 +241,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         }
                         break;
 
-                    case 'SCRIPT_TEMPLATE':
+                    case 'SCRIPT_TASK':
                         if (arrayableToArray(tools.script).length === 0) {
                             throw new PipelineExecutionError(
                                 spaceTrim(
@@ -263,11 +253,11 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                 ),
                             );
                         }
-                        if (!template.contentLanguage) {
+                        if (!task.contentLanguage) {
                             throw new PipelineExecutionError(
                                 spaceTrim(
                                     (block) => `
-                                        Script language is not defined for SCRIPT TEMPLATE "${template.name}"
+                                        Script language is not defined for SCRIPT TASK "${task.name}"
 
                                         ${block(pipelineIdentification)}
                                     `,
@@ -278,9 +268,9 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         // TODO: DRY [☯]
                         scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                             try {
-                                $ongoingTemplateResult.$resultString = await scriptTools.execute(
+                                $ongoingTaskResult.$resultString = await scriptTools.execute(
                                     $deepFreeze({
-                                        scriptLanguage: template.contentLanguage,
+                                        scriptLanguage: task.contentLanguage,
                                         script: preparedContent, // <- Note: For Script execution, parameters are used as variables
                                         parameters,
                                     }),
@@ -296,28 +286,28 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                     throw error;
                                 }
 
-                                $ongoingTemplateResult.$scriptPipelineExecutionErrors.push(error);
+                                $ongoingTaskResult.$scriptPipelineExecutionErrors.push(error);
                             }
                         }
 
-                        if ($ongoingTemplateResult.$resultString !== null) {
-                            break templateType;
+                        if ($ongoingTaskResult.$resultString !== null) {
+                            break taskType;
                         }
 
-                        if ($ongoingTemplateResult.$scriptPipelineExecutionErrors.length === 1) {
-                            throw $ongoingTemplateResult.$scriptPipelineExecutionErrors[0];
+                        if ($ongoingTaskResult.$scriptPipelineExecutionErrors.length === 1) {
+                            throw $ongoingTaskResult.$scriptPipelineExecutionErrors[0];
                         } else {
                             throw new PipelineExecutionError(
                                 spaceTrim(
                                     (block) => `
                                         Script execution failed ${
-                                            $ongoingTemplateResult.$scriptPipelineExecutionErrors.length
+                                            $ongoingTaskResult.$scriptPipelineExecutionErrors.length
                                         }x
 
                                         ${block(pipelineIdentification)}
 
                                         ${block(
-                                            $ongoingTemplateResult.$scriptPipelineExecutionErrors
+                                            $ongoingTaskResult.$scriptPipelineExecutionErrors
                                                 .map((error) => '- ' + error.message)
                                                 .join('\n\n'),
                                         )}
@@ -326,10 +316,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             );
                         }
 
-                        // Note: This line is unreachable because of the break templateType above
-                        break templateType;
+                        // Note: This line is unreachable because of the break taskType above
+                        break taskType;
 
-                    case 'DIALOG_TEMPLATE':
+                    case 'DIALOG_TASK':
                         if (tools.userInterface === undefined) {
                             throw new PipelineExecutionError(
                                 spaceTrim(
@@ -342,19 +332,19 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             );
                         }
 
-                        // TODO: [🌹] When making next attempt for `DIALOG TEMPLATE`, preserve the previous user input
-                        $ongoingTemplateResult.$resultString = await tools.userInterface.promptDialog(
+                        // TODO: [🌹] When making next attempt for `DIALOG TASK`, preserve the previous user input
+                        $ongoingTaskResult.$resultString = await tools.userInterface.promptDialog(
                             $deepFreeze({
-                                promptTitle: template.title,
-                                promptMessage: replaceParameters(template.description || '', parameters),
+                                promptTitle: task.title,
+                                promptMessage: replaceParameters(task.description || '', parameters),
                                 defaultValue: replaceParameters(preparedContent, parameters),
 
-                                // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
+                                // TODO: [🧠] !! Figure out how to define placeholder in .book.md file
                                 placeholder: undefined,
                                 priority,
                             }),
                         );
-                        break templateType;
+                        break taskType;
 
                     // <- case: [🅱]
 
@@ -362,7 +352,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         throw new PipelineExecutionError(
                             spaceTrim(
                                 (block) => `
-                                    Unknown execution type "${(template as TODO_any).templateType}"
+                                    Unknown execution type "${(task as TODO_any).taskType}"
 
                                     ${block(pipelineIdentification)}
                                 `,
@@ -371,18 +361,18 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 }
             }
 
-            if (!isJokerAttempt && template.postprocessingFunctionNames) {
-                for (const functionName of template.postprocessingFunctionNames) {
+            if (!isJokerAttempt && task.postprocessingFunctionNames) {
+                for (const functionName of task.postprocessingFunctionNames) {
                     let postprocessingError = null;
 
                     scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                         try {
-                            $ongoingTemplateResult.$resultString = await scriptTools.execute({
+                            $ongoingTaskResult.$resultString = await scriptTools.execute({
                                 scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
                                 script: `${functionName}(resultString)`,
                                 parameters: {
-                                    resultString: $ongoingTemplateResult.$resultString || '',
-                                    // Note: No ...parametersForTemplate, because working with result only
+                                    resultString: $ongoingTaskResult.$resultString || '',
+                                    // Note: No ...parametersForTask, because working with result only
                                 },
                             });
 
@@ -398,7 +388,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             }
 
                             postprocessingError = error;
-                            $ongoingTemplateResult.$scriptPipelineExecutionErrors.push(error);
+                            $ongoingTaskResult.$scriptPipelineExecutionErrors.push(error);
                         }
                     }
 
@@ -409,15 +399,13 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             }
 
             // TODO: [💝] Unite object for expecting amount and format
-            if (template.format) {
-                if (template.format === 'JSON') {
-                    if (!isValidJsonString($ongoingTemplateResult.$resultString || '')) {
+            if (task.format) {
+                if (task.format === 'JSON') {
+                    if (!isValidJsonString($ongoingTaskResult.$resultString || '')) {
                         // TODO: [🏢] Do more universally via `FormatDefinition`
 
                         try {
-                            $ongoingTemplateResult.$resultString = extractJsonBlock(
-                                $ongoingTemplateResult.$resultString || '',
-                            );
+                            $ongoingTaskResult.$resultString = extractJsonBlock($ongoingTaskResult.$resultString || '');
                         } catch (error) {
                             keepUnused(
                                 error,
@@ -442,7 +430,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                     throw new UnexpectedError(
                         spaceTrim(
                             (block) => `
-                                Unknown format "${template.format}"
+                                Unknown format "${task.format}"
 
                                 ${block(pipelineIdentification)}
                             `,
@@ -452,8 +440,8 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             }
 
             // TODO: [💝] Unite object for expecting amount and format
-            if (template.expectations) {
-                checkExpectations(template.expectations, $ongoingTemplateResult.$resultString || '');
+            if (task.expectations) {
+                checkExpectations(task.expectations, $ongoingTaskResult.$resultString || '');
             }
 
             break attempts;
@@ -462,31 +450,31 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 throw error;
             }
 
-            $ongoingTemplateResult.$expectError = error;
+            $ongoingTaskResult.$expectError = error;
         } finally {
             if (
                 !isJokerAttempt &&
-                template.templateType === 'PROMPT_TEMPLATE' &&
-                $ongoingTemplateResult.$prompt!
+                task.taskType === 'PROMPT_TASK' &&
+                $ongoingTaskResult.$prompt!
                 //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
                 //              In that case we don’t want to make a report about it because it’s not a llm execution error
             ) {
-                // TODO: [🧠] Maybe put other templateTypes into report
+                // TODO: [🧠] Maybe put other taskTypes into report
                 $executionReport.promptExecutions.push({
                     prompt: {
-                        ...$ongoingTemplateResult.$prompt,
+                        ...$ongoingTaskResult.$prompt,
                         // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
                     } as really_any,
-                    result: $ongoingTemplateResult.$result || undefined,
+                    result: $ongoingTaskResult.$result || undefined,
                     error:
-                        $ongoingTemplateResult.$expectError === null
+                        $ongoingTaskResult.$expectError === null
                             ? undefined
-                            : serializeError($ongoingTemplateResult.$expectError),
+                            : serializeError($ongoingTaskResult.$expectError),
                 });
             }
         }
 
-        if ($ongoingTemplateResult.$expectError !== null && attempt === maxAttempts - 1) {
+        if ($ongoingTaskResult.$expectError !== null && attempt === maxAttempts - 1) {
             throw new PipelineExecutionError(
                 spaceTrim(
                     (block) => `
@@ -497,15 +485,15 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         ---
                         The Prompt:
                         ${block(
-                            ($ongoingTemplateResult.$prompt?.content || '')
+                            ($ongoingTaskResult.$prompt?.content || '')
                                 .split('\n')
                                 .map((line) => `> ${line}`)
                                 .join('\n'),
                         )}
 
-                        Last error ${$ongoingTemplateResult.$expectError?.name || ''}:
+                        Last error ${$ongoingTaskResult.$expectError?.name || ''}:
                         ${block(
-                            ($ongoingTemplateResult.$expectError?.message || '')
+                            ($ongoingTaskResult.$expectError?.message || '')
                                 .split('\n')
                                 .map((line) => `> ${line}`)
                                 .join('\n'),
@@ -513,9 +501,9 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
 
                         Last result:
                         ${block(
-                            $ongoingTemplateResult.$resultString === null
+                            $ongoingTaskResult.$resultString === null
                                 ? 'null'
-                                : $ongoingTemplateResult.$resultString
+                                : $ongoingTaskResult.$resultString
                                       .split('\n')
                                       .map((line) => `> ${line}`)
                                       .join('\n'),
@@ -527,7 +515,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         }
     }
 
-    if ($ongoingTemplateResult.$resultString === null) {
+    if ($ongoingTaskResult.$resultString === null) {
         throw new UnexpectedError(
             spaceTrim(
                 (block) => `
@@ -539,7 +527,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         );
     }
 
-    return $ongoingTemplateResult.$resultString;
+    return $ongoingTaskResult.$resultString;
 }
 
 /**

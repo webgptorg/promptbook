@@ -3,7 +3,7 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'fs/promises';
+import fs, { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
@@ -11,11 +11,12 @@ import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { GENERATOR_WARNING } from '../../src/config';
+import { $execCommand } from '../../src/utils/execCommand/$execCommand';
+import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
-import { execCommand } from '../utils/execCommand/execCommand';
 import { getPackagesMetadata } from './getPackagesMetadata';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -82,7 +83,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         const entryIndexFilePathContentExports: Array<string> = [];
 
         for (const entity of entities) {
-            const { filePath, name } = entity;
+            const { filename, name } = entity;
             let { isType } = entity;
 
             if (packageFullname === '@promptbook/types') {
@@ -90,7 +91,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 isType = true;
             }
 
-            let importPath = `${relative(dirname(entryIndexFilePath), filePath).split('\\').join('/')}`;
+            let importPath = `${relative(dirname(entryIndexFilePath), filename).split('\\').join('/')}`;
             if (!importPath.startsWith('.')) {
                 importPath = './' + importPath;
             }
@@ -112,12 +113,12 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     // ${block(GENERATOR_WARNING)}
                     // \`${packageFullname}\`
 
-                    import { PROMPTBOOK_VERSION } from '../version';
+                    import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
                     ${block(entryIndexFilePathContentImports.join('\n'))}
 
 
                     // Note: Exporting version from each package
-                    export { PROMPTBOOK_VERSION };
+                    export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
                     // Note: Entities of the \`${packageFullname}\`
@@ -178,8 +179,22 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             installCommand = `npm i -D ${packageFullname}`;
         }
 
+        let prereleaseWarning = '';
+
+        if (mainPackageJson.version.includes('-')) {
+            // TODO: Link latest stable release automatically
+            prereleaseWarning = spaceTrim(`
+                <blockquote style="color: #ff8811">
+                    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+                </blockquote>
+            `);
+        }
+
         const packageReadmeFullextra = spaceTrim(
             (block) => `
+
+                  ${block(prereleaseWarning)}
+
                   ## 📦 Package \`${packageFullname}\`
 
                   - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -233,16 +248,16 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             `./packages/${packageBasename}/README.md`,
             packageReadme,
             /*
-          spaceTrim(`
+            spaceTrim(`
 
-              # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
+                # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-              Supercharge your use of large language models
+                Supercharge your use of large language models
 
-              [Read the manual](https://github.com/webgptorg/promptbook)
+                [Read the manual](https://github.com/webgptorg/promptbook)
 
-          `),
-          */
+            `),
+            */
         );
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
@@ -252,6 +267,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         delete packageJson.peerDependencies;
 
         packageJson.name = packageFullname;
+
+        // TODO: [❇️] Join dynamic and general keywords
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
         //     <- TODO: Add GENERATOR_WARNING to package.json
@@ -276,8 +293,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (!isBuilded) {
                 continue;
             }
-            await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
-            await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/umd`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/esm`);
         }
     }
 
@@ -288,7 +305,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         console.info(colors.yellow(`Skipping the bundler`));
     } else {
         await forTime(1000 * 60 * 60 * 0);
-        await execCommand(`npx rollup --config rollup.config.js`);
+        await $execCommand(
+            `node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js`,
+        );
     }
 
     // ==============================
@@ -300,7 +319,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         // Note: Keep `typings` only from `esm` (and remove `umd`)
         for (const packageMetadata of packagesMetadata) {
             const { packageBasename } = packageMetadata;
-            await execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
         }
     }
 
@@ -320,6 +339,16 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             }
 
             const bundleFileContent = await readFile(bundleFileName, 'utf-8');
+
+            if (bundleFileContent.includes('[⚫]')) {
+                throw new Error(
+                    spaceTrim(`
+                        Things marked with [⚫] should never be never released in the bundle
+
+                        ${bundleFileName}
+                    `),
+                );
+            }
 
             if (bundleFileContent.includes('[⚪]')) {
                 throw new Error(
@@ -344,11 +373,14 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (
                 packageFullname !== '@promptbook/node' &&
                 packageFullname !== '@promptbook/cli' &&
+                packageFullname !== '@promptbook/documents' &&
+                packageFullname !== '@promptbook/legacy-documents' &&
+                packageFullname !== '@promptbook/website-crawler' &&
                 bundleFileContent.includes('[🟢]')
             ) {
                 throw new Error(
                     spaceTrim(`
-                        Things marked with [🟢] should never be never released out of @promptbook/node and @promptbook/cli
+                        Things marked with [🟢] should never be never released in packages that could be imported into browser environment
 
                         ${bundleFileName}
                     `),
@@ -399,9 +431,21 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }
 
         if (isBuilded) {
-            const indexContent = await readFile(`./packages/${packageBasename}/esm/index.es.js`, 'utf-8');
+            const bundleName = `./packages/${packageBasename}/esm/index.es.js`;
+
+            let indexContent = '';
+            if (await isFileExisting(bundleName, fs)) {
+                indexContent = await readFile(bundleName, 'utf-8');
+            } else {
+                console.warn(colors.yellow(`Bundle file ${bundleName} does not exist`));
+            }
+
             for (const dependencyName of Object.keys(allDependencies)) {
-                if (indexContent.includes(`from '${dependencyName}'`)) {
+                if (
+                    indexContent.includes(`from '${dependencyName}'`) ||
+                    indexContent.includes(`require('${dependencyName}')`) ||
+                    indexContent.includes(`require("${dependencyName}")`)
+                ) {
                     packageJson.dependencies = packageJson.dependencies || {};
 
                     if (allDependencies[dependencyName] === undefined) {
@@ -457,13 +501,13 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                         steps: [
                             {
                                 name: 'Checkout',
-                                uses: 'actions/checkout@v2',
+                                uses: 'actions/checkout@v4',
                             },
                             {
                                 name: 'Setup Node.js',
-                                uses: 'actions/setup-node@v1',
+                                uses: 'actions/setup-node@v4',
                                 with: {
-                                    'node-version': 18,
+                                    'node-version': 22,
                                     'registry-url': 'https://registry.npmjs.org/',
                                 },
                             },
@@ -474,7 +518,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             {
                                 name: 'Build packages bundles',
                                 // Note: Generate packages before publishing to put the recent version in each package.json
-                                // TODO: It will be better to have here just "npx rollup --config rollup.config.js" BUT it will not work because:
+                                // TODO: It will be better to have here just "npx rollup --config rollup.config.js" / "node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js" BUT it will not work because:
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
@@ -510,4 +554,5 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json
+ * Note: [⚫] Code in this file should never be published in any package
  */

@@ -1,20 +1,24 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { ZERO_USAGE } from '../execution/utils/addUsage';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { MissingToolsError } from '../errors/MissingToolsError';
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
-import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
+import { ZERO_USAGE } from '../execution/utils/usage-constants';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
-import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
+import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
+import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
+import { arrayableToArray } from '../utils/arrayableToArray';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { clonePipeline } from '../utils/serialization/clonePipeline';
-import { PROMPTBOOK_VERSION } from '../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
-import type { PrepareOptions } from './PrepareOptions';
-import { prepareTemplates } from './prepareTemplates';
+import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
+import { prepareTasks } from './prepareTasks';
 
 /**
  * Prepare pipeline from string (markdown) format to JSON format
@@ -24,15 +28,19 @@ import { prepareTemplates } from './prepareTemplates';
  * Note: When the pipeline is already prepared, it returns the same pipeline
  * @public exported from `@promptbook/core`
  */
-export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
+export async function preparePipeline(
+    pipeline: PipelineJson,
+    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
+    options: PrepareAndScrapeOptions,
+): Promise<PipelineJson> {
     if (isPipelinePrepared(pipeline)) {
         return pipeline;
     }
 
-    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+    const { rootDirname, maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, isVerbose = DEFAULT_IS_VERBOSE } = options;
     const {
         parameters,
-        templates,
+        tasks,
         /*
         <- TODO: [🧠][🪑] `promptbookVersion` */
         knowledgeSources /*
@@ -41,27 +49,35 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         <- TODO: [🧊] `preparations` */,
     } = pipeline;
 
+    if (tools === undefined || tools.llm === undefined) {
+        throw new MissingToolsError('LLM tools are required for preparing the pipeline');
+    }
+
+    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+    const _llms = arrayableToArray(tools.llm);
+    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+
     const llmToolsWithUsage = countTotalUsage(llmTools);
     //    <- TODO: [🌯]
 
     /*
     TODO: [🧠][🪑][🔃] Should this be done or not
-    if (promptbookVersion !== PROMPTBOOK_VERSION) {
+    if (promptbookVersion !== PROMPTBOOK_ENGINE_VERSION) {
         throw new VersionMismatchError(`Can not prepare the pipeline`, promptbookVersion);
     }
     */
 
-    // TODO: [🔃][main] !!!!! If the pipeline was prepared with different version or different set of models, prepare it once again
+    // TODO: [🔃][main] !! If the pipeline was prepared with different version or different set of models, prepare it once again
 
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {
         id: 1, // <- TODO: [🧊] Make incremental
-        // TODO: [🍥]> date: $currentDate(),
-        promptbookVersion: PROMPTBOOK_VERSION,
+        // TODO: [🍥]> date: $getCurrentDate(),
+        promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
         usage: ZERO_USAGE,
     };
 
-    const preparations: Array<PreparationJson> = [
+    const preparations: ReadonlyArray<PreparationJson> = [
         // ...preparations
         // <- TODO: [🧊]
         currentPreparation,
@@ -69,21 +85,22 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /ID -----
 
     // ----- Personas preparation -----
-    // TODO: !! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTasks`
     // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const preparedPersonas: Array<PersonaPreparedJson> = new Array(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        personas.length,
-    );
+    const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
         personas,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (persona, index) => {
-            const modelRequirements = await preparePersona(persona.description, {
-                llmTools: llmToolsWithUsage,
-                maxParallelCount /* <- TODO:  [🪂] */,
-                isVerbose,
-            });
+            const modelRequirements = await preparePersona(
+                persona.description,
+                { ...tools, llm: llmToolsWithUsage },
+                {
+                    rootDirname,
+                    maxParallelCount /* <- TODO:  [🪂] */,
+                    isVerbose,
+                },
+            );
 
             const preparedPersona: PersonaPreparedJson = {
                 ...persona,
@@ -98,7 +115,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /Personas preparation -----
 
     // ----- Knowledge preparation -----
-    // TODO: !! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTasks`
     const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
         ...source,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
@@ -106,8 +123,10 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 
     const partialknowledgePiecesPrepared = await prepareKnowledgePieces(
         knowledgeSources /* <- TODO: [🧊] {knowledgeSources, knowledgePieces} */,
+        { ...tools, llm: llmToolsWithUsage },
         {
-            llmTools: llmToolsWithUsage,
+            ...options,
+            rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },
@@ -120,31 +139,34 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     }));
     // ----- /Knowledge preparation -----
 
-    // ----- Templates preparation -----
-    const { templatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTemplates(
+    // ----- Tasks preparation -----
+    const { tasksPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTasks(
         {
             parameters,
-            templates,
+            tasks,
             knowledgePiecesCount: knowledgePiecesPrepared.length,
         },
+        { ...tools, llm: llmToolsWithUsage },
         {
-            llmTools: llmToolsWithUsage,
+            rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },
     );
-    // ----- /Templates preparation -----
+    // ----- /Tasks preparation -----
 
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
     return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
-        templates: templatesPrepared,
+        tasks: [...tasksPrepared],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,
-        preparations,
+        preparations: [...preparations],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just `preparations`
     });
 }
 

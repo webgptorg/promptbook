@@ -1,3 +1,5 @@
 TODO: Use packages not paterialized entities when possible
       For example in @promptbook/core use @promptbook/utils NOT materialized entities
 TODO: !! Disable partial imports from @promptbook/*
+
+TODO: Inconsistent language @promptbook/documents (=> plular) vs @promptbook/pdf (=> singular)

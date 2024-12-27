@@ -3,18 +3,18 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { FormatCommand } from './FormatCommand';
 
 /**
  * Parses the format command
  *
- * @see ./FORMAT-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> = {
+export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {
     /**
      * Name of the command
      */
@@ -24,18 +24,18 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the FORMAT command
      */
     description: spaceTrim(`
-        Format command describes the desired output of the template (after post-processing)
+        Format command describes the desired output of the task (after post-processing)
         It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs or some other shape of the output.
     `),
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 
@@ -66,14 +66,14 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
     /**
      * Apply the FORMAT command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTemplateJson(command: FormatCommand, $templateJson: $TemplateJson): void {
-        if ($templateJson.format !== undefined && command.format !== $templateJson.format) {
-            throw new ParseError(`Format format is already defined to "${$templateJson.format}".
+    $applyToTaskJson(command: FormatCommand, $taskJson: $TaskJson): void {
+        if ($taskJson.format !== undefined && command.format !== $taskJson.format) {
+            throw new ParseError(`Format format is already defined to "${$taskJson.format}".
                 Now you try to redefine it by "${command.format}"`);
         }
-        $templateJson.format = command.format;
+        $taskJson.format = command.format;
     },
 
     /**
@@ -87,12 +87,12 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
     },
 
     /**
-     * Reads the FORMAT command from the `TemplateJson`
+     * Reads the FORMAT command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<FormatCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<FormatCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

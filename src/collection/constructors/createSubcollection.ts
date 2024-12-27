@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { NotFoundError } from '../../errors/NotFoundError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { Prompt } from '../../types/Prompt';
 import type { string_pipeline_url } from '../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -19,7 +19,7 @@ export function createSubcollection(
     collection: PipelineCollection,
     predicate: (url: string_pipeline_url) => boolean,
 ): PipelineCollection {
-    async function listPipelines(): Promise<Array<string_pipeline_url>> {
+    async function listPipelines(): Promise<ReadonlyArray<string_pipeline_url>> {
         let promptbooks = await collection.listPipelines();
         promptbooks = promptbooks.filter(predicate);
         return promptbooks;

@@ -38,7 +38,6 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
     normalized = normalized.split('(').join('');
     normalized = normalized.split(')').join('');
     normalized = normalizeTo_SCREAMING_CASE(normalized);
-    normalized = normalized.split('DIALOGUE').join('DIALOG');
 
     const items = raw
         .trim()
@@ -162,16 +161,15 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
-    for (const commandParser of COMMANDS as really_unknown as Array<CommandParser<CommandBase>>) {
+    for (const commandParser of COMMANDS as really_unknown as ReadonlyArray<CommandParser<CommandBase>>) {
         //                               <- Note: [🦦] Its strange that this type assertion is needed
-        const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, aliasNames, deprecatedNames, parse } =
-            commandParser;
+        const { name, isUsedInPipelineHead, isUsedInPipelineTask, aliasNames, deprecatedNames, parse } = commandParser;
 
         if (just(false)) {
             keepUnused(/* for better indentation */);
         } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
             continue;
-        } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTemplate) {
+        } else if (usagePlace === 'PIPELINE_TASK' && !isUsedInPipelineTask) {
             continue;
         }
 

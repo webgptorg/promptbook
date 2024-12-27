@@ -2,7 +2,7 @@
  * Semantic helper
  *
  * Keyword is string without diacritics in lowercase [a-z1-9]
- * Words are splitted between multiple keywords @see IKeywords
+ * Words are splitted between multiple keywords @see Keywords
  *
  * For example `"keyword"`
  *
@@ -16,7 +16,7 @@ export type string_keyword = string;
  *
  * @public exported from `@promptbook/utils`
  */
-export type IKeywords = Set<string_keyword>;
+export type Keywords = Set<string_keyword>;
 
 /**
  * TODO: [🌮] Keywords with weight

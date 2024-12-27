@@ -1,14 +1,14 @@
 import type { Promisable } from 'type-fest';
 import type { AutomaticTranslator } from './AutomaticTranslator';
 
-interface IMultiAutomaticTranslatorOptions {
+type IMultiAutomaticTranslatorOptions = {
     createAutomaticTranslator(options: { from: string; to: string }): AutomaticTranslator;
 }
 
 export class MultiAutomaticTranslator {
     private translators: Record<string, AutomaticTranslator> = {};
 
-    constructor(private readonly options: IMultiAutomaticTranslatorOptions) {}
+    constructor(protected readonly options: IMultiAutomaticTranslatorOptions) {}
 
     public translate({ from, to, message }: { from: string; to: string; message: string }): Promisable<string> {
         if (from === to) {

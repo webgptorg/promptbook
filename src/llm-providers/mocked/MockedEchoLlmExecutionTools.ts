@@ -1,15 +1,15 @@
 import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
-import { ZERO_USAGE } from '../../execution/utils/addUsage';
+import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -18,8 +18,8 @@ import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDe
  *
  * @public exported from `@promptbook/fake-llm`
  */
-export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
+    public constructor(protected readonly options: CommonToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Mocked echo';
@@ -37,7 +37,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * List all available mocked-models that can be used
      */
-    public listModels(): Array<AvailableModel> {
+    public listModels(): ReadonlyArray<AvailableModel> {
         return [
             {
                 modelTitle: 'Echo chat',
@@ -78,8 +78,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
             ),
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,
@@ -116,8 +116,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
             ),
             modelName,
             timing: {
-                start: getCurrentIsoDate(),
-                complete: getCurrentIsoDate(),
+                start: $getCurrentDate(),
+                complete: $getCurrentDate(),
             },
             usage,
             rawPromptContent,
