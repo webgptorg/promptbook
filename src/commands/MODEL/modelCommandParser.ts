@@ -138,11 +138,11 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
             } else {
                 throw new ParseError(
                     spaceTrim(`
-                        Redefinition of MODEL \`${command.key}\` in the pipeline head
+                        Redefinition of \`MODEL ${command.key}\` in the pipeline head
 
                         You have used:
-                        - MODEL ${command.key} ${$pipelineJson.defaultModelRequirements[command.key]}
-                        - MODEL ${command.key} ${command.value}
+                        1) \`MODEL ${command.key} ${$pipelineJson.defaultModelRequirements[command.key]}\`
+                        2) \`MODEL ${command.key} ${command.value}\`
                     `),
                 );
             }

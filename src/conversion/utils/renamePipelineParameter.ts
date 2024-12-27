@@ -2,6 +2,7 @@ import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_name } from '../../types/typeAliases';
+import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
 
 type RenameParameterOptions = {
     /**
@@ -38,7 +39,7 @@ export function renamePipelineParameter(options: RenameParameterOptions): Pipeli
     }
 
     const renamedPipeline: $PipelineJson = {
-        ...(pipeline as $PipelineJson),
+        ...(pipeline as TODO_remove_as<$PipelineJson>),
         // <- TODO: [🪓] This should be without `as $PipelineJson`
         parameters: [...pipeline.parameters],
         tasks: [...pipeline.tasks],
@@ -69,5 +70,5 @@ export function renamePipelineParameter(options: RenameParameterOptions): Pipeli
                 : task.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
     }
 
-    return renamedPipeline;
+    return renamedPipeline as TODO_remove_as<PipelineJson>;
 }

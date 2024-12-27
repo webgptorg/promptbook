@@ -501,13 +501,13 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                         steps: [
                             {
                                 name: 'Checkout',
-                                uses: 'actions/checkout@v2',
+                                uses: 'actions/checkout@v4',
                             },
                             {
                                 name: 'Setup Node.js',
-                                uses: 'actions/setup-node@v1',
+                                uses: 'actions/setup-node@v4',
                                 with: {
-                                    'node-version': 18,
+                                    'node-version': 22,
                                     'registry-url': 'https://registry.npmjs.org/',
                                 },
                             },
