@@ -21,10 +21,10 @@ jobs:
             - name: Install LibreOffice
               run: sudo apt-get update && sudo apt-get install -y libreoffice
 
-
             - name: Install Pandoc
-              run: wget https://github.com/jgm/pandoc/releases/download/3.6.1/pandoc-3.6.1-1-amd64.deb
-              run: sudo dpkg -i pandoc-
+              run: |
+                  wget https://github.com/jgm/pandoc/releases/download/3.6.1/pandoc-3.6.1-1-amd64.deb
+                  sudo dpkg -i pandoc-3.6.1-1-amd64.deb
 
             - name: Install dependencies
               run: npm ci
