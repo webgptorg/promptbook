@@ -630,6 +630,15 @@ Implicit formfactors
 -   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
 -   Fix in deep cloning of arrays
 
+### In pre-release
+
+### `0.!!!.0` _(2024-12-)_
+
+Parameter types to establish forseen [type system](https://github.com/webgptorg/book/tree/main/pips/pip-0002)
+
+-   Move `expectations` and `format` from `Task` to `Parameter` <!-- <- TODO: !!!!!! -->
+-   Implicit formfactors - no need to explicitly define them, they are inferred from the pipeline interface <!-- <- TODO: !!!!!! -->
+
 ## Drafts
 
 ### `0..0` _(2024--)_
