@@ -1,6 +1,6 @@
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
-// import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
+// import PipelineCollection from '../../../books/books';
 import { readdir, rename, rmdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';

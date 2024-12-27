@@ -3,7 +3,7 @@
     "promptbookVersion": "0.61.0-13",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "content": "Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI worldwide, and he develops the WebGPT web page generation service."
         },

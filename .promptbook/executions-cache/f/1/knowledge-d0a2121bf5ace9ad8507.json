@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "In the current period of economic crisis, fraudulent and health-damaging costume jewelry is increasingly appearing on the market as people try to save money. Korálky Katlas has prepared a summary of things to watch out for when buying finished costume jewelry and jewelry components, based on problems and scams reported by their customers in the Czech Republic and abroad."
         },

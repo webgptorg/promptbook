@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nV současné době ekonomické krize se na trhu znovu objevuje více nekvalitní a zdraví škodlivé bižuterie. Zákazníci stále častěji hlásí problémy a podvody s bižuterií zakoupenou v ČR i v zahraničí."
         },

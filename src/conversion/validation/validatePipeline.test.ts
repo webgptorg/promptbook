@@ -12,14 +12,14 @@ describe('validatePipeline with valid examples', () => {
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
         .filter((dirent) => dirent.isFile())
-        .filter(({ name }) => name.endsWith('.ptbk.md'));
+        .filter(({ name }) => name.endsWith('.book.md'));
 
     for (const { name } of examples) {
         it(`should validate ${name} syntax, parsing and logic`, () => {
             expect(
                 (async () => {
                     try {
-                        const pipelineString = importPipelineWithoutPreparation(name as `${string}.ptbk.md`);
+                        const pipelineString = importPipelineWithoutPreparation(name as `${string}.book.md`);
                         const pipelineJson = await pipelineStringToJson(pipelineString);
                         validatePipeline(pipelineJson);
                     } catch (error) {

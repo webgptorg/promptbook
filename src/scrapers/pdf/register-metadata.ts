@@ -27,3 +27,7 @@ export const pdfScraperMetadata = $deepFreeze({
  * @public exported from `@promptbook/cli`
  */
 export const _PdfScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register(pdfScraperMetadata);
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

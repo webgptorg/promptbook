@@ -199,7 +199,7 @@ After install you can use `promptbook` command in terminal:
 
 ```bash
 npm i @promptbook/utils
-npx ptbk prettify promptbook/**/*.ptbk.md
+npx ptbk prettify 'promptbook/**/*.ptbk.md'
 ```
 
 ### `0.44.0` _(2024-04-26)_
@@ -322,7 +322,7 @@ Rename and reorganize libraries
 
 -   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
 -   Rename `@promptbook/fake-llmed` -> `@promptbook/fake-llm`
--   Export `PROMPTBOOK_VERSION` from each package
+-   Export `PROMPTBOOK_ENGINE_VERSION` from each package
 -   Use `export type` in `@promptbook/types`
 
 ### `0.57.0` _(2024-06-15)_
@@ -578,29 +578,79 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   Proposal for version `1.0.0` both in Promptbook and Book language
 -   Allow to run books directly in cli via `ptbk run ./path/to/book.ptbk.md`
 -   Fix security warnings in dependencies
+-   Enhance `countLines` and `countPages` utility function
+-   No need to explicitly define the input and output parameters
+-   Allow empty pipelines
+-   Add `BlackholeStorage`
+-   Rename `.ptbk.*` -> `.book.*`
+-   Split `PROMPTBOOK_VERSION` -> `BOOK_LANGUAGE_VERSION` + `PROMPTBOOK_ENGINE_VERSION`
 -   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
+
+### `0.75.0` _(2024-11-)_
+
+Formfactors, Rebranding
+
+-   Add `FormfactorCommand`
+-   Add Pipeline interfaces
+-   Split `ParameterJson` into `InputParameterJson`, `OutputParameterJson` and `IntermediateParameterJson`
+-   Reorganize `/src` folder
+-   Rename `Template` -> `Task`
+-   Rename `TemplateCommand` -> `SectionCommand` command
+-   Make alongside `SectionType` the `TaskType`
+-   🤍 Change Whitepaper to Abstract
+-   Rename default folder for your books from `promptbook-collection` -> `books`
+-   Change claim of the project to _"It's time for a paradigm shift! The future of software is in plain English, French or Latin."_
+
+### `0.76.0` _(2024-12-07)_
+
+Skipped, because of the mistake in the versioning. _(It should be pre-release)_
+
+### `0.77.0` _(2024-12-10)_
+
+Support for more models, add `@promptbook/vercel` and `@promptbook/google` packages.
+
+-   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
+-   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
+-   Option `userId` can be passed into all tools and instead of `null`, it can be `undefined`
+-   Rename `$currentDate` -> `$getCurrentDate`
+
+### `0.78.0` _(2024-12-14)_
+
+Utility functions
+
+-   Add `removePipelineCommand`
+-   Rename util `renameParameter` -> `renamePipelineParameter`
+-   Rename util `extractVariables` -> `extractVariablesFromScript`
+-   [👖] Utilities `extractParameterNamesFromTask` and `renamePipelineParameter` are not exported from `@promptbook/utils` but `@promptbook/core` because they are tightly interconnected with the Promptbook and cannot be used as universal utility
+
+### `0.79.0` _(2024-12-27)_
+
+Implicit formfactors
+
+-   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
+-   Fix in deep cloning of arrays
 
 ## Drafts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 `createLibraryFromDirectory` uses prebuild library
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better expectation format in `PromptbookJson`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Allow to split parameters into multiple values and iterate over them
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!-- Search ACRY "MODEL NAME " -->
 
 -   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Better script execution
 
@@ -608,17 +658,17 @@ Better script execution
 -   List all default postprocessing functions in `@promptbook/utils` README
 -   Implement `PythonExecutionTools` for executing Python scripts
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
 More options to create `PromptbookLibrary`
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 Intagration with Langtail
 
-### `0..0` _(2024-0-)_
+### `0..0` _(2024--)_
 
 <!--[🍓]-->
 
@@ -655,4 +705,4 @@ Across the repository there are marked [🍓] places that are required to be don
 
 <!-- Note: All places marked by [➕] to add new NPM package -->
 <!-- Note: All places marked by [🤖] to add new model variant -->
-<!-- Note: All places marked by [🅱] to add new (execution) block type -->
+<!-- Note: All places marked by [🅱] to add new task type -->

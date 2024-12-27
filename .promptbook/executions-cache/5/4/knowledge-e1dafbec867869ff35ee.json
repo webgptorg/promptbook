@@ -3,7 +3,7 @@
     "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md#knowledge",
         "parameters": {
             "knowledgeContent": "Springfield is a city in the U.S. state of Illinois. It is the county\nseat of Sangamon County. The city\\'s population of 10566 as of 2019\nmakes it the sixth most populous city in the state.\n"
         },

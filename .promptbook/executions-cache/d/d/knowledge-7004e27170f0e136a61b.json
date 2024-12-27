@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md#knowledge",
         "parameters": {
             "knowledgeContent": "> ![](media/image1.png)I\\'m Pavol, a developer who is passionate about\r\n> using new tools and technologies.\r\n>\r\n> I specialise in creating fully functional user applications using the\r\n> latest artificial intelligence models.\r\n>\r\n> I am a member of the [Ainautes](https://www.ainautes.com/) consulting\r\n> group, which supports with the deployment of generative AI around\r\n>\r\n> the world.\r\n>\r\n> I develop the\r\n> [WebGPT](https://webgpt.cz/?partner=ph&utm_medium=referral&utm_source=personal%E2%80%93page&utm_content=pavolhejny.com&utm_campaign=partner%E2%80%93ph)\r\n> web page generation service.\r\n>\r\n> Before the massive emergence of generative AI, I have created the\r\n> first Czech virtual whiteboard, [Collboard](https://collboard.com/),\r\n> and electronic textbooks, [H-edu](https://h-edu.cz/), which were used\r\n> by tens of thousands of children.\r\n>\r\n> I have also worked on many scientific projects for the [Czech\r\n> Ornithological Society](https://www.birdlife.cz/en/).\r\n>\r\n> I regularly give lectures at conferences, sit on juries, and act as a\r\n> mentor in many Czech and international competitions.\r\n>\r\n> I have a special heart for this, and I love **open source** -- you can\r\n> find many of my things on my GitHub.\r\n"
         },

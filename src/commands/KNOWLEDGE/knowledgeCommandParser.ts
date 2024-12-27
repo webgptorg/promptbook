@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
@@ -28,7 +28,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
+    isUsedInPipelineTask: false, // <- [👙] Maybe allow to use here and make relevant for just this task
 
     /**
      * Description of the KNOWLEDGE command
@@ -75,7 +75,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
         }
 
         if (sourceContent.startsWith('../') || sourceContent.startsWith('/') || /^[A-Z]:[\\/]+/i.test(sourceContent)) {
-            throw new ParseError(`Source cannot be outside of the .ptbk.md folder`);
+            throw new ParseError(`Source cannot be outside of the .book.md folder`);
         }
 
         return {

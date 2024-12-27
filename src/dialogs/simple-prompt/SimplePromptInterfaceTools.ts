@@ -16,7 +16,7 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
     public constructor(protected readonly options: CommonToolsOptions = {}) {}
 
     /**
-     * Trigger window.DIALOG TEMPLATE
+     * Trigger window.prompt dialog
      */
     public async promptDialog(options: UserInterfaceToolsPromptDialogOptions): Promise<string> {
         const answer = window.prompt(

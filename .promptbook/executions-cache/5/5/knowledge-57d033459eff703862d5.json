@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nIn the current economic crisis, there is an increase in the market of counterfeit and harmful jewelry as people look for cheaper alternatives. Customers have reported many issues and scams related to poor quality of jewelry both in the Czech Republic and abroad."
         },

@@ -11,7 +11,7 @@ export type PrepareAndScrapeOptions = {
      * Note: When the pipeline is not created from files, it is `null`
      * Note: This folder must exist (=it is not created recursively)
      *
-     * @default process.cwd()
+     * @default null or `process.cwd()` when created via `$provide...` function in node
      */
     readonly rootDirname?: string_dirname | null;
 
@@ -20,7 +20,7 @@ export type PrepareAndScrapeOptions = {
      *
      * Note: When the folder does not exist, it is created recursively
      *
-     * @default SCRAPE_CACHE_DIRNAME
+     * @default DEFAULT_SCRAPE_CACHE_DIRNAME
      */
     readonly cacheDirname?: string_dirname;
 
@@ -34,19 +34,21 @@ export type PrepareAndScrapeOptions = {
     /**
      * Maximum number of tasks running in parallel
      *
-     * @default MAX_PARALLEL_COUNT
+     * @default DEFAULT_MAX_PARALLEL_COUNT
      */
     readonly maxParallelCount?: number;
 
     /**
      * If true, the missing software is automatically installed
+     *
+     * @default DEFAULT_IS_AUTO_INSTALLED
      */
     readonly isAutoInstalled?: boolean;
 
     /**
      * If true, the preparation logs additional information
      *
-     * @default false
+     * @default DEFAULT_IS_VERBOSE
      */
     readonly isVerbose?: boolean;
 };

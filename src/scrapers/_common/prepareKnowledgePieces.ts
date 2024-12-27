@@ -3,9 +3,9 @@ import { DEFAULT_IS_VERBOSE } from '../../config';
 import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
+import type { KnowledgeSourceJson } from '../../pipeline/PipelineJson/KnowledgeSourceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { arrayableToArray } from '../../utils/arrayableToArray';
@@ -32,8 +32,9 @@ export async function prepareKnowledgePieces(
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource, index) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
         const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, tools, { rootDirname, isVerbose });
+        const scrapers = arrayableToArray(tools.scrapers);
 
-        for (const scraper of arrayableToArray(tools.scrapers)) {
+        for (const scraper of scrapers) {
             if (
                 !scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards
@@ -49,17 +50,47 @@ export async function prepareKnowledgePieces(
 
                 break;
             }
+
+            console.warn(
+                spaceTrim(
+                    (block) => `
+                        Cannot scrape knowledge from source despite the scraper \`${
+                            scraper.metadata.className
+                        }\` supports the mime type "${sourceHandler.mimeType}".
+                        
+                        The source:
+                        > ${block(
+                            knowledgeSource.sourceContent
+                                .split('\n')
+                                .map((line) => `> ${line}`)
+                                .join('\n'),
+                        )}
+
+                        ${block($registeredScrapersMessage(scrapers))}
+
+
+                    `,
+                ),
+            );
         }
 
         if (partialPieces === null) {
             throw new KnowledgeScrapeError(
                 spaceTrim(
                     (block) => `
-                        Cannot scrape knowledge from source: ${knowledgeSource.sourceContent}
+                        Cannot scrape knowledge
+                        
+                        The source:
+                        > ${block(
+                            knowledgeSource.sourceContent
+                                .split('\n')
+                                .map((line) => `> ${line}`)
+                                .join('\n'),
+                        )}
 
                         No scraper found for the mime type "${sourceHandler.mimeType}"
 
-                        ${block($registeredScrapersMessage())}
+                        ${block($registeredScrapersMessage(scrapers))}
 
 
                     `,

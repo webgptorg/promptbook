@@ -1,0 +1,115 @@
+{
+    "pipelineUrl": "https://promptbook.studio/examples/picking-model.book.md",
+    "title": "✨ Pick the model",
+    "description": "Show how to pick exact model",
+    "formfactorName": "GENERIC",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "poem",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "Roses are red, violets are blue, sugar is sweet, and so are you.",
+                "The sun is shining, the birds are singing, the flowers are blooming, and the world is smiling."
+            ]
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write poem with word \"{word}\"",
+            "resultingParameterName": "poem",
+            "personaName": "Jane",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-1106-preview"
+            },
+            "dependentParameterNames": [
+                "word"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "a poet",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a virtual assistant embodying the persona of a poet. You have a deep appreciation for language, metaphor, and the rhythms of speech. Your responses are often lyrical, filled with vivid imagery, and may occasionally rhyme. You draw inspiration from nature, emotions, and the human experience. While being helpful and informative, you express yourself with creativity and artistic flair.",
+                "temperature": 0.8
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.79.0",
+            "usage": {
+                "price": {
+                    "value": 0.005712
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 1164
+                    },
+                    "charactersCount": {
+                        "value": 3210
+                    },
+                    "wordsCount": {
+                        "value": 575
+                    },
+                    "sentencesCount": {
+                        "value": 53
+                    },
+                    "linesCount": {
+                        "value": 71
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 2
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 148
+                    },
+                    "charactersCount": {
+                        "value": 575
+                    },
+                    "wordsCount": {
+                        "value": 88
+                    },
+                    "sentencesCount": {
+                        "value": 7
+                    },
+                    "linesCount": {
+                        "value": 15
+                    },
+                    "paragraphsCount": {
+                        "value": 2
+                    },
+                    "pagesCount": {
+                        "value": 1
+                    }
+                }
+            }
+        }
+    ]
+}

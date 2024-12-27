@@ -1,8 +1,8 @@
 import { ReadonlyDeep } from 'type-fest';
 import type { ErrorJson } from '../errors/utils/ErrorJson';
-import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { Parameters } from '../types/typeAliases';
+import type { ExecutionReportJson } from './execution-report/ExecutionReportJson';
 import type { PromptResultUsage } from './PromptResultUsage';
 
 /**

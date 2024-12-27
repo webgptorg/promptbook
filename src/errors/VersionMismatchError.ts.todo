@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { string_semantic_version } from '../types/typeAliases';
-import { PROMPTBOOK_VERSION } from '../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 
 /**
  * This error type indicates that the version of the pipeline is not matching the expected version
@@ -21,7 +21,7 @@ export class VersionMismatchError extends Error {
                     ${expectedVersion}
 
                     Current version:
-                    ${PROMPTBOOK_VERSION}
+                    ${PROMPTBOOK_ENGINE_VERSION}
 
                 `,
             ),

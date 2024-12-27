@@ -8,10 +8,10 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../types/PipelineString';
 
 /**
  * Initializes `test` command for Promptbook CLI utilities
@@ -22,7 +22,7 @@ export function initializeTestCommand(program: Program) {
     const testCommand = program.command('test');
     testCommand.description(
         spaceTrim(`
-            Iterates over \`.ptbk.md\` and \`.ptbk.json\` and checks if they are parsable and logically valid
+            Iterates over \`.book.md\` and \`.book.json\` and checks if they are parsable and logically valid
       `),
     );
 
@@ -32,22 +32,22 @@ export function initializeTestCommand(program: Program) {
         'Pipelines to test as glob pattern',
     );
     testCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
-    testCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache `, false);
+    testCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache `, false);
     testCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    testCommand.action(async (filesGlob, { ignore, reloadCache: isCacheReloaded, verbose: isVerbose }) => {
+    testCommand.action(async (filesGlob, { ignore, reload: isCacheReloaded, verbose: isVerbose }) => {
         // TODO: DRY [◽]
-        const options = {
+        const prepareAndScrapeOptions = {
             isVerbose,
             isCacheReloaded,
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-        const fs = $provideFilesystemForNode(options);
-        const llm = $provideLlmToolsForCli(options);
-        const executables = await $provideExecutablesForNode(options);
+        const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+        const llm = $provideLlmToolsForCli(prepareAndScrapeOptions);
+        const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
             script: [
                 /*new JavascriptExecutionTools(options)*/
             ],
@@ -60,7 +60,7 @@ export function initializeTestCommand(program: Program) {
             try {
                 let pipeline: PipelineJson;
 
-                if (filename.endsWith('.ptbk.md')) {
+                if (filename.endsWith('.book.md')) {
                     const pipelineMarkdown = (await readFile(filename, 'utf-8')) as PipelineString;
                     pipeline = await pipelineStringToJson(pipelineMarkdown, tools);
 
@@ -68,7 +68,7 @@ export function initializeTestCommand(program: Program) {
                         console.info(colors.green(`Parsed ${filename}`));
                     }
                 }
-                if (filename.endsWith('.ptbk.json')) {
+                if (filename.endsWith('.book.json')) {
                     pipeline = JSON.parse(await readFile(filename, 'utf-8')) as PipelineJson;
                 } else {
                     if (isVerbose) {
@@ -88,17 +88,18 @@ export function initializeTestCommand(program: Program) {
                 console.error(colors.bgRed(error.name /* <- 11:11 */));
                 console.error(colors.red(error.stack || error.message));
 
-                process.exit(1);
+                return process.exit(1);
             }
         }
 
         console.info(colors.green(`All pipelines are valid`));
-        process.exit(0);
+        return process.exit(0);
     });
 }
 
 /**
  * TODO: [😶] Unite floder listing
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  * Note: This is named "test-command.ts" to avoid name collision with jest unit test files

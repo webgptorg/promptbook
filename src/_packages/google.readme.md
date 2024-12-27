@@ -1,0 +1,170 @@
+`@promptbook/google` integrates [Google's Gemini API](https://gemini.google.com/) with [Promptbook](https://github.com/webgptorg/promptbook). It allows to execute Promptbooks with Gemini models.
+
+## 🧡 Usage
+
+```typescript
+import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import {
+    createCollectionFromDirectory,
+    $provideExecutionToolsForNode,
+    $provideFilesystemForNode,
+} from '@promptbook/node';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { GoogleExecutionTools } from '@promptbook/google';
+
+// ▶ Prepare tools
+const fs = $provideFilesystemForNode();
+const llm = new GoogleExecutionTools(
+    //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    {
+        isVerbose: true,
+        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    },
+);
+const executables = await $provideExecutablesForNode();
+const tools = {
+    llm,
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
+    script: [new JavascriptExecutionTools()],
+};
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./books', tools);
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+
+// ▶ Prepare input parameters
+const inputParameters = { word: 'rabbit' };
+
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
+
+// ▶ Fail if the execution was not successful
+assertsExecutionSuccessful(result);
+
+// ▶ Handle the result
+const { isSuccessful, errors, outputParameters, executionReport } = result;
+console.info(outputParameters);
+```
+
+## 🧙‍♂️ Connect to LLM providers automatically
+
+You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `GOOGLE_GENERATIVE_AI_API_KEY` and `OPENAI_API_KEY` automatically.
+
+```typescript
+import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
+
+// ▶ Prepare tools
+const tools = await $provideExecutionToolsForNode();
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./books', tools);
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+
+// ▶ Prepare input parameters
+const inputParameters = { word: 'dog' };
+
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
+
+// ▶ Fail if the execution was not successful
+assertsExecutionSuccessful(result);
+
+// ▶ Handle the result
+const { isSuccessful, errors, outputParameters, executionReport } = result;
+console.info(outputParameters);
+```
+
+## 💕 Usage of multiple LLM providers
+
+You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
+
+```typescript
+import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { OpenAiExecutionTools } from '@promptbook/openai';
+import { GoogleExecutionTools } from '@promptbook/google';
+
+// ▶ Prepare multiple tools
+const fs = $provideFilesystemForNode();
+const llm = [
+    // Note: 💕 You can use multiple LLM providers in one Promptbook execution.
+    //       The best model will be chosen automatically according to the prompt and the model's capabilities.
+    new GoogleExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+        },
+    ),
+    new OpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.OPENAI_API_KEY,
+        },
+    ),
+    new AzureOpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+            apiKey: process.env.AZUREOPENAI_API_KEY,
+        },
+    ),
+];
+const executables = await $provideExecutablesForNode();
+const tools = {
+    llm,
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
+    script: [new JavascriptExecutionTools()],
+};
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./books', tools);
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+
+// ▶ Prepare input parameters
+const inputParameters = { word: 'bunny' };
+
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
+
+// ▶ Fail if the execution was not successful
+assertsExecutionSuccessful(result);
+
+// ▶ Handle the result
+const { isSuccessful, errors, outputParameters, executionReport } = result;
+console.info(outputParameters);
+```
+
+## 💙 Integration with other models
+
+<!-- TODO: [🕑] DRY-->
+
+See the other model integrations:
+
+-   [OpenAI](https://www.npmjs.com/package/@promptbook/openai)
+-   [Anthropic Claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)
+-   [Google Gemini](https://www.npmjs.com/package/@promptbook/google)
+-   [Vercel](https://www.npmjs.com/package/@promptbook/vercel)
+-   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)

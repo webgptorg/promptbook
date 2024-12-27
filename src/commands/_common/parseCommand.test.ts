@@ -8,13 +8,13 @@ import { CommandUsagePlaces } from './types/CommandUsagePlaces';
 describe('parsing the commands', () => {
     // Note: Other working cases and better tests for each command is in the corresponding command test file
 
-    for (const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, examples } of COMMANDS) {
+    for (const { name, isUsedInPipelineHead, isUsedInPipelineTask, examples } of COMMANDS) {
         for (const usagePlace of CommandUsagePlaces) {
             if (just(false)) {
                 keepUnused(/* for better indentation */);
             } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
                 continue;
-            } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTemplate) {
+            } else if (usagePlace === 'PIPELINE_TASK' && !isUsedInPipelineTask) {
                 continue;
             }
 
@@ -33,12 +33,8 @@ describe('parsing the commands', () => {
     }
 
     it('should fail parsing multi-line command', () => {
-        expect(() => parseCommand('execute\nprompt template', 'PIPELINE_HEAD')).toThrowError(
-            /Can not contain new line/i,
-        );
-        expect(() => parseCommand('execute prompt template\n', 'PIPELINE_HEAD')).toThrowError(
-            /Can not contain new line/i,
-        );
+        expect(() => parseCommand('\nprompt section', 'PIPELINE_HEAD')).toThrowError(/Can not contain new line/i);
+        expect(() => parseCommand('prompt section\n', 'PIPELINE_HEAD')).toThrowError(/Can not contain new line/i);
     });
 
     it('should fail parsing unknown command', () => {

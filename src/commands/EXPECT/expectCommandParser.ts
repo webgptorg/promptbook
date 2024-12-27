@@ -1,14 +1,14 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { ExpectationUnit } from '../../types/PipelineJson/Expectations';
-import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
+import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
+import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
@@ -17,7 +17,7 @@ import type { ExpectCommand } from './ExpectCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> = {
+export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
     /**
      * Name of the command
      */
@@ -27,13 +27,13 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the FORMAT command
      */
     description: spaceTrim(`
-        Expect command describes the desired output of the template (after post-processing)
+        Expect command describes the desired output of the task *(after post-processing)*
         It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs or some other shape of the output.
     `),
 
@@ -131,34 +131,34 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     /**
      * Apply the FORMAT command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTemplateJson(command: ExpectCommand, $templateJson: $TemplateJson): void {
+    $applyToTaskJson(command: ExpectCommand, $taskJson: $TaskJson): void {
         // eslint-disable-next-line no-case-declarations
         const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
-        $templateJson.expectations = $templateJson.expectations || {};
-        $templateJson.expectations[unit] = $templateJson.expectations[unit] || {};
+        $taskJson.expectations = $taskJson.expectations || {};
+        $taskJson.expectations[unit] = $taskJson.expectations[unit] || {};
 
         if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
-            if ($templateJson.expectations[unit]!.min !== undefined) {
+            if ($taskJson.expectations[unit]!.min !== undefined) {
                 throw new ParseError(
                     `Already defined minumum ${
-                        $templateJson.expectations![unit]!.min
+                        $taskJson.expectations![unit]!.min
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );
             }
-            $templateJson.expectations[unit]!.min = command.amount;
+            $taskJson.expectations[unit]!.min = command.amount;
         } /* not else */
         if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
-            if ($templateJson.expectations[unit]!.max !== undefined) {
+            if ($taskJson.expectations[unit]!.max !== undefined) {
                 throw new ParseError(
                     `Already defined maximum ${
-                        $templateJson.expectations![unit]!.max
+                        $taskJson.expectations![unit]!.max
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );
             }
-            $templateJson.expectations[unit]!.max = command.amount;
+            $taskJson.expectations[unit]!.max = command.amount;
         }
     },
 
@@ -173,12 +173,12 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Reads the FORMAT command from the `TemplateJson`
+     * Reads the FORMAT command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ExpectCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<ExpectCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

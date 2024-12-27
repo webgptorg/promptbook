@@ -8,20 +8,20 @@ import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeT
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
  * Parses the foreach command
  *
- * Note: @@@ This command is used as foreach for new commands - it should NOT be used in any `.ptbk.md` file
+ * Note: @@@ This command is used as foreach for new commands - it should NOT be used in any `.book.md` file
  *
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand> = {
+export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
     /**
      * Name of the command
      */
@@ -36,7 +36,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * FOREACH command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the FOREACH command
@@ -188,15 +188,15 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     /**
      * Apply the FOREACH command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: ForeachCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
         const { formatName, subformatName, parameterName, inputSubparameterNames, outputSubparameterName } = command;
 
         // TODO: [🍭] Detect double use
         // TODO: [🍭] Detect usage with JOKER and don't allow it
 
-        $templateJson.foreach = {
+        $taskJson.foreach = {
             formatName,
             subformatName,
             parameterName,
@@ -220,16 +220,16 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     },
 
     /**
-     * Reads the FOREACH command from the `TemplateJson`
+     * Reads the FOREACH command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ForeachCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<ForeachCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
 
 /**
- * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH with wrong parsing and logic
+ * TODO: [🍭] Make .book.md file with examples of the FOREACH with wrong parsing and logic
  */

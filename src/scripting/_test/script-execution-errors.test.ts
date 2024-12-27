@@ -5,7 +5,7 @@ import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterface
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPipelineExecutor + executing scripts in promptbook', () => {
@@ -43,7 +43,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 isSuccessful: false,
                 errors: [/Error: I do not like Apples!/i],
                 warnings: [
-                    /PipelineExecutionError: Parameter {bhing} should be an output parameter, but it was not generated/i,
+                    /PipelineExecutionError: Parameter `{bhing}` should be an output parameter, but it was not generated/i,
                 ],
             });
 

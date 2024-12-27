@@ -1,7 +1,8 @@
 {
     "name": "ptbk",
-    "version": "0.74.0-0",
-    "description": "Supercharge your use of large language models",
+    "version": "0.79.0",
+    "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
+    "--note-0": "    <- [🐊]",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -11,7 +12,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
-    "todo-0": "TODO: [❇️] Make better list of keywords",
+    "--todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -50,9 +51,9 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.74.0-0"
+        "@promptbook/core": "0.79.0"
     },
     "dependencies": {
-        "promptbook": "0.74.0-0"
+        "promptbook": "0.79.0"
     }
 }

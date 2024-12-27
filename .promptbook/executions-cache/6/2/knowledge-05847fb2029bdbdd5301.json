@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Pavol has contributed to numerous scientific projects for the Czech Ornithological Society. He is also active in the educational and competitive sectors, providing lectures at conferences, participating as a jury member, and mentoring in various Czech and international competitions."
         },

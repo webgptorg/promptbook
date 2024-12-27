@@ -1,7 +1,8 @@
 {
     "name": "promptbook",
-    "version": "0.74.0-0",
-    "description": "Supercharge your use of large language models",
+    "version": "0.79.0",
+    "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
+    "--note-0": "    <- [🐊]",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -11,7 +12,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
-    "todo-0": "TODO: [❇️] Make better list of keywords",
+    "--todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -54,10 +55,11 @@
         "test-types": "tsc",
         "lint": "eslint src",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "generate-documentation": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
-        "preversion": "git pull && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
-        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages && git push && git push --tags && npm run use-packages"
+        "preversion": "git pull && ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
+        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages --commit && npm run generate-documentation --commit && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
         "@rollup/plugin-json": "6.1.0",
@@ -71,8 +73,6 @@
         "@types/showdown": "2.0.6",
         "@typescript-eslint/eslint-plugin": "6.9.0",
         "@typescript-eslint/parser": "6.9.0",
-        "cross-fetch": "4.0.0",
-        "dotenv": "16.3.1",
         "eslint": "8.52.0",
         "jest": "27.3.1",
         "organize-imports-cli": "0.10.0",
@@ -80,18 +80,26 @@
         "rollup": "2.79.2",
         "rollup-plugin-polyfill-node": "0.13.0",
         "ts-jest": "27.0.7",
-        "ts-node": "10.9.1",
         "tslib": "2.3.1",
         "yaml": "2.3.3"
     },
     "dependencies": {
+        "@ai-sdk/google": "1.0.5",
+        "@ai-sdk/openai": "^1.0.7",
         "@anthropic-ai/sdk": "0.26.1",
         "@azure/openai": "1.0.0-beta.12",
         "@mozilla/readability": "0.5.0",
+        "@types/jsdom": "^21.1.7",
+        "@types/mime-types": "^2.1.4",
+        "@types/papaparse": "5.3.15",
+        "@types/prompts": "^2.4.9",
+        "@types/showdown": "^2.0.6",
         "colors": "1.4.0",
         "commander": "12.0.0",
+        "cross-fetch": "4.0.0",
         "crypto-js": "4.2.0",
         "destroyable": "0.12.62",
+        "dotenv": "16.3.1",
         "glob-promise": "6.0.5",
         "ink": "5.0.1",
         "ink-table": "3.1.0",
@@ -102,10 +110,12 @@
         "openai": "4.63.0",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
+        "prompts": "^2.4.2",
         "showdown": "2.1.0",
         "socket.io": "4.8.1",
         "socket.io-client": "4.7.2",
         "spacetrim": "0.11.59",
+        "ts-node": "10.9.1",
         "type-fest": "4.5.0",
         "userhome": "1.0.1",
         "waitasecond": "1.11.83",

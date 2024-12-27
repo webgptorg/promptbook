@@ -1,4 +1,5 @@
 import { DEFAULT_IS_VERBOSE } from '../../config';
+import type { TODO_any } from '../organization/TODO_any';
 import type { ExecCommandOptions } from './ExecCommandOptions';
 import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
 
@@ -53,14 +54,11 @@ export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         .filter((arg) => arg !== '');
 
     if (_.length > 1) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        [command, ...args] = _ as any;
+        [command, ...args] = _ as TODO_any;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((options as any).args) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        args = [...args, ...(options as any).args];
+    if ((options as TODO_any).args) {
+        args = [...args, ...(options as TODO_any).args];
     }
 
     let humanReadableCommand = !['npx', 'npm'].includes(command) ? command : args[0]!;

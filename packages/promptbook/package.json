@@ -1,7 +1,8 @@
 {
     "name": "promptbook",
-    "version": "0.74.0-0",
-    "description": "Supercharge your use of large language models",
+    "version": "0.79.0",
+    "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
+    "--note-0": "    <- [🐊]",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -11,7 +12,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
-    "todo-0": "TODO: [❇️] Make better list of keywords",
+    "--todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -50,27 +51,28 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.74.0-0"
+        "@promptbook/core": "0.79.0"
     },
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.74.0-0",
-        "@promptbook/azure-openai": "0.74.0-0",
-        "@promptbook/browser": "0.74.0-0",
-        "@promptbook/cli": "0.74.0-0",
-        "@promptbook/core": "0.74.0-0",
-        "@promptbook/documents": "0.74.0-0",
-        "@promptbook/execute-javascript": "0.74.0-0",
-        "@promptbook/fake-llm": "0.74.0-0",
-        "@promptbook/langtail": "0.74.0-0",
-        "@promptbook/legacy-documents": "0.74.0-0",
-        "@promptbook/markdown-utils": "0.74.0-0",
-        "@promptbook/node": "0.74.0-0",
-        "@promptbook/openai": "0.74.0-0",
-        "@promptbook/pdf": "0.74.0-0",
-        "@promptbook/remote-client": "0.74.0-0",
-        "@promptbook/remote-server": "0.74.0-0",
-        "@promptbook/types": "0.74.0-0",
-        "@promptbook/utils": "0.74.0-0",
-        "@promptbook/website-crawler": "0.74.0-0"
+        "@promptbook/anthropic-claude": "0.79.0",
+        "@promptbook/azure-openai": "0.79.0",
+        "@promptbook/browser": "0.79.0",
+        "@promptbook/cli": "0.79.0",
+        "@promptbook/core": "0.79.0",
+        "@promptbook/documents": "0.79.0",
+        "@promptbook/execute-javascript": "0.79.0",
+        "@promptbook/fake-llm": "0.79.0",
+        "@promptbook/google": "0.79.0",
+        "@promptbook/legacy-documents": "0.79.0",
+        "@promptbook/markdown-utils": "0.79.0",
+        "@promptbook/node": "0.79.0",
+        "@promptbook/openai": "0.79.0",
+        "@promptbook/pdf": "0.79.0",
+        "@promptbook/remote-client": "0.79.0",
+        "@promptbook/remote-server": "0.79.0",
+        "@promptbook/types": "0.79.0",
+        "@promptbook/utils": "0.79.0",
+        "@promptbook/vercel": "0.79.0",
+        "@promptbook/website-crawler": "0.79.0"
     }
 }

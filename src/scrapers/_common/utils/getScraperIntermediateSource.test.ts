@@ -11,7 +11,7 @@ describe('how `getScraperIntermediateSource` works', () => {
                     url: null,
                 },
                 {
-                    rootDirname: '/home/user/coolproject/promptbook-collection/',
+                    rootDirname: '/home/user/coolproject/books/',
                     cacheDirname: '/home/user/coolproject/.promptbook/',
                     intermediateFilesStrategy: 'HIDE_AND_KEEP',
                     isVerbose: false,
@@ -32,7 +32,7 @@ describe('how `getScraperIntermediateSource` works', () => {
             getScraperIntermediateSource(
                 { filename: null, url: 'https://praha.eu/' },
                 {
-                    rootDirname: '/home/user/coolproject/promptbook-collection/',
+                    rootDirname: '/home/user/coolproject/books/',
                     cacheDirname: '/home/user/coolproject/.promptbook/',
                     intermediateFilesStrategy: 'HIDE_AND_KEEP',
                     isVerbose: false,

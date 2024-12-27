@@ -10,7 +10,7 @@ import type { empty_object } from '../../utils/organization/empty_object';
  */
 export type FormatSubvalueDefinition<TValue extends string, TSettings extends empty_object> = {
     /**
-     * The name of the format used in .ptbk.md files
+     * The name of the format used in .book.md files
      *
      * @example "CELL"
      */

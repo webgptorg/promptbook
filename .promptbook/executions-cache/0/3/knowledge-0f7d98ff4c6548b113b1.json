@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nGenerative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This wave of innovation is expected to impact virtually every sector of human activity, creating both opportunities and challenges for businesses."
         },

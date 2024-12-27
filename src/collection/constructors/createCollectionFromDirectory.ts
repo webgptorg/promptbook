@@ -12,10 +12,10 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../types/PipelineString';
 import type { string_dirname } from '../../types/typeAliases';
 import type { string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -26,7 +26,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 /**
  * Options for `createCollectionFromDirectory` function
  *
- * Note: `rootDirname` is not needed because it is the folder in which `.ptbk.md` file is located
+ * Note: `rootDirname` is not needed because it is the folder in which `.book.md` file is located
  *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
@@ -125,13 +125,13 @@ export async function createCollectionFromDirectory(
 
         const fileNames = await listAllFiles(path, isRecursive, tools!.fs!);
 
-        // Note: First load all .ptbk.json and then .ptbk.md files
-        //       .ptbk.json can be prepared so it is faster to load
+        // Note: First load all .book.json and then .book.md files
+        //       .book.json can be prepared so it is faster to load
         fileNames.sort((a, b) => {
-            if (a.endsWith('.ptbk.json') && b.endsWith('.ptbk.md')) {
+            if (a.endsWith('.book.json') && b.endsWith('.book.md')) {
                 return -1;
             }
-            if (a.endsWith('.ptbk.md') && b.endsWith('.ptbk.json')) {
+            if (a.endsWith('.book.md') && b.endsWith('.book.json')) {
                 return 1;
             }
             return 0;
@@ -146,13 +146,13 @@ export async function createCollectionFromDirectory(
             try {
                 let pipeline: PipelineJson | null = null;
 
-                if (fileName.endsWith('.ptbk.md')) {
+                if (fileName.endsWith('.book.md')) {
                     const pipelineString = (await readFile(fileName, 'utf-8')) as PipelineString;
                     pipeline = await pipelineStringToJson(pipelineString, tools, {
                         rootDirname,
                     });
                     pipeline = { ...pipeline, sourceFile };
-                } else if (fileName.endsWith('.ptbk.json')) {
+                } else if (fileName.endsWith('.book.json')) {
                     // TODO: Handle non-valid JSON files
                     pipeline = JSON.parse(await readFile(fileName, 'utf-8')) as PipelineJson;
                     // TODO: [🌗]
@@ -160,9 +160,7 @@ export async function createCollectionFromDirectory(
                 } else {
                     if (isVerbose) {
                         console.info(
-                            colors.gray(
-                                `Skipped file ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Not a pipeline`,
-                            ),
+                            colors.gray(`Skipped file ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Not a book`),
                         );
                     }
                 }
@@ -236,14 +234,21 @@ export async function createCollectionFromDirectory(
                     throw error;
                 }
 
-                const wrappedErrorMessage = spaceTrim(
-                    (block) => `
+                const wrappedErrorMessage =
+                    spaceTrim(
+                        (block) => `
                         ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
 
+                        Original error message:
                         ${block((error as Error).message)}
 
+                        Original stack trace:
+                        ${block((error as Error).stack || '')}
+
+                        ---
+
                     `,
-                );
+                    ) + '\n';
 
                 if (isCrashedOnError) {
                     throw new CollectionError(wrappedErrorMessage);

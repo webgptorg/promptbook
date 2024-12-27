@@ -2,7 +2,6 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import type { Promisable } from 'type-fest';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
-import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
@@ -11,10 +10,11 @@ import type { CompletionPromptResult } from '../../../../execution/PromptResult'
 import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
-import { $currentDate } from '../../../../utils/$currentDate';
+import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
+import { titleToName } from '../../../../utils/normalization/titleToName';
 import type { really_any } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
-import { PROMPTBOOK_VERSION } from '../../../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
@@ -87,9 +87,12 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                 );
         }
 
+        // TODO: [🧠] !!!!! How to do timing in mixed cache / non-cache situation
+        // promptResult.timing: FromtoItems
+
         await storage.setItem(key, {
-            date: $currentDate(),
-            promptbookVersion: PROMPTBOOK_VERSION,
+            date: $getCurrentDate(),
+            promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
             prompt,
             promptResult,
         });

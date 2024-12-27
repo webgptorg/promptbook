@@ -1,4 +1,4 @@
-import PipelineCollection from '../../promptbook-collection/index.json';
+import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
@@ -6,9 +6,9 @@ import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccess
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { string_persona_description } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO_any } from '../utils/organization/TODO_any';
@@ -34,7 +34,7 @@ export async function preparePersona(
     const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
     const preparePersonaExecutor = createPipelineExecutor({
-        pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.ptbk.md'),
+        pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book.md'),
         tools,
     });
 

@@ -1,5 +1,5 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/foreach-list.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/examples/foreach-list.book.md",
     "title": "✨ Write greeting for each customer",
     "promptbookUsedVersion": "0.69.0-8",
     "promptbookRequestedVersion": "1.0.0",
@@ -8,7 +8,7 @@
         {
             "prompt": {
                 "title": "Write a greeting",
-                "pipelineUrl": "https://promptbook.studio/examples/foreach-list.ptbk.md#write-a-greeting",
+                "pipelineUrl": "https://promptbook.studio/examples/foreach-list.book.md#write-a-greeting",
                 "parameters": {
                     "customers": "Paul\nGeorge\nKate",
                     "customer": "Paul"
@@ -121,7 +121,7 @@
         {
             "prompt": {
                 "title": "Write a greeting",
-                "pipelineUrl": "https://promptbook.studio/examples/foreach-list.ptbk.md#write-a-greeting",
+                "pipelineUrl": "https://promptbook.studio/examples/foreach-list.book.md#write-a-greeting",
                 "parameters": {
                     "customers": "Paul\nGeorge\nKate",
                     "customer": "Kate"
@@ -234,7 +234,7 @@
         {
             "prompt": {
                 "title": "Write a greeting",
-                "pipelineUrl": "https://promptbook.studio/examples/foreach-list.ptbk.md#write-a-greeting",
+                "pipelineUrl": "https://promptbook.studio/examples/foreach-list.book.md#write-a-greeting",
                 "parameters": {
                     "customers": "Paul\nGeorge\nKate",
                     "customer": "George"

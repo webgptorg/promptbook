@@ -19,7 +19,7 @@ export type FormatDefinition<
     TSchema extends empty_object,
 > = {
     /**
-     * The name of the format used in .ptbk.md files
+     * The name of the format used in .book.md files
      *
      * @example "JSON"
      */

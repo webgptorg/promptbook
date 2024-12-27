@@ -54,3 +54,7 @@ export const UNCERTAIN_USAGE = $deepFreeze({
         pagesCount: { value: 0, isUncertain: true },
     },
 } as const satisfies PromptResultUsage);
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

@@ -55,11 +55,11 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        // `https://promptbook.studio/examples/foreach-list.ptbk.md`,
-        // `https://promptbook.studio/examples/foreach-csv.ptbk.md`,
-        `https://promptbook.studio/examples/simple-knowledge.ptbk.md`,
-        // `https://promptbook.studio/examples/simple.ptbk.md`,
-        // `https://promptbook.studio/examples/language-capabilities.ptbk.md`,
+        // `https://promptbook.studio/examples/foreach-list.book.md`,
+        // `https://promptbook.studio/examples/foreach-csv.book.md`,
+        `https://promptbook.studio/examples/simple-knowledge.book.md`,
+        // `https://promptbook.studio/examples/simple.book.md`,
+        // `https://promptbook.studio/examples/language-capabilities.book.md`,
     );
 
     if (!pipeline.sourceFile) {
@@ -72,7 +72,7 @@ async function main() {
 
     const inputParameters = {
         /*/
-        // https://promptbook.studio/examples/foreach-list.ptbk.md
+        // https://promptbook.studio/examples/foreach-list.book.md
         customers: spaceTrim(`
             Paul
             George
@@ -80,11 +80,11 @@ async function main() {
         `),
         /**/
         /*/
-        // https://promptbook.studio/examples/foreach-csv.ptbk.md
+        // https://promptbook.studio/examples/foreach-csv.book.md
         customers: await readFile('./examples/pipelines/85-foreach.csv', 'utf-8'),
         /**/
         /**/
-        // https://promptbook.studio/examples/simple-knowledge.ptbk.md
+        // https://promptbook.studio/examples/simple-knowledge.book.md
         eventTitle: 'LinkedIn',
         eventDescription: 'Professional CV',
         rules: 'Write best text for corporate CV',
@@ -100,7 +100,7 @@ async function main() {
     console.info('outputParameters', outputParameters);
 
     await writeFile(
-        pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.json'),
+        pipeline.sourceFile.split('.book.md').join('.report.md').split('.book.json').join('.report.json'),
         //                  <- TODO: [0] More elegant way to replace extension
         stringifyPipelineJson(executionReport),
         'utf-8',
@@ -109,7 +109,7 @@ async function main() {
     const executionReportString = executionReportJsonToString(executionReport);
 
     await writeFile(
-        pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.md'),
+        pipeline.sourceFile.split('.book.md').join('.report.md').split('.book.json').join('.report.md'),
         //                  <- TODO: [0] More elegant way to replace extension
         executionReportString,
         'utf-8',

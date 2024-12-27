@@ -2,7 +2,7 @@
 
 Show how to use a simple prompt with no parameters.
 
--   PIPELINE URL https://promptbook.studio/examples/foreach-list.ptbk.md
+-   PIPELINE URL https://promptbook.studio/examples/foreach-list.book.md
 -   PROMPTBOOK VERSION 0.69.0-8 _(requested 1.0.0)_
 -   STARTED AT 2024-09-07 17:11:46
 -   COMPLETED AT 2024-09-07 17:11:47

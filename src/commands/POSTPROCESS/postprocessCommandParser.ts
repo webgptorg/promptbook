@@ -3,9 +3,9 @@ import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
-import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
 
 /**
@@ -14,7 +14,7 @@ import type { PostprocessCommand } from './PostprocessCommand';
  * @see `documentationUrl` for more details
  * @private within the commands folder
  */
-export const postprocessCommandParser: PipelineTemplateCommandParser<PostprocessCommand> = {
+export const postprocessCommandParser: PipelineTaskCommandParser<PostprocessCommand> = {
     /**
      * Name of the command
      */
@@ -26,7 +26,7 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: false,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTask: true,
 
     /**
      * Description of the POSTPROCESS command
@@ -74,11 +74,11 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
     /**
      * Apply the POSTPROCESS command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTemplateJson(command: PostprocessCommand, $templateJson: $TemplateJson): void {
-        $templateJson.postprocessingFunctionNames = $templateJson.postprocessingFunctionNames || [];
-        $templateJson.postprocessingFunctionNames.push(command.functionName);
+    $applyToTaskJson(command: PostprocessCommand, $taskJson: $TaskJson): void {
+        $taskJson.postprocessingFunctionNames = $taskJson.postprocessingFunctionNames || [];
+        $taskJson.postprocessingFunctionNames.push(command.functionName);
     },
 
     /**
@@ -92,12 +92,12 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
     },
 
     /**
-     * Reads the POSTPROCESS command from the `TemplateJson`
+     * Reads the POSTPROCESS command from the `TaskJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<PostprocessCommand> {
-        keepUnused($templateJson);
+    takeFromTaskJson($taskJson: $TaskJson): ReadonlyArray<PostprocessCommand> {
+        keepUnused($taskJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

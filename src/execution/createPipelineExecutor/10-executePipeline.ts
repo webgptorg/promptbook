@@ -1,27 +1,27 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { DEFAULT_IS_VERBOSE } from '../../config';
 import { IMMEDIATE_TIME } from '../../config';
 import { LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
-import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import type { string_name } from '../../types/typeAliases';
+import type { string_reserved_parameter_name } from '../../types/typeAliases';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
-import { PROMPTBOOK_VERSION } from '../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage } from '../utils/addUsage';
 import { ZERO_USAGE } from '../utils/usage-constants';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
-import { executeTemplate } from './20-executeTemplate';
+import { executeTask } from './20-executeTask';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
 /**
@@ -29,7 +29,7 @@ import { filterJustOutputParameters } from './filterJustOutputParameters';
  *
  * @private internal type of `executePipeline`
  */
-type ExecutePipelineOptions = CreatePipelineExecutorOptions & {
+type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * @@@
      */
@@ -78,7 +78,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         pipelineIdentification,
         maxParallelCount,
         rootDirname,
-        isVerbose = DEFAULT_IS_VERBOSE,
+        isVerbose,
     } = options;
     let { preparedPipeline } = options;
 
@@ -97,8 +97,8 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     const executionReport: WritableDeep<ExecutionReportJson> = {
         pipelineUrl: preparedPipeline.pipelineUrl,
         title: preparedPipeline.title,
-        promptbookUsedVersion: PROMPTBOOK_VERSION,
-        promptbookRequestedVersion: preparedPipeline.promptbookVersion,
+        promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
+        promptbookRequestedVersion: preparedPipeline.bookVersion,
         description: preparedPipeline.description,
         promptExecutions: [],
     };
@@ -123,7 +123,9 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 {
                     isSuccessful: false,
                     errors: [
-                        new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
+                        new PipelineExecutionError(
+                            `Parameter \`{${parameter.name}}\` is required as an input parameter`,
+                        ),
                         ...errors,
                     ].map(serializeError),
                     warnings: [],
@@ -177,7 +179,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         new PipelineExecutionError(
                             spaceTrim(
                                 (block) => `
-                                    Parameter {${parameter.name}} is passed as input parameter but it is not input
+                                    Parameter \`{${parameter.name}}\` is passed as input parameter but it is not input
 
                                     ${block(pipelineIdentification)}
                                 `,
@@ -201,11 +203,11 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         let resovedParameterNames: ReadonlyArray<string_name> = preparedPipeline.parameters
             .filter(({ isInput }) => isInput)
             .map(({ name }) => name);
-        let unresovedTemplates: ReadonlyArray<ReadonlyDeep<TemplateJson>> = [...preparedPipeline.templates];
+        let unresovedTasks: ReadonlyArray<ReadonlyDeep<TaskJson>> = [...preparedPipeline.tasks];
         let resolving: Array<Promise<void>> = [];
 
         let loopLimit = LOOP_LIMIT;
-        while (unresovedTemplates.length > 0) {
+        while (unresovedTasks.length > 0) {
             if (loopLimit-- < 0) {
                 // Note: Really UnexpectedError not LimitReachedError - this should be catched during validatePipeline
                 throw new UnexpectedError(
@@ -219,13 +221,13 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 );
             }
 
-            const currentTemplate = unresovedTemplates.find((template) =>
-                template.dependentParameterNames.every((name) =>
+            const currentTask = unresovedTasks.find((task) =>
+                task.dependentParameterNames.every((name) =>
                     [...resovedParameterNames, ...RESERVED_PARAMETER_NAMES].includes(name),
                 ),
             );
 
-            if (!currentTemplate && resolving.length === 0) {
+            if (!currentTask && resolving.length === 0) {
                 throw new UnexpectedError(
                     // TODO: [🐎] DRY
                     spaceTrim(
@@ -234,33 +236,51 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
                             ${block(pipelineIdentification)}
 
-                            Can not resolve:
+                            **Can not resolve:**
                             ${block(
-                                unresovedTemplates
+                                unresovedTasks
                                     .map(
                                         ({ resultingParameterName, dependentParameterNames }) =>
-                                            `- Parameter {${resultingParameterName}} which depends on ${dependentParameterNames
-                                                .map((dependentParameterName) => `{${dependentParameterName}}`)
+                                            `- Parameter \`{${resultingParameterName}}\` which depends on ${dependentParameterNames
+                                                .map((dependentParameterName) => `\`{${dependentParameterName}}\``)
                                                 .join(' and ')}`,
                                     )
                                     .join('\n'),
                             )}
 
-                            Resolved:
-                            ${block(resovedParameterNames.map((name) => `- Parameter {${name}}`).join('\n'))}
+                            **Resolved:**
+                            ${block(
+                                resovedParameterNames
+                                    .filter(
+                                        (name) =>
+                                            !RESERVED_PARAMETER_NAMES.includes(name as string_reserved_parameter_name),
+                                    )
+                                    .map((name) => `- Parameter \`{${name}}\``)
+                                    .join('\n'),
+                            )}
 
-                            Note: This should be catched in \`validatePipeline\`
+                            **Reserved (which are available):**
+                            ${block(
+                                resovedParameterNames
+                                    .filter((name) =>
+                                        RESERVED_PARAMETER_NAMES.includes(name as string_reserved_parameter_name),
+                                    )
+                                    .map((name) => `- Parameter \`{${name}}\``)
+                                    .join('\n'),
+                            )}
+
+                            *Note: This should be catched in \`validatePipeline\`*
                         `,
                     ),
                 );
-            } else if (!currentTemplate) {
+            } else if (!currentTask) {
                 /* [🤹‍♂️] */ await Promise.race(resolving);
             } else {
-                unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
+                unresovedTasks = unresovedTasks.filter((task) => task !== currentTask);
 
-                const work = /* [🤹‍♂️] not await */ executeTemplate({
+                const work = /* [🤹‍♂️] not await */ executeTask({
                     ...options,
-                    currentTemplate,
+                    currentTask,
                     preparedPipeline,
                     parametersToPass,
                     tools,
@@ -292,20 +312,20 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     pipelineIdentification: spaceTrim(
                         (block) => `
                             ${block(pipelineIdentification)}
-                            Template name: ${currentTemplate.name}
-                            Template title: ${currentTemplate.title}
+                            Task name: ${currentTask.name}
+                            Task title: ${currentTask.title}
                         `,
                     ),
                 })
                     .then((newParametersToPass) => {
                         parametersToPass = { ...newParametersToPass, ...parametersToPass };
-                        resovedParameterNames = [...resovedParameterNames, currentTemplate.resultingParameterName];
+                        resovedParameterNames = [...resovedParameterNames, currentTask.resultingParameterName];
                     })
                     .then(() => {
                         resolving = resolving.filter((w) => w !== work);
                     });
                 // <- Note: Errors are catched here [3]
-                //    TODO: BUT if in multiple templates are errors, only the first one is catched so maybe we should catch errors here and save them to errors array here
+                //    TODO: BUT if in multiple tasks are errors, only the first one is catched so maybe we should catch errors here and save them to errors array here
 
                 resolving.push(work);
             }

@@ -1,10 +1,15 @@
 # 🎯 TODOs
 
--   [ ] [🧠] !! `folder` vs `directory`
+There are a lot of TODOs in the repository, in the future there will probably be some kind of agent system that can automatically go through the TODOs and implement them one by one according to priority and rules.
+
+-   [ ] [🧠] `folder` vs `directory`
 -   [x] Annotate all entities
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
--   [ ] Remove all `any`
+-   [x] Remove all `any`
+-   [ ] [🎺] Make ptbk installed in path and executable with hashbang
+-   [ ] [🎺] Add support for other package managers and installer files such as `.msi`, `.rpm`, and `.deb`, homebrew, etc.
+-   [ ] Maybe use faster SWC compiler
 -   [ ] [👧] Make strongy typed input+output parameters in executors
 -   [x] Make pipelines non-linear
 -   [x] Logging pipeline name, version, step,...
@@ -12,11 +17,11 @@
 -   [ ] All entities must have public / private / protected modifiers
 -   [ ] Everything not needed should be private or not exported
 -   [x] Refactor circular dependencies
--   [ ][🍓] Importing subtemplates
+-   [ ][🍓] Importing subtasks
 -   [x] Use `spaceTrim` more effectively
 -   [ ] [🍓][🗯] Allow chats to be continued with previous message
 -   [ ] [🍓] Allow to set top_t and other model params
--   [ ] [🧠][🗯] How to mark continued chat in .ptbk.md format?
+-   [ ] [🧠][🗯] How to mark continued chat in .book.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🍓][🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 -   [x] Register .ptbk file extension
@@ -33,12 +38,12 @@
 -   [ ] Integrate ceaser-cipher to auto preprocess some and postprocess templates
 -   [ ] [🍓][🧠] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
 -   [ ] Make VSCode extension for validation/syntax highlite (and for other editors)
--   [ ] Use `chalk` or `colors` or sth else but unite what is used
+-   [ ] Use `kleur` instead of `chalk` and `colors` _(or something else but unite what is used across the entire project)_
 -   [ ][main] !!! Backup GitHub [discussions](https://github.com/webgptorg/promptbook/discussions/), issues, PRs, etc. into commited markdown files
 -   [ ] [🍛] Use shortcuts or not "Config" vs "configuration", "Env" vs "Environment"
 -   [ ] [🎶] Naming "constructor" vs "creator" vs "factory"
 -   [ ] [🍓][🧠][🔛] Auto-translate of entire pipelines
 -   [ ] [🍓][♏] Maybe auto-add expectations as text of the prompt content
--   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.ptbk.md` should not struggle with this
+-   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.book.md` should not struggle with this
 -   [ ] [🍓][🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`
 -   [ ] [🍓] Across entire project pick one of "examples" vs "examples" (vs "snippets")

@@ -168,11 +168,18 @@ export type ReservedParameters = Record<string_reserved_parameter_name, string_p
 export type string_title = string;
 
 /**
- * Description of persona
+ * Unstructured description of the persona
  *
  * For example `"Skilled copywriter"`
  */
 export type string_persona_description = string;
+
+/**
+ * Unstructured description of the model
+ *
+ * For example `"Model with logical reasoning and creative mindset"`
+ */
+export type string_model_description = string;
 
 /**
  * Source of one knowledge
@@ -256,6 +263,18 @@ export type string_markdown_section_content = string;
  * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_text = string;
+
+/**
+ * Semantic helper
+ *
+ * Markdown code block language
+ *
+ * For example ```js -> `"js"`
+ *
+ * @public exported from `@promptbook/markdown-utils`
+ */
+export type string_markdown_codeblock_language = 'book' | 'markdown' | 'text' | 'javascript' | 'css' | 'json';
+//          <- TODO: [🏥] DRY
 
 /**
  * @@@
@@ -360,16 +379,16 @@ export type string_base_url = string;
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md"`
  */
-export type string_pipeline_url = string; // <- TODO: `${string}.ptbk.md`
+export type string_pipeline_url = string; // <- TODO: `${string}.book.md`
 
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords"`
  */
-export type string_pipeline_url_with_hashtemplate = string;
+export type string_pipeline_url_with_task_hash = string;
 
 /**
  * Semantic helper
@@ -719,4 +738,5 @@ export type number_terabytes = number_positive;
  * TODO: [main] !!! Change "For example" to @example
  * TODO: !! Change to branded types
  * TODO: Delete type aliases that are not exported or used internally
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

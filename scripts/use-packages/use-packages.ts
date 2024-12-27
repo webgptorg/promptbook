@@ -54,12 +54,18 @@ async function usePackages() {
             break;
         }
 
-        console.warn(colors.gray(`Waiting for version ${currentVersion} to be available in NPM`));
+        console.warn(colors.gray(`Waiting for version ${currentVersion} to be available on NPM`));
         await forTime(1111 + 3333 * Math.random());
     }
 
+    console.warn(colors.green(`Version ${currentVersion} is available on NPM`));
+    await forTime(5 * 1000);
+
     // Note: Update the version in all packages
-    for (const remoteFolder of (process.env.USE_THIS_PACKAGE_PATHS || '').split(',')) {
+    for (const remoteFolder of [
+        'examples/usage/other/vercel',
+        ...(process.env.USE_THIS_PACKAGE_PATHS || '').split(','),
+    ]) {
         const remotePackageJsonPath = join(remoteFolder, 'package.json');
         const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
 
@@ -83,11 +89,12 @@ async function usePackages() {
             cwd: remoteFolder,
             crashOnError: false,
             command: `npm i`,
+            isVerbose: true,
         });
 
-        if (remoteFolder === './examples/usage') {
+        if (!remoteFolder.startsWith('..')) {
             // Note: No need to check that folder is clean, because this script is executed only after new version which can be triggered only from clean state
-            await commit([remoteFolder], `⏫ Update promptbook to version ${currentVersion} in examples`);
+            await commit([remoteFolder], `⏫ Update Promptbook to \`${currentVersion}\` in \`${remoteFolder}\``);
         }
     }
 

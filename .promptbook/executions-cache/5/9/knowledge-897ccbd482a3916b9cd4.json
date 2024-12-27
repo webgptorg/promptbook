@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-17",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Businesses need to leverage the full potential of technology and generative AI to remain competitive. However, keeping up with rapidly evolving technologies and distinguishing important advancements from daily noise can be challenging.\n\n---"
         },

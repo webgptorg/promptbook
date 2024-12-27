@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
-import type { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../pipeline/PipelineString';
 
 /**
  * Initializes `prettify` command for Promptbook CLI utilities
@@ -15,7 +15,7 @@ export function initializePrettifyCommand(program: Program) {
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`
-            Iterates over \`.ptbk.md\` files and does multiple enhancing operations on them:
+            Iterates over \`.book.md\` files and does multiple enhancing operations on them:
 
             1) Adds Mermaid graph
             2) Prettifies the markdown
@@ -35,7 +35,7 @@ export function initializePrettifyCommand(program: Program) {
         //                       <- TODO: [😶]
 
         for (const filename of filenames) {
-            if (!filename.endsWith('.ptbk.md') && isVerbose) {
+            if (!filename.endsWith('.book.md') && isVerbose) {
                 console.info(colors.gray(`Skipping ${filename}`));
                 continue;
             }
@@ -63,17 +63,18 @@ export function initializePrettifyCommand(program: Program) {
                 console.error(colors.bgRed(error.name /* <- 11:11 */));
                 console.error(colors.red(error.stack || error.message));
 
-                process.exit(1);
+                return process.exit(1);
             }
         }
 
         console.info(colors.green(`All pipelines are prettified`));
-        process.exit(0);
+        return process.exit(0);
     });
 }
 
 /**
  * TODO: [😶] Unite floder listing
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  */

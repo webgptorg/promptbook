@@ -3,7 +3,7 @@
     "promptbookVersion": "0.61.0-13",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "content": "---\nPavol Hejny is a developer passionate about using new tools and technologies to create fully functional user applications utilizing the latest artificial intelligence models."
         },

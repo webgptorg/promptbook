@@ -5,20 +5,20 @@ import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
-import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
+import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
-import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { clonePipeline } from '../utils/serialization/clonePipeline';
-import { PROMPTBOOK_VERSION } from '../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
-import { prepareTemplates } from './prepareTemplates';
+import { prepareTasks } from './prepareTasks';
 
 /**
  * Prepare pipeline from string (markdown) format to JSON format
@@ -40,7 +40,7 @@ export async function preparePipeline(
     const { rootDirname, maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, isVerbose = DEFAULT_IS_VERBOSE } = options;
     const {
         parameters,
-        templates,
+        tasks,
         /*
         <- TODO: [🧠][🪑] `promptbookVersion` */
         knowledgeSources /*
@@ -62,7 +62,7 @@ export async function preparePipeline(
 
     /*
     TODO: [🧠][🪑][🔃] Should this be done or not
-    if (promptbookVersion !== PROMPTBOOK_VERSION) {
+    if (promptbookVersion !== PROMPTBOOK_ENGINE_VERSION) {
         throw new VersionMismatchError(`Can not prepare the pipeline`, promptbookVersion);
     }
     */
@@ -72,8 +72,8 @@ export async function preparePipeline(
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {
         id: 1, // <- TODO: [🧊] Make incremental
-        // TODO: [🍥]> date: $currentDate(),
-        promptbookVersion: PROMPTBOOK_VERSION,
+        // TODO: [🍥]> date: $getCurrentDate(),
+        promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
         usage: ZERO_USAGE,
     };
 
@@ -85,7 +85,7 @@ export async function preparePipeline(
     // ----- /ID -----
 
     // ----- Personas preparation -----
-    // TODO: !! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTasks`
     // TODO: [🖌][🧠] Implement some `mapAsync` function
     const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
@@ -115,7 +115,7 @@ export async function preparePipeline(
     // ----- /Personas preparation -----
 
     // ----- Knowledge preparation -----
-    // TODO: !! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTasks`
     const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
         ...source,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
@@ -139,11 +139,11 @@ export async function preparePipeline(
     }));
     // ----- /Knowledge preparation -----
 
-    // ----- Templates preparation -----
-    const { templatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTemplates(
+    // ----- Tasks preparation -----
+    const { tasksPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTasks(
         {
             parameters,
-            templates,
+            tasks,
             knowledgePiecesCount: knowledgePiecesPrepared.length,
         },
         { ...tools, llm: llmToolsWithUsage },
@@ -153,15 +153,15 @@ export async function preparePipeline(
             isVerbose,
         },
     );
-    // ----- /Templates preparation -----
+    // ----- /Tasks preparation -----
 
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
     return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
-        templates: [...templatesPrepared],
-        // <- TODO: [🪓] Here should be no need for spreading new array, just ` templates: templatesPrepared`
+        tasks: [...tasksPrepared],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,

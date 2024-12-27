@@ -125,4 +125,5 @@ export const EMOJIS: Set<string_char_emoji> = new Set(Object.values(EMOJIS_IN_CA
 /**
  * TODO: [💴] DRY - just one version of emojis.ts
  * TODO: Mirror from Collboard or some common package
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

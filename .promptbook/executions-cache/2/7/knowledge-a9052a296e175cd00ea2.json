@@ -3,7 +3,7 @@
     "promptbookVersion": "0.61.0-13",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "content": "Pavol has a special affinity for open source and has many of his projects available on his GitHub."
         },

@@ -1,20 +1,20 @@
 import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { string_href } from '../../types/typeAliases';
 import type { string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
-import { titleToName } from '../utils/titleToName';
+import { titleToName } from '../../utils/normalization/titleToName';
 
 /**
  * Addtional options for rendering Mermaid graph
  */
 export type renderPipelineMermaidOptions = {
     /**
-     * Callback for creating from template graph node
+     * Callback for creating from task graph node
      */
-    linkTemplate?(template: TemplateJson): { href: string_href; title: string } | null;
+    linkTask?(task: TaskJson): { href: string_href; title: string } | null;
 };
 
 /**
@@ -25,26 +25,27 @@ export type renderPipelineMermaidOptions = {
  * @public exported from `@promptbook/utils`
  */
 export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: renderPipelineMermaidOptions): string {
-    const { linkTemplate = () => null } = options || {};
+    const { linkTask = () => null } = options || {};
 
-    const parameterNameToTemplateName = (parameterName: string_name) => {
+    const parameterNameToTaskName = (parameterName: string_name) => {
         const parameter = pipelineJson.parameters.find((parameter) => parameter.name === parameterName);
 
         if (!parameter) {
             throw new UnexpectedError(`Could not find {${parameterName}}`);
+            // <- TODO: !!!!!! This causes problems when {knowledge} and other reserved parameters are used
         }
 
         if (parameter.isInput) {
             return 'input';
         }
 
-        const template = pipelineJson.templates.find((template) => template.resultingParameterName === parameterName);
+        const task = pipelineJson.tasks.find((task) => task.resultingParameterName === parameterName);
 
-        if (!template) {
-            throw new Error(`Could not find template for {${parameterName}}`);
+        if (!task) {
+            throw new Error(`Could not find task for {${parameterName}}`);
         }
 
-        return normalizeTo_camelCase('template-' + titleToName(template.title));
+        return task.name || normalizeTo_camelCase('task-' + titleToName(task.title));
     };
 
     const promptbookMermaid = spaceTrim(
@@ -59,14 +60,14 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 
                   input((Input)):::input
                   ${block(
-                      pipelineJson.templates
+                      pipelineJson.tasks
                           .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
-                              `${parameterNameToTemplateName(resultingParameterName)}("${title}")`,
+                              `${parameterNameToTaskName(resultingParameterName)}("${title}")`,
                               ...dependentParameterNames.map(
                                   (dependentParameterName) =>
-                                      `${parameterNameToTemplateName(
+                                      `${parameterNameToTaskName(
                                           dependentParameterName,
-                                      )}--"{${dependentParameterName}}"-->${parameterNameToTemplateName(
+                                      )}--"{${dependentParameterName}}"-->${parameterNameToTaskName(
                                           resultingParameterName,
                                       )}`,
                               ),
@@ -77,15 +78,15 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
                   ${block(
                       pipelineJson.parameters
                           .filter(({ isOutput }) => isOutput)
-                          .map(({ name }) => `${parameterNameToTemplateName(name)}--"{${name}}"-->output`)
+                          .map(({ name }) => `${parameterNameToTaskName(name)}--"{${name}}"-->output`)
                           .join('\n'),
                   )}
                   output((Output)):::output
 
                   ${block(
-                      pipelineJson.templates
-                          .map((template) => {
-                              const link = linkTemplate(template);
+                      pipelineJson.tasks
+                          .map((task) => {
+                              const link = linkTask(task);
 
                               if (link === null) {
                                   return '';
@@ -93,9 +94,9 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 
                               const { href, title } = link;
 
-                              const templateName = parameterNameToTemplateName(template.resultingParameterName);
+                              const taskName = parameterNameToTaskName(task.resultingParameterName);
 
-                              return `click ${templateName} href "${href}" "${title}";`;
+                              return `click ${taskName} href "${href}" "${title}";`;
                           })
                           .filter((line) => line !== '')
                           .join('\n'),

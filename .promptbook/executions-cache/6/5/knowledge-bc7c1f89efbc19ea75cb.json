@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\n\nThe document outlines 10 simple machine learning algorithms that beginners should know. These include:\n\n1. Linear Regression\n2. Logistic Regression\n3. Linear Discriminant Analysis\n4. Classification and Regression Trees\n5. Naive Bayes\n6. K-Nearest Neighbors (KNN)\n7. Learning Vector Quantization (LVQ)\n8. Support Vector Machines (SVM)\n9. Bagging and Random Forest\n10. Boosting and AdaBoost"
         },

@@ -3,7 +3,7 @@
     "promptbookVersion": "0.63.4",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions."
         },

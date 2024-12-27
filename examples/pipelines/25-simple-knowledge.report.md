@@ -2,7 +2,7 @@
 
 Show how to use knowledge
 
--   PIPELINE URL https://promptbook.studio/examples/simple-knowledge.ptbk.md
+-   PIPELINE URL https://promptbook.studio/examples/simple-knowledge.book.md
 -   PROMPTBOOK VERSION 0.69.0
 -   STARTED AT 2024-09-29 17:15:41
 -   COMPLETED AT 2024-09-29 17:15:44

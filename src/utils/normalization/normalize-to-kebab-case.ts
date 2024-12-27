@@ -69,3 +69,7 @@ export function normalizeToKebabCase(text: string): string_kebab_case {
 
     return normalizedName;
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

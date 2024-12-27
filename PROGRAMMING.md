@@ -2,6 +2,8 @@
 
 ## 🎯 Todos
 
+There are a lot of TODOs in the repository, in the future there will probably be some kind of agent system that can automatically go through the TODOs and implement them one by one according to priority and rules.
+
 See [TODO.md](./TODO.md)
 
 ## Emoji in `[brackets]`
@@ -9,9 +11,10 @@ See [TODO.md](./TODO.md)
 -   `[any emoji]` Connects multiple places that are related to each other across the repository
 -   `[number]` Connects multiple places that are related to each other across the file
 -   `[🧠]` Marks a place where there is something to decide and think about.
--   `[🔼]` Marks an entity (function, class, type,...) that should be exported via an NPM package.
+-   `[🔼]` Marks an entity (function, class, type,...) in other project (like Promptbook.studio) which should be moved to this repository
 -   `[🚉]` Marks an types / interfaces / structures fully serializable as JSON, not marking `string_` and `number_` prefixed aliases
 -   `[🐣]` Easter eggs
+-   `[💩]` Shitty code that needs refactoring
 -   `$` When entity (function, class) starts by `$`, it means it is not pure and can have side effects.
 -   `!!!` Marks a place that needs to be fixed before releasing a pre-release version.
 -   `!!!!` (and more) Marks a place that needs to be fixed as soon as possible.
@@ -21,3 +24,4 @@ See [TODO.md](./TODO.md)
 -   [🟢] Code in this file should never be published into packages that could be imported into browser environment
 -   [🔵] Code in this file should never be published outside of `@promptbook/browser`
 -   [🟡] Code in this file should never be published outside of `@promptbook/cli`
+-   [💞] Ignore a discrepancy between file name and entity name

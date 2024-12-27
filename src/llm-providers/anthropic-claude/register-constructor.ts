@@ -16,4 +16,5 @@ export const _AnthropicClaudeRegistration: Registration = $llmToolsRegister.regi
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

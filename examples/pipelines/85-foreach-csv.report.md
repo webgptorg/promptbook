@@ -2,7 +2,7 @@
 
 Show how to iterate over a table of customers and write an email for each.
 
--   PIPELINE URL https://promptbook.studio/examples/foreach-csv.ptbk.md
+-   PIPELINE URL https://promptbook.studio/examples/foreach-csv.book.md
 -   PROMPTBOOK VERSION 0.69.0
 -   STARTED AT 2024-09-29 16:53:45
 -   COMPLETED AT 2024-09-29 16:53:51

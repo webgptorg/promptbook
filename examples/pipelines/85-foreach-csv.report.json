@@ -1,5 +1,5 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md",
     "title": "✨ Write email for each customer",
     "promptbookUsedVersion": "0.69.0",
     "description": "Show how to iterate over a table of customers and write an email for each.",
@@ -7,7 +7,7 @@
         {
             "prompt": {
                 "title": "Write a email",
-                "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.ptbk.md#write-a-email",
+                "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md#write-a-email",
                 "parameters": {
                     "knowledge": "- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
                     "customers": "First name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\n",
@@ -170,7 +170,7 @@
         {
             "prompt": {
                 "title": "Write a email",
-                "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.ptbk.md#write-a-email",
+                "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md#write-a-email",
                 "parameters": {
                     "knowledge": "- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
                     "customers": "First name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\n",
@@ -333,7 +333,7 @@
         {
             "prompt": {
                 "title": "Write a email",
-                "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.ptbk.md#write-a-email",
+                "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md#write-a-email",
                 "parameters": {
                     "knowledge": "- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
                     "customers": "First name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\n",

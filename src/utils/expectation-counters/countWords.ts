@@ -1,4 +1,4 @@
-import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
+import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
 import { removeDiacritics } from '../normalization/removeDiacritics';
 
 /**

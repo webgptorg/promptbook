@@ -58,7 +58,7 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 
 -   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
 -   [📯 Pipeline](https://github.com/webgptorg/promptbook/discussions/64)
--   [🎺 Pipeline templates](https://github.com/webgptorg/promptbook/discussions/88)
+-   [🙇‍♂️ Tasks and pipeline sections](https://github.com/webgptorg/promptbook/discussions/88)
 -   [🤼 Personas](https://github.com/webgptorg/promptbook/discussions/22)
 -   [⭕ Parameters](https://github.com/webgptorg/promptbook/discussions/83)
 -   [🚀 Pipeline execution](https://github.com/webgptorg/promptbook/discussions/84)

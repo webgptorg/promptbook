@@ -3,7 +3,7 @@
     "promptbookVersion": "0.71.0-17",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "Key technologies and concepts in the current tech landscape include: ChatGPT, GPT-4, Anthropic Claude, Gemini, AI, ML, LLMs, DALL-E, Midjourney, Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, and PWAs."
         },

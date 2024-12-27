@@ -119,7 +119,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                 resolve(socket);
             });
 
-            // TODO: [main] !!!! Better timeout handling
+            // TODO: [💩] Better timeout handling
 
             setTimeout(() => {
                 reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));

@@ -10,10 +10,10 @@ How to do this in the best possible way in terms of application design?
 
 1. How to more effectively A/B test the performance of individual prompts and their versions
 2. How to create prompt compilations/subtemplates?
-3. Should the template contain parameters like temperature, top_t, model,... or should it be more abstract?
+3. Should the task contain parameters like temperature, top_t, model,... or should it be more abstract?
 4. Alternatively, make some minimum requirements like "this prompt template requires at least GPT-3.5" and "LLaMA2 is sufficient for this".
 5. What is the best way to do metapromting, i.e. improving templates with prompts?
-6. Should the template be part of the project's source code? Logically it would make sense, since it's just a special kind of "source code". Or should it be stored in a database?
+6. Should the task be part of the project's source code? Logically it would make sense, since it's just a special kind of "source code". Or should it be stored in a database?
 7. Have a prompt for each (human) language or have just english and translate the inputs/outputs?
 8. Which format do you use for comments? <!-- or /\*?
 9. Preprocessing: sometimes the user input still needs to be reformatted by the preprocessor or there can be some secutity issue like prompt injection.

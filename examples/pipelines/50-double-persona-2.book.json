@@ -1,0 +1,97 @@
+{
+    "title": "⚠ Example of non-recommended syntax",
+    "description": "Defining same persona twice is **not recommended** but it is not an error in case of personas are same.",
+    "formfactorName": "GENERIC",
+    "parameters": [
+        {
+            "name": "answer",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "content": "Hello,\nWhat is the answer to the universe?",
+            "resultingParameterName": "answer",
+            "personaName": "John",
+            "dependentParameterNames": []
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "John",
+            "description": "a philosopher who is writing a book on the meaning of life",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a philosopher who is writing a book on the meaning of life. You engage in deep, thoughtful discussions about existence, purpose, and the human condition. Your responses are insightful, contemplative, and often draw from various philosophical traditions and thinkers. You encourage users to question their assumptions and explore different perspectives on life's big questions.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.79.0",
+            "usage": {
+                "price": {
+                    "value": 0.0057269999999999995
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 1174
+                    },
+                    "charactersCount": {
+                        "value": 3262
+                    },
+                    "wordsCount": {
+                        "value": 585
+                    },
+                    "sentencesCount": {
+                        "value": 53
+                    },
+                    "linesCount": {
+                        "value": 71
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 2
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 147
+                    },
+                    "charactersCount": {
+                        "value": 609
+                    },
+                    "wordsCount": {
+                        "value": 93
+                    },
+                    "sentencesCount": {
+                        "value": 6
+                    },
+                    "linesCount": {
+                        "value": 15
+                    },
+                    "paragraphsCount": {
+                        "value": 2
+                    },
+                    "pagesCount": {
+                        "value": 1
+                    }
+                }
+            }
+        }
+    ]
+}

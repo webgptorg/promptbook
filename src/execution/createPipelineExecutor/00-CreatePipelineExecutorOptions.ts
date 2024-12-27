@@ -1,6 +1,6 @@
 import type { CsvSettings } from '../../formats/csv/CsvSettings';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { ExecutionTools } from '../ExecutionTools';
 
 /**
@@ -32,7 +32,7 @@ export type CreatePipelineExecutorOptions = PrepareAndScrapeOptions & {
      */
     readonly csvSettings?: CsvSettings;
     // <- TODO: [💿] Maybe move to `PrepareAndScrapeOptions` + also use in preparation
-    // <- TODO: [🧎] Move to better place or make more univeral
+    // <- TODO: [🧎][💩] Move to better place or make more univeral
 
     /**
      * If you pass fully prepared pipeline, this does not matter

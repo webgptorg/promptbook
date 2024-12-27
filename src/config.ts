@@ -1,7 +1,9 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
+import type { string_email } from './types/typeAliases';
+import type { string_name } from './types/typeAliases';
+import type { string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
-import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**
  * Warning message for the generated sections and files files
@@ -11,14 +13,62 @@ import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeply
 export const GENERATOR_WARNING = `⚠️ WARNING: This code has been generated so that any manual changes will be overwritten`;
 
 /**
+ * Name for the Promptbook
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const NAME = `Promptbook`;
+
+/**
+ * Email of the responsible person
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const ADMIN_EMAIL: string_email = 'me@pavolhejny.com';
+
+/**
+ * Name of the responsible person for the Promptbook on GitHub
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const ADMIN_GITHUB_NAME: string_name = 'hejny';
+
+/**
  * Claim for the Promptbook
  *
  * TODO: [🗽] Unite branding and make single place for it
  *
  * @public exported from `@promptbook/core`
  */
-export const CLAIM = `Build responsible, controlled and transparent applications on top of LLM models!`;
+export const CLAIM = `It's time for a paradigm shift. The future of software in plain English, French or Latin`;
 //            <- TODO: [🐊] Pick the best claim
+
+/**
+ * Logo for the light theme
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const LOGO_LIGHT_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo.b21f0c70.png`;
+
+/**
+ * Logo for the dark theme
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo-white.09887cbc.png`;
+
+/**
+ * When the title is not provided, the default title is used
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_TITLE = `Untitled`;
 
 /**
  * Warning message for the generated sections and files files
@@ -50,7 +100,7 @@ export const CHARACTER_LOOP_LIMIT = 100000;
  */
 export const CONNECTION_TIMEOUT_MS = 7 * 1000;
 
-// <- TODO: [⏳] Standartize timeouts, Make DEFAULT_TIMEOUT_MS as global constant
+// <- TODO: [⏳] Standardize timeouts, Make DEFAULT_TIMEOUT_MS as global constant
 
 /**
  * How many times to retry the connections
@@ -112,13 +162,21 @@ export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
 export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 
 /**
+ * Where to store your books
+ * This is kind of a "src" for your books
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_BOOKS_DIRNAME = './books';
+
+/**
  * Where to store the cache of executions for promptbook CLI
  *
  * Note: When the folder does not exist, it is created recursively
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
+export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = './.promptbook/executions-cache';
 
 /**
  * Where to store the scrape cache
@@ -127,7 +185,7 @@ export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_SCRAPE_CACHE_DIRNAME = '/.promptbook/scrape-cache';
+export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
 
 /**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
@@ -148,18 +206,19 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
  *
  * @public exported from `@promptbook/core`
  */
-export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson('RESERVED_PARAMETER_NAMES', [
-    'content',
-    'context', // <- [🧠][🏍] Is parameter {context} good for anything?
-    'knowledge',
-    'examples',
-    'modelName',
-    'currentDate',
+export const RESERVED_PARAMETER_NAMES =
+    /* !!!!!! $asDeeplyFrozenSerializableJson('RESERVED_PARAMETER_NAMES', _____ as const); */ [
+        'content',
+        'context', // <- [🧠][🏍] Is parameter {context} good for anything?
+        'knowledge',
+        'examples',
+        'modelName',
+        'currentDate',
 
-    // <- TODO: list here all command names
-    // <- TODO: Add more like 'date', 'modelName',...
-    // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
-] as const);
+        // <- TODO: list here all command names
+        // <- TODO: Add more like 'date', 'modelName',...
+        // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
+    ] as const;
 
 /**
  * @@@
@@ -218,7 +277,18 @@ export const DEFAULT_CSV_SETTINGS: CsvSettings = Object.freeze({
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_IS_VERBOSE = false;
+export let DEFAULT_IS_VERBOSE = false;
+
+/**
+ * @@@
+ *
+ * Note: This is experimental feature
+ *
+ * @public exported from `@promptbook/core`
+ */
+export function SET_IS_VERBOSE(isVerbose: boolean): void {
+    DEFAULT_IS_VERBOSE = isVerbose;
+}
 
 /**
  * @@@
@@ -270,5 +340,7 @@ export const IS_COST_PREVENTED: boolean = just(
 );
 
 /**
+ * TODO: Extract `constants.ts` from `config.ts`
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
  */

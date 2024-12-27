@@ -92,4 +92,5 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
  * TODO: [🧠] Some mechanism to propagate unsureness
  * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
  * TODO: [🎰] Some mechanism to auto-update available models
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

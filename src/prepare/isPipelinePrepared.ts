@@ -1,6 +1,6 @@
-import type { KnowledgeSourcePreparedJson } from '../types/PipelineJson/KnowledgeSourceJson';
-import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
+import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 
 /**
  * Determine if the pipeline is fully prepared
@@ -24,8 +24,8 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
     }
 
     /*
-    TODO: [🧠][🍫] `templates` can not be determined if they are fully prepared SO ignoring them
-    > if (!pipeline.templates.every(({ preparedContent }) => preparedContent === undefined)) {
+    TODO: [🧠][🍫] `tasks` can not be determined if they are fully prepared SO ignoring them
+    > if (!pipeline.tasks.every(({ preparedContent }) => preparedContent === undefined)) {
     >     return false;
     > }
     */
@@ -38,7 +38,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
  * TODO: [🐠] Maybe base this on `makeValidator`
  * TODO: [🧊] Pipeline can be partially prepared, this should return true ONLY if fully prepared
  * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
- *     - [🏍] ? Is context in each template
+ *     - [🏍] ? Is context in each task
  *     - [♨] Are examples prepared
- *     - [♨] Are templates prepared
+ *     - [♨] Are tasks prepared
  */
