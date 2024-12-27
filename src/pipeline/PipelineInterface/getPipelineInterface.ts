@@ -1,5 +1,5 @@
 import type { WritableDeep } from 'type-fest';
-import { deepClone } from '../../_packages/utils.index';
+import { deepClone } from '../../utils/serialization/deepClone';
 import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { PipelineJson } from '../PipelineJson/PipelineJson';

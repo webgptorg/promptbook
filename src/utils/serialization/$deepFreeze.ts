@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { really_any } from '../organization/really_any';
-import { TODO_any } from '../organization/TODO_any';
+import type { TODO_any } from '../organization/TODO_any';
 
 /**
  * @@@
