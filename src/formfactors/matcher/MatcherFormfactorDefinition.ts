@@ -12,6 +12,12 @@ export const MatcherFormfactorDefinition = {
     pipelineInterface: {
         inputParameters: [
             /* @@@ */
+            {
+                name: 'nonce',
+                description: 'Just to prevent EXPERIMENTAL_MATCHER to be set as implicit formfactor',
+                isInput: true,
+                isOutput: false,
+            },
         ],
         outputParameters: [
             /* @@@ */

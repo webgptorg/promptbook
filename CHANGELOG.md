@@ -623,6 +623,13 @@ Utility functions
 -   Rename util `extractVariables` -> `extractVariablesFromScript`
 -   [👖] Utilities `extractParameterNamesFromTask` and `renamePipelineParameter` are not exported from `@promptbook/utils` but `@promptbook/core` because they are tightly interconnected with the Promptbook and cannot be used as universal utility
 
+### `0.79.0` _(2024-12-27)_
+
+Implicit formfactors
+
+-   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
+-   Fix in deep cloning of arrays
+
 ## Drafts
 
 ### `0..0` _(2024--)_

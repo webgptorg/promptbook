@@ -156,7 +156,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
 
         $taskJson.isSectionTypeSet = true;
 
-        // TODO: [🍧] Rearrange better - but at bottom and unwrap from function
+        // TODO: [🍧][💩] Rearrange better - but at bottom and unwrap from function
         const expectResultingParameterName = () => {
             if ($taskJson.resultingParameterName) {
                 return;

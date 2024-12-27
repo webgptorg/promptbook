@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-client",
-    "version": "0.77.1",
+    "version": "0.79.0",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -54,7 +54,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-client.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.77.1"
+        "@promptbook/core": "0.79.0"
     },
     "dependencies": {
         "socket.io-client": "4.7.2",

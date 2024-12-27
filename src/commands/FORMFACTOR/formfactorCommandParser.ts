@@ -92,6 +92,18 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: FormfactorCommand, $pipelineJson: $PipelineJson): void {
+        if ($pipelineJson.formfactorName !== undefined && $pipelineJson.formfactorName !== command.formfactorName) {
+            throw new ParseError(
+                spaceTrim(`
+                    Redefinition of \`FORMFACTOR\` in the pipeline head
+
+                    You have used:
+                    1) FORMFACTOR \`${$pipelineJson.formfactorName}\`
+                    2) FORMFACTOR \`${command.formfactorName}\`
+                `),
+            );
+        }
+
         $pipelineJson.formfactorName = command.formfactorName;
     },
 
