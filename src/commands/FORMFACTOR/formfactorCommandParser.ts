@@ -4,9 +4,7 @@ import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { FormfactorCommand } from './FormfactorCommand';
 
 /**
@@ -92,6 +90,18 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: FormfactorCommand, $pipelineJson: $PipelineJson): void {
+        if ($pipelineJson.formfactorName !== undefined && $pipelineJson.formfactorName !== command.formfactorName) {
+            throw new ParseError(
+                spaceTrim(`
+                    Redefinition of \`FORMFACTOR\` in the pipeline head
+
+                    You have used:
+                    1) FORMFACTOR \`${$pipelineJson.formfactorName}\`
+                    2) FORMFACTOR \`${command.formfactorName}\`
+                `),
+            );
+        }
+
         $pipelineJson.formfactorName = command.formfactorName;
     },
 

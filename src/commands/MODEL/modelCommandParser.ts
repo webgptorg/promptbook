@@ -6,10 +6,12 @@ import type { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -138,11 +140,11 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
             } else {
                 throw new ParseError(
                     spaceTrim(`
-                        Redefinition of MODEL \`${command.key}\` in the pipeline head
+                        Redefinition of \`MODEL ${command.key}\` in the pipeline head
 
                         You have used:
-                        - MODEL ${command.key} ${$pipelineJson.defaultModelRequirements[command.key]}
-                        - MODEL ${command.key} ${command.value}
+                        1) \`MODEL ${command.key} ${$pipelineJson.defaultModelRequirements[command.key]}\`
+                        2) \`MODEL ${command.key} ${command.value}\`
                     `),
                 );
             }
