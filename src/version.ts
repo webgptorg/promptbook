@@ -7,14 +7,7 @@ import type { string_semantic_version } from './types/typeAliases';
  *
  * @see https://github.com/webgptorg/book
  */
-export const BOOK_LANGUAGE_VERSION: string_semantic_version = '1.0.0';
-
-/**
- * The version of the Promptbook engine
- *
- * @see https://github.com/webgptorg/promptbook
- */
-export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '0.79.0';
+export const PROMPTBOOK_VERSION: string_promptbook_version = '0.70.0-1';
 
 export type string_promptbook_version = string_semantic_version;
 

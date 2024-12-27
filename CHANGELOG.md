@@ -511,14 +511,14 @@ Command `FOREACH`
 -   Allow to parse CSVs via `CsvFormatDefinition`
 -   Change `ListFormatDefinition` -> `TextFormatDefinition`
 
-### `0.70.0` _()_
+### `0.70.0` _(2024-09-)_
 
 Support for local models - integrate [Ollama](https://ollama.com/)
 
--   Make new package `@promptbook/ollama`
--   Add `OllamaExecutionTools` exported from `@promptbook/ollama`
+-   !!!!!! Make new package `@promptbook/ollama`
+-   !!!!!! Add `OllamaExecutionTools` exported from `@promptbook/ollama`
 
-### `0.71.0` _(2024-11-07)_
+### `0.71.0` _(2024-09-)_
 
 Knowledge scrapers [🐝]
 
