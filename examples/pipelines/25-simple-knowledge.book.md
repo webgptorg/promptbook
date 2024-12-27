@@ -89,6 +89,12 @@ You are writing a bio for Pavol Hejný for the event {eventTitle}.
 -   Write plain text without any formatting (like markdown)
 -   {rules}
 
+## Knowledge
+
+{knowledge}
+
+<!-- <- Note: Knowledge can be passed explicitelly or let it be injected automatically -->
+
 ## {eventTitle}
 
 > {eventDescription}

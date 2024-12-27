@@ -14,7 +14,7 @@ import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
 import type { ForeachJson } from '../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
-import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
+import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPromptbookMermaid';
 import type { CallbackInterfaceToolsOptions } from '../dialogs/callback/CallbackInterfaceToolsOptions';
 import type { ErrorJson } from '../errors/utils/ErrorJson';
 import type { LocateAppOptions } from '../executables/locateApp';
@@ -33,17 +33,16 @@ import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../execution/LlmExecutionToolsConstructor';
 import type { PipelineExecutor } from '../execution/PipelineExecutor';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
-import type { PromptResult } from '../execution/PromptResult';
-import type { CompletionPromptResult } from '../execution/PromptResult';
-import type { ChatPromptResult } from '../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../execution/PromptResult';
-import type { PromptResultUsage } from '../execution/PromptResultUsage';
-import type { PromptResultUsageCounts } from '../execution/PromptResultUsage';
-import type { ScriptExecutionTools } from '../execution/ScriptExecutionTools';
-import type { ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../execution/PromptResult';
+import type { PromptResultUsage, PromptResultUsageCounts } from '../execution/PromptResultUsage';
+import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UncertainNumber } from '../execution/UncertainNumber';
-import type { UserInterfaceTools } from '../execution/UserInterfaceTools';
-import type { UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { FormatSubvalueDefinition } from '../formats/_common/FormatSubvalueDefinition';
 import type { CsvSettings } from '../formats/csv/CsvSettings';
 import type { AbstractFormfactorDefinition } from '../formfactors/_common/AbstractFormfactorDefinition';
@@ -55,47 +54,53 @@ import type { LlmToolsOptions } from '../llm-providers/_common/register/LlmTools
 import type { CacheItem } from '../llm-providers/_common/utils/cache/CacheItem';
 import type { CacheLlmToolsOptions } from '../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
 import type { LlmExecutionToolsWithTotalUsage } from '../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
-import type { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
-import type { AnthropicClaudeExecutionToolsDirectOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
-import type { AnthropicClaudeExecutionToolsProxiedOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
+import type {
+    AnthropicClaudeExecutionToolsDirectOptions,
+    AnthropicClaudeExecutionToolsOptions,
+    AnthropicClaudeExecutionToolsProxiedOptions,
+} from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-openai/AzureOpenAiExecutionToolsOptions';
 import type { GoogleExecutionToolsOptions } from '../llm-providers/google/GoogleExecutionToolsOptions';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import type { PromptbookServer_Error } from '../llm-providers/remote/interfaces/PromptbookServer_Error';
-import type { PromptbookServer_ListModels_Request } from '../llm-providers/remote/interfaces/PromptbookServer_ListModels_Request';
-import type { PromptbookServer_ListModels_CollectionRequest } from '../llm-providers/remote/interfaces/PromptbookServer_ListModels_Request';
-import type { PromptbookServer_ListModels_AnonymousRequest } from '../llm-providers/remote/interfaces/PromptbookServer_ListModels_Request';
+import type {
+    PromptbookServer_ListModels_AnonymousRequest,
+    PromptbookServer_ListModels_CollectionRequest,
+    PromptbookServer_ListModels_Request,
+} from '../llm-providers/remote/interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from '../llm-providers/remote/interfaces/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_Prompt_Progress } from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Progress';
-import type { PromptbookServer_Prompt_Request } from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Request';
-import type { PromptbookServer_Prompt_CollectionRequest } from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Request';
-import type { PromptbookServer_Prompt_AnonymousRequest } from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Request';
+import type {
+    PromptbookServer_Prompt_AnonymousRequest,
+    PromptbookServer_Prompt_CollectionRequest,
+    PromptbookServer_Prompt_Request,
+} from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteLlmExecutionToolsOptions } from '../llm-providers/remote/interfaces/RemoteLlmExecutionToolsOptions';
-import type { RemoteServerOptions } from '../llm-providers/remote/interfaces/RemoteServerOptions';
-import type { AnonymousRemoteServerOptions } from '../llm-providers/remote/interfaces/RemoteServerOptions';
-import type { CollectionRemoteServerOptions } from '../llm-providers/remote/interfaces/RemoteServerOptions';
-import type { CollectionRemoteServerClientOptions } from '../llm-providers/remote/interfaces/RemoteServerOptions';
+import type {
+    AnonymousRemoteServerOptions,
+    CollectionRemoteServerClientOptions,
+    CollectionRemoteServerOptions,
+    RemoteServerOptions,
+} from '../llm-providers/remote/interfaces/RemoteServerOptions';
 import type { VercelExecutionToolsOptions } from '../llm-providers/vercel/VercelExecutionToolsOptions';
 import type { VercelProvider } from '../llm-providers/vercel/VercelProvider';
 import type { IsPipelineImplementingInterfaceOptions } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
 import type { PipelineInterface } from '../pipeline/PipelineInterface/PipelineInterface';
 import type { CommonTaskJson } from '../pipeline/PipelineJson/CommonTaskJson';
 import type { DialogTaskJson } from '../pipeline/PipelineJson/DialogTaskJson';
-import type { Expectations } from '../pipeline/PipelineJson/Expectations';
-import type { ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
-import type { ExpectationAmount } from '../pipeline/PipelineJson/Expectations';
+import type { ExpectationAmount, Expectations, ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
 import type { KnowledgePiecePreparedJson } from '../pipeline/PipelineJson/KnowledgePieceJson';
-import type { KnowledgeSourceJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
-import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { InputParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { IntermediateParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { OutputParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { CommonParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { PersonaJson } from '../pipeline/PipelineJson/PersonaJson';
-import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
+import type {
+    CommonParameterJson,
+    InputParameterJson,
+    IntermediateParameterJson,
+    OutputParameterJson,
+    ParameterJson,
+} from '../pipeline/PipelineJson/ParameterJson';
+import type { PersonaJson, PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import type { PromptTaskJson } from '../pipeline/PipelineJson/PromptTaskJson';
@@ -107,150 +112,149 @@ import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions
 import type { Converter } from '../scrapers/_common/Converter';
 import type { ScraperAndConverterMetadata } from '../scrapers/_common/register/ScraperAndConverterMetadata';
 import type { ScraperConstructor } from '../scrapers/_common/register/ScraperConstructor';
-import type { Scraper } from '../scrapers/_common/Scraper';
-import type { ScraperSourceHandler } from '../scrapers/_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../scrapers/_common/Scraper';
 import type { ScraperIntermediateSource } from '../scrapers/_common/ScraperIntermediateSource';
-import type { JavascriptExecutionToolsOptions } from '../scripting/javascript/JavascriptExecutionToolsOptions';
-import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
+import type {
+    JavascriptExecutionToolsOptions,
+    PostprocessingFunction,
+} from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { PromptbookStorage } from '../storage/_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from '../storage/file-cache-storage/FileCacheStorageOptions';
 import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
-import type { ModelRequirements } from '../types/ModelRequirements';
-import type { CompletionModelRequirements } from '../types/ModelRequirements';
-import type { ChatModelRequirements } from '../types/ModelRequirements';
-import type { EmbeddingModelRequirements } from '../types/ModelRequirements';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ModelRequirements,
+} from '../types/ModelRequirements';
 import type { ModelVariant } from '../types/ModelVariant';
-import type { Prompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { ChatPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import type { SectionType } from '../types/SectionType';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { TaskType } from '../types/TaskType';
 import type { string_char_emoji } from '../types/typeAliasEmoji';
-import type { string_business_category_name } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
-import type { string_template } from '../types/typeAliases';
-import type { string_text_prompt } from '../types/typeAliases';
-import type { string_chat_prompt } from '../types/typeAliases';
-import type { string_system_message } from '../types/typeAliases';
-import type { string_completion_prompt } from '../types/typeAliases';
-import type { string_page } from '../types/typeAliases';
-import type { string_mime_type } from '../types/typeAliases';
-import type { string_mime_type_with_wildcard } from '../types/typeAliases';
-import type { string_char } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { Parameters } from '../types/typeAliases';
-import type { string_reserved_parameter_name } from '../types/typeAliases';
-import type { ReservedParameters } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { string_persona_description } from '../types/typeAliases';
-import type { string_model_description } from '../types/typeAliases';
-import type { string_knowledge_source_content } from '../types/typeAliases';
-import type { string_knowledge_source_link } from '../types/typeAliases';
-import type { string_html } from '../types/typeAliases';
-import type { string_xml } from '../types/typeAliases';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_markdown_section } from '../types/typeAliases';
-import type { string_markdown_section_content } from '../types/typeAliases';
-import type { string_markdown_text } from '../types/typeAliases';
-import type { string_markdown_codeblock_language } from '../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../types/typeAliases';
-import type { string_domain } from '../types/typeAliases';
-import type { string_tdl } from '../types/typeAliases';
-import type { string_css } from '../types/typeAliases';
-import type { string_svg } from '../types/typeAliases';
-import type { string_script } from '../types/typeAliases';
-import type { string_javascript } from '../types/typeAliases';
-import type { string_json } from '../types/typeAliases';
-import type { string_css_class } from '../types/typeAliases';
-import type { string_css_property } from '../types/typeAliases';
-import type { string_css_value } from '../types/typeAliases';
-import type { string_css_selector } from '../types/typeAliases';
-import type { string_url } from '../types/typeAliases';
-import type { string_base_url } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
-import type { string_pipeline_url_with_task_hash } from '../types/typeAliases';
-import type { string_data_url } from '../types/typeAliases';
-import type { string_base64 } from '../types/typeAliases';
-import type { string_href } from '../types/typeAliases';
-import type { string_url_image } from '../types/typeAliases';
-import type { string_executable_path } from '../types/typeAliases';
-import type { string_uri } from '../types/typeAliases';
-import type { string_uri_part } from '../types/typeAliases';
-import type { string_hostname } from '../types/typeAliases';
-import type { string_host } from '../types/typeAliases';
-import type { string_protocol } from '../types/typeAliases';
-import type { string_email } from '../types/typeAliases';
-import type { string_emails } from '../types/typeAliases';
-import type { string_uuid } from '../types/typeAliases';
-import type { string_app_id } from '../types/typeAliases';
-import type { string_user_id } from '../types/typeAliases';
-import type { string_sha256 } from '../types/typeAliases';
-import type { string_semantic_version } from '../types/typeAliases';
-import type { string_version_dependency } from '../types/typeAliases';
-import type { string_file_extension } from '../types/typeAliases';
-import type { string_absolute_filename } from '../types/typeAliases';
-import type { string_relative_filename } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_absolute_dirname } from '../types/typeAliases';
-import type { string_relative_dirname } from '../types/typeAliases';
-import type { string_dirname } from '../types/typeAliases';
-import type { string_person_fullname } from '../types/typeAliases';
-import type { string_person_profile } from '../types/typeAliases';
-import type { string_license } from '../types/typeAliases';
-import type { string_attribute } from '../types/typeAliases';
-import type { string_attribute_value_scope } from '../types/typeAliases';
-import type { string_color } from '../types/typeAliases';
-import type { string_translate_name } from '../types/typeAliases';
-import type { string_translate_name_not_normalized } from '../types/typeAliases';
-import type { string_translate_language } from '../types/typeAliases';
-import type { string_javascript_name } from '../types/typeAliases';
-import type { string_postprocessing_function_name } from '../types/typeAliases';
-import type { id } from '../types/typeAliases';
-import type { string_token } from '../types/typeAliases';
-import type { string_license_token } from '../types/typeAliases';
-import type { string_password } from '../types/typeAliases';
-import type { string_ssh_key } from '../types/typeAliases';
-import type { string_pgp_key } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { number_id } from '../types/typeAliases';
-import type { number_linecol_number } from '../types/typeAliases';
-import type { number_tokens } from '../types/typeAliases';
-import type { number_positive } from '../types/typeAliases';
-import type { number_negative } from '../types/typeAliases';
-import type { number_integer } from '../types/typeAliases';
-import type { number_percent } from '../types/typeAliases';
-import type { number_model_temperature } from '../types/typeAliases';
-import type { number_seed } from '../types/typeAliases';
-import type { number_likeness } from '../types/typeAliases';
-import type { number_miliseconds } from '../types/typeAliases';
-import type { number_seconds } from '../types/typeAliases';
-import type { number_minutes } from '../types/typeAliases';
-import type { number_hours } from '../types/typeAliases';
-import type { number_days } from '../types/typeAliases';
-import type { number_weeks } from '../types/typeAliases';
-import type { number_months } from '../types/typeAliases';
-import type { number_years } from '../types/typeAliases';
-import type { number_bytes } from '../types/typeAliases';
-import type { number_kilobytes } from '../types/typeAliases';
-import type { number_megabytes } from '../types/typeAliases';
-import type { number_gigabytes } from '../types/typeAliases';
-import type { number_terabytes } from '../types/typeAliases';
-import type { Registered } from '../utils/$Register';
-import type { Registration } from '../utils/$Register';
-import type { ExecCommandOptions } from '../utils/execCommand/ExecCommandOptions';
-import type { ExecCommandOptionsAdvanced } from '../utils/execCommand/ExecCommandOptions';
+import type {
+    id,
+    number_bytes,
+    number_days,
+    number_gigabytes,
+    number_hours,
+    number_id,
+    number_integer,
+    number_kilobytes,
+    number_likeness,
+    number_linecol_number,
+    number_megabytes,
+    number_miliseconds,
+    number_minutes,
+    number_model_temperature,
+    number_months,
+    number_negative,
+    number_percent,
+    number_positive,
+    number_seconds,
+    number_seed,
+    number_terabytes,
+    number_tokens,
+    number_usd,
+    number_weeks,
+    number_years,
+    Parameters,
+    ReservedParameters,
+    string_absolute_dirname,
+    string_absolute_filename,
+    string_app_id,
+    string_attribute,
+    string_attribute_value_scope,
+    string_base64,
+    string_base_url,
+    string_business_category_name,
+    string_char,
+    string_chat_prompt,
+    string_color,
+    string_completion_prompt,
+    string_css,
+    string_css_class,
+    string_css_property,
+    string_css_selector,
+    string_css_value,
+    string_data_url,
+    string_date_iso8601,
+    string_dirname,
+    string_domain,
+    string_email,
+    string_emails,
+    string_executable_path,
+    string_file_extension,
+    string_filename,
+    string_host,
+    string_hostname,
+    string_href,
+    string_html,
+    string_javascript,
+    string_javascript_name,
+    string_json,
+    string_knowledge_source_content,
+    string_knowledge_source_link,
+    string_license,
+    string_license_token,
+    string_markdown,
+    string_markdown_codeblock_language,
+    string_markdown_section,
+    string_markdown_section_content,
+    string_markdown_text,
+    string_mime_type,
+    string_mime_type_with_wildcard,
+    string_model_description,
+    string_model_name,
+    string_name,
+    string_page,
+    string_parameter_name,
+    string_parameter_value,
+    string_password,
+    string_person_fullname,
+    string_person_profile,
+    string_persona_description,
+    string_pgp_key,
+    string_pipeline_url,
+    string_pipeline_url_with_task_hash,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_promptbook_documentation_url,
+    string_protocol,
+    string_relative_dirname,
+    string_relative_filename,
+    string_reserved_parameter_name,
+    string_script,
+    string_semantic_version,
+    string_sha256,
+    string_ssh_key,
+    string_svg,
+    string_system_message,
+    string_tdl,
+    string_template,
+    string_text_prompt,
+    string_title,
+    string_token,
+    string_translate_language,
+    string_translate_name,
+    string_translate_name_not_normalized,
+    string_uri,
+    string_uri_part,
+    string_url,
+    string_url_image,
+    string_user_id,
+    string_uuid,
+    string_version_dependency,
+    string_xml,
+} from '../types/typeAliases';
+import type { Registered, Registration } from '../utils/$Register';
+import type { ExecCommandOptions, ExecCommandOptionsAdvanced } from '../utils/execCommand/ExecCommandOptions';
 import type { FromtoItems } from '../utils/FromtoItems';
 import type { CodeBlock } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import type { MarkdownSection } from '../utils/markdown/parseMarkdownSection';
-import type { string_keyword } from '../utils/normalization/IKeywords';
-import type { Keywords } from '../utils/normalization/IKeywords';
+import type { Keywords, string_keyword } from '../utils/normalization/IKeywords';
 import type { string_kebab_case } from '../utils/normalization/normalize-to-kebab-case';
 import type { string_camelCase } from '../utils/normalization/normalizeTo_camelCase';
 import type { string_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
