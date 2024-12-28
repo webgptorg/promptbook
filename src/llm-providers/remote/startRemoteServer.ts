@@ -285,7 +285,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODO: Maybe use `$asDeeplyFrozenSerializableJson`
+ * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming

@@ -8,7 +8,7 @@ import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $exportJson } from '../../utils/serialization/$exportJson';
 import { asSerializable } from '../../utils/serialization/asSerializable';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
 
@@ -66,7 +66,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                         You need to provide at least one of:
                         1) In \`createExecutionToolsFromVercelProvider\` options, provide \`availableModels\` with at least one model
                         2) In \`prompt.modelRequirements\`, provide \`modelName\` with the name of the model to use
-                  
+
                     `),
                 );
             }
@@ -138,18 +138,22 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
             */
             const usage = UNCERTAIN_USAGE;
 
-            return $asDeeplyFrozenSerializableJson('createExecutionToolsFromVercelProvider ChatPromptResult', {
-                content: rawResponse.text,
-                modelName,
-                timing: {
-                    start,
-                    complete,
+            return $exportJson({
+                name: 'promptResult',
+                message: `Result of \`createExecutionToolsFromVercelProvider.callChatModel\``,
+                value: {
+                    content: rawResponse.text,
+                    modelName,
+                    timing: {
+                        start,
+                        complete,
+                    },
+                    usage,
+                    rawPromptContent,
+                    rawRequest,
+                    rawResponse: asSerializable(rawResponse),
+                    // <- [🗯]
                 },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse: asSerializable(rawResponse),
-                // <- [🗯]
             });
         },
     };

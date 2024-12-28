@@ -9,15 +9,17 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $exportJson } from '../../utils/serialization/$exportJson';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
@@ -154,18 +156,23 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         complete = $getCurrentDate();
         const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse);
 
-        return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools ChatPromptResult', {
-            content: resultContent,
-            modelName: rawResponse.model,
-            timing: {
-                start,
-                complete,
+        return $exportJson({
+            name: 'promptResult',
+            message: `Result of \`AzureOpenAiExecutionTools.callChatModel\``,
+            order: [],
+            value: {
+                content: resultContent,
+                modelName: rawResponse.model,
+                timing: {
+                    start,
+                    complete,
+                },
+                usage,
+                rawPromptContent,
+                rawRequest,
+                rawResponse,
+                // <- [🗯]
             },
-            usage,
-            rawPromptContent,
-            rawRequest,
-            rawResponse,
-            // <- [🗯]
         });
     }
 
@@ -233,7 +240,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
 
 
 
-        return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools CompletionPromptResult',{
+        return $exportJson({ name: 'promptResult',message: Result of \`AzureOpenAiExecutionTools callChatModel\`, order: [],value:{
             content: resultContent,
             modelName: rawResponse.model || model,
             timing: {

@@ -2,17 +2,13 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $exportJson } from '../../utils/serialization/$exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
 
 /**
@@ -101,10 +97,12 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             console.info('💬 Mocked faked result', result);
         }
 
-        return $asDeeplyFrozenSerializableJson(
-            'MockedFackedLlmExecutionTools (ChatPromptResult or CompletionPromptResult)',
-            result,
-        );
+        return $exportJson({
+            name: 'promptResult',
+            message: `Result of \`MockedFackedLlmExecutionTools.callChatModel\``,
+            order: [],
+            value: result,
+        });
     }
 
     /**
@@ -159,7 +157,12 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             console.info('💬 Mocked faked result', result);
         }
 
-        return $asDeeplyFrozenSerializableJson('MockedFackedLlmExecutionTools EmbeddingPromptResult', result);
+        return $exportJson({
+            name: 'promptResult',
+            message: `Result of \`MockedFackedLlmExecutionTools.callEmbeddingModel\``,
+            order: [],
+            value: result,
+        });
     }
 
     // <- Note: [🤖] callXxxModel

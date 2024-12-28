@@ -7,14 +7,16 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $exportJson } from '../../utils/serialization/$exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 
@@ -192,20 +194,25 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             throw new PipelineExecutionError('No response message from OpenAI');
         }
 
-        return $asDeeplyFrozenSerializableJson('OpenAiAssistantExecutionTools ChatPromptResult', {
-            content: resultContent,
-            modelName: 'assistant',
-            // <- TODO: [🥘] Detect used model in assistant
-            //       ?> model: rawResponse.model || modelName,
-            timing: {
-                start,
-                complete,
+        return $exportJson({
+            name: 'promptResult',
+            message: `Result of \`OpenAiAssistantExecutionTools.callChatModel\``,
+            order: [],
+            value: {
+                content: resultContent,
+                modelName: 'assistant',
+                // <- TODO: [🥘] Detect used model in assistant
+                //       ?> model: rawResponse.model || modelName,
+                timing: {
+                    start,
+                    complete,
+                },
+                usage,
+                rawPromptContent,
+                rawRequest,
+                rawResponse,
+                // <- [🗯]
             },
-            usage,
-            rawPromptContent,
-            rawRequest,
-            rawResponse,
-            // <- [🗯]
         });
     }
 }

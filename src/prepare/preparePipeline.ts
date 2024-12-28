@@ -1,5 +1,5 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT, ORDER_OF_PIPELINE_JSON } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -12,8 +12,7 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
-import { clonePipeline } from '../utils/serialization/clonePipeline';
+import { $exportJson } from '../utils/serialization/$exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
@@ -157,16 +156,20 @@ export async function preparePipeline(
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
-    return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
-        ...clonePipeline(pipeline),
-        tasks: [...tasksPrepared],
-        // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
-        personas: preparedPersonas,
-        preparations: [...preparations],
-        // <- TODO: [🪓] Here should be no need for spreading new array, just `preparations`
-        knowledgeSources: knowledgeSourcesPrepared,
-        knowledgePieces: knowledgePiecesPrepared,
-        // <- Note: [🍙] Ensure standard order of features
+    return $exportJson({
+        name: 'pipelineJson',
+        message: `Result of \`preparePipeline\``,
+        order: ORDER_OF_PIPELINE_JSON,
+        value: {
+            ...pipeline,
+            // <- TODO: Probbably deeply clone the pipeline because `$exportJson` freezes the subobjects
+
+            tasks: [...tasksPrepared],
+            // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
+            personas: preparedPersonas,
+            preparations: [...preparations],
+            // <- TODO: [🪓] Here should be no need for spreading new array, just `preparations`
+        },
     });
 }
 

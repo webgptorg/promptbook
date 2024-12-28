@@ -206,7 +206,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
 }
 
 /**
- * TODO: Maybe use `$asDeeplyFrozenSerializableJson`
+ * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable

@@ -2,16 +2,13 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $exportJson } from '../../utils/serialization/$exportJson';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -69,25 +66,30 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools ChatPromptResult', {
-            content: spaceTrim(
-                (block) => `
+        return $exportJson({
+            name: 'promptResult',
+            message: `Result of \`MockedEchoLlmExecutionTools.callChatModel\``,
+            order: [],
+            value: {
+                content: spaceTrim(
+                    (block) => `
                     You said:
                     ${block(rawPromptContent)}
                 `,
-            ),
-            modelName,
-            timing: {
-                start: $getCurrentDate(),
-                complete: $getCurrentDate(),
+                ),
+                modelName,
+                timing: {
+                    start: $getCurrentDate(),
+                    complete: $getCurrentDate(),
+                },
+                usage,
+                rawPromptContent,
+                rawRequest: null,
+                rawResponse: {
+                    note: 'This is mocked echo',
+                },
+                // <- [🗯]
             },
-            usage,
-            rawPromptContent,
-            rawRequest: null,
-            rawResponse: {
-                note: 'This is mocked echo',
-            },
-            // <- [🗯]
         });
     }
 
@@ -107,25 +109,30 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools CompletionPromptResult', {
-            content: spaceTrim(
-                (block) => `
+        return $exportJson({
+            name: 'promptResult',
+            message: `Result of \`MockedEchoLlmExecutionTools.callCompletionModel\``,
+            order: [],
+            value: {
+                content: spaceTrim(
+                    (block) => `
                     ${block(rawPromptContent)}
                     And so on...
                 `,
-            ),
-            modelName,
-            timing: {
-                start: $getCurrentDate(),
-                complete: $getCurrentDate(),
+                ),
+                modelName,
+                timing: {
+                    start: $getCurrentDate(),
+                    complete: $getCurrentDate(),
+                },
+                usage,
+                rawPromptContent,
+                rawRequest: null,
+                rawResponse: {
+                    note: 'This is mocked echo',
+                },
+                // <- [🗯]
             },
-            usage,
-            rawPromptContent,
-            rawRequest: null,
-            rawResponse: {
-                note: 'This is mocked echo',
-            },
-            // <- [🗯]
         });
     }
 

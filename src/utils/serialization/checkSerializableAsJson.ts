@@ -3,6 +3,26 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_name } from '../../types/typeAliases';
 
 /**
+ * Options for the `checkSerializableAsJson` function
+ */
+export type CheckSerializableAsJsonOptions = {
+    /**
+     * Value to be checked
+     */
+    value: unknown;
+
+    /**
+     * Semantic name of the value for debugging purposes
+     */
+    name: string_name;
+
+    /**
+     * Optional message alongside the value for debugging purposes
+     */
+    message?: string;
+};
+
+/**
  * Checks if the value is [🚉] serializable as JSON
  * If not, throws an UnexpectedError with a rich error message and tracking
  *
@@ -22,7 +42,9 @@ import type { string_name } from '../../types/typeAliases';
  * @throws UnexpectedError if the value is not serializable as JSON
  * @public exported from `@promptbook/utils`
  */
-export function checkSerializableAsJson(name: string_name, value: unknown): void {
+export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions): void {
+    const { value, name, message } = options;
+
     if (value === undefined) {
         throw new UnexpectedError(`${name} is undefined`);
     } else if (value === null) {
@@ -39,16 +61,21 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
         throw new UnexpectedError(`${name} is function`);
     } else if (typeof value === 'object' && Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) {
-            checkSerializableAsJson(`${name}[${i}]`, value[i]);
+            checkSerializableAsJson({ name: `${name}[${i}]`, value: value[i], message });
         }
     } else if (typeof value === 'object') {
         if (value instanceof Date) {
             throw new UnexpectedError(
-                spaceTrim(`
-                    ${name} is Date
+                spaceTrim(
+                    (block) => `
+                        \`${name}\` is Date
 
-                    Use \`string_date_iso8601\` instead
-                `),
+                        Use \`string_date_iso8601\` instead
+
+                        Additional message for \`${name}\`:
+                        ${block(message || '(nothing)')}
+                    `,
+                ),
             );
         } else if (value instanceof Map) {
             throw new UnexpectedError(`${name} is Map`);
@@ -58,11 +85,17 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
             throw new UnexpectedError(`${name} is RegExp`);
         } else if (value instanceof Error) {
             throw new UnexpectedError(
-                spaceTrim(`
-                    ${name} is unserialized Error
+                spaceTrim(
+                    (block) => `
+                        \`${name}\` is unserialized Error
 
-                    Use function \`serializeError\`
-                `),
+                        Use function \`serializeError\`
+
+                        Additional message for \`${name}\`:
+                        ${block(message || '(nothing)')}
+
+                    `,
+                ),
             );
         } else {
             for (const [subName, subValue] of Object.entries(value)) {
@@ -70,7 +103,7 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
                     // Note: undefined in object is serializable - it is just omited
                     continue;
                 }
-                checkSerializableAsJson(`${name}.${subName}`, subValue);
+                checkSerializableAsJson({ name: `${name}.${subName}`, value: subValue, message });
             }
 
             try {
@@ -83,9 +116,12 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
                 throw new UnexpectedError(
                     spaceTrim(
                         (block) => `
-                            ${name} is not serializable
+                            \`${name}\` is not serializable
 
                             ${block((error as Error).toString())}
+
+                            Additional message for \`${name}\`:
+                            ${block(message || '(nothing)')}
                         `,
                     ),
                 );
@@ -114,12 +150,20 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
             return;
         }
     } else {
-        throw new UnexpectedError(`${name} is unknown`);
+        throw new UnexpectedError(
+            spaceTrim(
+                (block) => `
+                    \`${name}\` is unknown type
+
+                    Additional message for \`${name}\`:
+                    ${block(message || '(nothing)')}
+                `,
+            ),
+        );
     }
 }
 
 /**
- * TODO: [🧠][🛣] More elegant way to tracking than passing `name`
  * TODO: [🧠][main] !!! In-memory cache of same values to prevent multiple checks
  * Note: [🐠] This is how `checkSerializableAsJson` + `isSerializableAsJson` together can just retun true/false or rich error message
  */

@@ -1,9 +1,9 @@
+import { PipelineJson } from './_packages/types.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
+import { $exportJson, ExportJsonOptions } from './utils/serialization/$exportJson';
 
 /**
  * Warning message for the generated sections and files files
@@ -69,6 +69,25 @@ export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_TITLE = `Untitled`;
+
+/**
+ * Order of keys in the pipeline JSON
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = [
+    'title',
+    'pipelineUrl',
+    'bookVersion',
+    'description',
+    'formfactorName',
+    'parameters',
+    'tasks',
+    'knowledgeSources',
+    'knowledgePieces',
+    'personas',
+    'preparations',
+];
 
 /**
  * Warning message for the generated sections and files files
@@ -206,8 +225,10 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
  *
  * @public exported from `@promptbook/core`
  */
-export const RESERVED_PARAMETER_NAMES =
-    /* !!!!!! $asDeeplyFrozenSerializableJson('RESERVED_PARAMETER_NAMES', _____ as const); */ [
+export const RESERVED_PARAMETER_NAMES = $exportJson({
+    name: 'RESERVED_PARAMETER_NAMES',
+    message: `The names of the parameters that are reserved for special purposes`,
+    value: [
         'content',
         'context', // <- [🧠][🏍] Is parameter {context} good for anything?
         'knowledge',
@@ -218,7 +239,10 @@ export const RESERVED_PARAMETER_NAMES =
         // <- TODO: list here all command names
         // <- TODO: Add more like 'date', 'modelName',...
         // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
-    ] as const;
+    ] as const,
+});
+
+RESERVED_PARAMETER_NAMES.push('!!!!!!!!');
 
 /**
  * @@@

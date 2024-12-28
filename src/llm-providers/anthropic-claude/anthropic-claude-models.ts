@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $exportJson } from '../../utils/serialization/$exportJson';
 import { computeUsage } from '../openai/computeUsage';
 
 /**
@@ -18,7 +18,7 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             readonly output: number_usd;
         };
     }
-> = $asDeeplyFrozenSerializableJson('ANTHROPIC_CLAUDE_MODELS', [
+> = $exportJson('ANTHROPIC_CLAUDE_MODELS', [
     {
         modelVariant: 'CHAT',
         modelTitle: 'Claude 3.5 Sonnet',

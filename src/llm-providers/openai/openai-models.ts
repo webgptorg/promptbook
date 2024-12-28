@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $exportJson } from '../../utils/serialization/$exportJson';
 import { computeUsage } from './computeUsage';
 
 /**
@@ -19,7 +19,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             readonly output: number_usd;
         };
     }
-> = $asDeeplyFrozenSerializableJson('OPENAI_MODELS', [
+> = $exportJson('OPENAI_MODELS', [
     /*/
       {
           modelTitle: 'dall-e-3',
