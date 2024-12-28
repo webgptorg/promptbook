@@ -12,7 +12,7 @@ export type ExportJsonOptions<TObject> = {
     value: TObject;
 
     /**
-     *
+     * !!!!!!!!
      */
     order?: Array<keyof TObject>;
     // <- TODO: Deep keyof
