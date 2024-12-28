@@ -640,7 +640,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         knowledgePieces: [],
         personas: [],
         preparations: [],
-        // <- TODO: [🍙] Some standard order of properties
+        // <- Note: [🍙] Ensure standard order of features
 
         ...($pipelineJson as Partial<$PipelineJson>),
     });

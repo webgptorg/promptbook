@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -162,11 +161,12 @@ export async function preparePipeline(
         ...clonePipeline(pipeline),
         tasks: [...tasksPrepared],
         // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
-        knowledgeSources: knowledgeSourcesPrepared,
-        knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,
         preparations: [...preparations],
         // <- TODO: [🪓] Here should be no need for spreading new array, just `preparations`
+        knowledgeSources: knowledgeSourcesPrepared,
+        knowledgePieces: knowledgePiecesPrepared,
+        // <- Note: [🍙] Ensure standard order of features
     });
 }
 
