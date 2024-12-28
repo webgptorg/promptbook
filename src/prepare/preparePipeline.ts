@@ -163,7 +163,7 @@ export async function preparePipeline(
         value: {
             ...pipeline,
             // <- TODO: Probbably deeply clone the pipeline because `$exportJson` freezes the subobjects
-
+            knowledgeSources: knowledgeSourcesPrepared,
             tasks: [...tasksPrepared],
             // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
             personas: preparedPersonas,
