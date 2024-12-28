@@ -21,7 +21,7 @@ import { checkSerializableAsJson } from './checkSerializableAsJson';
  */
 export function isSerializableAsJson(value: unknown): boolean {
     try {
-        checkSerializableAsJson('', value);
+        checkSerializableAsJson({ value });
         return true;
     } catch (error) {
         return false;

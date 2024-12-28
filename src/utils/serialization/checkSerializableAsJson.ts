@@ -14,10 +14,10 @@ export type CheckSerializableAsJsonOptions = {
     /**
      * Semantic name of the value for debugging purposes
      */
-    name: string_name;
+    name?: string_name;
 
     /**
-     * Optional message alongside the value for debugging purposes
+     * Message alongside the value for debugging purposes
      */
     message?: string;
 };

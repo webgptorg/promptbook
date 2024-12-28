@@ -1,31 +1,20 @@
-import type { string_name } from '../../types/typeAliases';
 import { $deepFreeze } from './$deepFreeze';
-import { checkSerializableAsJson } from './checkSerializableAsJson';
+import { checkSerializableAsJson, CheckSerializableAsJsonOptions } from './checkSerializableAsJson';
 
 /**
  * Options for the `$exportJson` function
  */
-export type ExportJsonOptions<TObject> = {
+export type ExportJsonOptions<TObject> = CheckSerializableAsJsonOptions & {
     /**
      * Value to checked, ordered and deeply frozen
      */
     value: TObject;
 
     /**
-     * !!!!!!!!
+     * Order of the object properties
      */
     order?: Array<keyof TObject>;
     // <- TODO: Deep keyof
-
-    /**
-     * Semantic name of the value for debugging purposes
-     */
-    name: string_name;
-
-    /**
-     * Optional message alongside the value for debugging purposes
-     */
-    message?: string;
 };
 
 /**
