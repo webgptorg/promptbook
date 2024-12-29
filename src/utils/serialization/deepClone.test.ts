@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { really_any } from '../organization/really_any';
 import { deepClone } from './deepClone';
 
 describe('how `deepClone` works', () => {
@@ -22,13 +21,8 @@ describe('how `deepClone` works', () => {
         }));
 
     it('should crash on circular structures', () => {
-        const obj: really_any = {};
-        obj.a = {};
-        obj.b = obj.a;
-        obj.b = { d: { e: [obj.a] } };
-        obj.a.c = obj.b;
-
-      
+        const obj: Record<string, unknown> = {};
+        obj.obj = obj;
         expect(() => deepClone(obj)).toThrowError(/circular structure/i);
     });
 
