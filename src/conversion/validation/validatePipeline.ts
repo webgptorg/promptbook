@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { IS_PIPELINE_LOGIC_VALIDATED } from '../../config';
 import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { ParseError } from '../../errors/ParseError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';

@@ -3,7 +3,7 @@ import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
-import { exportJson, ExportJsonOptions } from './utils/serialization/exportJson';
+import { ExportJsonOptions } from './utils/serialization/exportJson';
 
 /**
  * Warning message for the generated sections and files files
@@ -221,28 +221,6 @@ export const DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
 
 /**
- * The names of the parameters that are reserved for special purposes
- *
- * @public exported from `@promptbook/core`
- */
-export const RESERVED_PARAMETER_NAMES = exportJson({
-    name: 'RESERVED_PARAMETER_NAMES',
-    message: `The names of the parameters that are reserved for special purposes`,
-    value: [
-        'content',
-        'context', // <- [🧠][🏍] Is parameter {context} good for anything?
-        'knowledge',
-        'examples',
-        'modelName',
-        'currentDate',
-
-        // <- TODO: list here all command names
-        // <- TODO: Add more like 'date', 'modelName',...
-        // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
-    ] as const,
-});
-
-/**
  * @@@
  *
  * @private within the repository
@@ -362,7 +340,6 @@ export const IS_COST_PREVENTED: boolean = just(
 );
 
 /**
- * TODO: Extract `constants.ts` from `config.ts`
  * Note: [💞] Ignore a discrepancy between file name and entity name
  * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
  */

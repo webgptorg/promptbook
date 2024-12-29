@@ -11,7 +11,8 @@ import type {
     PipelineHeadCommandParser,
     PipelineTaskCommandParser,
 } from '../commands/_common/types/CommandParser';
-import { DEFAULT_TITLE, ORDER_OF_PIPELINE_JSON, RESERVED_PARAMETER_NAMES } from '../config';
+import { DEFAULT_TITLE, ORDER_OF_PIPELINE_JSON } from '../config';
+import { RESERVED_PARAMETER_NAMES } from '../constants';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { FORMFACTOR_DEFINITIONS } from '../formfactors/index';
