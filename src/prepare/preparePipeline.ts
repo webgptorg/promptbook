@@ -5,8 +5,8 @@ import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
-import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
@@ -165,6 +165,7 @@ export async function preparePipeline(
             ...pipeline,
             // <- TODO: Probbably deeply clone the pipeline because `$exportJson` freezes the subobjects
             knowledgeSources: knowledgeSourcesPrepared,
+            knowledgePieces: knowledgePiecesPrepared,
             tasks: [...tasksPrepared],
             // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
             personas: preparedPersonas,
