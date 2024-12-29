@@ -4,7 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson, $TaskJson, CommandBase, PipelineHeadCommandParser, PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { DEFAULT_TITLE } from '../config';
 import { ORDER_OF_PIPELINE_JSON, RESERVED_PARAMETER_NAMES } from '../constants';
 import { ParseError } from '../errors/ParseError';
@@ -258,7 +264,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         try {
             (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, $pipelineJson);
-            //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+            //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitly
         } catch (error) {
             if (!(error instanceof ParseError)) {
                 throw error;
@@ -404,7 +410,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             try {
                 (commandParser as PipelineTaskCommandParser<CommandBase>).$applyToTaskJson(
-                    //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+                    //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitly
                     command,
                     $taskJson,
                     $pipelineJson,
@@ -626,9 +632,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         message: `Result of \`pipelineStringToJsonSync\``,
         order: ORDER_OF_PIPELINE_JSON,
         value: {
-            ...($pipelineJson as $PipelineJson),
             formfactorName: 'GENERIC',
             // <- Note: [🔆] Setting `formfactorName` is redundant to satisfy the typescript
+
+            ...($pipelineJson as $PipelineJson),
         },
     });
 }
