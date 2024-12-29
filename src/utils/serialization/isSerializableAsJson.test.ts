@@ -58,7 +58,7 @@ describe('how `isSerializableAsJson` works', () => {
         expect(isSerializableAsJson(obj)).toBe(false);
     });
 
-    it('advanced circular references are not serializable *(no circular references)*', () => {
+    it('advanced circular references are not serializable', () => {
         const obj1: Record<string, unknown> = {};
         const obj2: Record<string, unknown> = {};
         obj1.obj = [obj2];
