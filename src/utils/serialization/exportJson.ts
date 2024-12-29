@@ -1,4 +1,4 @@
-import type { JsonArray, JsonObject, SetOptional } from 'type-fest';
+import type { JsonArray, JsonObject } from 'type-fest';
 import { orderJson, OrderJsonOptions } from '../normalization/orderJson';
 import { TODO_any } from '../organization/TODO_any';
 import { $deepFreeze } from './$deepFreeze';
@@ -9,7 +9,12 @@ import { deepClone } from './deepClone';
  * Options for the `$exportJson` function
  */
 export type ExportJsonOptions<TObject> = CheckSerializableAsJsonOptions &
-    SetOptional<OrderJsonOptions<TObject & (JsonObject | JsonArray)>, 'order'>;
+    Partial<Pick<OrderJsonOptions<TObject & (JsonObject | JsonArray)>, 'order'>> & {
+        /**
+         * Value to be checked, ordered and deeply frozen
+         */
+        value: TObject;
+    };
 
 /**
  * Utility to export a JSON object from a function
@@ -36,15 +41,15 @@ export function exportJson<TObject>(options: ExportJsonOptions<TObject>): TObjec
         order === undefined
             ? deepClone(value)
             : orderJson({
-                  value,
-                  // <- !!!!!! as JsonObject | JsonArray Note: checkSerializableAsJson asserts that the value is serializable as JSON
+                  value: value as JsonObject | JsonArray,
+                  // <- Note: checkSerializableAsJson asserts that the value is serializable as JSON
 
-                  order,
+                  order: order as TODO_any,
               });
 
     $deepFreeze(orderedValue);
 
-    return orderedValue as TODO_any; // <- !!!!!!
+    return orderedValue as TODO_any;
 }
 
 /**
