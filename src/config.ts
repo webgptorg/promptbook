@@ -1,9 +1,7 @@
-import { PipelineJson } from './_packages/types.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
-import { ExportJsonOptions } from './utils/serialization/exportJson';
 
 /**
  * Warning message for the generated sections and files files
@@ -69,25 +67,6 @@ export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_TITLE = `Untitled`;
-
-/**
- * Order of keys in the pipeline JSON
- *
- * @public exported from `@promptbook/core`
- */
-export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = [
-    'title',
-    'pipelineUrl',
-    'bookVersion',
-    'description',
-    'formfactorName',
-    'parameters',
-    'tasks',
-    'knowledgeSources',
-    'knowledgePieces',
-    'personas',
-    'preparations',
-];
 
 /**
  * Warning message for the generated sections and files files
@@ -212,27 +191,6 @@ export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME = `index`;
-
-/**
- * Nonce which is used for replacing things in strings
- *
- * @private within the repository
- */
-export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
-
-/**
- * @@@
- *
- * @private within the repository
- */
-export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
-
-/**
- * @@@
- *
- * @private within the repository
- */
-export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
 
 /**
  * The thresholds for the relative time in the `moment` NPM package.

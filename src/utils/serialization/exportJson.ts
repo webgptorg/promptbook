@@ -1,8 +1,10 @@
 import type { JsonArray, JsonObject } from 'type-fest';
-import { orderJson, OrderJsonOptions } from '../normalization/orderJson';
-import { TODO_any } from '../organization/TODO_any';
+import type { OrderJsonOptions } from '../normalization/orderJson';
+import { orderJson } from '../normalization/orderJson';
+import type { TODO_any } from '../organization/TODO_any';
 import { $deepFreeze } from './$deepFreeze';
-import { checkSerializableAsJson, CheckSerializableAsJsonOptions } from './checkSerializableAsJson';
+import type { CheckSerializableAsJsonOptions } from './checkSerializableAsJson';
+import { checkSerializableAsJson } from './checkSerializableAsJson';
 import { deepClone } from './deepClone';
 
 /**

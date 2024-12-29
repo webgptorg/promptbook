@@ -1,4 +1,4 @@
-import { ORDER_OF_PIPELINE_JSON } from '../config';
+import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
 import { exportJson } from '../utils/serialization/exportJson';

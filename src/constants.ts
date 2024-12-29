@@ -1,4 +1,46 @@
+import type { PipelineJson } from './pipeline/PipelineJson/PipelineJson';
+import type { ExportJsonOptions } from './utils/serialization/exportJson';
 import { exportJson } from './utils/serialization/exportJson';
+
+/**
+ * Order of keys in the pipeline JSON
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = [
+    'title',
+    'pipelineUrl',
+    'bookVersion',
+    'description',
+    'formfactorName',
+    'parameters',
+    'tasks',
+    'knowledgeSources',
+    'knowledgePieces',
+    'personas',
+    'preparations',
+];
+
+/**
+ * Nonce which is used for replacing things in strings
+ *
+ * @private within the repository
+ */
+export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
+
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
+export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
+
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
+export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
 
 /**
  * The names of the parameters that are reserved for special purposes
@@ -21,8 +63,6 @@ export const RESERVED_PARAMETER_NAMES = exportJson({
         // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
     ] as const,
 });
-
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_name } from '../../types/typeAliases';
-import { really_unknown } from '../organization/really_unknown';
+import type { really_unknown } from '../organization/really_unknown';
 
 /**
  * Options for the `checkSerializableAsJson` function

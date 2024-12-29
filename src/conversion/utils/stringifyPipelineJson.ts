@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { LOOP_LIMIT } from '../../config';
-import { REPLACING_NONCE } from '../../config';
+import { REPLACING_NONCE } from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_json } from '../../types/typeAliases';
 import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
