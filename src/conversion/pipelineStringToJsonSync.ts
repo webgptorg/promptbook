@@ -1,20 +1,21 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import { isPipelineImplementingInterface } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TaskJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
-import { DEFAULT_TITLE } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
+import { DEFAULT_TITLE, RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { FORMFACTOR_DEFINITIONS } from '../formfactors/index';
+import { isPipelineImplementingInterface } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
 import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
@@ -22,9 +23,7 @@ import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import type { number_integer } from '../types/typeAliases';
-import type { number_positive } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
+import type { number_integer, number_positive, string_name } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
@@ -581,41 +580,43 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 9️⃣ Implicit and default formfactor
 
-    for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
-        // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
+    if ($pipelineJson.formfactorName === undefined) {
+        for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
+            // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
 
-        const { name, pipelineInterface } = formfactorDefinition;
+            const { name, pipelineInterface } = formfactorDefinition;
 
-        // Note: Skip GENERIC formfactor, it will be used as a fallback if no other formfactor is compatible
-        if (name === 'GENERIC') {
-            continue;
-        }
+            // Note: Skip GENERIC formfactor, it will be used as a fallback if no other formfactor is compatible
+            if (name === 'GENERIC') {
+                continue;
+            }
 
-        const isCompatible = isPipelineImplementingInterface({
-            pipeline: {
+            const isCompatible = isPipelineImplementingInterface({
+                pipeline: {
+                    formfactorName: name,
+                    // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
+                    //           but it is needed to satisfy the typescript
+
+                    ...$pipelineJson,
+                },
+                pipelineInterface,
+            });
+
+            /*/
+            console.log({
+                subject: `${$pipelineJson.title} implements ${name}`,
+                pipelineTitle: $pipelineJson.title,
                 formfactorName: name,
-                // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
-                //           but it is needed to satisfy the typescript
+                isCompatible,
+                formfactorInterface: pipelineInterface,
+                pipelineInterface: getPipelineInterface($pipelineJson as PipelineJson),
+            });
+            /**/
 
-                ...$pipelineJson,
-            },
-            pipelineInterface,
-        });
-
-        /*/
-        console.log({
-            subject: `${$pipelineJson.title} implements ${name}`,
-            pipelineTitle: $pipelineJson.title,
-            formfactorName: name,
-            isCompatible,
-            formfactorInterface: pipelineInterface,
-            pipelineInterface: getPipelineInterface($pipelineJson as PipelineJson),
-        });
-        /**/
-
-        if (isCompatible) {
-            $pipelineJson.formfactorName = name;
-            break;
+            if (isCompatible) {
+                $pipelineJson.formfactorName = name;
+                break;
+            }
         }
     }
 
