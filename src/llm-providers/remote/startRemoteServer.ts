@@ -8,6 +8,7 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { serializeError } from '../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
+import { keepTypeImported } from '../../utils/organization/keepImported';
 import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { createLlmToolsFromConfiguration } from '../_common/register/createLlmToolsFromConfiguration';
@@ -17,6 +18,10 @@ import type { PromptbookServer_ListModels_Response } from './interfaces/Promptbo
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
+
+keepTypeImported<PromptbookServer_Prompt_Response>();
+keepTypeImported<PromptbookServer_Error>();
+keepTypeImported<PromptbookServer_ListModels_Response>();
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -179,14 +184,14 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                 socket.emit(
                     'prompt-response',
-                    { promptResult } satisfies PromptbookServer_Prompt_Response /* <- TODO: [🤛] */,
+                    { promptResult } satisfies PromptbookServer_Prompt_Response /* <- Note: [🤛] */,
                 );
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- TODO: [🤛] */);
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- Note: [🤛] */);
             } finally {
                 socket.disconnect();
                 // TODO: [🍚]> llmExecutionTools.destroy();
@@ -237,7 +242,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                 socket.emit(
                     'listModels-response',
-                    { models } satisfies PromptbookServer_ListModels_Response /* <- TODO: [🤛] */,
+                    { models } satisfies PromptbookServer_ListModels_Response /* <- Note: [🤛] */,
                 );
             } catch (error) {
                 if (!(error instanceof Error)) {

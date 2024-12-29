@@ -10,6 +10,8 @@ import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
 
+keepTypeImported<Xxxx>();
+
 /**
  * Mocked execution Tools for just faking expected responses for testing purposes
  *
@@ -129,7 +131,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
         const content = new Array(1024)
             .fill(0)
-            .map(() => Math.random() * 2 - 1) satisfies EmbeddingVector; /* <- TODO: [🤛] */
+            .map(() => Math.random() * 2 - 1) satisfies EmbeddingVector; /* <- Note: [🤛] */
 
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
