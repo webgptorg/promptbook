@@ -1,6 +1,6 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/picking-model.book.md",
     "title": "✨ Pick the model",
+    "pipelineUrl": "https://promptbook.studio/examples/picking-model.book.md",
     "description": "Show how to pick exact model",
     "formfactorName": "GENERIC",
     "parameters": [
@@ -38,8 +38,6 @@
             ]
         }
     ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
     "personas": [
         {
             "name": "Jane",
@@ -111,5 +109,7 @@
                 }
             }
         }
-    ]
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": []
 }
