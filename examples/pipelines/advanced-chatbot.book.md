@@ -23,7 +23,7 @@ Pavol Hejný is a software engineer and creator of Promptbook.
 
 ## Create an answer
 
--   `PERSONA` Paul, a developer of the Promptbook Project
+-   PERSONA Paul, a developer of the Promptbook Project
 
 ```markdown
 Write a response to the user message:

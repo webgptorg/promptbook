@@ -48,7 +48,7 @@
             "title": "Create an answer",
             "content": "Write a response to the user message:\n\n**Question from user**\n\n> {userMessage}\n\n**Previous conversation**\n\n> {previousConversationSummary}",
             "resultingParameterName": "chatbotResponse",
-            "personaName": "A` Paul",
+            "personaName": "Paul",
             "dependentParameterNames": [
                 "userMessage",
                 "previousConversationSummary",
@@ -91,12 +91,25 @@
     ],
     "personas": [
         {
-            "name": "A` Paul",
+            "name": "Paul",
             "description": "a developer of the Promptbook Project",
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
                 "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. Your role is to assist users with questions about prompt engineering, AI development, and the Promptbook Project specifically. You have in-depth knowledge of various AI models, prompt design techniques, and best practices in AI development. Offer clear, concise, and technically accurate information while maintaining a helpful and collaborative tone.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "A` Paul",
+            "description": "",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an intelligent and versatile virtual assistant, capable of helping with a wide range of tasks. Your responses should be helpful, informative, and tailored to the user's needs. Always strive to provide accurate information and clarify if you're unsure about something.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -110,52 +123,52 @@
             "promptbookVersion": "0.79.0",
             "usage": {
                 "price": {
-                    "value": 0.005805
+                    "value": 0.013028999999999999
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 1170
+                        "value": 2333
                     },
                     "charactersCount": {
-                        "value": 3241
+                        "value": 6445
                     },
                     "wordsCount": {
-                        "value": 579
+                        "value": 1152
                     },
                     "sentencesCount": {
-                        "value": 53
+                        "value": 106
                     },
                     "linesCount": {
-                        "value": 71
+                        "value": 142
                     },
                     "paragraphsCount": {
-                        "value": 20
+                        "value": 40
                     },
                     "pagesCount": {
-                        "value": 2
+                        "value": 4
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 153
+                        "value": 402
                     },
                     "charactersCount": {
-                        "value": 640
+                        "value": 1671
                     },
                     "wordsCount": {
-                        "value": 95
+                        "value": 262
                     },
                     "sentencesCount": {
-                        "value": 6
+                        "value": 15
                     },
                     "linesCount": {
-                        "value": 16
+                        "value": 39
                     },
                     "paragraphsCount": {
-                        "value": 2
+                        "value": 5
                     },
                     "pagesCount": {
-                        "value": 1
+                        "value": 2
                     }
                 }
             }
