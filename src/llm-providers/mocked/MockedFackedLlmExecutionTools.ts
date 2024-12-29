@@ -1,16 +1,18 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import { keepTypeImported } from '../../utils/organization/keepImported';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
 
-keepTypeImported<Xxxx>();
+keepTypeImported<EmbeddingVector>();
 
 /**
  * Mocked execution Tools for just faking expected responses for testing purposes
