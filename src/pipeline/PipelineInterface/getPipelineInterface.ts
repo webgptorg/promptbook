@@ -8,7 +8,6 @@ import type { PipelineInterface } from './PipelineInterface';
 /**
  * @@@
  *
- * @deprecated https://github.com/webgptorg/promptbook/pull/186
  * @see https://github.com/webgptorg/promptbook/discussions/171
  *
  * @public exported from `@promptbook/core`
@@ -39,7 +38,13 @@ export function getPipelineInterface(pipeline: PipelineJson): PipelineInterface 
 
     for (const key of ['inputParameters', 'outputParameters'] as Array<keyof PipelineInterface>) {
         pipelineInterface[key].sort(({ name: name1 }, { name: name2 }) => name1.localeCompare(name2));
+        // <- TODO: [🧠] Should we compare a descriptions?
+        // <- TODO: [🧠][🛴] Maybe add type + expectations into the intefrace, like "a person name"
     }
 
     return $deepFreeze(pipelineInterface) as TODO_remove_as<PipelineInterface>;
 }
+
+/**
+ * TODO: !!!!!!! Write unit test
+ */

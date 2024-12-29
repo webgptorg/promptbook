@@ -630,6 +630,30 @@ Implicit formfactors
 -   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
 -   Fix in deep cloning of arrays
 
+## In Pre-release
+
+### `0.!!!!!!.0` _(202--)_
+
+compatibility
+
+[🐠] - to PROGRAMMING
+isXxx
+validateXxx
+checkXxx
+
+is
+check
+validate
+
+ACRY DoesNotMakeSenseError search for sense
+
+'IDENTICAL'
+'IDENTICAL_UNPREPARED'
+'IDENTICAL_INTERFACE'
+'IDENTICAL_NAMES'
+'INTERSECTING'
+'NON_INTERSECTING'
+
 ## Drafts
 
 ### `0..0` _(2024--)_
