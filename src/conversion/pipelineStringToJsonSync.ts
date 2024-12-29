@@ -581,41 +581,43 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 9️⃣ Implicit and default formfactor
 
-    for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
-        // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
+    if ($pipelineJson.formfactorName === undefined) {
+        for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
+            // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
 
-        const { name, pipelineInterface } = formfactorDefinition;
+            const { name, pipelineInterface } = formfactorDefinition;
 
-        // Note: Skip GENERIC formfactor, it will be used as a fallback if no other formfactor is compatible
-        if (name === 'GENERIC') {
-            continue;
-        }
+            // Note: Skip GENERIC formfactor, it will be used as a fallback if no other formfactor is compatible
+            if (name === 'GENERIC') {
+                continue;
+            }
 
-        const isCompatible = isPipelineImplementingInterface({
-            pipeline: {
+            const isCompatible = isPipelineImplementingInterface({
+                pipeline: {
+                    formfactorName: name,
+                    // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
+                    //           but it is needed to satisfy the typescript
+
+                    ...$pipelineJson,
+                },
+                pipelineInterface,
+            });
+
+            /*/
+            console.log({
+                subject: `${$pipelineJson.title} implements ${name}`,
+                pipelineTitle: $pipelineJson.title,
                 formfactorName: name,
-                // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
-                //           but it is needed to satisfy the typescript
+                isCompatible,
+                formfactorInterface: pipelineInterface,
+                pipelineInterface: getPipelineInterface($pipelineJson as PipelineJson),
+            });
+            /**/
 
-                ...$pipelineJson,
-            },
-            pipelineInterface,
-        });
-
-        /*/
-        console.log({
-            subject: `${$pipelineJson.title} implements ${name}`,
-            pipelineTitle: $pipelineJson.title,
-            formfactorName: name,
-            isCompatible,
-            formfactorInterface: pipelineInterface,
-            pipelineInterface: getPipelineInterface($pipelineJson as PipelineJson),
-        });
-        /**/
-
-        if (isCompatible) {
-            $pipelineJson.formfactorName = name;
-            break;
+            if (isCompatible) {
+                $pipelineJson.formfactorName = name;
+                break;
+            }
         }
     }
 
