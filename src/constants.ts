@@ -15,10 +15,10 @@ export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = 
     'formfactorName',
     'parameters',
     'tasks',
-    'knowledgeSources',
-    'knowledgePieces',
     'personas',
     'preparations',
+    'knowledgeSources',
+    'knowledgePieces',
 ];
 
 /**
