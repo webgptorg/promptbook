@@ -19,7 +19,7 @@ import type {
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
@@ -181,7 +181,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 },
             } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
-            return $exportJson({
+            return exportJson({
                 name: 'promptResult',
                 message: `Result of \`AzureOpenAiExecutionTools.callChatModel\``,
                 order: [],
@@ -289,7 +289,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 },
             } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
-            return $exportJson({
+            return exportJson({
                 name: 'promptResult',
                 message: `Result of \`AzureOpenAiExecutionTools.callCompletionModel\``,
                 order: [],

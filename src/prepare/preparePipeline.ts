@@ -12,7 +12,7 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { $exportJson } from '../utils/serialization/$exportJson';
+import { exportJson } from '../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
@@ -156,7 +156,7 @@ export async function preparePipeline(
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
-    return $exportJson({
+    return exportJson({
         name: 'pipelineJson',
         message: `Result of \`preparePipeline\``,
         order: ORDER_OF_PIPELINE_JSON,

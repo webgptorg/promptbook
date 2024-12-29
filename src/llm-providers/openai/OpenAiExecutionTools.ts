@@ -19,7 +19,7 @@ import type {
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import { OpenAiAssistantExecutionTools } from './OpenAiAssistantExecutionTools';
@@ -190,7 +190,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             throw new PipelineExecutionError('No response message from OpenAI');
         }
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`OpenAiExecutionTools.callChatModel\``,
             order: [],
@@ -277,7 +277,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         complete = $getCurrentDate();
         const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`OpenAiExecutionTools.callCompletionModel\``,
             order: [],
@@ -359,7 +359,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             rawResponse,
         );
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`OpenAiExecutionTools.callEmbeddingModel\``,
             order: [],

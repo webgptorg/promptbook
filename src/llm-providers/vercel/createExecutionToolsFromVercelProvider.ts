@@ -8,8 +8,8 @@ import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $exportJson } from '../../utils/serialization/$exportJson';
 import { asSerializable } from '../../utils/serialization/asSerializable';
+import { exportJson } from '../../utils/serialization/exportJson';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
 
 /**
@@ -138,7 +138,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
             */
             const usage = UNCERTAIN_USAGE;
 
-            return $exportJson({
+            return exportJson({
                 name: 'promptResult',
                 message: `Result of \`createExecutionToolsFromVercelProvider.callChatModel\``,
                 value: {

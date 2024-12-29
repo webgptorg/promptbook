@@ -3,7 +3,7 @@ import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
-import { $exportJson, ExportJsonOptions } from './utils/serialization/$exportJson';
+import { exportJson, ExportJsonOptions } from './utils/serialization/exportJson';
 
 /**
  * Warning message for the generated sections and files files
@@ -225,7 +225,7 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
  *
  * @public exported from `@promptbook/core`
  */
-export const RESERVED_PARAMETER_NAMES = $exportJson({
+export const RESERVED_PARAMETER_NAMES = exportJson({
     name: 'RESERVED_PARAMETER_NAMES',
     message: `The names of the parameters that are reserved for special purposes`,
     value: [

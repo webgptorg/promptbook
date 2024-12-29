@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { computeUsage } from '../openai/computeUsage';
 
 /**
@@ -18,7 +18,7 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             readonly output: number_usd;
         };
     }
-> = $exportJson({
+> = exportJson({
     name: 'ANTHROPIC_CLAUDE_MODELS',
     value: [
         {

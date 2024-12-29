@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_name } from '../../types/typeAliases';
+import { really_unknown } from '../organization/really_unknown';
 
 /**
  * Options for the `checkSerializableAsJson` function
@@ -9,7 +10,7 @@ export type CheckSerializableAsJsonOptions = {
     /**
      * Value to be checked
      */
-    value: unknown;
+    value: really_unknown;
 
     /**
      * Semantic name of the value for debugging purposes
@@ -164,6 +165,7 @@ export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions)
 }
 
 /**
+ * TODO: Can be return type more type-safe? like `asserts options.value is JsonValue`
  * TODO: [🧠][main] !!! In-memory cache of same values to prevent multiple checks
  * Note: [🐠] This is how `checkSerializableAsJson` + `isSerializableAsJson` together can just retun true/false or rich error message
  */

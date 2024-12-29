@@ -630,6 +630,16 @@ Implicit formfactors
 -   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
 -   Fix in deep cloning of arrays
 
+### `0.80.0` _(2024-12-!!!!!!)_
+
+Simple chat notation
+
+-   High-level chat notation
+-   High-level / low-level books
+-   Add utility `orderJson` exported from `@promptbook/utils`
+-   Add utility `exportJson` exported from `@promptbook/utils` _(in previous versions this util was private and known as `$asDeeplyFrozenSerializableJson`)_
+-   Circular objects with same family references are considered NOT serializable
+
 ## Drafts
 
 ### `0..0` _(2024--)_

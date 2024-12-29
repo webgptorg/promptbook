@@ -10,7 +10,7 @@ import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
@@ -114,7 +114,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 await forTime(IMMEDIATE_TIME);
             }
 
-            return $exportJson({
+            return exportJson({
                 name: `executionReport`,
                 message: `Unuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
                 order: [],
@@ -161,7 +161,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
             }
 
             // TODO: [🧠] This should be also non-critical error
-            return $exportJson({
+            return exportJson({
                 name: 'pipelineExecutorResult',
                 message: spaceTrim(
                     (block) => `
@@ -358,7 +358,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
             await forTime(IMMEDIATE_TIME);
         }
 
-        return $exportJson({
+        return exportJson({
             name: 'pipelineExecutorResult',
             message: `Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult`,
             order: [],
@@ -392,7 +392,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         await forTime(IMMEDIATE_TIME);
     }
 
-    return $exportJson({
+    return exportJson({
         name: 'pipelineExecutorResult',
         message: `Successful PipelineExecutorResult`,
         order: [],

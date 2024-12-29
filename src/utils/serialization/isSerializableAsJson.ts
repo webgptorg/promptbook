@@ -1,3 +1,5 @@
+import { JsonValue } from 'type-fest';
+// <- TODO: !!!!!!! Auto convert to type `import { ... } from 'type-fest';`
 import { checkSerializableAsJson } from './checkSerializableAsJson';
 
 /**
@@ -19,7 +21,7 @@ import { checkSerializableAsJson } from './checkSerializableAsJson';
  *
  * @public exported from `@promptbook/utils`
  */
-export function isSerializableAsJson(value: unknown): boolean {
+export function isSerializableAsJson(value: unknown): value is JsonValue {
     try {
         checkSerializableAsJson({ value });
         return true;

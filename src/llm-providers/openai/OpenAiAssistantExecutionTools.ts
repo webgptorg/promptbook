@@ -16,7 +16,7 @@ import type {
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 
@@ -194,7 +194,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             throw new PipelineExecutionError('No response message from OpenAI');
         }
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`OpenAiAssistantExecutionTools.callChatModel\``,
             order: [],

@@ -32,7 +32,7 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 import { titleToName } from '../utils/normalization/titleToName';
 import type { really_any } from '../utils/organization/really_any';
-import { $exportJson } from '../utils/serialization/$exportJson';
+import { exportJson } from '../utils/serialization/exportJson';
 import { extractParameterNamesFromTask } from './utils/extractParameterNamesFromTask';
 
 /**
@@ -626,7 +626,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
 
     // TODO: [🍙] Maybe do reorder of `$pipelineJson` here
-    return $exportJson({
+    return exportJson({
         name: 'pipelineJson',
         message: `Result of \`pipelineStringToJsonSync\``,
         order: ORDER_OF_PIPELINE_JSON,

@@ -19,7 +19,7 @@ import type {
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
@@ -156,7 +156,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         complete = $getCurrentDate();
         const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse);
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`AzureOpenAiExecutionTools.callChatModel\``,
             order: [],

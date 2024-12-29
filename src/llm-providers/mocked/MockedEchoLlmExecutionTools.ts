@@ -8,7 +8,7 @@ import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -66,7 +66,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`MockedEchoLlmExecutionTools.callChatModel\``,
             order: [],
@@ -109,7 +109,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`MockedEchoLlmExecutionTools.callCompletionModel\``,
             order: [],

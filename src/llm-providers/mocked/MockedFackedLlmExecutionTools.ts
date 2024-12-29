@@ -8,7 +8,7 @@ import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
 
 /**
@@ -97,7 +97,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             console.info('💬 Mocked faked result', result);
         }
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`MockedFackedLlmExecutionTools.callChatModel\``,
             order: [],
@@ -157,7 +157,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             console.info('💬 Mocked faked result', result);
         }
 
-        return $exportJson({
+        return exportJson({
             name: 'promptResult',
             message: `Result of \`MockedFackedLlmExecutionTools.callEmbeddingModel\``,
             order: [],

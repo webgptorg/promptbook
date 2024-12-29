@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
-import { $exportJson } from '../../utils/serialization/$exportJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { computeUsage } from './computeUsage';
 
 /**
@@ -19,7 +19,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             readonly output: number_usd;
         };
     }
-> = $exportJson({
+> = exportJson({
     name: 'OPENAI_MODELS',
     value: [
         /*/

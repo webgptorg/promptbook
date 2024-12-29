@@ -1,7 +1,7 @@
 import { ORDER_OF_PIPELINE_JSON } from '../config';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
-import { $exportJson } from '../utils/serialization/$exportJson';
+import { exportJson } from '../utils/serialization/exportJson';
 
 /**
  * Unprepare just strips the preparation data of the pipeline
@@ -29,7 +29,7 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
         return taskUnprepared;
     });
 
-    return $exportJson({
+    return exportJson({
         name: 'pipelineJson',
         message: `Result of \`unpreparePipeline\``,
         order: ORDER_OF_PIPELINE_JSON,
