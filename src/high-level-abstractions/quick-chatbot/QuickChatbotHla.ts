@@ -1,5 +1,5 @@
-import { $PipelineJson } from '../../commands/_common/types/CommandParser';
-import { SyncHighLevelAbstraction } from '../_common/HighLevelAbstraction';
+import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
+import type { SyncHighLevelAbstraction } from '../_common/HighLevelAbstraction';
 
 /**
  * Allow to define chatbot with no need to write full interface

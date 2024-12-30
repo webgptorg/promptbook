@@ -1,7 +1,7 @@
-import { isPipelineImplementingInterface } from '../../_packages/core.index';
-import { $PipelineJson } from '../../commands/_common/types/CommandParser';
-import { FORMFACTOR_DEFINITIONS } from '../../formfactors';
-import { SyncHighLevelAbstraction } from '../_common/HighLevelAbstraction';
+import { isPipelineImplementingInterface } from '../../pipeline/PipelineInterface/isPipelineImplementingInterface';
+import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
+import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
+import type { SyncHighLevelAbstraction } from '../_common/HighLevelAbstraction';
 
 /**
  * Set formfactor based on the pipeline interface e

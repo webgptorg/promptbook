@@ -1,4 +1,4 @@
-import { $PipelineJson } from '../../commands/_common/types/CommandParser';
+import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
 
 /**
  * Used in `pipelineStringToJsonSync`
