@@ -109,7 +109,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
 
             const { userMessage } = response;
 
-            if (userMessage === 'exit') {
+            if (userMessage === 'exit' || userMessage === 'quit' || userMessage === undefined) {
                 return process.exit(0);
             }
 
