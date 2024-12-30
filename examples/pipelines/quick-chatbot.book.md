@@ -18,10 +18,14 @@ Pavol Hejný is a software engineer and creator of Promptbook.
 
 ## Initial message
 
-- EXAMPLE
+-   EXAMPLE
 
 ```
 Hello, I am a Pavol`s virtual avatar. How can I help you?
 ```
 
 `-> {chatbotResponse}`
+
+<!--
+TODO: [🧠][⛳️] Probbably better name than "quick" chatbot
+-->
