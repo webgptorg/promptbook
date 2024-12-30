@@ -2,7 +2,7 @@
     "title": "✨ Quick Chatbot",
     "pipelineUrl": "https://promptbook.studio/examples/quick-chatbot.book.md",
     "description": "Show how to define chatbot in quick way.\nUsing `PERSONA` in header to define all things needed for chatbot-compatible pipeline and sets up the formfactor `CHATBOT` automatically.",
-    "formfactorName": "GENERIC",
+    "formfactorName": "CHATBOT",
     "parameters": [
         {
             "name": "previousTitle",
@@ -56,7 +56,8 @@
                 "userMessage",
                 "previousConversationSummary",
                 "knowledge"
-            ]
+            ],
+            "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
         },
         {
             "taskType": "PROMPT_TASK",
@@ -75,7 +76,8 @@
                 "userMessage",
                 "chatbotResponse",
                 "knowledge"
-            ]
+            ],
+            "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
         },
         {
             "taskType": "SIMPLE_TASK",
@@ -86,7 +88,8 @@
             "dependentParameterNames": [
                 "conversationSummary",
                 "knowledge"
-            ]
+            ],
+            "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
         }
     ],
     "personas": [
