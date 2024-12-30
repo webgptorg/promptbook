@@ -138,6 +138,8 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         );
     }
 
+    /*
+    TODO: [🧠][🅾] Should be empty pipeline valid or not
     // Note: Check that pipeline has some tasks
     if (pipeline.tasks.length === 0) {
         throw new PipelineLogicError(
@@ -150,6 +152,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
             ),
         );
     }
+    */
 
     // Note: Check each parameter individually
     for (const parameter of pipeline.parameters) {
