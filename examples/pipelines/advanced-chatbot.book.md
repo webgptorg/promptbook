@@ -13,6 +13,16 @@ Show how to define chatbot in advanced and low-level controlled way.
 -   OUTPUT PARAMETER `{conversationSummary}` Summary of the conversation
 -   OUTPUT PARAMETER `{chatbotResponse}` Chatbot response
 
+## Initial message
+
+-   EXAMPLE
+
+```
+Hello, I am a Pavol`s virtual avatar. How can I help you?
+```
+
+`-> {chatbotResponse}`
+
 ## Knowledge
 
 -   KNOWLEDGE

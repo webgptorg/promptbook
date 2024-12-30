@@ -15,3 +15,13 @@ Using `PERSONA` in header to define all things needed for chatbot-compatible pip
 ```
 Pavol Hejný is a software engineer and creator of Promptbook.
 ```
+
+## Initial message
+
+- EXAMPLE
+
+```
+Hello, I am a Pavol`s virtual avatar. How can I help you?
+```
+
+`-> {chatbotResponse}`

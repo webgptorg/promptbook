@@ -3,8 +3,26 @@
     "pipelineUrl": "https://promptbook.studio/examples/quick-chatbot.book.md",
     "description": "Show how to define chatbot in quick way.\nUsing `PERSONA` in header to define all things needed for chatbot-compatible pipeline and sets up the formfactor `CHATBOT` automatically.",
     "formfactorName": "GENERIC",
-    "parameters": [],
-    "tasks": [],
+    "parameters": [
+        {
+            "name": "chatbotResponse",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "initial-message",
+            "title": "Initial message",
+            "content": "Hello, I am a Pavol`s virtual avatar. How can I help you?",
+            "resultingParameterName": "chatbotResponse",
+            "dependentParameterNames": [
+                "knowledge"
+            ],
+            "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
+        }
+    ],
     "personas": [
         {
             "name": "Paul",

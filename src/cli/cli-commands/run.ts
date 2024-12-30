@@ -1,5 +1,7 @@
 import colors from 'colors';
-import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
+import type {
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
@@ -19,13 +21,12 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { runInteractiveChatbot } from './runInteractiveChatbot';
 
 /**
  * Initializes `run` command for Promptbook CLI utilities
@@ -54,13 +55,24 @@ export function initializeRunCommand(program: Program) {
         `Input is not interactive, if true you need to pass all the input parameters through --json`,
     );
     runCommand.option(
+        '--no-formfactor',
+        `When set, behavior of the interactive mode is not changed by the formfactor of the pipeline`,
+    );
+    runCommand.option(
         '-j, --json <json>',
         `Pass all or some input parameters as JSON record, if used the output is also returned as JSON`,
     );
     runCommand.option('-s, --save-report <path>', `Save report to file`);
 
     runCommand.action(async (filePathRaw, options) => {
-        const { reload: isCacheReloaded, interactive: isInteractive, json, verbose: isVerbose, saveReport } = options;
+        const {
+            reload: isCacheReloaded,
+            interactive: isInteractive,
+            formfactor: isFormfactorUsed,
+            json,
+            verbose: isVerbose,
+            saveReport,
+        } = options;
 
         if (saveReport && !saveReport.endsWith('.json') && !saveReport.endsWith('.md')) {
             console.error(colors.red(`Report file must be .json or .md`));
@@ -128,7 +140,7 @@ export function initializeRunCommand(program: Program) {
 
                             1) Create .env file at the root of your project
                             2) Configure API keys for LLM tools
-                            
+
                             For example:
                             ${block(
                                 $llmToolsMetadataRegister
@@ -208,6 +220,11 @@ export function initializeRunCommand(program: Program) {
             //                          <- TODO: Why "LLM execution failed undefinedx"
             maxParallelCount: 1, // <- TODO: Pass CLI argument
         });
+
+        // TODO: Make some better system for formfactors and interactive mode - here is just a quick hardcoded solution for chatbot
+        if (isInteractive === true && isFormfactorUsed === true && pipeline.formfactorName === 'CHATBOT') {
+            return /* not await */ runInteractiveChatbot({ pipeline, pipelineExecutor, isVerbose });
+        }
 
         if (isVerbose) {
             console.info(colors.gray('--- Getting input parameters ---'));

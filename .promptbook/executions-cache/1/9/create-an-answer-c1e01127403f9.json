@@ -1,0 +1,120 @@
+{
+    "date": "2024-12-30T12:17:57.998Z",
+    "promptbookVersion": "0.79.0",
+    "prompt": {
+        "title": "Create an answer",
+        "pipelineUrl": "https://promptbook.studio/examples/advanced-chatbot.book.md#create-an-answer",
+        "parameters": {
+            "knowledge": "- ---\n\nNatural Language Programming allows developers to write specifications in plain English, which AI then translates into working code. This approach enables rapid application development, reducing build time from weeks to minutes.\n- AI-powered code generation uses advanced language models to accurately convert plain language specifications into functional code. This system incorporates built-in security, testing, and scalability considerations, making it suitable for enterprise-level applications.\n- Developers worldwide have reported significant benefits from using the Book programming language, including a 70% reduction in development time for LLM applications, improved collaboration between technical and non-technical teams, and accelerated project delivery.\n- The Book language has been praised for its ability to simplify coding processes, enhance personalization in software development, and improve the speed and reliability of CI/CD pipelines.\n\n---\n- ---\n\nGenerative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This technological wave is expected to impact almost every sector of human activity, creating both opportunities and challenges for businesses.\n- Key technologies and concepts in the current tech landscape include: ChatGPT, GPT-4, Anthropic Claude, Gemini, AI, ML, LLMs, DALL-E, Midjourney, Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, and PWAs.\n- Businesses need to leverage the full potential of technology and generative AI to remain competitive. However, keeping up with rapidly evolving technologies and distinguishing important advancements from daily noise can be challenging.\n\n---\n- ---\n\nPavol Hejný is a software engineer who created Promptbook.\n\n---",
+            "previousConversationSummary": "",
+            "userMessage": "Hello"
+        },
+        "content": "Write a response to the user message:\n\n**Question from user**\n\n> {userMessage}\n\n**Previous conversation**\n\n> {previousConversationSummary}\n\n## Knowledge\n\n{knowledge}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "name": "Paul",
+            "description": "a developer of the Promptbook Project",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. Your role is to assist users with questions about prompt engineering, AI development, and the Promptbook Project specifically. You have in-depth knowledge of various AI models, prompt design techniques, and best practices in AI development. Offer clear, concise, and technically accurate information while maintaining a helpful and collaborative tone.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    },
+    "promptResult": {
+        "content": "Hello! It's nice to meet you. How can I assist you today? I'm an AI assistant with knowledge on a wide range of topics, including technology, programming, and artificial intelligence. Is there anything specific you'd like to discuss or any questions you have? I'm here to help!",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-12-30T12:17:54.441Z",
+            "complete": "2024-12-30T12:17:57.997Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00216
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 405
+                },
+                "charactersCount": {
+                    "value": 1900
+                },
+                "wordsCount": {
+                    "value": 254
+                },
+                "sentencesCount": {
+                    "value": 13
+                },
+                "linesCount": {
+                    "value": 43
+                },
+                "paragraphsCount": {
+                    "value": 13
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 63
+                },
+                "charactersCount": {
+                    "value": 277
+                },
+                "wordsCount": {
+                    "value": 51
+                },
+                "sentencesCount": {
+                    "value": 6
+                },
+                "linesCount": {
+                    "value": 5
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "Write a response to the user message:\n\n**Question from user**\n\n> Hello\n\n**Previous conversation**\n\n> \n\n## Knowledge\n\n- ---\n\nNatural Language Programming allows developers to write specifications in plain English, which AI then translates into working code. This approach enables rapid application development, reducing build time from weeks to minutes.\n- AI-powered code generation uses advanced language models to accurately convert plain language specifications into functional code. This system incorporates built-in security, testing, and scalability considerations, making it suitable for enterprise-level applications.\n- Developers worldwide have reported significant benefits from using the Book programming language, including a 70% reduction in development time for LLM applications, improved collaboration between technical and non-technical teams, and accelerated project delivery.\n- The Book language has been praised for its ability to simplify coding processes, enhance personalization in software development, and improve the speed and reliability of CI/CD pipelines.\n\n---\n- ---\n\nGenerative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This technological wave is expected to impact almost every sector of human activity, creating both opportunities and challenges for businesses.\n- Key technologies and concepts in the current tech landscape include: ChatGPT, GPT-4, Anthropic Claude, Gemini, AI, ML, LLMs, DALL-E, Midjourney, Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, and PWAs.\n- Businesses need to leverage the full potential of technology and generative AI to remain competitive. However, keeping up with rapidly evolving technologies and distinguishing important advancements from daily noise can be challenging.\n\n---\n- ---\n\nPavol Hejný is a software engineer who created Promptbook.\n\n---",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Write a response to the user message:\n\n**Question from user**\n\n> Hello\n\n**Previous conversation**\n\n> \n\n## Knowledge\n\n- ---\n\nNatural Language Programming allows developers to write specifications in plain English, which AI then translates into working code. This approach enables rapid application development, reducing build time from weeks to minutes.\n- AI-powered code generation uses advanced language models to accurately convert plain language specifications into functional code. This system incorporates built-in security, testing, and scalability considerations, making it suitable for enterprise-level applications.\n- Developers worldwide have reported significant benefits from using the Book programming language, including a 70% reduction in development time for LLM applications, improved collaboration between technical and non-technical teams, and accelerated project delivery.\n- The Book language has been praised for its ability to simplify coding processes, enhance personalization in software development, and improve the speed and reliability of CI/CD pipelines.\n\n---\n- ---\n\nGenerative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This technological wave is expected to impact almost every sector of human activity, creating both opportunities and challenges for businesses.\n- Key technologies and concepts in the current tech landscape include: ChatGPT, GPT-4, Anthropic Claude, Gemini, AI, ML, LLMs, DALL-E, Midjourney, Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, and PWAs.\n- Businesses need to leverage the full potential of technology and generative AI to remain competitive. However, keeping up with rapidly evolving technologies and distinguishing important advancements from daily noise can be challenging.\n\n---\n- ---\n\nPavol Hejný is a software engineer who created Promptbook.\n\n---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01ASP8hoeqMbdMpB3dUsyQNE",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Hello! It's nice to meet you. How can I assist you today? I'm an AI assistant with knowledge on a wide range of topics, including technology, programming, and artificial intelligence. Is there anything specific you'd like to discuss or any questions you have? I'm here to help!"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 405,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 63
+            }
+        }
+    }
+}
