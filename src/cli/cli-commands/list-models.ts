@@ -1,4 +1,6 @@
-import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
+import type {
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from 'commander';
 import spaceTrim from 'spacetrim';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';

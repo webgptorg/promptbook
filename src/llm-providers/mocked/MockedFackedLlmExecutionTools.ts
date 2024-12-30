@@ -1,19 +1,18 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { EmbeddingVector } from '../../execution/EmbeddingVector';
+import { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import { keepTypeImported } from '../../utils/organization/keepImported';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
+
+keepTypeImported<EmbeddingVector>();
 
 /**
  * Mocked execution Tools for just faking expected responses for testing purposes
@@ -101,10 +100,12 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             console.info('💬 Mocked faked result', result);
         }
 
-        return $asDeeplyFrozenSerializableJson(
-            'MockedFackedLlmExecutionTools (ChatPromptResult or CompletionPromptResult)',
-            result,
-        );
+        return exportJson({
+            name: 'promptResult',
+            message: `Result of \`MockedFackedLlmExecutionTools.callChatModel\``,
+            order: [],
+            value: result,
+        });
     }
 
     /**
@@ -132,7 +133,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
         const content = new Array(1024)
             .fill(0)
-            .map(() => Math.random() * 2 - 1) satisfies EmbeddingVector; /* <- TODO: [🤛] */
+            .map(() => Math.random() * 2 - 1) satisfies EmbeddingVector; /* <- Note: [🤛] */
 
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
@@ -159,7 +160,12 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
             console.info('💬 Mocked faked result', result);
         }
 
-        return $asDeeplyFrozenSerializableJson('MockedFackedLlmExecutionTools EmbeddingPromptResult', result);
+        return exportJson({
+            name: 'promptResult',
+            message: `Result of \`MockedFackedLlmExecutionTools.callEmbeddingModel\``,
+            order: [],
+            value: result,
+        });
     }
 
     // <- Note: [🤖] callXxxModel

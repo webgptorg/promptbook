@@ -106,6 +106,13 @@ async function repairImports({
         }
 
         for (const match of matches) {
+            if (
+                file.path.includes('AzureOpenAiExecutionTools.ts') &&
+                match.groups!.importedEntities.includes('PromptResultUsage')
+            ) {
+                console.log({ match });
+            }
+
             const importedEntities = match
                 .groups!.importedEntities.split(',')
                 .map((importedEntity) => spaceTrim(importedEntity))
@@ -146,7 +153,6 @@ async function repairImports({
         }
     }
 
-    // Note: [🤛] Organizing brakes multiline imports (or does sth. which brakes the code where shouldn’t be)
     await writeAllProjectFiles(files, isOrganized);
 
     if (isCommited) {

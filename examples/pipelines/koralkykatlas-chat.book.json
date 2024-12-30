@@ -1,10 +1,68 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/koralkykatlas-chat.book.md",
     "title": "✨ Chat for KorarkyKatlas.cz",
+    "pipelineUrl": "https://promptbook.studio/examples/koralkykatlas-chat.book.md",
     "description": "Show how to use a simple prompt with no parameters.",
     "formfactorName": "GENERIC",
     "parameters": [],
     "tasks": [],
+    "personas": [],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.79.0",
+            "usage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ],
     "knowledgeSources": [
         {
             "name": "source-https-koralkykatla-ad3ccd3c9253cbf6017c",
@@ -266,64 +324,6 @@
             "preparationIds": [
                 1
             ]
-        }
-    ],
-    "personas": [],
-    "preparations": [
-        {
-            "id": 1,
-            "promptbookVersion": "0.79.0",
-            "usage": {
-                "price": {
-                    "value": 0
-                },
-                "input": {
-                    "tokensCount": {
-                        "value": 0
-                    },
-                    "charactersCount": {
-                        "value": 0
-                    },
-                    "wordsCount": {
-                        "value": 0
-                    },
-                    "sentencesCount": {
-                        "value": 0
-                    },
-                    "linesCount": {
-                        "value": 0
-                    },
-                    "paragraphsCount": {
-                        "value": 0
-                    },
-                    "pagesCount": {
-                        "value": 0
-                    }
-                },
-                "output": {
-                    "tokensCount": {
-                        "value": 0
-                    },
-                    "charactersCount": {
-                        "value": 0
-                    },
-                    "wordsCount": {
-                        "value": 0
-                    },
-                    "sentencesCount": {
-                        "value": 0
-                    },
-                    "linesCount": {
-                        "value": 0
-                    },
-                    "paragraphsCount": {
-                        "value": 0
-                    },
-                    "pagesCount": {
-                        "value": 0
-                    }
-                }
-            }
         }
     ]
 }

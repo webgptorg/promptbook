@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { RESERVED_PARAMETER_NAMES } from '../../../config';
+import { RESERVED_PARAMETER_NAMES } from '../../../constants';
 import { validateParameterName } from './validateParameterName';
 
 describe('how `validateParameterName` works', () => {

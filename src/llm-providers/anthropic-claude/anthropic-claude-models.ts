@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { computeUsage } from '../openai/computeUsage';
 
 /**
@@ -18,73 +18,76 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             readonly output: number_usd;
         };
     }
-> = $asDeeplyFrozenSerializableJson('ANTHROPIC_CLAUDE_MODELS', [
-    {
-        modelVariant: 'CHAT',
-        modelTitle: 'Claude 3.5 Sonnet',
-        modelName: 'claude-3-5-sonnet-20240620',
-        pricing: {
-            prompt: computeUsage(`$3.00 / 1M tokens`),
-            output: computeUsage(`$15.00 / 1M tokens`),
+> = exportJson({
+    name: 'ANTHROPIC_CLAUDE_MODELS',
+    value: [
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 3.5 Sonnet',
+            modelName: 'claude-3-5-sonnet-20240620',
+            pricing: {
+                prompt: computeUsage(`$3.00 / 1M tokens`),
+                output: computeUsage(`$15.00 / 1M tokens`),
+            },
         },
-    },
-    {
-        modelVariant: 'CHAT',
-        modelTitle: 'Claude 3 Opus',
-        modelName: 'claude-3-opus-20240229',
-        pricing: {
-            prompt: computeUsage(`$15.00 / 1M tokens`),
-            output: computeUsage(`$75.00 / 1M tokens`),
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 3 Opus',
+            modelName: 'claude-3-opus-20240229',
+            pricing: {
+                prompt: computeUsage(`$15.00 / 1M tokens`),
+                output: computeUsage(`$75.00 / 1M tokens`),
+            },
         },
-    },
-    {
-        modelVariant: 'CHAT',
-        modelTitle: 'Claude 3 Sonnet',
-        modelName: 'claude-3-sonnet-20240229',
-        pricing: {
-            prompt: computeUsage(`$3.00 / 1M tokens`),
-            output: computeUsage(`$15.00 / 1M tokens`),
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 3 Sonnet',
+            modelName: 'claude-3-sonnet-20240229',
+            pricing: {
+                prompt: computeUsage(`$3.00 / 1M tokens`),
+                output: computeUsage(`$15.00 / 1M tokens`),
+            },
         },
-    },
-    {
-        modelVariant: 'CHAT',
-        modelTitle: 'Claude 3 Haiku',
-        modelName: '	claude-3-haiku-20240307',
-        pricing: {
-            prompt: computeUsage(`$0.25 / 1M tokens`),
-            output: computeUsage(`$1.25 / 1M tokens`),
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 3 Haiku',
+            modelName: '	claude-3-haiku-20240307',
+            pricing: {
+                prompt: computeUsage(`$0.25 / 1M tokens`),
+                output: computeUsage(`$1.25 / 1M tokens`),
+            },
         },
-    },
-    {
-        modelVariant: 'CHAT',
-        modelTitle: 'Claude 2.1',
-        modelName: 'claude-2.1',
-        pricing: {
-            prompt: computeUsage(`$8.00 / 1M tokens`),
-            output: computeUsage(`$24.00 / 1M tokens`),
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 2.1',
+            modelName: 'claude-2.1',
+            pricing: {
+                prompt: computeUsage(`$8.00 / 1M tokens`),
+                output: computeUsage(`$24.00 / 1M tokens`),
+            },
         },
-    },
-    {
-        modelVariant: 'CHAT',
-        modelTitle: 'Claude 2',
-        modelName: 'claude-2.0',
-        pricing: {
-            prompt: computeUsage(`$8.00 / 1M tokens`),
-            output: computeUsage(`$24.00 / 1M tokens`),
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 2',
+            modelName: 'claude-2.0',
+            pricing: {
+                prompt: computeUsage(`$8.00 / 1M tokens`),
+                output: computeUsage(`$24.00 / 1M tokens`),
+            },
         },
-    },
-    {
-        modelVariant: 'CHAT',
-        modelTitle: '	Claude Instant 1.2',
-        modelName: 'claude-instant-1.2',
-        pricing: {
-            prompt: computeUsage(`$0.80 / 1M tokens`),
-            output: computeUsage(`$2.40 / 1M tokens`),
+        {
+            modelVariant: 'CHAT',
+            modelTitle: '	Claude Instant 1.2',
+            modelName: 'claude-instant-1.2',
+            pricing: {
+                prompt: computeUsage(`$0.80 / 1M tokens`),
+                output: computeUsage(`$2.40 / 1M tokens`),
+            },
         },
-    },
 
-    // TODO: [main] !!! Claude 1 and 2 has also completion versions - ask Hoagy
-]);
+        // TODO: [main] !!! Claude 1 and 2 has also completion versions - ask Hoagy
+    ],
+});
 
 /**
  * Note: [🤖] Add models of new variant

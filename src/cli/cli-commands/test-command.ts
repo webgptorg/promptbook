@@ -1,5 +1,7 @@
 import colors from 'colors';
-import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
+import type {
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from 'commander';
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';

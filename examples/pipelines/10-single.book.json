@@ -34,8 +34,6 @@
             ]
         }
     ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
     "personas": [
         {
             "name": "Joe",
@@ -107,5 +105,7 @@
                 }
             }
         }
-    ]
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": []
 }

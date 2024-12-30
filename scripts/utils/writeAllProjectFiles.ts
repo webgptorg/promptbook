@@ -25,8 +25,8 @@ export async function writeAllProjectFiles(
     if (isOrganized && files.length > 0) {
         const changedFilesPathsChunks = splitArrayIntoChunks(changedFilesPaths, 30);
         for (const pachangedFilesPathsChunk of changedFilesPathsChunks) {
-            // Note: [🤛] Organizing brakes multiline imports (or does sth. which brakes the code where shouldn’t be)
             await $execCommand({
+                isVerbose: true,
                 cwd: join(__dirname, '../../'),
                 command: `npx organize-imports-cli ${pachangedFilesPathsChunk
                     .map((path) => path.split('\\').join('/'))

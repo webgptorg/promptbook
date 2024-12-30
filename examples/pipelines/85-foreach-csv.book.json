@@ -1,6 +1,6 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md",
     "title": "✨ Write email for each customer",
+    "pipelineUrl": "https://promptbook.studio/examples/foreach-csv.book.md",
     "description": "Show how to iterate over a table of customers and write an email for each.",
     "formfactorName": "GENERIC",
     "parameters": [
@@ -44,6 +44,78 @@
                 "knowledge"
             ],
             "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
+        }
+    ],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "customer service representative and skilled copywriter for eshop",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a friendly and knowledgeable customer service representative and skilled copywriter for an e-commerce shop. Your role is to assist customers with inquiries, provide product information, and craft compelling product descriptions. Always maintain a helpful and positive tone, prioritize customer satisfaction, and use your copywriting skills to effectively communicate the value of products.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.79.0",
+            "usage": {
+                "price": {
+                    "value": 0.0054540000000000005
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 1173
+                    },
+                    "charactersCount": {
+                        "value": 3268
+                    },
+                    "wordsCount": {
+                        "value": 581
+                    },
+                    "sentencesCount": {
+                        "value": 53
+                    },
+                    "linesCount": {
+                        "value": 72
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 2
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 129
+                    },
+                    "charactersCount": {
+                        "value": 577
+                    },
+                    "wordsCount": {
+                        "value": 79
+                    },
+                    "sentencesCount": {
+                        "value": 5
+                    },
+                    "linesCount": {
+                        "value": 15
+                    },
+                    "paragraphsCount": {
+                        "value": 2
+                    },
+                    "pagesCount": {
+                        "value": 1
+                    }
+                }
+            }
         }
     ],
     "knowledgeSources": [
@@ -209,78 +281,6 @@
             "preparationIds": [
                 1
             ]
-        }
-    ],
-    "personas": [
-        {
-            "name": "Jane",
-            "description": "customer service representative and skilled copywriter for eshop",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a friendly and knowledgeable customer service representative and skilled copywriter for an e-commerce shop. Your role is to assist customers with inquiries, provide product information, and craft compelling product descriptions. Always maintain a helpful and positive tone, prioritize customer satisfaction, and use your copywriting skills to effectively communicate the value of products.",
-                "temperature": 0.7
-            },
-            "preparationIds": [
-                1
-            ]
-        }
-    ],
-    "preparations": [
-        {
-            "id": 1,
-            "promptbookVersion": "0.79.0",
-            "usage": {
-                "price": {
-                    "value": 0.0054540000000000005
-                },
-                "input": {
-                    "tokensCount": {
-                        "value": 1173
-                    },
-                    "charactersCount": {
-                        "value": 3268
-                    },
-                    "wordsCount": {
-                        "value": 581
-                    },
-                    "sentencesCount": {
-                        "value": 53
-                    },
-                    "linesCount": {
-                        "value": 72
-                    },
-                    "paragraphsCount": {
-                        "value": 20
-                    },
-                    "pagesCount": {
-                        "value": 2
-                    }
-                },
-                "output": {
-                    "tokensCount": {
-                        "value": 129
-                    },
-                    "charactersCount": {
-                        "value": 577
-                    },
-                    "wordsCount": {
-                        "value": 79
-                    },
-                    "sentencesCount": {
-                        "value": 5
-                    },
-                    "linesCount": {
-                        "value": 15
-                    },
-                    "paragraphsCount": {
-                        "value": 2
-                    },
-                    "pagesCount": {
-                        "value": 1
-                    }
-                }
-            }
         }
     ]
 }

@@ -20,8 +20,6 @@
             "dependentParameterNames": []
         }
     ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
     "personas": [
         {
             "name": "John",
@@ -93,5 +91,7 @@
                 }
             }
         }
-    ]
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": []
 }

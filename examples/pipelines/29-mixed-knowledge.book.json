@@ -1,6 +1,6 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/mixed-knowledge.book.md",
     "title": "✨ Example: Markdown knowledge with external links",
+    "pipelineUrl": "https://promptbook.studio/examples/mixed-knowledge.book.md",
     "description": "Show how to use knowledge",
     "formfactorName": "GENERIC",
     "parameters": [
@@ -35,6 +35,78 @@
                 "knowledge"
             ],
             "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
+        }
+    ],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "HR professional with prior experience in writing bios",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced HR professional with extensive experience in writing bios. Your role is to assist users in crafting compelling and professional biographies for various purposes, such as job applications, company websites, or social media profiles. Provide guidance on structure, content, and best practices for bio writing, tailoring your advice to the specific needs and context of each user.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.79.0",
+            "usage": {
+                "price": {
+                    "value": 0.0055980000000000005
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 1171
+                    },
+                    "charactersCount": {
+                        "value": 3257
+                    },
+                    "wordsCount": {
+                        "value": 581
+                    },
+                    "sentencesCount": {
+                        "value": 53
+                    },
+                    "linesCount": {
+                        "value": 71
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 2
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 139
+                    },
+                    "charactersCount": {
+                        "value": 581
+                    },
+                    "wordsCount": {
+                        "value": 86
+                    },
+                    "sentencesCount": {
+                        "value": 5
+                    },
+                    "linesCount": {
+                        "value": 15
+                    },
+                    "paragraphsCount": {
+                        "value": 2
+                    },
+                    "pagesCount": {
+                        "value": 1
+                    }
+                }
+            }
         }
     ],
     "knowledgeSources": [
@@ -170,78 +242,6 @@
             "preparationIds": [
                 1
             ]
-        }
-    ],
-    "personas": [
-        {
-            "name": "Jane",
-            "description": "HR professional with prior experience in writing bios",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced HR professional with extensive experience in writing bios. Your role is to assist users in crafting compelling and professional biographies for various purposes, such as job applications, company websites, or social media profiles. Provide guidance on structure, content, and best practices for bio writing, tailoring your advice to the specific needs and context of each user.",
-                "temperature": 0.7
-            },
-            "preparationIds": [
-                1
-            ]
-        }
-    ],
-    "preparations": [
-        {
-            "id": 1,
-            "promptbookVersion": "0.79.0",
-            "usage": {
-                "price": {
-                    "value": 0.0055980000000000005
-                },
-                "input": {
-                    "tokensCount": {
-                        "value": 1171
-                    },
-                    "charactersCount": {
-                        "value": 3257
-                    },
-                    "wordsCount": {
-                        "value": 581
-                    },
-                    "sentencesCount": {
-                        "value": 53
-                    },
-                    "linesCount": {
-                        "value": 71
-                    },
-                    "paragraphsCount": {
-                        "value": 20
-                    },
-                    "pagesCount": {
-                        "value": 2
-                    }
-                },
-                "output": {
-                    "tokensCount": {
-                        "value": 139
-                    },
-                    "charactersCount": {
-                        "value": 581
-                    },
-                    "wordsCount": {
-                        "value": 86
-                    },
-                    "sentencesCount": {
-                        "value": 5
-                    },
-                    "linesCount": {
-                        "value": 15
-                    },
-                    "paragraphsCount": {
-                        "value": 2
-                    },
-                    "pagesCount": {
-                        "value": 1
-                    }
-                }
-            }
         }
     ]
 }

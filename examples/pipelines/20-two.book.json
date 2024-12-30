@@ -1,6 +1,6 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/two.book.md",
     "title": "✨ Example prompt with two consecutive prompts",
+    "pipelineUrl": "https://promptbook.studio/examples/two.book.md",
     "description": "Show how to use two consecutive prompts with one parameter each.",
     "formfactorName": "GENERIC",
     "parameters": [
@@ -52,8 +52,6 @@
             ]
         }
     ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
     "personas": [
         {
             "name": "Joe",
@@ -125,5 +123,7 @@
                 }
             }
         }
-    ]
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": []
 }

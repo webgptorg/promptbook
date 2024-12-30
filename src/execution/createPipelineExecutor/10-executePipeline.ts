@@ -1,9 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
+import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -11,10 +10,8 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import type { Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
@@ -118,9 +115,11 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 await forTime(IMMEDIATE_TIME);
             }
 
-            return $asDeeplyFrozenSerializableJson(
-                `Unuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
-                {
+            return exportJson({
+                name: `executionReport`,
+                message: `Unuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
+                order: [],
+                value: {
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(
@@ -134,7 +133,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     usage: ZERO_USAGE,
                     preparedPipeline,
                 },
-            ) satisfies PipelineExecutorResult;
+            }) satisfies PipelineExecutorResult;
         }
     }
 
@@ -163,8 +162,9 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
             }
 
             // TODO: [🧠] This should be also non-critical error
-            return $asDeeplyFrozenSerializableJson(
-                spaceTrim(
+            return exportJson({
+                name: 'pipelineExecutorResult',
+                message: spaceTrim(
                     (block) => `
                         Unuccessful PipelineExecutorResult (with extra parameter {${
                             parameter.name
@@ -173,7 +173,8 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         ${block(pipelineIdentification)}
                     `,
                 ),
-                {
+                order: [],
+                value: {
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(
@@ -193,7 +194,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     usage: ZERO_USAGE,
                     preparedPipeline,
                 },
-            ) satisfies PipelineExecutorResult;
+            }) satisfies PipelineExecutorResult;
         }
     }
 
@@ -358,9 +359,11 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
             await forTime(IMMEDIATE_TIME);
         }
 
-        return $asDeeplyFrozenSerializableJson(
-            'Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult',
-            {
+        return exportJson({
+            name: 'pipelineExecutorResult',
+            message: `Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult`,
+            order: [],
+            value: {
                 isSuccessful: false,
                 errors: [error, ...errors].map(serializeError),
                 warnings: warnings.map(serializeError),
@@ -369,7 +372,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 outputParameters,
                 preparedPipeline,
             },
-        ) satisfies PipelineExecutorResult;
+        }) satisfies PipelineExecutorResult;
     }
 
     // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [🤹‍♂️]
@@ -390,14 +393,19 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         await forTime(IMMEDIATE_TIME);
     }
 
-    return $asDeeplyFrozenSerializableJson('Successful PipelineExecutorResult', {
-        isSuccessful: true,
-        errors: errors.map(serializeError),
-        warnings: warnings.map(serializeError),
-        usage,
-        executionReport,
-        outputParameters,
-        preparedPipeline,
+    return exportJson({
+        name: 'pipelineExecutorResult',
+        message: `Successful PipelineExecutorResult`,
+        order: [],
+        value: {
+            isSuccessful: true,
+            errors: errors.map(serializeError),
+            warnings: warnings.map(serializeError),
+            usage,
+            executionReport,
+            outputParameters,
+            preparedPipeline,
+        },
     }) satisfies PipelineExecutorResult;
 }
 

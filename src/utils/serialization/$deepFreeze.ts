@@ -3,7 +3,7 @@ import type { really_any } from '../organization/really_any';
 import type { TODO_any } from '../organization/TODO_any';
 
 /**
- * @@@
+ * Freezes the given object and all its nested objects recursively
  *
  * Note: `$` is used to indicate that this function is not a pure function - it mutates given object
  * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
@@ -23,7 +23,10 @@ export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<TObject
             $deepFreeze(value);
         }
     }
-    return Object.freeze(objectValue) as ReadonlyDeep<TObject>;
+
+    Object.freeze(objectValue);
+
+    return objectValue as ReadonlyDeep<TObject>;
 }
 
 /**

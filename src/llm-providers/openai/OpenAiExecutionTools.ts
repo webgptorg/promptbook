@@ -6,20 +6,13 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type { string_date_iso8601, string_markdown, string_markdown_text, string_model_name, string_title, string_token } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import { OpenAiAssistantExecutionTools } from './OpenAiAssistantExecutionTools';
@@ -190,18 +183,23 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             throw new PipelineExecutionError('No response message from OpenAI');
         }
 
-        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools ChatPromptResult', {
-            content: resultContent,
-            modelName: rawResponse.model || modelName,
-            timing: {
-                start,
-                complete,
+        return exportJson({
+            name: 'promptResult',
+            message: `Result of \`OpenAiExecutionTools.callChatModel\``,
+            order: [],
+            value: {
+                content: resultContent,
+                modelName: rawResponse.model || modelName,
+                timing: {
+                    start,
+                    complete,
+                },
+                usage,
+                rawPromptContent,
+                rawRequest,
+                rawResponse,
+                // <- [🗯]
             },
-            usage,
-            rawPromptContent,
-            rawRequest,
-            rawResponse,
-            // <- [🗯]
         });
     }
 
@@ -272,18 +270,23 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         complete = $getCurrentDate();
         const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
-        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools CompletionPromptResult', {
-            content: resultContent,
-            modelName: rawResponse.model || modelName,
-            timing: {
-                start,
-                complete,
+        return exportJson({
+            name: 'promptResult',
+            message: `Result of \`OpenAiExecutionTools.callCompletionModel\``,
+            order: [],
+            value: {
+                content: resultContent,
+                modelName: rawResponse.model || modelName,
+                timing: {
+                    start,
+                    complete,
+                },
+                usage,
+                rawPromptContent,
+                rawRequest,
+                rawResponse,
+                // <- [🗯]
             },
-            usage,
-            rawPromptContent,
-            rawRequest,
-            rawResponse,
-            // <- [🗯]
         });
     }
 
@@ -349,18 +352,23 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             rawResponse,
         );
 
-        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools EmbeddingPromptResult', {
-            content: resultContent,
-            modelName: rawResponse.model || modelName,
-            timing: {
-                start,
-                complete,
+        return exportJson({
+            name: 'promptResult',
+            message: `Result of \`OpenAiExecutionTools.callEmbeddingModel\``,
+            order: [],
+            value: {
+                content: resultContent,
+                modelName: rawResponse.model || modelName,
+                timing: {
+                    start,
+                    complete,
+                },
+                usage,
+                rawPromptContent,
+                rawRequest,
+                rawResponse,
+                // <- [🗯]
             },
-            usage,
-            rawPromptContent,
-            rawRequest,
-            rawResponse,
-            // <- [🗯]
         });
     }
 

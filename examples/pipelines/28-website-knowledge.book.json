@@ -1,6 +1,6 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/website-knowledge.book.md",
     "title": "✨ Example: Knowledge in external website",
+    "pipelineUrl": "https://promptbook.studio/examples/website-knowledge.book.md",
     "description": "Show how to use knowledge",
     "formfactorName": "GENERIC",
     "parameters": [
@@ -34,6 +34,64 @@
                 "knowledge"
             ],
             "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
+        }
+    ],
+    "personas": [],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.79.0",
+            "usage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
         }
     ],
     "knowledgeSources": [
@@ -117,64 +175,6 @@
             "preparationIds": [
                 1
             ]
-        }
-    ],
-    "personas": [],
-    "preparations": [
-        {
-            "id": 1,
-            "promptbookVersion": "0.79.0",
-            "usage": {
-                "price": {
-                    "value": 0
-                },
-                "input": {
-                    "tokensCount": {
-                        "value": 0
-                    },
-                    "charactersCount": {
-                        "value": 0
-                    },
-                    "wordsCount": {
-                        "value": 0
-                    },
-                    "sentencesCount": {
-                        "value": 0
-                    },
-                    "linesCount": {
-                        "value": 0
-                    },
-                    "paragraphsCount": {
-                        "value": 0
-                    },
-                    "pagesCount": {
-                        "value": 0
-                    }
-                },
-                "output": {
-                    "tokensCount": {
-                        "value": 0
-                    },
-                    "charactersCount": {
-                        "value": 0
-                    },
-                    "wordsCount": {
-                        "value": 0
-                    },
-                    "sentencesCount": {
-                        "value": 0
-                    },
-                    "linesCount": {
-                        "value": 0
-                    },
-                    "paragraphsCount": {
-                        "value": 0
-                    },
-                    "pagesCount": {
-                        "value": 0
-                    }
-                }
-            }
         }
     ]
 }

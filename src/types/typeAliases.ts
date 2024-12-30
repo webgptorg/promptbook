@@ -5,7 +5,7 @@
 */
 
 import type { TupleToUnion } from 'type-fest';
-import { RESERVED_PARAMETER_NAMES } from '../config';
+import { RESERVED_PARAMETER_NAMES } from '../constants';
 
 /**
  * Semantic helper
