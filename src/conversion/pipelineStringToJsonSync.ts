@@ -15,8 +15,7 @@ import { DEFAULT_TITLE } from '../config';
 import { ORDER_OF_PIPELINE_JSON, RESERVED_PARAMETER_NAMES } from '../constants';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import { FORMFACTOR_DEFINITIONS } from '../formfactors/index';
-import { isPipelineImplementingInterface } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
+import { HIGH_LEVEL_ABSTRACTIONS } from '../high-level-abstractions';
 import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
@@ -579,48 +578,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     });
 
     // =============================================================
-    // Note: 9️⃣ Implicit and default formfactor
-
-    if ($pipelineJson.formfactorName === undefined) {
-        for (const formfactorDefinition of FORMFACTOR_DEFINITIONS) {
-            // <- Note: [♓️][💩] This is the order of the formfactors, make some explicit priority
-
-            const { name, pipelineInterface } = formfactorDefinition;
-
-            // Note: Skip GENERIC formfactor, it will be used as a fallback if no other formfactor is compatible
-            if (name === 'GENERIC') {
-                continue;
-            }
-
-            const isCompatible = isPipelineImplementingInterface({
-                pipeline: {
-                    formfactorName: name,
-                    // <- Note: `formfactorName` has no role in `isPipelineImplementingInterface`
-                    //           but it is needed to satisfy the typescript
-
-                    ...$pipelineJson,
-                },
-                pipelineInterface,
-            });
-
-            /*/
-            console.log({
-                subject: `${$pipelineJson.title} implements ${name}`,
-                pipelineTitle: $pipelineJson.title,
-                formfactorName: name,
-                isCompatible,
-                formfactorInterface: pipelineInterface,
-                pipelineInterface: getPipelineInterface($pipelineJson as PipelineJson),
-            });
-            /**/
-
-            if (isCompatible) {
-                $pipelineJson.formfactorName = name;
-                break;
-            }
-        }
+    // Note: 9️⃣ Apply sync high-level abstractions
+    for (const highLevelAbstraction of HIGH_LEVEL_ABSTRACTIONS.filter(({ type }) => type === 'SYNC')) {
+        highLevelAbstraction.$applyToPipelineJson($pipelineJson);
     }
 
+    // =============================================================
+    // Note: 🔟 Default formfactor
     // Note: [🔆] If formfactor is still not set, set it to 'GENERIC'
     if ($pipelineJson.formfactorName === undefined) {
         $pipelineJson.formfactorName = 'GENERIC';
@@ -643,6 +607,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 }
 
 /**
+ * TODO: [🧠] Maybe more things here can be refactored as high-level abstractions
  * TODO: [main] !!!! Warn if used only sync version
  * TODO: [🚞] Report here line/column of error
  * TODO: Use spaceTrim more effectively

@@ -80,6 +80,7 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
      * Converts the command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
+     * @deprecated TODO: [🥍][🧠] Backup original files in `PipelineJson` same as in Promptbook.studio
      */
     stringify(command: TCommand): string_markdown_text;
 };
@@ -116,6 +117,7 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
      * Reads the command from the `PipelineJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
+     * @deprecated TODO: [🥍][🧠] Backup original files in `PipelineJson` same as in Promptbook.studio
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<TCommand>;
 };
@@ -218,4 +220,5 @@ export type CommandParserInput = {
 
 /**
  * TODO: [♓️] Add order here
+ * TODO: [🧠][🍱] Maybe make some common abstraction between `HighLevelAbstraction` and `CommandParser`
  */

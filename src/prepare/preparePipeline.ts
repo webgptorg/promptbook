@@ -154,6 +154,8 @@ export async function preparePipeline(
     );
     // ----- /Tasks preparation -----
 
+    // TODO: [😂] Use here all `AsyncHighLevelAbstraction`
+
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 

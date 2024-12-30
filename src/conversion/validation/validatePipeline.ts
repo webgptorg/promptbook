@@ -136,6 +136,19 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         );
     }
 
+    // Note: Check that pipeline has some tasks
+    if (pipeline.tasks.length === 0) {
+        throw new PipelineLogicError(
+            spaceTrim(
+                (block) => `
+                  Pipeline must have at least one task
+
+                  ${block(pipelineIdentification)}
+              `,
+            ),
+        );
+    }
+
     // Note: Check each parameter individually
     for (const parameter of pipeline.parameters) {
         if (parameter.isInput && parameter.isOutput) {

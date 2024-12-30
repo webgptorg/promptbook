@@ -51,7 +51,7 @@ Write a response to the user message:
 
 ## Summarize the conversation
 
--   `PERSONA` Paul
+-   `PERSONA` Paul <!-- TODO: !!!!!! Persona normalization -->
 -   EXPECT MIN 1 Word
 -   EXPECT MAX 10 Words
 

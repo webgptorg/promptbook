@@ -78,6 +78,7 @@ export async function prepareTasks(
 }
 
 /**
+ * TODO: [😂] Adding knowledge should be convert to async high-level abstractions, simmilar thing with expectations to sync high-level abstractions
  * TODO: [🧠] Add context to each task (if missing)
  * TODO: [🧠] What is better name `prepareTask` or `prepareTaskAndParameters`
  * TODO: [♨][main] !!! Prepare index the examples and maybe tasks
