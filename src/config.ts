@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -195,46 +193,6 @@ export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
 export const DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 
 /**
- * Nonce which is used for replacing things in strings
- *
- * @private within the repository
- */
-export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
-
-/**
- * The names of the parameters that are reserved for special purposes
- *
- * @public exported from `@promptbook/core`
- */
-export const RESERVED_PARAMETER_NAMES =
-    /* !!!!!! $asDeeplyFrozenSerializableJson('RESERVED_PARAMETER_NAMES', _____ as const); */ [
-        'content',
-        'context', // <- [🧠][🏍] Is parameter {context} good for anything?
-        'knowledge',
-        'examples',
-        'modelName',
-        'currentDate',
-
-        // <- TODO: list here all command names
-        // <- TODO: Add more like 'date', 'modelName',...
-        // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
-    ] as const;
-
-/**
- * @@@
- *
- * @private within the repository
- */
-export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
-
-/**
- * @@@
- *
- * @private within the repository
- */
-export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
-
-/**
  * The thresholds for the relative time in the `moment` NPM package.
  *
  * @see https://momentjscom.readthedocs.io/en/latest/moment/07-customization/13-relative-time-threshold/
@@ -324,12 +282,12 @@ export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
  * @private within the repository
  */
 export const IS_COST_PREVENTED: boolean = just(
-    /**/
+    /*/
     // Note: In normal situations, we prevent ability to use real API keys in tests:
     true,
     /**/
 
-    /*/
+    /**/
     // When working on preparations, you can temporarily turn off the prevention:
     false,
     /**/
@@ -340,7 +298,6 @@ export const IS_COST_PREVENTED: boolean = just(
 );
 
 /**
- * TODO: Extract `constants.ts` from `config.ts`
  * Note: [💞] Ignore a discrepancy between file name and entity name
  * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
  */

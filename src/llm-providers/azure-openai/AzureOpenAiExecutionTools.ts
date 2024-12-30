@@ -5,22 +5,20 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_completion_prompt, string_date_iso8601, string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import { keepTypeImported } from '../../utils/organization/keepImported';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
+
+keepTypeImported<PromptResultUsage>();
 
 /**
  * Execution Tools for calling Azure OpenAI API.
@@ -178,24 +176,29 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage; /* <- TODO: [🤛] */
+            } satisfies PromptResultUsage; /* <- Note: [🤛] */
 
-            return $asDeeplyFrozenSerializableJson('AzureOpenAiExecutionTools ChatPromptResult', {
-                content: resultContent,
-                modelName,
-                timing: {
-                    start,
-                    complete,
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`AzureOpenAiExecutionTools.callChatModel\``,
+                order: [],
+                value: {
+                    content: resultContent,
+                    modelName,
+                    timing: {
+                        start,
+                        complete,
+                    },
+                    usage,
+                    rawPromptContent,
+                    rawRequest,
+                    rawResponse: {
+                        ...rawResponse,
+                        created: rawResponse.created.toISOString(),
+                        //  <- TODO: Put `created` at begining
+                    },
+                    // <- [🗯]
                 },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse: {
-                    ...rawResponse,
-                    created: rawResponse.created.toISOString(),
-                    //  <- TODO: Put `created` at begining
-                },
-                // <- [🗯]
             });
         } catch (error) {
             throw this.transformAzureError(error as { code: string; message: string });
@@ -281,24 +284,29 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage; /* <- TODO: [🤛] */
+            } satisfies PromptResultUsage; /* <- Note: [🤛] */
 
-            return $asDeeplyFrozenSerializableJson('AzureOpenAiExecutionTools CompletionPromptResult', {
-                content: resultContent,
-                modelName,
-                timing: {
-                    start,
-                    complete,
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`AzureOpenAiExecutionTools.callCompletionModel\``,
+                order: [],
+                value: {
+                    content: resultContent,
+                    modelName,
+                    timing: {
+                        start,
+                        complete,
+                    },
+                    usage,
+                    rawPromptContent,
+                    rawRequest,
+                    rawResponse: {
+                        ...rawResponse,
+                        created: rawResponse.created.toISOString(),
+                        //  <- TODO: Put `created` at begining
+                    },
+                    // <- [🗯]
                 },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse: {
-                    ...rawResponse,
-                    created: rawResponse.created.toISOString(),
-                    //  <- TODO: Put `created` at begining
-                },
-                // <- [🗯]
             });
         } catch (error) {
             throw this.transformAzureError(error as { code: string; message: string });

@@ -1,6 +1,6 @@
 {
-    "pipelineUrl": "https://promptbook.studio/examples/advanced.book.md",
     "title": "✨ Example: Language Capabilities",
+    "pipelineUrl": "https://promptbook.studio/examples/advanced.book.md",
     "description": "Trying the language capabilities of GPT models.",
     "formfactorName": "GENERIC",
     "parameters": [
@@ -173,8 +173,6 @@
             ]
         }
     ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
     "personas": [
         {
             "name": "Joe",
@@ -285,5 +283,7 @@
                 }
             }
         }
-    ]
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": []
 }

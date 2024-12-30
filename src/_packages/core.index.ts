@@ -24,7 +24,7 @@ import { DEFAULT_BOOKS_DIRNAME } from '../config';
 import { DEFAULT_EXECUTIONS_CACHE_DIRNAME } from '../config';
 import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../config';
 import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
+import { RESERVED_PARAMETER_NAMES } from '../constants';
 import { DEFAULT_REMOTE_URL } from '../config';
 import { DEFAULT_REMOTE_URL_PATH } from '../config';
 import { DEFAULT_CSV_SETTINGS } from '../config';

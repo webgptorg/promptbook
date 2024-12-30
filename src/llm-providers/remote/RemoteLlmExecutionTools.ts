@@ -1,27 +1,28 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import { CONNECTION_RETRIES_LIMIT } from '../../config';
-import { CONNECTION_TIMEOUT_MS } from '../../config';
+import { really_any } from '../../_packages/types.index';
+import { CONNECTION_RETRIES_LIMIT, CONNECTION_TIMEOUT_MS } from '../../config';
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import { keepTypeImported } from '../../utils/organization/keepImported';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteLlmExecutionToolsOptions } from './interfaces/RemoteLlmExecutionToolsOptions';
+
+keepTypeImported<PromptbookServer_ListModels_Request<really_any>>();
+keepTypeImported<PromptbookServer_Prompt_Request<really_any>>();
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -70,7 +71,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                     isAnonymous: true,
                     userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
-                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
         } else {
             socket.emit(
@@ -80,7 +81,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                     appId: this.options.appId,
                     userId: this.options.userId,
                     customOptions: this.options.customOptions,
-                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
         }
 
@@ -173,7 +174,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                     userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
         } else {
             socket.emit(
@@ -184,7 +185,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                     userId: this.options.userId,
                     customOptions: this.options.customOptions,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
         }
 
@@ -206,7 +207,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
 }
 
 /**
- * TODO: Maybe use `$asDeeplyFrozenSerializableJson`
+ * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable

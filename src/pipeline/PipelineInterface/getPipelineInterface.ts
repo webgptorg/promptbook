@@ -1,7 +1,7 @@
 import type { WritableDeep } from 'type-fest';
-import { deepClone } from '../../utils/serialization/deepClone';
 import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
-import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
+import { deepClone } from '../../utils/serialization/deepClone';
+import { exportJson } from '../../utils/serialization/exportJson';
 import type { PipelineJson } from '../PipelineJson/PipelineJson';
 import type { PipelineInterface } from './PipelineInterface';
 
@@ -41,5 +41,10 @@ export function getPipelineInterface(pipeline: PipelineJson): PipelineInterface 
         pipelineInterface[key].sort(({ name: name1 }, { name: name2 }) => name1.localeCompare(name2));
     }
 
-    return $deepFreeze(pipelineInterface) as TODO_remove_as<PipelineInterface>;
+    return exportJson({
+        name: `pipelineInterface`,
+        message: `Result of \`getPipelineInterface\``,
+        order: ['inputParameters', 'outputParameters'],
+        value: pipelineInterface,
+    }) as TODO_remove_as<PipelineInterface>;
 }

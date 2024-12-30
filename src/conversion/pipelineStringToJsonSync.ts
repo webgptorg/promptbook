@@ -11,7 +11,8 @@ import type {
     PipelineHeadCommandParser,
     PipelineTaskCommandParser,
 } from '../commands/_common/types/CommandParser';
-import { DEFAULT_TITLE, RESERVED_PARAMETER_NAMES } from '../config';
+import { DEFAULT_TITLE } from '../config';
+import { ORDER_OF_PIPELINE_JSON, RESERVED_PARAMETER_NAMES } from '../constants';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { FORMFACTOR_DEFINITIONS } from '../formfactors/index';
@@ -32,7 +33,7 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 import { titleToName } from '../utils/normalization/titleToName';
 import type { really_any } from '../utils/organization/really_any';
-import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { exportJson } from '../utils/serialization/exportJson';
 import { extractParameterNamesFromTask } from './utils/extractParameterNamesFromTask';
 
 /**
@@ -263,7 +264,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         try {
             (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, $pipelineJson);
-            //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+            //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitly
         } catch (error) {
             if (!(error instanceof ParseError)) {
                 throw error;
@@ -409,7 +410,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             try {
                 (commandParser as PipelineTaskCommandParser<CommandBase>).$applyToTaskJson(
-                    //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+                    //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitly
                     command,
                     $taskJson,
                     $pipelineJson,
@@ -628,22 +629,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
 
     // TODO: [🍙] Maybe do reorder of `$pipelineJson` here
-    return $asDeeplyFrozenSerializableJson('pipelineJson', {
-        title: DEFAULT_TITLE,
-        pipelineUrl: undefined,
-        bookVersion: undefined,
-        description: undefined,
-        formfactorName: 'GENERIC',
-        // <- Note: [🔆] Setting `formfactorName` is redundant to satisfy the typescript
-        parameters: [],
-        tasks: [],
-        knowledgeSources: [],
-        knowledgePieces: [],
-        personas: [],
-        preparations: [],
-        // <- TODO: [🍙] Some standard order of properties
+    return exportJson({
+        name: 'pipelineJson',
+        message: `Result of \`pipelineStringToJsonSync\``,
+        order: ORDER_OF_PIPELINE_JSON,
+        value: {
+            formfactorName: 'GENERIC',
+            // <- Note: [🔆] Setting `formfactorName` is redundant to satisfy the typescript
 
-        ...($pipelineJson as Partial<$PipelineJson>),
+            ...($pipelineJson as $PipelineJson),
+        },
     });
 }
 

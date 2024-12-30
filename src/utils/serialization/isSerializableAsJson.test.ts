@@ -66,14 +66,14 @@ describe('how `isSerializableAsJson` works', () => {
         expect(isSerializableAsJson(obj1)).toBe(false);
     });
 
-    it('objects with same sibling references are serializable', () => {
+    it('objects with same sibling references are serializable *(no circular references)*', () => {
         const obj: really_any = {};
         obj.a = {};
         obj.b = obj.a;
         expect(isSerializableAsJson(obj)).toBe(true);
     });
 
-    it('objects with same family references are serializable', () => {
+    it('objects with same family references are serializable *(no circular references)*', () => {
         const obj: really_any = {};
         obj.a = {};
         obj.b = obj.a;

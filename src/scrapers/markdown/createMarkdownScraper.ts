@@ -1,8 +1,11 @@
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { keepTypeImported } from '../../utils/organization/keepImported';
 import type { ScraperConstructor } from '../_common/register/ScraperConstructor';
 import { MarkdownScraper } from './MarkdownScraper';
 import { markdownScraperMetadata } from './register-metadata';
+
+keepTypeImported<ScraperConstructor>();
 
 /**
  * @@@
@@ -14,7 +17,7 @@ export const createMarkdownScraper = Object.assign(
         return new MarkdownScraper(tools, options);
     },
     markdownScraperMetadata,
-) satisfies ScraperConstructor; /* <- TODO: [🤛] */
+) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

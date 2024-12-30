@@ -40,7 +40,7 @@ export async function pipelineStringToJson(
         );
     }
 
-    // Note: No need to use `$asDeeplyFrozenSerializableJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that
+    // Note: No need to use `$exportJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that
     return pipelineJson;
 }
 

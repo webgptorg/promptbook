@@ -1,7 +1,10 @@
 import type { Registration } from '../../utils/$Register';
+import { keepTypeImported } from '../../utils/organization/keepImported';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { $scrapersMetadataRegister } from '../_common/register/$scrapersMetadataRegister';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+
+keepTypeImported<ScraperAndConverterMetadata>();
 
 /**
  * Metadata of the scraper
@@ -16,7 +19,7 @@ export const documentScraperMetadata = $deepFreeze({
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
     isAvilableInBrowser: false,
     requiredExecutables: ['Pandoc'],
-}) satisfies ScraperAndConverterMetadata; /* <- TODO: [🤛] */
+}) satisfies ScraperAndConverterMetadata; /* <- Note: [🤛] */
 
 /**
  * Registration of known scraper metadata
