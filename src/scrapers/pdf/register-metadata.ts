@@ -1,11 +1,10 @@
 import type { Registration } from '../../utils/$Register';
-import { keepTypeImported } from '../../utils/organization/keepImported';
+import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { $scrapersMetadataRegister } from '../_common/register/$scrapersMetadataRegister';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 
 keepTypeImported<ScraperAndConverterMetadata>();
-
 
 /**
  * Metadata of the scraper

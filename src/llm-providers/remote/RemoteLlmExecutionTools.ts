@@ -13,7 +13,7 @@ import type {
 } from '../../execution/PromptResult';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
-import { keepTypeImported } from '../../utils/organization/keepImported';
+import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';

@@ -13,7 +13,7 @@ import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
 import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
-import { keepTypeImported } from '../../utils/organization/keepImported';
+import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';

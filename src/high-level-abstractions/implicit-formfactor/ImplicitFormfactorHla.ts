@@ -1,7 +1,7 @@
 import { isPipelineImplementingInterface } from '../../_packages/core.index';
 import { $PipelineJson } from '../../commands/_common/types/CommandParser';
 import { FORMFACTOR_DEFINITIONS } from '../../formfactors';
-import { SyncHighLevelAbstraction } from '../_common/AbstractHighLevelAbstraction';
+import { SyncHighLevelAbstraction } from '../_common/HighLevelAbstraction';
 
 /**
  * Set formfactor based on the pipeline interface e
@@ -12,7 +12,7 @@ export const ImplicitFormfactorHla = {
     type: 'SYNC',
     $applyToPipelineJson($pipelineJson: $PipelineJson): void {
         if ($pipelineJson.formfactorName !== undefined) {
-          // Note: When formfactor is already set, do nothing
+            // Note: When formfactor is already set, do nothing
             return;
         }
         for (const formfactorDefinition of FORMFACTOR_DEFINITIONS.filter(

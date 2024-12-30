@@ -1,13 +1,11 @@
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { keepTypeImported } from '../../utils/organization/keepImported';
+import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { ScraperConstructor } from '../_common/register/ScraperConstructor';
 import { PdfScraper } from './PdfScraper';
 import { pdfScraperMetadata } from './register-metadata';
 
-
 keepTypeImported<ScraperConstructor>();
-
 
 /**
  * @@@

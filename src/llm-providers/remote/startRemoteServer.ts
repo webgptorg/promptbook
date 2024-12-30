@@ -8,7 +8,7 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { serializeError } from '../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
-import { keepTypeImported } from '../../utils/organization/keepImported';
+import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { createLlmToolsFromConfiguration } from '../_common/register/createLlmToolsFromConfiguration';
