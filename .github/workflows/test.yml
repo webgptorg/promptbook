@@ -35,3 +35,18 @@ jobs:
                   ANTHROPIC_CLAUDE_API_KEY: ${{ secrets.ANTHROPIC_CLAUDE_API_KEY }}
                   GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
               run: npm run test
+
+    name-discrepancies:
+        name: 🧪 Find name discrepancies
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci --only=dev
+
+            - name: Find name discrepancies
+              run: ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
