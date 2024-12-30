@@ -61,7 +61,7 @@ jobs:
                   node-version: 22
 
             - name: Install dependencies
-              run: npm ci
+              run: npm ci --only=production
 
             - name: Find name discrepancies
-              run: ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
+              run: npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
