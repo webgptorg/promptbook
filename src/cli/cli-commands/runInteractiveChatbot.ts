@@ -82,7 +82,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
             console.info(`\n`);
             if (
                 title !== '' &&
-                just(false) /* <- TODO: Some better way how to show the title of ongoing conversation */
+                just(false) /* <- TODO: [⛲️] Some better way how to show the title of ongoing conversation */
             ) {
                 console.info(colors.gray(`--- ${title} ---`));
             } else {
@@ -163,6 +163,6 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
 
 /**
  * TODO: Saving reports from the chatbot conversation
- * TODO: !!!!!! This is the right place to start implementing INK
+ * TODO: [⛲️] This is the right place to start implementing INK
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */
