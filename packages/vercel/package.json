@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/vercel",
-    "version": "0.80.0-0",
+    "version": "0.80.0-1",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -54,7 +54,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/vercel.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.80.0-0"
+        "@promptbook/core": "0.80.0-1"
     },
     "dependencies": {
         "colors": "1.4.0",
