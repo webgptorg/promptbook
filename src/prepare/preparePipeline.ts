@@ -26,6 +26,7 @@ import { prepareTasks } from './prepareTasks';
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process
  * Note: When the pipeline is already prepared, it returns the same pipeline
+ * @deprecated [🔂] In future vestions, `preparePipeline` + `unpreparePipeline` functions will be made private, use the `compilePipeline`
  * @public exported from `@promptbook/core`
  */
 export async function preparePipeline(
