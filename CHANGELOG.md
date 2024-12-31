@@ -427,8 +427,6 @@ Better system for imports, exports and dependencies
 
 Was accidentally released skipped
 
-## In pre-release
-
 ### `0.65.0` _(2024-08-15-)_
 
 [🍜] Anonymous server
@@ -645,6 +643,8 @@ Simple chat notation
 -   Deprecate `unpreparePipeline`
 -   Rename `pipelineStringToJson` -> `compilePipeline`
 -   Rename `pipelineStringToJsonSync` -> `precompilePipeline`
+
+## In pre-release
 
 ## Drafts
 
