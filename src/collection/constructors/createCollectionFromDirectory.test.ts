@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { compilePipeline } from '../../conversion/compilePipeline';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
@@ -73,7 +73,7 @@ describe('createCollectionFromDirectory', () => {
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
-        expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline, {}));
+        expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline, {}));
     });
 
     it('should get lazy-loaded pipeline by url from collection', async () => {
@@ -95,7 +95,7 @@ describe('createCollectionFromDirectory', () => {
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
-        expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline, {}));
+        expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline, {}));
     });
 
     it('should get different pipeline by url from collection', async () => {
@@ -116,7 +116,7 @@ describe('createCollectionFromDirectory', () => {
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
-        expect(pipelineFromCollection).not.toEqual(await pipelineStringToJson(pipeline, {}));
+        expect(pipelineFromCollection).not.toEqual(await compilePipeline(pipeline, {}));
     });
 
     it('should NOT crash when include error pipelines but lazy-loaded', () =>

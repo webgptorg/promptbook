@@ -2,9 +2,9 @@ This package is usefull when you want to explicitly define types in your code.
 
 ```typescript
 import type { PipelineJson } from '@promptbook/types';
-import { pipelineStringToJson } from '@promptbook/core';
+import { compilePipeline } from '@promptbook/core';
 
-const promptbook: PipelineJson = pipelineStringToJson(
+const promptbook: PipelineJson = compilePipeline(
     spaceTrim(`
 
         # ✨ Example prompt

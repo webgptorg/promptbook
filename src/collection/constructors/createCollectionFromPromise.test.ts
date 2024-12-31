@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { compilePipeline } from '../../conversion/compilePipeline';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 
@@ -34,7 +34,7 @@ describe('createCollectionFromPromise', () => {
 
     const collection = createCollectionFromPromise(async () => {
         await forTime(100);
-        return [await pipelineStringToJson(pipeline)];
+        return [await compilePipeline(pipeline)];
     });
 
     it('should get pipeline by url from collection', async () => {
@@ -42,6 +42,6 @@ describe('createCollectionFromPromise', () => {
         const pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/examples/pipeline.book.md',
         );
-        expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
+        expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline));
     });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { compilePipeline } from '../../conversion/compilePipeline';
 import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -55,7 +55,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
 });
 
 async function getPipelineExecutor() {
-    const pipeline = await pipelineStringToJson(
+    const pipeline = await compilePipeline(
         spaceTrim(`
             # Example prompt
 

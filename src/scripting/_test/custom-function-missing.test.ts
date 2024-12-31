@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { compilePipeline } from '../../conversion/compilePipeline';
 import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -10,7 +10,7 @@ import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools
 
 describe('createPipelineExecutor + missing custom function', () => {
     async function getPipelineExecutor() {
-        const pipeline = await pipelineStringToJson(
+        const pipeline = await compilePipeline(
             spaceTrim(`
                 # Custom functions
 

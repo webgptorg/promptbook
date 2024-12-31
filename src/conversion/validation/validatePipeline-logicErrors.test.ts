@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
-import { pipelineStringToJson } from '../pipelineStringToJson';
+import { compilePipeline } from '../compilePipeline';
 import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
@@ -23,7 +23,7 @@ describe('validatePipeline with logic errors', () => {
                 const pipelineString = importPipelineWithoutPreparation(
                     ('errors/logic/' + name) as `${string}.book.md`,
                 );
-                const pipelineJson = await pipelineStringToJson(pipelineString);
+                const pipelineJson = await compilePipeline(pipelineString);
                 validatePipeline(pipelineJson);
 
                 console.error('Pipeline should have logic error BUT it does not:\n', name);

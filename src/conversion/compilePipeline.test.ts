@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
-import { pipelineStringToJson } from './pipelineStringToJson';
+import { compilePipeline } from './compilePipeline';
 import { importPipelineWithoutPreparation } from './validation/_importPipeline';
 
-describe('pipelineStringToJson', () => {
+describe('compilePipeline', () => {
     const examplesDir = '../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
 
     const examples = readdirSync(join(__dirname, examplesDir), { withFileTypes: true, recursive: false })
@@ -15,9 +15,7 @@ describe('pipelineStringToJson', () => {
 
     for (const { name } of examples) {
         it(`should parse ${name}`, () =>
-            expect(
-                pipelineStringToJson(importPipelineWithoutPreparation(name as `${string}.book.md`)),
-            ).resolves.toEqual(
+            expect(compilePipeline(importPipelineWithoutPreparation(name as `${string}.book.md`))).resolves.toEqual(
                 importPipelineWithoutPreparation(
                     join(examplesDir, name).replace('.book.md', '.book.json') as `${string}.book.json`,
                 ),

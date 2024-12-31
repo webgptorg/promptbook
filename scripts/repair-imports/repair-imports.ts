@@ -85,7 +85,7 @@ async function repairImports({
 
         /*/
         // Note: Keep this for testing single file
-        if (!file.path.includes('pipelineStringToJson.ts')) {
+        if (!file.path.includes('compilePipeline.ts')) {
             continue;
         }
         /**/

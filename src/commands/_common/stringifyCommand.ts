@@ -8,7 +8,7 @@ import type { Command } from './types/Command';
  * @returns stringified command
  * @throws {UnexpectedError} if the command is invalid
  *
- * @private within the pipelineStringToJson
+ * @private within the compilePipeline
  */
 export function stringifyCommand(command: Command): string_markdown_text {
     const commandParser = getParserForCommand(command);

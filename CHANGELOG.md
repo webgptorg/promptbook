@@ -630,7 +630,7 @@ Implicit formfactors
 -   You don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.
 -   Fix in deep cloning of arrays
 
-### `0.80.0` _(2024-12-!!!!!!)_
+### `0.80.0` _(2025-01-01)_
 
 Simple chat notation
 
@@ -644,6 +644,7 @@ Simple chat notation
 -   Deprecate `pipelineJsonToString`
 -   Deprecate `unpreparePipeline`
 -   Rename `pipelineStringToJson` -> `compilePipeline`
+-   Rename `pipelineStringToJsonSync` -> `precompilePipeline`
 
 ## Drafts
 

@@ -9,7 +9,7 @@ import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { dirname, join } from 'path';
-import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
+import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
@@ -83,7 +83,7 @@ async function generateExampleJsons({
             const options: PrepareAndScrapeOptions = {
                 rootDirname: dirname(pipelineMarkdownFilePath),
             };
-            const pipelineJson = await pipelineStringToJson(
+            const pipelineJson = await compilePipeline(
                 pipelineMarkdown as PipelineString,
                 {
                     llm,

@@ -5,7 +5,7 @@ import type {
 import { readFile, writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -21,9 +21,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_filename, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -183,7 +181,7 @@ export function initializeRunCommand(program: Program) {
 
         let pipeline: PipelineJson;
         try {
-            pipeline = await pipelineStringToJson(pipelineString, tools);
+            pipeline = await compilePipeline(pipelineString, tools);
         } catch (error) {
             if (!(error instanceof ParseError)) {
                 throw error;

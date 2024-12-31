@@ -5,7 +5,7 @@ import type {
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
@@ -64,7 +64,7 @@ export function initializeTestCommand(program: Program) {
 
                 if (filename.endsWith('.book.md')) {
                     const pipelineMarkdown = (await readFile(filename, 'utf-8')) as PipelineString;
-                    pipeline = await pipelineStringToJson(pipelineMarkdown, tools);
+                    pipeline = await compilePipeline(pipelineMarkdown, tools);
 
                     if (isVerbose) {
                         console.info(colors.green(`Parsed ${filename}`));

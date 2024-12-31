@@ -3,14 +3,14 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
-import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
+import { precompilePipeline } from './precompilePipeline';
 
 /**
  * Compile pipeline from string (markdown) format to JSON format
  *
  * Note: There are 3 similar functions:
- * - `pipelineStringToJson` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
- * - `pipelineStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
+ * - `compilePipeline` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
+ * - `precompilePipeline` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
  * - `preparePipeline` - just one step in the compilation process
  *
  * Note: This function does not validate logic of the pipeline only the parsing
@@ -23,12 +23,12 @@ import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
  * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */
-export async function pipelineStringToJson(
+export async function compilePipeline(
     pipelineString: PipelineString,
     tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
-    let pipelineJson = pipelineStringToJsonSync(pipelineString);
+    let pipelineJson = precompilePipeline(pipelineString);
 
     if (tools !== undefined && tools.llm !== undefined) {
         pipelineJson = await preparePipeline(
@@ -40,7 +40,7 @@ export async function pipelineStringToJson(
         );
     }
 
-    // Note: No need to use `$exportJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that
+    // Note: No need to use `$exportJson` because `precompilePipeline` and `preparePipeline` already do that
     return pipelineJson;
 }
 
