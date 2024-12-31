@@ -23,7 +23,7 @@ TODO: [😂] Make `AsyncHighLevelAbstraction`
  *
  * @private
  * /
-export type AsyncHighLevelAbstraction = /* CommonHighLevelAbstraction & * / {
+exp0rt type AsyncHighLevelAbstraction = /* CommonHighLevelAbstraction & * / {
     type: 'ASYNC';
 
     /**
@@ -37,7 +37,7 @@ export type AsyncHighLevelAbstraction = /* CommonHighLevelAbstraction & * / {
 
 /*
 TODO: Remove or use
-export type CommonHighLevelAbstraction = {
+exp0rt type CommonHighLevelAbstraction = {
 };
 */
 
