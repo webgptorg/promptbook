@@ -6,6 +6,7 @@ import { exportJson } from '../utils/serialization/exportJson';
 /**
  * Unprepare just strips the preparation data of the pipeline
  *
+ * @deprecated In future version this function will be removed or deprecated
  * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {

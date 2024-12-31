@@ -636,11 +636,14 @@ Simple chat notation
 
 -   High-level chat notation
 -   High-level abstractions
+-   Introduction of `compilePipeline`
 -   Add utility `orderJson` exported from `@promptbook/utils`
 -   Add utility `exportJson` exported from `@promptbook/utils` _(in previous versions this util was private and known as `$asDeeplyFrozenSerializableJson`)_
 -   Circular objects with same family references are considered NOT serializable
 -   Interactive mode for `FORMFACTOR CHATBOT` in CLI
 -   Deprecate `pipelineJsonToString`
+-   Deprecate `unpreparePipeline`
+-   Rename `pipelineStringToJson` -> `compilePipeline`
 
 ## Drafts
 
