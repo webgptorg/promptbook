@@ -125,7 +125,7 @@
             "focus": true
         },
         {
-            "name": "🏭🩹 Repair imports",
+            "name": "🏭🩹 Fix imports",
             "commands": ["npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
             "execute": true,
             "onlySingle": true,
