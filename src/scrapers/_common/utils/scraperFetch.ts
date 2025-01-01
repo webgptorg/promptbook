@@ -5,6 +5,8 @@ import { string_url } from '../../../types/typeAliases';
 
 /**
  * The built-in `fetch' function with a lightweight error handling wrapper as default fetch function used in Promptbook scrapers
+ *
+ * @private as default `fetch` function used in Promptbook scrapers
  */
 export const scraperFetch: PromptbookFetch = async (url: string_url, init?: RequestInit): Promise<Response> => {
     try {
