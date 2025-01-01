@@ -1,8 +1,8 @@
-import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
-import { PipelineLogicError } from '../../errors/PipelineLogicError';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_name } from '../../types/typeAliases';
-import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
+import type { $PipelineJson } from '../../../commands/_common/types/CommandParser';
+import { PipelineLogicError } from '../../../errors/PipelineLogicError';
+import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
+import type { string_name } from '../../../types/typeAliases';
+import type { TODO_remove_as } from '../../organization/TODO_remove_as';
 
 type RenameParameterOptions = {
     /**
@@ -27,7 +27,7 @@ type RenameParameterOptions = {
  * In other words, it will find all parameters that are not used in the task itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
- * @public exported from `@promptbook/core` <- Note: [👖] This utility is so tightly interconnected with the Promptbook that it is not exported as util but in core
+ * @public exported from `@promptbook/editable`
  */
 export function renamePipelineParameter(options: RenameParameterOptions): PipelineJson {
     const { pipeline: pipeline, oldParameterName, newParameterName } = options;

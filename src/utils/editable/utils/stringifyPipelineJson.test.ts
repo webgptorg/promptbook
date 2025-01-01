@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { importPipelineJson } from '../validation/_importPipeline';
-import { importPipelineJsonAsString } from '../validation/_importPipeline';
+import { importPipelineJson, importPipelineJsonAsString } from '../../../conversion/validation/_importPipeline';
 import { stringifyPipelineJson } from './stringifyPipelineJson';
 
 describe('how stringifyPipelineJson works', () => {

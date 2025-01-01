@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { validatePipeline } from '../validation/validatePipeline';
+import { validatePipeline } from '../../../conversion/validation/validatePipeline';
 import { renamePipelineParameter } from './renamePipelineParameter';
 describe('how renamePipelineParameter works', () => {
     it('should rename parameter in simple promptbook', () => {

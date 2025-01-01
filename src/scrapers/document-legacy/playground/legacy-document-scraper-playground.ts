@@ -7,10 +7,10 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { $provideExecutablesForNode } from '../../../executables/$provideExecutablesForNode';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { stringifyPipelineJson } from '../../../utils/editable/utils/stringifyPipelineJson';
 import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { LegacyDocumentScraper } from '../LegacyDocumentScraper';

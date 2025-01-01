@@ -12,7 +12,6 @@ import {
     DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
     GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
 } from '../../config';
-import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -22,6 +21,7 @@ import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$pr
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { string_file_extension } from '../../types/typeAliases';
+import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 
 /**
  * Initializes `make` command for Promptbook CLI utilities

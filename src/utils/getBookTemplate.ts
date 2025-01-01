@@ -1,11 +1,12 @@
-import { any_TODO } from '../../../../webgpt/promptbook-studio/src/utils/typeAliases';
 import genericBook from '../../book/books/templates/generic.book.md';
 
-import { string_formfactor_name } from '../_packages/types.index';
+import { string_formfactor_name, TODO_any } from '../_packages/types.index';
 import { PipelineString } from '../pipeline/PipelineString';
 
 /**
  * Get template for new book
+ *
+ * @public exported from `@promptbook/templates`
  */
 export function getBookTemplate(formfactorName: string_formfactor_name): PipelineString | null {
     const pipelineString =
@@ -18,7 +19,7 @@ export function getBookTemplate(formfactorName: string_formfactor_name): Pipelin
                 // translatorBook,
                 // sheetsBook,
                 // generatorBook,
-            } as any_TODO
+            } as TODO_any
         ) /* TODO: as Record<`${Lowercase<string_formfactor_name>}Book`, PipelineString> */[
             `${formfactorName.toLowerCase()}Book`
         ] || null;

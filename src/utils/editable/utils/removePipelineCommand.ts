@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
-import type { CommandType } from '../../commands/_common/types/CommandType';
-import type { PipelineString } from '../../pipeline/PipelineString';
+import type { CommandType } from '../../../commands/_common/types/CommandType';
+import type { PipelineString } from '../../../pipeline/PipelineString';
 
 /**
  * Options for `removePipelineCommand`
@@ -21,7 +21,7 @@ type RemovePipelineCommandOptions = {
 /**
  * Function `removePipelineCommand` will remove one command from pipeline string
  *
- * @public exported from `@promptbook/core` <- Note: [👖] This utility is so tightly interconnected with the Promptbook that it is not exported as util but in core
+ * @public exported from `@promptbook/editable`
  */
 export function removePipelineCommand(options: RemovePipelineCommandOptions): PipelineString {
     const { command, pipeline } = options;

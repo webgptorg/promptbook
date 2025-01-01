@@ -1,9 +1,9 @@
 import spaceTrim from 'spacetrim';
-import { LOOP_LIMIT } from '../../config';
-import { REPLACING_NONCE } from '../../constants';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { string_json } from '../../types/typeAliases';
-import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
+import { LOOP_LIMIT } from '../../../config';
+import { REPLACING_NONCE } from '../../../constants';
+import { UnexpectedError } from '../../../errors/UnexpectedError';
+import type { string_json } from '../../../types/typeAliases';
+import { isSerializableAsJson } from '../../serialization/isSerializableAsJson';
 
 /**
  * Stringify the PipelineJson with proper formatting
@@ -11,7 +11,7 @@ import { isSerializableAsJson } from '../../utils/serialization/isSerializableAs
  * Note: [0] It can be used for more JSON types like whole collection of pipelines, single knowledge piece, etc.
  * Note: In contrast to JSON.stringify, this function ensures that **embedding index** is on single line
  *
- * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/editable`
  */
 export function stringifyPipelineJson<TType>(pipeline: TType): string_json<TType> {
     if (!isSerializableAsJson(pipeline)) {

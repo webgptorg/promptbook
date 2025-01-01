@@ -1,5 +1,5 @@
-import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
+import { stringifyPipelineJson } from '../../../utils/editable/utils/stringifyPipelineJson';
 import { isSerializableAsJson } from '../../../utils/serialization/isSerializableAsJson';
 import type { PromptbookStorage } from '../../_common/PromptbookStorage';
 

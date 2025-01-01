@@ -1,0 +1,840 @@
+import spaceTrim from 'spacetrim';
+import { $getCurrentDate } from '../$getCurrentDate';
+import {
+    ParseError,
+    pipelineJsonToString,
+    PipelineLogicError,
+    precompilePipeline,
+    removePipelineCommand,
+    renamePipelineParameter,
+    UnexpectedError,
+    validatePipeline,
+} from '../../_packages/core.index';
+import {
+    ErrorJson,
+    KnowledgePiecePreparedJson,
+    KnowledgeSourceJson,
+    KnowledgeSourcePreparedJson,
+    ParameterJson,
+    PersonaJson,
+    PersonaPreparedJson,
+    PipelineJson,
+    PipelineString,
+    PreparationJson,
+    string_formfactor_name,
+    TaskJson,
+} from '../../_packages/types.index';
+import { LOOP_LIMIT } from '../../config';
+import { ExecutionTools } from '../../execution/ExecutionTools';
+import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { preparePipeline } from '../../prepare/preparePipeline';
+import {
+    string_date_iso8601,
+    string_markdown_text,
+    string_name,
+    string_pipeline_url,
+    string_semantic_version,
+} from '../../types/typeAliases';
+import { removeContentComments } from '../markdown/removeContentComments';
+import { isValidPipelineUrl } from '../validators/url/isValidPipelineUrl';
+import { PipelineEditableSerialized } from './types/PipelineEditableSerialized';
+
+/**
+ * Options for creating new pipelines
+ *
+ * @public exported from `@promptbook/editable`
+ */
+type NewPipelineOptions = {
+    /**
+     * Collection name of new pipeline
+     */
+    collectionName: string_name;
+
+    /**
+     * Title of new pipeline
+     */
+    pipelineTitle?: string;
+
+    /**
+     * URL of the new pipeline, if not set it is infered from `collectionName` and `pipelineTitle`
+     */
+    pipelineUrl?: string_pipeline_url;
+
+    /**
+     * Additional data of the pipeline
+     */
+    sourceJson?: Partial<PipelineEditableSerialized>;
+};
+
+/**
+ * Represents Pipeline with editing capabilities
+ *
+ * Note: It will be always valid because it exposes errors separatelly
+ * Note: There are two similar entities:
+ *       1) Type (interface) `PipelineEditableSerialized` which represents just data in database
+ *       2) Class `PipelineEditable` which implements `PipelineEditableSerialized` and adds error handling and editing capabilities
+ *
+ * @public exported from `@promptbook/editable`
+ */
+export class PipelineEditable implements PipelineEditableSerialized {
+    /**
+     * Create a new instance of PipelineEditable from pipeline.json
+     *
+     * @param sourceJson content of pipeline.json
+     * @returns PipelineEditable instance
+     * @throws {PipelineLogicError} on logical error in the pipeline
+     * @throws {Error} if the pipeline url is not valid
+     */
+    public static fromJson(
+        sourceJson: PipelineJson & Partial<Pick<PipelineEditable, 'pipelineString'>>,
+    ): PipelineEditable {
+        if (!isValidPipelineUrl(sourceJson.pipelineUrl)) {
+            throw new Error(`Pipeline "${sourceJson.title}" URL is not valid so it cannot be used in PromptbookStudio`);
+        }
+
+        /*
+        TODO: [▫] How to do this in Promptbook.studio
+        pipelineUrlToDirectoryAndName(sourceJson.pipelineUrl);
+        // <- Note: Do not need the result, just checking that URL is valid
+        */
+
+        validatePipeline(sourceJson);
+
+        return new PipelineEditable({
+            ...sourceJson,
+            pipelineString: sourceJson.pipelineString || null,
+            pipelineUrl: sourceJson.pipelineUrl,
+            createdAt: $getCurrentDate(),
+            updatedAt: null,
+            knownErrors: [],
+        });
+    }
+
+    /**
+     * Create a new instance of PipelineEditable from pipeline.book.md
+     *
+     * @param sourceMarkdown content of pipeline.book.md
+     * @returns PipelineEditable instance
+     * @throws {PipelineParseError} if the pipeline string is not valid
+     * @throws {PipelineLogicError} on logical error in the pipeline
+     * @throws {Error} if the pipeline url is not valid
+     */
+    public static fromMarkdown(
+        sourceMarkdown: PipelineString,
+        options?: { isCommentsRemoved?: boolean; isPipelineUrlHidden?: boolean },
+    ): PipelineEditable {
+        const { isCommentsRemoved = false, isPipelineUrlHidden = false } = options || {};
+
+        if (isCommentsRemoved) {
+            sourceMarkdown = removeContentComments(sourceMarkdown);
+        }
+
+        const sourceJson = precompilePipeline(sourceMarkdown);
+
+        // Note: Hidind the URL after the URL is parsed
+        if (isPipelineUrlHidden) {
+            sourceMarkdown = removePipelineCommand({
+                pipeline: sourceMarkdown,
+                command: 'URL',
+            });
+        }
+
+        /**
+        TODO: [🧠] Maybe capture errors - now it just fails on invalid markdown book
+        this._errors = [];
+        this._errors.push(error);
+        */
+
+        return PipelineEditable.fromJson({
+            ...sourceJson,
+            pipelineUrl: sourceJson.pipelineUrl /* [▫]  || MINIAPP_NEW_PIPELINE_URL */,
+            pipelineString: sourceMarkdown,
+        });
+    }
+
+    /**
+     * !!!
+     * @param data !!!
+     */
+    private constructor(private readonly data: PipelineEditableSerialized) {
+        // console.log('PipelineEditable', data);
+    }
+
+    // ================= Serialization ================
+
+    /**
+     * !!!!
+     */
+    public static deserialize(source: PipelineEditableSerialized): PipelineEditable {
+        return new PipelineEditable(source);
+    }
+
+    /**
+     * !!!!
+     */
+    public serialize(): PipelineEditableSerialized {
+        return this.data;
+    }
+
+    /**
+     * !!!!
+     */
+    public toJSON(): PipelineEditableSerialized {
+        return this.serialize();
+    }
+
+    // ================= Getters ================
+
+    /**
+     * Unique identifier of the pipeline based on promptbook.studio and library
+     */
+    public get pipelineUrl(): string_pipeline_url {
+        return this.data.pipelineUrl;
+    }
+
+    public get pipelineString(): PipelineString | string {
+        if (this.data.pipelineString !== null) {
+            return this.data.pipelineString;
+        } else {
+            const pipelineString = pipelineJsonToString(this.data);
+            return pipelineString;
+        }
+    }
+    public get createdAt(): string_date_iso8601 {
+        // TODO: [🧠] Probbably make variant which returns moment or Date instance
+        return this.data.createdAt; // <- TODO: !!!!!! Deserialize here
+    }
+    public get updatedAt(): string_date_iso8601 | null {
+        // TODO: [🧠] Probbably make variant which returns moment or Date instance
+        return this.data.updatedAt; // <- TODO: !!!!!! Deserialize here
+    }
+
+    /*
+    TODO: [▫]
+
+    /**
+     * Name of the collection in which this pipeline is
+     * /
+    public get collectionName(): string_name {
+        const { collectionName } = pipelineUrlToDirectoryAndName(this.data.pipelineUrl);
+        return collectionName;
+    }
+
+    /**
+     * Path segments to the pipeline but without the library name and the pipeline name
+     * /
+    public get pipelineDirectory(): Array<string_name> {
+        const { pipelineDirectory } = pipelineUrlToDirectoryAndName(this.data.pipelineUrl);
+        return pipelineDirectory;
+    }
+
+    /**
+     * Name of the pipeline without the extension
+     * /
+    public get pipelineName(): string_name {
+        const { pipelineName } = pipelineUrlToDirectoryAndName(this.data.pipelineUrl);
+        return pipelineName;
+    }
+
+    */
+
+    /**
+     * Title of the pipeline
+     */
+    public get title(): string_markdown_text {
+        return this.data.title;
+    }
+
+    /**
+     * Version of the .book.json file
+     */
+    public get bookVersion(): string_semantic_version | undefined {
+        return this.data.bookVersion;
+    }
+
+    /**
+     * Description of the pipeline
+     * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
+     */
+    public get description(): string {
+        return this.data.description || '';
+    }
+
+    /**
+     * Set of variables that are used across the pipeline
+     */
+    public get formfactorName(): string_formfactor_name {
+        return this.data.formfactorName;
+    }
+
+    /**
+     * Set of variables that are used across the pipeline
+     */
+    public get parameters(): Array<ParameterJson> {
+        return this.data.parameters;
+    }
+
+    /**
+     * Sequence of prompt tasks that are chained together to form a pipeline
+     */
+    public get tasks(): Array<TaskJson> {
+        return this.data.tasks;
+    }
+
+    /**
+     * Set of information that are used as external knowledge in the pipeline
+     */
+    public get knowledgeSources(): Array<KnowledgeSourceJson | KnowledgeSourcePreparedJson> {
+        return this.data.knowledgeSources;
+    }
+
+    /**
+     * Set of information that are used as external knowledge in the pipeline
+     */
+    public get knowledgePieces(): Array<KnowledgePiecePreparedJson> {
+        return this.data.knowledgePieces;
+    }
+
+    /**
+     * List of prepared virtual personas that are used in the pipeline
+     */
+    public get personas(): Array<PersonaJson | PersonaPreparedJson> {
+        return this.data.personas;
+    }
+
+    /**
+     * List of prepared virtual personas that are used in the pipeline
+     */
+    public get preparations(): Array<PreparationJson> {
+        return this.data.preparations;
+    }
+
+    // ================= Error handling ================
+
+    private _errors: Array<PipelineLogicError | ParseError> | null = null;
+
+    /**
+     * Sequence of prompt tasks that are chained together to form a pipeline
+     *
+     * Note: This getter is cached so its safe to call it multiple times
+     */
+    public get errors(): Array<PipelineLogicError | ParseError | Error> {
+        const knownErrors = (this.data.knownErrors || []).map(
+            ({ message }) => new Error(message) /* <- TODO: Better Error deserialization */,
+        );
+
+        // console.log('!!! this.data.knownErrors', this.data.knownErrors);
+
+        if (this._errors !== null) {
+            return [...knownErrors, ...this._errors];
+        }
+
+        // TODO: !!! Use on all places where [⚠] +
+
+        // TODO: [🧠] Allow to handle multiple errors
+        this._errors = [];
+
+        try {
+            if (this.data.pipelineString !== null) {
+                const pipelineJson = precompilePipeline(
+                    this.data.pipelineString as PipelineString /* <- In case if not, try-catch block */,
+                );
+                validatePipeline(pipelineJson);
+            }
+
+            validatePipeline(this.data);
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            this._errors.push(error as PipelineLogicError | ParseError);
+        }
+
+        return [...knownErrors, ...this._errors];
+    }
+
+    /**
+     * Known errors to transfer to new PipelineEditable
+     *
+     * Note: In most cases use just `errors`
+     */
+    public get knownErrors(): Array<ErrorJson> {
+        return this.data.knownErrors;
+    }
+
+    // ================= Editing ================
+
+    private edit(editCallback: () => PipelineJson): PipelineEditable {
+        const newSource = editCallback(/* TODO: [🧠] Maybe pass here this */);
+
+        if (newSource.pipelineUrl !== undefined && newSource.pipelineUrl !== this.pipelineUrl) {
+            throw new Error(
+                spaceTrim(`
+                    If you want to edit the \`pipelineUrl\`, use \`makeCopy\` or \`makeNew\`
+
+                    Current pipelineUrl:
+                    ${this.pipelineUrl}
+
+                    You tried to change it to:
+                    ${newSource.pipelineUrl}
+                `),
+            );
+        }
+
+        // Note: Create new instance with updated source to ensure immutability
+        return new PipelineEditable({
+            ...this.data,
+            updatedAt: $getCurrentDate(),
+            ...newSource,
+        });
+    }
+
+    /**
+     * Note: If you want to edit the `pipelineUrl`, use `makeCopy` or `makeNew`
+     */
+    public editMetadata(
+        metadata: Partial<Pick<PipelineJson, 'title' | 'bookVersion' | 'description'>>,
+    ): PipelineEditable {
+        // TODO: !!! Anotate
+
+        return this.edit(() => ({
+            ...this.data,
+            ...metadata,
+            // pipelineUrl: ___ <- TODO: [🎑] Derive pipelineUrl dynamically if setting up title
+        }));
+    }
+
+    public addInputParameter(preferredName: string_name, description?: string_markdown_text): PipelineEditable {
+        // TODO: !!! Anotate
+        const parameterName = this.getUniqueParameterName(preferredName);
+
+        return this.edit(() => ({
+            ...this.data,
+            parameters: [
+                ...this.data.parameters,
+                {
+                    name: parameterName,
+                    description,
+                    isInput: true,
+                    isOutput: false,
+                },
+            ],
+        }));
+    }
+
+    /**
+     * Find all usable parameters for given prompt task
+     * In other words, it will find all parameters that are not used in the prompt task itseld and all its dependencies
+     *
+     * @param oldParameterName Original parameter name that should be replaced
+     * @param newParameterName New parameter name that should replace the original parameter name
+     * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline <- TODO: !!!! Should it throw
+     */
+    public renameParameter(oldParameterName: string_name, newParameterName: string_name): PipelineEditable {
+        // TODO: [👨‍✈️] Deeper logic and check if parameter rename is allowed
+        return this.edit(() =>
+            renamePipelineParameter({
+                pipeline: this.data,
+                oldParameterName,
+                newParameterName,
+            }),
+        );
+    }
+
+    /*
+    !!!
+    public deleteParameter(parameterName: string_name): PipelineEditable {
+     // TODO: [👨‍✈️] Deeper logic and check to (dis)allow parameter to change isInput / isOutput / delete the parameter
+        return this.edit(() => {
+            // TODO: !!! Implement
+            // TODO: !!! Anotate
+        });
+    }
+    */
+
+    public editParameterMetadata(
+        parameterName: string_name,
+        metadata: Partial<Omit<ParameterJson, 'name'>>,
+    ): PipelineEditable {
+        // TODO: !!! Anotate
+
+        return this.edit(() => ({
+            ...this.data,
+            parameters: this.data.parameters.map((parameter) =>
+                parameter.name !== parameterName
+                    ? parameter
+                    : ({
+                          ...parameter,
+                          ...metadata,
+                      } as ParameterJson),
+            ),
+        }));
+    }
+
+    private getUniqueParameterName(preferredName: string_name): string_name {
+        // TODO: !!! Anotate
+
+        // TODO: In situation when there is param1, param2, param4 DO not make param3 BUT param5
+        for (let i = 0; i < LOOP_LIMIT; i++) {
+            const parameterName = preferredName + (i === 0 ? '' : i.toString());
+
+            if (this.data.parameters.every((parameter) => parameter.name !== parameterName)) {
+                return parameterName;
+            }
+        }
+
+        throw new UnexpectedError(
+            `Too many parameters with the same name {${preferredName}}1, {${preferredName}}2,...`,
+        );
+        // return $randomJavascriptName({ prefix: preferredName, length: 8 });
+    }
+
+    private addTask(promptTask: TaskJson): PipelineEditable {
+        // TODO: !!! Anotate
+
+        // TODO: !!!!!> promptTask.resultingParameterName  <-  Always unique parameter name
+
+        return this.edit(() => ({
+            ...this.data,
+            parameters: [
+                ...this.data.parameters,
+                {
+                    name: promptTask.resultingParameterName,
+                    isInput: false,
+                    isOutput: true, // <- TODO: !!!! The best default value
+                },
+            ],
+            tasks: [
+                ...this.data.tasks,
+                {
+                    ...promptTask,
+                    /*
+                    TODO: [7]
+                    name: $randomPipelineName({
+                        prefix: 'prompt-',
+                        length: 8,
+                    }) /* <- TODO: [🎑] Derive dynamically * /,
+                    dependentParameterNames: [
+                        /* <- TODO: [🎑] Derive dynamically * /
+                    ],
+                    title: 'New prompt',
+                    content: 'Write a joke!',
+                    resultingParameterName: 'joke',
+                    // <- TODO: [☃️] !!! Create from some meaningfull task
+                    */
+                },
+            ],
+        }));
+    }
+
+    public addLlmTask(): PipelineEditable {
+        // TODO: !!! Anotate
+
+        // TODO: !!!!! Make some nice fake-pipeline-like task
+
+        return this.addTask({
+            taskType: 'PROMPT_TASK',
+            // TODO: [7] Do dynamically in this.addTask
+            name: $randomPipelineName({
+                prefix: 'prompt-',
+                length: 8,
+            }),
+            // TODO: [7] Do dynamically in this.addTask
+            dependentParameterNames: [],
+            title: 'New prompt',
+            content: 'Write a joke!',
+            resultingParameterName: this.getUniqueParameterName('joke'),
+            modelRequirements: {
+                modelVariant: 'CHAT',
+                modelName: `gpt-4o-turbo`, // <- TODO: !!! By default {modelVariant: 'CHAT', modelName: `gpt-4o-turbo`}
+            },
+            // <- TODO: [☃️] !!! Create from some meaningfull task
+        });
+    }
+
+    public addSimpleTask(): PipelineEditable {
+        // TODO: !!! Anotate
+
+        // TODO: !!!!! Make some nice fake-pipeline-like task
+
+        return this.addTask({
+            taskType: 'SIMPLE_TASK',
+            name: $randomPipelineName({
+                prefix: 'prompt-',
+                length: 8,
+            }) /* <- TODO: [🎑] Derive dynamically */,
+            dependentParameterNames: [
+                /* <- TODO: [🎑] Derive dynamically */
+            ],
+            title: 'New simple task',
+            content: 'Joke about apples.',
+            resultingParameterName: this.getUniqueParameterName('joke'),
+            // <- TODO: [☃️] !!! Create from some meaningfull task
+        });
+    }
+
+    public addScript(): PipelineEditable {
+        // TODO: !!! Anotate
+
+        // TODO: !!!!! Make some nice fake-pipeline-like task
+
+        return this.addTask({
+            taskType: 'SCRIPT_TASK',
+            name: $randomPipelineName({
+                prefix: 'prompt-',
+                length: 8,
+            }) /* <- TODO: [🎑] Derive dynamically */,
+            dependentParameterNames: [
+                /* <- TODO: [🎑] Derive dynamically */
+            ],
+            title: 'New script',
+            content: 'Write a joke!',
+            resultingParameterName: this.getUniqueParameterName('joke'),
+            contentLanguage: 'javascript',
+            // <- TODO: [☃️] !!! Create from some meaningfull task
+        });
+    }
+
+    public addPromptDialog(): PipelineEditable {
+        // TODO: !!! Anotate
+
+        // TODO: !!!!! Make some nice fake-pipeline-like task
+
+        return this.addTask({
+            taskType: 'DIALOG_TASK',
+            name: $randomPipelineName({
+                prefix: 'prompt-',
+                length: 8,
+            }) /* <- TODO: [🎑] Derive dynamically */,
+            dependentParameterNames: [
+                /* <- TODO: [🎑] Derive dynamically */
+            ],
+            title: 'New user dialog',
+            content: 'Write a joke!',
+            resultingParameterName: this.getUniqueParameterName('joke'),
+            // <- TODO: [☃️] !!! Create from some meaningfull task
+        });
+    }
+
+    public editPromptTask(
+        promptTaskName: string_name,
+        editCallback: (originalPrompt: Omit<TaskJson, 'name'>) => Omit<TaskJson, 'name'>,
+    ): PipelineEditable {
+        // TODO: !!! Anotate
+
+        return this.edit(() => ({
+            ...this.data,
+            tasks: this.data.tasks.mapOne((existingPrompt) =>
+                existingPrompt.name === promptTaskName
+                    ? ({ ...editCallback(existingPrompt), name: promptTaskName } as TaskJson)
+                    : existingPrompt,
+            ),
+        }));
+    }
+
+    public deletePromptTask(promptTaskName: string_name): PipelineEditable {
+        // TODO: !!! Anotate
+
+        const promptTask = this.data.tasks.find((existingPromptTask) => existingPromptTask.name === promptTaskName);
+
+        if (promptTask === undefined) {
+            throw new Error(`Prompt task "${promptTaskName}" not found`);
+        }
+
+        return this.edit(() => ({
+            ...this.data,
+            tasks: this.data.tasks.filterOne((existingPromptTask) => existingPromptTask.name !== promptTaskName),
+
+            parameters: this.data.parameters.filterOne(
+                (existingParameter) => existingParameter.name !== promptTask.resultingParameterName,
+            ),
+        }));
+    }
+
+    /**
+     *
+     * Note: Does not throw any errors, if markdown is not valid it will be backed up to pipelineString
+     */
+    public editMarkdown(newSourceMarkdown: PipelineString | string): PipelineEditable {
+        // TODO: !!! Anotate
+
+        return this.edit(() => {
+            try {
+                let newSourceJson = precompilePipeline(
+                    newSourceMarkdown as PipelineString /* <- In case if not, try-catch block */,
+                );
+
+                if (newSourceJson.pipelineUrl === undefined && this.pipelineUrl !== undefined) {
+                    newSourceJson = { ...newSourceJson, pipelineUrl: this.pipelineUrl };
+                } /* not else */
+
+                if (newSourceJson.pipelineUrl !== undefined && newSourceJson.pipelineUrl !== this.pipelineUrl) {
+                    throw new Error(
+                        spaceTrim(`
+                            If you want to edit the \`pipelineUrl\`, use \`makeCopy\` or \`makeNew\`
+
+                            Current pipelineUrl:
+                            ${this.pipelineUrl}
+
+                            You tried to change it to:
+                            ${newSourceJson.pipelineUrl}
+                        `),
+                    );
+                }
+
+                // console.log(`!!! editMarkdown ok`, newSourceJson);
+                return {
+                    ...newSourceJson,
+                    knownErrors: [], // <- TODO: Dynamically filter errors thar happen here [2]
+                    pipelineString: newSourceMarkdown,
+                };
+            } catch (error) {
+                if (!(error instanceof Error)) {
+                    throw error;
+                }
+
+                // console.log(`!!! editMarkdown error`, error);
+
+                return {
+                    ...this.data,
+                    knownErrors: [errorToJson(error)], // <- Here [2]
+                    pipelineString: newSourceMarkdown,
+                };
+            }
+        });
+    }
+
+    // ================= New, clonning ================
+
+    /**
+     * Copy this pipeline into new one
+     */
+    public makeCopy(options: Partial<NewPipelineOptions> = {}): PipelineEditable {
+        const { sourceJson } = options;
+        let { collectionName, pipelineTitle, pipelineUrl } = options;
+
+        if (pipelineTitle === undefined) {
+            pipelineTitle = this.title + ' Copy';
+        }
+
+        if (collectionName === undefined) {
+            collectionName = pipelineUrlToDirectoryAndName(pipelineUrl || this.pipelineUrl).collectionName;
+        }
+
+        return PipelineEditable.makeNew({
+            collectionName,
+            pipelineTitle,
+            pipelineUrl,
+            sourceJson: {
+                ...this.data,
+                ...sourceJson,
+            },
+        });
+    }
+
+    /**
+     * Create fresh pipeline
+     *
+     * Note: Consider using `NEW_BOOK.makeCopy` instead to include some boilerplate book code
+     */
+    public static makeNew(options: NewPipelineOptions): PipelineEditable {
+        const { collectionName, pipelineTitle, sourceJson = {} } = options;
+
+        const title = pipelineTitle || $randomBookName();
+
+        const pipelineName = titleToName(title);
+
+        let { pipelineUrl } = options;
+
+        if (pipelineUrl === undefined) {
+            pipelineUrl = `https://promptbook.studio/${collectionName}/${
+                $randomPipelineName({ prefix: pipelineName, length: 8 }) /* <- TODO: [🎑] Derive dynamically */
+            }.book.md`;
+        }
+
+        const { collectionName: collectionName_, pipelineName: pipelineName_ } =
+            pipelineUrlToDirectoryAndName(pipelineUrl);
+        // <- Note: Also checking that URL is valid
+
+        if (collectionName !== collectionName_ || !pipelineName_.includes(pipelineName)) {
+            throw new Error(
+                spaceTrim(`
+                    Pipeline URL does not match given \`collectionName\` and \`pipelineTitle\`
+
+                    collectionName: ${collectionName}
+                    pipelineName: ${pipelineName}
+                    pipelineUrl: ${pipelineUrl}
+
+                `),
+            );
+        }
+
+        let pipelineString = sourceJson.pipelineString || undefined;
+
+        if (pipelineString !== undefined) {
+            // TODO: Maybe make utility `renamePipeline(pipeline: PipelineJson|PipelineString)` (simmilar util as `removePipelineCommand`)
+            pipelineString = pipelineString.split('✨ Hello Book').join(title);
+            console.log('!!! pipelineString', pipelineString);
+        }
+
+        const sourceJsonFull = {
+            description: '',
+            bookVersion: BOOK_LANGUAGE_VERSION,
+            formfactorName: 'GENERIC' as string_formfactor_name,
+            parameters: [
+                /* <- TODO: [☃️] !!! Create from some meaningfull task */
+            ],
+            tasks: [
+                /* <- TODO: [☃️] !!! Create from some meaningfull task */
+            ],
+            knowledgeSources: [
+                /* <- TODO: [☃️] !!! Create from some meaningfull task */
+            ],
+            knowledgePieces: [
+                /* <- TODO: [☃️] !!! Create from some meaningfull task */
+            ],
+            personas: [],
+            preparations: [],
+            ...sourceJson,
+        };
+
+        return PipelineEditable.fromJson({
+            ...sourceJsonFull,
+            pipelineString,
+            pipelineUrl,
+            title,
+        });
+    }
+
+    // TODO: !!!!! Editable immutable methods + ACRY seatch to make this editable
+
+    // ================= Preparation ================
+
+    public get isPrepared(): boolean {
+        return isPipelinePrepared(this.data);
+    }
+
+    public async prepare(
+        tools: Pick<ExecutionTools, 'llm' | 'scrapers'>,
+        options: PrepareAndScrapeOptions,
+    ): Promise<PipelineEditable> {
+        const preparedPipeline = await preparePipeline(this.data, tools, options);
+        return new PipelineEditable({
+            ...this.data,
+            updatedAt: $getCurrentDate(),
+            ...preparedPipeline,
+        });
+    }
+}
+
+/**
+ * TODO: [🧠] Maybe Node variant to directly work with files
+ * TODO: !!!!!! Write tests for all editing capabilities
+ * TODO: !!!! Use `compilePipeline` not `precompilePipeline`
+ * TODO: !!!! On every edit update updatedAt
+ * TODO: [🧠] !!!! Allow to edit (here and also in the aplication, views,...) `knowledgeSources`, `knowledgePieces`, `personas`, `preparations`
+ * TODO: [🧠] Maybe toJSON | Method for getting json as string using `stringifyPipelineJson`
+ * TODO: Refactorn into multiple files - this is soooo big
+ */

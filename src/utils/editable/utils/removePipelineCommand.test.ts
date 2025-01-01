@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import type { PipelineString } from '../../pipeline/PipelineString';
-import { just } from '../../utils/organization/just';
+import type { PipelineString } from '../../../pipeline/PipelineString';
+import { just } from '../../organization/just';
 import { removePipelineCommand } from './removePipelineCommand';
 
 describe('how `removePipelineCommand` works', () => {

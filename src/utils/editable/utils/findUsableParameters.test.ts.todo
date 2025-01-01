@@ -32,7 +32,7 @@ type FindUsableParametersOptions = {
  * Function `findUsableParameters` will find all usable parameters for given task
  * In other words, it will find all parameters that are not used in the task itseld and all its dependencies
  *
- * @public exported from `@promptbook/core` <- Note: [👖] This utility is so tightly interconnected with the Promptbook that it is not exported as util but in core
+ * @public exported from `@promptbook/editable`
  */
 export function findUsableParameters(options: FindUsableParametersOptions): ReadonlyArray<TaskParameterJson> {
     const { promptbook, task } = options;
