@@ -3,6 +3,7 @@ import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
+import rawPlugin from 'rollup-plugin-raw'; // Add this line
 
 export default getPackagesMetadataForRollup()
     .filter(({ isBuilded }) => isBuilded)
@@ -29,6 +30,10 @@ export default getPackagesMetadataForRollup()
             jsonPlugin({
                 preferConst: true,
                 compact: true,
+            }),
+            rawPlugin({
+                include: '**/*.book.md',
+                // <- Note: [📍] Allow here to import `.book` files
             }),
         ];
 
