@@ -1,4 +1,4 @@
-import { PromptbookFetch } from '../../execution/PromptbookFetch';
+import type { PromptbookFetch } from '../../execution/PromptbookFetch';
 import type { string_name } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 

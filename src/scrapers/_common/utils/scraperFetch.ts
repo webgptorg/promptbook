@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { KnowledgeScrapeError } from '../../../errors/KnowledgeScrapeError';
-import { PromptbookFetch } from '../../../execution/PromptbookFetch';
-import { string_url } from '../../../types/typeAliases';
+import type { PromptbookFetch } from '../../../execution/PromptbookFetch';
+import type { string_url } from '../../../types/typeAliases';
 
 /**
  * The built-in `fetch' function with a lightweight error handling wrapper as default fetch function used in Promptbook scrapers

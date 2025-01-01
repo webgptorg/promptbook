@@ -3,7 +3,7 @@ import type { Arrayable } from '../types/Arrayable';
 import type { Executables } from './Executables';
 import type { FilesystemTools } from './FilesystemTools';
 import type { LlmExecutionTools } from './LlmExecutionTools';
-import { PromptbookFetch } from './PromptbookFetch';
+import type { PromptbookFetch } from './PromptbookFetch';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';
 

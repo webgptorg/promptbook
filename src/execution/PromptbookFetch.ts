@@ -1,4 +1,4 @@
-import { string_url } from '../types/typeAliases';
+import type { string_url } from '../types/typeAliases';
 
 /**
  * Fetch function for fetching data from the internet used in scraping

@@ -1,7 +1,8 @@
 import genericBook from '../../book/books/templates/generic.book.md';
 
-import { string_formfactor_name, TODO_any } from '../_packages/types.index';
-import { PipelineString } from '../pipeline/PipelineString';
+import type { string_formfactor_name } from '../formfactors/_common/string_formfactor_name';
+import type { TODO_any } from './organization/TODO_any';
+import type { PipelineString } from '../pipeline/PipelineString';
 
 /**
  * Get template for new book
