@@ -52,6 +52,11 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @promptbook/editable
+              working-directory: ./packages/editable
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/execute-javascript
               working-directory: ./packages/execute-javascript
               run: npm publish --provenance --access public
@@ -99,6 +104,11 @@ jobs:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/remote-server
               working-directory: ./packages/remote-server
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @promptbook/templates
+              working-directory: ./packages/templates
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

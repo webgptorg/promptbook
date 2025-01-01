@@ -23,10 +23,10 @@
 
 
 
-## 📦 Package `@promptbook/cli`
+## 📦 Package `@promptbook/templates`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/cli` is one part of the promptbook ecosystem.
+- This package `@promptbook/templates` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -34,68 +34,13 @@ To install this package, run:
 # Install entire promptbook ecosystem
 npm i ptbk
 
-# Install as dev dependency
-npm install --save-dev @promptbook/cli
-
-# Or install globally
-npm install --global @promptbook/cli
+# Install just this package to save space
+npm install @promptbook/templates
 ```
 
-CLI utils for Promptbook. After install you can use `promptbook` command in terminal:
+Usefull templates and examples of books which can be used as a starting point
 
-## Make your Promptbook Library
 
-You can prebuild your own Promptbook library with `ptbk make` command:
-
-```bash
-npx ptbk make ./books --format typescript --verbose
-```
-
-This will emit `index.ts` with `getPipelineCollection` function file in `books` directory.
-
-Then just use it:
-
-```typescript
-import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { $provideExecutionToolsForNode } from '@promptbook/node';
-import { $provideFilesystemForNode } from '@promptbook/node';
-import { getPipelineCollection } from './books'; // <- Importing from pre-built library
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { OpenAiExecutionTools } from '@promptbook/openai';
-
-// ▶ Get single Pipeline
-const promptbook = await getPipelineCollection().getPipelineByUrl(
-    `https://promptbook.studio/my-collection/write-article.book.md`,
-);
-
-// ▶ Create executor - the function that will execute the Pipeline
-const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provideExecutionToolsForNode() });
-
-// ▶ Prepare input parameters
-const inputParameters = { word: 'cat' };
-
-// 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
-
-// ▶ Handle the result
-const { isSuccessful, errors, outputParameters, executionReport } = result;
-console.info(outputParameters);
-```
-
-This is simmilar to compilation process, during the build time the `ptbk make` command will check promptbooks for errors, convert them to the more optimized format and build knowledge (RAG) for the pipeline collection.
-
-There is also a javascript and json format available.
-
-## Prettify
-
-```bash
-npx ptbk prettify 'promptbook/**/*.book.md'
-```
-
-This will prettify all promptbooks in `promptbook` directory and adds Mermaid graphs to them.
 
 
 ---

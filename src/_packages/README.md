@@ -7,7 +7,7 @@ In this folder there are index files for each library published from this reposi
 When adding new package, search across the repository for [➕]
 
 -   [➕] In this folder create **empty** package.index.ts
--   [➕] In this folder create package.index.md and **write documentation**
+-   [➕] In this folder create package.readme.md and **write documentation**
 -   [➕] Run `🏭📦 Generate packages` command
 
 # Remove package
