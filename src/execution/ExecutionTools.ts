@@ -3,6 +3,7 @@ import type { Arrayable } from '../types/Arrayable';
 import type { Executables } from './Executables';
 import type { FilesystemTools } from './FilesystemTools';
 import type { LlmExecutionTools } from './LlmExecutionTools';
+import { PromptbookFetch } from './PromptbookFetch';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';
 
@@ -29,6 +30,13 @@ export type ExecutionTools = {
      * @default undefined - If not provided, no filesystem operations will be possible
      */
     readonly fs?: FilesystemTools;
+
+    /**
+     * Fetch function for fetching resources
+     *
+     * @default `fetch` - If not provided, the built-in `fetch' function is used with a lightweight error handling wrapper.
+     */
+    readonly fetch?: PromptbookFetch;
 
     /**
      * Scrapers for extracting knowledge from external sources

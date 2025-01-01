@@ -16,6 +16,7 @@ import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceHandler } from '../Scraper';
+import { scraperFetch } from './scraperFetch';
 
 /**
  * @@@
@@ -24,9 +25,10 @@ import type { ScraperSourceHandler } from '../Scraper';
  */
 export async function makeKnowledgeSourceHandler(
     knowledgeSource: SetOptional<KnowledgeSourceJson, 'name'>,
-    tools: Pick<ExecutionTools, 'fs'>,
+    tools: Pick<ExecutionTools, 'fs' | 'fetch'>,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
+    const { fetch = scraperFetch } = tools;
     const { sourceContent } = knowledgeSource;
     let { name } = knowledgeSource;
     const {

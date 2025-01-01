@@ -28,7 +28,7 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
         formData.append('src', this.options.from);
         formData.append('tgt', this.options.to);
 
-        const response = await fetch(
+        const response = await fetch( // <- TODO: [🏳] Probbably pass the fetching function
             this.options.apiUrl || '!!',
 
             {
