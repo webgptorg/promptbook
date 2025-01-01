@@ -73,6 +73,7 @@
         "organize-imports-cli": "0.10.0",
         "rollup": "2.79.2",
         "rollup-plugin-polyfill-node": "0.13.0",
+        "rollup-plugin-raw": "^0.0.1",
         "ts-jest": "27.0.7",
         "tslib": "2.3.1",
         "yaml": "2.3.3"
