@@ -20,18 +20,22 @@ describe('createCollectionFromDirectory', () => {
 
           ## 💬 Prompt
 
-          > Hello
+          \`\`\`text
+          Hello
+          \`\`\`
 
-          -> {greetingResponse}
+          \`-> {greetingResponse}\`
 
 
           ### Normal response
 
           -   EXAMPLE
 
-          > Hello, how are you?
+          \`\`\`text
+          Hello, how are you?
+          \`\`\`
 
-          -> {greetingResponse}
+          \`-> {greetingResponse}\`
 
           ### Formal response
 
@@ -39,15 +43,17 @@ describe('createCollectionFromDirectory', () => {
 
           > Dear Sir, how may I help you?
 
-          -> {greetingResponse}
+          \`-> {greetingResponse}\`
 
           ### Informal response
 
           -   EXAMPLE
 
-          > Hey, what's up?
+          \`\`\`text
+          Hey, what's up?
+          \`\`\`
 
-          -> {greetingResponse}
+          \`-> {greetingResponse}\`
 
 
 
