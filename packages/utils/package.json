@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/utils",
-    "version": "0.80.0",
+    "version": "0.81.0-3",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -52,9 +52,5 @@
     ],
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/utils.index.d.ts",
-    "dependencies": {
-        "spacetrim": "0.11.59",
-        "type-fest": "4.5.0"
-    }
+    "typings": "./esm/typings/src/_packages/utils.index.d.ts"
 }
