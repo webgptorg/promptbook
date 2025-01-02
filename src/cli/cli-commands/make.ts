@@ -220,6 +220,7 @@ export function initializeMakeCommand(program: Program) {
                              *
                              * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
                              *
+                             * @generated
                              * @private internal cache for \`${functionName}\`
                              */
                             let pipelineCollection = null;
@@ -230,6 +231,7 @@ export function initializeMakeCommand(program: Program) {
                              *
                              * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
                              *
+                             * @generated
                              * @returns {PipelineCollection} Library of promptbooks for ${projectName}
                              */
                             export function ${functionName}(){
@@ -267,6 +269,7 @@ export function initializeMakeCommand(program: Program) {
                              * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
                              *
                              * @private internal cache for \`${functionName}\`
+                             * @generated
                              */
                             let pipelineCollection: null | PipelineCollection = null;
 
@@ -276,6 +279,7 @@ export function initializeMakeCommand(program: Program) {
                              *
                              * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
                              *
+                             * @generated
                              * @returns {PipelineCollection} Library of promptbooks for ${projectName}
                              */
                             export function ${functionName}(): PipelineCollection{

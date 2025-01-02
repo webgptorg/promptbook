@@ -52,6 +52,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                 /**
                  * The version of the Book language
                  *
+                 * @generated
                  * @see https://github.com/webgptorg/book
                  */
                 export const BOOK_LANGUAGE_VERSION: string_semantic_version = '${BOOK_LANGUAGE_VERSION}';
@@ -59,10 +60,17 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                 /**
                  * The version of the Promptbook engine
                  *
+                 * @generated
                  * @see https://github.com/webgptorg/promptbook
                  */
                 export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '${version}';
 
+
+                /**
+                 * @@@
+                 *
+                 * @generated
+                 */
                 export type string_promptbook_version = string_semantic_version;
 
                 /**

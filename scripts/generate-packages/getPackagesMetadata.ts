@@ -71,12 +71,13 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
             continue;
         }
 
+        const isGenerated = (entity.anotation || '').includes('@generated');
         const isPrivate = (entity.anotation || '').includes('@private');
         const isPublic = (entity.anotation || '').includes('@public');
 
         if (isPrivate && isPublic) {
             errors.push({ message: `Can't be both @private and @public`, entity });
-        } else if (!isPrivate && !isPublic) {
+        } else if (!isPrivate && !isPublic && !isGenerated) {
             errors.push({ message: `Must be @private or @public`, entity });
         } else if (
             isPublic &&
@@ -92,7 +93,7 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
 
     if (errors.length > 0) {
         for (const { message, entity } of errors) {
-            const { anotation, filename } = entity;
+            const { filename } = entity;
             console.error(
                 colors.red(
                     spaceTrim(
