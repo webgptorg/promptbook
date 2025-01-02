@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import commander from 'commander';
-import { writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { $execCommand, $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
@@ -103,11 +103,17 @@ async function makePipelineCollection({
     // Note: Making library for templates
     // Note: [🌼] Look here how it should look like
 
+    const filePath = `./src/other/templates/getTemplatesPipelineCollection.ts`;
     await $execCommand(
-        `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --format typescript --output ./src/other/templates/getTemplatesPipelineCollection.ts --function-name getTemplatesPipelineCollection ${
+        `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --format typescript --output ${filePath} --function-name getTemplatesPipelineCollection ${
             !isVerbose ? '' : '--verbose'
         }`,
     );
+
+    let content = await readFile(filePath, 'utf-8');
+    content = content.split(`@promptbook/core`).join(`../../collection/constructors/createCollectionFromJson`);
+    content = content.split(`@promptbook/types`).join(`../../collection/PipelineCollection`);
+    await writeFile(filePath, content, 'utf-8');
 
     console.info(`[ Done 📖 Make Promptbook library ]`);
 }

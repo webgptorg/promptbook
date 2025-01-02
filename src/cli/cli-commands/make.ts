@@ -5,7 +5,6 @@ import type {
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { isValidJavascriptName } from '../../_packages/utils.index';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import {
@@ -17,13 +16,17 @@ import {
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { string_file_extension } from '../../types/typeAliases';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
+import { keepTypeImported } from '../../utils/organization/keepTypeImported';
+import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
+
+keepTypeImported<ExecutionTools>();
 
 /**
  * Initializes `make` command for Promptbook CLI utilities

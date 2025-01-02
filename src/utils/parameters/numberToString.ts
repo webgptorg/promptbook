@@ -1,5 +1,5 @@
 import { SMALL_NUMBER, VALUE_STRINGS } from '../../config';
-import { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 
 /**
  * Format either small or big number

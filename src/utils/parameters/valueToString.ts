@@ -1,6 +1,6 @@
 import { VALUE_STRINGS } from '../../config';
-import { string_parameter_value } from '../../types/typeAliases';
-import { really_unknown } from '../organization/really_unknown';
+import type { string_parameter_value } from '../../types/typeAliases';
+import type { really_unknown } from '../organization/really_unknown';
 import { numberToString } from './numberToString';
 
 /**
