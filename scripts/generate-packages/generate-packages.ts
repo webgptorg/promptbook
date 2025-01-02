@@ -305,9 +305,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         console.info(colors.yellow(`Skipping the bundler`));
     } else {
         await forTime(1000 * 60 * 60 * 0);
-        await $execCommand(
-            `node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js`,
-        );
+        await $execCommand({
+            isVerbose: true,
+            command: `node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+        });
     }
 
     // ==============================
