@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -92,6 +90,30 @@ export const LOOP_LIMIT = 1000;
  * @private within the repository - too low-level in comparison with other `MAX_...`
  */
 export const CHARACTER_LOOP_LIMIT = 100000;
+
+/**
+ * Strings to represent various values in the context of parameter values
+ *
+ * @public exported from `@promptbook/utils`
+ */
+export const VALUE_STRINGS = {
+    empty: '(nothing; empty string)',
+    null: '(no value; null)',
+    undefined: '(unknown value; undefined)',
+
+    nan: '(not a number; NaN)',
+    infinity: '(infinity; ∞)',
+    negativeInfinity: '(negative infinity; -∞)',
+
+    unserializable: '(unserializable value)',
+} as const;
+
+/**
+ * Small number limit
+ *
+ * @public exported from `@promptbook/utils`
+ */
+export const SMALL_NUMBER = 0.001;
 
 /**
  * Timeout for the connections in milliseconds

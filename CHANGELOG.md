@@ -654,6 +654,8 @@ Editing and templates
 -   Make new package [`@promptbook/editable`](https://www.npmjs.com/package/@promptbook/editable) and move misc editing tools there
 -   Make new package [`@promptbook/templates`](https://www.npmjs.com/package/@promptbook/templates) and add function `getBookTemplate`
 -   Rename `replaceParameters` -> `templateParameters`
+-   Add `valueToString` and `numberToString` utility function
+-   Allow `boolean`, `number`, `null`, `undefined` and full `json` parameters in `templateParameters` _(alongside with `string`)_
 
 ## Drafts
 

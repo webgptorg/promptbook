@@ -1,7 +1,6 @@
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import { formatNumber } from '../formatNumber';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import type { FromtoItems } from '../FromtoItems';
+import { numberToString } from '../parameters/numberToString';
 import { removeEmojis } from '../removeEmojis';
 import { createMarkdownTable } from './createMarkdownTable';
 
@@ -57,9 +56,9 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
         table.push([removeEmojis(item.title).trim(), '░'.repeat(before) + '█'.repeat(during) + '░'.repeat(after)]);
     }
 
-    const legend = `_Note: Each █ represents ${formatNumber(
+    const legend = `_Note: Each █ represents ${numberToString(
         1 / scale,
-    )} ${unitName}, width of ${valueHeader.toLowerCase()} is ${formatNumber(
+    )} ${unitName}, width of ${valueHeader.toLowerCase()} is ${numberToString(
         to - from,
     )} ${unitName} = ${width} squares_`;
 

@@ -4,12 +4,12 @@ import type { ReadonlyDeep } from 'type-fest';
 import { MOMENT_ARG_THRESHOLDS } from '../../config';
 import type { number_usd } from '../../types/typeAliases';
 import type { FromtoItems } from '../../utils/FromtoItems';
-import { formatNumber } from '../../utils/formatNumber';
 import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { just } from '../../utils/organization/just';
+import { numberToString } from '../../utils/parameters/numberToString';
 import { embeddingVectorToString } from '../embeddingVectorToString';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
@@ -100,7 +100,7 @@ export function executionReportJsonToString(
         headerList.push(`TOTAL LLM DURATION ${llmDuration.humanize(MOMENT_ARG_THRESHOLDS)}`);
 
         headerList.push(
-            `TOTAL COST $${formatNumber(cost * (1 + taxRate))}` +
+            `TOTAL COST $${numberToString(cost * (1 + taxRate))}` +
                 (executionsWithKnownCost.length === executionReportJson.promptExecutions.length
                     ? ''
                     : ` *(Some cost is unknown)*`) +
@@ -170,7 +170,7 @@ export function executionReportJsonToString(
 
         if (typeof promptExecution.result?.usage?.price === 'number') {
             taskList.push(
-                `COST $${formatNumber(promptExecution.result.usage.price * (1 + taxRate))}` +
+                `COST $${numberToString(promptExecution.result.usage.price * (1 + taxRate))}` +
                     (taxRate !== 0 ? ` *(with tax ${taxRate * 100}%)*` : ''),
             );
         } else {
