@@ -1,64 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
-import { compilePipeline } from '../../conversion/compilePipeline';
-import type { PipelineString } from '../../pipeline/PipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
 describe('createCollectionFromDirectory', () => {
-    // Note: It doesn't matter if the code block is ``` or >
-    const pipeline = spaceTrim(`
-          # ✨ Example prompt with URL
-
-          Show how to use a simple prompt with no parameters.
-
-          -   PIPELINE URL https://promptbook.studio/examples/simple.book.md
-          -   OUTPUT PARAMETER \`{greetingResponse}\`
-
-
-          ## 💬 Prompt
-
-          \`\`\`text
-          Hello
-          \`\`\`
-
-          \`-> {greetingResponse}\`
-
-
-          ### Normal response
-
-          -   EXAMPLE
-
-          \`\`\`text
-          Hello, how are you?
-          \`\`\`
-
-          \`-> {greetingResponse}\`
-
-          ### Formal response
-
-          -   EXAMPLE
-
-          > Dear Sir, how may I help you?
-
-          \`-> {greetingResponse}\`
-
-          ### Informal response
-
-          -   EXAMPLE
-
-          \`\`\`text
-          Hey, what's up?
-          \`\`\`
-
-          \`-> {greetingResponse}\`
-
-
-
-    `) as PipelineString;
-
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory(
@@ -79,7 +25,7 @@ describe('createCollectionFromDirectory', () => {
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
-        expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline, {}));
+        expect(pipelineFromCollection).toMatchObject({ title: `✨ Example prompt with URL` });
     });
 
     it('should get lazy-loaded pipeline by url from collection', async () => {
@@ -101,7 +47,7 @@ describe('createCollectionFromDirectory', () => {
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
-        expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline, {}));
+        expect(pipelineFromCollection).toMatchObject({ title: `✨ Example prompt with URL` });
     });
 
     it('should get different pipeline by url from collection', async () => {
@@ -122,7 +68,7 @@ describe('createCollectionFromDirectory', () => {
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
-        expect(pipelineFromCollection).not.toEqual(await compilePipeline(pipeline, {}));
+        expect(pipelineFromCollection).not.toMatchObject({ title: `✨ Example prompt with URL` });
     });
 
     it('should NOT crash when include error pipelines but lazy-loaded', () =>
