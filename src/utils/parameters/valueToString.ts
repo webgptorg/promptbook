@@ -11,6 +11,10 @@ import { numberToString } from './numberToString';
  *       It's more complex and can handle this conversion specifically for LLM models
  *       See `VALUE_STRINGS`
  *
+ * Note: There are 2 similar functions
+ * - `valueToString` converts value to string for LLM models as human-readable string
+ * - `asSerializable` converts value to string to preserve full information to be able to convert it back
+ *
  * @public exported from `@promptbook/utils`
  */
 export function valueToString(value: really_unknown): string_parameter_value {
@@ -25,6 +29,8 @@ export function valueToString(value: really_unknown): string_parameter_value {
             return value;
         } else if (typeof value === 'number') {
             return numberToString(value);
+        } else if (value instanceof Date) {
+            return value.toISOString();
         } else {
             return JSON.stringify(value);
         }

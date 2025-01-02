@@ -8,9 +8,12 @@ import type { really_unknown } from '../organization/really_unknown';
  * For example:
  * - `Date` objects will be converted to string
  *
+ * Note: There are 2 similar functions
+ * - `valueToString` converts value to string for LLM models as human-readable string
+ * - `asSerializable` converts value to string to preserve full information to be able to convert it back
+ *
  * @private Internal helper function
  */
-
 export function asSerializable(value: really_any): really_any {
     if (value instanceof Date) {
         return value.toISOString();
