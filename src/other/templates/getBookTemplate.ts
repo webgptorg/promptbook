@@ -8,7 +8,7 @@ import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection
  *
  * @public exported from `@promptbook/templates`
  */
-export async function getBookTemplate(formfactorName: string_formfactor_name): PipelineJson | null {
+export async function getBookTemplate(formfactorName: string_formfactor_name): Promise<PipelineJson | null> {
     const templatesPipelineCollection = getTemplatesPipelineCollection();
 
     const pipelineJson =
