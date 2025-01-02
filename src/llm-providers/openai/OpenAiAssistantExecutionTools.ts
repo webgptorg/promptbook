@@ -7,13 +7,15 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
+import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
@@ -97,7 +99,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // <- TODO: [🚸] Not all models are compatible with JSON mode
         //        > 'response_format' of type 'json_object' is not supported with this model.
 
-        const rawPromptContent = replaceParameters(content, {
+        const rawPromptContent = templateParameters(content, {
             ...parameters,
             modelName: 'assistant',
             //          <- [🧠] What is the best value here

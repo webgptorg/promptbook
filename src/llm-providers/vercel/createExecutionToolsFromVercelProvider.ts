@@ -7,7 +7,7 @@ import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
+import { templateParameters } from '../../utils/parameters/templateParameters';
 import { asSerializable } from '../../utils/serialization/asSerializable';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
@@ -76,7 +76,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                 ...additionalChatSettings,
             });
 
-            const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
+            const rawPromptContent = templateParameters(content, { ...parameters, modelName });
             const rawRequest: Parameters<typeof model.doGenerate>[0] = {
                 // <- TODO: [☂]
                 inputFormat: 'messages',

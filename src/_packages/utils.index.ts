@@ -1,7 +1,6 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/utils`
 
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractVariablesFromScript } from '../conversion/utils/extractVariablesFromScript';
 import { deserializeError } from '../errors/utils/deserializeError';
@@ -13,21 +12,18 @@ import { $isRunningInBrowser } from '../utils/environment/$isRunningInBrowser';
 import { $isRunningInJest } from '../utils/environment/$isRunningInJest';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../utils/environment/$isRunningInWebWorker';
-import { CHARACTERS_PER_STANDARD_LINE } from '../utils/expectation-counters/constants';
-import { LINES_PER_STANDARD_PAGE } from '../utils/expectation-counters/constants';
+import { CHARACTERS_PER_STANDARD_LINE, LINES_PER_STANDARD_PAGE } from '../utils/expectation-counters/constants';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
 import { countParagraphs } from '../utils/expectation-counters/countParagraphs';
-import { splitIntoSentences } from '../utils/expectation-counters/countSentences';
-import { countSentences } from '../utils/expectation-counters/countSentences';
+import { countSentences, splitIntoSentences } from '../utils/expectation-counters/countSentences';
 import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { capitalize } from '../utils/normalization/capitalize';
 import { decapitalize } from '../utils/normalization/decapitalize';
 import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
-import type { string_keyword } from '../utils/normalization/IKeywords';
-import type { Keywords } from '../utils/normalization/IKeywords';
+import type { Keywords, string_keyword } from '../utils/normalization/IKeywords';
 import { isValidKeyword } from '../utils/normalization/isValidKeyword';
 import { nameToUriPart } from '../utils/normalization/nameToUriPart';
 import { nameToUriParts } from '../utils/normalization/nameToUriParts';
@@ -49,7 +45,7 @@ import { searchKeywords } from '../utils/normalization/searchKeywords';
 import { titleToName } from '../utils/normalization/titleToName';
 import { spaceTrim } from '../utils/organization/spaceTrim';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
-import { replaceParameters } from '../utils/parameters/replaceParameters';
+import { templateParameters } from '../utils/parameters/templateParameters';
 import { parseNumber } from '../utils/parseNumber';
 import { $randomSeed } from '../utils/random/$randomSeed';
 import { removeEmojis } from '../utils/removeEmojis';
@@ -76,84 +72,80 @@ import { isUrlOnPrivateNetwork } from '../utils/validators/url/isUrlOnPrivateNet
 import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
-
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 
 // Note: Exporting version from each package
 export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
-
 // Note: Entities of the `@promptbook/utils`
-export { renderPromptbookMermaid };
-export { extractVariablesFromScript };
-export { deserializeError };
-export { serializeError };
-export { forEachAsync };
-export { isValidJsonString };
-export { $getCurrentDate };
-export { $isRunningInBrowser };
-export { $isRunningInJest };
-export { $isRunningInNode };
-export { $isRunningInWebWorker };
-export { CHARACTERS_PER_STANDARD_LINE };
-export { LINES_PER_STANDARD_PAGE };
-export { countCharacters };
-export { countLines };
-export { countPages };
-export { countParagraphs };
-export { splitIntoSentences };
-export { countSentences };
-export { countWords };
-export { CountUtils };
-export { capitalize };
-export { decapitalize };
-export { DIACRITIC_VARIANTS_LETTERS };
-export type { string_keyword };
-export type { Keywords };
-export { isValidKeyword };
-export { nameToUriPart };
-export { nameToUriParts };
-export type { string_kebab_case };
-export { normalizeToKebabCase };
-export type { string_camelCase };
-export { normalizeTo_camelCase };
-export type { string_PascalCase };
-export { normalizeTo_PascalCase };
-export type { string_SCREAMING_CASE };
-export { normalizeTo_SCREAMING_CASE };
-export { normalizeTo_snake_case };
-export { normalizeWhitespaces };
-export { orderJson };
-export { parseKeywords };
-export { parseKeywordsFromString };
-export { removeDiacritics };
-export { searchKeywords };
-export { titleToName };
-export { spaceTrim };
-export { extractParameterNames };
-export { replaceParameters };
-export { parseNumber };
-export { $randomSeed };
-export { removeEmojis };
-export { removeQuotes };
-export { $deepFreeze };
-export { checkSerializableAsJson };
-export { clonePipeline };
-export { deepClone };
-export { exportJson };
-export { isSerializableAsJson };
-export { difference };
-export { intersection };
-export { union };
-export { trimCodeBlock };
-export { trimEndOfCodeBlock };
-export { unwrapResult };
-export { isValidEmail };
-export { isValidFilePath };
-export { isValidJavascriptName };
-export { isValidPromptbookVersion };
-export { isValidSemanticVersion };
-export { isHostnameOnPrivateNetwork };
-export { isUrlOnPrivateNetwork };
-export { isValidPipelineUrl };
-export { isValidUrl };
-export { isValidUuid };
+export {
+    $deepFreeze,
+    $getCurrentDate,
+    $isRunningInBrowser,
+    $isRunningInJest,
+    $isRunningInNode,
+    $isRunningInWebWorker,
+    $randomSeed,
+    capitalize,
+    CHARACTERS_PER_STANDARD_LINE,
+    checkSerializableAsJson,
+    clonePipeline,
+    countCharacters,
+    countLines,
+    countPages,
+    countParagraphs,
+    countSentences,
+    CountUtils,
+    countWords,
+    decapitalize,
+    deepClone,
+    deserializeError,
+    DIACRITIC_VARIANTS_LETTERS,
+    difference,
+    exportJson,
+    extractParameterNames,
+    extractVariablesFromScript,
+    forEachAsync,
+    intersection,
+    isHostnameOnPrivateNetwork,
+    isSerializableAsJson,
+    isUrlOnPrivateNetwork,
+    isValidEmail,
+    isValidFilePath,
+    isValidJavascriptName,
+    isValidJsonString,
+    isValidKeyword,
+    isValidPipelineUrl,
+    isValidPromptbookVersion,
+    isValidSemanticVersion,
+    isValidUrl,
+    isValidUuid,
+    LINES_PER_STANDARD_PAGE,
+    nameToUriPart,
+    nameToUriParts,
+    normalizeTo_camelCase,
+    normalizeTo_PascalCase,
+    normalizeTo_SCREAMING_CASE,
+    normalizeTo_snake_case,
+    normalizeToKebabCase,
+    normalizeWhitespaces,
+    orderJson,
+    parseKeywords,
+    parseKeywordsFromString,
+    parseNumber,
+    removeDiacritics,
+    removeEmojis,
+    removeQuotes,
+    renderPromptbookMermaid,
+    searchKeywords,
+    serializeError,
+    spaceTrim,
+    splitIntoSentences,
+    templateParameters,
+    titleToName,
+    trimCodeBlock,
+    trimEndOfCodeBlock,
+    union,
+    unwrapResult,
+};
+export type { Keywords, string_camelCase, string_kebab_case, string_keyword, string_PascalCase, string_SCREAMING_CASE };

@@ -1,11 +1,9 @@
 import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../../constants';
-import { RESERVED_PARAMETER_RESTRICTED } from '../../constants';
+import { RESERVED_PARAMETER_MISSING_VALUE, RESERVED_PARAMETER_RESTRICTED } from '../../constants';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_template } from '../../types/typeAliases';
+import type { Parameters, string_template } from '../../types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object
@@ -16,7 +14,7 @@ import type { string_template } from '../../types/typeAliases';
  * @throws {PipelineExecutionError} if parameter is not defined, not closed, or not opened
  * @public exported from `@promptbook/utils`
  */
-export function replaceParameters(template: string_template, parameters: Parameters): string {
+export function templateParameters(template: string_template, parameters: Parameters): string {
     for (const [parameterName, parameterValue] of Object.entries(parameters)) {
         if (parameterValue === RESERVED_PARAMETER_MISSING_VALUE) {
             throw new UnexpectedError(`Parameter \`{${parameterName}}\` has missing value`);
@@ -35,7 +33,7 @@ export function replaceParameters(template: string_template, parameters: Paramet
             .exec(replacedTemplates))
     ) {
         if (loopLimit-- < 0) {
-            throw new LimitReachedError('Loop limit reached during parameters replacement in `replaceParameters`');
+            throw new LimitReachedError('Loop limit reached during parameters replacement in `templateParameters`');
         }
 
         const precol = match.groups!.precol!;

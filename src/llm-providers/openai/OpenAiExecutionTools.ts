@@ -6,19 +6,19 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
+import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
@@ -136,7 +136,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         // <- TODO: [🚸] Not all models are compatible with JSON mode
         //        > 'response_format' of type 'json_object' is not supported with this model.
 
-        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
+        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
@@ -240,7 +240,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             // <- Note: [🧆]
         };
 
-        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
+        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             prompt: rawPromptContent,
@@ -318,7 +318,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
 
         const modelName = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
 
-        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
+        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Embeddings.EmbeddingCreateParams = {
             input: rawPromptContent,
             model: modelName,

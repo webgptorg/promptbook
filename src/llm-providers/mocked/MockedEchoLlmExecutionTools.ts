@@ -2,15 +2,12 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
+import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 
 /**
@@ -64,7 +61,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         }
 
         const modelName = 'mocked-echo';
-        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
+        const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
 
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
@@ -107,7 +104,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         }
 
         const modelName = 'mocked-echo';
-        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
+        const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
 
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc

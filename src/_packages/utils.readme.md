@@ -30,20 +30,20 @@ unwrapResult('Best greeting for the user is "Hi Pavol!"'); // 'Hi Pavol!'
 
 ## Templating
 
-There is a function `replaceParameters` which is used to replace the parameters in given template optimized to LLM prompt templates.
+There is a function `templateParameters` which is used to replace the parameters in given template optimized to LLM prompt templates.
 
 ```typescript
-import { replaceParameters } from '@promptbook/utils';
+import { templateParameters } from '@promptbook/utils';
 
-replaceParameters('Hello, {name}!', { name: 'world' }); // 'Hello, world!'
+templateParameters('Hello, {name}!', { name: 'world' }); // 'Hello, world!'
 ```
 
 And also multiline templates with blockquotes
 
 ```typescript
-import { replaceParameters, spaceTrim } from '@promptbook/utils';
+import { templateParameters, spaceTrim } from '@promptbook/utils';
 
-replaceParameters(
+templateParameters(
     spaceTrim(`
         Hello, {name}!
 

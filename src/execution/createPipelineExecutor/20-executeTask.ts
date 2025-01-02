@@ -173,7 +173,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
     const jokerParameterNames = currentTask.jokerParameterNames || [];
 
     const preparedContent = (currentTask.preparedContent || '{content}').split('{content}').join(currentTask.content);
-    //    <- TODO: [🍵] Use here `replaceParameters` to replace {websiteContent} with option to ignore missing parameters
+    //    <- TODO: [🍵] Use here `templateParameters` to replace {websiteContent} with option to ignore missing parameters
 
     const resultString = await executeFormatSubvalues({
         jokerParameterNames,

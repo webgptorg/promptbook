@@ -2,17 +2,13 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
+import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
 
@@ -72,7 +68,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
         }
 
         const modelName = 'mocked-facked';
-        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
+        const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
 
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
@@ -134,7 +130,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
         >,
     ): Promise<EmbeddingPromptResult> {
         const modelName = 'mocked-facked';
-        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
+        const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
         const content = new Array(1024)
             .fill(0)
             .map(() => Math.random() * 2 - 1) satisfies EmbeddingVector; /* <- Note: [🤛] */

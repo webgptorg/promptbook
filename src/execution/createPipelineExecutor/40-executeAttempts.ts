@@ -10,18 +10,15 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
+import { templateParameters } from '../../utils/parameters/templateParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import { checkExpectations } from '../utils/checkExpectations';
@@ -159,7 +156,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             if (!isJokerAttempt) {
                 taskType: switch (task.taskType) {
                     case 'SIMPLE_TASK':
-                        $ongoingTaskResult.$resultString = replaceParameters(preparedContent, parameters);
+                        $ongoingTaskResult.$resultString = templateParameters(preparedContent, parameters);
                         break taskType;
 
                     case 'PROMPT_TASK':
@@ -339,8 +336,8 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         $ongoingTaskResult.$resultString = await tools.userInterface.promptDialog(
                             $deepFreeze({
                                 promptTitle: task.title,
-                                promptMessage: replaceParameters(task.description || '', parameters),
-                                defaultValue: replaceParameters(preparedContent, parameters),
+                                promptMessage: templateParameters(task.description || '', parameters),
+                                defaultValue: templateParameters(preparedContent, parameters),
 
                                 // TODO: [🧠] !! Figure out how to define placeholder in .book.md file
                                 placeholder: undefined,
@@ -459,7 +456,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 !isJokerAttempt &&
                 task.taskType === 'PROMPT_TASK' &&
                 $ongoingTaskResult.$prompt!
-                //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
+                //    <- Note:  [2] When some expected parameter is not defined, error will occur in templateParameters
                 //              In that case we don’t want to make a report about it because it’s not a llm execution error
             ) {
                 // TODO: [🧠] Maybe put other taskTypes into report

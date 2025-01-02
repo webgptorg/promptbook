@@ -5,20 +5,21 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
-import { replaceParameters } from '../../utils/parameters/replaceParameters';
+import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
@@ -120,7 +121,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 // <- Note: [🧆]
             }; // <- TODO: [💩] TODO: Guard here types better
 
-            const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
+            const rawPromptContent = templateParameters(content, { ...parameters, modelName });
             const messages = [
                 ...(modelRequirements.systemMessage === undefined
                     ? []
@@ -248,7 +249,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 console.info(colors.bgWhite('parameters'), JSON.stringify(parameters, null, 4));
             }
 
-            const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
+            const rawPromptContent = templateParameters(content, { ...parameters, modelName });
             const rawRequest = [
                 modelName,
                 [rawPromptContent] as Array<string_completion_prompt>,
