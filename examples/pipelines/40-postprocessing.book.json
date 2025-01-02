@@ -69,5 +69,12 @@
     "personas": [],
     "preparations": [],
     "knowledgeSources": [],
-    "knowledgePieces": []
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Example: Postprocessing 1\n\nShow how to use two consecutive prompts with one parameter each.\n\n-   PIPELINE URL https://promptbook.studio/examples/postprocessing-1.book.md\n-   INPUT  PARAMETER `{word}` Any single word\n-   OUTPUT PARAMETER `{sentence}` Resulting sentence with two synonyms\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Example: Postprocessing 1\"\n\n      direction TB\n\n      input((Input)):::input\n      synonym(\"💬 Synonym\")\n      input--\"{word}\"-->synonym\n      sentence(\"💬 Sentence\")\n      input--\"{word}\"-->sentence\n      synonym--\"{wordSynonym}\"-->sentence\n\n      sentence--\"{sentence}\"-->output\n      output((Output)):::output\n\n      click synonym href \"#synonym\" \"💬 Synonym\";\n      click sentence href \"#sentence\" \"💬 Sentence\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n### Example 1\n\n-   EXAMPLE\n\n```text\nHappy\n```\n\n`-> {word}`\n\n### Example 2\n\n-   EXAMPLE\n\n```text\nApple\n```\n\n`-> {word}`\n\n## 💬 Synonym\n\nSynonym for word\n\n-   POSTPROCESSING `unwrapResult`\n\n```text\nWrite synonym for \"{word}\"\n```\n\n`-> {wordSynonym}`\n\n### Example 1\n\n-   EXAMPLE\n\n```text\nJoyful\n```\n\n`-> {wordSynonym}`\n\n### Example 2\n\n-   EXAMPLE\n\n```text\nFruit\n```\n\n`-> {wordSynonym}`\n\n## 💬 Sentence\n\nSentence with word and wordSynonym\n\n-   POSTPROCESSING `unwrapResult`\n-   POSTPROCESSING `spaceTrim`\n\n```text\nWrite sentence with \"{word}\" and \"{wordSynonym}\" in it\n```\n\n`-> {sentence}`\n\n### Example 1\n\n-   EXAMPLE\n\n```text\nI am very happy to see you and joyful to meet you.\n```\n\n`-> {sentence}`\n\n### Example 2\n\n-   EXAMPLE\n\n```text\nAn apple or another fruit a day keeps the doctor away.\n```\n\n`-> {sentence}`\n"
+        }
+    ]
 }

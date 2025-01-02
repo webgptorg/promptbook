@@ -25,5 +25,12 @@
     "personas": [],
     "preparations": [],
     "knowledgeSources": [],
-    "knowledgePieces": []
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ⚠ Example of non-recommended syntax\n\nDefining same model variant twice is **not recommended** but it is not an error in case of model variants are same.\n\n-   OUTPUT PARAMETER `{answer}`\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"⚠ Example of non-recommended syntax\"\n\n      direction TB\n\n      input((Input)):::input\n      prompt(\"💬 Prompt\")\n\n      prompt--\"{answer}\"-->output\n      output((Output)):::output\n\n      click prompt href \"#prompt\" \"💬 Prompt\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n## 💬 Prompt\n\n-   MODEL NAME `gpt-4o`\n-   MODEL NAME `gpt-4o`\n\n```\nHello,\nWhat is the answer to the universe?\n```\n\n`-> {answer}`\n"
+        }
+    ]
 }

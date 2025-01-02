@@ -30,5 +30,12 @@
     "personas": [],
     "preparations": [],
     "knowledgeSources": [],
-    "knowledgePieces": []
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Implicit formfactor\n\nShow that you don't need to specify the formfactor or input+output params explicitly. Implementing the formfactor interface is sufficient.\n\n-   PIPELINE URL https://promptbook.studio/examples/implicit-formfactor.book.md\n\n## Translate\n\n```markdown\nTranslate the following text to Esperanto:\n\n> {inputMessage}\n```\n\n`-> {outputMessage}`\n"
+        }
+    ]
 }

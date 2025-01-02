@@ -23,5 +23,12 @@
     "personas": [],
     "preparations": [],
     "knowledgeSources": [],
-    "knowledgePieces": []
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Example prompt with comments\n\nShow how to use a simple prompt with no parameters and comments that should be ignored.\n\n-   PIPELINE URL https://promptbook.studio/examples/comments.book.md\n-   OUTPUT PARAMETER `{greeting}`\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Example prompt with comments\"\n\n      direction TB\n\n      input((Input)):::input\n      prompt(\"💬 Prompt\")\n\n      prompt--\"{greeting}\"-->output\n      output((Output)):::output\n\n      click prompt href \"#prompt\" \"💬 Prompt\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n## 💬 Prompt\n\n```text\nHello\n```\n\n<!-- With comment which should be removed + trimmed-->\n\n`-> {greeting}`\n\n<!--\n\n## 💬 Commented Prompt\n\n```text\nHello\n```\n\n`-> {greeting}`\n\n-->\n"
+        }
+    ]
 }

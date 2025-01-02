@@ -325,5 +325,12 @@
                 1
             ]
         }
+    ],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Chat for KorarkyKatlas.cz\n\n<!-- TODO: [📿] Remove all traces of \"KoralkyKatlas.cz\" from repo-->\n\nShow how to use a simple prompt with no parameters.\n\n-   PIPELINE URL https://promptbook.studio/examples/koralkykatlas-chat.book.md\n-   KNOWLEDGE https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html\n-   KNOWLEDGE https://koralkykatlas.cz/cs/blog/prispevek/adoptuj-si-svou-policku.html\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Chat for KorarkyKatlas.cz\"\n\n      direction TB\n\n      input((Input)):::input\n\n\n\n      output((Output)):::output\n\n\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n"
+        }
     ]
 }

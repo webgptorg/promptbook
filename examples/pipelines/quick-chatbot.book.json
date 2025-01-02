@@ -380,5 +380,12 @@
                 1
             ]
         }
+    ],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Quick Chatbot\n\nShow how to define chatbot in quick way.\nUsing `PERSONA` in header to define all things needed for chatbot-compatible pipeline and sets up the formfactor `CHATBOT` automatically.\n\n-   PIPELINE URL https://promptbook.studio/examples/quick-chatbot.book.md\n-   PERSONA Paul, a developer of the Promptbook Project\n-   KNOWLEDGE https://ptbk.io\n-   KNOWLEDGE https://pavolhejny.com\n\n## Knowledge\n\n-   KNOWLEDGE\n\n```\nPavol Hejný is a software engineer and creator of Promptbook.\n```\n\n<!--\nTODO: !!!!!! Allow initial message in quick chatbot\n\n## Initial message\n\n-   EXAMPLE\n\n```\nHello, I am a Pavol`s virtual avatar. How can I help you?\n```\n\n`-> {chatbotResponse}`\n\n-->\n\n<!--\nTODO: [🧠][⛳️] Probbably better name than \"quick\" chatbot\n-->\n"
+        }
     ]
 }
