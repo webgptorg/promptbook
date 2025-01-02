@@ -4,9 +4,9 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 
-export default async function() {
-    const rawPlugin = await import('rollup-plugin-raw');
+// Note: Not using raw plugin !!!!!!! rollup-plugin-raw
 
+export default function () {
     return getPackagesMetadataForRollup()
         .filter(({ isBuilded }) => isBuilded)
         .map(({ packageBasename, entryIndexFilePath }) => {
@@ -32,10 +32,6 @@ export default async function() {
                 jsonPlugin({
                     preferConst: true,
                     compact: true,
-                }),
-                rawPlugin.default({
-                    include: '**/*.book.md',
-                    // <- Note: [📍] Allow here to import `.book` files
                 }),
             ];
 

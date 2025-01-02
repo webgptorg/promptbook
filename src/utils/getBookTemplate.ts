@@ -1,16 +1,17 @@
-import genericBook from '../../book/books/templates/generic.book.md';
+// !!!!!! Import real templates library> import genericBook from '../../book/books/templates/generic.book.md';
 
+import genericBook from '../../examples/pipelines/01-simple.book.json';
+import { PipelineJson } from '../_packages/types.index';
 import type { string_formfactor_name } from '../formfactors/_common/string_formfactor_name';
 import type { TODO_any } from './organization/TODO_any';
-import type { PipelineString } from '../pipeline/PipelineString';
 
 /**
  * Get template for new book
  *
  * @public exported from `@promptbook/templates`
  */
-export function getBookTemplate(formfactorName: string_formfactor_name): PipelineString | null {
-    const pipelineString =
+export function getBookTemplate(formfactorName: string_formfactor_name): PipelineJson | null {
+    const pipelineJson =
         (
             {
                 genericBook,
@@ -25,7 +26,7 @@ export function getBookTemplate(formfactorName: string_formfactor_name): Pipelin
             `${formfactorName.toLowerCase()}Book`
         ] || null;
 
-    return pipelineString;
+    return pipelineJson;
 }
 
 /**
