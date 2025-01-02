@@ -1,0 +1,111 @@
+{
+    "date": "2025-01-02T21:10:29.577Z",
+    "promptbookVersion": "0.81.0-6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The advancement in microprocessor technology, guided by Moore's Law, has been the driving force behind increasingly powerful programming languages. Similarly, large language models such as GPT and Claude are now poised to transform human-computer interaction."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "AI Revolution in Computing Interfaces",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-01-02T21:09:55.520Z",
+            "complete": "2025-01-02T21:10:29.577Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000456
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 107
+                },
+                "charactersCount": {
+                    "value": 473
+                },
+                "wordsCount": {
+                    "value": 69
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 9
+                },
+                "charactersCount": {
+                    "value": 37
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> The advancement in microprocessor technology, guided by Moore's Law, has been the driving force behind increasingly powerful programming languages. Similarly, large language models such as GPT and Claude are now poised to transform human-computer interaction.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> The advancement in microprocessor technology, guided by Moore's Law, has been the driving force behind increasingly powerful programming languages. Similarly, large language models such as GPT and Claude are now poised to transform human-computer interaction."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01JvDa1d4mVjnRSYJJA7XBGD",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "AI Revolution in Computing Interfaces"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 107,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 9
+            }
+        }
+    }
+}

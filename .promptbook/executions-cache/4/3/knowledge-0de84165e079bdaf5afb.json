@@ -1,0 +1,111 @@
+{
+    "date": "2025-01-02T21:09:55.964Z",
+    "promptbookVersion": "0.81.0-6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nThe future of software development is shifting towards using plain human languages like English, French, or Latin, which will be both understandable and executable by humans and machines. This represents a significant paradigm shift in the field of programming."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "The Future of Programming Languages",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-01-02T21:09:55.516Z",
+            "complete": "2025-01-02T21:09:55.963Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000459
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 113
+                },
+                "charactersCount": {
+                    "value": 484
+                },
+                "wordsCount": {
+                    "value": 71
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 14
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 8
+                },
+                "charactersCount": {
+                    "value": 35
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> ---\n> \n> The future of software development is shifting towards using plain human languages like English, French, or Latin, which will be both understandable and executable by humans and machines. This represents a significant paradigm shift in the field of programming.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> ---\n> \n> The future of software development is shifting towards using plain human languages like English, French, or Latin, which will be both understandable and executable by humans and machines. This represents a significant paradigm shift in the field of programming."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01VoZ8oJzEgCTpjvasQWsSvz",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "The Future of Programming Languages"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 113,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 8
+            }
+        }
+    }
+}
