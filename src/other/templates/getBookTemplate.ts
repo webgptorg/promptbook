@@ -1,20 +1,20 @@
-// !!!!!! Import real templates library> import genericBook from '../../book/books/templates/generic.book.md';
-
-import genericBook from '../../../examples/pipelines/01-simple.book.json';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection';
 
 /**
  * Get template for new book
  *
  * @public exported from `@promptbook/templates`
  */
-export function getBookTemplate(formfactorName: string_formfactor_name): PipelineJson | null {
+export async function getBookTemplate(formfactorName: string_formfactor_name): PipelineJson | null {
+    const templatesPipelineCollection = getTemplatesPipelineCollection();
+
     const pipelineJson =
         (
             {
-                genericBook,
+                templatesPipelineCollection,
 
                 // TODO: !!!!!! Add other formfactors when they are ready
                 // chatbotBook,
