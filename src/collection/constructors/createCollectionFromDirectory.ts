@@ -2,8 +2,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -16,8 +15,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -98,14 +96,17 @@ export async function createCollectionFromDirectory(
     );
 
     if (!(await isFileExisting(makedLibraryFilePath, tools.fs))) {
+        /*
+        TODO: [🌗][🧠] Should this message be here or just ignore
         console.info(
             colors.yellow(
-                `Tip: Prebuild your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
+                `Tip: Compile your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
             ),
         );
+        */
     } else {
         colors.green(
-            `(In future, not implemented yet) Using your prebuild pipeline collection ${makedLibraryFilePath}`,
+            `(In future, not implemented yet) Using your compiled pipeline collection ${makedLibraryFilePath}`,
         );
         // TODO: !! Implement;
         // TODO: [🌗]
@@ -128,10 +129,10 @@ export async function createCollectionFromDirectory(
         // Note: First load all .book.json and then .book.md files
         //       .book.json can be prepared so it is faster to load
         fileNames.sort((a, b) => {
-            if (a.endsWith('.book.json') && b.endsWith('.book.md')) {
+            if (a.endsWith('.json') && b.endsWith('.md')) {
                 return -1;
             }
-            if (a.endsWith('.book.md') && b.endsWith('.book.json')) {
+            if (a.endsWith('.md') && b.endsWith('.json')) {
                 return 1;
             }
             return 0;
@@ -172,7 +173,7 @@ export async function createCollectionFromDirectory(
                     if (pipeline.pipelineUrl === undefined) {
                         if (isVerbose) {
                             console.info(
-                                colors.red(
+                                colors.yellow(
                                     `Can not load pipeline from ${fileName
                                         .split('\\')
                                         .join('/')} because of missing URL`,

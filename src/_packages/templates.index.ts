@@ -2,7 +2,7 @@
 // `@promptbook/templates`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
-import { getBookTemplate } from '../utils/getBookTemplate';
+import { getBookTemplate } from '../other/templates/getBookTemplate';
 
 
 // Note: Exporting version from each package

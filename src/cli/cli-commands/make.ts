@@ -7,9 +7,11 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -62,7 +64,7 @@ export function initializeMakeCommand(program: Program) {
     makeCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
     makeCommand.option('-v, --verbose', `Is output verbose`, false);
     makeCommand.option(
-        '-o, --out-file <path>',
+        '-o, --output <path>',
         spaceTrim(`
             Where to save the builded collection
 
@@ -74,7 +76,7 @@ export function initializeMakeCommand(program: Program) {
     );
 
     makeCommand.action(
-        async (path, { projectName, format, validation, reload: isCacheReloaded, verbose: isVerbose, outFile }) => {
+        async (path, { projectName, format, validation, reload: isCacheReloaded, verbose: isVerbose, output }) => {
             let formats = ((format as string | false) || '')
                 .split(',')
                 .map((_) => _.trim())
@@ -84,7 +86,7 @@ export function initializeMakeCommand(program: Program) {
                 .map((_) => _.trim())
                 .filter((_) => _ !== '');
 
-            if (outFile !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
+            if (output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
                 console.error(colors.red(`You can only use one format if you specify --out-file`));
                 return process.exit(1);
             }
@@ -113,8 +115,15 @@ export function initializeMakeCommand(program: Program) {
                 // <- TODO: [🍖] Add `intermediateFilesStrategy`
             });
 
+            const pipelinesUrls = await collection.listPipelines();
+
+            if (pipelinesUrls.length === 0) {
+                console.error(colors.red(`No books found in "${path}"`));
+                return process.exit(1);
+            }
+
             for (const validation of validations) {
-                for (const pipelineUrl of await collection.listPipelines()) {
+                for (const pipelineUrl of pipelinesUrls) {
                     const pipeline = await collection.getPipelineByUrl(pipelineUrl);
 
                     if (validation === 'logic') {
@@ -152,11 +161,11 @@ export function initializeMakeCommand(program: Program) {
 
             const saveFile = async (extension: string_file_extension, content: string) => {
                 const filename =
-                    outFile !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
-                        ? outFile
+                    output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
+                        ? output
                         : join(path, `${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
 
-                if (!outFile.endsWith(`.${extension}`)) {
+                if (!output.endsWith(`.${extension}`)) {
                     console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
                 }
 

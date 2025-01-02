@@ -656,6 +656,7 @@ Editing and templates
 -   Rename `replaceParameters` -> `templateParameters`
 -   Add `valueToString` and `numberToString` utility function
 -   Allow `boolean`, `number`, `null`, `undefined` and full `json` parameters in `templateParameters` _(alongside with `string`)_
+-   Change `--output` to `--output` in CLI `ptbk make`
 
 ## Drafts
 

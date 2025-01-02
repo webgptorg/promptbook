@@ -1,9 +1,9 @@
 // !!!!!! Import real templates library> import genericBook from '../../book/books/templates/generic.book.md';
 
-import genericBook from '../../examples/pipelines/01-simple.book.json';
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { string_formfactor_name } from '../formfactors/_common/string_formfactor_name';
-import type { TODO_any } from './organization/TODO_any';
+import genericBook from '../../../examples/pipelines/01-simple.book.json';
+import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * Get template for new book
@@ -31,5 +31,5 @@ export function getBookTemplate(formfactorName: string_formfactor_name): Pipelin
 
 /**
  * TODO: [🧠] Which is the best place for this function
- * TODO: `book string template notation
+ * TODO: !!!!!! `book string template notation
  */

@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { $provideScrapersForNode } from '../../src/_packages/node.index';
+import { $execCommand, $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { $provideExecutablesForNode } from '../../src/executables/$provideExecutablesForNode';
@@ -99,6 +99,15 @@ async function makePipelineCollection({
     if (isCommited) {
         await commit([promptbookSourceDir], `📖 Make Promptbook library`);
     }
+
+    // Note: Making library for templates
+    // Note: [🌼] Look here how it should look like
+
+    $execCommand(
+        `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --format typescript --output ./src/other/templates/templates.index.ts ${
+            !isVerbose ? '' : '--verbose'
+        }`,
+    );
 
     console.info(`[ Done 📖 Make Promptbook library ]`);
 }
