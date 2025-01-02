@@ -1,4 +1,5 @@
-import { SMALL_NUMBER, VALUE_STRINGS } from '../../config';
+import { SMALL_NUMBER } from '../../config';
+import { VALUE_STRINGS } from '../../config';
 import type { string_parameter_value } from '../../types/typeAliases';
 
 /**
