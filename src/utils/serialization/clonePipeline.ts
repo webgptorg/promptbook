@@ -24,6 +24,7 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
         knowledgePieces,
         personas,
         preparations,
+        sources,
     } = pipeline;
 
     return {
@@ -39,6 +40,7 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
         knowledgePieces,
         personas,
         preparations,
+        sources,
     };
 }
 

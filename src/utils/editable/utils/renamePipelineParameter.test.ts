@@ -35,6 +35,7 @@ describe('how renamePipelineParameter works', () => {
                     knowledgePieces: [],
                     personas: [],
                     preparations: [],
+                    sources: [],
                 }),
                 oldParameterName: 'greet',
                 newParameterName: 'greeting',
@@ -70,6 +71,7 @@ describe('how renamePipelineParameter works', () => {
                 knowledgePieces: [],
                 personas: [],
                 preparations: [],
+                sources: [],
             }),
         );
     });
@@ -132,6 +134,7 @@ describe('how renamePipelineParameter works', () => {
                     knowledgePieces: [],
                     personas: [],
                     preparations: [],
+                    sources: [],
                 }),
                 oldParameterName: 'word',
                 newParameterName: 'originalWord',
@@ -193,6 +196,7 @@ describe('how renamePipelineParameter works', () => {
                 knowledgePieces: [],
                 personas: [],
                 preparations: [],
+                sources: [],
             }),
         );
     });
@@ -255,6 +259,7 @@ describe('how renamePipelineParameter works', () => {
                     knowledgePieces: [],
                     personas: [],
                     preparations: [],
+                    sources: [],
                 }),
                 oldParameterName: 'word',
                 newParameterName: 'wordSynonym',

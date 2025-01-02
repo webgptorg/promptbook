@@ -1,15 +1,17 @@
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_markdown_text,
+    string_pipeline_url,
+    string_relative_filename,
+    string_semantic_version,
+} from '../../types/typeAliases';
+import { PipelineString } from '../PipelineString';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
 import type { ParameterJson } from './ParameterJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { TaskJson } from './TaskJson';
 
@@ -117,6 +119,11 @@ export type PipelineJson = {
      */
     readonly preparations: Array<PreparationJson>;
     //                      <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
+
+    /**
+     * Backup of the original book source
+     */
+    readonly sources: ReadonlyArray<{ type: 'BOOK'; path: string_relative_filename | null; content: PipelineString }>;
 };
 
 /**

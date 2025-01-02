@@ -135,6 +135,13 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 ],
                 "knowledgeSources": [],
                 "knowledgePieces": [],
+                "sources": [
+                    {
+                        "type": "BOOK",
+                        "path": null,
+                        "content": "# ✨ Hello Book\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n## Write a letter\n\n-   PERSONA Jane, linguist and computer scientist\n-   EXPECT MIN 3 Words\n-   EXPECT MAX 1 Page\n\n> Write a letter for {yourName}\n\n-> {letter} Letter for you\n"
+                    }
+                ],
                 "sourceFile": "./book/books/templates/generic.book.md"
             }
         );

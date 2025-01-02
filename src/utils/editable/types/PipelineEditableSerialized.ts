@@ -1,8 +1,6 @@
 import type { ErrorJson } from '../../../errors/utils/ErrorJson';
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import type { string_date_iso8601 } from '../../../types/typeAliases';
-import type { string_pipeline_url } from '../../../types/typeAliases';
-import type { PipelineString } from '../../../pipeline/PipelineString';
 
 /**
  * Represents a single pipeline in PromptbookStudio
@@ -25,20 +23,15 @@ export type PipelineEditableSerialized = PipelineJson & {
      */
     readonly updatedAt: string_date_iso8601 | null;
 
+    /*
+    TODO: [▫]
     /**
      * Unique identifier of the pipeline
      *
      * Note: In PromptbookStudio it is required
-     */
+     * /
     readonly pipelineUrl: string_pipeline_url;
-
-    /**
-     * Backup of the pipeline string
-     *
-     * Note: This is present ONLY if pipelineString can not be automatically converted into json (i.e. compilePipeline throws an error)
-     *       In other words, this is just a BACKUP of pipeline which will be deleted whener pipeline is valid again
-     */
-    readonly pipelineString: PipelineString | string | null; // <- TODO: !!!!!! This should be native in `PipelineJson`
+    */
 
     /**
      * Known errors to transfer to new PipelineEditable

@@ -650,6 +650,7 @@ Simple chat notation
 
 Editing and templates
 
+-   Backup original book as `sources` in `PipelineJson`
 -   `fetch` is passed through `ExecutionTools` to allow proxying in browser
 -   Make new package [`@promptbook/editable`](https://www.npmjs.com/package/@promptbook/editable) and move misc editing tools there
 -   Make new package [`@promptbook/templates`](https://www.npmjs.com/package/@promptbook/templates) and add function `getBookTemplate`

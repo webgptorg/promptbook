@@ -8,6 +8,7 @@ import { exportJson } from './utils/serialization/exportJson';
  * @public exported from `@promptbook/core`
  */
 export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = [
+    // Note: [🍙] In this order will be pipeline serialized
     'title',
     'pipelineUrl',
     'bookVersion',
@@ -19,6 +20,7 @@ export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = 
     'preparations',
     'knowledgeSources',
     'knowledgePieces',
+    'sources', // <- TODO: [🧠] Where should the `sources` be
 ];
 
 /**
