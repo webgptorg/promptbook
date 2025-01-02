@@ -5,10 +5,12 @@ import type {
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
+import { isValidJavascriptName } from '../../_packages/utils.index';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import {
     DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
     DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
     GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
 } from '../../config';
@@ -74,9 +76,27 @@ export function initializeMakeCommand(program: Program) {
         `),
         DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
     );
+    makeCommand.option(
+        '-fn, --function-name <functionName>',
+        spaceTrim(`
+            Name of the function to get pipeline collection
+
+            Note: This can be used only with "javascript" or "typescript" format
+
+        `),
+        DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    );
 
     makeCommand.action(
-        async (path, { projectName, format, validation, reload: isCacheReloaded, verbose: isVerbose, output }) => {
+        async (
+            path,
+            { projectName, format, functionName, validation, reload: isCacheReloaded, verbose: isVerbose, output },
+        ) => {
+            if (!isValidJavascriptName(functionName)) {
+                console.error(colors.red(`Function name "${functionName}" is not valid javascript name`));
+                return process.exit(1);
+            }
+
             let formats = ((format as string | false) || '')
                 .split(',')
                 .map((_) => _.trim())
@@ -197,7 +217,7 @@ export function initializeMakeCommand(program: Program) {
                              *
                              * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
                              *
-                             * @private internal cache for \`getPipelineCollection\`
+                             * @private internal cache for \`${functionName}\`
                              */
                             let pipelineCollection = null;
 
@@ -209,7 +229,7 @@ export function initializeMakeCommand(program: Program) {
                              *
                              * @returns {PipelineCollection} Library of promptbooks for ${projectName}
                              */
-                            export function getPipelineCollection(){
+                            export function ${functionName}(){
                                 if(pipelineCollection===null){
                                     pipelineCollection = createCollectionFromJson(
                                         ${block(collectionJsonItems)}
@@ -243,7 +263,7 @@ export function initializeMakeCommand(program: Program) {
                              *
                              * ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
                              *
-                             * @private internal cache for \`getPipelineCollection\`
+                             * @private internal cache for \`${functionName}\`
                              */
                             let pipelineCollection: null | PipelineCollection = null;
 
@@ -255,7 +275,7 @@ export function initializeMakeCommand(program: Program) {
                              *
                              * @returns {PipelineCollection} Library of promptbooks for ${projectName}
                              */
-                            export function getPipelineCollection(): PipelineCollection{
+                            export function ${functionName}(): PipelineCollection{
                                 if(pipelineCollection===null){
                                     pipelineCollection = createCollectionFromJson(
                                         ${block(collectionJsonItems)}

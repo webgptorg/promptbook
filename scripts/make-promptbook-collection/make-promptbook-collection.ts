@@ -103,8 +103,8 @@ async function makePipelineCollection({
     // Note: Making library for templates
     // Note: [🌼] Look here how it should look like
 
-    $execCommand(
-        `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --format typescript --output ./src/other/templates/templates.index.ts ${
+    await $execCommand(
+        `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --format typescript --output ./src/other/templates/getTemplatesPipelineCollection.ts --function-name getTemplatesPipelineCollection ${
             !isVerbose ? '' : '--verbose'
         }`,
     );

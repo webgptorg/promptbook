@@ -280,6 +280,13 @@ export function SET_IS_VERBOSE(isVerbose: boolean): void {
 export const DEFAULT_IS_AUTO_INSTALLED = false;
 
 /**
+ * Function name for generated function via `ptbk make` to get the pipeline collection
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME = `getPipelineCollection`;
+
+/**
  * @@@
  *
  * @private within the repository
