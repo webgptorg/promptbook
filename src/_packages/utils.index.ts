@@ -2,6 +2,8 @@
 // `@promptbook/utils`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { VALUE_STRINGS } from '../config';
+import { SMALL_NUMBER } from '../config';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractVariablesFromScript } from '../conversion/utils/extractVariablesFromScript';
 import { deserializeError } from '../errors/utils/deserializeError';
@@ -49,7 +51,9 @@ import { searchKeywords } from '../utils/normalization/searchKeywords';
 import { titleToName } from '../utils/normalization/titleToName';
 import { spaceTrim } from '../utils/organization/spaceTrim';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
+import { numberToString } from '../utils/parameters/numberToString';
 import { templateParameters } from '../utils/parameters/templateParameters';
+import { valueToString } from '../utils/parameters/valueToString';
 import { parseNumber } from '../utils/parseNumber';
 import { $randomSeed } from '../utils/random/$randomSeed';
 import { removeEmojis } from '../utils/removeEmojis';
@@ -83,6 +87,8 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/utils`
+export { VALUE_STRINGS };
+export { SMALL_NUMBER };
 export { renderPromptbookMermaid };
 export { extractVariablesFromScript };
 export { deserializeError };
@@ -130,7 +136,9 @@ export { searchKeywords };
 export { titleToName };
 export { spaceTrim };
 export { extractParameterNames };
+export { numberToString };
 export { templateParameters };
+export { valueToString };
 export { parseNumber };
 export { $randomSeed };
 export { removeEmojis };

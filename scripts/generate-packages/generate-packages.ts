@@ -276,8 +276,14 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         if (isBuilded) {
             await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
-            await writeFile(`./packages/${packageBasename}/.npmignore`, '');
-            // <- TODO: Add GENERATOR_WARNING to .gitignore and .npmignore
+            await writeFile(
+                `./packages/${packageBasename}/.npmignore`,
+                spaceTrim(`
+                    # ${GENERATOR_WARNING}
+
+                    stats.html
+                `), // <- TODO: !!!!!! Is this working, is stats not send to npm?
+            );
         }
     }
 
