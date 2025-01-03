@@ -658,6 +658,7 @@ Editing and templates
 -   Add `valueToString` and `numberToString` utility function
 -   Allow `boolean`, `number`, `null`, `undefined` and full `json` parameters in `templateParameters` _(alongside with `string`)_
 -   Change `--output` to `--output` in CLI `ptbk make`
+-   [🧙‍♂️] Add `wizzard` for `@promptbook/node`
 
 ## Drafts
 
