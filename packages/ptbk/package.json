@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.81.0-7",
+    "version": "0.81.0-8",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -51,9 +51,9 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.81.0-7"
+        "@promptbook/core": "0.81.0-8"
     },
     "dependencies": {
-        "promptbook": "0.81.0-7"
+        "promptbook": "0.81.0-8"
     }
 }
