@@ -1,9 +1,12 @@
 import { Promisable } from 'type-fest';
-import { assertsExecutionSuccessful, createPipelineExecutor } from '../_packages/core.index';
-import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../_packages/node.index';
-import { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
-import { TaskProgress } from '../types/TaskProgress';
-import { Parameters, string_pipeline_url } from '../types/typeAliases';
+import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
+import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
+import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
+import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
+import type { TaskProgress } from '../types/TaskProgress';
+import type { Parameters } from '../types/typeAliases';
+import type { string_pipeline_url } from '../types/typeAliases';
 
 /**
  * @@@
