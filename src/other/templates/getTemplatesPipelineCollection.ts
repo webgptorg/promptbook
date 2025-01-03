@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-6",
+                        "promptbookVersion": "0.81.0-7",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -365,7 +365,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-6",
+                        "promptbookVersion": "0.81.0-7",
                         "usage": {
                             "price": {
                                 "value": 0.005451
@@ -486,7 +486,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-6",
+                        "promptbookVersion": "0.81.0-7",
                         "usage": {
                             "price": {
                                 "value": 0.005451
@@ -607,7 +607,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-6",
+                        "promptbookVersion": "0.81.0-7",
                         "usage": {
                             "price": {
                                 "value": 0.005451
@@ -728,7 +728,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-6",
+                        "promptbookVersion": "0.81.0-7",
                         "usage": {
                             "price": {
                                 "value": 0.005451
