@@ -1,4 +1,4 @@
-import { PipelineCollection } from '../../collection/PipelineCollection';
+import type { PipelineCollection } from '../../collection/PipelineCollection';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
