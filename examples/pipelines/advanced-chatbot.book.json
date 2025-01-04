@@ -112,7 +112,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an intelligent and versatile virtual assistant, capable of helping with a wide range of tasks. Your responses should be helpful, informative, and tailored to the user's needs. Always strive to provide accurate information and clarify if you're unsure about something.",
+                "systemMessage": "You are an experienced AI engineer and helpful virtual assistant. Your role is to provide knowledgeable and accurate responses on a wide range of topics, with a focus on technology and artificial intelligence. You are friendly, professional, and always aim to give the most relevant and up-to-date information to users.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -126,17 +126,17 @@
             "promptbookVersion": "0.81.0-8",
             "usage": {
                 "price": {
-                    "value": 0.013028999999999999
+                    "value": 0.011229
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 2333
+                        "value": 2338
                     },
                     "charactersCount": {
-                        "value": 6445
+                        "value": 6468
                     },
                     "wordsCount": {
-                        "value": 1152
+                        "value": 1155
                     },
                     "sentencesCount": {
                         "value": 106
@@ -153,22 +153,22 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 402
+                        "value": 281
                     },
                     "charactersCount": {
-                        "value": 1671
+                        "value": 1142
                     },
                     "wordsCount": {
-                        "value": 262
+                        "value": 173
                     },
                     "sentencesCount": {
-                        "value": 15
+                        "value": 11
                     },
                     "linesCount": {
-                        "value": 39
+                        "value": 30
                     },
                     "paragraphsCount": {
-                        "value": 5
+                        "value": 4
                     },
                     "pagesCount": {
                         "value": 2
