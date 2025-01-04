@@ -1,4 +1,6 @@
+import spaceTrim from 'spacetrim';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
+import { NotFoundError } from '../../errors/NotFoundError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
@@ -22,15 +24,28 @@ export function getBookTemplate(formfactorName: string_formfactor_name): Pipelin
         templatesPipelineCollection = getTemplatesPipelineCollection();
     }
 
-    const pipelineJson = templatesPipelineCollection.getPipelineByUrl(
-        `https://github.com/webgptorg/book/blob/main/books/templates/${formfactorName}.book.md`,
-    ) as PipelineJson; // <- Note: !!!!!! `SimplePipelineCollection`
+    try {
+        return templatesPipelineCollection.getPipelineByUrl(
+            `https://github.com/webgptorg/book/blob/main/books/templates/${formfactorName.toLowerCase()}.book.md`,
+        ) as PipelineJson; // <- Note: !!!!!! `SimplePipelineCollection`
+    } catch (error) {
+        if (!(error instanceof NotFoundError)) {
+            throw error;
+        }
 
-    if (pipelineJson === null) {
-        throw new UnexpectedError(`Template for formfactor "${formfactorName}" not found`);
+        throw new UnexpectedError(
+            spaceTrim(
+                (block) => `
+                    Template for formfactor "${formfactorName}" not found
+
+                    Original \`NotFoundError\`:
+                    ${block(error.stack || error.message)}
+
+
+                `,
+            ),
+        );
     }
-
-    return pipelineJson;
 }
 
 /**
