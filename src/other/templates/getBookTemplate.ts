@@ -39,7 +39,7 @@ export function getBookTemplate(formfactorName: string_formfactor_name): Pipelin
                     Template for formfactor "${formfactorName}" not found
 
                     Original \`NotFoundError\`:
-                    ${block(error.stack || error.message)}
+                    ${block((error as NotFoundError).stack || (error as NotFoundError).message)}
 
 
                 `,

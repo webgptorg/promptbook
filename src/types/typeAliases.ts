@@ -6,6 +6,7 @@
 
 import type { TupleToUnion } from 'type-fest';
 import { RESERVED_PARAMETER_NAMES } from '../constants';
+import { really_unknown } from '../utils/organization/really_unknown';
 
 /**
  * Semantic helper
@@ -141,6 +142,14 @@ export type string_parameter_value = string;
  * @see https://ptbk.io/parameters
  */
 export type Parameters = Exclude<Record<string_parameter_name, string_parameter_value>, ReservedParameters>;
+
+/**
+ * Parameters to pass to execution of the pipeline
+ *
+ * Note: [🚉] This should be fully serializable as JSON
+ * @see https://ptbk.io/parameters
+ */
+export type InputParameters = Exclude<Record<string_parameter_name, really_unknown>, ReservedParameters>;
 
 // <- TODO: [🧠] Maybe rename `Parameters` because it is already defined in global scope and also it is used more generally [👩🏾‍🤝‍🧑🏽]
 

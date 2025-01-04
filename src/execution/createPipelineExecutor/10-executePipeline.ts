@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
+import { valueToString } from '../../_packages/utils.index';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -11,9 +11,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { InputParameters, Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
@@ -33,7 +31,7 @@ type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * @@@
      */
-    readonly inputParameters: Readonly<Parameters>;
+    readonly inputParameters: Readonly<InputParameters>;
 
     /**
      * @@@
@@ -201,7 +199,9 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         }
     }
 
-    let parametersToPass: Parameters = inputParameters;
+    let parametersToPass: Parameters = Object.fromEntries(
+        Object.entries(inputParameters).map(([key, value]) => [key, valueToString(value)]),
+    );
 
     try {
         let resovedParameterNames: ReadonlyArray<string_name> = preparedPipeline.parameters

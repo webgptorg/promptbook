@@ -1,12 +1,11 @@
 import { Promisable } from 'type-fest';
+import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
-import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
+import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, Parameters, string_pipeline_url } from '../types/typeAliases';
 
 /**
  * @@@
@@ -17,9 +16,9 @@ export const wizzard = {
     /**
      * @@@!!!!!!
      */
-    async run(
+    async execute(
         book: string_pipeline_url,
-        inputParameters: Parameters,
+        inputParameters: InputParameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<PipelineExecutorResult> {
         // ▶ Prepare tools

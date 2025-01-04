@@ -1,6 +1,6 @@
 import type { Promisable } from 'type-fest';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters } from '../types/typeAliases';
+import type { InputParameters } from '../types/typeAliases';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 
 /**
@@ -13,7 +13,7 @@ import type { PipelineExecutorResult } from './PipelineExecutorResult';
  */
 export type PipelineExecutor = {
     (
-        inputParameters: Parameters,
+        inputParameters: InputParameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<PipelineExecutorResult>;
 };

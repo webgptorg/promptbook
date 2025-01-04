@@ -648,7 +648,7 @@ Simple chat notation
 
 ### `0.81.0` _(2025-01-!!!!!!)_
 
-Editing and templates
+Editing, templates and flat pipelines
 
 -   Backup original book as `sources` in `PipelineJson`
 -   `fetch` is passed through `ExecutionTools` to allow proxying in browser
@@ -659,6 +659,7 @@ Editing and templates
 -   Allow `boolean`, `number`, `null`, `undefined` and full `json` parameters in `templateParameters` _(alongside with `string`)_
 -   Change `--output` to `--output` in CLI `ptbk make`
 -   [🧙‍♂️] Add `wizzard` for `@promptbook/node`
+-   Flat pipelines
 
 ## Drafts
 

@@ -1,0 +1,24 @@
+{
+    "title": "Untitled",
+    "description": "Write a joke about {topic}",
+    "formfactorName": "GENERIC",
+    "parameters": [
+        {
+            "name": "joke",
+            "isInput": true,
+            "isOutput": false
+        }
+    ],
+    "tasks": [],
+    "personas": [],
+    "preparations": [],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "Write a joke about {topic}\n\n`-> {joke}`\n\n<!--\nNote: When there is no structure, whole content is considered as a prompt of single-task pipeline\n-->\n"
+        }
+    ]
+}
