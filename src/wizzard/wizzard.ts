@@ -5,7 +5,7 @@ import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-c
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
 import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { InputParameters, Parameters, string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 
 /**
  * @@@
