@@ -6,7 +6,7 @@
 
 import type { TupleToUnion } from 'type-fest';
 import { RESERVED_PARAMETER_NAMES } from '../constants';
-import { really_unknown } from '../utils/organization/really_unknown';
+import type { really_unknown } from '../utils/organization/really_unknown';
 
 /**
  * Semantic helper
