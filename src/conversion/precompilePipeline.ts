@@ -4,14 +4,15 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TaskJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { DEFAULT_TITLE } from '../config';
-import { ORDER_OF_PIPELINE_JSON } from '../constants';
-import { RESERVED_PARAMETER_NAMES } from '../constants';
+import { ORDER_OF_PIPELINE_JSON, RESERVED_PARAMETER_NAMES } from '../constants';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { HIGH_LEVEL_ABSTRACTIONS } from '../high-level-abstractions/index';
@@ -22,9 +23,7 @@ import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import type { number_integer } from '../types/typeAliases';
-import type { number_positive } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
+import type { number_integer, number_positive, string_name } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
@@ -89,6 +88,8 @@ export function precompilePipeline(pipelineString: PipelineString): PipelineJson
     // =============================================================
     // Note: 1️⃣ Parsing of the markdown into object
 
+    // ==============
+    // Note: 1️⃣◽1️⃣ Remove #!shebang and comments
     if (pipelineString.startsWith('#!')) {
         const [shebangLine, ...restLines] = pipelineString.split('\n');
 
@@ -113,6 +114,20 @@ export function precompilePipeline(pipelineString: PipelineString): PipelineJson
         pipelineString = restLines.join('\n') as PipelineString;
     }
     pipelineString = removeContentComments(pipelineString);
+
+    // ==============
+    // Note: 1️⃣◽2️⃣ Process flat pipeline
+
+    // TODO: !!!!!!
+    // const isMarkdownBeginningWithHeadline =
+    // const isMarkdown
+    // const isMarkdown
+    // const isMarkdown
+
+
+
+    // ==============
+    // Note: 1️⃣◽3️⃣ Parse the markdown
     pipelineString = flattenMarkdown(pipelineString) /* <- Note: [🥞] */;
     pipelineString = pipelineString.replaceAll(
         /`\{(?<parameterName>[a-z0-9_]+)\}`/gi,
@@ -125,6 +140,8 @@ export function precompilePipeline(pipelineString: PipelineString): PipelineJson
     const [pipelineHead, ...pipelineSections] =
         splitMarkdownIntoSections(pipelineString).map(parseMarkdownSection); /* <- Note: [🥞] */
 
+    // ==============
+    // Note: 1️⃣◽4️⃣ Check markdown structure
     if (pipelineHead === undefined) {
         throw new UnexpectedError(
             spaceTrim(
