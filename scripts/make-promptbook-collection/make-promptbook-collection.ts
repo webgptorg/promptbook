@@ -97,7 +97,7 @@ async function makePipelineCollection({
     console.info(colors.green(`Made ${libraryTypescriptFilePath}`));
 
     if (isCommited) {
-        await commit([promptbookSourceDir], `📖 Make Promptbook library`);
+        await commit([promptbookSourceDir, '.promptbook'], `📖 Make Promptbook library`);
     }
 
     // Note: Making library for templates
@@ -116,7 +116,7 @@ async function makePipelineCollection({
     await writeFile(filePath, content, 'utf-8');
 
     if (isCommited) {
-        await commit([filePath], `📖 Make Promptbook templates library`);
+        await commit([filePath, '.promptbook'], `📖 Make Promptbook templates library`);
     }
 
     console.info(`[ Done 📖 Make Promptbook library ]`);
