@@ -30,7 +30,7 @@ export async function preparePersona(
         throw new MissingToolsError('LLM tools are required for preparing persona');
     }
 
-    // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
+    // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
     const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
     const preparePersonaExecutor = createPipelineExecutor({

@@ -196,7 +196,7 @@ export function initializeMakeCommand(program: Program) {
                 await writeFile(filename, content, 'utf-8');
 
                 // Note: Log despite of verbose mode
-                console.info(colors.green(`Maked ${filename.split('\\').join('/')}`));
+                console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
             };
 
             if (formats.includes('json')) {

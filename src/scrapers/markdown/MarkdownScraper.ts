@@ -63,7 +63,7 @@ export class MarkdownScraper implements Scraper {
 
         TODO_USE(maxParallelCount); // <- [🪂]
 
-        // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
+        // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
         const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
         const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({

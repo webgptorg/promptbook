@@ -92,9 +92,9 @@ async function makePipelineCollection({
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
     await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');
-    console.info(colors.green(`Maked ${collectionJsonFilePath}`));
+    console.info(colors.green(`Made ${collectionJsonFilePath}`));
     await writeFile(libraryTypescriptFilePath, libraryTypescriptFileContent, 'utf-8');
-    console.info(colors.green(`Maked ${libraryTypescriptFilePath}`));
+    console.info(colors.green(`Made ${libraryTypescriptFilePath}`));
 
     if (isCommited) {
         await commit([promptbookSourceDir], `📖 Make Promptbook library`);

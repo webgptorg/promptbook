@@ -2,8 +2,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -16,8 +15,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -89,7 +87,7 @@ export async function createCollectionFromDirectory(
 
     // TODO: [🍖] Allow to skip
 
-    const makedLibraryFilePath = join(
+    const madeLibraryFilePath = join(
         path,
         `${
             DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
@@ -97,19 +95,17 @@ export async function createCollectionFromDirectory(
         }.json`,
     );
 
-    if (!(await isFileExisting(makedLibraryFilePath, tools.fs))) {
+    if (!(await isFileExisting(madeLibraryFilePath, tools.fs))) {
         /*
         TODO: [🌗][🧠] Should this message be here or just ignore
         console.info(
             colors.yellow(
-                `Tip: Compile your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
+                `Tip: Compile your pipeline collection (file with supposed prebuild ${madeLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
             ),
         );
         */
     } else {
-        colors.green(
-            `(In future, not implemented yet) Using your compiled pipeline collection ${makedLibraryFilePath}`,
-        );
+        colors.green(`(In future, not implemented yet) Using your compiled pipeline collection ${madeLibraryFilePath}`);
         // TODO: !! Implement;
         // TODO: [🌗]
     }
