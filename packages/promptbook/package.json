@@ -75,6 +75,7 @@
         "@promptbook/types": "0.81.0-9",
         "@promptbook/utils": "0.81.0-9",
         "@promptbook/vercel": "0.81.0-9",
-        "@promptbook/website-crawler": "0.81.0-9"
+        "@promptbook/website-crawler": "0.81.0-9",
+        "@promptbook/wizzard": "0.81.0-9"
     }
 }

@@ -1,7 +1,8 @@
 {
     "name": "@promptbook/wizzard",
-    "version": "0.52.0-4",
-    "description": "Supercharge your use of large language models",
+    "version": "0.81.0-9",
+    "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
+    "--note-0": "    <- [🐊]",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -11,29 +12,34 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
+    "--todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
-        "autogpt",
-        "openai",
-        "gpt-3",
-        "gpt-4",
-        "chatgpt",
         "ai",
+        "llm",
+        "prompt",
+        "template",
+        "language-model",
+        "chatgpt",
+        "autogpt",
         "machine-learning",
         "natural-language-processing",
         "nlp",
-        "prompt",
-        "template",
-        "pipeline",
-        "automation",
-        "text-generation",
-        "language-model"
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o1",
+        "o1-mini",
+        "o1-preview",
+        "anthropic",
+        "LLMOps"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
-    "dependencies": {},
     "funding": [
         {
             "type": "individual",
@@ -44,10 +50,10 @@
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
     ],
-    "peerDependencies": {
-        "@promptbook/core": "0.52.0-4"
-    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/_packages/wizzard.index.d.ts"
+    "typings": "./esm/typings/src/_packages/wizzard.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.81.0-9"
+    }
 }
