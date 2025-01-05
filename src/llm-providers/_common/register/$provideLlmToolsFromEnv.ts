@@ -1,7 +1,9 @@
 import spaceTrim from 'spacetrim';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { UnexpectedError } from '../../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
+import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $provideLlmToolsConfigurationFromEnv } from './$provideLlmToolsConfigurationFromEnv';
 import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
@@ -32,19 +34,26 @@ export function $provideLlmToolsFromEnv(
     const configuration = $provideLlmToolsConfigurationFromEnv();
 
     if (configuration.length === 0) {
+        if ($llmToolsMetadataRegister.list().length === 0) {
+            throw new UnexpectedError(
+                spaceTrim(
+                    (block) => `
+                        No LLM tools registered, this is probably a bug in the Promptbook library
+
+                        ${block($registeredLlmToolsMessage())}}
+                    `,
+                ),
+            );
+        }
+
         // TODO: [🥃]
         throw new Error(
             spaceTrim(
                 (block) => `
                     No LLM tools found in the environment
 
-                    Please set one of environment variables:
-                    - OPENAI_API_KEY
-                    - ANTHROPIC_CLAUDE_API_KEY
-
                     ${block($registeredLlmToolsMessage())}}
                 `,
-                // <- TODO: [main] !!! List environment keys dynamically
             ),
         );
     }
