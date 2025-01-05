@@ -1,24 +1,26 @@
 import spaceTrim from 'spacetrim';
 import { Promisable } from 'type-fest';
-import {
-    $provideExecutablesForNode,
-    $provideFilesystemForNode,
-    $provideScrapersForNode,
-} from '../_packages/node.index';
-import { PipelineJson } from '../_packages/types.index';
-import { $isRunningInNode, isValidFilePath, isValidUrl } from '../_packages/utils.index';
+import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
+import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
+import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
+import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
+import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
+import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { ExecutionTools } from '../execution/ExecutionTools';
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
 import { $provideLlmToolsForWizzardOrCli } from '../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
-import { PipelineString } from '../pipeline/PipelineString';
+import type { PipelineString } from '../pipeline/PipelineString';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { InputParameters, string_filename, string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters } from '../types/typeAliases';
+import type { string_filename } from '../types/typeAliases';
+import type { string_pipeline_url } from '../types/typeAliases';
 import { just } from '../utils/organization/just';
 
 /**
