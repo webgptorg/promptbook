@@ -1,17 +1,18 @@
 import { Promisable } from 'type-fest';
+import { $isRunningInNode } from '../_packages/utils.index';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
+import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
 import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 
 /**
  * @@@
  *
- * @public exported from `@promptbook/node`
+ * @public exported from `@promptbook/wizzard`
  */
 export const wizzard = {
     /**
@@ -22,6 +23,10 @@ export const wizzard = {
         inputParameters: InputParameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<PipelineExecutorResult> {
+        if (!$isRunningInNode()) {
+            throw new EnvironmentMismatchError('Wizzard works only in Node.js environment');
+        }
+
         // ▶ Prepare tools
         const tools = await $provideExecutionToolsForNode();
 
@@ -48,4 +53,5 @@ export const wizzard = {
 
 /**
  * TODO: !!!!!! Add to readmes - one markdown here imported in all packages
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

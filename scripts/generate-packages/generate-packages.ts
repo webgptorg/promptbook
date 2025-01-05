@@ -380,6 +380,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (
                 packageFullname !== '@promptbook/node' &&
                 packageFullname !== '@promptbook/cli' &&
+                packageFullname !== '@promptbook/wizzard' &&
                 packageFullname !== '@promptbook/documents' &&
                 packageFullname !== '@promptbook/legacy-documents' &&
                 packageFullname !== '@promptbook/website-crawler' &&
