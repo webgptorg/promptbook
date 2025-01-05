@@ -31,6 +31,7 @@ export const legacyDocumentScraperMetadata = $deepFreeze({
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
  * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
 export const _LegacyDocumentScraperMetadataRegistration: Registration =

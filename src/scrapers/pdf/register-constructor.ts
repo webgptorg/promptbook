@@ -8,6 +8,7 @@ import { createPdfScraper } from './createPdfScraper';
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
  * @public exported from `@promptbook/pdf`
+ * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
 export const _PdfScraperRegistration: Registration = $scrapersRegister.register(createPdfScraper);

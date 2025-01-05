@@ -8,6 +8,7 @@ import { createLegacyDocumentScraper } from './createLegacyDocumentScraper';
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
  * @public exported from `@promptbook/legacy-documents`
+ * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
 export const _LegacyDocumentScraperRegistration: Registration = $scrapersRegister.register(createLegacyDocumentScraper);
