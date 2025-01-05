@@ -115,6 +115,10 @@ async function makePipelineCollection({
     content = content.split(`@promptbook/types`).join(`../../collection/PipelineCollection`);
     await writeFile(filePath, content, 'utf-8');
 
+    if (isCommited) {
+        await commit([promptbookSourceDir], `📖 Make Promptbook templates library`);
+    }
+
     console.info(`[ Done 📖 Make Promptbook library ]`);
 }
 
