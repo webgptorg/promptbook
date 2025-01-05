@@ -661,6 +661,7 @@ Editing, templates and flat pipelines
 -   Re-introduction of package `@promptbook/wizzard`
 -   Allow flat pipelines
 -   Change `$provideLlmToolsForCli` -> `$provideLlmToolsForWizzardOrCli`
+-   Do not require `.book.md` in pipeline url
 
 ## Drafts
 
