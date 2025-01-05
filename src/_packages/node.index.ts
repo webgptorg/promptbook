@@ -12,7 +12,6 @@ import { $provideScrapersForNode } from '../scrapers/_common/register/$provideSc
 import { FileCacheStorage } from '../storage/file-cache-storage/FileCacheStorage';
 import { $execCommand } from '../utils/execCommand/$execCommand';
 import { $execCommands } from '../utils/execCommand/$execCommands';
-import { wizzard } from '../wizzard/wizzard';
 
 
 // Note: Exporting version from each package
@@ -30,4 +29,3 @@ export { $provideScrapersForNode };
 export { FileCacheStorage };
 export { $execCommand };
 export { $execCommands };
-export { wizzard };
