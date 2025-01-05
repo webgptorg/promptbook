@@ -116,7 +116,7 @@ async function makePipelineCollection({
     await writeFile(filePath, content, 'utf-8');
 
     if (isCommited) {
-        await commit([promptbookSourceDir], `📖 Make Promptbook templates library`);
+        await commit([filePath], `📖 Make Promptbook templates library`);
     }
 
     console.info(`[ Done 📖 Make Promptbook library ]`);
