@@ -659,7 +659,8 @@ Editing, templates and flat pipelines
 -   Allow `boolean`, `number`, `null`, `undefined` and full `json` parameters in `templateParameters` _(alongside with `string`)_
 -   Change `--output` to `--output` in CLI `ptbk make`
 -   Re-introduction of package `@promptbook/wizzard`
--   Flat pipelines
+-   Allow flat pipelines
+-   Change `$provideLlmToolsForCli` -> `$provideLlmToolsForWizzardOrCli`
 
 ## Drafts
 

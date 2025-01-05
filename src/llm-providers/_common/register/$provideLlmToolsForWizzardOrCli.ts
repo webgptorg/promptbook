@@ -15,12 +15,12 @@ import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
  *
  * @private within the repository - for CLI utils
  */
-export function $provideLlmToolsForCli(
+export function $provideLlmToolsForWizzardOrCli(
     options?: Pick<CacheLlmToolsOptions, 'isCacheReloaded'>,
 ): LlmExecutionToolsWithTotalUsage {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
-            'Function `$provideLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
+            'Function `$provideLlmToolsForWizzardOrCli` works only in Node.js environment',
         );
     }
 

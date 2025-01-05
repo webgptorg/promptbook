@@ -2,7 +2,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
-import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import { keepUnused } from '../../utils/organization/keepUnused';
 
@@ -20,7 +20,7 @@ export function initializeListModelsCommand(program: Program) {
     );
 
     listModelsCommand.action(async () => {
-        const llm = $provideLlmToolsForCli({});
+        const llm = $provideLlmToolsForWizzardOrCli({});
         keepUnused(llm);
         // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
 

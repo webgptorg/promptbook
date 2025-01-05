@@ -1,11 +1,17 @@
 import { Promisable } from 'type-fest';
+import {
+    $provideExecutablesForNode,
+    $provideFilesystemForNode,
+    $provideScrapersForNode,
+} from '../_packages/node.index';
 import { $isRunningInNode } from '../_packages/utils.index';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
+import { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
-import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
+import { $provideLlmToolsForWizzardOrCli } from '../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 
@@ -28,7 +34,23 @@ export const wizzard = {
         }
 
         // ▶ Prepare tools
-        const tools = await $provideExecutionToolsForNode();
+        // TODO: DRY [◽]
+        const prepareAndScrapeOptions = {
+            isVerbose: false,
+            isCacheReloaded: false, // <- TODO: Allow to pass
+        }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
+        const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+        const llm = $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
+        const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+        const tools = {
+            llm,
+            fs,
+
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
+            script: [
+                /*new JavascriptExecutionTools(options)*/
+            ],
+        } satisfies ExecutionTools;
 
         // ▶ Create whole pipeline collection
         const collection = await createCollectionFromDirectory('./books', tools);

@@ -7,16 +7,18 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
-import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { string_file_extension } from '../../types/typeAliases';
@@ -118,7 +120,7 @@ export function initializeMakeCommand(program: Program) {
                 isCacheReloaded,
             }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-            const llm = $provideLlmToolsForCli(prepareAndScrapeOptions);
+            const llm = $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
             const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
             const tools = {
                 llm,

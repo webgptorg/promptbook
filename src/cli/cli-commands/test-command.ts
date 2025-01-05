@@ -9,7 +9,7 @@ import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
@@ -44,7 +44,7 @@ export function initializeTestCommand(program: Program) {
             isCacheReloaded,
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-        const llm = $provideLlmToolsForCli(prepareAndScrapeOptions);
+        const llm = $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
         const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,
