@@ -22,21 +22,11 @@ import type { InputParameters, string_filename, string_pipeline_url } from '../t
 import { just } from '../utils/organization/just';
 
 /**
- * @@@
- *
- * @singleton
- * @public exported from `@promptbook/wizzard`
- */
-export const wizzard = new Wizzard();
-
-/**
  * Look at `wizzard` for more details
  *
  * @private just for single instance
  */
 class Wizzard {
-    private constructor() {}
-
     /**
      * @@@!!!!!!
      */
@@ -104,6 +94,7 @@ class Wizzard {
     }
 
     /**
+     * TODO: Make standalone function from this exported from node and used here and in `ptbk run`
      * @@@!!!
      *
      * Strategies:
@@ -120,7 +111,7 @@ class Wizzard {
 
         // Strategy 1️⃣: If the pipelineSource is a filename - try to load it from the file
         if (isValidFilePath(pipelineSource)) {
-            // TODO: !!!!!! Implement
+            // TODO: !!!!!! Implement + use same mechanism in `ptbk run`
         } /* not else */
 
         // Strategy 2️⃣: If the pipelineSource is a URL - try to find the pipeline on disk in `DEFAULT_BOOKS_DIRNAME` (= `./books`) directory recursively up to the root
@@ -165,7 +156,8 @@ class Wizzard {
         throw new NotFoundError(
             spaceTrim(
                 (block) => `
-                    No pipeline found for "${pipelineSource}"
+                    No pipeline found for:
+                    ${block(pipelineSource)}
 
                     Pipelines can be loaded from:
                     1) @@@!!!
@@ -174,6 +166,14 @@ class Wizzard {
         );
     }
 }
+
+/**
+ * @@@
+ *
+ * @singleton
+ * @public exported from `@promptbook/wizzard`
+ */
+export const wizzard = new Wizzard();
 
 /**
  * TODO: !!!!!! Mark in jsdoc as non-pure
