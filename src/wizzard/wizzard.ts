@@ -168,7 +168,7 @@ class Wizzard {
 }
 
 /**
- * @@@
+ * 🧙‍♂️ @@@
  *
  * @singleton
  * @public exported from `@promptbook/wizzard`
