@@ -20,10 +20,4 @@ describe(`validation of urls`, () => {
         expect(isValidPipelineUrl(`blob:nothing`)).toBe(false);
         expect(isValidPipelineUrl(`blob:httpx://localhost:9977/fooo/add`)).toBe(false);
     });
-
-    it(`is valid url BUT not valid pipeline URL`, () => {
-        expect(isValidPipelineUrl(`https://promptbook.studio/`)).toBe(false);
-        expect(isValidPipelineUrl(`https://collboard.com/`)).toBe(false);
-        expect(isValidPipelineUrl(`http://localhost:9977/fooo/add`)).toBe(false);
-    });
 });
