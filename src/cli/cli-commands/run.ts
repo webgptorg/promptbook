@@ -19,6 +19,7 @@ import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
+import { scraperFetch } from '../../scrapers/_common/utils/scraperFetch';
 import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
@@ -139,6 +140,7 @@ export function initializeRunCommand(program: Program) {
         const tools = {
             llm,
             fs,
+            fetch: scraperFetch,
             scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
             script: [
                 /*new JavascriptExecutionTools(options)*/

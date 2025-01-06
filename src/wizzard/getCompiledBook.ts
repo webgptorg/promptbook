@@ -22,11 +22,11 @@ import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
  * @private usable through `ptbk run` and `@prompbook/wizzard`
  */
 export async function $getCompiledBook(
-    tools: Required<Pick<ExecutionTools, 'fs'>>,
+    tools: Required<Pick<ExecutionTools, 'fs' | 'fetch'>>,
     pipelineSource: string_filename | string_pipeline_url | PipelineString,
     options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
-    const { fs } = tools;
+    const { fs, fetch } = tools;
 
     // Strategy 1️⃣: If the pipelineSource is a filename - try to load it from the file
     if (isValidFilePath(pipelineSource)) {
@@ -96,13 +96,38 @@ export async function $getCompiledBook(
 
     // Strategy 3️⃣: If the pipelineSource is a URL - try to fetch it from the internet
     if (isValidPipelineUrl(pipelineSource)) {
-        throw new NotYetImplementedError(
-            'Strategy 3️⃣: If the pipelineSource is a URL - try to fetch it from the internet',
+        const response = await fetch(pipelineSource);
+
+        if (response.status >= 300) {
+            throw new NotFoundError(
+                spaceTrim(
+                    (block) => `
+                        No book found on URL:
+                        ${block(pipelineSource)}
+
+                        Request failed with status ${block(response.status.toString())} ${block(response.statusText)}
+                    `,
+                ),
+            );
+        }
+        const pipelineString = await response.text();
+
+        // TODO: !!!!!! Use `isValidPipelineString`
+
+        const pipelineJson = await compilePipeline(
+            pipelineString as PipelineString /* <- TODO: !!!!!! Remove */,
+            tools,
+            {
+                rootDirname: null, // <- TODO: !!!!!! Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book.md`
+                ...options,
+            },
         );
+
+        return pipelineJson;
     } /* not else */
 
     // Strategy 4️⃣: If the pipelineSource is a PipelineString - try to parse it
-    if (just(true) /* <- TODO: Implement, use and export `isValidPipelineString` */) {
+    if (just(false) /* <- TODO: !!!!!! Implement, use and export `isValidPipelineString` */) {
         throw new NotYetImplementedError('Strategy 4️⃣: If the pipelineSource is a PipelineString - try to parse it');
     } /* not else */
 

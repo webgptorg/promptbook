@@ -10,6 +10,7 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
+import { scraperFetch } from '../scrapers/_common/utils/scraperFetch';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { InputParameters, string_filename, string_pipeline_url } from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
@@ -52,14 +53,14 @@ class Wizzard {
         return result;
     }
 
-    private executionTools: Required<Pick<ExecutionTools, 'fs'>> | null = null;
+    private executionTools: Required<Pick<ExecutionTools, 'fs' | 'fetch'>> | null = null;
 
     /**
      * @@@!!!
      *
      * @param pipelineSource
      */
-    public async getExecutionTools(): Promise<Required<Pick<ExecutionTools, 'fs'>>> {
+    public async getExecutionTools(): Promise<Required<Pick<ExecutionTools, 'fs' | 'fetch'>>> {
         if (this.executionTools !== null) {
             return this.executionTools;
         }
@@ -75,7 +76,7 @@ class Wizzard {
         const tools = {
             llm,
             fs,
-
+            fetch: scraperFetch,
             scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
             script: [
                 /*new JavascriptExecutionTools(options)*/

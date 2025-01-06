@@ -29,3 +29,7 @@ export const scraperFetch: PromptbookFetch = async (url: string_url, init?: Requ
         );
     }
 };
+
+/**
+ * TODO: [🧠] Maybe rename because it is not used only for scrapers but also in `$getCompiledBook`
+ */
