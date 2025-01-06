@@ -13,7 +13,7 @@ import { $provideScrapersForNode } from '../scrapers/_common/register/$provideSc
 import type { TaskProgress } from '../types/TaskProgress';
 import type { InputParameters, string_filename, string_pipeline_url } from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
-import { getPipeline } from './getPipeline';
+import { $getCompiledBook } from './getCompiledBook';
 
 /**
  * Look at `wizzard` for more details
@@ -37,7 +37,7 @@ class Wizzard {
         const tools = await this.getExecutionTools();
 
         // ▶ Get the Pipeline
-        const pipeline = await this.getPipeline(book);
+        const pipeline = await this.getCompiledBook(book);
 
         // ▶ Create executor - the function that will execute the Pipeline
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -52,14 +52,14 @@ class Wizzard {
         return result;
     }
 
-    private executionTools: ExecutionTools | null = null;
+    private executionTools: Required<Pick<ExecutionTools, 'fs'>> | null = null;
 
     /**
      * @@@!!!
      *
      * @param pipelineSource
      */
-    public async getExecutionTools(): Promise<ExecutionTools> {
+    public async getExecutionTools(): Promise<Required<Pick<ExecutionTools, 'fs'>>> {
         if (this.executionTools !== null) {
             return this.executionTools;
         }
@@ -97,11 +97,11 @@ class Wizzard {
      *
      * @param pipelineSource
      */
-    public async getPipeline(
+    public async getCompiledBook(
         pipelineSource: string_filename | string_pipeline_url | PipelineString,
     ): Promise<PipelineJson> {
         const tools = await this.getExecutionTools();
-        return /* not await */ getPipeline(tools, pipelineSource);
+        return /* not await */ $getCompiledBook(tools, pipelineSource);
     }
 }
 

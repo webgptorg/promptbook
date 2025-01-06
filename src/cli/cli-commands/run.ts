@@ -2,10 +2,9 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import { readFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -18,16 +17,13 @@ import { $llmToolsMetadataRegister } from '../../llm-providers/_common/register/
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
-import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { $getCompiledBook } from '../../wizzard/getCompiledBook';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
 
 /**
@@ -46,9 +42,9 @@ export function initializeRunCommand(program: Program) {
     // TODO: [🧅] DRY command arguments
 
     runCommand.argument(
-        '<path>',
+        '<pipelineSource>',
         // <- Note: [🧟‍♂️] This is NOT promptbook collection directory BUT direct path to .book.md file
-        'Path to book file',
+        'Path to book file OR URL to book file',
     );
     runCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
     runCommand.option('-v, --verbose', `Is output verbose`, false);
@@ -66,7 +62,7 @@ export function initializeRunCommand(program: Program) {
     );
     runCommand.option('-s, --save-report <path>', `Save report to file`);
 
-    runCommand.action(async (filePathRaw, options) => {
+    runCommand.action(async (pipelineSource, options) => {
         const {
             reload: isCacheReloaded,
             interactive: isInteractive,
@@ -99,28 +95,6 @@ export function initializeRunCommand(program: Program) {
         }
 
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-
-        let filePath: string_filename | null = null;
-        let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book.md`, `${filePathRaw}.book.md`];
-        filePathCandidates = [...filePathCandidates, ...filePathCandidates.map((path) => path.split('\\').join('/'))];
-        //                       <- Note: This line is to work with Windows paths
-        //                                File "C:Usersmeworkaihello-worldbookshello.book.md" does not exist
-        //                                @see https://collboard.fra1.cdn.digitaloceanspaces.com/usercontent/education/image/png/1/2/ad/image.png
-
-        for (const filePathCandidate of filePathCandidates) {
-            if (
-                await isFileExisting(filePathCandidate, fs)
-                // <- TODO: Also test that among the candidates the file is book not just any file
-            ) {
-                filePath = filePathCandidate;
-                break;
-            }
-        }
-
-        if (filePath === null) {
-            console.error(colors.red(`File "${filePathRaw}" does not exist`));
-            return process.exit(1);
-        }
 
         let llm: LlmExecutionTools;
 
@@ -175,15 +149,13 @@ export function initializeRunCommand(program: Program) {
             console.info(colors.gray('--- Reading file ---'));
         }
 
-        const pipelineString = (await readFile(filePath, 'utf-8')) as PipelineString;
-
         if (isVerbose) {
             console.info(colors.gray('--- Preparing pipeline ---'));
         }
 
         let pipeline: PipelineJson;
         try {
-            pipeline = await compilePipeline(pipelineString, tools);
+            pipeline = await $getCompiledBook(tools, pipelineSource);
         } catch (error) {
             if (!(error instanceof ParseError)) {
                 throw error;
@@ -195,7 +167,7 @@ export function initializeRunCommand(program: Program) {
                         (block) => `
                             ${block((error as ParseError).message)}
 
-                            in ${filePath}
+                            in ${pipelineSource}
                         `,
                     ),
                 ),
