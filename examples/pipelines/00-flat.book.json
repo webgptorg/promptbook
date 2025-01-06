@@ -1,15 +1,30 @@
 {
     "title": "Untitled",
-    "description": "Write a joke about {topic}",
     "formfactorName": "GENERIC",
     "parameters": [
         {
             "name": "joke",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "topic",
             "isInput": true,
             "isOutput": false
         }
     ],
-    "tasks": [],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "prompt",
+            "title": "Prompt",
+            "content": "Write a joke about {topic}",
+            "resultingParameterName": "joke",
+            "dependentParameterNames": [
+                "topic"
+            ]
+        }
+    ],
     "personas": [],
     "preparations": [],
     "knowledgeSources": [],
