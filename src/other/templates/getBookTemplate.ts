@@ -1,6 +1,6 @@
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import { string_pipeline_url } from '../../types/typeAliases';
+import type { string_pipeline_url } from '../../types/typeAliases';
 import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection';
 
 /**
