@@ -1,9 +1,6 @@
-import spaceTrim from 'spacetrim';
-import type { PipelineCollection } from '../../collection/PipelineCollection';
-import { NotFoundError } from '../../errors/NotFoundError';
-import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import { string_pipeline_url } from '../../types/typeAliases';
 import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection';
 
 /**
@@ -12,44 +9,26 @@ import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection
  * @singleton
  * @private internal cache of `getBookTemplate`
  */
-export let templatesPipelineCollection: PipelineCollection | null = null;
+export let pipelines: Array<PipelineJson> | null = null;
 
 /**
  * Get template for new book
  *
  * @public exported from `@promptbook/templates`
  */
-export function getBookTemplate(formfactorName: string_formfactor_name): PipelineJson {
-    if (templatesPipelineCollection === null) {
-        templatesPipelineCollection = getTemplatesPipelineCollection();
-    }
-
-    try {
-        return templatesPipelineCollection.getPipelineByUrl(
-            `https://github.com/webgptorg/book/blob/main/books/templates/${formfactorName.toLowerCase()}.book.md`,
-        ) as PipelineJson; // <- Note: !!!!!! `SimplePipelineCollection`
-    } catch (error) {
-        if (!(error instanceof NotFoundError)) {
-            throw error;
-        }
-
-        throw new UnexpectedError(
-            spaceTrim(
-                (block) => `
-                    Template for formfactor "${formfactorName}" not found
-
-                    Original \`NotFoundError\`:
-                    ${block((error as NotFoundError).stack || (error as NotFoundError).message)}
-
-
-                `,
-            ),
+export function getBookTemplate(formfactorName: string_formfactor_name): ReadonlyArray<PipelineJson> {
+    if (pipelines === null) {
+        const collection = getTemplatesPipelineCollection();
+        const pipelineUrls = collection.listPipelines() as ReadonlyArray<string_pipeline_url>; // <- Note: [0] Function `listPipelines` is sync because `templatesPipelineCollection` is `SimplePipelineCollection`
+        pipelines = pipelineUrls.map(
+            (pipelineUrl) => collection?.getPipelineByUrl(pipelineUrl) as PipelineJson /* <- Note: [0] */,
         );
     }
+
+    return pipelines.filter((pipeline) => pipeline.formfactorName === formfactorName);
 }
 
 /**
- * TODO: !!!!!! Test
+ * TODO: Unit test
  * TODO: [🧠] Which is the best place for this function
- * TODO: !!!!!! `book string template notation
  */
