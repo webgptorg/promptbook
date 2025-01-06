@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import spaceTrim from 'spacetrim';
 import { isValidFilePath } from './isValidFilePath';
 
 describe('how isValidFilePath works', () => {
@@ -36,10 +37,34 @@ describe('how isValidFilePath works', () => {
     it('is NOT valid file path', () => {
         expect(isValidFilePath(``)).toBe(false);
         expect(isValidFilePath(`Invalid URL`)).toBe(false);
+        expect(isValidFilePath(`more\nlines\nof\ncode`)).toBe(false);
+        expect(isValidFilePath(`Just a simple sentence`)).toBe(false);
         expect(isValidFilePath(`aegfawsgsdasdg`)).toBe(false);
         expect(isValidFilePath(`wtf://collboard.com/`)).toBe(false);
         expect(isValidFilePath(`blob:nothing`)).toBe(false);
         expect(isValidFilePath(`blob:httpx://localhost:9977/fooo/add`)).toBe(false);
         expect(isValidFilePath(`https://promptbook.studio/foo/bar.book`)).toBe(false);
+    });
+
+    it('knowledge source not confused with file path', () => {
+        expect(
+            isValidFilePath(
+                spaceTrim(`
+                    I'm Pavol, a developer who is passionate about using new tools and technologies.
+
+                    I specialise in creating fully functional user applications using the latest artificial intelligence models.
+
+                    I am a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world.
+
+                    I develop the WebGPT web page generation service.
+
+                    Before the massive emergence of generative AI, I have created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.
+
+                    I have also worked on many scientific projects for the Czech Ornithological Society.
+                    I regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions.
+                    I have a special heart for this, and I love open source – you can find many of my things on my GitHub.
+              `),
+            ),
+        ).toBe(false);
     });
 });

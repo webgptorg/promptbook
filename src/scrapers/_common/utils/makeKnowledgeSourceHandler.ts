@@ -72,7 +72,7 @@ export async function makeKnowledgeSourceHandler(
                 return content;
             },
         };
-    } else if (isValidFilePath(sourceContent) || /\.[a-z]{1,10}$/i.exec(sourceContent as string)) {
+    } else if (isValidFilePath(sourceContent)) {
         if (tools.fs === undefined) {
             throw new EnvironmentMismatchError('Can not import file knowledge without filesystem tools');
             //          <- TODO: [🧠] What is the best error type here`
@@ -94,6 +94,9 @@ export async function makeKnowledgeSourceHandler(
                           Can not make source handler for file which does not exist:
 
                           File:
+                          ${block(sourceContent)}
+
+                          Full file path:
                           ${block(filename)}
                       `,
                 ),
