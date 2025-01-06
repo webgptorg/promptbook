@@ -32,6 +32,8 @@ describe('how isValidFilePath works', () => {
         expect(isValidFilePath(`F:/hello.book`)).toBe(true);
         expect(isValidFilePath(`G:/hello.book`)).toBe(true);
         expect(isValidFilePath(`H:/hello.book`)).toBe(true);
+        expect(isValidFilePath(`X:/hello.book`)).toBe(true);
+        expect(isValidFilePath(`H:/folder with spaces/hello.book`)).toBe(true);
     });
 
     it('is NOT valid file path', () => {
@@ -46,7 +48,16 @@ describe('how isValidFilePath works', () => {
         expect(isValidFilePath(`https://promptbook.studio/foo/bar.book`)).toBe(false);
     });
 
-    it('knowledge source not confused with file path', () => {
+    it('singleline knowledge source not confused with file path', () => {
+        // Note: [🈷]
+        expect(
+            isValidFilePath(
+                `Uranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.`,
+            ),
+        ).toBe(false);
+    });
+
+    it('multiline knowledge source not confused with file path', () => {
         expect(
             isValidFilePath(
                 spaceTrim(`

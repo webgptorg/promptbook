@@ -16,6 +16,13 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
         return false;
     }
 
+    if (
+        filename.split(' ').length >
+        5 /* <- TODO: [🧠][🈷] Make some better non-arbitrary way how to distinct filenames from informational texts */
+    ) {
+        return false;
+    }
+
     const filenameSlashes = filename.split('\\').join('/');
 
     // Absolute Unix path: /hello.txt
@@ -50,7 +57,6 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
 
     return false;
 }
-
 
 /**
  * TODO: [🍏] Implement for MacOs
