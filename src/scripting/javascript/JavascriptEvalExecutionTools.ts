@@ -1,5 +1,6 @@
 // Note: [💎]
 import _spaceTrim from 'spacetrim';
+import { valueToString } from '../../_packages/utils.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
@@ -24,7 +25,6 @@ import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../utils/trimEndOf
 import { unwrapResult as _unwrapResult } from '../../utils/unwrapResult';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
-import { unknownToString } from './utils/unknownToString';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -200,9 +200,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             result = await eval(statementToEvaluate);
 
             if (typeof result !== 'string') {
-                throw new PipelineExecutionError(
-                    `Script must return a string, but returned ${unknownToString(result)}`,
-                );
+                throw new PipelineExecutionError(`Script must return a string, but returned ${valueToString(result)}`);
             }
         } catch (error) {
             if (!(error instanceof Error)) {
@@ -266,7 +264,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         }
 
         if (typeof result !== 'string') {
-            throw new PipelineExecutionError(`Script must return a string, but ${unknownToString(result)}`);
+            throw new PipelineExecutionError(`Script must return a string, but ${valueToString(result)}`);
         }
 
         return result;
