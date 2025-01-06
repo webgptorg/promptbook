@@ -14,7 +14,7 @@ import { scraperFetch } from '../scrapers/_common/utils/scraperFetch';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { InputParameters, string_filename, string_pipeline_url } from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
-import { $getCompiledBook } from './getCompiledBook';
+import { $getCompiledBook } from './$getCompiledBook';
 
 /**
  * Look at `wizzard` for more details

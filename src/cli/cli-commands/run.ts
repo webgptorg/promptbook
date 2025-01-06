@@ -24,7 +24,7 @@ import type { string_parameter_name, string_parameter_value } from '../../types/
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { $getCompiledBook } from '../../wizzard/getCompiledBook';
+import { $getCompiledBook } from '../../wizzard/$getCompiledBook';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
 
 /**
