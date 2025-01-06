@@ -29,5 +29,15 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
         return true;
     }
 
+    // Allow paths like foo/hello
+    if (/^[^/]+\/[^/]+/i.test(filenameSlashes)) {
+        return true;
+    }
+
+    // Allow paths like hello.book
+    if (/^[^/]+\.[^/]+$/i.test(filenameSlashes)) {
+        return true;
+    }
+
     return false;
 }

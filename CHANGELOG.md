@@ -662,6 +662,7 @@ Editing, templates and flat pipelines
 -   Allow flat pipelines
 -   Change `$provideLlmToolsForCli` -> `$provideLlmToolsForWizzardOrCli`
 -   Do not require `.book.md` in pipeline url
+-   More file paths are considered as valid
 
 ## Drafts
 
