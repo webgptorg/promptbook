@@ -155,7 +155,7 @@ export function initializeRunCommand(program: Program) {
 
         let pipeline: PipelineJson;
         try {
-            pipeline = await $getCompiledBook(tools, pipelineSource);
+            pipeline = await $getCompiledBook(tools, pipelineSource, prepareAndScrapeOptions);
         } catch (error) {
             if (!(error instanceof ParseError)) {
                 throw error;

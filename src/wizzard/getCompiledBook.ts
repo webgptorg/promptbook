@@ -6,6 +6,7 @@ import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
+import { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { just } from '../utils/organization/just';
@@ -20,6 +21,7 @@ import { isValidUrl } from '../utils/validators/url/isValidUrl';
 export async function $getCompiledBook(
     tools: Required<Pick<ExecutionTools, 'fs'>>,
     pipelineSource: string_filename | string_pipeline_url | PipelineString,
+    options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
     const { fs } = tools;
 
@@ -40,7 +42,10 @@ export async function $getCompiledBook(
             ) {
                 filePath = filePathCandidate;
                 const pipelineString = (await fs.readFile(filePath, 'utf-8')) as PipelineString;
-                const pipelineJson = await compilePipeline(pipelineString, tools);
+                const pipelineJson = await compilePipeline(pipelineString, tools, {
+                    rootDirname: process.cwd(),
+                    ...options,
+                });
                 return pipelineJson;
             }
         }
@@ -49,7 +54,7 @@ export async function $getCompiledBook(
     // Strategy 2️⃣: If the pipelineSource is a URL - try to find the pipeline on disk in `DEFAULT_BOOKS_DIRNAME` (= `./books`) directory recursively up to the root
     if (isValidUrl(pipelineSource)) {
         // ▶ Create whole pipeline collection
-        const collection = await createCollectionFromDirectory('./books', tools);
+        const collection = await createCollectionFromDirectory('./books', tools, options);
         // <- TODO: !!!!!! Search recursively in the directory
 
         // ▶ Get single Pipeline
