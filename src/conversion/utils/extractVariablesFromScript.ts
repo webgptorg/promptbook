@@ -63,12 +63,9 @@ export function extractVariablesFromScript(script: string_javascript): Set<strin
             spaceTrim(
                 (block) => `
                     Can not extract variables from the script
-
-                    ${block((error as Error).toString())}}
-
+                    ${block(error.stack || error.message)}
 
                     Found variables:
-
                     ${Array.from(variables)
                         .map((variableName, i) => `${i + 1}) ${variableName}`)
                         .join('\n')}

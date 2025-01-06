@@ -119,7 +119,7 @@ export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions)
                         (block) => `
                             \`${name}\` is not serializable
 
-                            ${block((error as Error).toString())}
+                            ${block(error.stack || error.message)}
 
                             Additional message for \`${name}\`:
                             ${block(message || '(nothing)')}
