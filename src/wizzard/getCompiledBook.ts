@@ -1,5 +1,8 @@
+import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import { isValidPipelineUrl } from '../_packages/utils.index';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
+import { LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
@@ -10,8 +13,8 @@ import { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { just } from '../utils/organization/just';
+import { isPathRoot } from '../utils/validators/filePath/isPathRoot';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
-import { isValidUrl } from '../utils/validators/url/isValidUrl';
 
 /**
  * @see ./wizzard.ts `getPipeline` method
@@ -52,32 +55,47 @@ export async function $getCompiledBook(
     } /* not else */
 
     // Strategy 2️⃣: If the pipelineSource is a URL - try to find the pipeline on disk in `DEFAULT_BOOKS_DIRNAME` (= `./books`) directory recursively up to the root
-    if (isValidUrl(pipelineSource)) {
-        // ▶ Create whole pipeline collection
-        const collection = await createCollectionFromDirectory('./books', tools, options);
-        // <- TODO: !!!!!! Search recursively in the directory
+    if (isValidPipelineUrl(pipelineSource)) {
+        let rootDirname = process.cwd();
 
-        // ▶ Get single Pipeline
-        const pipeline = await (async () => {
-            try {
-                return await collection.getPipelineByUrl(pipelineSource);
-            } catch (error) {
-                if (!(error instanceof NotFoundError)) {
-                    throw error;
+        for (let i = 0; i < LOOP_LIMIT; i++) {
+            // console.log('rootDirname', rootDirname);
+
+            const collection = await createCollectionFromDirectory('./books', tools, {
+                isRecursive: true,
+                rootDirname,
+                ...options,
+            });
+
+            const pipeline = await (async () => {
+                try {
+                    return await collection.getPipelineByUrl(pipelineSource);
+                } catch (error) {
+                    if (!(error instanceof NotFoundError)) {
+                        throw error;
+                    }
+
+                    // Note: If the pipeline was not found in the collection, try next strategy
+                    return null;
                 }
+            })();
 
-                // Note: If the pipeline was not found in the collection, try next strategy
-                return null;
+            if (pipeline !== null) {
+                return pipeline;
             }
-        })();
 
-        if (pipeline !== null) {
-            return pipeline;
+            // Note: searches recursivelly for books
+
+            if (isPathRoot(rootDirname)) {
+                break;
+            }
+
+            rootDirname = join(rootDirname, '..');
         }
     } /* not else */
 
     // Strategy 3️⃣: If the pipelineSource is a URL - try to fetch it from the internet
-    if (isValidUrl(pipelineSource)) {
+    if (isValidPipelineUrl(pipelineSource)) {
         throw new NotYetImplementedError(
             'Strategy 3️⃣: If the pipelineSource is a URL - try to fetch it from the internet',
         );

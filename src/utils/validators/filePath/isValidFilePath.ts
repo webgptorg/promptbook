@@ -50,3 +50,8 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
 
     return false;
 }
+
+
+/**
+ * TODO: [🍏] Implement for MacOs
+ */
