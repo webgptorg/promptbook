@@ -1,8 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
@@ -10,12 +9,12 @@ import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { just } from '../utils/organization/just';
 import { isPathRoot } from '../utils/validators/filePath/isPathRoot';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
+import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 
 /**
  * @see ./wizzard.ts `getPipeline` method
@@ -33,7 +32,7 @@ export async function $getCompiledBook(
     if (isValidFilePath(pipelineSource)) {
         const filePathRaw = pipelineSource;
         let filePath: string_filename | null = null;
-        let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book.md`, `${filePathRaw}.book.md`];
+        let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book.md`, `${filePathRaw}.book.md`]; // <- TODO: [🕝] To config
         filePathCandidates = [...filePathCandidates, ...filePathCandidates.map((path) => path.split('\\').join('/'))];
         //                       <- Note: This line is to work with Windows paths
         //                                File "C:Usersmeworkaihello-worldbookshello.book.md" does not exist
@@ -57,12 +56,17 @@ export async function $getCompiledBook(
 
     // Strategy 2️⃣: If the pipelineSource is a URL - try to find the pipeline on disk in `DEFAULT_BOOKS_DIRNAME` (= `./books`) directory recursively up to the root
     if (isValidPipelineUrl(pipelineSource)) {
-        let rootDirname = process.cwd();
+        let rootDirnameBase = process.cwd();
 
         for (let i = 0; i < LOOP_LIMIT; i++) {
             // console.log('rootDirname', rootDirname);
 
-            const collection = await createCollectionFromDirectory('./books', tools, {
+            const rootDirname = join(
+                rootDirnameBase,
+                DEFAULT_BOOKS_DIRNAME /* <- TODO: [🕝] Make here more candidates */,
+            );
+
+            const collection = await createCollectionFromDirectory(rootDirname, tools, {
                 isRecursive: true,
                 rootDirname,
                 ...options,
@@ -87,11 +91,11 @@ export async function $getCompiledBook(
 
             // Note: searches recursivelly for books
 
-            if (isPathRoot(rootDirname)) {
+            if (isPathRoot(rootDirnameBase)) {
                 break;
             }
 
-            rootDirname = join(rootDirname, '..');
+            rootDirnameBase = join(rootDirnameBase, '..');
         }
     } /* not else */
 
