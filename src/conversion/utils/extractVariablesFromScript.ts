@@ -63,7 +63,7 @@ export function extractVariablesFromScript(script: string_javascript): Set<strin
             spaceTrim(
                 (block) => `
                     Can not extract variables from the script
-                    ${block(error.stack || error.message)}
+                    ${block((error as Error).stack || (error as Error).message)}
 
                     Found variables:
                     ${Array.from(variables)
