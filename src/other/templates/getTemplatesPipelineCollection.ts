@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-10",
+                        "promptbookVersion": "0.81.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -310,52 +310,45 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/chatbot.book.md"
             },
             {
-                "title": "🖼 Generator",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generator.book.md",
-                "formfactorName": "GENERIC",
+                "title": "🐜 Corrector",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/corrector.book.md",
+                "formfactorName": "TRANSLATOR",
                 "parameters": [
                     {
-                        "name": "letter",
-                        "description": "Letter for you",
-                        "isInput": false,
-                        "isOutput": true
-                    },
-                    {
-                        "name": "yourName",
+                        "name": "inputMessage",
+                        "description": "Raw text",
                         "isInput": true,
                         "isOutput": false
+                    },
+                    {
+                        "name": "outputMessage",
+                        "description": "Corrected text",
+                        "isInput": false,
+                        "isOutput": true
                     }
                 ],
                 "tasks": [
                     {
                         "taskType": "PROMPT_TASK",
-                        "name": "write-a-letter",
-                        "title": "Write a letter",
-                        "content": "Write a letter for {yourName}",
-                        "resultingParameterName": "letter",
+                        "name": "translate",
+                        "title": "Translate",
+                        "content": "Correct the text\n\n> {inputMessage}\n\n# Rules\n\n-   Fix the grammar, spelling, and punctuation\n-   Enhance stylistic elements\n-   Write only the corrected text",
+                        "resultingParameterName": "outputMessage",
                         "personaName": "Jane",
-                        "expectations": {
-                            "words": {
-                                "min": 3
-                            },
-                            "pages": {
-                                "max": 1
-                            }
-                        },
                         "dependentParameterNames": [
-                            "yourName"
+                            "inputMessage"
                         ]
                     }
                 ],
                 "personas": [
                     {
                         "name": "Jane",
-                        "description": "linguist and computer scientist",
+                        "description": "a linguist and Corrector",
                         "modelRequirements": {
                             "modelVariant": "CHAT",
                             "modelName": "gpt-4-turbo-2024-04-09",
-                            "systemMessage": "You are a virtual assistant with expertise in linguistics and computer science. Provide accurate and insightful information on language structures, computational linguistics, programming languages, and the intersection of language and technology. Offer clear explanations and be ready to discuss both theoretical concepts and practical applications in these fields.",
-                            "temperature": 0.7
+                            "systemMessage": "You are a highly skilled linguist and meticulous corrector. Your expertise spans multiple languages, grammar rules, and linguistic nuances. Your primary role is to assist users with language-related queries, provide corrections for grammatical and spelling errors, and offer insights into the intricacies of various languages. Always strive for accuracy and clarity in your explanations and corrections.",
+                            "temperature": 0.3
                         },
                         "preparationIds": [
                             1
@@ -365,17 +358,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-10",
+                        "promptbookVersion": "0.81.0-11",
                         "usage": {
                             "price": {
-                                "value": 0.005451
+                                "value": 0.005757
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 1167
+                                    "value": 1169
                                 },
                                 "charactersCount": {
-                                    "value": 3235
+                                    "value": 3228
                                 },
                                 "wordsCount": {
                                     "value": 577
@@ -395,16 +388,16 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 130
+                                    "value": 150
                                 },
                                 "charactersCount": {
-                                    "value": 572
+                                    "value": 604
                                 },
                                 "wordsCount": {
-                                    "value": 79
+                                    "value": 87
                                 },
                                 "sentencesCount": {
-                                    "value": 5
+                                    "value": 6
                                 },
                                 "linesCount": {
                                     "value": 15
@@ -425,35 +418,10 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "# 🖼 Generator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generator.book.md\n\n## Write a letter\n\n-   PERSONA Jane, linguist and computer scientist\n-   EXPECT MIN 3 Words\n-   EXPECT MAX 1 Page\n\n> Write a letter for {yourName}\n\n-> {letter} Letter for you\n"
+                        "content": "# 🐜 Corrector\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/corrector.book.md\n-   FORMFACTOR Translator\n-   INPUT PARAMETER {inputMessage} Raw text\n-   OUTPUT PARAMETER {outputMessage} Corrected text\n\n## Translate\n\n-   PERSONA Jane, a linguist and Corrector\n\n```markdown\nCorrect the text\n\n> {inputMessage}\n\n# Rules\n\n-   Fix the grammar, spelling, and punctuation\n-   Enhance stylistic elements\n-   Write only the corrected text\n```\n\n-> {outputMessage}\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/generator.book.md"
-            },
-            {
-                "title": "Untitled",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md",
-                "formfactorName": "GENERIC",
-                "parameters": [
-                    {
-                        "name": "letter",
-                        "isInput": true,
-                        "isOutput": false
-                    }
-                ],
-                "tasks": [],
-                "personas": [],
-                "preparations": [],
-                "knowledgeSources": [],
-                "knowledgePieces": [],
-                "sources": [
-                    {
-                        "type": "BOOK",
-                        "path": null,
-                        "content": "-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n> Write a letter for {yourName}\n\n-> {letter}\n"
-                    }
-                ],
-                "sourceFile": "./book/books/templates/generic.book.md"
+                "sourceFile": "./book/books/templates/corrector.book.md"
             },
             {
                 "title": "🧮 Sheets",
@@ -521,7 +489,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-10",
+                        "promptbookVersion": "0.81.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -798,7 +766,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-10",
+                        "promptbookVersion": "0.81.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.006237
@@ -858,7 +826,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "# 🎌 Translator\n\n<!-- TODO: !!!!!! Implement -->\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/translator.book.md\n-   INPUT PARAMETER {inputMessage} English\n-   OUTPUT PARAMETER {outputMessage} Esperanto\n\n## Translate\n\n-   PERSONA Jane, linguist and Esperantist\n\n```markdown\nTranslate text to Esperanto\n\n> {inputMessage}\n\n# Rules\n\n-   Write only the translated text\n```\n\n-> {outputMessage}\n"
+                        "content": "# 🎌 Translator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/translator.book.md\n-   INPUT PARAMETER {inputMessage} English\n-   OUTPUT PARAMETER {outputMessage} Esperanto\n\n## Translate\n\n-   PERSONA Jane, linguist and Esperantist\n\n```markdown\nTranslate text to Esperanto\n\n> {inputMessage}\n\n# Rules\n\n-   Write only the translated text\n```\n\n-> {outputMessage}\n"
                     }
                 ],
                 "sourceFile": "./book/books/templates/translator.book.md"
