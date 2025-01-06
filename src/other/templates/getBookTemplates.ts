@@ -14,9 +14,11 @@ export let pipelines: Array<PipelineJson> | null = null;
 /**
  * Get template for new book
  *
+ * @param formfactorName - optional filter for FORMFACTOR - get only pipelines for this formfactor
+ * @returns list of pipelines
  * @public exported from `@promptbook/templates`
  */
-export function getBookTemplate(formfactorName: string_formfactor_name): ReadonlyArray<PipelineJson> {
+export function getBookTemplates(formfactorName?: string_formfactor_name): ReadonlyArray<PipelineJson> {
     if (pipelines === null) {
         const collection = getTemplatesPipelineCollection();
         const pipelineUrls = collection.listPipelines() as ReadonlyArray<string_pipeline_url>; // <- Note: [0] Function `listPipelines` is sync because `templatesPipelineCollection` is `SimplePipelineCollection`
@@ -25,7 +27,11 @@ export function getBookTemplate(formfactorName: string_formfactor_name): Readonl
         );
     }
 
-    return pipelines.filter((pipeline) => pipeline.formfactorName === formfactorName);
+    if (formfactorName === undefined) {
+        return pipelines;
+    } else {
+        return pipelines.filter((pipeline) => pipeline.formfactorName === formfactorName);
+    }
 }
 
 /**
