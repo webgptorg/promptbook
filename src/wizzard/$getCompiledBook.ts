@@ -1,8 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
@@ -10,8 +9,8 @@ import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
+import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { just } from '../utils/organization/just';
 import { isPathRoot } from '../utils/validators/filePath/isPathRoot';
@@ -60,13 +59,18 @@ export async function $getCompiledBook(
     if (isValidPipelineUrl(pipelineSource)) {
         let rootDirnameBase = process.cwd();
 
-        for (let i = 0; i < LOOP_LIMIT; i++) {
+        up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
             // console.log('rootDirname', rootDirname);
 
             const rootDirname = join(
                 rootDirnameBase,
                 DEFAULT_BOOKS_DIRNAME /* <- TODO: [🕝] Make here more candidates */,
             );
+
+            if (!(await isDirectoryExisting(rootDirname, fs))) {
+                // Note: If the directory does not exist, try the parent directory
+                continue up_to_root;
+            }
 
             const collection = await createCollectionFromDirectory(rootDirname, tools, {
                 isRecursive: true,
@@ -94,7 +98,7 @@ export async function $getCompiledBook(
             // Note: searches recursivelly for books
 
             if (isPathRoot(rootDirnameBase)) {
-                break;
+                break up_to_root;
             }
 
             rootDirnameBase = join(rootDirnameBase, '..');
