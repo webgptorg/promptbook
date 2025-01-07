@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-12",
+                        "promptbookVersion": "0.81.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-12",
+                        "promptbookVersion": "0.81.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -422,6 +422,47 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     }
                 ],
                 "sourceFile": "./book/books/templates/corrector.book.md"
+            },
+            {
+                "title": "💌 Letter",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md",
+                "formfactorName": "GENERIC",
+                "parameters": [
+                    {
+                        "name": "letter",
+                        "isInput": false,
+                        "isOutput": true
+                    },
+                    {
+                        "name": "yourName",
+                        "isInput": true,
+                        "isOutput": false
+                    }
+                ],
+                "tasks": [
+                    {
+                        "taskType": "PROMPT_TASK",
+                        "name": "write-a-letter",
+                        "title": "Write a letter",
+                        "content": "Write a letter for {yourName}",
+                        "resultingParameterName": "letter",
+                        "dependentParameterNames": [
+                            "yourName"
+                        ]
+                    }
+                ],
+                "personas": [],
+                "preparations": [],
+                "knowledgeSources": [],
+                "knowledgePieces": [],
+                "sources": [
+                    {
+                        "type": "BOOK",
+                        "path": null,
+                        "content": "# 💌 Letter\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n<!--\nTODO: !!!!!! Make this flat - no nested sections\n-->\n\n## Write a letter\n\n> Write a letter for {yourName}\n\n-> {letter}\n"
+                    }
+                ],
+                "sourceFile": "./book/books/templates/generic.book.md"
             },
             {
                 "title": "🧮 Sheets",
@@ -489,7 +530,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-12",
+                        "promptbookVersion": "0.81.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -766,7 +807,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-12",
+                        "promptbookVersion": "0.81.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.006237
