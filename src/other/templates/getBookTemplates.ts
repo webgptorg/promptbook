@@ -37,4 +37,5 @@ export function getBookTemplates(formfactorName?: string_formfactor_name): Reado
 /**
  * TODO: Unit test
  * TODO: [🧠] Which is the best place for this function
+ * TODO: !!!!!! For GENERIC template ensure at least one pipeline is present for typescript in `getBookTemplates`
  */
