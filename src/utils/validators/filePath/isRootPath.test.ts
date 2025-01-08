@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { isRootPath } from './isPathRoot';
+import { isRootPath } from './isRootPath';
 
-describe('how `isPathRoot` works', () => {
+describe('how `isRootPath` works', () => {
     it('works with Linux paths', () => {
         expect(isRootPath(`/`)).toBe(true);
         expect(isRootPath(`/foo`)).toBe(false);
