@@ -1,8 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
@@ -10,8 +9,7 @@ import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { just } from '../utils/organization/just';
@@ -59,51 +57,46 @@ export async function $getCompiledBook(
 
     // Strategy 2️⃣: If the pipelineSource is a URL - try to find the pipeline on disk in `DEFAULT_BOOKS_DIRNAME` (= `./books`) directory recursively up to the root
     if (isValidPipelineUrl(pipelineSource)) {
-        let rootDirnameBase = process.cwd();
+        let rootDirname = process.cwd();
 
         up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
-            // console.log('rootDirname', rootDirname);
+            const booksDirname = join(rootDirname, DEFAULT_BOOKS_DIRNAME /* <- TODO: [🕝] Make here more candidates */);
 
-            const rootDirname = join(
-                rootDirnameBase,
-                DEFAULT_BOOKS_DIRNAME /* <- TODO: [🕝] Make here more candidates */,
-            );
+            console.log({ rootDirname, booksDirname });
+            // <- TODO: !!!!!!! Remove
 
-            if (!(await isDirectoryExisting(rootDirname, fs))) {
-                // Note: If the directory does not exist, try the parent directory
-                continue up_to_root;
-            }
+            if (await isDirectoryExisting(booksDirname, fs)) {
+                const collection = await createCollectionFromDirectory(booksDirname, tools, {
+                    isRecursive: true,
+                    rootDirname: booksDirname,
+                    ...options,
+                });
 
-            const collection = await createCollectionFromDirectory(rootDirname, tools, {
-                isRecursive: true,
-                rootDirname,
-                ...options,
-            });
+                const pipeline = await (async () => {
+                    try {
+                        return await collection.getPipelineByUrl(pipelineSource);
+                    } catch (error) {
+                        if (!(error instanceof NotFoundError)) {
+                            throw error;
+                        }
 
-            const pipeline = await (async () => {
-                try {
-                    return await collection.getPipelineByUrl(pipelineSource);
-                } catch (error) {
-                    if (!(error instanceof NotFoundError)) {
-                        throw error;
+                        // Note: If the pipeline was not found in the collection, try next strategy
+                        return null;
                     }
+                })();
 
-                    // Note: If the pipeline was not found in the collection, try next strategy
-                    return null;
+                if (pipeline !== null) {
+                    // This will break the loop and return the pipeline from the function `$getCompiledBook`
+                    return pipeline;
                 }
-            })();
-
-            if (pipeline !== null) {
-                return pipeline;
             }
 
-            // Note: searches recursivelly for books
-
-            if (isPathRoot(rootDirnameBase)) {
+            if (isPathRoot(rootDirname)) {
                 break up_to_root;
             }
 
-            rootDirnameBase = join(rootDirnameBase, '..');
+            // Note: If the directory does not exist, try the parent directory
+            rootDirname = join(rootDirname, '..');
         }
     } /* not else */
 

@@ -28,9 +28,9 @@ type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromCon
  *
  * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
-export function $provideLlmToolsForTestingAndScriptsAndPlayground(
+export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
     options?: GetLlmToolsForTestingAndScriptsAndPlaygroundOptions,
-): LlmExecutionToolsWithTotalUsage {
+): Promise<LlmExecutionToolsWithTotalUsage> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `$provideLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
@@ -39,7 +39,7 @@ export function $provideLlmToolsForTestingAndScriptsAndPlayground(
 
     const { isCacheReloaded = false, ...restOptions } = options ?? {};
 
-    const llmTools: LlmExecutionTools = $provideLlmToolsFromEnv(restOptions);
+    const llmTools: LlmExecutionTools = await $provideLlmToolsFromEnv(restOptions);
     const llmToolsWithUsage = !IS_COST_PREVENTED
         ? countTotalUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]

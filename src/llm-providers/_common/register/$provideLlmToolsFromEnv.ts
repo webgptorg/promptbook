@@ -24,14 +24,14 @@ import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfigurati
  * @returns @@@
  * @public exported from `@promptbook/node`
  */
-export function $provideLlmToolsFromEnv(
+export async function $provideLlmToolsFromEnv(
     options: CreateLlmToolsFromConfigurationOptions = {},
-): MultipleLlmExecutionTools {
+): Promise<MultipleLlmExecutionTools> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
     }
 
-    const configuration = $provideLlmToolsConfigurationFromEnv();
+    const configuration = await $provideLlmToolsConfigurationFromEnv();
 
     if (configuration.length === 0) {
         if ($llmToolsMetadataRegister.list().length === 0) {

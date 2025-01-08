@@ -20,14 +20,16 @@ describe('all the scrapers', () => {
 */
 
 describe('how prepareKnowledge works', () => {
-    it('should work with empty knowledge', () =>
-        expect(
+    it('should work with empty knowledge', async () => {
+        const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        await expect(
             prepareKnowledgePieces(
                 [],
-                { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+                { llm: llmTools },
                 {
                     rootDirname: join(__dirname, 'examples'),
                 },
             ),
-        ).resolves.toEqual([]));
+        ).resolves.toEqual([]);
+    });
 });

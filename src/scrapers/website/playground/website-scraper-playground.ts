@@ -35,11 +35,11 @@ async function playground() {
     const example = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
 
-    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, 'examples');
 
     const websiteScraper = new WebsiteScraper(
-        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground(), fs: $provideFilesystemForNode() },
+        { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground(), fs: $provideFilesystemForNode() },
         {
             rootDirname,
         },

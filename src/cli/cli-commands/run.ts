@@ -101,7 +101,7 @@ export function initializeRunCommand(program: Program) {
         let llm: LlmExecutionTools;
 
         try {
-            llm = $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
+            llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;

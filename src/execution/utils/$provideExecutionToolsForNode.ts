@@ -21,7 +21,7 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
     }
 
     const fs = $provideFilesystemForNode();
-    const llm = $provideLlmToolsFromEnv(options);
+    const llm = await $provideLlmToolsFromEnv(options);
     const executables = await $provideExecutablesForNode(options);
 
     const tools = {

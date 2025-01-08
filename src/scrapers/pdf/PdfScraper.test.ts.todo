@@ -10,7 +10,7 @@ describe('how creating knowledge from pdf works', () => {
 
 const rootDirname =  join(__dirname, 'examples');
     const pdfScraper = new PdfScraper(
-        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
         },

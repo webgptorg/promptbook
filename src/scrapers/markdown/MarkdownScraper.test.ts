@@ -7,12 +7,17 @@ import { MarkdownScraper } from './MarkdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
     const rootDirname = join(__dirname, 'examples');
-    const markdownScraper = new MarkdownScraper(
-        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
-        {
-            rootDirname,
-        },
-    );
+    let markdownScraper;
+
+    beforeAll(async () => {
+        const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        markdownScraper = new MarkdownScraper(
+            { llm: llmTools },
+            {
+                rootDirname,
+            },
+        );
+    });
 
     it('should scrape simple information from a markdown', () =>
         expect(

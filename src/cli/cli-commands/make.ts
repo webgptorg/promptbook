@@ -118,7 +118,7 @@ export function initializeMakeCommand(program: Program) {
                 isCacheReloaded,
             }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-            const llm = $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
+            const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
             const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
             const tools = {
                 llm,

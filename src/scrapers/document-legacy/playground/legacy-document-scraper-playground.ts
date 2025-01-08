@@ -35,13 +35,13 @@ async function playground() {
     const example = '10-simple.rtf';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them
 
-    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'examples');
 
     const legacyDocumentScraper = new LegacyDocumentScraper(
         {
             fs: $provideFilesystemForNode(),
-            llm: $provideLlmToolsForTestingAndScriptsAndPlayground(),
+            llm: await $provideLlmToolsForTestingAndScriptsAndPlayground(),
             executables: await $provideExecutablesForNode(),
         },
         {

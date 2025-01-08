@@ -9,7 +9,7 @@ import { preparePersona } from './preparePersona';
 describe('how preparePersona works', () => {
     it('should work with simple persona description', () =>
         expect(
-            preparePersona(`Copywriter`,{ llm: $provideLlmToolsForTestingAndScriptsAndPlayground() }, {
+            preparePersona(`Copywriter`,{ llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() }, {
 
             }),
         ).resolves.toEqual({
@@ -44,7 +44,7 @@ describe('how preparePersona works', () => {
                     - Experience with social media
                     - Experience with email marketing
 
-                `),{ llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+                `),{ llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },
                 {
 
                 },
@@ -73,7 +73,7 @@ describe('how preparePersona works', () => {
         expect(
             preparePersona(
                 `Technical writer with 5 years of experience in the field. Experience with writing technical documentation, user manuals, and API documentation.`,
-                { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },{
+                { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },{
 
                 },
             ),
@@ -89,7 +89,7 @@ describe('how preparePersona works', () => {
         expect(
             preparePersona(
                 `Locuteur natif français, j'aime écrire et je suis passionné par la langue et la culture française.`,
-                { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },{
+                { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },{
 
                 },
             ),
@@ -103,7 +103,7 @@ describe('how preparePersona works', () => {
 
     it('should work with weird persona description', () =>
         expect(
-            preparePersona(`Xyzzy with 5 years of experience in the field. Experience with foo and bar.`, { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },{
+            preparePersona(`Xyzzy with 5 years of experience in the field. Experience with foo and bar.`, { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },{
 
             }),
         ).resolves.toEqual({

@@ -61,7 +61,7 @@ async function makePipelineCollection({
     const promptbookSourceDir = 'books';
 
     const fs = $provideFilesystemForNode();
-    const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
+    const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
     const executables = await $provideExecutablesForNode();
     const scrapers = await $provideScrapersForNode({ fs, llm, executables });
 

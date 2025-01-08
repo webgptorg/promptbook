@@ -34,11 +34,11 @@ async function playground() {
     const example = '10-simple.pdf';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them
 
-    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'examples');
 
     const pdfScraper = new PdfScraper(
-        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
         },

@@ -15,9 +15,9 @@ import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
  *
  * @private within the repository - for CLI utils
  */
-export function $provideLlmToolsForWizzardOrCli(
+export async function $provideLlmToolsForWizzardOrCli(
     options?: Pick<CacheLlmToolsOptions, 'isCacheReloaded'>,
-): LlmExecutionToolsWithTotalUsage {
+): Promise<LlmExecutionToolsWithTotalUsage> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `$provideLlmToolsForWizzardOrCli` works only in Node.js environment',
@@ -29,7 +29,7 @@ export function $provideLlmToolsForWizzardOrCli(
     return cacheLlmTools(
         countTotalUsage(
             //        <- Note: for example here we don`t want the [🌯]
-            $provideLlmToolsFromEnv(),
+            await $provideLlmToolsFromEnv(),
         ),
         {
             storage: new FileCacheStorage(

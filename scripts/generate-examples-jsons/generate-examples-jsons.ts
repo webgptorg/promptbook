@@ -65,7 +65,7 @@ async function generateExampleJsons({
     }
 
     const fs = $provideFilesystemForNode();
-    const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
+    const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
     const executables = await $provideExecutablesForNode();
 

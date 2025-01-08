@@ -13,7 +13,7 @@ describe('how creating knowledge from docx works', () => {
         new DocumentScraper(
             {
                 fs: $provideFilesystemForNode(),
-                llm: $provideLlmToolsForTestingAndScriptsAndPlayground(),
+                llm: await $provideLlmToolsForTestingAndScriptsAndPlayground(),
                 executables: await $provideExecutablesForNode(),
             },
             {

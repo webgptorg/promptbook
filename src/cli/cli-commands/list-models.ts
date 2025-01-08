@@ -20,7 +20,7 @@ export function initializeListModelsCommand(program: Program) {
     );
 
     listModelsCommand.action(async () => {
-        const llm = $provideLlmToolsForWizzardOrCli({});
+        const llm = await $provideLlmToolsForWizzardOrCli({});
         keepUnused(llm);
         // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
 

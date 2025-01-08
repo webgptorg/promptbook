@@ -663,6 +663,8 @@ Editing, templates and flat pipelines
 -   Change `$provideLlmToolsForCli` -> `$provideLlmToolsForWizzardOrCli`
 -   Do not require `.book.md` in pipeline url
 -   More file paths are considered as valid
+-   Walk to the root of the project and find the nearest `.env` file
+-   `$provideLlmToolsConfigurationFromEnv`, `$provideLlmToolsFromEnv`, `$provideLlmToolsForWizzardOrCli`, `$provideLlmToolsForTestingAndScriptsAndPlayground` are async
 
 ## Drafts
 

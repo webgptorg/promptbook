@@ -1,7 +1,12 @@
 import * as dotenv from 'dotenv';
+import { join } from 'path';
+import { $provideFilesystemForNode } from '../../../_packages/node.index';
+import { isPathRoot } from '../../../_packages/utils.index';
+import { LOOP_LIMIT } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { string_name } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
@@ -18,14 +23,31 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @returns @@@
  * @public exported from `@promptbook/node`
  */
-export function $provideLlmToolsConfigurationFromEnv(): LlmToolsConfiguration {
+export async function $provideLlmToolsConfigurationFromEnv(): LlmToolsConfiguration {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
     }
 
-    dotenv.config();
-    //   TODO: Walk to the root of the project and find the nearest `.env` file
-    //         @see https://collboard.fra1.cdn.digitaloceanspaces.com/usercontent/education/image/png/1/2/ad/image.png
+    let rootDirname = process.cwd();
+
+    up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
+        const envFilename = join(rootDirname, '.env' /* <- TODO: [🕝] Make here more candidates */);
+
+        console.log({ rootDirname, envFilename });
+        // <- TODO: !!!!!!! Remove
+
+        if (await isFileExisting(envFilename, $provideFilesystemForNode())) {
+            dotenv.config({ path: envFilename });
+            break up_to_root;
+        }
+
+        if (isPathRoot(rootDirname)) {
+            break up_to_root;
+        }
+
+        // Note: If the directory does not exist, try the parent directory
+        rootDirname = join(rootDirname, '..');
+    }
 
     const llmToolsConfiguration: LlmToolsConfiguration = $llmToolsMetadataRegister
         .list()
