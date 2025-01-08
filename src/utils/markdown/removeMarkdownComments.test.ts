@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { removeContentComments } from './removeContentComments';
+import { removeMarkdownComments } from './removeMarkdownComments';
 
-describe('removeContentComments', () => {
+describe('removeMarkdownComments', () => {
     it('should remove comments from simple text', () => {
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
                     <!-- This is an comment -->
                     Hello World
@@ -20,7 +20,7 @@ describe('removeContentComments', () => {
 
     it('should remove comments from html', () => {
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
                     <!-- This is an HTML comment -->
                     <h1>Hello World</h1>
@@ -34,7 +34,7 @@ describe('removeContentComments', () => {
             `),
         );
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
                     <h1>Hello World</h1>
                     <!-- This is an HTML comment -->
@@ -52,7 +52,7 @@ describe('removeContentComments', () => {
 
     it('should remove comments from markdown', () => {
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
                     <!-- This is an markdown comment -->
                     # Hello World
@@ -68,7 +68,7 @@ describe('removeContentComments', () => {
             `),
         );
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
 
                     # Hello World
@@ -87,7 +87,7 @@ describe('removeContentComments', () => {
 
     it('should not be confisused with comment content', () => {
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
                     <!-- This <!--is an HTML -> comment -->
                     Hello World
@@ -102,7 +102,7 @@ describe('removeContentComments', () => {
 
     it('should remove multiple comments from simple text', () => {
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
                     <!-- This is an comment -->
                     Hello <!-- Flat -->World
@@ -119,7 +119,7 @@ describe('removeContentComments', () => {
 
     it('should remove multi-line comments from simple text', () => {
         expect(
-            removeContentComments(
+            removeMarkdownComments(
                 spaceTrim(`
                     <!--
                     This is an comment

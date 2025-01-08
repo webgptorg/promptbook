@@ -666,6 +666,7 @@ Editing, templates and flat pipelines
 -   Walk to the root of the project and find the nearest `.env` file
 -   `$provideLlmToolsConfigurationFromEnv`, `$provideLlmToolsFromEnv`, `$provideLlmToolsForWizzardOrCli`, `$provideLlmToolsForTestingAndScriptsAndPlayground` are async
 -   Image generator formfactor
+-   Rename `removeContentComments` -> `removeMarkdownComments`
 
 ## Drafts
 

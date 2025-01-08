@@ -12,7 +12,7 @@ Sometimes you need to postprocess the output of the LLM model, every postprocess
 -   `extractBlock`
 -   `extractOneBlockFromMarkdown `_<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
 -   `prettifyPipelineString`
--   `removeContentComments`
+-   `removeMarkdownComments`
 -   `removeEmojis`
 -   `removeMarkdownFormatting` _<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
 -   `removeQuotes`

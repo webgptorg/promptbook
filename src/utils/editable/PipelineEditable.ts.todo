@@ -36,7 +36,7 @@ import {
     string_pipeline_url,
     string_semantic_version,
 } from '../../types/typeAliases';
-import { removeContentComments } from '../markdown/removeContentComments';
+import { removeMarkdownComments } from '../markdown/removeMarkdownComments';
 import { isValidPipelineUrl } from '../validators/url/isValidPipelineUrl';
 import { PipelineEditableSerialized } from './types/PipelineEditableSerialized';
 
@@ -127,7 +127,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         const { isCommentsRemoved = false, isPipelineUrlHidden = false } = options || {};
 
         if (isCommentsRemoved) {
-            sourceMarkdown = removeContentComments(sourceMarkdown);
+            sourceMarkdown = removeMarkdownComments(sourceMarkdown);
         }
 
         const sourceJson = precompilePipeline(sourceMarkdown);

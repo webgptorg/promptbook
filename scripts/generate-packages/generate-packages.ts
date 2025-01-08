@@ -14,7 +14,7 @@ import { GENERATOR_WARNING } from '../../src/config';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
-import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
+import { removeMarkdownComments } from '../../src/utils/markdown/removeMarkdownComments';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { getPackagesMetadata } from './getPackagesMetadata';
@@ -233,7 +233,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         // TODO: [🍓] Convert mermaid diagrams to images or remove them from the markdown published to NPM
 
-        packageReadme = removeContentComments(packageReadme);
+        packageReadme = removeMarkdownComments(packageReadme);
 
         packageReadme = spaceTrim(
             (block) => `
