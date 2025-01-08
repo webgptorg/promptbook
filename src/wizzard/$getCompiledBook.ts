@@ -13,7 +13,7 @@ import type { string_filename, string_pipeline_url } from '../types/typeAliases'
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { just } from '../utils/organization/just';
-import { isRootPath } from '../utils/validators/filePath/isPathRoot';
+import { isRootPath } from '../utils/validators/filePath/isRootPath';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
 import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 

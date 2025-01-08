@@ -6,9 +6,9 @@ import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchErr
 import type { string_name } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
+import { isRootPath } from '../../../utils/validators/filePath/isRootPath';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
-import { isRootPath } from '../../../utils/validators/filePath/isPathRoot';
 
 /**
  * @@@
