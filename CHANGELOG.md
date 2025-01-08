@@ -665,6 +665,7 @@ Editing, templates and flat pipelines
 -   More file paths are considered as valid
 -   Walk to the root of the project and find the nearest `.env` file
 -   `$provideLlmToolsConfigurationFromEnv`, `$provideLlmToolsFromEnv`, `$provideLlmToolsForWizzardOrCli`, `$provideLlmToolsForTestingAndScriptsAndPlayground` are async
+-   Image generator formfactor
 
 ## Drafts
 
