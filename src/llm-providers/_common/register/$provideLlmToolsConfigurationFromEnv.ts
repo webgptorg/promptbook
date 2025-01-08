@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { join } from 'path';
-import { $provideFilesystemForNode } from '../../../_packages/node.index';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { LOOP_LIMIT } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { string_name } from '../../../types/typeAliases';
