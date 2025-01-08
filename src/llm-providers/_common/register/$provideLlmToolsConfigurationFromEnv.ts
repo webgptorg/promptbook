@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 import { join } from 'path';
 import { $provideFilesystemForNode } from '../../../_packages/node.index';
-import { isPathRoot } from '../../../_packages/utils.index';
 import { LOOP_LIMIT } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { string_name } from '../../../types/typeAliases';
@@ -9,6 +8,7 @@ import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import { isRootPath } from '../../../utils/validators/filePath/isPathRoot';
 
 /**
  * @@@
@@ -41,7 +41,7 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
             break up_to_root;
         }
 
-        if (isPathRoot(rootDirname)) {
+        if (isRootPath(rootDirname)) {
             break up_to_root;
         }
 

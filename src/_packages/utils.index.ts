@@ -66,7 +66,6 @@ import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 import { isValidEmail } from '../utils/validators/email/isValidEmail';
-import { isRootPath } from '../utils/validators/filePath/isPathRoot';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
 import { isValidJavascriptName } from '../utils/validators/javascriptName/isValidJavascriptName';
 import { isValidPromptbookVersion } from '../utils/validators/semanticVersion/isValidPromptbookVersion';
@@ -112,7 +111,6 @@ export {
     forEachAsync,
     intersection,
     isHostnameOnPrivateNetwork,
-    isRootPath as isPathRoot,
     isSerializableAsJson,
     isUrlOnPrivateNetwork,
     isValidEmail,
