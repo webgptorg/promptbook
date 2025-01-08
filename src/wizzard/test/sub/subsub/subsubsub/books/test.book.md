@@ -1,9 +1,11 @@
 # Test
 
--   URL https://example.com/test.ptbk.md
+-   URL https://promptbook.studio/test.ptbk.md
 
 ## Report whoami
 
+-   SIMPLE TEMPLATE
+
 > src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md
 
--> directory
+-> {directoryName}

@@ -1,0 +1,104 @@
+{
+    "date": "2025-01-08T15:53:13.523Z",
+    "promptbookVersion": "0.81.0-14",
+    "prompt": {
+        "title": "Report whoami",
+        "pipelineUrl": "https://promptbook.studio/test.ptbk.md#report-whoami",
+        "parameters": {},
+        "content": "src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "I apologize, but I don't actually have access to any document at the file path you mentioned (src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md). I'm an AI assistant without access to external files or documents unless they are specifically provided to me in the conversation. If you have a specific question about the contents of that file or if you'd like to share some information from it, I'd be happy to try to help based on what you provide. Otherwise, I can only respond in general terms about file structures or markdown files.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-01-08T15:53:10.709Z",
+            "complete": "2025-01-08T15:53:13.521Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00204
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 35
+                },
+                "charactersCount": {
+                    "value": 56
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 129
+                },
+                "charactersCount": {
+                    "value": 542
+                },
+                "wordsCount": {
+                    "value": 100
+                },
+                "sentencesCount": {
+                    "value": 6
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_019zpNj2Zx1D7xB15e8taXN7",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "I apologize, but I don't actually have access to any document at the file path you mentioned (src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md). I'm an AI assistant without access to external files or documents unless they are specifically provided to me in the conversation. If you have a specific question about the contents of that file or if you'd like to share some information from it, I'd be happy to try to help based on what you provide. Otherwise, I can only respond in general terms about file structures or markdown files."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 35,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 129
+            }
+        }
+    }
+}

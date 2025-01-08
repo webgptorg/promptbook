@@ -31,6 +31,9 @@ export async function $getCompiledBook(
 
     // Strategy 1️⃣: If the pipelineSource is a filename - try to load it from the file
     if (isValidFilePath(pipelineSource)) {
+        console.log(`Strategy 1️⃣`);
+        // <- TODO: !!!!!!! Remove
+
         const filePathRaw = pipelineSource;
         let filePath: string_filename | null = null;
         let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book.md`, `${filePathRaw}.book.md`]; // <- TODO: [🕝] To config
@@ -57,6 +60,9 @@ export async function $getCompiledBook(
 
     // Strategy 2️⃣: If the pipelineSource is a URL - try to find the pipeline on disk in `DEFAULT_BOOKS_DIRNAME` (= `./books`) directory recursively up to the root
     if (isValidPipelineUrl(pipelineSource)) {
+        console.log(`Strategy 2️⃣`);
+        // <- TODO: !!!!!!! Remove
+
         let rootDirname = process.cwd();
 
         up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
@@ -68,9 +74,12 @@ export async function $getCompiledBook(
             if (await isDirectoryExisting(booksDirname, fs)) {
                 const collection = await createCollectionFromDirectory(booksDirname, tools, {
                     isRecursive: true,
-                    rootDirname: booksDirname,
+                    rootDirname: booksDirname, // <- TODO: Avoid confusion with `rootDirname` and `booksDirname`
                     ...options,
                 });
+
+                console.log('listPipelines', await collection.listPipelines());
+                // <- TODO: !!!!!!! Remove
 
                 const pipeline = await (async () => {
                     try {
@@ -84,6 +93,9 @@ export async function $getCompiledBook(
                         return null;
                     }
                 })();
+
+                console.log({ pipeline });
+                // <- TODO: !!!!!!! Remove
 
                 if (pipeline !== null) {
                     // This will break the loop and return the pipeline from the function `$getCompiledBook`
@@ -102,13 +114,16 @@ export async function $getCompiledBook(
 
     // Strategy 3️⃣: If the pipelineSource is a URL - try to fetch it from the internet
     if (isValidPipelineUrl(pipelineSource)) {
+        console.log(`Strategy 3️⃣`);
+        // <- TODO: !!!!!!! Remove
+
         const response = await fetch(pipelineSource);
 
         if (response.status >= 300) {
             throw new NotFoundError(
                 spaceTrim(
                     (block) => `
-                        No book found on URL:
+                        Book not found on URL:
                         ${block(pipelineSource)}
 
                         Request failed with status ${block(response.status.toString())} ${block(response.statusText)}
@@ -117,6 +132,9 @@ export async function $getCompiledBook(
             );
         }
         const pipelineString = await response.text();
+
+        console.log({ pipelineString });
+        // <- TODO: !!!!!!! Remove
 
         // TODO: !!!!!! Use `isValidPipelineString`
 
@@ -140,7 +158,7 @@ export async function $getCompiledBook(
     throw new NotFoundError(
         spaceTrim(
             (block) => `
-                No book found:
+                Book not found:
                 ${block(pipelineSource)}
 
                 Pipelines can be loaded from:
