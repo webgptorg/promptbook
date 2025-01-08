@@ -23,7 +23,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @returns @@@
  * @public exported from `@promptbook/node`
  */
-export async function $provideLlmToolsConfigurationFromEnv(): LlmToolsConfiguration {
+export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsConfiguration> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
     }
