@@ -77,6 +77,7 @@ import { BoilerplateFormfactorDefinition } from '../formfactors/_boilerplate/Boi
 import { ChatbotFormfactorDefinition } from '../formfactors/chatbot/ChatbotFormfactorDefinition';
 import { GeneratorFormfactorDefinition } from '../formfactors/generator/GeneratorFormfactorDefinition';
 import { GenericFormfactorDefinition } from '../formfactors/generic/GenericFormfactorDefinition';
+import { ImageGeneratorFormfactorDefinition } from '../formfactors/image-generator/ImageGeneratorFormfactorDefinition';
 import { FORMFACTOR_DEFINITIONS } from '../formfactors/index';
 import { MatcherFormfactorDefinition } from '../formfactors/matcher/MatcherFormfactorDefinition';
 import { SheetsFormfactorDefinition } from '../formfactors/sheets/SheetsFormfactorDefinition';
@@ -202,6 +203,7 @@ export { BoilerplateFormfactorDefinition };
 export { ChatbotFormfactorDefinition };
 export { GeneratorFormfactorDefinition };
 export { GenericFormfactorDefinition };
+export { ImageGeneratorFormfactorDefinition };
 export { FORMFACTOR_DEFINITIONS };
 export { MatcherFormfactorDefinition };
 export { SheetsFormfactorDefinition };
