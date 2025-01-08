@@ -1,5 +1,4 @@
-import type { string_dirname } from '../../../types/typeAliases';
-import type { string_filename } from '../../../types/typeAliases';
+import type { string_dirname, string_filename } from '../../../types/typeAliases';
 
 /**
  * Determines if the given path is a root path.
@@ -7,7 +6,7 @@ import type { string_filename } from '../../../types/typeAliases';
  * Note: This does not check if the file exists only if the path is valid
  * @public exported from `@promptbook/utils`
  */
-export function isPathRoot(value: string_dirname | string_filename): boolean {
+export function isRootPath(value: string_dirname | string_filename): boolean {
     if (value === '/') {
         return true;
     }
