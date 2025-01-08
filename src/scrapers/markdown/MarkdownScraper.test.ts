@@ -7,7 +7,7 @@ import { MarkdownScraper } from './MarkdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
     const rootDirname = join(__dirname, 'examples');
-    let markdownScraper;
+    let markdownScraper: MarkdownScraper;
 
     beforeAll(async () => {
         const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground();
@@ -31,7 +31,7 @@ describe('how creating knowledge from markdown works', () => {
                         { rootDirname },
                     ),
                 )
-                .then((sourceHandler) => markdownScraper.scrape(sourceHandler))
+                .then((sourceHandler) => markdownScraper!.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -52,7 +52,7 @@ describe('how creating knowledge from markdown works', () => {
                         { rootDirname },
                     ),
                 )
-                .then((sourceHandler) => markdownScraper.scrape(sourceHandler))
+                .then((sourceHandler) => markdownScraper!.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
