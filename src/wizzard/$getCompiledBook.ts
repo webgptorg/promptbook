@@ -1,8 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
@@ -10,8 +9,7 @@ import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { just } from '../utils/organization/just';
@@ -33,8 +31,7 @@ export async function $getCompiledBook(
 
     // Strategy 1️⃣: If the pipelineSource is a filename - try to load it from the file
     if (isValidFilePath(pipelineSource)) {
-        console.log(`Strategy 1️⃣`);
-        // <- TODO: !!!!!!! Remove
+        // console.log(`Strategy 1️⃣`);
 
         const filePathRaw = pipelineSource;
         let filePath: string_filename | null = null;
@@ -62,16 +59,14 @@ export async function $getCompiledBook(
 
     // Strategy 2️⃣: If the pipelineSource is a URL - try to find the pipeline on disk in `DEFAULT_BOOKS_DIRNAME` (= `./books`) directory recursively up to the root
     if (isValidPipelineUrl(pipelineSource)) {
-        console.log(`Strategy 2️⃣`);
-        // <- TODO: !!!!!!! Remove
+        // console.log(`Strategy 2️⃣`);
 
         let rootDirname = process.cwd();
 
         up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
             const booksDirname = join(rootDirname, DEFAULT_BOOKS_DIRNAME /* <- TODO: [🕝] Make here more candidates */);
 
-            console.log({ rootDirname, booksDirname });
-            // <- TODO: !!!!!!! Remove
+            // console.log({ rootDirname, booksDirname });
 
             if (await isDirectoryExisting(booksDirname, fs)) {
                 const collection = await createCollectionFromDirectory(booksDirname, tools, {
@@ -80,8 +75,7 @@ export async function $getCompiledBook(
                     ...options,
                 });
 
-                console.log('listPipelines', await collection.listPipelines());
-                // <- TODO: !!!!!!! Remove
+                // console.log('listPipelines', await collection.listPipelines());
 
                 const pipeline = await (async () => {
                     try {
@@ -96,8 +90,7 @@ export async function $getCompiledBook(
                     }
                 })();
 
-                console.log({ pipeline });
-                // <- TODO: !!!!!!! Remove
+                // console.log({ pipeline });
 
                 if (pipeline !== null) {
                     // This will break the loop and return the pipeline from the function `$getCompiledBook`
@@ -116,8 +109,7 @@ export async function $getCompiledBook(
 
     // Strategy 3️⃣: If the pipelineSource is a URL - try to fetch it from the internet
     if (isValidPipelineUrl(pipelineSource)) {
-        console.log(`Strategy 3️⃣`);
-        // <- TODO: !!!!!!! Remove
+        // console.log(`Strategy 3️⃣`);
 
         const response = await fetch(pipelineSource);
 
@@ -135,8 +127,7 @@ export async function $getCompiledBook(
         }
         const pipelineString = await response.text();
 
-        console.log({ pipelineString });
-        // <- TODO: !!!!!!! Remove
+        // console.log({ pipelineString });
 
         // TODO: !!!!!! Use `isValidPipelineString`
 
