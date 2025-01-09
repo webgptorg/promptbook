@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-15",
+                        "promptbookVersion": "0.81.0-16",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-15",
+                        "promptbookVersion": "0.81.0-16",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -424,17 +424,18 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/corrector.book.md"
             },
             {
-                "title": "💌 Letter",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md",
-                "formfactorName": "GENERIC",
+                "title": "💌 Generator",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generator.book.md",
+                "formfactorName": "GENERATOR",
                 "parameters": [
                     {
-                        "name": "letter",
+                        "name": "result",
+                        "description": "Letter for you",
                         "isInput": false,
                         "isOutput": true
                     },
                     {
-                        "name": "yourName",
+                        "name": "inputMessage",
                         "isInput": true,
                         "isOutput": false
                     }
@@ -444,10 +445,130 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "taskType": "PROMPT_TASK",
                         "name": "write-a-letter",
                         "title": "Write a letter",
-                        "content": "Write a letter for {yourName}",
-                        "resultingParameterName": "letter",
+                        "content": "Write a letter for {inputMessage}",
+                        "resultingParameterName": "result",
+                        "personaName": "Jane",
+                        "expectations": {
+                            "words": {
+                                "min": 3
+                            },
+                            "pages": {
+                                "max": 1
+                            }
+                        },
                         "dependentParameterNames": [
-                            "yourName"
+                            "inputMessage"
+                        ]
+                    }
+                ],
+                "personas": [
+                    {
+                        "name": "Jane",
+                        "description": "linguist and computer scientist",
+                        "modelRequirements": {
+                            "modelVariant": "CHAT",
+                            "modelName": "gpt-4-turbo-2024-04-09",
+                            "systemMessage": "You are a virtual assistant with expertise in linguistics and computer science. Provide accurate and insightful information on language structures, computational linguistics, programming languages, and the intersection of language and technology. Offer clear explanations and be ready to discuss both theoretical concepts and practical applications in these fields.",
+                            "temperature": 0.7
+                        },
+                        "preparationIds": [
+                            1
+                        ]
+                    }
+                ],
+                "preparations": [
+                    {
+                        "id": 1,
+                        "promptbookVersion": "0.81.0-16",
+                        "usage": {
+                            "price": {
+                                "value": 0.005451
+                            },
+                            "input": {
+                                "tokensCount": {
+                                    "value": 1167
+                                },
+                                "charactersCount": {
+                                    "value": 3235
+                                },
+                                "wordsCount": {
+                                    "value": 577
+                                },
+                                "sentencesCount": {
+                                    "value": 53
+                                },
+                                "linesCount": {
+                                    "value": 71
+                                },
+                                "paragraphsCount": {
+                                    "value": 20
+                                },
+                                "pagesCount": {
+                                    "value": 2
+                                }
+                            },
+                            "output": {
+                                "tokensCount": {
+                                    "value": 130
+                                },
+                                "charactersCount": {
+                                    "value": 572
+                                },
+                                "wordsCount": {
+                                    "value": 79
+                                },
+                                "sentencesCount": {
+                                    "value": 5
+                                },
+                                "linesCount": {
+                                    "value": 15
+                                },
+                                "paragraphsCount": {
+                                    "value": 2
+                                },
+                                "pagesCount": {
+                                    "value": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "knowledgeSources": [],
+                "knowledgePieces": [],
+                "sources": [
+                    {
+                        "type": "BOOK",
+                        "path": null,
+                        "content": "# 💌 Generator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generator.book.md\n-   FORMFACTOR GENERATOR\n\n## Write a letter\n\n-   PERSONA Jane, linguist and computer scientist\n-   EXPECT MIN 3 Words\n-   EXPECT MAX 1 Page\n\n> Write a letter for {inputMessage}\n\n-> {result} Letter for you\n"
+                    }
+                ],
+                "sourceFile": "./book/books/templates/generator.book.md"
+            },
+            {
+                "title": "😜 Letter",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md",
+                "formfactorName": "GENERIC",
+                "parameters": [
+                    {
+                        "name": "joke",
+                        "isInput": false,
+                        "isOutput": true
+                    },
+                    {
+                        "name": "topic",
+                        "isInput": true,
+                        "isOutput": false
+                    }
+                ],
+                "tasks": [
+                    {
+                        "taskType": "PROMPT_TASK",
+                        "name": "write-a-letter",
+                        "title": "Write a letter",
+                        "content": "Write joke about {topic}",
+                        "resultingParameterName": "joke",
+                        "dependentParameterNames": [
+                            "topic"
                         ]
                     }
                 ],
@@ -459,10 +580,122 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "# 💌 Letter\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n<!--\nTODO: !!!!!! Make this flat - no nested sections\n-->\n\n## Write a letter\n\n> Write a letter for {yourName}\n\n-> {letter}\n"
+                        "content": "# 😜 Letter\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n<!--\nTODO: !!!!!! Make this flat - no nested sections\n-->\n\n## Write a letter\n\n> Write joke about {topic}\n\n-> {joke}\n"
                     }
                 ],
                 "sourceFile": "./book/books/templates/generic.book.md"
+            },
+            {
+                "title": "🖼 Image generator",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/image-generator.book.md",
+                "formfactorName": "IMAGE_GENERATOR",
+                "parameters": [
+                    {
+                        "name": "prompt",
+                        "isInput": false,
+                        "isOutput": true
+                    },
+                    {
+                        "name": "inputMessage",
+                        "isInput": true,
+                        "isOutput": false
+                    }
+                ],
+                "tasks": [
+                    {
+                        "taskType": "PROMPT_TASK",
+                        "name": "write-a-image-prompt",
+                        "title": "Write a image prompt",
+                        "content": "Write prompt for image generator from raw user input.\n\n## User input\n\n> {inputMessage}\n\n## Rules\n\n-   Prompt must be in English\n-   Prompt describes the content and details of the picture\n-   Correct grammar, spelling and punctuation\n-   Improve stylistic elements\n-   Write only the corrected text\n\n## Context\n\nYou are generating an image for page \"Promptujeme.cz\" This is web about AI and LLMs in business and marketing. Brand colors are yellow, black and white.",
+                        "resultingParameterName": "prompt",
+                        "personaName": "Michal",
+                        "dependentParameterNames": [
+                            "inputMessage"
+                        ]
+                    }
+                ],
+                "personas": [
+                    {
+                        "name": "Michal",
+                        "description": "experienced marketing specialist and business consultant",
+                        "modelRequirements": {
+                            "modelVariant": "CHAT",
+                            "modelName": "gpt-4-turbo-preview",
+                            "systemMessage": "You are an experienced marketing specialist and business consultant. Provide expert advice on marketing strategies, business development, and market analysis. Offer practical insights, data-driven recommendations, and industry best practices to help clients achieve their business goals.",
+                            "temperature": 0.7
+                        },
+                        "preparationIds": [
+                            1
+                        ]
+                    }
+                ],
+                "preparations": [
+                    {
+                        "id": 1,
+                        "promptbookVersion": "0.81.0-16",
+                        "usage": {
+                            "price": {
+                                "value": 0.005124
+                            },
+                            "input": {
+                                "tokensCount": {
+                                    "value": 1168
+                                },
+                                "charactersCount": {
+                                    "value": 3260
+                                },
+                                "wordsCount": {
+                                    "value": 579
+                                },
+                                "sentencesCount": {
+                                    "value": 53
+                                },
+                                "linesCount": {
+                                    "value": 71
+                                },
+                                "paragraphsCount": {
+                                    "value": 20
+                                },
+                                "pagesCount": {
+                                    "value": 2
+                                }
+                            },
+                            "output": {
+                                "tokensCount": {
+                                    "value": 108
+                                },
+                                "charactersCount": {
+                                    "value": 477
+                                },
+                                "wordsCount": {
+                                    "value": 62
+                                },
+                                "sentencesCount": {
+                                    "value": 5
+                                },
+                                "linesCount": {
+                                    "value": 13
+                                },
+                                "paragraphsCount": {
+                                    "value": 2
+                                },
+                                "pagesCount": {
+                                    "value": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "knowledgeSources": [],
+                "knowledgePieces": [],
+                "sources": [
+                    {
+                        "type": "BOOK",
+                        "path": null,
+                        "content": "# 🖼 Image generator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/image-generator.book.md\n-   FORMFACTOR IMAGE_GENERATOR\n\n## Write a image prompt\n\n-   PERSONA Michal, experienced marketing specialist and business consultant\n\n```markdown\nWrite prompt for image generator from raw user input.\n\n## User input\n\n> {inputMessage}\n\n## Rules\n\n-   Prompt must be in English\n-   Prompt describes the content and details of the picture\n-   Correct grammar, spelling and punctuation\n-   Improve stylistic elements\n-   Write only the corrected text\n\n## Context\n\nYou are generating an image for page \"Promptujeme.cz\" This is web about AI and LLMs in business and marketing. Brand colors are yellow, black and white.\n```\n\n-> {prompt}\n"
+                    }
+                ],
+                "sourceFile": "./book/books/templates/image-generator.book.md"
             },
             {
                 "title": "🧮 Sheets",
@@ -530,7 +763,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-15",
+                        "promptbookVersion": "0.81.0-16",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -807,7 +1040,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-15",
+                        "promptbookVersion": "0.81.0-16",
                         "usage": {
                             "price": {
                                 "value": 0.006237
