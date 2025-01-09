@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 import { join } from 'path';
-import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { LOOP_LIMIT } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import type { string_name } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
@@ -33,8 +33,7 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
     up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
         const envFilename = join(rootDirname, '.env' /* <- TODO: [🕝] Make here more candidates */);
 
-        console.log({ rootDirname, envFilename });
-        // <- TODO: !!!!!!! Remove
+        // console.log({ rootDirname, envFilename });
 
         if (await isFileExisting(envFilename, $provideFilesystemForNode())) {
             dotenv.config({ path: envFilename });
