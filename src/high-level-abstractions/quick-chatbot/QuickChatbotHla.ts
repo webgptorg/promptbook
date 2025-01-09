@@ -68,7 +68,7 @@ export const QuickChatbotHla = {
             },
         );
 
-        // TODO: !!!!!! spaceTrim
+        // TODO: Use spaceTrim in multiline strings
         $pipelineJson.tasks.push(
             {
                 taskType: 'PROMPT_TASK',
@@ -78,8 +78,11 @@ export const QuickChatbotHla = {
                     'Write a response to the user message:\n\n**Question from user**\n\n> {userMessage}\n\n**Previous conversation**\n\n> {previousConversationSummary}',
                 resultingParameterName: 'chatbotResponse',
                 personaName,
-                dependentParameterNames: ['userMessage', 'previousConversationSummary' /* !!!!!!, 'knowledge'*/],
-                // !!!!!! preparedContent: '{content}\n\n## Knowledge\n\n{knowledge}',
+                dependentParameterNames: [
+                    'userMessage',
+                    'previousConversationSummary' /* TODO: [🧠][📛], 'knowledge'*/,
+                ],
+                // TODO: [🧠][📛] preparedContent: '{content}\n\n## Knowledge\n\n{knowledge}',
             },
             {
                 taskType: 'PROMPT_TASK',
@@ -95,8 +98,8 @@ export const QuickChatbotHla = {
                         max: 10,
                     },
                 },
-                dependentParameterNames: ['userMessage', 'chatbotResponse' /* !!!!!!, 'knowledge'*/],
-                // !!!!!! preparedContent: '{content}\n\n## Knowledge\n\n{knowledge}',
+                dependentParameterNames: ['userMessage', 'chatbotResponse' /* TODO: [🧠][📛], 'knowledge'*/],
+                // TODO: [🧠][📛]  preparedContent: '{content}\n\n## Knowledge\n\n{knowledge}',
             },
             {
                 taskType: 'SIMPLE_TASK',
@@ -104,9 +107,13 @@ export const QuickChatbotHla = {
                 title: 'Title',
                 content: '{conversationSummary}',
                 resultingParameterName: 'title',
-                dependentParameterNames: ['conversationSummary' /* !!!!!!, 'knowledge'*/],
-                // !!!!!! preparedContent: '{content}\n\n## Knowledge\n\n{knowledge}',
+                dependentParameterNames: ['conversationSummary' /* TODO: [🧠][📛], 'knowledge'*/],
+                // TODO: [🧠][📛] preparedContent: '{content}\n\n## Knowledge\n\n{knowledge}',
             },
         );
     },
 } satisfies SyncHighLevelAbstraction;
+
+/**
+ * TODO: [🧠][📛] Should this be here?
+ */

@@ -9,7 +9,6 @@ export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> 
     return JSON.parse(JSON.stringify(objectValue)) as WritableDeep<TObject>;
 
     /*
-    !!!!!!!!
     TODO: [🧠] Is there a better implementation?
     > const propertyNames = Object.getOwnPropertyNames(objectValue);
     > for (const propertyName of propertyNames) {

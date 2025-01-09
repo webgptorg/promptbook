@@ -1,5 +1,5 @@
-import { JsonValue } from 'type-fest';
-// <- TODO: !!!!!!! Auto convert to type `import { ... } from 'type-fest';`
+import type { JsonValue } from 'type-fest';
+// <- TODO: Auto convert to type `import { ... } from 'type-fest';`
 import { checkSerializableAsJson } from './checkSerializableAsJson';
 
 /**
