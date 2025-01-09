@@ -7,20 +7,24 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
  */
 export const GeneratorFormfactorDefinition = {
     name: 'GENERATOR',
-    description: `@@@`,
+    description: `Generates any kind (in HTML with possible scripts and css format) of content from input message`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/184`,
     pipelineInterface: {
         inputParameters: [
-            /* @@@ */
             {
-                name: 'nonce',
-                description: 'Just to prevent GENERATOR to be set as implicit formfactor',
+                name: 'inputMessage',
+                description: `Input message to be image made from`,
                 isInput: true,
                 isOutput: false,
             },
         ],
         outputParameters: [
-            /* @@@ */
+            {
+                name: 'result',
+                description: `Result in HTML to be shown to user`,
+                isInput: false,
+                isOutput: true,
+            },
         ],
     },
 } as const satisfies AbstractFormfactorDefinition;

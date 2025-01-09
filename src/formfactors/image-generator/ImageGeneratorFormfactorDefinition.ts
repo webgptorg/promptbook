@@ -7,7 +7,7 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
  */
 export const ImageGeneratorFormfactorDefinition = {
     name: 'IMAGE_GENERATOR',
-    description: `@@@`,
+    description: `Generates prompt for image generation from input message`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/184`,
     pipelineInterface: {
         inputParameters: [
