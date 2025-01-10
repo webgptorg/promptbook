@@ -18,7 +18,10 @@ export const websiteScraperMetadata = $deepFreeze({
     mimeTypes: ['text/html'],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
-    isAvilableInBrowser: false, // <- TODO: Maybe make it available in browser
+    isAvilableInBrowser: true,
+    // <- TODO: !!!!!!! Is it available in browser?
+    // <- TODO: !!!!!!! Is toggling this to true enough to make it available in browser?
+    // <- TODO: Maybe make it available in browser
     requiredExecutables: [],
 }) satisfies ScraperAndConverterMetadata; /* <- Note: [🤛] */
 
