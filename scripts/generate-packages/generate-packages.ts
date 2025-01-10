@@ -282,7 +282,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     # ${GENERATOR_WARNING}
 
                     stats.html
-                `), // <- TODO: !!!!!! Is this working, is stats not send to npm?
+                `),
             );
         }
     }
