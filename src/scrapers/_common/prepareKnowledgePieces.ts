@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
@@ -57,9 +56,9 @@ export async function prepareKnowledgePieces(
                         Cannot scrape knowledge from source despite the scraper \`${
                             scraper.metadata.className
                         }\` supports the mime type "${sourceHandler.mimeType}".
-                        
+
                         The source:
-                        > ${block(
+                        ${block(
                             knowledgeSource.sourceContent
                                 .split('\n')
                                 .map((line) => `> ${line}`)
@@ -79,7 +78,7 @@ export async function prepareKnowledgePieces(
                 spaceTrim(
                     (block) => `
                         Cannot scrape knowledge
-                        
+
                         The source:
                         > ${block(
                             knowledgeSource.sourceContent
