@@ -96,6 +96,8 @@ import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlm
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { preparePersona } from '../personas/preparePersona';
+import { book } from '../pipeline/book-notation';
+import { isValidPipelineString } from '../pipeline/isValidPipelineString';
 import { GENERIC_PIPELINE_INTERFACE } from '../pipeline/PipelineInterface/constants';
 import { getPipelineInterface } from '../pipeline/PipelineInterface/getPipelineInterface';
 import { isPipelineImplementingInterface } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
@@ -222,6 +224,8 @@ export { MultipleLlmExecutionTools };
 export { _OpenAiMetadataRegistration };
 export { _OpenAiAssistantMetadataRegistration };
 export { preparePersona };
+export { book };
+export { isValidPipelineString };
 export { GENERIC_PIPELINE_INTERFACE };
 export { getPipelineInterface };
 export { isPipelineImplementingInterface };
