@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { keepUnused } from '../utils/organization/keepUnused';
-import { PipelineString } from './PipelineString';
+import type { PipelineString } from './PipelineString';
 import { isValidPipelineString } from './isValidPipelineString';
 
 /**

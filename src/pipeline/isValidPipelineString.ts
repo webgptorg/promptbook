@@ -1,4 +1,4 @@
-import { PipelineString } from './PipelineString';
+import type { PipelineString } from './PipelineString';
 
 /**
  * Function `isValidPipelineString` will validate the if the string is a valid pipeline string
