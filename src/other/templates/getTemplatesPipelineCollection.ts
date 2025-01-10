@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-16",
+                        "promptbookVersion": "0.81.0-17",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-16",
+                        "promptbookVersion": "0.81.0-17",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -424,128 +424,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/corrector.book.md"
             },
             {
-                "title": "💌 Generator",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generator.book.md",
-                "formfactorName": "GENERATOR",
-                "parameters": [
-                    {
-                        "name": "result",
-                        "description": "Letter for you",
-                        "isInput": false,
-                        "isOutput": true
-                    },
-                    {
-                        "name": "inputMessage",
-                        "isInput": true,
-                        "isOutput": false
-                    }
-                ],
-                "tasks": [
-                    {
-                        "taskType": "PROMPT_TASK",
-                        "name": "write-a-letter",
-                        "title": "Write a letter",
-                        "content": "Write a letter for {inputMessage}",
-                        "resultingParameterName": "result",
-                        "personaName": "Jane",
-                        "expectations": {
-                            "words": {
-                                "min": 3
-                            },
-                            "pages": {
-                                "max": 1
-                            }
-                        },
-                        "dependentParameterNames": [
-                            "inputMessage"
-                        ]
-                    }
-                ],
-                "personas": [
-                    {
-                        "name": "Jane",
-                        "description": "linguist and computer scientist",
-                        "modelRequirements": {
-                            "modelVariant": "CHAT",
-                            "modelName": "gpt-4-turbo-2024-04-09",
-                            "systemMessage": "You are a virtual assistant with expertise in linguistics and computer science. Provide accurate and insightful information on language structures, computational linguistics, programming languages, and the intersection of language and technology. Offer clear explanations and be ready to discuss both theoretical concepts and practical applications in these fields.",
-                            "temperature": 0.7
-                        },
-                        "preparationIds": [
-                            1
-                        ]
-                    }
-                ],
-                "preparations": [
-                    {
-                        "id": 1,
-                        "promptbookVersion": "0.81.0-16",
-                        "usage": {
-                            "price": {
-                                "value": 0.005451
-                            },
-                            "input": {
-                                "tokensCount": {
-                                    "value": 1167
-                                },
-                                "charactersCount": {
-                                    "value": 3235
-                                },
-                                "wordsCount": {
-                                    "value": 577
-                                },
-                                "sentencesCount": {
-                                    "value": 53
-                                },
-                                "linesCount": {
-                                    "value": 71
-                                },
-                                "paragraphsCount": {
-                                    "value": 20
-                                },
-                                "pagesCount": {
-                                    "value": 2
-                                }
-                            },
-                            "output": {
-                                "tokensCount": {
-                                    "value": 130
-                                },
-                                "charactersCount": {
-                                    "value": 572
-                                },
-                                "wordsCount": {
-                                    "value": 79
-                                },
-                                "sentencesCount": {
-                                    "value": 5
-                                },
-                                "linesCount": {
-                                    "value": 15
-                                },
-                                "paragraphsCount": {
-                                    "value": 2
-                                },
-                                "pagesCount": {
-                                    "value": 1
-                                }
-                            }
-                        }
-                    }
-                ],
-                "knowledgeSources": [],
-                "knowledgePieces": [],
-                "sources": [
-                    {
-                        "type": "BOOK",
-                        "path": null,
-                        "content": "# 💌 Generator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generator.book.md\n-   FORMFACTOR GENERATOR\n\n## Write a letter\n\n-   PERSONA Jane, linguist and computer scientist\n-   EXPECT MIN 3 Words\n-   EXPECT MAX 1 Page\n\n> Write a letter for {inputMessage}\n\n-> {result} Letter for you\n"
-                    }
-                ],
-                "sourceFile": "./book/books/templates/generator.book.md"
-            },
-            {
-                "title": "😜 Letter",
+                "title": "😜 Simple Joke",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md",
                 "formfactorName": "GENERIC",
                 "parameters": [
@@ -580,7 +459,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "# 😜 Letter\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n<!--\nTODO: !!!!!! Make this flat - no nested sections\n-->\n\n## Write a letter\n\n> Write joke about {topic}\n\n-> {joke}\n"
+                        "content": "# 😜 Simple Joke\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n<!--\nTODO: !!!!!! Make this flat - no nested sections\n-->\n\n## Write a letter\n\n> Write joke about {topic}\n\n-> {joke}\n"
                     }
                 ],
                 "sourceFile": "./book/books/templates/generic.book.md"
@@ -593,20 +472,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "name": "prompt",
                         "isInput": false,
-                        "isOutput": true
+                        "isOutput": true,
+                        "exampleValues": [
+                            "Create an image of a futuristic business landscape with digital elements and artificial intelligence. The scene should include binary symbols (0 and 1) that are seamlessly integrated into the design, as well as cubes with arrows that symbolise forward thinking and innovation. Use a colour palette dominated by yellow (#FFD103), black (#000000) and white (#FFFFFF), reflecting the brand's identity. The setting should convey a sense of modernity and technological advancement in business and marketing."
+                        ]
                     },
                     {
                         "name": "inputMessage",
                         "isInput": true,
-                        "isOutput": false
+                        "isOutput": false,
+                        "exampleValues": [
+                            "Two people shaking hands\n- Man and woman\n- futuristic"
+                        ]
                     }
                 ],
                 "tasks": [
                     {
                         "taskType": "PROMPT_TASK",
-                        "name": "write-a-image-prompt",
-                        "title": "Write a image prompt",
-                        "content": "Write prompt for image generator from raw user input.\n\n## User input\n\n> {inputMessage}\n\n## Rules\n\n-   Prompt must be in English\n-   Prompt describes the content and details of the picture\n-   Correct grammar, spelling and punctuation\n-   Improve stylistic elements\n-   Write only the corrected text\n\n## Context\n\nYou are generating an image for page \"Promptujeme.cz\" This is web about AI and LLMs in business and marketing. Brand colors are yellow, black and white.",
+                        "name": "create-image-prompt",
+                        "title": "Create image prompt",
+                        "content": "Write prompt for image generator from raw user input.\n\n## User input\n\n> {inputMessage}\n\n## Rules\n\n-   Enrich the user input with given context and details\n-   Prompt must be in English\n-   Prompt describes the content and details of the picture\n-   Correct grammar, spelling and punctuation\n-   Improve stylistic elements\n-   Write only the corrected text\n\n## Context\n\nYou are generating an image for page \"Promptujeme.cz\" This is web about AI and LLMs in business and marketing.\n\nBrand colours are yellow (#FFD103), black (#000000) and white (#FFFFFF). Symbols are 0 and 1 and a cube with an arrow.",
                         "resultingParameterName": "prompt",
                         "personaName": "Michal",
                         "dependentParameterNames": [
@@ -632,7 +517,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-16",
+                        "promptbookVersion": "0.81.0-17",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -692,13 +577,13 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "# 🖼 Image generator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/image-generator.book.md\n-   FORMFACTOR IMAGE_GENERATOR\n\n## Write a image prompt\n\n-   PERSONA Michal, experienced marketing specialist and business consultant\n\n```markdown\nWrite prompt for image generator from raw user input.\n\n## User input\n\n> {inputMessage}\n\n## Rules\n\n-   Prompt must be in English\n-   Prompt describes the content and details of the picture\n-   Correct grammar, spelling and punctuation\n-   Improve stylistic elements\n-   Write only the corrected text\n\n## Context\n\nYou are generating an image for page \"Promptujeme.cz\" This is web about AI and LLMs in business and marketing. Brand colors are yellow, black and white.\n```\n\n-> {prompt}\n"
+                        "content": "# 🖼 Image generator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/image-generator.book.md\n-   FORMFACTOR IMAGE_GENERATOR\n\n## Create image prompt\n\n-   PERSONA Michal, experienced marketing specialist and business consultant\n\n```markdown\nWrite prompt for image generator from raw user input.\n\n## User input\n\n> {inputMessage}\n\n## Rules\n\n-   Enrich the user input with given context and details\n-   Prompt must be in English\n-   Prompt describes the content and details of the picture\n-   Correct grammar, spelling and punctuation\n-   Improve stylistic elements\n-   Write only the corrected text\n\n## Context\n\nYou are generating an image for page \"Promptujeme.cz\" This is web about AI and LLMs in business and marketing.\n\nBrand colours are yellow (#FFD103), black (#000000) and white (#FFFFFF). Symbols are 0 and 1 and a cube with an arrow.\n```\n\n-> {prompt}\n\n## Example of user input\n\n-   EXAMPLE\n\n```\nTwo people shaking hands\n- Man and woman\n- futuristic\n```\n\n-> {inputMessage}\n\n## Example of prompt\n\n-   EXAMPLE\n\n```\nCreate an image of a futuristic business landscape with digital elements and artificial intelligence. The scene should include binary symbols (0 and 1) that are seamlessly integrated into the design, as well as cubes with arrows that symbolise forward thinking and innovation. Use a colour palette dominated by yellow (#FFD103), black (#000000) and white (#FFFFFF), reflecting the brand's identity. The setting should convey a sense of modernity and technological advancement in business and marketing.\n```\n\n-> {prompt}\n"
                     }
                 ],
                 "sourceFile": "./book/books/templates/image-generator.book.md"
             },
             {
-                "title": "🧮 Sheets",
+                "title": "🧮  Spreadsheet processing",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/sheets.book.md",
                 "description": "Show how to use a simple prompt",
                 "formfactorName": "SHEETS",
@@ -763,7 +648,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-16",
+                        "promptbookVersion": "0.81.0-17",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -986,7 +871,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "# 🧮 Sheets\n\n<!--\n<- TODO: This is a hack to show filename in left panel instead of \"Write email for each customer\"\n         Put back \"Write email for each customer\"\n-->\n\nShow how to use a simple prompt\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/sheets.book.md\n-   FORMFACTOR Sheets\n-   INPUT PARAMETER `{inputSheet}` Customer names each customer on each row\n-   OUTPUT PARAMETER `{outputSheet}` Greeting to each customer on each row\n\n## About eshop\n\n-   KNOWLEDGE\n\n```text\nCoolstore is an eshop that sells various hobby, home and garden products. It has a wide range of products from garden gnomes to kitchen gadgets.\nIt has 3 physical stores in the UK and a large online store that operates in the UK + EU + Switzerland. Key benefits are fast delivery and excellent customer service with a personal touch.\n```\n\n## About UV LED Garden Gnomes\n\n-   KNOWLEDGE\n\n<!-- TODO: ALlow two ```blocks in KNOWLEDGE template -->\n\n```text\nUranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.\n```\n\n## Write a email\n\n<!--\nTODO: [🔼] Promptbook lib: Change syntax\n-   FOREACH Csv row `{inputSheet}` -> `{firstName},{lastName},{note}`,`+{email}`\n-->\n\n-   FOREACH Csv row `{inputSheet}` -> `{firstName}` `{lastName}` `{note}` `+{email}`\n-   PERSONA Jane, customer service representative and skilled copywriter for eshop\n<!--- TODO: Add EXPECT -->\n\n```markdown\nWrite an email from Coolstore shop to customer \"{firstName} {lastName}\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   {note}\n```\n\n`-> {outputSheet}`\n\n### Samples of customers\n\n-   SAMPLE\n\n```csv\nFirst name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\n```\n\n<!-- TODO: [🧩] Allow to import from sheets-sample-email.csv -->\n\n`-> {inputSheet}`\n\n<!--\n\n### Samples of emails\n\nTODO: Write\n\n-->\n"
+                        "content": "# 🧮  Spreadsheet processing\n\n<!--\n<- TODO: This is a hack to show filename in left panel instead of \"Write email for each customer\"\n         Put back \"Write email for each customer\"\n-->\n\nShow how to use a simple prompt\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/sheets.book.md\n-   FORMFACTOR Sheets\n-   INPUT PARAMETER `{inputSheet}` Customer names each customer on each row\n-   OUTPUT PARAMETER `{outputSheet}` Greeting to each customer on each row\n\n## About eshop\n\n-   KNOWLEDGE\n\n```text\nCoolstore is an eshop that sells various hobby, home and garden products. It has a wide range of products from garden gnomes to kitchen gadgets.\nIt has 3 physical stores in the UK and a large online store that operates in the UK + EU + Switzerland. Key benefits are fast delivery and excellent customer service with a personal touch.\n```\n\n## About UV LED Garden Gnomes\n\n-   KNOWLEDGE\n\n<!-- TODO: ALlow two ```blocks in KNOWLEDGE template -->\n\n```text\nUranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.\n```\n\n## Write a email\n\n<!--\nTODO: [🔼] Promptbook lib: Change syntax\n-   FOREACH Csv row `{inputSheet}` -> `{firstName},{lastName},{note}`,`+{email}`\n-->\n\n-   FOREACH Csv row `{inputSheet}` -> `{firstName}` `{lastName}` `{note}` `+{email}`\n-   PERSONA Jane, customer service representative and skilled copywriter for eshop\n<!--- TODO: Add EXPECT -->\n\n```markdown\nWrite an email from Coolstore shop to customer \"{firstName} {lastName}\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   {note}\n```\n\n`-> {outputSheet}`\n\n### Samples of customers\n\n-   SAMPLE\n\n```csv\nFirst name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\n```\n\n<!-- TODO: [🧩] Allow to import from sheets-sample-email.csv -->\n\n`-> {inputSheet}`\n\n<!--\n\n### Samples of emails\n\nTODO: Write\n\n-->\n"
                     }
                 ],
                 "sourceFile": "./book/books/templates/sheets.book.md"
@@ -1040,7 +925,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-16",
+                        "promptbookVersion": "0.81.0-17",
                         "usage": {
                             "price": {
                                 "value": 0.006237
