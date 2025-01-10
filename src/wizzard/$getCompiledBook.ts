@@ -1,20 +1,17 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
-import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import { isValidPipelineString } from '../pipeline/isValidPipelineString';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
-import { just } from '../utils/organization/just';
 import { isRootPath } from '../utils/validators/filePath/isRootPath';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
 import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
@@ -131,7 +128,18 @@ export async function $getCompiledBook(
 
         // console.log({ pipelineString });
 
-        // TODO: !!!!!! Use `isValidPipelineString`
+        if (!isValidPipelineString(pipelineString)) {
+            throw new NotFoundError(
+                spaceTrim(
+                    (block) => `
+                        Book not found on URL:
+                        ${block(pipelineSource)}
+
+                        Requested URL does not seem to contain a valid book
+                    `,
+                ),
+            );
+        }
 
         const pipelineJson = await compilePipeline(
             pipelineString as PipelineString /* <- TODO: !!!!!! Remove */,
@@ -146,8 +154,15 @@ export async function $getCompiledBook(
     } /* not else */
 
     // Strategy 4️⃣: If the pipelineSource is a PipelineString - try to parse it
-    if (just(false) /* <- TODO: !!!!!! Implement, use and export `isValidPipelineString` */) {
-        throw new NotYetImplementedError('Strategy 4️⃣: If the pipelineSource is a PipelineString - try to parse it');
+    if (isValidPipelineString(pipelineSource)) {
+        // console.log(`Strategy 4️⃣`);
+
+        const pipelineJson = await compilePipeline(pipelineSource, tools, {
+            rootDirname: null,
+            ...options,
+        });
+
+        return pipelineJson;
     } /* not else */
 
     throw new NotFoundError(

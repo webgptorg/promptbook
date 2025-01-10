@@ -148,7 +148,7 @@ export function precompilePipeline(pipelineString: PipelineString): PipelineJson
                 ${returnStatement}
             `,
         ) as PipelineString;
-        // <- TODO: !!!!!! Use `book notation
+        // <- TODO: !!!!!! Use book` notation
 
         // console.log(pipelineString);
     }
