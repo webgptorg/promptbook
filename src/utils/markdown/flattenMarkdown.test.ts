@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { DEFAULT_BOOK_TITLE } from '../../config';
 import { just } from '../organization/just';
 import { flattenMarkdown } from './flattenMarkdown';
 
@@ -185,7 +186,7 @@ describe('flattenMarkdown', () => {
     it('should work when the first heading is not h1', () => {
         expect(flattenMarkdown(`## Section 1`)).toBe(
             spaceTrim(`
-                # Untitled
+                # ${DEFAULT_BOOK_TITLE}
 
                 ## Section 1
             `),
@@ -264,7 +265,7 @@ describe('flattenMarkdown', () => {
         ).toBe(
             just(
                 spaceTrim(`
-                    # Untitled
+                    # ${DEFAULT_BOOK_TITLE}
 
                     ## Subtitle
 
@@ -292,7 +293,7 @@ describe('flattenMarkdown', () => {
         ).toBe(
             just(
                 spaceTrim(`
-                    # Untitled
+                    # ${DEFAULT_BOOK_TITLE}
 
                     Text before title
 
