@@ -100,6 +100,68 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
+
+
+
+## 🧙‍♂️ Wizard
+
+Run books without any settings, boilerplate or struggle in Node.js:
+
+```typescript
+import { wizzard } from '@promptbook/wizzard';
+
+const {
+    outputParameters: { joke },
+} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md`, {
+    topic: 'Prague',
+});
+
+console.info(joke);
+```
+
+
+
+
+
+
+## 🧙‍♂️ Connect to LLM providers automatically
+
+You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
+
+```typescript
+import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
+
+// ▶ Prepare tools
+const tools = await $provideExecutionToolsForNode();
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./books', tools);
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+
+// ▶ Prepare input parameters
+const inputParameters = { word: 'dog' };
+
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
+
+// ▶ Fail if the execution was not successful
+assertsExecutionSuccessful(result);
+
+// ▶ Handle the result
+const { isSuccessful, errors, outputParameters, executionReport } = result;
+console.info(outputParameters);
+```
+
+
+
 ## 💕 Usage of multiple LLM providers
 
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
@@ -173,9 +235,10 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-## 💙 Integration with other models
 
 
+
+### 💙 Integration with other models
 
 See the other model integrations:
 
@@ -184,6 +247,8 @@ See the other model integrations:
 -   [Google Gemini](https://www.npmjs.com/package/@promptbook/google)
 -   [Vercel](https://www.npmjs.com/package/@promptbook/vercel)
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
+
+
 
 
 ---
@@ -267,11 +332,38 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </tbody>
 </table>
 
-Also we have a community of developers and users:
+We also have a community of developers and users of **Promptbook**:
 
--   [Discord](https://discord.gg/x3QWNaa89N)
--   [Landing page](https://ptbk.io)
+-   [Discord community](https://discord.gg/x3QWNaa89N)
+-   [Landing page `ptbk.io`](https://ptbk.io)
 -   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
+-   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
+-   [Facebook `Promptbook`](https://www.facebook.com/61560776453536) 
+
+And **Promptbook.studio** branded socials:
+
+
+
+-   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
+
+
+
+And **Promptujeme** sub-brand:
+
+*/Subbrand for Czech clients/*
+
+
+
+-   [Promptujeme.cz](https://www.promptujeme.cz/)
+-   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
+
+
+And **Promptbook.city** branded socials:
+
+*/Sub-brand for images and graphics generated via Promptbook prompting/*
+
+-   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
+-   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569) 
 
 
 
@@ -405,6 +497,11 @@ Or you can install them separately:
 
 ## 📚 Dictionary
 
+
+
+
+
+
 ### 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
@@ -419,6 +516,8 @@ The following glossary is used to clarify certain concepts:
 -   **Meta-learning** is a machine learning paradigm where a model is trained on a variety of tasks and is able to learn new tasks with minimal additional training. This is achieved by learning a set of meta-parameters that can be quickly adapted to new tasks.
 -   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
+
+
 
 _Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
 
@@ -479,6 +578,8 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
+
+
 
 ### Terms specific to Promptbook TypeScript implementation
 

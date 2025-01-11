@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/legacy-documents",
-    "version": "0.81.0-19",
+    "version": "0.81.0-21",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -54,7 +54,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/legacy-documents.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.81.0-19"
+        "@promptbook/core": "0.81.0-21"
     },
     "dependencies": {
         "colors": "1.4.0",
