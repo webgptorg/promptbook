@@ -26,10 +26,18 @@ import { $getCompiledBook } from './$getCompiledBook';
  */
 class Wizzard {
     /**
-     * @@@!!!!!!
+     * Run the book
+     *
+     * It can be loaded from:
+     * 1) As a file ./books/write-cv.book.md
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md found in ./books folder recursively
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md fetched from the internet
+     * 3) As a string
+     *
+     * Note: This works simmilar to the `ptbk run` command
      */
     public async execute(
-        book: string_pipeline_url,
+        book: string_pipeline_url | string_filename | PipelineString,
         inputParameters: InputParameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<PipelineExecutorResult> {
@@ -59,7 +67,7 @@ class Wizzard {
     private executionTools: Required<Pick<ExecutionTools, 'fs' | 'fetch'>> | null = null;
 
     /**
-     * @@@!!!
+     * Provides the tools automatically for the Node.js environment
      *
      * @param pipelineSource
      */
@@ -92,12 +100,13 @@ class Wizzard {
     }
 
     /**
-     * TODO: Make standalone function from this exported from node and used here and in `ptbk run`
-     * @@@!!!
+     * Load book from the source
      *
-     * Strategies:
-     * 1) @@@!!!
-     * 2) @@@!!!
+     * Pipelines can be loaded from:
+     * 1) As a file ./books/write-cv.book.md
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md found in ./books folder recursively
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md fetched from the internet
+     * 3) As a string
      *
      * @param pipelineSource
      */
@@ -120,6 +129,5 @@ class Wizzard {
 export const wizzard = new Wizzard();
 
 /**
- * TODO: !!!!!! Add to readmes - one markdown here imported in all packages
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
