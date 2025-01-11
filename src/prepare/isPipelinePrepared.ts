@@ -1,4 +1,4 @@
-import { DEFAULT_TITLE } from '../config';
+import { DEFAULT_BOOK_TITLE } from '../config';
 import type { KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
@@ -14,7 +14,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
     // Note: Ignoring `pipeline.preparations` @@@
     // Note: Ignoring `pipeline.knowledgePieces` @@@
 
-    if (pipeline.title === undefined || pipeline.title === '' || pipeline.title === DEFAULT_TITLE) {
+    if (pipeline.title === undefined || pipeline.title === '' || pipeline.title === DEFAULT_BOOK_TITLE) {
         return false;
     }
 

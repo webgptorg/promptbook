@@ -1,7 +1,8 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
-import { DEFAULT_TITLE } from '../config';
+import PipelineCollection from '../../books/index.json';
+import { assertsExecutionSuccessful, createCollectionFromJson, createPipelineExecutor } from '../_packages/core.index';
+import { TODO_any } from '../_packages/types.index';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -50,6 +51,8 @@ export async function preparePipeline(
         <- TODO: [🧊] `knowledgePieces` */,
         personas /*
         <- TODO: [🧊] `preparations` */,
+
+        sources,
     } = pipeline;
 
     if (tools === undefined || tools.llm === undefined) {
@@ -90,9 +93,36 @@ export async function preparePipeline(
     // ----- Title preparation -----
 
     let title = pipeline.title;
-    if (title === undefined || title === '' || title === DEFAULT_TITLE) {
-        // TODO: !!!!!!! Dynamic title for flat pipelines
-        title = '✨ Book';
+    if (title === undefined || title === '' || title === DEFAULT_BOOK_TITLE) {
+        // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
+        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+
+        const prepareTitleExecutor = createPipelineExecutor({
+            pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book.md'),
+            tools,
+        });
+
+        const result = await prepareTitleExecutor({
+            book: sources
+                .map(({ content }) => content)
+                .join('\n\n')
+                // TODO: !!!!!!! Parameters in parameters - DO NOT ALLOW, ESCAPE:
+                .split('{')
+                .join('[')
+                .split('}')
+                .join(']'),
+        });
+
+        assertsExecutionSuccessful(result);
+
+        const { outputParameters } = result;
+        const { title: titleRaw } = outputParameters;
+
+        if (isVerbose) {
+            console.info(`The title is "${titleRaw}"`);
+        }
+
+        title = titleRaw || DEFAULT_BOOK_TITLE;
     }
     // ----- /Title preparation -----
 

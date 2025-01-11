@@ -1,8 +1,8 @@
 import { describe } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { DEFAULT_BOOK_TITLE } from '../../config';
 import { just } from '../organization/just';
 import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
-import { DEFAULT_TITLE } from '../../config';
 
 describe('how splitMarkdownIntoSections works', () => {
     it('flatten simple cases', () => {
@@ -58,7 +58,7 @@ describe('how splitMarkdownIntoSections works', () => {
     it('adds "Untitled" if markdown does not starts with heading', () => {
         expect(splitMarkdownIntoSections(`text`)).toEqual([
             spaceTrim(`
-                # ${DEFAULT_TITLE}
+                # ${DEFAULT_BOOK_TITLE}
 
                 text
             `),

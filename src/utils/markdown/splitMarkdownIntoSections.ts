@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_TITLE } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_section } from '../../types/typeAliases';
+import { DEFAULT_BOOK_TITLE } from '../../config';
+import type { string_markdown, string_markdown_section } from '../../types/typeAliases';
 
 /**
  * Splits the markdown into sections by headings
@@ -28,7 +27,7 @@ export function splitMarkdownIntoSections(markdown: string_markdown): ReadonlyAr
         }
 
         if (!section.startsWith('#')) {
-            section = `# ${DEFAULT_TITLE}\n\n${section}`;
+            section = `# ${DEFAULT_BOOK_TITLE}\n\n${section}`;
         }
 
         sections.push(section);

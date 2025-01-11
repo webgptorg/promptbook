@@ -1,4 +1,4 @@
-# Prepare Keywords
+# Prepare Persona
 
 -   PIPELINE URL `https://promptbook.studio/promptbook/prepare-persona.book.md`
 -   INPUT PARAMETER `{availableModelNames}` List of available model names separated by comma (,)

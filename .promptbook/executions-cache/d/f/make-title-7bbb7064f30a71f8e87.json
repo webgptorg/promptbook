@@ -1,0 +1,115 @@
+{
+    "date": "2025-01-11T18:45:35.618Z",
+    "promptbookVersion": "0.81.0-20",
+    "prompt": {
+        "title": "Make title",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-title.book.md#make-title",
+        "parameters": {
+            "book": "Write a joke about [topic]\n\n`-> [joke]`\n\n<!--\nNote: When there is no structure, whole content is considered as a prompt of single-task pipeline\n-->\n"
+        },
+        "content": "Make best title for given text which describes the task:\n\n> {book}\n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Title starts with emoticon",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            },
+            "lines": {
+                "min": 1,
+                "max": 1
+            }
+        }
+    },
+    "promptResult": {
+        "content": "😂 Topic-Specific Joke Generator",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-01-11T18:45:34.979Z",
+            "complete": "2025-01-11T18:45:35.617Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000519
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 103
+                },
+                "charactersCount": {
+                    "value": 337
+                },
+                "wordsCount": {
+                    "value": 49
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 14
+                },
+                "paragraphsCount": {
+                    "value": 4
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 14
+                },
+                "charactersCount": {
+                    "value": 31
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "Make best title for given text which describes the task:\n\n> Write a joke about [topic]\n> \n> `-> [joke]`\n> \n> <!--\n> Note: When there is no structure, whole content is considered as a prompt of single-task pipeline\n> -->\n> \n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Title starts with emoticon",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Make best title for given text which describes the task:\n\n> Write a joke about [topic]\n> \n> `-> [joke]`\n> \n> <!--\n> Note: When there is no structure, whole content is considered as a prompt of single-task pipeline\n> -->\n> \n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Title starts with emoticon"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01DhKiELJk4AqPKapqewZYnb",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "😂 Topic-Specific Joke Generator"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 103,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 14
+            }
+        }
+    }
+}

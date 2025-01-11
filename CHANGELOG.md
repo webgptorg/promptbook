@@ -667,6 +667,7 @@ Editing, templates and flat pipelines
 -   `$provideLlmToolsConfigurationFromEnv`, `$provideLlmToolsFromEnv`, `$provideLlmToolsForWizzardOrCli`, `$provideLlmToolsForTestingAndScriptsAndPlayground` are async
 -   `GENERATOR` and `IMAGE_GENERATOR` formfactors
 -   Rename `removeContentComments` -> `removeMarkdownComments`
+-   Rename `DEFAULT_TITLE` -> `DEFAULT_BOOK_TITLE`
 -   Rename `precompilePipeline` -> `parsePipeline`
 
 ## Drafts
