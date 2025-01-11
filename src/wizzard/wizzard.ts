@@ -12,14 +12,15 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../scrapers/_common/utils/scraperFetch';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_filename, string_pipeline_url } from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
 /**
+ * Wizzard for simple usage of the Promptbook
  * Look at `wizzard` for more details
+ *
+ * Note: This works only in Node.js environment and looks for the configuration, environment, tools and cache in the Node.js environment
  *
  * @private just for single instance
  */
@@ -109,7 +110,9 @@ class Wizzard {
 }
 
 /**
- * 🧙‍♂️ @@@
+ * Wizzard for simple usage of the Promptbook
+ *
+ * Note: This works only in Node.js environment and looks for the configuration, environment, tools and cache in the Node.js environment
  *
  * @singleton
  * @public exported from `@promptbook/wizzard`
@@ -117,7 +120,6 @@ class Wizzard {
 export const wizzard = new Wizzard();
 
 /**
- * TODO: !!!!!! Mark in jsdoc as non-pure
  * TODO: !!!!!! Add to readmes - one markdown here imported in all packages
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
