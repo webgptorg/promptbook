@@ -7,7 +7,7 @@ import type { PipelineString } from './PipelineString';
  * @public exported from `@promptbook/core`
  */
 export function isValidPipelineString(value: string): value is PipelineString {
-    // TODO: !!!!!! Implement the validation + add false tests
+    // TODO: Implement the validation + add tests when the pipeline logic considered as invalid
     return true;
 }
 

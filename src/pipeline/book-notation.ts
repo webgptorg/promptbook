@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
-import { keepUnused } from '../utils/organization/keepUnused';
 import type { PipelineString } from './PipelineString';
 import { isValidPipelineString } from './isValidPipelineString';
 
@@ -38,12 +37,8 @@ export function book(strings: TemplateStringsArray, ...values: Array<string>): P
     return pipelineString;
 }
 
-keepUnused(book`
-      !!!!!! Remove
-`);
-
 /**
- * TODO: !!!!!! Use book\`...\ notation instead of as PipelineString
+ * TODO: Use ACRY book\`...\ notation instead of as PipelineString
  * TODO: [🧠][🈴] Where is the best location for this file
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */
