@@ -17,7 +17,8 @@ export const pdfScraperMetadata = $deepFreeze({
     className: 'PdfScraper',
     mimeTypes: ['application/pdf'],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
-    isAvilableInBrowser: true,
+    isAvilableInBrowser: false,
+    // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
     requiredExecutables: [],
 }) satisfies ScraperAndConverterMetadata; /* <- Note: [🤛] */
 

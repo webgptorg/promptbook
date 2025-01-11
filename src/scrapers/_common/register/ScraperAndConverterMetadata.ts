@@ -31,6 +31,8 @@ export type ScraperAndConverterMetadata = Registered & {
 
     /**
      * @@@
+     *
+     * Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
      */
     readonly isAvilableInBrowser: boolean;
 

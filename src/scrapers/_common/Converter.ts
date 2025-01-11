@@ -5,6 +5,7 @@ import type { ScraperIntermediateSource } from './ScraperIntermediateSource';
 /**
  * @@@
  *
+ * Note: [🌏] Converters are not usable in browser because they produce a files
  */
 export type Converter = {
     /**

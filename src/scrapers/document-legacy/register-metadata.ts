@@ -18,6 +18,7 @@ export const legacyDocumentScraperMetadata = $deepFreeze({
     mimeTypes: ['application/msword', 'text/rtf'],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
     isAvilableInBrowser: false,
+    // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
     requiredExecutables: [
         'Pandoc',
         'LibreOffice',
