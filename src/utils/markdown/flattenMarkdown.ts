@@ -7,7 +7,7 @@ import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
 /**
  * Normalizes the markdown by flattening the structure
  *
- * - It always have h1 - if there is no h1 in the markdown, it will be added "# Untitled"
+ * - It always have h1 - if there is no h1 in the markdown, it will be added `DEFAULT_BOOK_TITLE`
  * - All other headings are normalized to h2
  *
  * @public exported from `@promptbook/markdown-utils`
