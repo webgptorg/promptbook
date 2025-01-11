@@ -1,8 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -10,8 +9,7 @@ import { isValidPipelineString } from '../pipeline/isValidPipelineString';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { isRootPath } from '../utils/validators/filePath/isRootPath';
@@ -143,14 +141,10 @@ export async function $getCompiledBook(
             );
         }
 
-        const pipelineJson = await compilePipeline(
-            pipelineString as PipelineString /* <- TODO: !!!!!! Remove */,
-            tools,
-            {
-                rootDirname: null, // <- TODO: !!!!!! Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book.md`
-                ...options,
-            },
-        );
+        const pipelineJson = await compilePipeline(pipelineString, tools, {
+            rootDirname: null, // <- TODO: !!!!!! Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book.md`
+            ...options,
+        });
 
         return pipelineJson;
     } /* not else */
