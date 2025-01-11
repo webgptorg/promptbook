@@ -2,7 +2,7 @@ import { keepUnused } from './keepUnused';
 import type { really_any } from './really_any';
 
 /**
- * Just says that the variable is not used directly but should be kept because the existence of the variable is important
+ * Just says that the variable is not used directlys but should be kept because the existence of the variable is important
  *
  * @param value any values
  * @returns void
