@@ -136,7 +136,7 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
         const prompt = spaceTrim(pipelineStringLines.join('\n'));
         pipelineString = spaceTrim(
             (block) => `
-                # ${DEFAULT_TITLE /* <- TODO: !!!!!! Title for flat pipelines */}
+                # ${DEFAULT_TITLE /* <- TODO: !!!!!!! Title for flat pipelines */}
 
                 ## Prompt
 

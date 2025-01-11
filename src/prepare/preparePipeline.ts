@@ -1,5 +1,5 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT, DEFAULT_TITLE } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -85,6 +85,15 @@ export async function preparePipeline(
     ];
     // ----- /ID -----
 
+    // ----- Title preparation -----
+
+    let title = pipeline.title;
+    if (title === undefined || title === '' || title === DEFAULT_TITLE) {
+        // TODO: !!!!!!! Dynamic title for flat pipelines
+        title = '✨ Book';
+    }
+    // ----- /Title preparation -----
+
     // ----- Personas preparation -----
     // TODO: !! Extract to similar function as `prepareTasks`
     // TODO: [🖌][🧠] Implement some `mapAsync` function
@@ -168,6 +177,7 @@ export async function preparePipeline(
         value: {
             ...pipeline,
             // <- TODO: Probbably deeply clone the pipeline because `$exportJson` freezes the subobjects
+            title,
             knowledgeSources: knowledgeSourcesPrepared,
             knowledgePieces: knowledgePiecesPrepared,
             tasks: [...tasksPrepared],
