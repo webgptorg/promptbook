@@ -1,5 +1,7 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT, DEFAULT_TITLE } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_TITLE } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
