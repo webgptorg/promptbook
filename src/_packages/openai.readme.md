@@ -60,9 +60,33 @@ console.info(outputParameters);
 OpenAiExecutionTools.createAssistantSubtools
 -->
 
+<!--Import ./wizzard.readme.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
+
+## 🧙‍♂️ Wizard
+
+Run books without any settings, boilerplate or struggle in Node.js:
+
+```typescript
+import { wizzard } from '@promptbook/wizzard';
+
+const {
+    outputParameters: { joke },
+} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md`, {
+    topic: 'Prague',
+});
+
+console.info(joke);
+```
+
+<!--/Import ./wizzard.readme.md-->
+
+<!--Import ./content/$provideExecutionToolsForNode.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
+
 ## 🧙‍♂️ Connect to LLM providers automatically
 
-You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `OPENAI_API_KEY` and `ANTHROPIC_CLAUDE_API_KEY` automatically.
+You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
@@ -95,6 +119,8 @@ assertsExecutionSuccessful(result);
 const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
+
+<!--/Import ./content/$provideExecutionToolsForNode.md-->
 
 ## 💕 Usage of multiple LLM providers
 
@@ -169,9 +195,10 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-## 💙 Integration with other models
+<!--Import ./content/providers.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
 
-<!-- TODO: [🕑] DRY-->
+### 💙 Integration with other models
 
 See the other model integrations:
 
@@ -181,4 +208,4 @@ See the other model integrations:
 -   [Vercel](https://www.npmjs.com/package/@promptbook/vercel)
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
 
-<!-- TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI in simple CLI environment -->
+<!--/Import ./content/providers.md-->

@@ -56,6 +56,68 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
+<!--Import ./wizzard.readme.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
+
+## 🧙‍♂️ Wizard
+
+Run books without any settings, boilerplate or struggle in Node.js:
+
+```typescript
+import { wizzard } from '@promptbook/wizzard';
+
+const {
+    outputParameters: { joke },
+} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md`, {
+    topic: 'Prague',
+});
+
+console.info(joke);
+```
+
+<!--/Import ./wizzard.readme.md-->
+
+<!--Import ./content/$provideExecutionToolsForNode.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
+
+## 🧙‍♂️ Connect to LLM providers automatically
+
+You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
+
+```typescript
+import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
+
+// ▶ Prepare tools
+const tools = await $provideExecutionToolsForNode();
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./books', tools);
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+
+// ▶ Prepare input parameters
+const inputParameters = { word: 'dog' };
+
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
+
+// ▶ Fail if the execution was not successful
+assertsExecutionSuccessful(result);
+
+// ▶ Handle the result
+const { isSuccessful, errors, outputParameters, executionReport } = result;
+console.info(outputParameters);
+```
+
+<!--/Import ./content/$provideExecutionToolsForNode.md-->
+
 ## 💕 Usage of multiple LLM providers
 
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
@@ -129,9 +191,10 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-## 💙 Integration with other models
+<!--Import ./content/providers.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
 
-<!-- TODO: [🕑] DRY-->
+### 💙 Integration with other models
 
 See the other model integrations:
 
@@ -140,3 +203,5 @@ See the other model integrations:
 -   [Google Gemini](https://www.npmjs.com/package/@promptbook/google)
 -   [Vercel](https://www.npmjs.com/package/@promptbook/vercel)
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
+
+<!--/Import ./content/providers.md-->

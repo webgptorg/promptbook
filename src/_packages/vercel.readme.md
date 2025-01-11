@@ -45,9 +45,10 @@ console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content))
 /**/
 ```
 
-## 💙 Integration with other models
+<!--Import ./content/providers.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
 
-<!-- TODO: [🕑] DRY-->
+### 💙 Integration with other models
 
 See the other model integrations:
 
@@ -56,3 +57,5 @@ See the other model integrations:
 -   [Google Gemini](https://www.npmjs.com/package/@promptbook/google)
 -   [Vercel](https://www.npmjs.com/package/@promptbook/vercel)
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
+
+<!--/Import ./content/providers.md-->
