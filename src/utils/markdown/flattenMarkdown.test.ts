@@ -10,7 +10,7 @@ describe('flattenMarkdown', () => {
     });
 
     it('adds missing h1', () => {
-        expect(flattenMarkdown('')).toBe('# Untitled');
+        expect(flattenMarkdown('')).toBe(`# ${DEFAULT_BOOK_TITLE}`);
     });
 
     it('keep simple case without h2', () => {
