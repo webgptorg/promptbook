@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-19",
+                        "promptbookVersion": "0.81.0-20",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-19",
+                        "promptbookVersion": "0.81.0-20",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -517,7 +517,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-19",
+                        "promptbookVersion": "0.81.0-20",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -648,7 +648,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-19",
+                        "promptbookVersion": "0.81.0-20",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -925,7 +925,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-19",
+                        "promptbookVersion": "0.81.0-20",
                         "usage": {
                             "price": {
                                 "value": 0.006237
