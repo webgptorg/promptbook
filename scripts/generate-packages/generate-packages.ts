@@ -384,6 +384,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 packageFullname !== '@promptbook/documents' &&
                 packageFullname !== '@promptbook/legacy-documents' &&
                 packageFullname !== '@promptbook/website-crawler' &&
+
+packageFullname !== '@promptbook/pdf' &&
+
+
+
                 bundleFileContent.includes('[🟢]')
             ) {
                 throw new Error(
