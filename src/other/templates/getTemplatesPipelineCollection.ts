@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-18",
+                        "promptbookVersion": "0.81.0-19",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-18",
+                        "promptbookVersion": "0.81.0-19",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -424,7 +424,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/corrector.book.md"
             },
             {
-                "title": "😜 Simple Joke",
+                "title": "😜 Simple Joke\r",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md",
                 "formfactorName": "GENERIC",
                 "parameters": [
@@ -442,8 +442,8 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "tasks": [
                     {
                         "taskType": "PROMPT_TASK",
-                        "name": "write-a-letter",
-                        "title": "Write a letter",
+                        "name": "write-a-joke",
+                        "title": "Write a joke\r",
                         "content": "Write joke about {topic}",
                         "resultingParameterName": "joke",
                         "dependentParameterNames": [
@@ -459,7 +459,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "# 😜 Simple Joke\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\n\n<!--\nTODO: !!!!!! Make this flat - no nested sections\n-->\n\n## Write a letter\n\n> Write joke about {topic}\n\n-> {joke}\n"
+                        "content": "# 😜 Simple Joke\r\n\r\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\r\n\r\n<!--\r\nTODO: !!!!!! Make this flat - no nested sections\r\n-->\r\n\r\n## Write a joke\r\n\r\n> Write joke about {topic}\r\n\r\n-> {joke}\r\n"
                     }
                 ],
                 "sourceFile": "./book/books/templates/generic.book.md"
@@ -517,7 +517,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-18",
+                        "promptbookVersion": "0.81.0-19",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -648,7 +648,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-18",
+                        "promptbookVersion": "0.81.0-19",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -925,7 +925,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-18",
+                        "promptbookVersion": "0.81.0-19",
                         "usage": {
                             "price": {
                                 "value": 0.006237
