@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -22,6 +21,8 @@ import { prepareTasks } from './prepareTasks';
 
 /**
  * Prepare pipeline from string (markdown) format to JSON format
+ *
+ * @see https://github.com/webgptorg/promptbook/discussions/196
  *
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process

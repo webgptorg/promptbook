@@ -5,6 +5,8 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 /**
  * Determine if the pipeline is fully prepared
  *
+ * @see https://github.com/webgptorg/promptbook/discussions/196
+ *
  * @public exported from `@promptbook/core`
  */
 export function isPipelinePrepared(pipeline: PipelineJson): boolean {

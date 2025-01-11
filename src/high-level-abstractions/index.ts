@@ -4,7 +4,7 @@ import { QuickChatbotHla } from './quick-chatbot/QuickChatbotHla';
 /**
  * All high-level abstractions
  *
- * @private internal index of `precompilePipeline` (= used for sync) and `preparePipeline` (= used for async)
+ * @private internal index of `parsePipeline` (= used for sync) and `preparePipeline` (= used for async)
  */
 export const HIGH_LEVEL_ABSTRACTIONS = [
     ImplicitFormfactorHla,

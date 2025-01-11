@@ -5,10 +5,12 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
@@ -104,7 +106,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      */
     $applyToPipelineJson(command: ParameterCommand, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $pipelineJson);
-        // Note: [🍣] Do nothing, its application is implemented separately in `precompilePipeline`
+        // Note: [🍣] Do nothing, its application is implemented separately in `parsePipeline`
     },
 
     /**
@@ -114,7 +116,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      */
     $applyToTaskJson(command: ParameterCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $taskJson, $pipelineJson);
-        // Note: [🍣] Do nothing, its application is implemented separately in `precompilePipeline`
+        // Note: [🍣] Do nothing, its application is implemented separately in `parsePipeline`
     },
 
     /**

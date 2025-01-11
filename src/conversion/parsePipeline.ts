@@ -38,10 +38,7 @@ import { extractParameterNamesFromTask } from './utils/extractParameterNamesFrom
 /**
  * Compile pipeline from string (markdown) format to JSON format synchronously
  *
- * Note: There are 3 similar functions:
- * - `compilePipeline` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
- * - `parsePipeline` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
- * - `preparePipeline` - just one step in the compilation process
+ * @see https://github.com/webgptorg/promptbook/discussions/196
  *
  * Note: This function does not validate logic of the pipeline only the parsing
  * Note: This function acts as compilation process

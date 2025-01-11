@@ -1,7 +1,7 @@
 import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
 
 /**
- * Used in `precompilePipeline`
+ * Used in `parsePipeline`
  *
  * @private
  */

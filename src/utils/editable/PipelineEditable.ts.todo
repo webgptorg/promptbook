@@ -4,7 +4,7 @@ import {
     ParseError,
     pipelineJsonToString,
     PipelineLogicError,
-    precompilePipeline,
+    parsePipeline,
     removePipelineCommand,
     renamePipelineParameter,
     UnexpectedError,
@@ -130,7 +130,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
             sourceMarkdown = removeMarkdownComments(sourceMarkdown);
         }
 
-        const sourceJson = precompilePipeline(sourceMarkdown);
+        const sourceJson = parsePipeline(sourceMarkdown);
 
         // Note: Hidind the URL after the URL is parsed
         if (isPipelineUrlHidden) {
@@ -337,7 +337,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
 
         try {
             if (this.data.pipelineString !== null) {
-                const pipelineJson = precompilePipeline(
+                const pipelineJson = parsePipeline(
                     this.data.pipelineString as PipelineString /* <- In case if not, try-catch block */,
                 );
                 validatePipeline(pipelineJson);
@@ -662,7 +662,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
 
         return this.edit(() => {
             try {
-                let newSourceJson = precompilePipeline(
+                let newSourceJson = parsePipeline(
                     newSourceMarkdown as PipelineString /* <- In case if not, try-catch block */,
                 );
 
@@ -832,7 +832,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
 /**
  * TODO: [🧠] Maybe Node variant to directly work with files
  * TODO: !!!!!! Write tests for all editing capabilities
- * TODO: !!!! Use `compilePipeline` not `precompilePipeline`
+ * TODO: !!!! Use `compilePipeline` not `parsePipeline`
  * TODO: !!!! On every edit update updatedAt
  * TODO: [🧠] !!!! Allow to edit (here and also in the aplication, views,...) `knowledgeSources`, `knowledgePieces`, `personas`, `preparations`
  * TODO: [🧠] Maybe toJSON | Method for getting json as string using `stringifyPipelineJson`

@@ -3,15 +3,12 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
-import { precompilePipeline } from './precompilePipeline';
+import { parsePipeline } from './parsePipeline';
 
 /**
  * Compile pipeline from string (markdown) format to JSON format
  *
- * Note: There are 3 similar functions:
- * - `compilePipeline` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
- * - `precompilePipeline` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
- * - `preparePipeline` - just one step in the compilation process
+ * @see https://github.com/webgptorg/promptbook/discussions/196
  *
  * Note: This function does not validate logic of the pipeline only the parsing
  * Note: This function acts as compilation process
@@ -28,7 +25,7 @@ export async function compilePipeline(
     tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
-    let pipelineJson = precompilePipeline(pipelineString);
+    let pipelineJson = parsePipeline(pipelineString);
 
     if (tools !== undefined && tools.llm !== undefined) {
         pipelineJson = await preparePipeline(
@@ -40,7 +37,7 @@ export async function compilePipeline(
         );
     }
 
-    // Note: No need to use `$exportJson` because `precompilePipeline` and `preparePipeline` already do that
+    // Note: No need to use `$exportJson` because `parsePipeline` and `preparePipeline` already do that
     return pipelineJson;
 }
 
