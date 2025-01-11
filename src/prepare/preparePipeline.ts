@@ -1,8 +1,12 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
-import { assertsExecutionSuccessful, createCollectionFromJson, createPipelineExecutor } from '../_packages/core.index';
-import { TODO_any } from '../_packages/types.index';
-import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
+import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
+import type { TODO_any } from '../utils/organization/TODO_any';
+import { DEFAULT_BOOK_TITLE } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
