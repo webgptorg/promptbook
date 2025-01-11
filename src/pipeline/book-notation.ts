@@ -5,7 +5,7 @@ import type { PipelineString } from './PipelineString';
 import { isValidPipelineString } from './isValidPipelineString';
 
 /**
- * Function for notating a pipeline with a book\`...\ notation as template literal
+ * Tag function for notating a pipeline with a book\`...\ notation as template literal
  *
  * @param strings @@@
  * @param values @@@
