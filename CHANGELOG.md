@@ -644,8 +644,6 @@ Simple chat notation
 -   Rename `pipelineStringToJson` -> `compilePipeline`
 -   Rename `pipelineStringToJsonSync` -> `precompilePipeline`
 
-## In pre-release
-
 ### `0.81.0` _(2025-01-12)_
 
 Editing, templates and flat pipelines
@@ -654,6 +652,7 @@ Editing, templates and flat pipelines
 -   `fetch` is passed through `ExecutionTools` to allow proxying in browser
 -   Make new package [`@promptbook/editable`](https://www.npmjs.com/package/@promptbook/editable) and move misc editing tools there
 -   Make new package [`@promptbook/templates`](https://www.npmjs.com/package/@promptbook/templates) and add function `getBookTemplate`
+-   Add `getTemplatesPipelineCollection` to package `@promptbook/templates`
 -   Rename `replaceParameters` -> `templateParameters`
 -   Add `valueToString` and `numberToString` utility function
 -   Allow `boolean`, `number`, `null`, `undefined` and full `json` parameters in `templateParameters` _(alongside with `string`)_
@@ -670,6 +669,15 @@ Editing, templates and flat pipelines
 -   Rename `removeContentComments` -> `removeMarkdownComments`
 -   Rename `DEFAULT_TITLE` -> `DEFAULT_BOOK_TITLE`
 -   Rename `precompilePipeline` -> `parsePipeline`
+
+## In pre-release
+
+### `0.82.0` _(2025-01-!!!)_
+
+Compile via remote server
+
+-   Add `compilePipelineOnRemoteServer` to package `@promptbook/remote-client`
+-   Add `preparePipelineOnRemoteServer` to package `@promptbook/remote-client`
 
 ## Drafts
 
