@@ -385,7 +385,6 @@ export type string_url = string;
  */
 export type string_base_url = string;
 
-
 /**
  * Semantic helper
  *
@@ -753,7 +752,7 @@ export type number_terabytes = number_positive;
 
 /**.
  * TODO: [main] !!! Change "For example" to @example
- * TODO: !! Change to branded types
+ * TODO: Change to branded types
  * TODO: Delete type aliases that are not exported or used internally
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

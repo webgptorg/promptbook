@@ -1,15 +1,13 @@
 import spaceTrim from 'spacetrim';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
@@ -103,7 +101,7 @@ export class MarkdownScraper implements Scraper {
         const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
 
         const knowledgeTextPieces = (knowledgePiecesRaw || '').split('\n---\n');
-        //                                                               <- TODO: [main] !! Smarter split and filter out empty pieces
+        //                                                               <- TODO: [main] Smarter split and filter out empty pieces
 
         if (isVerbose) {
             console.info('knowledgeTextPieces:', knowledgeTextPieces);
@@ -112,7 +110,7 @@ export class MarkdownScraper implements Scraper {
         // const usage = ;
 
         const knowledge = await Promise.all(
-            // TODO: [🪂] !! Do not send all at once but in chunks
+            // TODO: [🪂] Do not send all at once but in chunks
             knowledgeTextPieces.map(async (knowledgeTextPiece, i) => {
                 // Note: Theese are just default values, they will be overwritten by the actual values:
                 let name: KnowledgePiecePreparedJson['name'] = `piece-${i}`;

@@ -144,7 +144,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         entryIndexFilePathContent += '\n';
 
-        // TODO: !! `entryIndexFilePathContent = await prettifyTypeScript(entryIndexFilePathContent)`
+        // TODO: `entryIndexFilePathContent = await prettifyTypeScript(entryIndexFilePathContent)`
 
         writeFile(entryIndexFilePath, entryIndexFilePathContent, 'utf-8');
         console.info(colors.green('Generated index file ' + entryIndexFilePath.split('\\').join('/')));
@@ -384,11 +384,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 packageFullname !== '@promptbook/documents' &&
                 packageFullname !== '@promptbook/legacy-documents' &&
                 packageFullname !== '@promptbook/website-crawler' &&
-
-packageFullname !== '@promptbook/pdf' &&
-
-
-
+                packageFullname !== '@promptbook/pdf' &&
                 bundleFileContent.includes('[🟢]')
             ) {
                 throw new Error(
@@ -563,9 +559,9 @@ packageFullname !== '@promptbook/pdf' &&
 }
 
 /**
- * TODO: !! [👵] test before publish
- * TODO: !! Add warning to the copy/generated files
- * TODO: !! Use prettier to format the generated files
- * TODO: !! Normalize order of keys in package.json
+ * TODO: [👵] test before publish
+ * TODO: Add warning to the copy/generated files
+ * TODO: Use prettier to format the generated files
+ * TODO: Normalize order of keys in package.json
  * Note: [⚫] Code in this file should never be published in any package
  */

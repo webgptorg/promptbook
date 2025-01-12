@@ -103,9 +103,9 @@ async function usePackages() {
 
 /**
  * TODO: [🤣] Update in all places
- * TODO: !! [👵] test before publish
- * TODO: !! Add warning to the copy/used files
- * TODO: !! Use prettier to format the used files
- * TODO: !! Normalize order of keys in package.json
+ * TODO: [👵] test before publish
+ * TODO: Add warning to the copy/used files
+ * TODO: Use prettier to format the used files
+ * TODO: Normalize order of keys in package.json
  * Note: [⚫] Code in this file should never be published in any package
  */

@@ -101,7 +101,7 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools
                 } as any /* <- TODO: [🖍] It is working in runtime BUT for some strange reason it invokes typescript error */,
             )
             .then((insertResult) => {
-                // TODO: !! Util isInsertSuccessfull
+                // TODO: Util isInsertSuccessfull
 
                 if (this.options.isVerbose) {
                     console.info('ChatThread', { insertResult });

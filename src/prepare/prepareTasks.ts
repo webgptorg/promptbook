@@ -34,7 +34,7 @@ export async function prepareTasks(
     const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT } = options;
     const { tasks, parameters, knowledgePiecesCount } = pipeline;
 
-    // TODO: [main] !! Apply examples to each task (if missing and is for the task defined)
+    // TODO: [main] Apply examples to each task (if missing and is for the task defined)
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function

@@ -48,7 +48,7 @@ export function createSubcollection(
     }
     async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
         const isResponsible = await collection.isResponsibleForPrompt(prompt);
-        // TODO: !! Only if responsible, check if predicate is true
+        // TODO: Only if responsible, check if predicate is true
         return isResponsible;
     }
 

@@ -1,14 +1,11 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
-import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
-import type { TODO_any } from '../utils/organization/TODO_any';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
+import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
@@ -20,6 +17,7 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
 import { arrayableToArray } from '../utils/arrayableToArray';
+import type { TODO_any } from '../utils/organization/TODO_any';
 import { exportJson } from '../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
@@ -77,7 +75,7 @@ export async function preparePipeline(
     }
     */
 
-    // TODO: [🔃][main] !! If the pipeline was prepared with different version or different set of models, prepare it once again
+    // TODO: [🔃][main] If the pipeline was prepared with different version or different set of models, prepare it once again
 
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {
@@ -131,7 +129,7 @@ export async function preparePipeline(
     // ----- /Title preparation -----
 
     // ----- Personas preparation -----
-    // TODO: !! Extract to similar function as `prepareTasks`
+    // TODO: Extract to similar function as `prepareTasks`
     // TODO: [🖌][🧠] Implement some `mapAsync` function
     const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
@@ -161,7 +159,7 @@ export async function preparePipeline(
     // ----- /Personas preparation -----
 
     // ----- Knowledge preparation -----
-    // TODO: !! Extract to similar function as `prepareTasks`
+    // TODO: Extract to similar function as `prepareTasks`
     const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
         ...source,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
