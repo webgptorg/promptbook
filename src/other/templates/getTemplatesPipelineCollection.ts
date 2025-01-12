@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-20",
+                        "promptbookVersion": "0.81.0-21",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-20",
+                        "promptbookVersion": "0.81.0-21",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -424,47 +424,6 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/corrector.book.md"
             },
             {
-                "title": "😜 Simple Joke\r",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md",
-                "formfactorName": "GENERIC",
-                "parameters": [
-                    {
-                        "name": "joke",
-                        "isInput": false,
-                        "isOutput": true
-                    },
-                    {
-                        "name": "topic",
-                        "isInput": true,
-                        "isOutput": false
-                    }
-                ],
-                "tasks": [
-                    {
-                        "taskType": "PROMPT_TASK",
-                        "name": "write-a-joke",
-                        "title": "Write a joke\r",
-                        "content": "Write joke about {topic}",
-                        "resultingParameterName": "joke",
-                        "dependentParameterNames": [
-                            "topic"
-                        ]
-                    }
-                ],
-                "personas": [],
-                "preparations": [],
-                "knowledgeSources": [],
-                "knowledgePieces": [],
-                "sources": [
-                    {
-                        "type": "BOOK",
-                        "path": null,
-                        "content": "# 😜 Simple Joke\r\n\r\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md\r\n\r\n<!--\r\nTODO: !!!!!! Make this flat - no nested sections\r\n-->\r\n\r\n## Write a joke\r\n\r\n> Write joke about {topic}\r\n\r\n-> {joke}\r\n"
-                    }
-                ],
-                "sourceFile": "./book/books/templates/generic.book.md"
-            },
-            {
                 "title": "🖼 Image generator",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/image-generator.book.md",
                 "formfactorName": "IMAGE_GENERATOR",
@@ -517,7 +476,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-20",
+                        "promptbookVersion": "0.81.0-21",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -648,7 +607,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-20",
+                        "promptbookVersion": "0.81.0-21",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -925,7 +884,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-20",
+                        "promptbookVersion": "0.81.0-21",
                         "usage": {
                             "price": {
                                 "value": 0.006237
