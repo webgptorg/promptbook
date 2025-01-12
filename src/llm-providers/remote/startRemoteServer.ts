@@ -112,11 +112,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
             try {
                 if (isAnonymous === true && !isAnonymousModeAllowed) {
-                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!! Test
+                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!3 Test
                 }
 
                 if (isAnonymous === false && !isApplicationModeAllowed) {
-                    throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!! Test
+                    throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!3 Test
                 }
 
                 // TODO: [main] !!!! Validate here userId (pass validator as dependency)
@@ -214,11 +214,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
             try {
                 if (isAnonymous === true && !isAnonymousModeAllowed) {
-                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!! Test
+                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!3 Test
                 }
 
                 if (isAnonymous === false && !isApplicationModeAllowed) {
-                    throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!! Test
+                    throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!3 Test
                 }
 
                 // TODO: [main] !!!! Validate here userId (pass validator as dependency)

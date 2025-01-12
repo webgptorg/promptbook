@@ -166,6 +166,6 @@ export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions)
 
 /**
  * TODO: Can be return type more type-safe? like `asserts options.value is JsonValue`
- * TODO: [🧠][main] !!! In-memory cache of same values to prevent multiple checks
+ * TODO: [🧠][main] !!3 In-memory cache of same values to prevent multiple checks
  * Note: [🐠] This is how `checkSerializableAsJson` + `isSerializableAsJson` together can just retun true/false or rich error message
  */

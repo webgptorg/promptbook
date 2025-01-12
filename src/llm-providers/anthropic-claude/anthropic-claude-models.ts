@@ -85,13 +85,13 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             },
         },
 
-        // TODO: [main] !!! Claude 1 and 2 has also completion versions - ask Hoagy
+        // TODO: [main] !!3 Claude 1 and 2 has also completion versions - ask Hoagy
     ],
 });
 
 /**
  * Note: [🤖] Add models of new variant
- * TODO: [🧠][main] !!! Add embedding models OR Anthropic has only chat+completion models?
+ * TODO: [🧠][main] !!3 Add embedding models OR Anthropic has only chat+completion models?
  * TODO: [🧠] Some mechanism to propagate unsureness
  * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
  * TODO: [🎰] Some mechanism to auto-update available models
