@@ -646,7 +646,7 @@ Simple chat notation
 
 ## In pre-release
 
-### `0.81.0` _(2025-01-!!!!!!)_
+### `0.81.0` _(2025-01-12)_
 
 Editing, templates and flat pipelines
 
