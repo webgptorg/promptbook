@@ -338,4 +338,21 @@ describe('templateParameters', () => {
             ),
         );
     });
+
+    it('should work with escaping', () => {
+        expect(
+            templateParameters('\\{name\\}, how are you?', {
+                name: 'Paul',
+            }),
+        ).toBe('\\{name\\}, how are you?');
+    });
+
+    it('should prevent prompt-injection', () => {
+        expect(
+            templateParameters('{name}, how are you?', {
+                name: '{instructions} + {context}',
+                instructions: 'Some secret information',
+            }),
+        ).toBe('\\{instructions\\} + \\{context\\}, how are you?');
+    });
 });
