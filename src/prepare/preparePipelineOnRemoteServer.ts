@@ -10,7 +10,8 @@ import { TODO_USE } from '../utils/organization/TODO_USE';
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process
  * Note: When the pipeline is already prepared, it returns the same pipeline
- * @public exported from `@promptbook/core`
+ *
+ * @public exported from `@promptbook/remote-client`
  */
 export async function preparePipelineOnRemoteServer<TCustomOptions = undefined>(
     pipeline: PipelineJson,
@@ -18,6 +19,7 @@ export async function preparePipelineOnRemoteServer<TCustomOptions = undefined>(
 ): Promise<PipelineJson> {
     // TODO: !!!!!! Implement
     TODO_USE(options);
+
+    // TODO: !!!!!!  do $exportJson
     return pipeline;
 }
-
