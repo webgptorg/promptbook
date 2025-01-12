@@ -31,6 +31,7 @@ describe('createCollectionFromJson', () => {
 
             -> {response}
          `) as PipelineString;
+    // <- TODO: [📼] Use`book\`` string literal notation
 
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);

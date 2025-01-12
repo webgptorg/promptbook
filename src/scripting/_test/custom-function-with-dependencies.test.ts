@@ -70,6 +70,7 @@ async function getPipelineExecutor() {
 
             -> {greeting}
        `) as PipelineString,
+        // <- TODO: [📼] Use`book\`` string literal notation
     );
 
     return createPipelineExecutor({

@@ -113,6 +113,7 @@ async function getPipelineExecutor() {
 
             -> {response}
        `) as PipelineString,
+        // <- TODO: [📼] Use`book\`` string literal notation
     );
     const pipelineExecutor = createPipelineExecutor({
         pipeline,

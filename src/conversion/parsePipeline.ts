@@ -116,6 +116,7 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
     }
     pipelineString = removeMarkdownComments(pipelineString);
     pipelineString = spaceTrim(pipelineString) as PipelineString;
+    // <- TODO: [😧] `spaceTrim` should preserve discriminated type *(or at lease `PipelineString`)*
 
     // ==============
     // Note: 1️⃣◽2️⃣ Process flat pipeline

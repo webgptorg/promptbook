@@ -14,6 +14,7 @@ describe('how `removePipelineCommand` works', () => {
 
                     - KNOWLEDGE https://pavolhejny.com/
                 `) as PipelineString,
+                // <- TODO: [📼] Use`book\`` string literal notation
             }),
         ).toBe(
             just(
@@ -34,6 +35,7 @@ describe('how `removePipelineCommand` works', () => {
 
                     - KNOWLEDGE https://pavolhejny.com/
                 `) as PipelineString,
+                // <- TODO: [📼] Use`book\`` string literal notation
             }),
         ).toBe(
             just(
@@ -68,6 +70,7 @@ describe('how `removePipelineCommand` works', () => {
                     - KNOWLEDGE https://pavolhejny.com/
                     \`\`\`
                 `) as PipelineString,
+                // <- TODO: [📼] Use`book\`` string literal notation
             }),
         ).toBe(
             just(

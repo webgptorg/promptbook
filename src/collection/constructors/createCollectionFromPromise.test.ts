@@ -31,6 +31,7 @@ describe('createCollectionFromPromise', () => {
 
             -> {response}
          `) as PipelineString;
+    // <- TODO: [📼] Use`book\`` string literal notation
 
     const collection = createCollectionFromPromise(async () => {
         await forTime(100);
