@@ -2,6 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
+import { validatePipelineString } from '../pipeline/validatePipelineString';
 import type { string_markdown } from '../types/typeAliases';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
 import { capitalize } from '../utils/normalization/capitalize';
@@ -150,7 +151,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: [main] !!! If the parameter here has description, add it and use taskParameterJsonToString
     }
 
-    return pipelineString as PipelineString;
+    return validatePipelineString(pipelineString);
 }
 
 /**

@@ -38,7 +38,6 @@ export function book(strings: TemplateStringsArray, ...values: Array<string>): P
 }
 
 /**
- * TODO: Use ACRY book\`...\ notation instead of as PipelineString
  * TODO: [🧠][🈴] Where is the best location for this file
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

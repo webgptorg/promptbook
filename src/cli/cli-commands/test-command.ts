@@ -11,7 +11,7 @@ import { $provideExecutablesForNode } from '../../executables/$provideExecutable
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../pipeline/PipelineString';
+import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 
@@ -63,7 +63,7 @@ export function initializeTestCommand(program: Program) {
                 let pipeline: PipelineJson;
 
                 if (filename.endsWith('.book.md')) {
-                    const pipelineMarkdown = (await readFile(filename, 'utf-8')) as PipelineString;
+                    const pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
                     pipeline = await compilePipeline(pipelineMarkdown, tools);
 
                     if (isVerbose) {

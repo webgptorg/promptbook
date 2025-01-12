@@ -6,7 +6,7 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
-import type { PipelineString } from '../../pipeline/PipelineString';
+import { validatePipelineString } from '../../pipeline/validatePipelineString';
 
 /**
  * Initializes `prettify` command for Promptbook CLI utilities
@@ -42,7 +42,7 @@ export function initializePrettifyCommand(program: Program) {
                 continue;
             }
 
-            let pipelineMarkdown = (await readFile(filename, 'utf-8')) as PipelineString;
+            let pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
 
             try {
                 pipelineMarkdown = await prettifyPipelineString(pipelineMarkdown, {

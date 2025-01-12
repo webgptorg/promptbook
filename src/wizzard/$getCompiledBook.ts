@@ -1,17 +1,16 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { isValidPipelineString } from '../pipeline/isValidPipelineString';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
+import { validatePipelineString } from '../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { isRootPath } from '../utils/validators/filePath/isRootPath';
@@ -48,7 +47,7 @@ export async function $getCompiledBook(
                 // <- TODO: Also test that among the candidates the file is book not just any file
             ) {
                 filePath = filePathCandidate;
-                const pipelineString = (await fs.readFile(filePath, 'utf-8')) as PipelineString;
+                const pipelineString = validatePipelineString(await fs.readFile(filePath, 'utf-8'));
                 const pipelineJson = await compilePipeline(pipelineString, tools, {
                     rootDirname: process.cwd(),
                     ...options,

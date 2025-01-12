@@ -2,9 +2,9 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
+import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_json } from '../../types/typeAliases';
+import type { string_filename, string_json } from '../../types/typeAliases';
 
 /**
  * Import the pipeline.book.md or pipeline.book.json file
@@ -27,7 +27,7 @@ export function importPipelineWithoutPreparation(path: string_filename): Pipelin
         pipeline = unpreparePipeline(pipeline);
         return pipeline;
     } else if (path.endsWith('.book.md')) {
-        return content as PipelineString;
+        return validatePipelineString(content);
     } else {
         throw new Error('This should be used only for .book.md or .book.json files');
     }

@@ -17,7 +17,7 @@ import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../src/executables/$provideExecutablesForNode';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
-import { PipelineString } from '../../src/pipeline/PipelineString';
+import { validatePipelineString } from '../../src/pipeline/validatePipelineString';
 import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
@@ -83,8 +83,9 @@ async function generateExampleJsons({
             const options: PrepareAndScrapeOptions = {
                 rootDirname: dirname(pipelineMarkdownFilePath),
             };
+
             const pipelineJson = await compilePipeline(
-                pipelineMarkdown as PipelineString,
+                validatePipelineString(pipelineMarkdown),
                 {
                     llm,
                     fs,

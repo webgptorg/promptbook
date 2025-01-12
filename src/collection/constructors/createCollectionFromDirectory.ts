@@ -12,7 +12,7 @@ import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../pipeline/PipelineString';
+import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { string_dirname, string_pipeline_root_url, string_pipeline_url } from '../../types/typeAliases';
@@ -158,7 +158,7 @@ export async function createCollectionFromDirectory(
                 let pipeline: PipelineJson | null = null;
 
                 if (fileName.endsWith('.book.md')) {
-                    const pipelineString = (await readFile(fileName, 'utf-8')) as PipelineString;
+                    const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
                     pipeline = await compilePipeline(pipelineString, tools, {
                         rootDirname,
                     });

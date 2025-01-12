@@ -7,7 +7,3 @@
 export type PipelineString = string & {
     readonly _type: 'Promptbook' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
 };
-
-/**
- * TODO: [💩] Better validation (validatePipelineString) or remove branded type and make it just string
- */
