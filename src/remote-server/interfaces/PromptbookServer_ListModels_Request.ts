@@ -1,5 +1,5 @@
-import type { string_user_id } from '../../../types/typeAliases';
-import type { LlmToolsConfiguration } from '../../_common/register/LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from '../../llm-providers/_common/register/LlmToolsConfiguration';
+import type { string_user_id } from '../../types/typeAliases';
 import type { CollectionRemoteServerClientOptions } from './RemoteServerOptions';
 
 /**
@@ -31,7 +31,7 @@ export type PromptbookServer_ListModels_AnonymousRequest = {
      * Note: this is passed to the certain model providers to identify misuse
      * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in application mode)
      */
-    readonly userId?: string_user_id ;
+    readonly userId?: string_user_id;
 
     /**
      * Configuration for the LLM tools

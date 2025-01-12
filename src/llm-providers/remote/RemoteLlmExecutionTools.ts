@@ -18,12 +18,12 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
-import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
-import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
-import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
-import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
-import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
-import type { RemoteLlmExecutionToolsOptions } from './interfaces/RemoteLlmExecutionToolsOptions';
+import type { PromptbookServer_Error } from '../../remote-server/interfaces/PromptbookServer_Error';
+import type { PromptbookServer_ListModels_Request } from '../../remote-server/interfaces/PromptbookServer_ListModels_Request';
+import type { PromptbookServer_ListModels_Response } from '../../remote-server/interfaces/PromptbookServer_ListModels_Response';
+import type { PromptbookServer_Prompt_Request } from '../../remote-server/interfaces/PromptbookServer_Prompt_Request';
+import type { PromptbookServer_Prompt_Response } from '../../remote-server/interfaces/PromptbookServer_Prompt_Response';
+import type { RemoteLlmExecutionToolsOptions } from '../../remote-server/interfaces/RemoteLlmExecutionToolsOptions';
 
 keepTypeImported<PromptbookServer_ListModels_Request<really_any>>();
 keepTypeImported<PromptbookServer_Prompt_Request<really_any>>();

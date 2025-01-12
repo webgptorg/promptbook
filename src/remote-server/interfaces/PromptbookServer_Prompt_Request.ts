@@ -1,6 +1,6 @@
-import type { Prompt } from '../../../types/Prompt';
-import type { string_user_id } from '../../../types/typeAliases';
-import type { LlmToolsConfiguration } from '../../_common/register/LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from '../../llm-providers/_common/register/LlmToolsConfiguration';
+import type { Prompt } from '../../types/Prompt';
+import type { string_user_id } from '../../types/typeAliases';
 import type { CollectionRemoteServerClientOptions } from './RemoteServerOptions';
 
 /**
