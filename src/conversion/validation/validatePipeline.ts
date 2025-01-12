@@ -28,10 +28,10 @@ import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUr
  */
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     if (IS_PIPELINE_LOGIC_VALIDATED) {
-        validatePipelineCore(pipeline);
+        validatePipeline_InnerFunction(pipeline);
     } else {
         try {
-            validatePipelineCore(pipeline);
+            validatePipeline_InnerFunction(pipeline);
         } catch (error) {
             if (!(error instanceof PipelineLogicError)) {
                 throw error;
@@ -55,7 +55,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 /**
  * @private internal function for `validatePipeline`
  */
-export function validatePipelineCore(pipeline: PipelineJson): void {
+export function validatePipeline_InnerFunction(pipeline: PipelineJson): void {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
     const pipelineIdentification = (() => {
