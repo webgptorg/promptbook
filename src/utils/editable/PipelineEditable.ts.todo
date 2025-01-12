@@ -430,7 +430,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
      *
      * @param oldParameterName Original parameter name that should be replaced
      * @param newParameterName New parameter name that should replace the original parameter name
-     * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline <- TODO: !!!! Should it throw
+     * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline <- TODO: !!4 Should it throw
      */
     public renameParameter(oldParameterName: string_name, newParameterName: string_name): PipelineEditable {
         // TODO: [👨‍✈️] Deeper logic and check if parameter rename is allowed
@@ -503,7 +503,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
                 {
                     name: promptTask.resultingParameterName,
                     isInput: false,
-                    isOutput: true, // <- TODO: !!!! The best default value
+                    isOutput: true, // <- TODO: !!4 The best default value
                 },
             ],
             tasks: [
@@ -832,9 +832,9 @@ export class PipelineEditable implements PipelineEditableSerialized {
 /**
  * TODO: [🧠] Maybe Node variant to directly work with files
  * TODO: !!!!!! Write tests for all editing capabilities
- * TODO: !!!! Use `compilePipeline` not `parsePipeline`
- * TODO: !!!! On every edit update updatedAt
- * TODO: [🧠] !!!! Allow to edit (here and also in the aplication, views,...) `knowledgeSources`, `knowledgePieces`, `personas`, `preparations`
+ * TODO: !!4 Use `compilePipeline` not `parsePipeline`
+ * TODO: !!4 On every edit update updatedAt
+ * TODO: [🧠] !!4 Allow to edit (here and also in the aplication, views,...) `knowledgeSources`, `knowledgePieces`, `personas`, `preparations`
  * TODO: [🧠] Maybe toJSON | Method for getting json as string using `stringifyPipelineJson`
  * TODO: Refactorn into multiple files - this is soooo big
  */

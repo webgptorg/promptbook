@@ -438,11 +438,11 @@ export function validatePipeline_InnerFunction(pipeline: PipelineJson): void {
  */
 
 /**
- * TODO: [🧳][main] !!!! Validate that all examples match expectations
- * TODO: [🧳][🐝][main] !!!! Validate that knowledge is valid (non-void)
- * TODO: [🧳][main] !!!! Validate that persona can be used only with CHAT variant
- * TODO: [🧳][main] !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
- * TODO: [🧳][main] !!!! Validate that reserved parameter is not used as joker
+ * TODO: [🧳][main] !!4 Validate that all examples match expectations
+ * TODO: [🧳][🐝][main] !!4 Validate that knowledge is valid (non-void)
+ * TODO: [🧳][main] !!4 Validate that persona can be used only with CHAT variant
+ * TODO: [🧳][main] !!4 Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
+ * TODO: [🧳][main] !!4 Validate that reserved parameter is not used as joker
  * TODO: [🧠] Validation not only logic itself but imports around - files and websites and rerefenced pipelines exists
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

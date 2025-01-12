@@ -11,7 +11,7 @@ import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExec
  */
 export const createOpenAiAssistantExecutionTools = Object.assign(
     (options: OpenAiAssistantExecutionToolsOptions): OpenAiAssistantExecutionTools => {
-        // TODO: [🧠][main] !!!! If browser, auto add `dangerouslyAllowBrowser`
+        // TODO: [🧠][main] !!4 If browser, auto add `dangerouslyAllowBrowser`
 
         if (($isRunningInBrowser() || $isRunningInWebWorker()) && !options.dangerouslyAllowBrowser) {
             options = { ...options, dangerouslyAllowBrowser: true };
