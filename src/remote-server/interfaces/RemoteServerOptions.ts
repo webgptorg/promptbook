@@ -2,9 +2,7 @@ import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_app_id, string_uri, string_user_id } from '../../types/typeAliases';
 
 /**
  * @@@
@@ -35,8 +33,8 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     readonly path: string_uri;
 } & (
         | AnonymousRemoteServerOptions
-        | CollectionRemoteServerOptions<TCustomOptions>
-        | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions<TCustomOptions>)
+        | ApplicationRemoteServerOptions<TCustomOptions>
+        | (AnonymousRemoteServerOptions & ApplicationRemoteServerOptions<TCustomOptions>)
     );
 //           <- TODO: [🐛] Typescript bug in this discriminated union
 //                    This should throw typescript error but it doesn't
@@ -55,7 +53,7 @@ export type AnonymousRemoteServerOptions = {
     readonly isAnonymousModeAllowed: true;
 };
 
-export type CollectionRemoteServerOptions<TCustomOptions> = {
+export type ApplicationRemoteServerOptions<TCustomOptions> = {
     /**
      * Enable application mode
      */
@@ -72,11 +70,11 @@ export type CollectionRemoteServerOptions<TCustomOptions> = {
      * Creates llm execution tools for each client
      */
     createLlmExecutionTools(
-        options: CollectionRemoteServerClientOptions<TCustomOptions>,
+        options: ApplicationRemoteServerClientOptions<TCustomOptions>,
     ): Promisable<LlmExecutionTools> /* <- TODO: [🍚] &({}|IDestroyable) */;
 };
 
-export type CollectionRemoteServerClientOptions<TCustomOptions> = {
+export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
     /**
      * @@@
      */

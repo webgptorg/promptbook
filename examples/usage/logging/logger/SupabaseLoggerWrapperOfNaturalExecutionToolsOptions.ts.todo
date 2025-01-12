@@ -4,7 +4,7 @@ import type { uuid } from '../../../utils/typeAliases';
 /**
  * Options for `SupabaseLoggerWrapperOfLlmExecutionTools`
  */
-export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToolsOptions & CollectionRemoteServerClientOptions<TCustomOptions> & {
+export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToolsOptions & ApplicationRemoteServerClientOptions<TCustomOptions> & {
     /**
      * Execution tools to use
      * Theese tools will be wrapped in a logger for each client to log all requests

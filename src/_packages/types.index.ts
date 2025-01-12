@@ -108,8 +108,8 @@ import type { PromptbookServer_Prompt_Response } from '../remote-server/interfac
 import type { RemoteLlmExecutionToolsOptions } from '../remote-server/interfaces/RemoteLlmExecutionToolsOptions';
 import type {
     AnonymousRemoteServerOptions,
-    CollectionRemoteServerClientOptions,
-    CollectionRemoteServerOptions,
+    ApplicationRemoteServerClientOptions,
+    ApplicationRemoteServerOptions,
     RemoteServerOptions,
 } from '../remote-server/interfaces/RemoteServerOptions';
 import type { Converter } from '../scrapers/_common/Converter';
@@ -281,6 +281,8 @@ export type {
     AnthropicClaudeExecutionToolsDirectOptions,
     AnthropicClaudeExecutionToolsOptions,
     AnthropicClaudeExecutionToolsProxiedOptions,
+    ApplicationRemoteServerClientOptions,
+    ApplicationRemoteServerOptions,
     AvailableModel,
     AzureOpenAiExecutionToolsOptions,
     CacheItem,
@@ -291,8 +293,6 @@ export type {
     ChatPromptResult,
     CheckSerializableAsJsonOptions,
     CodeBlock,
-    CollectionRemoteServerClientOptions,
-    CollectionRemoteServerOptions,
     Command,
     CommandParser,
     CommandParserInput,

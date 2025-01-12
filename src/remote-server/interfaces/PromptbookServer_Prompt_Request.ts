@@ -1,7 +1,7 @@
 import type { LlmToolsConfiguration } from '../../llm-providers/_common/register/LlmToolsConfiguration';
 import type { Prompt } from '../../types/Prompt';
 import type { string_user_id } from '../../types/typeAliases';
-import type { CollectionRemoteServerClientOptions } from './RemoteServerOptions';
+import type { ApplicationRemoteServerClientOptions } from './RemoteServerOptions';
 
 /**
  * Socket.io progress for remote text generation
@@ -13,7 +13,7 @@ export type PromptbookServer_Prompt_Request<TCustomOptions> =
     | PromptbookServer_Prompt_AnonymousRequest;
 
 export type PromptbookServer_Prompt_CollectionRequest<TCustomOptions> =
-    CollectionRemoteServerClientOptions<TCustomOptions> & {
+    ApplicationRemoteServerClientOptions<TCustomOptions> & {
         /**
          * Application mode
          */

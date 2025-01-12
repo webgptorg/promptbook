@@ -1,7 +1,7 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmToolsConfiguration } from '../../llm-providers/_common/register/LlmToolsConfiguration';
 import type { string_base_url, string_uri, string_user_id } from '../../types/typeAliases';
-import type { CollectionRemoteServerClientOptions } from './RemoteServerOptions';
+import type { ApplicationRemoteServerClientOptions } from './RemoteServerOptions';
 
 /**
  * Options for `RemoteLlmExecutionTools`
@@ -52,7 +52,7 @@ export type RemoteLlmExecutionToolsOptions<TCustomOptions> = CommonToolsOptions 
                * Use anonymous server with client identification and fixed collection
                */
               readonly isAnonymous: false;
-          } & CollectionRemoteServerClientOptions<TCustomOptions>)
+          } & ApplicationRemoteServerClientOptions<TCustomOptions>)
     );
 
 /**
