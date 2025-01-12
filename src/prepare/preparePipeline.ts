@@ -108,7 +108,7 @@ export async function preparePipeline(
             book: sources
                 .map(({ content }) => content)
                 .join('\n\n')
-                // TODO: !!!!!!! Parameters in parameters - DO NOT ALLOW, ESCAPE:
+                // TODO: !!! Parameters in parameters - DO NOT ALLOW, ESCAPE:
                 .split('{')
                 .join('[')
                 .split('}')

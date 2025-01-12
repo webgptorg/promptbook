@@ -164,21 +164,21 @@ export class PipelineEditable implements PipelineEditableSerialized {
     // ================= Serialization ================
 
     /**
-     * !!!!
+     * !!!
      */
     public static deserialize(source: PipelineEditableSerialized): PipelineEditable {
         return new PipelineEditable(source);
     }
 
     /**
-     * !!!!
+     * !!!
      */
     public serialize(): PipelineEditableSerialized {
         return this.data;
     }
 
     /**
-     * !!!!
+     * !!!
      */
     public toJSON(): PipelineEditableSerialized {
         return this.serialize();
@@ -494,7 +494,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     private addTask(promptTask: TaskJson): PipelineEditable {
         // TODO: !!3 Anotate
 
-        // TODO: !!!!!> promptTask.resultingParameterName  <-  Always unique parameter name
+        // TODO: !!!!> promptTask.resultingParameterName  <-  Always unique parameter name
 
         return this.edit(() => ({
             ...this.data,

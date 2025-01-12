@@ -1,13 +1,11 @@
 import spaceTrim from 'spacetrim';
-import { ADMIN_GITHUB_NAME } from '../../config';
-import { NAME } from '../../config';
-import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { ADMIN_GITHUB_NAME, NAME } from '../../config';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Make error report URL for the given error
  *
- * @private !!!!!!
+ * @private !!!
  */
 export function getErrorReportUrl(error: Error): URL {
     const report = {
