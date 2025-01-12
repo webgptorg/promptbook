@@ -1,9 +1,7 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
@@ -27,7 +25,7 @@ import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 import { prepareTasks } from './prepareTasks';
 
 /**
- * Prepare pipeline from string (markdown) format to JSON format
+ * Prepare pipeline locally
  *
  * @see https://github.com/webgptorg/promptbook/discussions/196
  *
@@ -219,7 +217,7 @@ export async function preparePipeline(
 }
 
 /**
- * TODO: Write tests for `preparePipeline`
+ * TODO: Write tests for `preparePipeline` and `preparePipelineOnRemoteServer`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
