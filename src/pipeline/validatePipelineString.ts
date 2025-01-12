@@ -1,4 +1,4 @@
-import { isValidJsonString } from '../_packages/utils.index';
+import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { ParseError } from '../errors/ParseError';
 import type { PipelineString } from './PipelineString';
 
