@@ -2,8 +2,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -16,8 +15,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_root_url, string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -43,6 +41,17 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
      * @default false
      */
     isVerbose?: boolean;
+
+    /**
+     * This will be used as a root URL for all pipelines in the collection
+     *
+     * It has 2 purposes:
+     * 1) Every pipeline in the collection is checked if it is a child of `rootUrl`
+     * 2) If the pipeline does not have a URL, it is created from the `rootUrl` and path to the pipeline
+     *
+     * @default false
+     */
+    rootUrl?: string_pipeline_root_url;
 
     /**
      * If true, directory will be scanned only when needed not during the construction
@@ -117,6 +126,7 @@ export async function createCollectionFromDirectory(
         isVerbose = DEFAULT_IS_VERBOSE,
         isLazyLoaded = false,
         isCrashedOnError = true,
+        rootUrl,
     } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
@@ -169,6 +179,35 @@ export async function createCollectionFromDirectory(
                 // ---
 
                 if (pipeline !== null) {
+                    if (rootUrl !== undefined) {
+                        if (pipeline.pipelineUrl === undefined) {
+                            const pipelineUrl = rootUrl + '/' + fileName.split('\\').join('/');
+
+                            if (isVerbose) {
+                                console.info(
+                                    colors.yellow(
+                                        `Implicitly set pipeline URL to ${pipelineUrl} from ${fileName
+                                            .split('\\')
+                                            .join('/')}`,
+                                    ),
+                                );
+                            }
+                            pipeline = { ...pipeline, pipelineUrl };
+                        } else if (!pipeline.pipelineUrl.startsWith(rootUrl)) {
+                            throw new PipelineUrlError(
+                                spaceTrim(`
+                                    Pipeline with URL ${
+                                        pipeline.pipelineUrl
+                                    } is not a child of the root URL ${rootUrl} 🍏
+
+                                    File:
+                                    ${sourceFile || 'Unknown'}
+
+                                `),
+                            );
+                        }
+                    }
+
                     // TODO: [👠] DRY
                     if (pipeline.pipelineUrl === undefined) {
                         if (isVerbose) {
@@ -215,7 +254,7 @@ export async function createCollectionFromDirectory(
 
                             throw new PipelineUrlError(
                                 spaceTrim(`
-                                    Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection 🍏
+                                    Pipeline with URL ${pipeline.pipelineUrl} is already in the collection 🍏
 
                                     Conflicting files:
                                     ${existing.sourceFile || 'Unknown'}
@@ -238,17 +277,17 @@ export async function createCollectionFromDirectory(
                 const wrappedErrorMessage =
                     spaceTrim(
                         (block) => `
-                        ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
+                            ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
 
-                        Original error message:
-                        ${block((error as Error).message)}
+                            Original error message:
+                            ${block((error as Error).message)}
 
-                        Original stack trace:
-                        ${block((error as Error).stack || '')}
+                            Original stack trace:
+                            ${block((error as Error).stack || '')}
 
-                        ---
+                            ---
 
-                    `,
+                        `,
                     ) + '\n';
 
                 if (isCrashedOnError) {

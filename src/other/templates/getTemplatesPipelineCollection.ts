@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-21",
+                        "promptbookVersion": "0.81.0-22",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-21",
+                        "promptbookVersion": "0.81.0-22",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -424,6 +424,226 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/corrector.book.md"
             },
             {
+                "title": "💌 Generate a letter",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generator.book.md",
+                "formfactorName": "GENERATOR",
+                "parameters": [
+                    {
+                        "name": "result",
+                        "isInput": false,
+                        "isOutput": true
+                    },
+                    {
+                        "name": "inputMessage",
+                        "isInput": true,
+                        "isOutput": false,
+                        "exampleValues": [
+                            "Write to Paul about\nour new watch collection"
+                        ]
+                    }
+                ],
+                "tasks": [
+                    {
+                        "taskType": "PROMPT_TASK",
+                        "name": "write-a-letter",
+                        "title": "Write a letter",
+                        "content": "Write a letter\n\n> {inputMessage}\n\n-   Write only the letter\n-   If you are missing some information, make it up\n-   The letter should be polite and friendly\n-   Write in English\n-   The letter should be well-structured\n-   Use HTML tags for formatting\n-   You can use css for styling\n    -   When using css, use inline styling or `<style>` tag",
+                        "resultingParameterName": "result",
+                        "personaName": "Jane",
+                        "expectations": {
+                            "words": {
+                                "min": 3
+                            },
+                            "pages": {
+                                "max": 3
+                            }
+                        },
+                        "dependentParameterNames": [
+                            "inputMessage"
+                        ]
+                    }
+                ],
+                "personas": [
+                    {
+                        "name": "Jane",
+                        "description": "skilled copywriter for eshop",
+                        "modelRequirements": {
+                            "modelVariant": "CHAT",
+                            "modelName": "gpt-4-turbo",
+                            "systemMessage": "You are a skilled copywriter specializing in e-commerce. Your expertise lies in crafting compelling product descriptions, engaging marketing copy, and persuasive calls-to-action for online shops. Provide creative, concise, and conversion-oriented writing that highlights product benefits and appeals to potential customers.",
+                            "temperature": 0.7
+                        },
+                        "preparationIds": [
+                            1
+                        ]
+                    }
+                ],
+                "preparations": [
+                    {
+                        "id": 1,
+                        "promptbookVersion": "0.81.0-22",
+                        "usage": {
+                            "price": {
+                                "value": 0.005442000000000001
+                            },
+                            "input": {
+                                "tokensCount": {
+                                    "value": 1169
+                                },
+                                "charactersCount": {
+                                    "value": 3232
+                                },
+                                "wordsCount": {
+                                    "value": 577
+                                },
+                                "sentencesCount": {
+                                    "value": 53
+                                },
+                                "linesCount": {
+                                    "value": 71
+                                },
+                                "paragraphsCount": {
+                                    "value": 20
+                                },
+                                "pagesCount": {
+                                    "value": 2
+                                }
+                            },
+                            "output": {
+                                "tokensCount": {
+                                    "value": 129
+                                },
+                                "charactersCount": {
+                                    "value": 520
+                                },
+                                "wordsCount": {
+                                    "value": 74
+                                },
+                                "sentencesCount": {
+                                    "value": 5
+                                },
+                                "linesCount": {
+                                    "value": 14
+                                },
+                                "paragraphsCount": {
+                                    "value": 2
+                                },
+                                "pagesCount": {
+                                    "value": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "knowledgeSources": [],
+                "knowledgePieces": [],
+                "sources": [
+                    {
+                        "type": "BOOK",
+                        "path": null,
+                        "content": "# 💌 Generate a letter\n\n-   FORMFACTOR GENERATOR\n\n## Write a letter\n\n-   PERSONA Jane, skilled copywriter for eshop\n-   EXPECT MIN 3 Words\n-   EXPECT MAX 3 Pages\n\n```markdown\nWrite a letter\n\n> {inputMessage}\n\n-   Write only the letter\n-   If you are missing some information, make it up\n-   The letter should be polite and friendly\n-   Write in English\n-   The letter should be well-structured\n-   Use HTML tags for formatting\n-   You can use css for styling\n    -   When using css, use inline styling or `<style>` tag\n```\n\n-> {result}\n\n## Example of user input\n\n-   EXAMPLE\n\n```\nWrite to Paul about\nour new watch collection\n```\n\n-> {inputMessage}\n"
+                    }
+                ],
+                "sourceFile": "./book/books/templates/generator.book.md"
+            },
+            {
+                "title": "😂 Topic-to-Joke Generator",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generic.book.md",
+                "formfactorName": "GENERIC",
+                "parameters": [
+                    {
+                        "name": "joke",
+                        "isInput": false,
+                        "isOutput": true
+                    },
+                    {
+                        "name": "topic",
+                        "isInput": true,
+                        "isOutput": false
+                    }
+                ],
+                "tasks": [
+                    {
+                        "taskType": "PROMPT_TASK",
+                        "name": "prompt",
+                        "title": "Prompt",
+                        "content": "> Write a joke about {topic}",
+                        "resultingParameterName": "joke",
+                        "dependentParameterNames": [
+                            "topic"
+                        ]
+                    }
+                ],
+                "personas": [],
+                "preparations": [
+                    {
+                        "id": 1,
+                        "promptbookVersion": "0.81.0-22",
+                        "usage": {
+                            "price": {
+                                "value": 0
+                            },
+                            "input": {
+                                "tokensCount": {
+                                    "value": 0
+                                },
+                                "charactersCount": {
+                                    "value": 0
+                                },
+                                "wordsCount": {
+                                    "value": 0
+                                },
+                                "sentencesCount": {
+                                    "value": 0
+                                },
+                                "linesCount": {
+                                    "value": 0
+                                },
+                                "paragraphsCount": {
+                                    "value": 0
+                                },
+                                "pagesCount": {
+                                    "value": 0
+                                }
+                            },
+                            "output": {
+                                "tokensCount": {
+                                    "value": 0
+                                },
+                                "charactersCount": {
+                                    "value": 0
+                                },
+                                "wordsCount": {
+                                    "value": 0
+                                },
+                                "sentencesCount": {
+                                    "value": 0
+                                },
+                                "linesCount": {
+                                    "value": 0
+                                },
+                                "paragraphsCount": {
+                                    "value": 0
+                                },
+                                "pagesCount": {
+                                    "value": 0
+                                }
+                            }
+                        }
+                    }
+                ],
+                "knowledgeSources": [],
+                "knowledgePieces": [],
+                "sources": [
+                    {
+                        "type": "BOOK",
+                        "path": null,
+                        "content": "> Write a joke about {topic}\n\n-> {joke}\n"
+                    }
+                ],
+                "sourceFile": "./book/books/templates/generic.book.md"
+            },
+            {
                 "title": "🖼 Image generator",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates/image-generator.book.md",
                 "formfactorName": "IMAGE_GENERATOR",
@@ -476,7 +696,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-21",
+                        "promptbookVersion": "0.81.0-22",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -607,7 +827,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-21",
+                        "promptbookVersion": "0.81.0-22",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -884,7 +1104,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-21",
+                        "promptbookVersion": "0.81.0-22",
                         "usage": {
                             "price": {
                                 "value": 0.006237

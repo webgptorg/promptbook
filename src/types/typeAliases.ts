@@ -385,6 +385,14 @@ export type string_url = string;
  */
 export type string_base_url = string;
 
+
+/**
+ * Semantic helper
+ *
+ * For example `"https://promptbook.studio/webgpt/"`
+ */
+export type string_pipeline_root_url = string;
+
 /**
  * Semantic helper
  *

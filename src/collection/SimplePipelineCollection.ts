@@ -62,7 +62,7 @@ export class SimplePipelineCollection implements PipelineCollection {
 
                 throw new PipelineUrlError(
                     spaceTrim(`
-                        Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection 🍎
+                        Pipeline with URL ${pipeline.pipelineUrl} is already in the collection 🍎
 
                         Conflicting files:
                         ${existing.sourceFile || 'Unknown'}

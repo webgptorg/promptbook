@@ -5,12 +5,15 @@ import type {
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
+import { isValidUrl } from '../../_packages/utils.index';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -48,6 +51,7 @@ export function initializeMakeCommand(program: Program) {
         DEFAULT_BOOKS_DIRNAME,
     );
     makeCommand.option('--project-name', `Name of the project for whom collection is`, 'Untitled Promptbook project');
+    makeCommand.option('--root-url <url>', `Root URL of all pipelines to make`, undefined);
     makeCommand.option(
         '-f, --format <format>',
         spaceTrim(`
@@ -91,10 +95,26 @@ export function initializeMakeCommand(program: Program) {
     makeCommand.action(
         async (
             path,
-            { projectName, format, functionName, validation, reload: isCacheReloaded, verbose: isVerbose, output },
+            {
+                projectName,
+                rootUrl,
+                format,
+                functionName,
+                validation,
+                reload: isCacheReloaded,
+                verbose: isVerbose,
+                output,
+            },
         ) => {
             if (!isValidJavascriptName(functionName)) {
                 console.error(colors.red(`Function name "${functionName}" is not valid javascript name`));
+                return process.exit(1);
+            }
+
+            if (
+                !isValidUrl(rootUrl) /* <- Note: Not using `isValidPipelineUrl` because this is root url not book url */
+            ) {
+                console.error(colors.red(`Root URL ${rootUrl} is not valid URL`));
                 return process.exit(1);
             }
 
@@ -132,7 +152,10 @@ export function initializeMakeCommand(program: Program) {
 
             const collection = await createCollectionFromDirectory(path, tools, {
                 isVerbose,
+                rootUrl,
                 isRecursive: true,
+                isLazyLoaded: false,
+                isCrashedOnError: true,
                 // <- TODO: [🍖] Add `intermediateFilesStrategy`
             });
 

@@ -660,6 +660,7 @@ Editing, templates and flat pipelines
 -   Change `--output` to `--output` in CLI `ptbk make`
 -   Re-introduction of package `@promptbook/wizzard`
 -   Allow flat pipelines
+-   Root URL for flat pipelines
 -   Change `$provideLlmToolsForCli` -> `$provideLlmToolsForWizzardOrCli`
 -   Do not require `.book.md` in pipeline url
 -   More file paths are considered as valid
