@@ -671,6 +671,13 @@ Editing, templates and flat pipelines
 -   Rename `DEFAULT_TITLE` -> `DEFAULT_BOOK_TITLE`
 -   Rename `precompilePipeline` -> `parsePipeline`
 
+### `0.82.0` _(2025-01-!!!)_
+
+Compile via remote server
+
+-   Add `compilePipelineOnRemoteServer` to package `@promptbook/remote-client`
+-   Add `preparePipelineOnRemoteServer` to package `@promptbook/remote-client`
+
 ## Drafts
 
 ### `0..0` _(2024--)_
