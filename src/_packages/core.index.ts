@@ -103,6 +103,7 @@ import { getPipelineInterface } from '../pipeline/PipelineInterface/getPipelineI
 import { isPipelineImplementingInterface } from '../pipeline/PipelineInterface/isPipelineImplementingInterface';
 import { isPipelineInterfacesEqual } from '../pipeline/PipelineInterface/isPipelineInterfacesEqual';
 import { EXPECTATION_UNITS } from '../pipeline/PipelineJson/Expectations';
+import { validatePipelineString } from '../pipeline/validatePipelineString';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import { prepareTasks } from '../prepare/prepareTasks';
@@ -231,6 +232,7 @@ export { getPipelineInterface };
 export { isPipelineImplementingInterface };
 export { isPipelineInterfacesEqual };
 export { EXPECTATION_UNITS };
+export { validatePipelineString };
 export { isPipelinePrepared };
 export { preparePipeline };
 export { prepareTasks };
