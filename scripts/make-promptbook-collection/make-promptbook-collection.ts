@@ -74,6 +74,7 @@ async function makePipelineCollection({
         },
         {
             isVerbose,
+            rootUrl: 'https://promptbook.studio/promptbook/',
             isRecursive: true,
             // <- TODO: [🍖] Add `intermediateFilesStrategy`
         },
