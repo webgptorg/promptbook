@@ -143,7 +143,7 @@ export async function $getCompiledBook(
         }
 
         const pipelineJson = await compilePipeline(pipelineString, tools, {
-            rootDirname: null, // <- TODO: !!!!!! Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book.md`
+            rootDirname: null, // <- TODO: !!6 Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book.md`
             ...options,
         });
 

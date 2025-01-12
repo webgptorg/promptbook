@@ -306,7 +306,7 @@ export function initializeMakeCommand(program: Program) {
                             export function ${functionName}(): PipelineCollection{
                                 if(pipelineCollection===null){
 
-                                    // TODO: !!!!!! Use book string literal notation
+                                    // TODO: !!6 Use book string literal notation
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     pipelineCollection = (createCollectionFromJson as (..._: any) => PipelineCollection)(
                                         ${block(collectionJsonItems)}

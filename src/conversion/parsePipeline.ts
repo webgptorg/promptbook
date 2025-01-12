@@ -65,7 +65,7 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
             {
                 type: 'BOOK',
                 path: null,
-                // <- TODO: !!!!!! Pass here path of the file
+                // <- TODO: !!6 Pass here path of the file
                 content: pipelineString,
             },
         ],

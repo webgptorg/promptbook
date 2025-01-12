@@ -17,7 +17,7 @@ Pavol Hejný is a software engineer and creator of Promptbook.
 ```
 
 <!--
-TODO: !!!!!! Allow initial message in quick chatbot
+TODO: !!6 Allow initial message in quick chatbot
 
 ## Initial message
 

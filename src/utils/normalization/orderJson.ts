@@ -13,7 +13,7 @@ export type OrderJsonOptions<TObject extends JsonObject | JsonArray> = {
      * Order of the object properties
      */
     order: Array<keyof TObject>;
-    // <- TODO: !!!!!! Deep keyof
+    // <- TODO: !!6 Deep keyof
 };
 
 /**

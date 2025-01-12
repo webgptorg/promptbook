@@ -178,7 +178,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
 
             const parameter = $pipelineJson.parameters.find((param) => param.name === $taskJson.resultingParameterName);
             if (parameter === undefined) {
-                // TODO: !!!!!! Change to logic error for higher level abstraction of chatbot to work
+                // TODO: !!6 Change to logic error for higher level abstraction of chatbot to work
                 throw new ParseError(
                     `Parameter \`{${$taskJson.resultingParameterName}}\` is not defined so can not define example value of it`,
                 );

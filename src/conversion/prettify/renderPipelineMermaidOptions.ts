@@ -31,7 +31,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 
         if (!parameter) {
             throw new UnexpectedError(`Could not find {${parameterName}}`);
-            // <- TODO: !!!!!! This causes problems when {knowledge} and other reserved parameters are used
+            // <- TODO: !!6 This causes problems when {knowledge} and other reserved parameters are used
         }
 
         if (parameter.isInput) {

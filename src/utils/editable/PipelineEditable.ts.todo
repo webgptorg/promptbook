@@ -203,11 +203,11 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
     public get createdAt(): string_date_iso8601 {
         // TODO: [🧠] Probbably make variant which returns moment or Date instance
-        return this.data.createdAt; // <- TODO: !!!!!! Deserialize here
+        return this.data.createdAt; // <- TODO: !!6 Deserialize here
     }
     public get updatedAt(): string_date_iso8601 | null {
         // TODO: [🧠] Probbably make variant which returns moment or Date instance
-        return this.data.updatedAt; // <- TODO: !!!!!! Deserialize here
+        return this.data.updatedAt; // <- TODO: !!6 Deserialize here
     }
 
     /*
@@ -831,7 +831,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
 
 /**
  * TODO: [🧠] Maybe Node variant to directly work with files
- * TODO: !!!!!! Write tests for all editing capabilities
+ * TODO: !!6 Write tests for all editing capabilities
  * TODO: !!4 Use `compilePipeline` not `parsePipeline`
  * TODO: !!4 On every edit update updatedAt
  * TODO: [🧠] !!4 Allow to edit (here and also in the aplication, views,...) `knowledgeSources`, `knowledgePieces`, `personas`, `preparations`
