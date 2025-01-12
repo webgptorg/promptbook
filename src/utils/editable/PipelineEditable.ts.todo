@@ -532,7 +532,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     public addLlmTask(): PipelineEditable {
         // TODO: !!3 Anotate
 
-        // TODO: !!!!! Make some nice fake-pipeline-like task
+        // TODO: !!5 Make some nice fake-pipeline-like task
 
         return this.addTask({
             taskType: 'PROMPT_TASK',
@@ -557,7 +557,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     public addSimpleTask(): PipelineEditable {
         // TODO: !!3 Anotate
 
-        // TODO: !!!!! Make some nice fake-pipeline-like task
+        // TODO: !!5 Make some nice fake-pipeline-like task
 
         return this.addTask({
             taskType: 'SIMPLE_TASK',
@@ -578,7 +578,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     public addScript(): PipelineEditable {
         // TODO: !!3 Anotate
 
-        // TODO: !!!!! Make some nice fake-pipeline-like task
+        // TODO: !!5 Make some nice fake-pipeline-like task
 
         return this.addTask({
             taskType: 'SCRIPT_TASK',
@@ -600,7 +600,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     public addPromptDialog(): PipelineEditable {
         // TODO: !!3 Anotate
 
-        // TODO: !!!!! Make some nice fake-pipeline-like task
+        // TODO: !!5 Make some nice fake-pipeline-like task
 
         return this.addTask({
             taskType: 'DIALOG_TASK',
@@ -808,7 +808,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         });
     }
 
-    // TODO: !!!!! Editable immutable methods + ACRY seatch to make this editable
+    // TODO: !!5 Editable immutable methods + ACRY seatch to make this editable
 
     // ================= Preparation ================
 
