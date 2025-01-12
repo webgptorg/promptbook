@@ -1,4 +1,4 @@
-import { RemoteServerOptions } from '../_packages/remote-client.index';
+import type { RemoteServerOptions } from '../remote-server/interfaces/RemoteServerOptions';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import { preparePipelineOnRemoteServer } from '../prepare/preparePipelineOnRemoteServer';
@@ -26,7 +26,6 @@ export async function compilePipelineOnRemoteServer<TCustomOptions = undefined>(
 
     pipelineJson = await preparePipelineOnRemoteServer(pipelineJson, options);
 
-  
     // Note: No need to use `$exportJson` because `parsePipeline` and `preparePipeline` already do that
     return pipelineJson;
 }
