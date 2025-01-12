@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-23",
+                        "promptbookVersion": "0.81.0-24",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-23",
+                        "promptbookVersion": "0.81.0-24",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -481,7 +481,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-23",
+                        "promptbookVersion": "0.81.0-24",
                         "usage": {
                             "price": {
                                 "value": 0.005442000000000001
@@ -547,7 +547,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/generator.book.md"
             },
             {
-                "title": "😂 Topic-to-Joke Generator",
+                "title": "😂 Joke Generator",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generic.book.md",
                 "formfactorName": "GENERIC",
                 "parameters": [
@@ -578,7 +578,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-23",
+                        "promptbookVersion": "0.81.0-24",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -696,7 +696,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-23",
+                        "promptbookVersion": "0.81.0-24",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -827,7 +827,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-23",
+                        "promptbookVersion": "0.81.0-24",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -1104,7 +1104,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.81.0-23",
+                        "promptbookVersion": "0.81.0-24",
                         "usage": {
                             "price": {
                                 "value": 0.006237

@@ -11,15 +11,19 @@
 -   EXPECT EXACTLY 1 Line
 
 ```markdown
-Make best title for given text which describes the task:
-
-> {book}
+Make best title for given text which describes the workflow:
 
 ## Rules
 
 -   Write just title, nothing else
--   Title should be concise and clear
+-   Title should be concise and clear - Write maximum ideally 2 words, maximum 5 words
 -   Title starts with emoticon
+-   Title should not mention the input and output of the workflow but the main purpose of the workflow
+    _For example, not "✍ Convert Knowledge-piece to title" but "✍ Title"_
+
+## The workflow
+
+> {book}
 ```
 
 `-> {title}`

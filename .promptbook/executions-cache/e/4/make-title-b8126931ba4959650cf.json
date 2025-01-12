@@ -1,13 +1,13 @@
 {
-    "date": "2025-01-12T12:38:08.214Z",
-    "promptbookVersion": "0.81.0-22",
+    "date": "2025-01-12T20:53:51.724Z",
+    "promptbookVersion": "0.81.0-24",
     "prompt": {
         "title": "Make title",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-title.book.md#make-title",
         "parameters": {
-            "book": "> Write a joke about [topic]\n\n-> [joke]\n"
+            "book": "> Write a joke about {topic}\n\n-> {joke}\n"
         },
-        "content": "Make best title for given text which describes the task:\n\n> {book}\n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Title starts with emoticon",
+        "content": "Make best title for given text which describes the workflow:\n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear - Write maximum ideally 2 words, maximum 5 words\n-   Title starts with emoticon\n-   Title should not mention the input and output of the workflow but the main purpose of the workflow\n    _For example, not \"✍ Convert Knowledge-piece to title\" but \"✍ Title\"_\n\n## The workflow\n\n> {book}",
         "modelRequirements": {
             "modelVariant": "CHAT"
         },
@@ -23,34 +23,34 @@
         }
     },
     "promptResult": {
-        "content": "😂 Topic-to-Joke Generator",
+        "content": "😂 Joke Generator",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-01-12T12:38:07.548Z",
-            "complete": "2025-01-12T12:38:08.213Z"
+            "start": "2025-01-12T20:53:51.046Z",
+            "complete": "2025-01-12T20:53:51.722Z"
         },
         "usage": {
             "price": {
-                "value": 0.00042
+                "value": 0.00057
             },
             "input": {
                 "tokensCount": {
-                    "value": 70
+                    "value": 140
                 },
                 "charactersCount": {
-                    "value": 221
+                    "value": 472
                 },
                 "wordsCount": {
-                    "value": 32
+                    "value": 72
                 },
                 "sentencesCount": {
                     "value": 1
                 },
                 "linesCount": {
-                    "value": 9
+                    "value": 15
                 },
                 "paragraphsCount": {
-                    "value": 4
+                    "value": 5
                 },
                 "pagesCount": {
                     "value": 1
@@ -58,13 +58,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 14
+                    "value": 10
                 },
                 "charactersCount": {
-                    "value": 25
+                    "value": 16
                 },
                 "wordsCount": {
-                    "value": 5
+                    "value": 3
                 },
                 "sentencesCount": {
                     "value": 1
@@ -80,35 +80,35 @@
                 }
             }
         },
-        "rawPromptContent": "Make best title for given text which describes the task:\n\n> > Write a joke about [topic]\n> \n> -> [joke]\n> \n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Title starts with emoticon",
+        "rawPromptContent": "Make best title for given text which describes the workflow:\n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear - Write maximum ideally 2 words, maximum 5 words\n-   Title starts with emoticon\n-   Title should not mention the input and output of the workflow but the main purpose of the workflow\n    _For example, not \"✍ Convert Knowledge-piece to title\" but \"✍ Title\"_\n\n## The workflow\n\n> > Write a joke about \\{topic\\}\n> \n> -> \\{joke\\}\n> ",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "Make best title for given text which describes the task:\n\n> > Write a joke about [topic]\n> \n> -> [joke]\n> \n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Title starts with emoticon"
+                    "content": "Make best title for given text which describes the workflow:\n\n## Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear - Write maximum ideally 2 words, maximum 5 words\n-   Title starts with emoticon\n-   Title should not mention the input and output of the workflow but the main purpose of the workflow\n    _For example, not \"✍ Convert Knowledge-piece to title\" but \"✍ Title\"_\n\n## The workflow\n\n> > Write a joke about \\{topic\\}\n> \n> -> \\{joke\\}\n> "
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_017z5viEUVEHcHgAikW1oUGW",
+            "id": "msg_01BEmf5PMG9rzmxRiC13Hjmd",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "😂 Topic-to-Joke Generator"
+                    "text": "😂 Joke Generator"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 70,
+                "input_tokens": 140,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 14
+                "output_tokens": 10
             }
         }
     }
