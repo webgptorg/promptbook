@@ -5,7 +5,7 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version'
 /**
  * Make error report URL for the given error
  *
- * @private !!!
+ * @private private within the repository
  */
 export function getErrorReportUrl(error: Error): URL {
     const report = {

@@ -154,8 +154,8 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     /**
-     * !!!
-     * @param data !!!
+     * !!
+     * @param data !!
      */
     private constructor(private readonly data: PipelineEditableSerialized) {
         // console.log('PipelineEditable', data);
@@ -164,21 +164,21 @@ export class PipelineEditable implements PipelineEditableSerialized {
     // ================= Serialization ================
 
     /**
-     * !!!
+     * !!
      */
     public static deserialize(source: PipelineEditableSerialized): PipelineEditable {
         return new PipelineEditable(source);
     }
 
     /**
-     * !!!
+     * !!
      */
     public serialize(): PipelineEditableSerialized {
         return this.data;
     }
 
     /**
-     * !!!
+     * !!
      */
     public toJSON(): PipelineEditableSerialized {
         return this.serialize();
@@ -324,7 +324,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
             ({ message }) => new Error(message) /* <- TODO: Better Error deserialization */,
         );
 
-        // console.log('!!! this.data.knownErrors', this.data.knownErrors);
+        // console.log('!! this.data.knownErrors', this.data.knownErrors);
 
         if (this._errors !== null) {
             return [...knownErrors, ...this._errors];
@@ -444,7 +444,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     /*
-    !!!
+    !!
     public deleteParameter(parameterName: string_name): PipelineEditable {
      // TODO: [👨‍✈️] Deeper logic and check to (dis)allow parameter to change isInput / isOutput / delete the parameter
         return this.edit(() => {
@@ -494,7 +494,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     private addTask(promptTask: TaskJson): PipelineEditable {
         // TODO: !!3 Anotate
 
-        // TODO: !!!!> promptTask.resultingParameterName  <-  Always unique parameter name
+        // TODO: !!> promptTask.resultingParameterName  <-  Always unique parameter name
 
         return this.edit(() => ({
             ...this.data,
@@ -684,7 +684,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
                     );
                 }
 
-                // console.log(`!!! editMarkdown ok`, newSourceJson);
+                // console.log(`!! editMarkdown ok`, newSourceJson);
                 return {
                     ...newSourceJson,
                     knownErrors: [], // <- TODO: Dynamically filter errors thar happen here [2]
@@ -695,7 +695,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
                     throw error;
                 }
 
-                // console.log(`!!! editMarkdown error`, error);
+                // console.log(`!! editMarkdown error`, error);
 
                 return {
                     ...this.data,
@@ -776,7 +776,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         if (pipelineString !== undefined) {
             // TODO: Maybe make utility `renamePipeline(pipeline: PipelineJson|PipelineString)` (simmilar util as `removePipelineCommand`)
             pipelineString = pipelineString.split('✨ Hello Book').join(title);
-            console.log('!!! pipelineString', pipelineString);
+            console.log('!! pipelineString', pipelineString);
         }
 
         const sourceJsonFull = {
