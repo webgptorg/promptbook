@@ -1,3 +1,4 @@
+import { SetRequired } from 'type-fest';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_pipeline_url } from '../../types/typeAliases';
@@ -9,7 +10,7 @@ import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection
  * @singleton
  * @private internal cache of `getBookTemplate`
  */
-export let pipelines: Array<PipelineJson> | null = null;
+export let pipelines: Array<SetRequired<PipelineJson, 'pipelineUrl'>> | null = null;
 
 /**
  * Get template for new book
@@ -18,12 +19,15 @@ export let pipelines: Array<PipelineJson> | null = null;
  * @returns list of pipelines
  * @public exported from `@promptbook/templates`
  */
-export function getBookTemplates(formfactorName?: string_formfactor_name): ReadonlyArray<PipelineJson> {
+export function getBookTemplates(
+    formfactorName?: string_formfactor_name,
+): ReadonlyArray<SetRequired<PipelineJson, 'pipelineUrl'>> {
     if (pipelines === null) {
         const collection = getTemplatesPipelineCollection();
         const pipelineUrls = collection.listPipelines() as ReadonlyArray<string_pipeline_url>; // <- Note: [0] Function `listPipelines` is sync because `templatesPipelineCollection` is `SimplePipelineCollection`
         pipelines = pipelineUrls.map(
-            (pipelineUrl) => collection?.getPipelineByUrl(pipelineUrl) as PipelineJson /* <- Note: [0] */,
+            (pipelineUrl) => collection?.getPipelineByUrl(pipelineUrl) as SetRequired<PipelineJson, 'pipelineUrl'>,
+            // <- Note: [0]
         );
     }
 
