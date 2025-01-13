@@ -1,5 +1,5 @@
-import type { RemoteServerOptions } from '../remote-server/interfaces/RemoteServerOptions';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 
 /**

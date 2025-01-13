@@ -1,7 +1,7 @@
-import type { RemoteServerOptions } from '../remote-server/interfaces/RemoteServerOptions';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import { preparePipelineOnRemoteServer } from '../prepare/preparePipelineOnRemoteServer';
+import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
 import { parsePipeline } from './parsePipeline';
 
 /**
