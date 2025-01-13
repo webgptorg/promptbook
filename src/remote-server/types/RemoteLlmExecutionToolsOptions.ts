@@ -1,7 +1,7 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmToolsConfiguration } from '../../llm-providers/_common/register/LlmToolsConfiguration';
 import type { string_base_url, string_uri, string_user_id } from '../../types/typeAliases';
-import type { ApplicationRemoteServerClientOptions } from '../types/RemoteServerOptions';
+import type { ApplicationRemoteServerClientOptions } from './RemoteServerOptions';
 
 /**
  * Options for `RemoteLlmExecutionTools`

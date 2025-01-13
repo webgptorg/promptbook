@@ -15,7 +15,7 @@ import type { PromptbookServer_ListModels_Request } from '../../remote-server/so
 import type { PromptbookServer_ListModels_Response } from '../../remote-server/socket-types/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_Prompt_Request } from '../../remote-server/socket-types/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from '../../remote-server/socket-types/PromptbookServer_Prompt_Response';
-import type { RemoteLlmExecutionToolsOptions } from '../../remote-server/socket-types/RemoteLlmExecutionToolsOptions';
+import type { RemoteLlmExecutionToolsOptions } from '../../remote-server/types/RemoteLlmExecutionToolsOptions';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';

@@ -105,7 +105,7 @@ import type {
     PromptbookServer_Prompt_Request,
 } from '../remote-server/socket-types/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from '../remote-server/socket-types/PromptbookServer_Prompt_Response';
-import type { RemoteLlmExecutionToolsOptions } from '../remote-server/socket-types/RemoteLlmExecutionToolsOptions';
+import type { RemoteLlmExecutionToolsOptions } from '../remote-server/types/RemoteLlmExecutionToolsOptions';
 import type {
     AnonymousRemoteServerOptions,
     ApplicationRemoteServerClientOptions,

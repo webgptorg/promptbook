@@ -4,7 +4,7 @@
 import { compilePipelineOnRemoteServer } from '../conversion/compilePipelineOnRemoteServer';
 import { RemoteLlmExecutionTools } from '../llm-providers/remote/RemoteLlmExecutionTools';
 import { preparePipelineOnRemoteServer } from '../prepare/preparePipelineOnRemoteServer';
-import type { RemoteLlmExecutionToolsOptions } from '../remote-server/socket-types/RemoteLlmExecutionToolsOptions';
+import type { RemoteLlmExecutionToolsOptions } from '../remote-server/types/RemoteLlmExecutionToolsOptions';
 import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 
