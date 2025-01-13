@@ -23,6 +23,8 @@ export type PipelineCollection = {
 
     /**
      * Checks whether given prompt was defined in any pipeline in the collection
+     *
+     * @deprecated Make better mechanism for skimming the remote server
      */
     isResponsibleForPrompt(prompt: Prompt): Promisable<boolean>;
 };

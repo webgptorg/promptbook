@@ -11,7 +11,7 @@ import type {
     PromptResult,
 } from '../../execution/PromptResult';
 import type { PromptbookServer_Error } from '../../remote-server/socket-types/PromptbookServer_Error';
-import type { PromptbookServer_ListModels_Request } from '../../remote-server/socket-types/PromptbookServer_ListModels_Request';
+import { PromptbookServer_ListModels_Request } from '../../remote-server/socket-types/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from '../../remote-server/socket-types/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_Prompt_Request } from '../../remote-server/socket-types/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from '../../remote-server/socket-types/PromptbookServer_Prompt_Response';
@@ -68,19 +68,23 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
             socket.emit(
                 'listModels-request',
                 {
-                    isAnonymous: true,
-                    userId: this.options.userId,
-                    llmToolsConfiguration: this.options.llmToolsConfiguration,
+                    identification: {
+                        isAnonymous: true,
+                        userId: this.options.userId,
+                        llmToolsConfiguration: this.options.llmToolsConfiguration,
+                    },
                 } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
         } else {
             socket.emit(
                 'listModels-request',
                 {
-                    isAnonymous: false,
-                    appId: this.options.appId,
-                    userId: this.options.userId,
-                    customOptions: this.options.customOptions,
+                    identification: {
+                        isAnonymous: false,
+                        appId: this.options.appId,
+                        userId: this.options.userId,
+                        customOptions: this.options.customOptions,
+                    },
                 } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
         }
@@ -170,9 +174,11 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
             socket.emit(
                 'prompt-request',
                 {
-                    isAnonymous: true,
-                    userId: this.options.userId,
-                    llmToolsConfiguration: this.options.llmToolsConfiguration,
+                    identification: {
+                        isAnonymous: true,
+                        userId: this.options.userId,
+                        llmToolsConfiguration: this.options.llmToolsConfiguration,
+                    },
                     prompt,
                 } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
@@ -180,10 +186,12 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
             socket.emit(
                 'prompt-request',
                 {
-                    isAnonymous: false,
-                    appId: this.options.appId,
-                    userId: this.options.userId,
-                    customOptions: this.options.customOptions,
+                    identification: {
+                        isAnonymous: false,
+                        appId: this.options.appId,
+                        userId: this.options.userId,
+                        customOptions: this.options.customOptions,
+                    },
                     prompt,
                 } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- Note: [🤛] */,
             );
