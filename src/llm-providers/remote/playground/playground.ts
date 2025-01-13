@@ -69,25 +69,29 @@ async function playground() {
                 ? {
                       remoteUrl,
                       path,
-                      isAnonymous: true,
-                      userId: 'playground',
-                      llmToolsConfiguration: [
-                          {
-                              title: 'OpenAI',
-                              packageName: '@promptbook/openai',
-                              className: 'OpenAiExecutionTools',
-                              options: {
-                                  apiKey: process.env.OPENAI_API_KEY!,
+                      identification: {
+                          isAnonymous: true,
+                          userId: 'playground',
+                          llmToolsConfiguration: [
+                              {
+                                  title: 'OpenAI',
+                                  packageName: '@promptbook/openai',
+                                  className: 'OpenAiExecutionTools',
+                                  options: {
+                                      apiKey: process.env.OPENAI_API_KEY!,
+                                  },
                               },
-                          },
-                      ],
+                          ],
+                      },
                   }
                 : {
                       remoteUrl,
                       path,
-                      isAnonymous: false,
-                      appId: 'playground',
-                      userId: 'playground',
+                      identification: {
+                          isAnonymous: false,
+                          appId: 'playground',
+                          userId: 'playground',
+                      },
                   },
         );
 

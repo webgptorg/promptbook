@@ -64,30 +64,12 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         const socket = await this.makeConnection();
 
-        if (this.options.isAnonymous) {
-            socket.emit(
-                'listModels-request',
-                {
-                    identification: {
-                        isAnonymous: true,
-                        userId: this.options.userId,
-                        llmToolsConfiguration: this.options.llmToolsConfiguration,
-                    },
-                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- Note: [🤛] */,
-            );
-        } else {
-            socket.emit(
-                'listModels-request',
-                {
-                    identification: {
-                        isAnonymous: false,
-                        appId: this.options.appId,
-                        userId: this.options.userId,
-                        customOptions: this.options.customOptions,
-                    },
-                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- Note: [🤛] */,
-            );
-        }
+        socket.emit(
+            'listModels-request',
+            {
+                identification: this.options.identification,
+            } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- Note: [🤛] */,
+        );
 
         const promptResult = await new Promise<ReadonlyArray<AvailableModel>>((resolve, reject) => {
             socket.on('listModels-response', (response: PromptbookServer_ListModels_Response) => {
@@ -170,32 +152,13 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
     private async callCommonModel(prompt: Prompt): Promise<PromptResult> {
         const socket = await this.makeConnection();
 
-        if (this.options.isAnonymous) {
-            socket.emit(
-                'prompt-request',
-                {
-                    identification: {
-                        isAnonymous: true,
-                        userId: this.options.userId,
-                        llmToolsConfiguration: this.options.llmToolsConfiguration,
-                    },
-                    prompt,
-                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- Note: [🤛] */,
-            );
-        } else {
-            socket.emit(
-                'prompt-request',
-                {
-                    identification: {
-                        isAnonymous: false,
-                        appId: this.options.appId,
-                        userId: this.options.userId,
-                        customOptions: this.options.customOptions,
-                    },
-                    prompt,
-                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- Note: [🤛] */,
-            );
-        }
+        socket.emit(
+            'prompt-request',
+            {
+                identification: this.options.identification,
+                prompt,
+            } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- Note: [🤛] */,
+        );
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {
             socket.on('prompt-response', (response: PromptbookServer_Prompt_Response) => {

@@ -1,7 +1,6 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { LlmToolsConfiguration } from '../../llm-providers/_common/register/LlmToolsConfiguration';
-import type { string_base_url, string_uri, string_user_id } from '../../types/typeAliases';
-import type { ApplicationRemoteServerClientOptions } from './RemoteServerOptions';
+import type { string_base_url, string_uri } from '../../types/typeAliases';
+import { PromptbookServer_Identification } from '../socket-types/subtypes/PromptbookServer_Identification';
 
 /**
  * Options for `RemoteLlmExecutionTools`
@@ -24,36 +23,10 @@ export type RemoteLlmExecutionToolsOptions<TCustomOptions> = CommonToolsOptions 
     readonly path: string_uri;
 
     /**
-     * Mode of the server to connect to
+     * Identification of client for Socket.io remote server
      */
-    isAnonymous: boolean;
-} & (
-        | {
-              /**
-               * Use anonymous server with anonymous mode
-               */
-              readonly isAnonymous: true;
-
-              /**
-               * Configuration for the LLM tools
-               */
-              readonly llmToolsConfiguration: LlmToolsConfiguration;
-
-              /**
-               * Identifier of the end user
-               *
-               * Note: This is passed to the certain model providers to identify misuse
-               * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in application mode).
-               */
-              readonly userId?: string_user_id;
-          }
-        | ({
-              /**
-               * Use anonymous server with client identification and fixed collection
-               */
-              readonly isAnonymous: false;
-          } & ApplicationRemoteServerClientOptions<TCustomOptions>)
-    );
+    readonly identification: PromptbookServer_Identification<TCustomOptions>;
+};
 
 /**
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`

@@ -13,18 +13,20 @@ export const createAnthropicClaudeExecutionTools = Object.assign(
         if (options.isProxied) {
             return new RemoteLlmExecutionTools({
                 ...options,
-                isAnonymous: true,
-                llmToolsConfiguration: [
-                    {
-                        title: 'Anthropic Claude (proxied)',
-                        packageName: '@promptbook/anthropic-claude',
-                        className: 'AnthropicClaudeExecutionTools',
-                        options: {
-                            ...options,
-                            isProxied: false,
+                identification: {
+                    isAnonymous: true,
+                    llmToolsConfiguration: [
+                        {
+                            title: 'Anthropic Claude (proxied)',
+                            packageName: '@promptbook/anthropic-claude',
+                            className: 'AnthropicClaudeExecutionTools',
+                            options: {
+                                ...options,
+                                isProxied: false,
+                            },
                         },
-                    },
-                ],
+                    ],
+                },
             });
         }
 
