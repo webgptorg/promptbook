@@ -644,8 +644,6 @@ Simple chat notation
 -   Rename `pipelineStringToJson` -> `compilePipeline`
 -   Rename `pipelineStringToJsonSync` -> `precompilePipeline`
 
-## In pre-release
-
 ### `0.81.0` _(2025-01-12)_
 
 Editing, templates and flat pipelines
@@ -670,6 +668,8 @@ Editing, templates and flat pipelines
 -   Rename `removeContentComments` -> `removeMarkdownComments`
 -   Rename `DEFAULT_TITLE` -> `DEFAULT_BOOK_TITLE`
 -   Rename `precompilePipeline` -> `parsePipeline`
+
+## In pre-release
 
 ### `0.82.0` _(2025-01-!!!)_
 

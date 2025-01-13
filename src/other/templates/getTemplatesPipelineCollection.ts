@@ -547,7 +547,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "sourceFile": "./book/books/templates/generator.book.md"
             },
             {
-                "title": "😂 Topic-to-Joke Generator",
+                "title": "😂 Joke Generator",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generic.book.md",
                 "formfactorName": "GENERIC",
                 "parameters": [
