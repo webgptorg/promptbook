@@ -12,12 +12,12 @@ import { createLlmToolsFromConfiguration } from '../llm-providers/_common/regist
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
-import type { PromptbookServer_Error } from './socket-types/PromptbookServer_Error';
-import type { PromptbookServer_ListModels_Request } from './socket-types/PromptbookServer_ListModels_Request';
-import type { PromptbookServer_ListModels_Response } from './socket-types/PromptbookServer_ListModels_Response';
-import type { PromptbookServer_Prompt_Request } from './socket-types/PromptbookServer_Prompt_Request';
-import type { PromptbookServer_Prompt_Response } from './socket-types/PromptbookServer_Prompt_Response';
-import { PromptbookServer_Identification } from './socket-types/subtypes/PromptbookServer_Identification';
+import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
+import { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
+import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
+import { PromptbookServer_ListModels_Response } from './socket-types/listModels/PromptbookServer_ListModels_Response';
+import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
+import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>();

@@ -1,5 +1,5 @@
-import type { Prompt } from '../../types/Prompt';
-import { PromptbookServer_Identification } from './subtypes/PromptbookServer_Identification';
+import type { Prompt } from '../../../types/Prompt';
+import { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
 
 /**
  * Socket.io progress for remote text generation

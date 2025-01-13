@@ -1,6 +1,6 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { string_base_url, string_uri } from '../../types/typeAliases';
-import { PromptbookServer_Identification } from '../socket-types/subtypes/PromptbookServer_Identification';
+import { PromptbookServer_Identification } from '../socket-types/_subtypes/PromptbookServer_Identification';
 
 /**
  * Options for `RemoteLlmExecutionTools`

@@ -1,4 +1,4 @@
-import type { AvailableModel } from '../../execution/AvailableModel';
+import type { AvailableModel } from '../../../execution/AvailableModel';
 
 /**
  * Socket.io error for remote text generation

@@ -1,4 +1,4 @@
-import { PromptbookServer_Identification } from './subtypes/PromptbookServer_Identification';
+import { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
 
 /**
  * List models available in the server

@@ -10,11 +10,11 @@ import type {
     EmbeddingPromptResult,
     PromptResult,
 } from '../../execution/PromptResult';
-import type { PromptbookServer_Error } from '../../remote-server/socket-types/PromptbookServer_Error';
-import { PromptbookServer_ListModels_Request } from '../../remote-server/socket-types/PromptbookServer_ListModels_Request';
-import type { PromptbookServer_ListModels_Response } from '../../remote-server/socket-types/PromptbookServer_ListModels_Response';
-import type { PromptbookServer_Prompt_Request } from '../../remote-server/socket-types/PromptbookServer_Prompt_Request';
-import type { PromptbookServer_Prompt_Response } from '../../remote-server/socket-types/PromptbookServer_Prompt_Response';
+import type { PromptbookServer_Error } from '../../remote-server/socket-types/_common/PromptbookServer_Error';
+import { PromptbookServer_ListModels_Request } from '../../remote-server/socket-types/listModels/PromptbookServer_ListModels_Request';
+import { PromptbookServer_ListModels_Response } from '../../remote-server/socket-types/listModels/PromptbookServer_ListModels_Response';
+import type { PromptbookServer_Prompt_Request } from '../../remote-server/socket-types/prompt/PromptbookServer_Prompt_Request';
+import type { PromptbookServer_Prompt_Response } from '../../remote-server/socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { RemoteLlmExecutionToolsOptions } from '../../remote-server/types/RemoteLlmExecutionToolsOptions';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
