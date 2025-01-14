@@ -678,6 +678,7 @@ Compile via remote server
 -   Add `compilePipelineOnRemoteServer` to package `@promptbook/remote-client`
 -   Add `preparePipelineOnRemoteServer` to package `@promptbook/remote-client`
 -   Changes in remote server that are not backward compatible
+-   Add `DEFAULT_TASK_TITLE`
 
 ## Drafts
 

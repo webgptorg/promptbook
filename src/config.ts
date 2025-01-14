@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -69,6 +67,13 @@ export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_BOOK_TITLE = `✨ Untitled Book`;
+
+/**
+ * When the title of task is not provided, the default title is used
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_TASK_TITLE = `Task`;
 
 /**
  * Warning message for the generated sections and files files
