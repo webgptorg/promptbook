@@ -1,6 +1,6 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { RemoteLlmExecutionToolsOptions } from '../../remote-server/types/RemoteLlmExecutionToolsOptions';
+import type { RemoteClientOptions } from '../../remote-server/types/RemoteClientOptions';
 
 /**
  * Options for `AnthropicClaudeExecutionTools`
@@ -32,7 +32,7 @@ export type AnthropicClaudeExecutionToolsDirectOptions = CommonToolsOptions &
 export type AnthropicClaudeExecutionToolsProxiedOptions = CommonToolsOptions &
     ClientOptions & {
         isProxied: true;
-    } & Pick<RemoteLlmExecutionToolsOptions<undefined>, 'remoteUrl' | 'path'>;
+    } & Pick<RemoteClientOptions<undefined>, 'remoteUrl' | 'path'>;
 
 /**
  * TODO: [🧠][🤺] Pass `userId`

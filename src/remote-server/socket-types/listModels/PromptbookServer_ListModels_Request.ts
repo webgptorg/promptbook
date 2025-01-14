@@ -4,6 +4,8 @@ import { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_I
  * List models available in the server
  *
  * This is a request from client to server
+ *
+ * @private internal type of remote server
  */
 export type PromptbookServer_ListModels_Request<TCustomOptions> = {
     /**

@@ -7,7 +7,7 @@ import { PromptbookServer_Identification } from '../socket-types/_subtypes/Promp
  *
  * @public exported from `@promptbook/remote-client`
  */
-export type RemoteLlmExecutionToolsOptions<TCustomOptions> = CommonToolsOptions & {
+export type RemoteClientOptions<TCustomOptions> = CommonToolsOptions & {
     /**
      * URL of the remote PROMPTBOOK server
      * On this server will be connected to the socket.io server
@@ -29,6 +29,7 @@ export type RemoteLlmExecutionToolsOptions<TCustomOptions> = CommonToolsOptions 
 };
 
 /**
+ * TODO: Pass more options from Socket.io to `RemoteClientOptions` (like `transports`)
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
  */

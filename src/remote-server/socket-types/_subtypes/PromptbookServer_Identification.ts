@@ -4,11 +4,20 @@ import { ApplicationRemoteServerClientOptions } from '../../types/RemoteServerOp
 
 /**
  * Identification of client for Socket.io remote server
+ *
+ * @public exported from `@promptbook/remote-server`
+ * @public exported from `@promptbook/remote-client`
  */
 export type PromptbookServer_Identification<TCustomOptions> =
     | PromptbookServer_ApplicationIdentification<TCustomOptions>
     | PromptbookServer_AnonymousIdentification;
 
+/**
+ * Application mode is @@@!!!
+ *
+ * @public exported from `@promptbook/remote-server`
+ * @public exported from `@promptbook/remote-client`
+ */
 export type PromptbookServer_ApplicationIdentification<TCustomOptions> =
     ApplicationRemoteServerClientOptions<TCustomOptions> & {
         /**
@@ -17,6 +26,12 @@ export type PromptbookServer_ApplicationIdentification<TCustomOptions> =
         readonly isAnonymous: false;
     };
 
+/**
+ * Anonymous mode is @@@!!!
+ *
+ * @public exported from `@promptbook/remote-server`
+ * @public exported from `@promptbook/remote-client`
+ */
 export type PromptbookServer_AnonymousIdentification = {
     /**
      * Anonymous mode
