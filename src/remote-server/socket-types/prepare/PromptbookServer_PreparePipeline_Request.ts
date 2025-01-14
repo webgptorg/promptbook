@@ -1,5 +1,5 @@
-import { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
-import { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
+import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
+import type { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
 
 /**
  * This is a request from client to server to prepare a pipeline

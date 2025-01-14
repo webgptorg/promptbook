@@ -1,5 +1,5 @@
 import type { Prompt } from '../../../types/Prompt';
-import { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
+import type { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
 
 /**
  * This is a request from client to server to execute a prompt

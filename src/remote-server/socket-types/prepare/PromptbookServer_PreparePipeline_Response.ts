@@ -1,4 +1,4 @@
-import { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 
 /**
  * This is sent from server to client when the pipeline is prepared

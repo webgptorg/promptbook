@@ -1,7 +1,7 @@
 import { SetRequired } from 'type-fest';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import { NonEmptyReadonlyArray } from '../../types/NonEmptyArray';
+import type { NonEmptyReadonlyArray } from '../../types/NonEmptyArray';
 import type { string_pipeline_url } from '../../types/typeAliases';
 import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection';
 

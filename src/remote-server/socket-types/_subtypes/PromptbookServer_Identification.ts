@@ -1,6 +1,6 @@
-import { LlmToolsConfiguration } from '../../../llm-providers/_common/register/LlmToolsConfiguration';
-import { string_user_id } from '../../../types/typeAliases';
-import { ApplicationRemoteServerClientOptions } from '../../types/RemoteServerOptions';
+import type { LlmToolsConfiguration } from '../../../llm-providers/_common/register/LlmToolsConfiguration';
+import type { string_user_id } from '../../../types/typeAliases';
+import type { ApplicationRemoteServerClientOptions } from '../../types/RemoteServerOptions';
 
 /**
  * Identification of client for Socket.io remote server
