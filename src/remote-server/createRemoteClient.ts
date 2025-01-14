@@ -10,7 +10,7 @@ import { RemoteClientOptions } from './types/RemoteClientOptions';
  *
  * @private internal utility function
  */
-export async function createRemoteServerClient<TCustomOptions = undefined>(
+export async function createRemoteClient<TCustomOptions = undefined>(
     options: RemoteClientOptions<TCustomOptions>,
 ): Promise<Socket> {
     const { remoteUrl, path } = options;

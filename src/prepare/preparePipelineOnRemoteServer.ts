@@ -1,6 +1,6 @@
 import { deserializeError } from '../_packages/utils.index';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import { createRemoteServerClient } from '../remote-server/createRemoteClient';
+import { createRemoteClient } from '../remote-server/createRemoteClient';
 import { PromptbookServer_Error } from '../remote-server/socket-types/_common/PromptbookServer_Error';
 import { PromptbookServer_PreparePipeline_Request } from '../remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Request';
 import { PromptbookServer_PreparePipeline_Response } from '../remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Response';
@@ -25,7 +25,7 @@ export async function preparePipelineOnRemoteServer<TCustomOptions = undefined>(
     // TODO: !!!!!! Implement
     TODO_USE(options);
 
-    const socket = await createRemoteServerClient(options);
+    const socket = await createRemoteClient(options);
 
     socket.emit(
         'preparePipeline-request',

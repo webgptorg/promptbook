@@ -7,7 +7,7 @@ import type {
     EmbeddingPromptResult,
     PromptResult,
 } from '../../execution/PromptResult';
-import { createRemoteServerClient } from '../../remote-server/createRemoteClient';
+import { createRemoteClient } from '../../remote-server/createRemoteClient';
 import type { PromptbookServer_Error } from '../../remote-server/socket-types/_common/PromptbookServer_Error';
 import { PromptbookServer_ListModels_Request } from '../../remote-server/socket-types/listModels/PromptbookServer_ListModels_Request';
 import { PromptbookServer_ListModels_Response } from '../../remote-server/socket-types/listModels/PromptbookServer_ListModels_Response';
@@ -48,7 +48,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
      * Check the configuration of all execution tools
      */
     public async checkConfiguration(): Promise<void> {
-        const socket = await createRemoteServerClient(this.options);
+        const socket = await createRemoteClient(this.options);
         socket.disconnect();
 
         // TODO: [main] !!3 Check version of the remote server and compatibility
@@ -60,7 +60,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
      */
     public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
-        const socket = await createRemoteServerClient(this.options);
+        const socket = await createRemoteClient(this.options);
 
         socket.emit(
             'listModels-request',
@@ -121,7 +121,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
      * Calls remote proxy server to use both completion or chat model
      */
     private async callCommonModel(prompt: Prompt): Promise<PromptResult> {
-        const socket = await createRemoteServerClient(this.options);
+        const socket = await createRemoteClient(this.options);
 
         socket.emit(
             'prompt-request',
