@@ -3,9 +3,11 @@ import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
+import { $provideFilesystemForNode, $provideScrapersForNode } from '../_packages/node.index';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
+import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { ExecutionTools } from '../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { PromptResult } from '../execution/PromptResult';
@@ -18,11 +20,11 @@ import type { PromptbookServer_Error } from './socket-types/_common/PromptbookSe
 import { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
 import { PromptbookServer_ListModels_Response } from './socket-types/listModels/PromptbookServer_ListModels_Response';
+import { PromptbookServer_PreparePipeline_Request } from './socket-types/prepare/PromptbookServer_PreparePipeline_Request';
 import { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './types/RemoteServerOptions';
-import { PromptbookServer_PreparePipeline_Request } from './socket-types/prepare/PromptbookServer_PreparePipeline_Request';
 
 keepTypeImported<PromptbookServer_Prompt_Response>();
 keepTypeImported<PromptbookServer_Error>();
@@ -138,7 +140,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 );
             }
 
-            return { llm };
+            const fs = $provideFilesystemForNode();
+            const executables = await $provideExecutablesForNode();
+            const tools = {
+                llm,
+                fs,
+                scrapers: await $provideScrapersForNode({ fs, llm, executables }),
+                // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
+            };
+
+            return tools;
         };
 
         // -----------
@@ -251,33 +262,36 @@ export function startRemoteServer<TCustomOptions = undefined>(
         // -----------
 
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
-        socket.on('preparePipeline-request', async (request: PromptbookServer_PreparePipeline_Request<TCustomOptions>) => {
-            const { identification, pipeline } = request;
+        socket.on(
+            'preparePipeline-request',
+            async (request: PromptbookServer_PreparePipeline_Request<TCustomOptions>) => {
+                const { identification, pipeline } = request;
 
-            if (isVerbose) {
-                console.info(colors.bgWhite(`Prepare pipeline`));
-            }
-
-            try {
-                const executionTools = await getExecutionToolsFromIdentification(identification);
-
-                const preparedPipeline = await preparePipeline(pipeline, executionTools, options);
-
-                socket.emit(
-                    'preparePipeline-response',
-                    { preparedPipeline } satisfies PromptbookServer_PreparePipeline_Response /* <- Note: [🤛] */,
-                );
-            } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
+                if (isVerbose) {
+                    console.info(colors.bgWhite(`Prepare pipeline`));
                 }
 
-                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
-            } finally {
-                socket.disconnect();
-                // TODO: [🍚]> executionTools.destroy();
-            }
-        });
+                try {
+                    const executionTools = await getExecutionToolsFromIdentification(identification);
+
+                    const preparedPipeline = await preparePipeline(pipeline, executionTools, options);
+
+                    socket.emit(
+                        'preparePipeline-response',
+                        { preparedPipeline } satisfies PromptbookServer_PreparePipeline_Response /* <- Note: [🤛] */,
+                    );
+                } catch (error) {
+                    if (!(error instanceof Error)) {
+                        throw error;
+                    }
+
+                    socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
+                } finally {
+                    socket.disconnect();
+                    // TODO: [🍚]> executionTools.destroy();
+                }
+            },
+        );
 
         // -----------
 
