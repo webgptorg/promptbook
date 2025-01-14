@@ -9,7 +9,7 @@ import { PromptbookServer_Identification } from '../socket-types/_subtypes/Promp
  */
 export type RemoteClientOptions<TCustomOptions> = CommonToolsOptions & {
     /**
-     * URL of the remote PROMPTBOOK server
+     * URL of the remote server
      * On this server will be connected to the socket.io server
      */
     readonly remoteUrl: string_base_url;

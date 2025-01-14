@@ -6,9 +6,11 @@ import { spaceTrim } from 'spacetrim';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
+import { ExecutionTools } from '../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { PromptResult } from '../execution/PromptResult';
 import { createLlmToolsFromConfiguration } from '../llm-providers/_common/register/createLlmToolsFromConfiguration';
+import { preparePipeline } from '../prepare/preparePipeline';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
@@ -16,9 +18,11 @@ import type { PromptbookServer_Error } from './socket-types/_common/PromptbookSe
 import { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
 import { PromptbookServer_ListModels_Response } from './socket-types/listModels/PromptbookServer_ListModels_Response';
+import { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import { PromptbookServer_PreparePipeline_Request } from './socket-types/prepare/PromptbookServer_PreparePipeline_Request';
 
 keepTypeImported<PromptbookServer_Prompt_Response>();
 keepTypeImported<PromptbookServer_Error>();
@@ -98,9 +102,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
             console.info(colors.gray(`Client connected`), socket.id);
         }
 
-        const getLlmExecutionToolsFromIdentification = async (
+        const getExecutionToolsFromIdentification = async (
             identification: PromptbookServer_Identification<TCustomOptions>,
-        ): Promise<LlmExecutionTools> => {
+        ): Promise<ExecutionTools & { llm: LlmExecutionTools }> => {
             const { isAnonymous } = identification;
 
             if (isAnonymous === true && !isAnonymousModeAllowed) {
@@ -113,17 +117,17 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
             // TODO: [main] !!4 Validate here userId (pass validator as dependency)
 
-            let llmExecutionTools: LlmExecutionTools;
+            let llm: LlmExecutionTools;
 
             if (isAnonymous === true) {
                 // Note: Anonymouse mode
                 // TODO: Maybe check that configuration is not empty
                 const { llmToolsConfiguration } = identification;
-                llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
+                llm = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
             } else if (isAnonymous === false && createLlmExecutionTools !== null) {
                 // Note: Application mode
                 const { appId, userId, customOptions } = identification;
-                llmExecutionTools = await createLlmExecutionTools!({
+                llm = await createLlmExecutionTools!({
                     appId,
                     userId,
                     customOptions,
@@ -134,7 +138,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 );
             }
 
-            return llmExecutionTools;
+            return { llm };
         };
 
         // -----------
@@ -147,7 +151,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
             }
 
             try {
-                const llmExecutionTools = await getLlmExecutionToolsFromIdentification(identification);
+                const executionTools = await getExecutionToolsFromIdentification(identification);
+                const { llm } = executionTools;
 
                 if (
                     identification.isAnonymous === false &&
@@ -160,27 +165,27 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
-                        if (llmExecutionTools.callChatModel === undefined) {
+                        if (llm.callChatModel === undefined) {
                             // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Chat model is not available`);
                         }
-                        promptResult = await llmExecutionTools.callChatModel(prompt);
+                        promptResult = await llm.callChatModel(prompt);
                         break;
 
                     case 'COMPLETION':
-                        if (llmExecutionTools.callCompletionModel === undefined) {
+                        if (llm.callCompletionModel === undefined) {
                             // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Completion model is not available`);
                         }
-                        promptResult = await llmExecutionTools.callCompletionModel(prompt);
+                        promptResult = await llm.callCompletionModel(prompt);
                         break;
 
                     case 'EMBEDDING':
-                        if (llmExecutionTools.callEmbeddingModel === undefined) {
+                        if (llm.callEmbeddingModel === undefined) {
                             // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Embedding model is not available`);
                         }
-                        promptResult = await llmExecutionTools.callEmbeddingModel(prompt);
+                        promptResult = await llm.callEmbeddingModel(prompt);
                         break;
 
                     // <- case [🤖]:
@@ -207,7 +212,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- Note: [🤛] */);
             } finally {
                 socket.disconnect();
-                // TODO: [🍚]> llmExecutionTools.destroy();
+                // TODO: [🍚]> executionTools.destroy();
             }
         });
 
@@ -222,9 +227,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
             }
 
             try {
-                const llmExecutionTools = await getLlmExecutionToolsFromIdentification(identification);
+                const executionTools = await getExecutionToolsFromIdentification(identification);
+                const { llm } = executionTools;
 
-                const models = await llmExecutionTools.listModels();
+                const models = await llm.listModels();
 
                 socket.emit(
                     'listModels-response',
@@ -238,7 +244,38 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
-                // TODO: [🍚]> llmExecutionTools.destroy();
+                // TODO: [🍚]> executionTools.destroy();
+            }
+        });
+
+        // -----------
+
+        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+        socket.on('preparePipeline-request', async (request: PromptbookServer_PreparePipeline_Request<TCustomOptions>) => {
+            const { identification, pipeline } = request;
+
+            if (isVerbose) {
+                console.info(colors.bgWhite(`Prepare pipeline`));
+            }
+
+            try {
+                const executionTools = await getExecutionToolsFromIdentification(identification);
+
+                const preparedPipeline = await preparePipeline(pipeline, executionTools, options);
+
+                socket.emit(
+                    'preparePipeline-response',
+                    { preparedPipeline } satisfies PromptbookServer_PreparePipeline_Response /* <- Note: [🤛] */,
+                );
+            } catch (error) {
+                if (!(error instanceof Error)) {
+                    throw error;
+                }
+
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
+            } finally {
+                socket.disconnect();
+                // TODO: [🍚]> executionTools.destroy();
             }
         });
 

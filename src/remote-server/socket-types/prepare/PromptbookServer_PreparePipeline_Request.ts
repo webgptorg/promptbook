@@ -1,19 +1,19 @@
-import type { Prompt } from '../../../types/Prompt';
+import { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
 
 /**
- * This is a request from client to server to execute a prompt
+ * This is a request from client to server to prepare a pipeline
  *
  * @private internal type of remote server
  */
-export type PromptbookServer_Prompt_Request<TCustomOptions> = {
+export type PromptbookServer_PreparePipeline_Request<TCustomOptions> = {
     /**
      * Identifier of the end user or application
      */
     readonly identification: PromptbookServer_Identification<TCustomOptions>;
 
     /**
-     * The Prompt to execute
+     * The Pipeline to prepare
      */
-    readonly prompt: Prompt;
+    readonly pipeline: PipelineJson;
 };

@@ -1,5 +1,10 @@
+import { deserializeError } from '../_packages/utils.index';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
+import { createRemoteServerClient } from '../remote-server/createRemoteClient';
+import { PromptbookServer_Error } from '../remote-server/socket-types/_common/PromptbookServer_Error';
+import { PromptbookServer_PreparePipeline_Request } from '../remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Request';
+import { PromptbookServer_PreparePipeline_Response } from '../remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Response';
+import { RemoteClientOptions } from '../remote-server/types/RemoteClientOptions';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 
 /**
@@ -15,11 +20,38 @@ import { TODO_USE } from '../utils/organization/TODO_USE';
  */
 export async function preparePipelineOnRemoteServer<TCustomOptions = undefined>(
     pipeline: PipelineJson,
-    options: RemoteServerOptions<TCustomOptions>,
+    options: RemoteClientOptions<TCustomOptions>,
 ): Promise<PipelineJson> {
     // TODO: !!!!!! Implement
     TODO_USE(options);
 
+    const socket = await createRemoteServerClient(options);
+
+    socket.emit(
+        'preparePipeline-request',
+        {
+            identification: options.identification,
+            pipeline,
+        } satisfies PromptbookServer_PreparePipeline_Request<TCustomOptions> /* <- Note: [🤛] */,
+    );
+
+    const preparedPipeline = await new Promise<PipelineJson>((resolve, reject) => {
+        socket.on('preparePipeline-response', (response: PromptbookServer_PreparePipeline_Response) => {
+            resolve(response.preparedPipeline);
+            socket.disconnect();
+        });
+        socket.on('error', (error: PromptbookServer_Error) => {
+            reject(deserializeError(error));
+            socket.disconnect();
+        });
+    });
+
+    socket.disconnect();
+
     // TODO: !!!!!!  do $exportJson
-    return pipeline;
+    return preparedPipeline;
 }
+
+/**
+ * TODO: !!!! Do not return Promise<PipelineJson> But PreparePipelineTask
+ */
