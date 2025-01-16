@@ -17,14 +17,16 @@ export function deserializeError(error: ErrorJson): Error {
         message = `${name}: ${message}`;
     }
 
-    return new ErrorClass(
-        spaceTrim(
+    if (stack !== undefined && stack !== '') {
+        message = spaceTrim(
             (block) => `
                 ${block(message)}
 
                 Original stack trace:
                 ${block(stack || '')}
             `,
-        ),
-    );
+        );
+    }
+
+    return new ErrorClass(message);
 }
