@@ -5,7 +5,6 @@ import type { PromptbookServer_Error } from '../remote-server/socket-types/_comm
 import type { PromptbookServer_PreparePipeline_Request } from '../remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Request';
 import type { PromptbookServer_PreparePipeline_Response } from '../remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { RemoteClientOptions } from '../remote-server/types/RemoteClientOptions';
-import { TODO_USE } from '../utils/organization/TODO_USE';
 
 /**
  * Prepare pipeline on remote server
@@ -22,9 +21,6 @@ export async function preparePipelineOnRemoteServer<TCustomOptions = undefined>(
     pipeline: PipelineJson,
     options: RemoteClientOptions<TCustomOptions>,
 ): Promise<PipelineJson> {
-    // TODO: !!!!!! Implement
-    TODO_USE(options);
-
     const socket = await createRemoteClient(options);
 
     socket.emit(
@@ -48,7 +44,7 @@ export async function preparePipelineOnRemoteServer<TCustomOptions = undefined>(
 
     socket.disconnect();
 
-    // TODO: !!!!!!  do $exportJson
+    // TODO: [🧠] Maybe do $exportJson
     return preparedPipeline;
 }
 
