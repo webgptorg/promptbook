@@ -671,7 +671,7 @@ Editing, templates and flat pipelines
 
 ## In pre-release
 
-### `0.82.0` _(2025-01-!!!)_
+### `0.82.0` _(2025-01-16)_
 
 Compile via remote server
 
