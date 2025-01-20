@@ -1,13 +1,14 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/editable`
 
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { CommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    CommandParser,
+    PipelineBothCommandParser,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
 import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePlaces';
 import type { BookVersionCommand } from '../commands/BOOK_VERSION/BookVersionCommand';
 import { bookVersionCommandParser } from '../commands/BOOK_VERSION/bookVersionCommandParser';
@@ -39,55 +40,58 @@ import type { ActionCommand } from '../commands/X_ACTION/ActionCommand';
 import { actionCommandParser } from '../commands/X_ACTION/actionCommandParser';
 import type { InstrumentCommand } from '../commands/X_INSTRUMENT/InstrumentCommand';
 import { instrumentCommandParser } from '../commands/X_INSTRUMENT/instrumentCommandParser';
+import { removePipelineCommand } from '../utils/editable/edit-pipeline-string/removePipelineCommand';
 import type { PipelineEditableSerialized } from '../utils/editable/types/PipelineEditableSerialized';
-import { removePipelineCommand } from '../utils/editable/utils/removePipelineCommand';
 import { renamePipelineParameter } from '../utils/editable/utils/renamePipelineParameter';
 import { stringifyPipelineJson } from '../utils/editable/utils/stringifyPipelineJson';
-
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 
 // Note: Exporting version from each package
 export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
-
 // Note: Entities of the `@promptbook/editable`
-export { getParserForCommand };
-export { parseCommand };
-export type { CommandParser };
-export type { PipelineBothCommandParser };
-export type { PipelineHeadCommandParser };
-export type { PipelineTaskCommandParser };
-export type { CommandUsagePlace };
-export type { BookVersionCommand };
-export { bookVersionCommandParser };
-export { expectCommandParser };
-export type { ForeachCommand };
-export { foreachCommandParser };
-export { formatCommandParser };
-export type { FormfactorCommand };
-export { formfactorCommandParser };
-export { COMMANDS };
-export type { JokerCommand };
-export { jokerCommandParser };
-export type { KnowledgeCommand };
-export { knowledgeCommandParser };
-export { knowledgeSourceContentToName };
-export type { ModelCommand };
-export { modelCommandParser };
-export type { ParameterCommand };
-export { parameterCommandParser };
-export type { PersonaCommand };
-export { personaCommandParser };
-export type { PostprocessCommand };
-export { postprocessCommandParser };
-export type { SectionCommand };
-export { sectionCommandParser };
-export type { UrlCommand };
-export { urlCommandParser };
-export type { ActionCommand };
-export { actionCommandParser };
-export type { InstrumentCommand };
-export { instrumentCommandParser };
-export type { PipelineEditableSerialized };
-export { removePipelineCommand };
-export { renamePipelineParameter };
-export { stringifyPipelineJson };
+export {
+    actionCommandParser,
+    bookVersionCommandParser,
+    COMMANDS,
+    expectCommandParser,
+    foreachCommandParser,
+    formatCommandParser,
+    formfactorCommandParser,
+    getParserForCommand,
+    instrumentCommandParser,
+    jokerCommandParser,
+    knowledgeCommandParser,
+    knowledgeSourceContentToName,
+    modelCommandParser,
+    parameterCommandParser,
+    parseCommand,
+    personaCommandParser,
+    postprocessCommandParser,
+    removePipelineCommand,
+    renamePipelineParameter,
+    sectionCommandParser,
+    stringifyPipelineJson,
+    urlCommandParser,
+};
+export type {
+    ActionCommand,
+    BookVersionCommand,
+    CommandParser,
+    CommandUsagePlace,
+    ForeachCommand,
+    FormfactorCommand,
+    InstrumentCommand,
+    JokerCommand,
+    KnowledgeCommand,
+    ModelCommand,
+    ParameterCommand,
+    PersonaCommand,
+    PipelineBothCommandParser,
+    PipelineEditableSerialized,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+    PostprocessCommand,
+    SectionCommand,
+    UrlCommand,
+};

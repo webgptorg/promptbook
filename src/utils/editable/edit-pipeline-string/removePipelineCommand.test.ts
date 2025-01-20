@@ -9,7 +9,7 @@ describe('how `removePipelineCommand` works', () => {
         expect(
             removePipelineCommand({
                 command: 'PERSONA',
-                pipeline: spaceTrim(`
+                pipelineString: spaceTrim(`
                     # Book
 
                     - KNOWLEDGE https://pavolhejny.com/
@@ -30,7 +30,7 @@ describe('how `removePipelineCommand` works', () => {
         expect(
             removePipelineCommand({
                 command: 'KNOWLEDGE',
-                pipeline: spaceTrim(`
+                pipelineString: spaceTrim(`
                     # Book
 
                     - KNOWLEDGE https://pavolhejny.com/
@@ -50,7 +50,7 @@ describe('how `removePipelineCommand` works', () => {
         expect(
             removePipelineCommand({
                 command: 'KNOWLEDGE',
-                pipeline: spaceTrim(`
+                pipelineString: spaceTrim(`
                     # Book
 
                     - KNOWLEDGE https://pavolhejny.com/

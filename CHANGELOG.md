@@ -679,12 +679,13 @@ Compile via remote server
 -   Add `DEFAULT_TASK_TITLE`
 -   Enforce LF (\n) lines
 
-### `0.83.0` _(2025-01-20)_
+### `0.83.0` and `0.84.0` _(2025-01-20)_
 
 `@promptbook/editable`
 
 -   Export parsing internals to `@promptbook/editable`
 -   Rename `sourceContent` -> `knowledgeSourceContent`
+-   Multiple functions to manipulate with `PipelineString`
 
 ## In pre-release
 

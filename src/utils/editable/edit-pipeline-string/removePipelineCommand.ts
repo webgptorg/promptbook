@@ -15,7 +15,7 @@ type RemovePipelineCommandOptions = {
     /**
      * Pipeline you want to remove command from
      */
-    pipeline: PipelineString;
+    pipelineString: PipelineString;
 };
 
 /**
@@ -24,9 +24,9 @@ type RemovePipelineCommandOptions = {
  * @public exported from `@promptbook/editable`
  */
 export function removePipelineCommand(options: RemovePipelineCommandOptions): PipelineString {
-    const { command, pipeline } = options;
+    const { command, pipelineString } = options;
 
-    const lines = pipeline.split('\n');
+    const lines = pipelineString.split('\n');
 
     // TODO: [🧽] DRY
     let currentType: 'MARKDOWN' | 'CODE_BLOCK' | 'COMMENT' = 'MARKDOWN';

@@ -72,3 +72,7 @@ export function renamePipelineParameter(options: RenameParameterOptions): Pipeli
 
     return renamedPipeline as TODO_remove_as<PipelineJson>;
 }
+
+/**
+ * TODO: Also variant for `edit-pipeline-string`
+ */
