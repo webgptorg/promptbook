@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.82.0-3",
+                        "promptbookVersion": "0.82.0",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -196,7 +196,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "knowledgeSources": [
                     {
                         "name": "source-the-book-abstract-528a374cfbc169af09d3",
-                        "sourceContent": "🤍 The Book Abstract\n\nIt's time for a paradigm shift! The future of software is in plain English, French or Latin.\n\nDuring the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!\n\nIt's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!\n\nThe incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.\n\nThis shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.\n\nJoin us in this journey!",
+                        "knowledgeSourceContent": "🤍 The Book Abstract\n\nIt's time for a paradigm shift! The future of software is in plain English, French or Latin.\n\nDuring the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!\n\nIt's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!\n\nThe incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.\n\nThis shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.\n\nJoin us in this journey!",
                         "preparationIds": [
                             1
                         ]
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.82.0-3",
+                        "promptbookVersion": "0.82.0",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -481,7 +481,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.82.0-3",
+                        "promptbookVersion": "0.82.0",
                         "usage": {
                             "price": {
                                 "value": 0.005442000000000001
@@ -578,7 +578,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.82.0-3",
+                        "promptbookVersion": "0.82.0",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -696,7 +696,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.82.0-3",
+                        "promptbookVersion": "0.82.0",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -827,7 +827,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.82.0-3",
+                        "promptbookVersion": "0.82.0",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -884,14 +884,14 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "knowledgeSources": [
                     {
                         "name": "source-coolstore-is-an-esho-54af0da6e247e295bb29",
-                        "sourceContent": "Coolstore is an eshop that sells various hobby, home and garden products. It has a wide range of products from garden gnomes to kitchen gadgets.\nIt has 3 physical stores in the UK and a large online store that operates in the UK + EU + Switzerland. Key benefits are fast delivery and excellent customer service with a personal touch.",
+                        "knowledgeSourceContent": "Coolstore is an eshop that sells various hobby, home and garden products. It has a wide range of products from garden gnomes to kitchen gadgets.\nIt has 3 physical stores in the UK and a large online store that operates in the UK + EU + Switzerland. Key benefits are fast delivery and excellent customer service with a personal touch.",
                         "preparationIds": [
                             1
                         ]
                     },
                     {
                         "name": "source-uranium-glass-garden-77d2bea40f9d5065b9ff",
-                        "sourceContent": "Uranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.",
+                        "knowledgeSourceContent": "Uranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.",
                         "preparationIds": [
                             1
                         ]
@@ -1104,7 +1104,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.82.0-3",
+                        "promptbookVersion": "0.82.0",
                         "usage": {
                             "price": {
                                 "value": 0.006237
