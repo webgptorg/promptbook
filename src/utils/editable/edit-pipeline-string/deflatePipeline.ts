@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { DEFAULT_BOOK_TITLE } from '../../../config';
-import { PipelineString } from '../../../pipeline/PipelineString';
+import type { PipelineString } from '../../../pipeline/PipelineString';
 import { validatePipelineString } from '../../../pipeline/validatePipelineString';
 import { isFlatPipeline } from '../utils/isFlatPipeline';
 

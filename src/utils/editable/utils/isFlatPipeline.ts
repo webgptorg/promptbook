@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { PipelineString } from '../../../pipeline/PipelineString';
+import type { PipelineString } from '../../../pipeline/PipelineString';
 import { removeMarkdownComments } from '../../markdown/removeMarkdownComments';
 
 /**

@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import type { PipelineString } from '../../../pipeline/PipelineString';
-import { string_markdown_text } from '../../../types/typeAliases';
+import type { string_markdown_text } from '../../../types/typeAliases';
 import { deflatePipeline } from './deflatePipeline';
 
 type AddPipelineCommandOptions = {
