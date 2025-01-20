@@ -1,6 +1,7 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
-import type { string_knowledge_source_content, string_name } from '../../../types/typeAliases';
+import type { string_knowledge_source_content } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 
 /**
