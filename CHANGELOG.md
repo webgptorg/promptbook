@@ -681,7 +681,10 @@ Compile via remote server
 
 ### `0.83.0` _(2025-01-20)_
 
-Export parsing internals to `@promptbook/editable`
+`@promptbook/editable`
+
+-   Export parsing internals to `@promptbook/editable`
+-   Rename `sourceContent` -> `knowledgeSourceContent`
 
 ## In pre-release
 

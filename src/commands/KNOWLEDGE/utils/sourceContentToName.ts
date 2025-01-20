@@ -8,7 +8,7 @@ import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-
  *
  * @public exported from `@promptbook/editable`
  */
-export function knowledgeSourceContentToName(sourceContent: string_knowledge_source_content): string_name {
+export function knowledgeSourceContentToName(knowledgeSourceContent: string_knowledge_source_content): string_name {
     const hash = sha256(hexEncoder.parse(JSON.stringify(sourceContent)))
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         .toString(/* hex */)

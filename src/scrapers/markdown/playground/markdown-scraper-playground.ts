@@ -45,7 +45,7 @@ async function playground() {
 
     const knowledge = await markdownScraper.scrape(
         await makeKnowledgeSourceHandler(
-            { sourceContent: example },
+            { knowledgeSourceContent: example },
             { fs: $provideFilesystemForNode() },
             { rootDirname },
         ),

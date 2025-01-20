@@ -1,6 +1,4 @@
-import type { number_id } from '../../types/typeAliases';
-import type { string_knowledge_source_content } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { number_id, string_knowledge_source_content, string_name } from '../../types/typeAliases';
 
 /**
  * Defines one source of knowledge in the pipeline
@@ -26,7 +24,7 @@ export type KnowledgeSourceJson = {
      * For example `"Pavol Hejný has web https://pavolhejny.com/"`
      * For example `"Pavol Hejný is web developer and creator of Promptbook and Collboard"`
      */
-    readonly sourceContent: string_knowledge_source_content;
+    readonly knowledgeSourceContent: string_knowledge_source_content;
 };
 
 /**

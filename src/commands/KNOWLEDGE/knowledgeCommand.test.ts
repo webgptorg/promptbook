@@ -6,12 +6,12 @@ describe('how KNOWLEDGE command in .book.md files works', () => {
     it('should parse KNOWLEDGE command', () => {
         expect(parseCommand('KNOWLEDGE https://www.pavolhejny.com/', 'PIPELINE_HEAD')).toEqual({
             type: 'KNOWLEDGE',
-            sourceContent: 'https://www.pavolhejny.com/',
+            knowledgeSourceContent: 'https://www.pavolhejny.com/',
         });
         expect(parseCommand('KNOWLEDGE ./hejny-cv.pdf', 'PIPELINE_HEAD')).toEqual({
             //                          <- TODO: [😿] Allow ONLY files scoped in the (sub)directory NOT ../ and test it
             type: 'KNOWLEDGE',
-            sourceContent: './hejny-cv.pdf',
+            knowledgeSourceContent: './hejny-cv.pdf',
         });
     });
 

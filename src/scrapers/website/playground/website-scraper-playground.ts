@@ -46,7 +46,7 @@ async function playground() {
     );
 
     const source = await makeKnowledgeSourceHandler(
-        { sourceContent: example },
+        { knowledgeSourceContent: example },
         { fs: $provideFilesystemForNode() },
         { rootDirname },
     );

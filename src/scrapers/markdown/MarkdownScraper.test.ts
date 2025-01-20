@@ -25,7 +25,7 @@ describe('how creating knowledge from markdown works', () => {
                 .then(() =>
                     makeKnowledgeSourceHandler(
                         {
-                            sourceContent: '10-simple.md',
+                            knowledgeSourceContent: '10-simple.md',
                         },
                         { fs: $provideFilesystemForNode() },
                         { rootDirname },
@@ -46,7 +46,7 @@ describe('how creating knowledge from markdown works', () => {
                 .then(() =>
                     makeKnowledgeSourceHandler(
                         {
-                            sourceContent: '10-simple.md',
+                            knowledgeSourceContent: '10-simple.md',
                         },
                         { fs: $provideFilesystemForNode() },
                         { rootDirname },

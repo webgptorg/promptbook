@@ -8,5 +8,5 @@ import type { string_knowledge_source_content } from '../../types/typeAliases';
  */
 export type KnowledgeCommand = {
     readonly type: 'KNOWLEDGE';
-    readonly sourceContent: string_knowledge_source_content;
+    readonly knowledgeSourceContent: string_knowledge_source_content;
 };

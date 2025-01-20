@@ -51,7 +51,7 @@ async function playground() {
 
     const knowledge = await legacyDocumentScraper.scrape(
         await makeKnowledgeSourceHandler(
-            { sourceContent: example },
+            { knowledgeSourceContent: example },
             { fs: $provideFilesystemForNode() },
             { rootDirname },
         ),

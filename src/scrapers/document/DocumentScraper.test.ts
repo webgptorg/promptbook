@@ -27,7 +27,7 @@ describe('how creating knowledge from docx works', () => {
                 documentScraperPromise,
                 makeKnowledgeSourceHandler(
                     {
-                        sourceContent: '10-simple.docx',
+                        knowledgeSourceContent: '10-simple.docx',
                     },
                     { fs: $provideFilesystemForNode() },
                     { rootDirname },
@@ -48,7 +48,7 @@ describe('how creating knowledge from docx works', () => {
                 documentScraperPromise,
                 makeKnowledgeSourceHandler(
                     {
-                        sourceContent: '10-simple.odt',
+                        knowledgeSourceContent: '10-simple.odt',
                     },
                     { fs: $provideFilesystemForNode() },
                     { rootDirname },
@@ -69,7 +69,7 @@ describe('how creating knowledge from docx works', () => {
                 documentScraperPromise,
                 makeKnowledgeSourceHandler(
                     {
-                        sourceContent: '10-simple.docx',
+                        knowledgeSourceContent: '10-simple.docx',
                     },
                     { fs: $provideFilesystemForNode() },
                     { rootDirname },
