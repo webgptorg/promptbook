@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { knowledgeSourceContentToName } from './sourceContentToName';
+import { knowledgeSourceContentToName } from './knowledgeSourceContentToName';
 
 describe('how `sourceContentToName` works', () => {
     it('should work file source', () => {

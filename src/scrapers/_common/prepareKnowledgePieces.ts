@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
@@ -60,7 +59,7 @@ export async function prepareKnowledgePieces(
 
                         The source:
                         ${block(
-                            knowledgeSource.sourceContent
+                            knowledgeSource.knowledgeSourceContent
                                 .split('\n')
                                 .map((line) => `> ${line}`)
                                 .join('\n'),
@@ -82,7 +81,7 @@ export async function prepareKnowledgePieces(
 
                         The source:
                         > ${block(
-                            knowledgeSource.sourceContent
+                            knowledgeSource.knowledgeSourceContent
                                 .split('\n')
                                 .map((line) => `> ${line}`)
                                 .join('\n'),

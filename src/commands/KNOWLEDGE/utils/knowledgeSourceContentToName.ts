@@ -9,12 +9,12 @@ import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-
  * @public exported from `@promptbook/editable`
  */
 export function knowledgeSourceContentToName(knowledgeSourceContent: string_knowledge_source_content): string_name {
-    const hash = sha256(hexEncoder.parse(JSON.stringify(sourceContent)))
+    const hash = sha256(hexEncoder.parse(JSON.stringify(knowledgeSourceContent)))
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         .toString(/* hex */)
         .substring(0, 20);
     //    <- TODO: [🥬] Make some system for hashes and ids of promptbook
-    const semanticName = normalizeToKebabCase(sourceContent.substring(0, 20));
+    const semanticName = normalizeToKebabCase(knowledgeSourceContent.substring(0, 20));
 
     const pieces = ['source', semanticName, hash].filter((piece) => piece !== '');
 

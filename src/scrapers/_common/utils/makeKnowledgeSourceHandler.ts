@@ -1,7 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
-import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/sourceContentToName';
+import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
@@ -29,7 +29,7 @@ export async function makeKnowledgeSourceHandler(
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
     const { fetch = scraperFetch } = tools;
-    const { sourceContent } = knowledgeSource;
+    const { knowledgeSourceContent } = knowledgeSource;
     let { name } = knowledgeSource;
     const {
         rootDirname = null,
@@ -40,11 +40,11 @@ export async function makeKnowledgeSourceHandler(
     TODO_USE(isVerbose);
 
     if (!name) {
-        name = knowledgeSourceContentToName(sourceContent);
+        name = knowledgeSourceContentToName(knowledgeSourceContent);
     }
 
-    if (isValidUrl(sourceContent)) {
-        const url = sourceContent;
+    if (isValidUrl(knowledgeSourceContent)) {
+        const url = knowledgeSourceContent;
         const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
         const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
 
@@ -72,7 +72,7 @@ export async function makeKnowledgeSourceHandler(
                 return content;
             },
         };
-    } else if (isValidFilePath(sourceContent)) {
+    } else if (isValidFilePath(knowledgeSourceContent)) {
         if (tools.fs === undefined) {
             throw new EnvironmentMismatchError('Can not import file knowledge without filesystem tools');
             //          <- TODO: [🧠] What is the best error type here`
@@ -83,7 +83,7 @@ export async function makeKnowledgeSourceHandler(
             //          <- TODO: [🧠] What is the best error type here`
         }
 
-        const filename = join(rootDirname, sourceContent).split('\\').join('/');
+        const filename = join(rootDirname, knowledgeSourceContent).split('\\').join('/');
         const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
 
@@ -94,7 +94,7 @@ export async function makeKnowledgeSourceHandler(
                           Can not make source handler for file which does not exist:
 
                           File:
-                          ${block(sourceContent)}
+                          ${block(knowledgeSourceContent)}
 
                           Full file path:
                           ${block(filename)}
@@ -137,7 +137,7 @@ export async function makeKnowledgeSourceHandler(
             url: null,
             mimeType: 'text/markdown',
             asText() {
-                return knowledgeSource.sourceContent;
+                return knowledgeSource.knowledgeSourceContent;
             },
             asJson() {
                 throw new UnexpectedError(

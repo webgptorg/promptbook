@@ -8,7 +8,7 @@ import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
-import { knowledgeSourceContentToName } from './utils/sourceContentToName';
+import { knowledgeSourceContentToName } from './utils/knowledgeSourceContentToName';
 
 /**
  * Parses the knowledge command
@@ -56,29 +56,33 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
     parse(input: CommandParserInput): KnowledgeCommand {
         const { args } = input;
 
-        const sourceContent = spaceTrim(args[0] || '');
+        const knowledgeSourceContent = spaceTrim(args[0] || '');
 
-        if (sourceContent === '') {
+        if (knowledgeSourceContent === '') {
             throw new ParseError(`Source is not defined`);
         }
 
         // TODO: [main] !!4 Following checks should be applied every link in the `sourceContent`
 
-        if (sourceContent.startsWith('http://')) {
+        if (knowledgeSourceContent.startsWith('http://')) {
             throw new ParseError(`Source is not secure`);
         }
 
-        if (!(isValidFilePath(sourceContent) || isValidUrl(sourceContent))) {
+        if (!(isValidFilePath(knowledgeSourceContent) || isValidUrl(knowledgeSourceContent))) {
             throw new ParseError(`Source not valid`);
         }
 
-        if (sourceContent.startsWith('../') || sourceContent.startsWith('/') || /^[A-Z]:[\\/]+/i.test(sourceContent)) {
+        if (
+            knowledgeSourceContent.startsWith('../') ||
+            knowledgeSourceContent.startsWith('/') ||
+            /^[A-Z]:[\\/]+/i.test(knowledgeSourceContent)
+        ) {
             throw new ParseError(`Source cannot be outside of the .book.md folder`);
         }
 
         return {
             type: 'KNOWLEDGE',
-            sourceContent,
+            knowledgeSourceContent,
         } satisfies KnowledgeCommand;
     },
 
@@ -88,11 +92,11 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
-        const { sourceContent } = command;
+        const { knowledgeSourceContent } = command;
 
         $pipelineJson.knowledgeSources.push({
-            name: knowledgeSourceContentToName(sourceContent),
-            sourceContent,
+            name: knowledgeSourceContentToName(knowledgeSourceContent),
+            knowledgeSourceContent,
         });
     },
 
