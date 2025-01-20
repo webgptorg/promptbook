@@ -5,7 +5,7 @@ import type { string_persona_description } from '../../types/typeAliases';
  * Parsed PERSONA command
  *
  * @see ./personaCommandParser.ts for more details
- * @private within the commands folder
+ * @public exported from `@promptbook/editable`
  */
 export type PersonaCommand = {
     readonly type: 'PERSONA';

@@ -10,7 +10,7 @@ import type { CommandParser } from './types/CommandParser';
  * @returns the parser for the command
  * @throws {UnexpectedError} if the parser is not found
  *
- * @private within the compilePipeline
+ * @public exported from `@promptbook/editable`
  */
 export function getParserForCommand<TCommand extends Command>(command: TCommand): CommandParser<TCommand> {
     const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);

@@ -4,7 +4,7 @@ import type { string_formfactor_name } from '../../formfactors/_common/string_fo
  * Parsed FORMFACTOR command
  *
  * @see ./formfactorCommandParser.ts for more details
- * @private within the commands folder
+ * @public exported from `@promptbook/editable`
  */
 export type FormfactorCommand = {
     readonly type: 'FORMFACTOR';

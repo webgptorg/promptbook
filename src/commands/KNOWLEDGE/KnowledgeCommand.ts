@@ -4,7 +4,7 @@ import type { string_knowledge_source_content } from '../../types/typeAliases';
  * Parsed KNOWLEDGE command
  *
  * @see ./knowledgeCommandParser.ts for more details
- * @private within the commands folder
+ * @public exported from `@promptbook/editable`
  */
 export type KnowledgeCommand = {
     readonly type: 'KNOWLEDGE';

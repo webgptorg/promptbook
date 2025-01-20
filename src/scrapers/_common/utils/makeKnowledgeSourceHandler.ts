@@ -1,7 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
-import { sourceContentToName } from '../../../commands/KNOWLEDGE/utils/sourceContentToName';
+import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/sourceContentToName';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
@@ -40,7 +40,7 @@ export async function makeKnowledgeSourceHandler(
     TODO_USE(isVerbose);
 
     if (!name) {
-        name = sourceContentToName(sourceContent);
+        name = knowledgeSourceContentToName(sourceContent);
     }
 
     if (isValidUrl(sourceContent)) {

@@ -18,7 +18,7 @@ import { instrumentCommandParser } from './X_INSTRUMENT/instrumentCommandParser'
 /**
  * All available command parsers
  *
- * @private internal index of `parseCommand`
+ * @public exported from `@promptbook/editable`
  */
 export const COMMANDS = [
     sectionCommandParser,

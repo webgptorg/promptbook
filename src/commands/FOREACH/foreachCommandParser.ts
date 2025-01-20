@@ -19,7 +19,7 @@ import type { ForeachCommand } from './ForeachCommand';
  * Note: @@@ This command is used as foreach for new commands - it should NOT be used in any `.book.md` file
  *
  * @see `documentationUrl` for more details
- * @private within the commands folder
+ * @public exported from `@promptbook/editable`
  */
 export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
     /**

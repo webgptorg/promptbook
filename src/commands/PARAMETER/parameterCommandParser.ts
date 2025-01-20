@@ -5,17 +5,19 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
  * Parses the parameter command
  *
  * @see `documentationUrl` for more details
- * @private within the commands folder
+ * @public exported from `@promptbook/editable`
  */
 export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {
     /**

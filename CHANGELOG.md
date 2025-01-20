@@ -669,8 +669,6 @@ Editing, templates and flat pipelines
 -   Rename `DEFAULT_TITLE` -> `DEFAULT_BOOK_TITLE`
 -   Rename `precompilePipeline` -> `parsePipeline`
 
-## In pre-release
-
 ### `0.82.0` _(2025-01-16)_
 
 Compile via remote server
@@ -680,6 +678,12 @@ Compile via remote server
 -   Changes in remote server that are not backward compatible
 -   Add `DEFAULT_TASK_TITLE`
 -   Enforce LF (\n) lines
+
+### `0.83.0` _(2025-01-20)_
+
+Export parsing internals to `@promptbook/editable`
+
+## In pre-release
 
 ## Drafts
 

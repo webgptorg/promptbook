@@ -16,7 +16,8 @@ import type { ModelCommand } from './ModelCommand';
  * Parses the model command
  *
  * @see `documentationUrl` for more details
- * @private within the commands folder
+ * @deprecated Option to manually set the model requirements is not recommended to use, use `PERSONA` instead
+ * @public exported from `@promptbook/editable`
  */
 export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     /**

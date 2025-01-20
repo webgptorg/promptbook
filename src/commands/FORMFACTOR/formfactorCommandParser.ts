@@ -15,7 +15,7 @@ import type { FormfactorCommand } from './FormfactorCommand';
  * Note: @@@ This command is used as formfactor for new commands - it should NOT be used in any `.book.md` file
  *
  * @see `documentationUrl` for more details
- * @private within the commands folder
+ * @public exported from `@promptbook/editable`
  */
 export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorCommand> = {
     /**

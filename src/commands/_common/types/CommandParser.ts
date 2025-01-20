@@ -17,6 +17,8 @@ export type CommandBase = { type: string_name & string_SCREAMING_CASE };
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/editable`
  */
 export type CommandParser<TCommand extends CommandBase> =
     | PipelineHeadCommandParser<TCommand>
@@ -87,6 +89,8 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/editable`
  */
 export type PipelineBothCommandParser<TCommand extends CommandBase> = ___and___ &
     Omit<PipelineHeadCommandParser<TCommand>, 'isUsedInPipelineTask'> &
@@ -94,6 +98,8 @@ export type PipelineBothCommandParser<TCommand extends CommandBase> = ___and___ 
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/editable`
  */
 export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
     /**
@@ -124,6 +130,8 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/editable`
  */
 export type PipelineTaskCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
     /**

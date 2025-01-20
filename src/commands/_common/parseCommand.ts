@@ -20,7 +20,7 @@ import type { CommandUsagePlace } from './types/CommandUsagePlaces';
  * @returns parsed command object
  * @throws {ParseError} if the command is invalid
  *
- * @private within the compilePipeline
+ * @public exported from `@promptbook/editable`
  */
 export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsagePlace): Command {
     if (raw.includes('\n') || raw.includes('\r')) {

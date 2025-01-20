@@ -4,7 +4,7 @@ import type { string_semantic_version } from '../../types/typeAliases';
  * Parsed BOOK_VERSION command
  *
  * @see ./bookVersionCommandParser.ts for more details
- * @private within the commands folder
+ * @public exported from `@promptbook/editable`
  */
 export type BookVersionCommand = {
     readonly type: 'BOOK_VERSION';

@@ -2,6 +2,8 @@ import type { TupleToUnion } from 'type-fest';
 
 /**
  * Where the command can be used
+ *
+ * @public exported from `@promptbook/editable`
  */
 export type CommandUsagePlace = TupleToUnion<typeof CommandUsagePlaces>;
 
