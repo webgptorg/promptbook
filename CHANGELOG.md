@@ -686,6 +686,7 @@ Compile via remote server
 -   Export parsing internals to `@promptbook/editable`
 -   Rename `sourceContent` -> `knowledgeSourceContent`
 -   Multiple functions to manipulate with `PipelineString`
+-   Change admin email to `pavol@ptbk.io`
 
 ## In pre-release
 

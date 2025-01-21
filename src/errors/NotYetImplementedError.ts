@@ -2,7 +2,7 @@ import { spaceTrim } from 'spacetrim';
 
 /**
  * This error type indicates that some part of the code is not implemented yet
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export class NotYetImplementedError extends Error {
@@ -18,7 +18,7 @@ export class NotYetImplementedError extends Error {
                     If you want speed up the implementation or just read more, look here:
                     https://github.com/webgptorg/promptbook
 
-                    Or contact us on me@pavolhejny.com
+                    Or contact us on pavol@ptbk.io
 
                 `,
             ),
