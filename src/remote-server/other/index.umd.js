@@ -1,6 +1,5 @@
-
-/* eslint-ignore-file */
-// node_modules/@promptbook/remote-server/umd/index.umd.js
+// prettier-ignore
+// /node_modules/@promptbook/remote-server/umd/index.umd.js
 // TODO: [🚋] There is a problem with the remote server handling errors and sending them back to the client
 
 (function (global, factory) {
