@@ -1,4 +1,4 @@
-import { $execCommand } from '../../_packages/node.index';
+import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';

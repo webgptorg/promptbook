@@ -1,4 +1,4 @@
-import { $execCommand } from '../../_packages/node.index';
+import { $execCommand } from '../../utils/execCommand/$execCommand';
 import type { string_executable_path } from '../../types/typeAliases';
 import type { LocateAppOptions } from '../locateApp';
 
@@ -11,7 +11,7 @@ export async function locateAppOnLinux({
     linuxWhich,
 }: Pick<Required<LocateAppOptions>, 'linuxWhich'>): Promise<string_executable_path | null> {
     try {
-        const result = await $execCommand({  crashOnError: true,command: `which ${linuxWhich}` });
+        const result = await $execCommand({ crashOnError: true, command: `which ${linuxWhich}` });
 
         return result.trim();
     } catch (error) {
