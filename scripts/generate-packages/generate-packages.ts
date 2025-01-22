@@ -378,6 +378,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             }
 
             if (
+                // Note: Packages for Node.js only:
                 packageFullname !== '@promptbook/node' &&
                 packageFullname !== '@promptbook/cli' &&
                 packageFullname !== '@promptbook/wizzard' &&
@@ -385,7 +386,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 packageFullname !== '@promptbook/documents' &&
                 packageFullname !== '@promptbook/legacy-documents' &&
                 packageFullname !== '@promptbook/website-crawler' &&
+                packageFullname !== '@promptbook/markitdown' &&
                 packageFullname !== '@promptbook/pdf' &&
+                // <- [➕]
                 bundleFileContent.includes('[🟢]')
             ) {
                 throw new Error(
