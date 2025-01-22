@@ -15,7 +15,7 @@ export const pdfScraperMetadata = $deepFreeze({
     title: 'Pdf scraper',
     packageName: '@promptbook/pdf',
     className: 'PdfScraper',
-    mimeTypes: ['application/pdf'],
+    mimeTypes: ['application/pdf-DISABLED'], // <- TODO: [🌜] Remove `PdfScraper` or make it work or make it as alias of `MarkitdownScraper`
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
     isAvilableInBrowser: false,
     // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server

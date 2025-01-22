@@ -6,3 +6,8 @@ TODO: Maybe implement adapter to https://www.docupanda.io/
 TODO: [🐴] Put generator warning to all intermediate knowledge sources
 TODO: [🐴] Put generator warning to all .book.json files and index files
 TODO: [😡] SAVE .knowledge.json file along the knowledge sources + put warning
+
+
+TODO: [🧠][🌜] Should be split scrapers according to supported file (1) types OR/AND brands (2)
+1) `LibreofficeScraper`, `PandocScraper`, `MarkitdownScraper`
+2) `PdfScraper`, `DocumentScraper`,...

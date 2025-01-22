@@ -13,9 +13,13 @@ keepTypeImported<ScraperAndConverterMetadata>();
  */
 export const markitdownScraperMetadata = $deepFreeze({
     title: 'Markitdown scraper',
-    packageName: '@promptbook/markitdown',
+    packageName: '@promptbook/markitdown', // <- [🌜]
     className: 'MarkitdownScraper',
-    mimeTypes: ['application/vnd.openxmlformats-officemarkitdown.wordprocessingml.markitdown'],
+    mimeTypes: [
+        'application/pdf',
+        'text/html',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
     isAvilableInBrowser: false,
     // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server

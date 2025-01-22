@@ -1,8 +1,6 @@
 import { readFile } from 'fs/promises';
 import { MarkItDown } from 'markitdown-ts'; // <- TODO: !!! Use Markitdown directly not through this package
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -13,8 +11,7 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
@@ -26,6 +23,7 @@ import { markitdownScraperMetadata } from './register-metadata';
  * @see https://github.com/microsoft/markitdown
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/markitdown`
+ * @public exported from `@promptbook/pdf`
  */
 export class MarkitdownScraper implements Converter, Scraper {
     /**
@@ -155,6 +153,7 @@ export class MarkitdownScraper implements Converter, Scraper {
 }
 
 /**
+ * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools

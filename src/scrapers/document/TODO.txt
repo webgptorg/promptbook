@@ -1,1 +1,2 @@
+TODO: [🧠][🌜] Maybe remove in favour of `MarkitdownScraper`
 TODO: [❇️] Make specific tag `docx` `odt` `word` `openoffice` `libreoffice` to package

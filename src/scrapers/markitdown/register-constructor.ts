@@ -8,12 +8,14 @@ import { createMarkitdownScraper } from './createMarkitdownScraper';
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
  * @public exported from `@promptbook/markitdown`
+ * @public exported from `@promptbook/pdf`
  * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
 export const _MarkitdownScraperRegistration: Registration = $scrapersRegister.register(createMarkitdownScraper);
 
 /**
+ * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */
