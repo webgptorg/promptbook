@@ -1,4 +1,3 @@
-import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { readFile } from 'fs/promises';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
@@ -7,6 +6,7 @@ import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
@@ -162,7 +162,7 @@ export class BoilerplateScraper implements Converter, Scraper {
 }
 
 /**
- * TODO: [👣] Converted boilerplates can act as cached items - there is no need to run conversion each time
+ * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  * @@@ Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment

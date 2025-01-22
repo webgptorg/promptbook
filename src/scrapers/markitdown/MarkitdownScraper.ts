@@ -1,19 +1,14 @@
 import { readFile } from 'fs/promises';
-import { MarkItDown } from 'markitdown-ts';
-import spaceTrim from 'spacetrim';
+import { MarkItDown } from 'markitdown-ts'; // <- TODO: !!! Use Markitdown directly not through this package
 import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
-import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { $execCommand } from '../../utils/execCommand/$execCommand';
-import { getFileExtension } from '../../utils/files/getFileExtension';
 import { isFileExisting } from '../../utils/files/isFileExisting';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
@@ -68,36 +63,14 @@ export class MarkitdownScraper implements Converter, Scraper {
             isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
 
-        const result = await this.markitdown.convert('https://www.youtube.com/watch?v=V2qZ_lgxTzg', {
-            enableYoutubeTranscript: true,
-            youtubeTranscriptLanguage: 'en',
-        });
-
-        TODO_USE(result);
-
-        // TODO: @@@ Preserve or delete
         if (!$isRunningInNode()) {
             throw new KnowledgeScrapeError('MarkitdownScraper is only supported in Node environment');
         }
 
-        // TODO: @@@ Preserve or delete
         if (this.tools.fs === undefined) {
-            throw new EnvironmentMismatchError('Can not scrape markitdowns without filesystem tools');
+            throw new EnvironmentMismatchError('Can not scrape boilerplates without filesystem tools');
             //          <- TODO: [🧠] What is the best error type here`
         }
-
-        // TODO: @@@ Preserve, delete or modify
-        if (this.tools.executables?.pandocPath === undefined) {
-            throw new MissingToolsError('Pandoc is required for scraping .docx files');
-        }
-
-        // TODO: @@@ Preserve, delete or modify
-        if (source.filename === null) {
-            // TODO: [🧠] Maybe save file as temporary
-            throw new KnowledgeScrapeError('When parsing .@@@ file, it must be real file in the file system');
-        }
-
-        const extension = getFileExtension(source.filename);
 
         const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
@@ -110,27 +83,28 @@ export class MarkitdownScraper implements Converter, Scraper {
         // TODO: @@@ Preserve, delete or modify
         // Note: Running Pandoc ONLY if the file in the cache does not exist
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
-            const command = `"${this.tools.executables.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`;
+            console.log('!!!', { source });
 
-            await $execCommand(command);
+            const src = source.filename || source.url || null;
 
-            // Note: [0]
-            if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
-                throw new UnexpectedError(
-                    spaceTrim(
-                        (block) => `
-                    File that was supposed to be created by Pandoc does not exist for unknown reason
-
-                    Expected file:
-                    ${block(cacheFilehandler.filename)}
-
-                    Command:
-                    > ${block(command)}
-
-                `,
-                    ),
-                );
+            if (src === null) {
+                throw new UnexpectedError('Source has no filename or url');
             }
+
+            const result = await this.markitdown.convert(src, {
+                // TODO: !!!!!! Pass when sacraping Youtube
+                // enableYoutubeTranscript: true,
+                // youtubeTranscriptLanguage: 'en',
+            });
+
+            if (result === null || result === undefined) {
+                throw new Error(`Markitdown could not convert the "${source.source}"`);
+                // <- TODO: !!! Make MarkitdownError
+            }
+
+            console.log('!!!', { result });
+
+            await this.tools.fs.writeFile(cacheFilehandler.filename, result.text_content);
         }
 
         return cacheFilehandler;
@@ -178,7 +152,7 @@ export class MarkitdownScraper implements Converter, Scraper {
 }
 
 /**
- * TODO: [👣] Converted markitdowns can act as cached items - there is no need to run conversion each time
+ * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
