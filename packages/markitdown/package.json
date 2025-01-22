@@ -1,5 +1,5 @@
 {
-    "name": "@promptbook/google",
+    "name": "@promptbook/markitdown",
     "version": "0.84.0-4",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
@@ -52,13 +52,16 @@
     ],
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/google.index.d.ts",
+    "typings": "./esm/typings/src/_packages/markitdown.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.84.0-4"
     },
     "dependencies": {
-        "@ai-sdk/google": "1.0.5",
-        "colors": "1.4.0",
-        "spacetrim": "0.11.59"
+        "crypto-js": "4.2.0",
+        "markitdown-ts": "^0.0.4",
+        "papaparse": "5.4.1",
+        "prettier": "2.8.1",
+        "spacetrim": "0.11.59",
+        "waitasecond": "1.11.83"
     }
 }

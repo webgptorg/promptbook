@@ -27,10 +27,10 @@
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
 </blockquote>
 
-## 📦 Package `@promptbook/markdown-utils`
+## 📦 Package `@promptbook/markitdown`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/markdown-utils` is one part of the promptbook ecosystem.
+- This package `@promptbook/markitdown` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -39,10 +39,10 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm install @promptbook/markdown-utils
+npm install @promptbook/markitdown
 ```
 
-Utility functions used for processing markdown. Its part of the larger [`@promptbook/utils`](https://www.npmjs.com/package/@promptbook/utils) ecosystem.
+Integration of [Markitdown by Microsoft](https://github.com/microsoft/markitdown) into [Promptbook](https://github.com/webgptorg/promptbook)
 
 
 ---
