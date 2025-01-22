@@ -1,8 +1,7 @@
-import { readFile } from 'fs';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import prettier from 'prettier';
 import { spaceTrim } from 'spacetrim';
-import { promisify } from 'util';
 import { TODO_any } from '../../src/utils/organization/TODO_any';
 
 /**
@@ -16,7 +15,7 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
     try {
         return prettier.format(fileContents, {
             parser,
-            ...(JSON.parse(await promisify(readFile)(join(process.cwd(), '.prettierrc'), 'utf-8')) as TODO_any),
+            ...(JSON.parse(await readFile(join(process.cwd(), '.prettierrc'), 'utf-8')) as TODO_any),
         });
     } catch (error) {
         if (!(error instanceof Error)) {

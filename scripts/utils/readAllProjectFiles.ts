@@ -1,5 +1,4 @@
-import { readFile } from 'fs';
-import { promisify } from 'util';
+import { readFile } from 'fs/promises';
 import { findAllProjectFiles } from './findAllProjectFiles';
 
 export async function readAllProjectFiles(): Promise<ReadonlyArray<{ path: string; content: string }>> {
@@ -8,7 +7,7 @@ export async function readAllProjectFiles(): Promise<ReadonlyArray<{ path: strin
             await findAllProjectFiles()
         ).map(async (path) => ({
             path,
-            content: await promisify(readFile)(path, 'utf-8'),
+            content: await readFile(path, 'utf-8'),
         })),
     );
 }

@@ -1,5 +1,4 @@
-import { exec as execLegacy } from 'child_process';
-import { promisify } from 'util';
+import { $execCommand } from '../../_packages/node.index';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';
@@ -10,18 +9,14 @@ import type { LocateAppOptions } from '../locateApp';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const userhome = require('userhome');
 
-// Note: We want to use the `exec` as async function
-const exec = promisify(execLegacy);
-
 /**
  * @@@
  *
  * @private within the repository
  */
 export async function locateAppOnMacOs({
-    appName,
     macOsName,
-}: Pick<Required<LocateAppOptions>, 'appName' | 'macOsName'>): Promise<string_executable_path | null> {
+}: Pick<Required<LocateAppOptions>, 'macOsName'>): Promise<string_executable_path | null> {
     try {
         const toExec = `/Contents/MacOS/${macOsName}`;
         const regPath = `/Applications/${macOsName}.app` + toExec;
@@ -33,15 +28,12 @@ export async function locateAppOnMacOs({
             return altPath;
         }
 
-        const { stderr, stdout } = await exec(
-            `mdfind 'kMDItemDisplayName == "${macOsName}" && kMDItemKind == Application'`,
-        );
+        const result = await $execCommand({
+            crashOnError: true,
+            command: `mdfind 'kMDItemDisplayName == "${macOsName}" && kMDItemKind == Application'`,
+        });
 
-        if (!stderr && stdout) {
-            return stdout.trim() + toExec;
-        }
-
-        throw new Error(`Can not locate app ${appName} on macOS.\n ${stderr}`);
+        return result.trim() + toExec;
     } catch (error) {
         if (!(error instanceof Error)) {
             throw error;

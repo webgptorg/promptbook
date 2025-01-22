@@ -1,10 +1,6 @@
-import { exec as execLegacy } from 'child_process';
-import { promisify } from 'util';
+import { $execCommand } from '../../_packages/node.index';
 import type { string_executable_path } from '../../types/typeAliases';
 import type { LocateAppOptions } from '../locateApp';
-
-// Note: We want to use the `exec` as async function
-const exec = promisify(execLegacy);
 
 /**
  * @@@
@@ -12,17 +8,12 @@ const exec = promisify(execLegacy);
  * @private within the repository
  */
 export async function locateAppOnLinux({
-    appName,
     linuxWhich,
-}: Pick<Required<LocateAppOptions>, 'appName' | 'linuxWhich'>): Promise<string_executable_path | null> {
+}: Pick<Required<LocateAppOptions>, 'linuxWhich'>): Promise<string_executable_path | null> {
     try {
-        const { stderr, stdout } = await exec(`which ${linuxWhich}`);
+        const result = await $execCommand({  crashOnError: true,command: `which ${linuxWhich}` });
 
-        if (!stderr && stdout) {
-            return stdout.trim();
-        }
-
-        throw new Error(`Can not locate app ${appName} on Linux.\n ${stderr}`);
+        return result.trim();
     } catch (error) {
         if (!(error instanceof Error)) {
             throw error;

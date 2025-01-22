@@ -1,7 +1,7 @@
 import type { RequireAtLeastOne } from 'type-fest';
-import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import type { string_executable_path } from '../types/typeAliases';
+import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { locateAppOnLinux } from './platforms/locateAppOnLinux';
 import { locateAppOnMacOs } from './platforms/locateAppOnMacOs';
 import { locateAppOnWindows } from './platforms/locateAppOnWindows';
@@ -38,7 +38,7 @@ export interface LocateAppOptions {
  */
 export function locateApp(
     options: RequireAtLeastOne<LocateAppOptions, 'linuxWhich' | 'windowsSuffix' | 'macOsName'>,
-): Promise<string_executable_path|null> {
+): Promise<string_executable_path | null> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Locating apps works only in Node.js environment');
     }
@@ -53,13 +53,13 @@ export function locateApp(
         }
     } else if (process.platform === 'darwin') {
         if (macOsName) {
-            return locateAppOnMacOs({ appName, macOsName });
+            return locateAppOnMacOs({ macOsName });
         } else {
             throw new Error(`${appName} is not available on macOS.`);
         }
     } else {
         if (linuxWhich) {
-            return locateAppOnLinux({ appName, linuxWhich });
+            return locateAppOnLinux({ linuxWhich });
         } else {
             throw new Error(`${appName} is not available on Linux.`);
         }
