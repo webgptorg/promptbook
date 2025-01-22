@@ -290,7 +290,7 @@ export type string_markdown_codeblock_language = 'book' | 'markdown' | 'text' | 
  */
 export type string_promptbook_documentation_url = `https://github.com/webgptorg/promptbook/discussions/${
     | number
-    | '@@'}`;
+    | `@@${string}`}`;
 
 /**
  * Semantic helper
