@@ -1,10 +1,14 @@
 import spaceTrim from 'spacetrim';
-import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import type { PipelineString } from './PipelineString';
 import { isValidPipelineString } from './isValidPipelineString';
+import { prompt } from './prompt-notation';
 
 /**
  * Tag function for notating a pipeline with a book\`...\ notation as template literal
+ *
+ * Note: There are 2 similar functions:
+ * 1) `prompt` for notating single prompt exported from `@promptbook/utils`
+ * 1) `book` for notating and validating entire books exported from `@promptbook/utils`
  *
  * @param strings @@@
  * @param values @@@
@@ -12,14 +16,7 @@ import { isValidPipelineString } from './isValidPipelineString';
  * @public exported from `@promptbook/core`
  */
 export function book(strings: TemplateStringsArray, ...values: Array<string>): PipelineString {
-    if (strings.length !== 1 && values.length !== 0) {
-        throw new NotYetImplementedError(
-            `Only one string without interpolated value is supported for now in book\`...\` notation`,
-        );
-    }
-
-    let pipelineString = strings[0]!;
-    pipelineString = spaceTrim(pipelineString);
+    const pipelineString = prompt(strings, ...values);
 
     if (!isValidPipelineString(pipelineString)) {
         // TODO: Make the CustomError for this
