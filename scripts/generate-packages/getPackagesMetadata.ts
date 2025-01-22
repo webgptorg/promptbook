@@ -41,7 +41,7 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
             }
 
             for (const packageName of exportedFromPackageNames) {
-                if (!packageNames.includes(packageName as string)) {
+                if (!packageNames.includes(packageName as string) && packageName !== '@promptbook/boilerplate') {
                     errors.push({ message: `Exported from non-existing package "${packageName}"`, entity });
                 }
             }
@@ -81,6 +81,7 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
             errors.push({ message: `Must be @private or @public`, entity });
         } else if (
             isPublic &&
+            !entity.anotation?.includes('@promptbook/boilerplate') &&
             !packagesMetadata.some((packageMetadata) => (packageMetadata.entities || []).includes(entity))
         ) {
             errors.push({
