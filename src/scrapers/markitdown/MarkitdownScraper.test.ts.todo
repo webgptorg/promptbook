@@ -1,0 +1,132 @@
+/*
+TODO: !!! This test is not wotking in Jest:
+
+
+Jest (promptbook)
+npm warn cli npm v10.9.1 does not support Node.js v18.4.0. This version of npm supports the following node versions: `^18.17.0 || >=20.5.0`. You can find the latest version at https://nodejs.org/.
+
+> promptbook@0.84.0-0 test
+> jest --testLocationInResults --json --useStderr --outputFile C:\Users\me\AppData\Local\Temp\jest_runner_promptbook_me_2.json --testNamePattern how creating knowledge by MarkitdownScraper works should scrape simple information from a pdf file$ --no-coverage --reporters default --reporters c:\Users\me\.vscode\extensions\orta.vscode-jest-6.4.0\out\reporter.js --colors --watchAll=false --testPathPattern c:\\Users\\me\\work\\ai\\promptbook\\src\\scrapers\\markitdown\\MarkitdownScraper\.test\.ts
+
+
+> Test run "by-file-test-pattern:46" started at 1/22/2025, 4:30:15 PM <
+
+ FAIL  src/scrapers/markitdown/MarkitdownScraper.test.ts
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    C:\Users\me\work\ai\promptbook\node_modules\eventsource-parser\stream.js:2
+    export * from './dist/stream.esm'
+    ^^^^^^
+
+    SyntaxError: Unexpected token 'export'
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1728:14)
+      at Object.<anonymous> (node_modules/ai/node_modules/@ai-sdk/provider-utils/src/response-handler.ts:5:8)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        36.491 s
+Ran all test suites matching /c:\\Users\\me\\work\\ai\\promptbook\\src\\scrapers\\markitdown\\MarkitdownScraper\.test\.ts/i with tests matching "how creating knowledge by MarkitdownScraper works should scrape simple information from a pdf file$".
+
+> Test run "by-file-test-pattern:46" finished at 1/22/2025, 4:30:51 PM <
+
+
+> Test run "by-file-test-pattern:46" exited at 1/22/2025, 4:30:51 PM <
+
+
+*/
+
+import { describe, expect, it } from '@jest/globals';
+import { join } from 'path';
+import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../_common/register/$provideFilesystemForNode';
+import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
+import { MarkitdownScraper } from './MarkitdownScraper';
+
+describe('how creating knowledge by MarkitdownScraper works', () => {
+    const rootDirname = join(__dirname, 'examples');
+
+    const markitdownScraperPromise = (async () =>
+        new MarkitdownScraper(
+            {
+                fs: $provideFilesystemForNode(),
+                llm: await $provideLlmToolsForTestingAndScriptsAndPlayground(),
+                executables: await $provideExecutablesForNode(),
+            },
+            {
+                rootDirname,
+            },
+        ))();
+
+    it('should scrape simple information from a pdf file', () =>
+        expect(
+            Promise.all([
+                markitdownScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        knowledgeSourceContent: '10-simple.pdf',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([markitdownScraper, sourceHandler]) => markitdownScraper.scrape(sourceHandler))
+                .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
+                .then((knowledge) => knowledge?.slice(0, 1)),
+        ).resolves.toMatchObject([
+            {
+                content: expect.stringMatching(/Springfield (is )?.*/i),
+            },
+        ]));
+
+    // TODO: !!! Add all samples
+
+    it('should NOT scrape irrelevant information', () =>
+        expect(
+            Promise.all([
+                markitdownScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        knowledgeSourceContent: '10-simple.pdf',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([markitdownScraper, sourceHandler]) => markitdownScraper.scrape(sourceHandler))
+                .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
+                .then((knowledge) => knowledge?.slice(0, 1)),
+        ).resolves.toMatchObject([
+            {
+                content: expect.not.stringMatching(/London (is )?.*/i),
+            },
+        ]));
+});
+
+/**
+ * TODO: [📓] Maybe test all file in examples (not just one by one)
+ */
