@@ -1,9 +1,9 @@
 import spaceTrim from 'spacetrim';
-import { templateParameters } from '../_packages/utils.index';
+import { templateParameters } from '../utils/parameters/templateParameters';
 import { REPLACING_NONCE } from '../constants';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import { string_prompt } from '../types/typeAliases';
+import type { string_prompt } from '../types/typeAliases';
 
 /**
  * Tag function for notating a prompt as template literal
