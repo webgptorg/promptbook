@@ -13,7 +13,7 @@ import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-
 import { stringifyPipelineJson } from '../../../utils/editable/utils/stringifyPipelineJson';
 import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { LegacyDocumentScraper } from '../LegacyDocumentScraper';
+import { MarkitdownScraper } from '../MarkitdownScraper';
 
 playground()
     .catch((error) => {
@@ -26,19 +26,18 @@ playground()
     });
 
 async function playground() {
-    console.info(`🧸  Scrape knowledge from legacy documents (playground)`);
+    console.info(`🧸  Scrape knowledge by Markitdown (playground)`);
 
     // Do here stuff you want to test
     //========================================>
 
-    //const example = '10-simple.doc';
-    const example = '10-simple.rtf';
+    const example = '10-simple.pdf';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them
 
     const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'examples');
 
-    const legacyDocumentScraper = new LegacyDocumentScraper(
+    const markitdownScraper = new MarkitdownScraper(
         {
             fs: $provideFilesystemForNode(),
             llm: await $provideLlmToolsForTestingAndScriptsAndPlayground(),
@@ -49,7 +48,7 @@ async function playground() {
         },
     );
 
-    const knowledge = await legacyDocumentScraper.scrape(
+    const knowledge = await markitdownScraper.scrape(
         await makeKnowledgeSourceHandler(
             { knowledgeSourceContent: example },
             { fs: $provideFilesystemForNode() },

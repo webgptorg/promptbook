@@ -202,6 +202,16 @@
             "focus": true
         },
         {
+            "name": "🧸📄💡 Scrape knowledge by Markitdown (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/markitdown/playground/markitdown-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
             "name": "🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",

@@ -681,8 +681,9 @@ Compile via remote server
 
 ### `0.83.0` and `0.84.0` _(2025-01-20)_
 
-`@promptbook/editable`
+`@promptbook/editable` and integration of `markitdown`
 
+-   Integrate `markitdown` and export through `@promptbook/markitdown`
 -   Export parsing internals to `@promptbook/editable`
 -   Rename `sourceContent` -> `knowledgeSourceContent`
 -   Multiple functions to manipulate with `PipelineString`
