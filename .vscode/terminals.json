@@ -280,6 +280,12 @@
             "focus": true
         },
         {
+            "name": "🗑️ Kill all node.js instances",
+            "commands": ["killall node", "taskkill -f -im node.exe"],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🍴⏫ Git push all branches",
             "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
             "onlySingle": true,
