@@ -6,62 +6,62 @@ describe('how prompt tag function works', () => {
     it('should work with simple prompt', () =>
         expect(
             prompt`
-                You are an expert in linguistics
+                You are a biochemistry expert
 
-                - Translate the following sentence into English
+                - Explain the process of ATP synthesis in mitochondria
             `,
         ).toBe(
             spaceTrim(`
-                You are an expert in linguistics
+                You are a biochemistry expert
 
-                - Translate the following sentence into English
+                - Explain the process of ATP synthesis in mitochondria
             `),
         ));
 
     it('should work with interpolated string template', () =>
         expect(
             prompt`
-                You are an expert in linguistics
+                You are a chemistry expert
 
-                - Translate the following sentence into ${'English'}
+                - Explain the chemical bonds in ${'water molecules'}
             `,
         ).toBe(
             spaceTrim(`
-                You are an expert in linguistics
+                You are a chemistry expert
 
-                - Translate the following sentence into English
+                - Explain the chemical bonds in water molecules
             `),
         ));
 
     it('should work with multiline interpolated string template', () =>
         expect(
             prompt`
-                You are an expert in linguistics
+                You are a molecular biologist
 
-                ${'foo\nbar'}
+                ${'DNA replication\nTranscription'}
             `,
         ).toBe(
             spaceTrim(`
-                You are an expert in linguistics
+                You are a molecular biologist
                 
-                foo
-                bar
+                DNA replication
+                Transcription
             `),
         ));
 
     it('should separate data and instructions', () =>
         expect(
             prompt`
-                You are an expert in linguistics
+                You are a geneticist
 
-                - ${'foo\nbar'}
+                - ${'Dominant alleles\nRecessive alleles'}
             `,
         ).toBe(
             spaceTrim(`
-                You are an expert in linguistics
+                You are a geneticist
 
-                - foo
-                - bar
+                - Dominant alleles
+                - Recessive alleles
             `),
         ));
 });

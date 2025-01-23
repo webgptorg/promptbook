@@ -6,9 +6,10 @@ import { prompt } from './prompt-notation';
 /**
  * Tag function for notating a pipeline with a book\`...\ notation as template literal
  *
- * Note: There are 2 similar functions:
+ * Note: There are 3 similar functions:
  * 1) `prompt` for notating single prompt exported from `@promptbook/utils`
- * 1) `book` for notating and validating entire books exported from `@promptbook/utils`
+ * 2) `promptTemplate` alias for `prompt`
+ * 3) `book` for notating and validating entire books exported from `@promptbook/utils`
  *
  * @param strings @@@
  * @param values @@@

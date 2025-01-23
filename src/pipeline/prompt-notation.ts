@@ -8,13 +8,14 @@ import type { string_prompt } from '../types/typeAliases';
 /**
  * Tag function for notating a prompt as template literal
  *
- * Note: There are 2 similar functions:
+ * Note: There are 3 similar functions:
  * 1) `prompt` for notating single prompt exported from `@promptbook/utils`
- * 1) `book` for notating and validating entire books exported from `@promptbook/utils`
+ * 2) `promptTemplate` alias for `prompt`
+ * 3) `book` for notating and validating entire books exported from `@promptbook/utils`
  *
- * @param strings @@@
- * @param values @@@
- * @returns the pipeline string
+ * @param strings
+ * @param values
+ * @returns the prompt string
  * @public exported from `@promptbook/utils`
  */
 export function prompt(strings: TemplateStringsArray, ...values: Array<string>): string_prompt {
@@ -58,6 +59,21 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<string>):
 
     return pipelineString;
 }
+
+
+/**
+ * Tag function for notating a prompt as template literal
+ *
+ * Note: There are 3 similar functions:
+ * 1) `prompt` for notating single prompt exported from `@promptbook/utils`
+ * 2) `promptTemplate` alias for `prompt`
+ * 3) `book` for notating and validating entire books exported from `@promptbook/utils`
+ *
+ * @alias prompt
+ * @public exported from `@promptbook/utils`
+ */
+export const promptTemplate = prompt;
+
 
 /**
  * TODO: [🧠][🈴] Where is the best location for this file
