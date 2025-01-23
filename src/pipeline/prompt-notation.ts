@@ -1,9 +1,9 @@
 import spaceTrim from 'spacetrim';
-import { templateParameters } from '../utils/parameters/templateParameters';
 import { REPLACING_NONCE } from '../constants';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { string_prompt } from '../types/typeAliases';
+import { templateParameters } from '../utils/parameters/templateParameters';
 
 /**
  * Tag function for notating a prompt as template literal
@@ -23,11 +23,16 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<string>):
         return spaceTrim(strings.join(''));
     }
 
+    const stringsWithHiddenParameters = strings.map((stringsItem) =>
+        // TODO: [0] DRY
+        stringsItem.split('{').join(`${REPLACING_NONCE}beginbracket`).split('}').join(`${REPLACING_NONCE}endbracket`),
+    );
+
     const placeholderParameterNames = values.map((value, i) => `${REPLACING_NONCE}${i}`);
     const parameters = Object.fromEntries(values.map((value, i) => [placeholderParameterNames[i], value]));
 
     // Combine strings and values
-    let pipelineString = strings.reduce(
+    let pipelineString = stringsWithHiddenParameters.reduce(
         (result, stringsItem, i) =>
             placeholderParameterNames[i] === undefined
                 ? `${result}${stringsItem}`
@@ -57,9 +62,15 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<string>):
         );
     }
 
+    // TODO: [0] DRY
+    pipelineString = pipelineString
+        .split(`${REPLACING_NONCE}beginbracket`)
+        .join('{')
+        .split(`${REPLACING_NONCE}endbracket`)
+        .join('}');
+
     return pipelineString;
 }
-
 
 /**
  * Tag function for notating a prompt as template literal
@@ -73,7 +84,6 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<string>):
  * @public exported from `@promptbook/utils`
  */
 export const promptTemplate = prompt;
-
 
 /**
  * TODO: [🧠][🈴] Where is the best location for this file

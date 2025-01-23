@@ -64,6 +64,24 @@ describe('how prompt tag function works', () => {
                 - Recessive alleles
             `),
         ));
+
+    it('should keep non-javascript parameters', () =>
+        expect(
+            prompt`
+                You are a geneticist
+
+                - ${'Dominant alleles\nRecessive alleles'}
+                - {more}
+            `,
+        ).toBe(
+            spaceTrim(`
+                You are a geneticist
+
+                - Dominant alleles
+                - Recessive alleles
+                - {more}
+            `),
+        ));
 });
 
 /**
