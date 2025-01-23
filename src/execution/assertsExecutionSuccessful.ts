@@ -6,14 +6,20 @@ import type { PipelineExecutorResult } from './PipelineExecutorResult';
 /**
  * Asserts that the execution of a Promptbook is successful
  *
+ * Note: If there are only warnings, the execution is still successful but the warnings are logged in the console
+ *
  * @param executionResult - The partial result of the Promptbook execution
  * @throws {PipelineExecutionError} If the execution is not successful or if multiple errors occurred
  * @public exported from `@promptbook/core`
  */
 export function assertsExecutionSuccessful(
-    executionResult: Pick<PipelineExecutorResult, 'isSuccessful' | 'errors'>,
+    executionResult: Pick<PipelineExecutorResult, 'isSuccessful' | 'errors' | 'warnings'>,
 ): void {
-    const { isSuccessful, errors } = executionResult;
+    const { isSuccessful, errors, warnings } = executionResult;
+
+    for (const warning of warnings) {
+        console.warn(warning.message);
+    }
 
     if (isSuccessful === true) {
         return;
