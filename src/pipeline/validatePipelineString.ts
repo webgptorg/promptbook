@@ -1,4 +1,6 @@
-import { isValidEmail, isValidFilePath, isValidUrl } from '../_packages/utils.index';
+import { isValidEmail } from '../utils/validators/email/isValidEmail';
+import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
+import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { ParseError } from '../errors/ParseError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import type { PipelineString } from './PipelineString';
