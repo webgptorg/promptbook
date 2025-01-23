@@ -1,5 +1,6 @@
-import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
+import { isValidEmail, isValidFilePath, isValidUrl } from '../_packages/utils.index';
 import { ParseError } from '../errors/ParseError';
+import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import type { PipelineString } from './PipelineString';
 
 /**
@@ -14,6 +15,12 @@ import type { PipelineString } from './PipelineString';
 export function validatePipelineString(pipelineString: string): PipelineString {
     if (isValidJsonString(pipelineString)) {
         throw new ParseError('Expected a book, but got a JSON string');
+    } else if (isValidUrl(pipelineString)) {
+        throw new ParseError(`Expected a book, but got just the URL "${pipelineString}"`);
+    } else if (isValidFilePath(pipelineString)) {
+        throw new ParseError(`Expected a book, but got just the file path "${pipelineString}"`);
+    } else if (isValidEmail(pipelineString)) {
+        throw new ParseError(`Expected a book, but got just the email "${pipelineString}"`);
     }
 
     // <- TODO: Implement the validation + add tests when the pipeline logic considered as invalid
