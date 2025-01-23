@@ -103,15 +103,15 @@ export class DocumentScraper implements Converter, Scraper {
                 throw new UnexpectedError(
                     spaceTrim(
                         (block) => `
-                    File that was supposed to be created by Pandoc does not exist for unknown reason
+                            File that was supposed to be created by Pandoc does not exist for unknown reason
 
-                    Expected file:
-                    ${block(cacheFilehandler.filename)}
+                            Expected file:
+                            ${block(cacheFilehandler.filename)}
 
-                    Command:
-                    > ${block(command)}
+                            Command:
+                            > ${block(command)}
 
-                `,
+                        `,
                     ),
                 );
             }

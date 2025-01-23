@@ -118,14 +118,14 @@ export class LegacyDocumentScraper implements Converter, Scraper {
                 throw new UnexpectedError(
                     spaceTrim(
                         (block) => `
-                        Expected exactly 1 file in the LibreOffice output directory, got ${files.length}
+                            Expected exactly 1 file in the LibreOffice output directory, got ${files.length}
 
-                        The temporary folder:
-                        ${block(documentSourceOutdirPathForLibreOffice)}
+                            The temporary folder:
+                            ${block(documentSourceOutdirPathForLibreOffice)}
 
-                        Command:
-                        > ${block(command)}
-                    `,
+                            Command:
+                            > ${block(command)}
+                        `,
                     ),
                 );
             }

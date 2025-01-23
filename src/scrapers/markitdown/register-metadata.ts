@@ -17,8 +17,9 @@ export const markitdownScraperMetadata = $deepFreeze({
     className: 'MarkitdownScraper',
     mimeTypes: [
         'application/pdf',
-        'text/html',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        // TODO: Make priority for scrapers and than allow all mime types here:
+        // 'text/html',
+        // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
     isAvilableInBrowser: false,

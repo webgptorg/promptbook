@@ -1,8 +1,6 @@
 import { readFile } from 'fs/promises';
 import type { MarkItDown } from 'markitdown-ts'; // <- TODO: !!! Use Markitdown directly not through this package
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -13,8 +11,7 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
@@ -92,9 +89,9 @@ export class MarkitdownScraper implements Converter, Scraper {
         // TODO: @@@ Preserve, delete or modify
         // Note: Running Pandoc ONLY if the file in the cache does not exist
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
-            console.log('!!!', { source });
-
             const src = source.filename || source.url || null;
+
+            console.log('!!!', { src, source, cacheFilehandler });
 
             if (src === null) {
                 throw new UnexpectedError('Source has no filename or url');
@@ -111,7 +108,7 @@ export class MarkitdownScraper implements Converter, Scraper {
                 // <- TODO: !!! Make MarkitdownError
             }
 
-            console.log('!!!', { result });
+            console.log('!!!', { result, cacheFilehandler });
 
             await this.tools.fs.writeFile(cacheFilehandler.filename, result.text_content);
         }
