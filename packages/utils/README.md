@@ -42,37 +42,37 @@ npm i ptbk
 npm install @promptbook/utils
 ```
 
-Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
+Utility functions used in the library, but also useful for individual use in pre and post-processing of LLM inputs and outputs.
 
-Here is a overview of the functions which are exported from the `@promptbook/utils` package and can be used in your own projects:
+Here is an overview of the functions that can be exported from the `@promptbook/utils` package and used in your own projects:
 
-## Postprocessing
+## Simple templating
 
-Sometimes you need to postprocess the output of the LLM model, every postprocessing function that is available through `POSTPROCESS` command in promptbook is exported from `@promptbook/utils`. You can use:
-
--   `spaceTrim`
--   `extractAllBlocksFromMarkdown`, _<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
--   `extractAllListItemsFromMarkdown` _<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
--   `extractBlock`
--   `extractOneBlockFromMarkdown `_<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
--   `prettifyPipelineString`
--   `removeMarkdownComments`
--   `removeEmojis`
--   `removeMarkdownFormatting` _<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
--   `removeQuotes`
--   `trimCodeBlock`
--   `trimEndOfCodeBlock`
--   `unwrapResult`
-
-Very often you will use `unwrapResult`, which is used to extract the result you need from output with some additional information:
+The `prompt` template tag function helps format prompt strings for LLM interactions. It handles string interpolation and maintains consistent formatting for multiline strings and lists and also handles a security to avoid **prompt injection**.
 
 ```typescript
-import { unwrapResult } from '@promptbook/utils';
+import { prompt } from '@promptbook/utils';
 
-unwrapResult('Best greeting for the user is "Hi Pavol!"'); // 'Hi Pavol!'
+const promptString = prompt`
+    Correct the following sentence:
+
+    > ${unsecureUserInput}
+`;
 ```
 
-## Templating
+The `prompt` name could be overloaded by multiple things in your code. If you want to use the `promptTemplate` which is alias for `prompt`:
+
+```typescript
+import { promptTemplate } from '@promptbook/utils';
+
+const promptString = promptTemplate`
+    Correct the following sentence:
+
+    > ${unsecureUserInput}
+`;
+```
+
+## Advanced templating
 
 There is a function `templateParameters` which is used to replace the parameters in given template optimized to LLM prompt templates.
 
@@ -151,6 +151,32 @@ console.log(normalizeTo['kebab-case']('Hello, world!')); // 'hello-world'
 
 -   There are more normalization functions like `capitalize`, `decapitalize`, `removeDiacritics`,...
 -   Theese can be also used as postprocessing functions in the `POSTPROCESS` command in promptbook
+
+## Postprocessing
+
+Sometimes you need to postprocess the output of the LLM model, every postprocessing function that is available through `POSTPROCESS` command in promptbook is exported from `@promptbook/utils`. You can use:
+
+-   `spaceTrim`
+-   `extractAllBlocksFromMarkdown`, _<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
+-   `extractAllListItemsFromMarkdown` _<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
+-   `extractBlock`
+-   `extractOneBlockFromMarkdown `_<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
+-   `prettifyPipelineString`
+-   `removeMarkdownComments`
+-   `removeEmojis`
+-   `removeMarkdownFormatting` _<- Note: Exported from [`@promptbook/markdown-utils`](https://www.npmjs.com/package/@promptbook/markdown-utils)_
+-   `removeQuotes`
+-   `trimCodeBlock`
+-   `trimEndOfCodeBlock`
+-   `unwrapResult`
+
+Very often you will use `unwrapResult`, which is used to extract the result you need from output with some additional information:
+
+```typescript
+import { unwrapResult } from '@promptbook/utils';
+
+unwrapResult('Best greeting for the user is "Hi Pavol!"'); // 'Hi Pavol!'
+```
 
 ## Misc
 
