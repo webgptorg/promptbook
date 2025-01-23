@@ -49,9 +49,5 @@
             "type": "github",
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
-    ],
-    "typings": "./esm/typings/src/_packages/types.index.d.ts",
-    "peerDependencies": {
-        "@promptbook/core": "0.84.0-7"
-    }
+    ]
 }

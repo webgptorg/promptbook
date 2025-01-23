@@ -49,12 +49,5 @@
             "type": "github",
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
-    ],
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/utils.index.d.ts",
-    "dependencies": {
-        "spacetrim": "0.11.59",
-        "type-fest": "4.5.0"
-    }
+    ]
 }
