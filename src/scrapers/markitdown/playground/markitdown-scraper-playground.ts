@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { isValidUrl } from '../../../_packages/utils.index';
+import { isValidUrl, titleToName } from '../../../_packages/utils.index';
 import { $provideExecutablesForNode } from '../../../executables/$provideExecutablesForNode';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
@@ -72,7 +72,9 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            `../examples/${example}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them */,
+            `../examples/${
+                isValidUrl(example) ? titleToName(example) : example
+            }.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them */,
         ),
         stringifyPipelineJson(knowledge),
         'utf-8',

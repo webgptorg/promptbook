@@ -1,6 +1,6 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { titleToName } from '../../../_packages/utils.index';
@@ -32,6 +32,8 @@ export async function makeKnowledgeSourceHandler(
     tools: Pick<ExecutionTools, 'fs' | 'fetch'>,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
+    console.log('!!! makeKnowledgeSourceHandler', knowledgeSource);
+
     const { fetch = scraperFetch } = tools;
     const { knowledgeSourceContent } = knowledgeSource;
     let { name } = knowledgeSource;
@@ -59,16 +61,32 @@ export async function makeKnowledgeSourceHandler(
         const hash = sha256(hexEncoder.parse(url)).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
 
-        const filepath = join(
+        const rootDirname = join(
             process.cwd(),
             DEFAULT_DOWNLOAD_CACHE_DIRNAME,
             // <- TODO: [🦒] Allow to override (pass different value into the function)
+        );
+
+        const filepath = join(
             ...nameToSubfolderPath(hash /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
             `${filename.substring(0, MAX_FILENAME_LENGTH)}.pdf`,
         );
 
-        return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, options);
+        await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
+        await tools.fs!.writeFile(join(rootDirname, filepath), Buffer.from(await response.arrayBuffer()));
+
+        // TODO: !!!!!!!! Check the file security
+        // TODO: !!!!!!!! Check the file size (if it is not too big)
+        // TODO: !!!!!!!! Delete the file
+
+        return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, {
+            ...options,
+            rootDirname,
+        });
         /*
+        !!!!!!!!!
+        if (tools.fs === undefined) {
+
         return {
             source: name,
             filename: null,
