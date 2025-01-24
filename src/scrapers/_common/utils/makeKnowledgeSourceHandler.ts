@@ -4,7 +4,9 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_DOWNLOAD_CACHE_DIRNAME, DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../config';
+import { DEFAULT_DOWNLOAD_CACHE_DIRNAME } from '../../../config';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
+import { MAX_FILENAME_LENGTH } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
@@ -80,8 +82,6 @@ export async function makeKnowledgeSourceHandler(
                 },
             };
         }
-
-
 
         const basename = url.split('/').pop() || titleToName(url);
         const hash = sha256(hexEncoder.parse(url)).toString(/* hex */);
