@@ -3,11 +3,8 @@ import sha256 from 'crypto-js/sha256';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
-import { titleToName } from '../../../utils/normalization/titleToName';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_DOWNLOAD_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { MAX_FILENAME_LENGTH } from '../../../config';
+import { DEFAULT_DOWNLOAD_CACHE_DIRNAME, DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
@@ -18,6 +15,7 @@ import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/n
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
+import { titleToName } from '../../../utils/normalization/titleToName';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
@@ -56,10 +54,36 @@ export async function makeKnowledgeSourceHandler(
         const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
         const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
 
-        TODO_USE(mimeType);
-        // TODO: !!!!!!!!! Make suffix according to the mimeType
+        if (tools.fs === undefined || !url.endsWith('.pdf')) {
+            return {
+                source: name,
+                filename: null,
+                url,
+                mimeType,
+                /*
+              TODO: [🥽]
+                  > async asBlob() {
+                  >     // TODO: [👨🏻‍🤝‍👨🏻] This can be called multiple times BUT when called second time, response in already consumed
+                  >     const content = await response.blob();
+                  >     return content;
+                  > },
+              */
+                async asJson() {
+                    // TODO: [👨🏻‍🤝‍👨🏻]
+                    const content = await response.json();
+                    return content;
+                },
+                async asText() {
+                    // TODO: [👨🏻‍🤝‍👨🏻]
+                    const content = await response.text();
+                    return content;
+                },
+            };
+        }
 
-        const filename = url.split('/').pop() || titleToName(url);
+
+
+        const basename = url.split('/').pop() || titleToName(url);
         const hash = sha256(hexEncoder.parse(url)).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
 
@@ -69,9 +93,12 @@ export async function makeKnowledgeSourceHandler(
             // <- TODO: [🦒] Allow to override (pass different value into the function)
         );
 
+        TODO_USE(mimeType);
+        // TODO: !!!!!!!!! Make suffix according to the mimeType
+
         const filepath = join(
             ...nameToSubfolderPath(hash /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
-            `${filename.substring(0, MAX_FILENAME_LENGTH)}.pdf`,
+            `${basename.substring(0, MAX_FILENAME_LENGTH)}.pdf`,
         );
 
         await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
@@ -85,35 +112,6 @@ export async function makeKnowledgeSourceHandler(
             ...options,
             rootDirname,
         });
-        /*
-        !!!!!!!!!
-        if (tools.fs === undefined) {
-
-        return {
-            source: name,
-            filename: null,
-            url,
-            mimeType,
-            /*
-            TODO: [🥽]
-                > async asBlob() {
-                >     // TODO: [👨🏻‍🤝‍👨🏻] This can be called multiple times BUT when called second time, response in already consumed
-                >     const content = await response.blob();
-                >     return content;
-                > },
-            * /
-            async asJson() {
-                // TODO: [👨🏻‍🤝‍👨🏻]
-                const content = await response.json();
-                return content;
-            },
-            async asText() {
-                // TODO: [👨🏻‍🤝‍👨🏻]
-                const content = await response.text();
-                return content;
-            },
-        };
-        */
     } else if (isValidFilePath(knowledgeSourceContent)) {
         if (tools.fs === undefined) {
             throw new EnvironmentMismatchError('Can not import file knowledge without filesystem tools');
