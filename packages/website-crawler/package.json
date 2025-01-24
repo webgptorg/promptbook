@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/website-crawler",
-    "version": "0.84.0-11",
+    "version": "0.84.0-13",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -54,7 +54,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/website-crawler.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.84.0-11"
+        "@promptbook/core": "0.84.0-13"
     },
     "dependencies": {
         "@mozilla/readability": "0.5.0",
