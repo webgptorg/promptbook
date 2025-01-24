@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { DEFAULT_EXECUTIONS_CACHE_DIRNAME } from '../../../config';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
@@ -37,7 +37,7 @@ export async function $provideLlmToolsForWizzardOrCli(
                 {
                     rootFolderPath: join(
                         process.cwd(),
-                        DEFAULT_EXECUTIONS_CACHE_DIRNAME, // <- TODO: [🦒] Allow to override (pass different value into the function)
+                        DEFAULT_EXECUTION_CACHE_DIRNAME, // <- TODO: [🦒] Allow to override (pass different value into the function)
                     ),
                 },
             ),

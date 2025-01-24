@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -202,13 +200,22 @@ export const DEFAULT_BOOKS_DIRNAME = './books';
 // <- TODO: [🕝] Make also `BOOKS_DIRNAME_ALTERNATIVES`
 
 /**
+ * Where to store the temporary downloads
+ *
+ * Note: When the folder does not exist, it is created recursively
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = './.promptbook/download-cache';
+
+/**
  * Where to store the cache of executions for promptbook CLI
  *
  * Note: When the folder does not exist, it is created recursively
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = './.promptbook/executions-cache';
+export const DEFAULT_EXECUTION_CACHE_DIRNAME = './.promptbook/execution-cache';
 
 /**
  * Where to store the scrape cache

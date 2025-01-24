@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { isValidUrl } from '../../../_packages/utils.index';
 import { $provideExecutablesForNode } from '../../../executables/$provideExecutablesForNode';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
@@ -31,11 +32,19 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const example = '10-simple.pdf';
+    // const example = '10-simple.pdf';
+    // const example = 'https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/user/knowledge-source/4/c/pravidla-pro-zadatele-a-prijemce-3-0.pdf';
+    const example = 'https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/user/knowledge-source/b/d/10-simple.pdf';
+    // const example = 'https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/user/knowledge-source/4/3/10-simple.odt';
+    // const example = 'https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/user/knowledge-source/4/3/10-simple.odt';
+    // const example = 'https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/user/knowledge-source/7/f/10-simple.docx';
+    // const example = 'https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/user/knowledge-source/2/9/10-simple.rtf';
+    // const example = 'https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/user/knowledge-source/f/3/10-simple.doc';
+
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them
 
     const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
-    const rootDirname = join(__dirname, '..', 'examples');
+    const rootDirname = isValidUrl(example) ? null : join(__dirname, '..', 'examples');
 
     const markitdownScraper = new MarkitdownScraper(
         {

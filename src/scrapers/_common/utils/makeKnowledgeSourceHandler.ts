@@ -1,14 +1,18 @@
+import hexEncoder from 'crypto-js/enc-hex';
+import sha256 from 'crypto-js/sha256';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
+import { titleToName } from '../../../_packages/utils.index';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
+import { DEFAULT_DOWNLOAD_CACHE_DIRNAME, DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { KnowledgeSourceJson } from '../../../pipeline/PipelineJson/KnowledgeSourceJson';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
@@ -48,6 +52,23 @@ export async function makeKnowledgeSourceHandler(
         const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
         const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
 
+        TODO_USE(mimeType);
+        // TODO: !!!!!!!!! Make suffix according to the mimeType
+
+        const filename = url.split('/').pop() || titleToName(url);
+        const hash = sha256(hexEncoder.parse(url)).toString(/* hex */);
+        //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
+
+        const filepath = join(
+            process.cwd(),
+            DEFAULT_DOWNLOAD_CACHE_DIRNAME,
+            // <- TODO: [🦒] Allow to override (pass different value into the function)
+            ...nameToSubfolderPath(hash /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
+            `${filename.substring(0, MAX_FILENAME_LENGTH)}.pdf`,
+        );
+
+        return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, options);
+        /*
         return {
             source: name,
             filename: null,
@@ -60,7 +81,7 @@ export async function makeKnowledgeSourceHandler(
                 >     const content = await response.blob();
                 >     return content;
                 > },
-            */
+            * /
             async asJson() {
                 // TODO: [👨🏻‍🤝‍👨🏻]
                 const content = await response.json();
@@ -72,6 +93,7 @@ export async function makeKnowledgeSourceHandler(
                 return content;
             },
         };
+        */
     } else if (isValidFilePath(knowledgeSourceContent)) {
         if (tools.fs === undefined) {
             throw new EnvironmentMismatchError('Can not import file knowledge without filesystem tools');
