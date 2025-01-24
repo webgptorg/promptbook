@@ -1,4 +1,5 @@
 import { Promisable } from 'type-fest';
+import { VALUE_STRINGS } from '../_packages/utils.index';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
@@ -12,9 +13,12 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../scrapers/_common/utils/scraperFetch';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type {
+    InputParameters,
+    string_filename,
+    string_parameter_value,
+    string_pipeline_url,
+} from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
@@ -42,7 +46,14 @@ class Wizzard {
         book: string_pipeline_url | string_filename | PipelineString,
         inputParameters: InputParameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
-    ): Promise<PipelineExecutorResult> {
+    ): Promise<
+        {
+            /**
+             * Simple result of the execution
+             */
+            result: string_parameter_value;
+        } & PipelineExecutorResult
+    > {
         if (!$isRunningInNode()) {
             throw new EnvironmentMismatchError('Wizzard works only in Node.js environment');
         }
@@ -62,8 +73,20 @@ class Wizzard {
         // ▶ Fail if the execution was not successful
         assertsExecutionSuccessful(result);
 
+        const { outputParameters } = result;
+        const outputParametersLength = Object.keys(outputParameters).length;
+        let resultString: string_parameter_value;
+
+        if (outputParametersLength === 0) {
+            resultString = VALUE_STRINGS.empty;
+        } else if (outputParametersLength === 1) {
+            resultString = outputParameters[Object.keys(outputParameters)[0]!] || VALUE_STRINGS.undefined;
+        } else {
+            resultString = JSON.stringify(outputParameters);
+        }
+
         // ▶ Return the result
-        return result;
+        return { result: resultString, ...result };
     }
 
     private executionTools: Required<Pick<ExecutionTools, 'fs' | 'fetch'>> | null = null;
