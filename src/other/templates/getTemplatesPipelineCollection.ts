@@ -549,10 +549,31 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
             {
                 "title": "😂 Joke Generator",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generic.book.md",
-                "description": "Write a joke about {topic}",
                 "formfactorName": "GENERIC",
-                "parameters": [],
-                "tasks": [],
+                "parameters": [
+                    {
+                        "name": "result",
+                        "isInput": false,
+                        "isOutput": true
+                    },
+                    {
+                        "name": "topic",
+                        "isInput": true,
+                        "isOutput": false
+                    }
+                ],
+                "tasks": [
+                    {
+                        "taskType": "PROMPT_TASK",
+                        "name": "prompt",
+                        "title": "Prompt",
+                        "content": "Write a joke about {topic}",
+                        "resultingParameterName": "result",
+                        "dependentParameterNames": [
+                            "topic"
+                        ]
+                    }
+                ],
                 "personas": [],
                 "preparations": [
                     {
