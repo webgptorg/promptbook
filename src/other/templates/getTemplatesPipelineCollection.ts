@@ -139,7 +139,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.84.0-12",
+                        "promptbookVersion": "0.84.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.005805
@@ -358,7 +358,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.84.0-12",
+                        "promptbookVersion": "0.84.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.005757
@@ -481,7 +481,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.84.0-12",
+                        "promptbookVersion": "0.84.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.005442000000000001
@@ -549,36 +549,15 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
             {
                 "title": "😂 Joke Generator",
                 "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generic.book.md",
+                "description": "Write a joke about {topic}",
                 "formfactorName": "GENERIC",
-                "parameters": [
-                    {
-                        "name": "joke",
-                        "isInput": false,
-                        "isOutput": true
-                    },
-                    {
-                        "name": "topic",
-                        "isInput": true,
-                        "isOutput": false
-                    }
-                ],
-                "tasks": [
-                    {
-                        "taskType": "PROMPT_TASK",
-                        "name": "prompt",
-                        "title": "Prompt",
-                        "content": "> Write a joke about {topic}",
-                        "resultingParameterName": "joke",
-                        "dependentParameterNames": [
-                            "topic"
-                        ]
-                    }
-                ],
+                "parameters": [],
+                "tasks": [],
                 "personas": [],
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.84.0-12",
+                        "promptbookVersion": "0.84.0-13",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -638,7 +617,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                     {
                         "type": "BOOK",
                         "path": null,
-                        "content": "> Write a joke about {topic}\n\n-> {joke}\n"
+                        "content": "Write a joke about {topic}"
                     }
                 ],
                 "sourceFile": "./book/books/templates/generic.book.md"
@@ -696,7 +675,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.84.0-12",
+                        "promptbookVersion": "0.84.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.005124
@@ -827,7 +806,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.84.0-12",
+                        "promptbookVersion": "0.84.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.0054540000000000005
@@ -1104,7 +1083,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.84.0-12",
+                        "promptbookVersion": "0.84.0-13",
                         "usage": {
                             "price": {
                                 "value": 0.006237

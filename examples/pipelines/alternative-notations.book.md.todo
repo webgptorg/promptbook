@@ -1,0 +1,17 @@
+# ✨ Example prompt with URL
+
+Show that instead of bullets you can numbers or letters and instead of `->` you can use `=>`
+
+### Informal response
+
+1. PERSONA Joe, average Joe
+2. KNOWLEDGE https://www.wikipedia.org/wiki/Donald_Trump
+
+a) EXPECT MIN 1 Word
+b) EXPECT MAX 5 Pages
+
+```text
+Hello
+```
+
+`=> {greetingResponse}`

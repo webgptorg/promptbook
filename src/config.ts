@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -76,6 +74,20 @@ export const DEFAULT_BOOK_TITLE = `✨ Untitled Book`;
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_TASK_TITLE = `Task`;
+
+/**
+ * When the title of the prompt task is not provided, the default title is used
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_PROMPT_TASK_TITLE = `Prompt`;
+
+/**
+ * When the pipeline is flat and no name of return parameter is provided, this name is used
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_BOOK_OUTPUT_PARAMETER_NAME = 'result';
 
 /**
  * Warning message for the generated sections and files files

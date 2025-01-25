@@ -1,7 +1,8 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_BOOK_TITLE } from '../../../config';
+import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME, DEFAULT_BOOK_TITLE } from '../../../config';
 import type { PipelineString } from '../../../pipeline/PipelineString';
 import { validatePipelineString } from '../../../pipeline/validatePipelineString';
+import { string_prompt } from '../../../types/typeAliases';
 import { isFlatPipeline } from '../utils/isFlatPipeline';
 
 /**
@@ -15,8 +16,34 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
     }
 
     const pipelineStringLines = pipelineString.split('\n');
-    const returnStatement = pipelineStringLines.pop()!;
+    const potentialReturnStatement = pipelineStringLines.pop()!;
+    let returnStatement: string;
+
+    if (/(-|=)>\s*\{.*\}/.test(potentialReturnStatement)) {
+        // Note: Last line is return statement
+        returnStatement = potentialReturnStatement;
+    } else {
+        // Note: Last line is not a return statement
+        returnStatement = `-> {${DEFAULT_BOOK_OUTPUT_PARAMETER_NAME}}`;
+        pipelineStringLines.push(potentialReturnStatement);
+    }
+
     const prompt = spaceTrim(pipelineStringLines.join('\n'));
+
+    let quotedPrompt: string_prompt;
+
+    if (prompt.split('\n').length <= 1) {
+        quotedPrompt = `> ${prompt}`;
+    } else {
+        quotedPrompt = spaceTrim(
+            (block) => `
+                \`\`\`
+                ${block(prompt.split('`').join('\\`'))}
+                \`\`\`
+            `,
+        );
+    }
+
     pipelineString = validatePipelineString(
         spaceTrim(
             (block) => `
@@ -24,9 +51,7 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
 
                 ## Prompt
 
-                \`\`\`
-                ${block(prompt)}
-                \`\`\`
+                ${block(quotedPrompt)}
 
                 ${returnStatement}
             `,

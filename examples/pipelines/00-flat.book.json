@@ -1,9 +1,9 @@
 {
-    "title": "😂 Topic-Specific Joke Generator",
+    "title": "😂 Joke Generator",
     "formfactorName": "GENERIC",
     "parameters": [
         {
-            "name": "joke",
+            "name": "result",
             "isInput": false,
             "isOutput": true
         },
@@ -19,7 +19,7 @@
             "name": "prompt",
             "title": "Prompt",
             "content": "Write a joke about {topic}",
-            "resultingParameterName": "joke",
+            "resultingParameterName": "result",
             "dependentParameterNames": [
                 "topic"
             ]
@@ -89,7 +89,7 @@
         {
             "type": "BOOK",
             "path": null,
-            "content": "Write a joke about {topic}\n\n`-> {joke}`\n\n<!--\nNote: When there is no structure, whole content is considered as a prompt of single-task pipeline\n-->\n"
+            "content": "Write a joke about {topic}\n\n<!--\nNote: When there is no structure, whole content is considered as a prompt of single-task pipeline\n-->\n"
         }
     ]
 }
