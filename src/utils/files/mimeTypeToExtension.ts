@@ -1,5 +1,6 @@
 import { extension } from 'mime-types';
-import type { string_file_extension, string_mime_type } from '../../types/typeAliases';
+import type { string_file_extension } from '../../types/typeAliases';
+import type { string_mime_type } from '../../types/typeAliases';
 
 /**
  * Convert mime type to file extension
