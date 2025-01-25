@@ -17,7 +17,7 @@ export const markitdownScraperMetadata = $deepFreeze({
     className: 'MarkitdownScraper',
     mimeTypes: [
         'application/pdf',
-        // TODO: Make priority for scrapers and than allow all mime types here:
+        // TODO: [💵] Make priority for scrapers and than analyze which mime-types can Markitdown scrape and allow all mime types here:
         // 'text/html',
         // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ],

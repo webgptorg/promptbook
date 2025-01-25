@@ -4,9 +4,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_DOWNLOAD_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { MAX_FILENAME_LENGTH } from '../../../config';
+import { DEFAULT_DOWNLOAD_CACHE_DIRNAME, DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
@@ -17,6 +15,7 @@ import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/n
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
+import { mimeTypeToExtension } from '../../../utils/files/mimeTypeToExtension';
 import { titleToName } from '../../../utils/normalization/titleToName';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
@@ -56,7 +55,7 @@ export async function makeKnowledgeSourceHandler(
         const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
         const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
 
-        if (tools.fs === undefined || !url.endsWith('.pdf')) {
+        if (tools.fs === undefined || !url.endsWith('.pdf' /* <- TODO: [💵] */)) {
             return {
                 source: name,
                 filename: null,
@@ -93,20 +92,17 @@ export async function makeKnowledgeSourceHandler(
             // <- TODO: [🦒] Allow to override (pass different value into the function)
         );
 
-        TODO_USE(mimeType);
-        // TODO: !!!!!!!!! Make suffix according to the mimeType
-
         const filepath = join(
             ...nameToSubfolderPath(hash /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
-            `${basename.substring(0, MAX_FILENAME_LENGTH)}.pdf`,
+            `${basename.substring(0, MAX_FILENAME_LENGTH)}.${mimeTypeToExtension(mimeType)}`,
         );
 
         await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
         await tools.fs!.writeFile(join(rootDirname, filepath), Buffer.from(await response.arrayBuffer()));
 
-        // TODO: !!!!!!!! Check the file security
+        // TODO: [💵] Check the file security
         // TODO: !!!!!!!! Check the file size (if it is not too big)
-        // TODO: !!!!!!!! Delete the file
+        // TODO: !!!!!!!! Delete the file after the scraping is done
 
         return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, {
             ...options,
