@@ -689,6 +689,8 @@ Compile via remote server
 -   Multiple functions to manipulate with `PipelineString`
 -   `book` notation supports values interpolation
 -   Make equivalent of `book` notation the `prompt` exported through `@promptbook/utils`
+-   Flat books does not expect return parameter
+-   Wizzard always returns simple `result: string` key in output
 -   Change admin email to `pavol@ptbk.io`
 
 ## In pre-release
