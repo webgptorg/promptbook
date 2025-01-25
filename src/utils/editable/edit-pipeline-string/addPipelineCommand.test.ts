@@ -45,9 +45,7 @@ describe('how `addPipelineCommand` works', () => {
 
                     ## Prompt
 
-                    \`\`\`
-                    Hello, how are you?
-                    \`\`\`
+                    > Hello, how are you?
 
                     -> {answer}
                 `),
