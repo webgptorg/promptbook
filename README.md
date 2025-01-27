@@ -12,7 +12,7 @@
 
 <!--/Badges-->
 
-## ❄ New Features
+## 🌟 New Features
 
 -   🐋 **Support of [DeepSeek models](https://www.deepseek.com/)**
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)

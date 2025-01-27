@@ -273,10 +273,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             }
         }
 
-        if (packageFullname === '@promptbook/utils') {
+        if (packageFullname === '@promptbook/utils' || packageFullname === '@promptbook/markdown-utils') {
             packageJson.license = 'CC-BY-4.0';
         } else {
-            packageJson.license = 'SEE LICENSE IN LICENSE.md'; // <- TODO: !!!!!! Maybe 'LicenseRef-LICENSE';
+            packageJson.license = 'FSL-1.1-Apache-2.0';
+            // <- Note: [🥙] Since FSL is not yet in the SPDX license list, this is the most accurate way to represent it while maintaining compatibility with package managers
         }
 
         packageJson.name = packageFullname;
@@ -287,10 +288,13 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         //     <- TODO: Add GENERATOR_WARNING to package.json
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
+        /*
+        TODO: !!!!!! Is this file kept in the package?
         await writeFile(
             `./packages/${packageBasename}/LICENSE.md`,
             `[Functional Source License, Version 1.1, ALv2 Future License](https://github.com/getsentry/fsl.software/blob/main/FSL-1.1-ALv2.template.md)`,
         );
+        */
 
         if (isBuilded) {
             await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
