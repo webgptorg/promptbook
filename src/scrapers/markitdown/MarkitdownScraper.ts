@@ -49,10 +49,11 @@ export class MarkitdownScraper implements Converter, Scraper {
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
 
+        // Note: Module `markitdown-ts` has no types available, so it is imported using `require`
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { MarkItDown } = require('markitdown-ts');
-        // <- TODO: !!! Use Markitdown directly not through this package
-        // <- Note: !!!!!!!
+        // <- TODO: 'Use Markitdown directly not through this package
+
         this.markitdown = new MarkItDown();
     }
 
@@ -98,7 +99,7 @@ export class MarkitdownScraper implements Converter, Scraper {
             }
 
             const result = await this.markitdown.convert(src, {
-                // TODO: !!!!!! Pass when sacraping Youtube
+                // TODO: Pass when sacraping Youtube
                 // enableYoutubeTranscript: true,
                 // youtubeTranscriptLanguage: 'en',
             });
