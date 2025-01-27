@@ -262,9 +262,22 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
         delete packageJson.scripts;
+        delete packageJson.funding;
         delete packageJson.dependencies;
         delete packageJson.devDependencies;
         delete packageJson.peerDependencies;
+
+        for (const key of Object.keys(packageJson)) {
+            if (key.startsWith('--')) {
+                delete packageJson[key];
+            }
+        }
+
+        if (packageFullname === '@promptbook/utils') {
+            packageJson.license = 'CC-BY-4.0';
+        } else {
+            packageJson.license = 'FSL'; // <- TODO: !!!!!! Maybe 'LicenseRef-LICENSE';
+        }
 
         packageJson.name = packageFullname;
 

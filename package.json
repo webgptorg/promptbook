@@ -35,7 +35,7 @@
         "anthropic",
         "LLMOps"
     ],
-    "license": "CC-BY-4.0",
+    "license": "FSL",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
