@@ -276,7 +276,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         if (packageFullname === '@promptbook/utils') {
             packageJson.license = 'CC-BY-4.0';
         } else {
-            packageJson.license = 'FSL'; // <- TODO: !!!!!! Maybe 'LicenseRef-LICENSE';
+            packageJson.license = 'SEE LICENSE IN LICENSE.md'; // <- TODO: !!!!!! Maybe 'LicenseRef-LICENSE';
         }
 
         packageJson.name = packageFullname;
@@ -286,6 +286,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
         //     <- TODO: Add GENERATOR_WARNING to package.json
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
+
+        await writeFile(
+            `./packages/${packageBasename}/LICENSE.md`,
+            `[Functional Source License, Version 1.1, ALv2 Future License](https://github.com/getsentry/fsl.software/blob/main/FSL-1.1-ALv2.template.md)`,
+        );
 
         if (isBuilded) {
             await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
