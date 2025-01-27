@@ -1,8 +1,7 @@
 {
     "name": "@promptbook/core",
-    "version": "0.84.0-14",
+    "version": "0.84.0-15",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
-    "--note-0": "    <- [🐊]",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -12,7 +11,6 @@
     "contributors": [
         "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)"
     ],
-    "--todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -35,21 +33,11 @@
         "anthropic",
         "LLMOps"
     ],
-    "license": "CC-BY-4.0",
+    "license": "SEE LICENSE IN LICENSE.md",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
-    "funding": [
-        {
-            "type": "individual",
-            "url": "https://buymeacoffee.com/hejny"
-        },
-        {
-            "type": "github",
-            "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
-        }
-    ],
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/core.index.d.ts",

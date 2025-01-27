@@ -1,6 +1,6 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# ❄ Promptbook
+# ✨ Promptbook
 
 
 
@@ -16,10 +16,10 @@
 
 ## ❄ New Features
 
+-   🐋 **Support of [DeepSeek models](https://www.deepseek.com/)**
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
 -   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
--   📚 Support of `.docx`, `.doc` and `.pdf` documents
--   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
+-   📚 Support of `.docx`, `.doc` and `.pdf` documents as knowledge
 
 
 
