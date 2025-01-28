@@ -80,6 +80,7 @@
         "yaml": "2.3.3"
     },
     "dependencies": {
+        "@ai-sdk/deepseek": "^0.1.6",
         "@ai-sdk/google": "1.0.5",
         "@ai-sdk/openai": "^1.0.7",
         "@anthropic-ai/sdk": "0.26.1",
