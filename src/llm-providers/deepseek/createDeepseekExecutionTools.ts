@@ -5,7 +5,7 @@ import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutio
 import type { DeepseekExecutionToolsOptions } from './DeepseekExecutionToolsOptions';
 
 /**
- * Execution Tools for calling Deepseek Gemini API.
+ * Execution Tools for calling Deepseek API.
  *
  * @public exported from `@promptbook/deepseek`
  */
@@ -18,34 +18,22 @@ export const createDeepseekExecutionTools = Object.assign(
 
         // Note: [🔘] Maybe there is same compatibility problem as in '@ai-sdk/deepseek'
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { createDeepseekGenerativeAI } = require('@ai-sdk/deepseek');
+        const { createDeepSeek } = require('@ai-sdk/deepseek');
 
-        const deepseekGeminiVercelProvider = createDeepseekGenerativeAI({
+        const deepseekVercelProvider = createDeepSeek({
             ...options,
-            /// apiKey: process.env.DEEPSEEK_GENERATIVE_AI_API_KEY,
+            // apiKey: process.env.DEEPSEEK_GENERATIVE_AI_API_KEY,
         });
 
         return createExecutionToolsFromVercelProvider({
             title: 'Deepseek',
             description: 'Implementation of Deepseek models',
-            vercelProvider: deepseekGeminiVercelProvider,
+            vercelProvider: deepseekVercelProvider,
             availableModels: [
                 // TODO: [🕘] Maybe list models in same way as in other providers - in separate file with metadata
-                'gemini-1.5-flash',
-                'gemini-1.5-flash-latest',
-                'gemini-1.5-flash-001',
-                'gemini-1.5-flash-002',
-                'gemini-1.5-flash-exp-0827',
-                'gemini-1.5-flash-8b',
-                'gemini-1.5-flash-8b-latest',
-                'gemini-1.5-flash-8b-exp-0924',
-                'gemini-1.5-flash-8b-exp-0827',
-                'gemini-1.5-pro-latest',
-                'gemini-1.5-pro',
-                'gemini-1.5-pro-001',
-                'gemini-1.5-pro-002',
-                'gemini-1.5-pro-exp-0827',
-                'gemini-1.0-pro',
+                'deepseek-chat',
+                'deepseek-reasoner',
+                // <- TODO: !!!!!! Picking of default model
             ].map((modelName) => ({ modelName, modelVariant: 'CHAT' })),
             ...options,
         });

@@ -1,4 +1,4 @@
-import type { createDeepseekGenerativeAI } from '@ai-sdk/deepseek';
+import type { createDeepSeek } from '@ai-sdk/deepseek';
 import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptions';
 
 /**
@@ -11,4 +11,4 @@ export type DeepseekExecutionToolsOptions = Omit<
     VercelExecutionToolsOptions,
     'title' | 'description' | 'vercelProvider' | 'availableModels'
 > &
-    Parameters<typeof createDeepseekGenerativeAI>[0];
+    Parameters<typeof createDeepSeek>[0];

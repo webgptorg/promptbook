@@ -14,14 +14,14 @@ import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfigur
  * @public exported from `@promptbook/cli`
  */
 export const _DeepseekMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
-    title: 'Deepseek Gemini',
+    title: 'Deepseek',
     packageName: '@promptbook/deepseek',
     className: 'DeepseekExecutionTools',
     envVariables: ['DEEPSEEK_GENERATIVE_AI_API_KEY'],
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Deepseek Gemini (boilerplate)',
+            title: 'Deepseek (boilerplate)',
             packageName: '@promptbook/deepseek',
             className: 'DeepseekExecutionTools',
             options: {
@@ -35,14 +35,14 @@ export const _DeepseekMetadataRegistration: Registration = $llmToolsMetadataRegi
             $isRunningInJest()
             // <- TODO: Maybe check `env.JEST_WORKER_ID` directly here or pass `env` into `$isRunningInJest`
         ) {
-            // Note: [🔘] Gemini makes problems in Jest environment
+            // Note: [🔘] Maybe same problem as Gemini
             return null;
         }
 
         // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
         if (typeof env.DEEPSEEK_GENERATIVE_AI_API_KEY === 'string') {
             return {
-                title: 'Deepseek Gemini (from env)',
+                title: 'Deepseek (from env)',
                 packageName: '@promptbook/deepseek',
                 className: 'DeepseekExecutionTools',
                 options: {
