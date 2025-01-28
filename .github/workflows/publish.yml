@@ -47,6 +47,11 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @promptbook/deepseek
+              working-directory: ./packages/deepseek
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/documents
               working-directory: ./packages/documents
               run: npm publish --provenance --access public

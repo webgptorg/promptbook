@@ -27,10 +27,10 @@
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
 </blockquote>
 
-## 📦 Package `@promptbook/remote-client`
+## 📦 Package `@promptbook/deepseek`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/remote-client` is one part of the promptbook ecosystem.
+- This package `@promptbook/deepseek` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -39,11 +39,10 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm install @promptbook/remote-client
+npm install @promptbook/deepseek
 ```
 
-
-
+🐋 Integration with [DeepSeek API](https://www.deepseek.com/)
 
 ---
 

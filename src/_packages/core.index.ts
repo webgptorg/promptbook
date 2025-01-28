@@ -94,6 +94,7 @@ import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usag
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
 import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic-claude/register-configuration';
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
+import { _DeepseekMetadataRegistration } from '../llm-providers/deepseek/register-configuration';
 import { _GoogleMetadataRegistration } from '../llm-providers/google/register-configuration';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
@@ -229,6 +230,7 @@ export { countTotalUsage };
 export { limitTotalUsage };
 export { _AnthropicClaudeMetadataRegistration };
 export { _AzureOpenAiMetadataRegistration };
+export { _DeepseekMetadataRegistration };
 export { _GoogleMetadataRegistration };
 export { joinLlmExecutionTools };
 export { MultipleLlmExecutionTools };

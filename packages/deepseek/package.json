@@ -1,5 +1,5 @@
 {
-    "name": "@promptbook/vercel",
+    "name": "@promptbook/deepseek",
     "version": "0.84.0-15",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
@@ -40,12 +40,8 @@
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/vercel.index.d.ts",
+    "typings": "./esm/typings/src/_packages/deepseek.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.84.0-15"
-    },
-    "dependencies": {
-        "colors": "1.4.0",
-        "spacetrim": "0.11.59"
     }
 }

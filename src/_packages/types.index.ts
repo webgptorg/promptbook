@@ -73,6 +73,7 @@ import type { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anth
 import type { AnthropicClaudeExecutionToolsDirectOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AnthropicClaudeExecutionToolsProxiedOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-openai/AzureOpenAiExecutionToolsOptions';
+import type { DeepseekExecutionToolsOptions } from '../llm-providers/deepseek/DeepseekExecutionToolsOptions';
 import type { GoogleExecutionToolsOptions } from '../llm-providers/google/GoogleExecutionToolsOptions';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
@@ -349,6 +350,7 @@ export type { AnthropicClaudeExecutionToolsOptions };
 export type { AnthropicClaudeExecutionToolsDirectOptions };
 export type { AnthropicClaudeExecutionToolsProxiedOptions };
 export type { AzureOpenAiExecutionToolsOptions };
+export type { DeepseekExecutionToolsOptions };
 export type { GoogleExecutionToolsOptions };
 export type { OpenAiAssistantExecutionToolsOptions };
 export type { OpenAiExecutionToolsOptions };

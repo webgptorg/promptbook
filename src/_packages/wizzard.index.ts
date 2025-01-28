@@ -6,6 +6,8 @@ import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic
 import { _AnthropicClaudeRegistration } from '../llm-providers/anthropic-claude/register-constructor';
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
 import { _AzureOpenAiRegistration } from '../llm-providers/azure-openai/register-constructor';
+import { _DeepseekMetadataRegistration } from '../llm-providers/deepseek/register-configuration';
+import { _DeepseekRegistration } from '../llm-providers/deepseek/register-constructor';
 import { _GoogleMetadataRegistration } from '../llm-providers/google/register-configuration';
 import { _GoogleRegistration } from '../llm-providers/google/register-constructor';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
@@ -38,6 +40,8 @@ export { _AnthropicClaudeMetadataRegistration };
 export { _AnthropicClaudeRegistration };
 export { _AzureOpenAiMetadataRegistration };
 export { _AzureOpenAiRegistration };
+export { _DeepseekMetadataRegistration };
+export { _DeepseekRegistration };
 export { _GoogleMetadataRegistration };
 export { _GoogleRegistration };
 export { _OpenAiMetadataRegistration };

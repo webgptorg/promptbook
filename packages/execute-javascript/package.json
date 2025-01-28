@@ -33,7 +33,7 @@
         "anthropic",
         "LLMOps"
     ],
-    "license": "SEE LICENSE IN LICENSE.md",
+    "license": "FSL-1.1-Apache-2.0",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
