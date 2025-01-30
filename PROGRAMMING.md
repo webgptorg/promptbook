@@ -16,8 +16,8 @@ See [TODO.md](./TODO.md)
 -   `[🐣]` Easter eggs
 -   `[💩]` Shitty code that needs refactoring
 -   `$` When entity (function, class) starts by `$`, it means it is not pure and can have side effects.
--   `!!!` Marks a place that needs to be fixed before releasing a pre-release version.
--   `!!!!` (and more) Marks a place that needs to be fixed as soon as possible.
+-   3x `!` Marks a place that needs to be fixed before releasing a pre-release version.
+-   4x (and more) `!` Marks a place that needs to be fixed as soon as possible.
 -   `@@@` Marks a place where text / documentation / ... must be written.
 
 -   [⚫] Code in this file should never be published in any package

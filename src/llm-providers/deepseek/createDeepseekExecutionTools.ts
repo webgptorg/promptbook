@@ -33,7 +33,7 @@ export const createDeepseekExecutionTools = Object.assign(
                 // TODO: [🕘] Maybe list models in same way as in other providers - in separate file with metadata
                 'deepseek-chat',
                 'deepseek-reasoner',
-                // <- TODO: !!!!!! Picking of default model
+                // <- TODO: How picking of the default model looks like in `createExecutionToolsFromVercelProvider`
             ].map((modelName) => ({ modelName, modelVariant: 'CHAT' })),
             ...options,
         });
