@@ -1,1 +1,0 @@
-[Functional Source License, Version 1.1, ALv2 Future License](https://github.com/getsentry/fsl.software/blob/main/FSL-1.1-ALv2.template.md)

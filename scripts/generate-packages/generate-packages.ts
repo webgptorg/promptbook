@@ -3,7 +3,7 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import fs, { readFile, writeFile } from 'fs/promises';
+import fs, { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
@@ -244,6 +244,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         );
         prettifyMarkdown(packageReadme);
 
+        await mkdir(`./packages/${packageBasename}`, { recursive: true });
         await writeFile(
             `./packages/${packageBasename}/README.md`,
             packageReadme,
@@ -287,14 +288,6 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
         //     <- TODO: Add GENERATOR_WARNING to package.json
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
-
-        /*
-        TODO: !!!!!! Is this file kept in the package?
-        await writeFile(
-            `./packages/${packageBasename}/LICENSE.md`,
-            `[Functional Source License, Version 1.1, ALv2 Future License](https://github.com/getsentry/fsl.software/blob/main/FSL-1.1-ALv2.template.md)`,
-        );
-        */
 
         if (isBuilded) {
             await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
