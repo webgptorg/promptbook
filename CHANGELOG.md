@@ -691,7 +691,7 @@ Compile via remote server
 -   Make equivalent of `book` notation the `prompt` exported through `@promptbook/utils`
 -   Flat books does not expect return parameter
 -   Wizzard always returns simple `result: string` key in output
--   Using `FSL` license (only for `@promptbook/utils` keep using `CC-BY-4.0`)
+-   Using `FSL` license (only for `@promptbook/utils` keep using `CC-BY-4.0`) <!-- <- TODO: [🥙] -->
 -   Support of [DeepSeek models](https://www.deepseek.com/)
 -   Change admin email to `pavol@ptbk.io`
 
