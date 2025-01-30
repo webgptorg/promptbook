@@ -9,8 +9,10 @@
         "type": "git",
         "url": "https://github.com/webgptorg/promptbook"
     },
+    "author": "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)",
     "contributors": [
-        "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)"
+        "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)",
+        "Jiří Jahn <jiri@ptbk.io> (https://www.ptbk.io/)"
     ],
     "--todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
