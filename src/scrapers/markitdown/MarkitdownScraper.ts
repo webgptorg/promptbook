@@ -106,7 +106,7 @@ export class MarkitdownScraper implements Converter, Scraper {
 
             if (result === null || result === undefined) {
                 throw new Error(`Markitdown could not convert the "${source.source}"`);
-                // <- TODO: !!! Make MarkitdownError
+                // <- TODO: [🍀] Make MarkitdownError
             }
 
             // console.log('!!', { result, cacheFilehandler });
