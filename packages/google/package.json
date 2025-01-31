@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/google",
-    "version": "0.84.0-16",
+    "version": "0.84.0-17",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -35,7 +35,7 @@
         "anthropic",
         "LLMOps"
     ],
-    "license": "FSL-1.1-Apache-2.0",
+    "license": "UNLICENSED",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
@@ -44,7 +44,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/google.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.84.0-16"
+        "@promptbook/core": "0.84.0-17"
     },
     "dependencies": {
         "@ai-sdk/google": "1.0.5",
