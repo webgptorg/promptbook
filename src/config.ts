@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -90,6 +88,13 @@ export const DEFAULT_PROMPT_TASK_TITLE = `Prompt`;
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_BOOK_OUTPUT_PARAMETER_NAME = 'result';
+
+/**
+ * Maximum file size limit
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 /**
  * Warning message for the generated sections and files files

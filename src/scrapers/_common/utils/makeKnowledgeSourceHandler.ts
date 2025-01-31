@@ -4,10 +4,15 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_DOWNLOAD_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { MAX_FILENAME_LENGTH } from '../../../config';
+import {
+    DEFAULT_DOWNLOAD_CACHE_DIRNAME,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_FILE_SIZE,
+    MAX_FILE_SIZE,
+    MAX_FILENAME_LENGTH,
+} from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { LimitReachedError } from '../../../errors/LimitReachedError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
@@ -100,10 +105,19 @@ export async function makeKnowledgeSourceHandler(
         );
 
         await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
-        await tools.fs!.writeFile(join(rootDirname, filepath), Buffer.from(await response.arrayBuffer()));
+        const fileContent = Buffer.from(await response.arrayBuffer());
+
+        if (fileContent.length > DEFAULT_MAX_FILE_SIZE /* <- TODO: Allow to pass different value to remote server */) {
+            throw new LimitReachedError(
+                `File is too large (${Math.round(
+                    fileContent.length / 1024 / 1024,
+                )}MB). Maximum allowed size is ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB.`,
+            );
+        }
+
+        await tools.fs!.writeFile(join(rootDirname, filepath), fileContent);
 
         // TODO: [💵] Check the file security
-        // TODO: !!!!!!!! Check the file size (if it is not too big)
         // TODO: !!!!!!!! Delete the file after the scraping is done
 
         return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, {
