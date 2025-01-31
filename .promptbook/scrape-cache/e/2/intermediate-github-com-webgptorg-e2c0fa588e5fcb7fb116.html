@@ -1,0 +1,360 @@
+✨ Promptbook
+
+
+
+
+
+
+
+
+🌟 New Features
+
+🐋 Support of DeepSeek models
+💙 Working the Book language v1.0.0
+🖤 Run books from CLI - npx ptbk run path/to/your/book
+📚 Support of .docx, .doc and .pdf documents as knowledge
+
+
+
+
+
+🤍 The Book Abstract
+It's time for a paradigm shift! The future of software is in plain English, French or Latin.
+During the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!
+It's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!
+The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
+This shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.
+Join us in this journey!
+
+🚀 Get started
+Take a look at the simple starter kit with books integrated into the Hello World sample applications:
+
+Hello Book
+Hello Book in Node.js
+Hello Book in Next.js
+
+
+
+💜 The Promptbook Project
+Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
+
+  
+    
+      Project
+      Description
+      Link
+    
+  
+  
+    
+      Core
+      Promptbook Core is a description and documentation of the basic concepts, ideas and inner workings of how Promptbook should be implemented, and defines what features must be describable by book language.
+      https://github.com/webgptorg/book
+    
+    
+      Book language
+      
+          Book is a markdown-like language to define core entities like projects, pipelines, knowledge,.... It is designed to be understandable by non-programmers and non-technical people
+      
+    
+    
+      Promptbook typescript project
+      Promptbook implementation in TypeScript released as multiple NPM packages
+      https://github.com/webgptorg/promptbook + Multiple packages published on NPM
+    
+    
+      Promptbook studio
+      Studio to write Books and instantly publish them as miniapps
+      
+        https://promptbook.studio
+        https://github.com/hejny/promptbook-studio
+      
+      Hello World
+      Simple starter kit with Books integrated into the sample applications
+       
+          https://github.com/webgptorg/hello-world
+          https://github.com/webgptorg/hello-world-node-js
+          https://github.com/webgptorg/hello-world-next-js
+       
+    
+  
+
+We also have a community of developers and users of Promptbook:
+
+Discord community
+Landing page ptbk.io
+Github discussions
+LinkedIn Promptbook
+Facebook Promptbook
+
+And Promptbook.studio branded socials:
+
+Instagram @promptbook.studio
+
+And Promptujeme sub-brand:
+/Subbrand for Czech clients/
+
+Promptujeme.cz
+Facebook Promptujeme
+
+And Promptbook.city branded socials:
+/Sub-brand for images and graphics generated via Promptbook prompting/
+
+Instagram @promptbook.city
+Facebook Promptbook City
+
+
+💙 Book language (for prompt-engineer)
+
+
+💙 The blueprint of book language
+Following is the documentation and blueprint of the Book language.
+Example
+# 🌟 My first Book
+
+-   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
+-   KNOWLEDGE https://ptbk.io
+-   KNOWLEDGE ./promptbook.pdf
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 1 Paragraph
+
+> Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
+> Look specifically at the impact of Promptbook on the AI industry.
+
+-> {article}
+Goals and principles of book language
+File is designed to be easy to read and write. It is strict subset of markdown. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
+It has file with .book.md or .book extension with UTF-8 non BOM encoding.
+As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
+But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
+Structure
+Book is divided into sections. Each section starts with heading. The language itself is not sensitive to the type of heading (h1, h2, h3, ...) but it is recommended to use h1 for header section and h2 for other sections.
+Header
+Header is the first section of the book. It contains metadata about the pipeline. It is recommended to use h1 heading for header section but it is not required.
+Parameter
+Foo bar
+Parameter names
+Reserved words:
+
+each command like PERSONA, EXPECT, KNOWLEDGE, etc.
+content
+context
+knowledge
+examples
+modelName
+currentDate
+
+Parameter notation
+Task
+Task type
+Todo todo
+Command
+Todo todo
+Block
+Todo todo
+Return parameter
+Examples
+
+📦 Packages (for developers)
+This library is divided into several packages, all are published from single monorepo.
+You can install all of them at once:
+
+Or you can install them separately:
+
+⭐ Marked packages are worth to try first
+
+
+⭐ ptbk - Bundle of all packages, when you want to install everything and you don't care about the size
+promptbook - Same as ptbk
+⭐🧙‍♂️ @promptbook/wizzard - Wizzard to just run the books in node without any struggle
+@promptbook/core - Core of the library, it contains the main logic for promptbooks
+@promptbook/node - Core of the library for Node.js environment
+@promptbook/browser - Core of the library for browser environment
+⭐ @promptbook/utils - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
+@promptbook/markdown-utils - Utility functions used for processing markdown
+(Not finished) @promptbook/wizzard - Wizard for creating+running promptbooks in single line
+@promptbook/execute-javascript - Execution tools for javascript inside promptbooks
+@promptbook/openai - Execution tools for OpenAI API, wrapper around OpenAI SDK
+@promptbook/anthropic-claude - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+@promptbook/vercel - Adapter for Vercel functionalities
+@promptbook/google - Integration with Google's Gemini API
+@promptbook/deepseek - Integration with DeepSeek API
+@promptbook/azure-openai - Execution tools for Azure OpenAI API
+
+
+
+@promptbook/fake-llm - Mocked execution tools for testing the library and saving the tokens
+@promptbook/remote-client - Remote client for remote execution of promptbooks
+@promptbook/remote-server - Remote server for remote execution of promptbooks
+@promptbook/pdf - Read knowledge from .pdf documents
+@promptbook/documents - Integration of Markitdown by Microsoft
+@promptbook/documents - Read knowledge from documents like .docx, .odt,…
+@promptbook/legacy-documents - Read knowledge from legacy documents like .doc, .rtf,…
+@promptbook/website-crawler - Crawl knowledge from the web
+@promptbook/editable - Editable book as native javascript object with imperative object API
+@promptbook/templates - Usefull templates and examples of books which can be used as a starting point
+@promptbook/types - Just typescript types used in the library
+⭐ @promptbook/cli - Command line interface utilities for promptbooks
+
+
+
+
+📚 Dictionary
+📚 Dictionary
+The following glossary is used to clarify certain concepts:
+General LLM / AI terms
+
+Prompt drift is a phenomenon where the AI model starts to generate outputs that are not aligned with the original prompt. This can happen due to the model's training data, the prompt's wording, or the model's architecture.
+Pipeline, workflow or chain is a sequence of tasks that are executed in a specific order. In the context of AI, a pipeline can refer to a sequence of AI models that are used to process data.
+Fine-tuning is a process where a pre-trained AI model is further trained on a specific dataset to improve its performance on a specific task.
+Zero-shot learning is a machine learning paradigm where a model is trained to perform a task without any labeled examples. Instead, the model is provided with a description of the task and is expected to generate the correct output.
+Few-shot learning is a machine learning paradigm where a model is trained to perform a task with only a few labeled examples. This is in contrast to traditional machine learning, where models are trained on large datasets.
+Meta-learning is a machine learning paradigm where a model is trained on a variety of tasks and is able to learn new tasks with minimal additional training. This is achieved by learning a set of meta-parameters that can be quickly adapted to new tasks.
+Retrieval-augmented generation is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
+Longtail refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
+
+Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook
+Promptbook core
+
+Organization (legacy name collection) group jobs, workforce, knowledge, instruments, and actions into one package. Entities in one organization can share resources (= import resources from each other).
+
+Jobs
+
+Task
+Subtask
+
+
+Workforce
+
+Persona
+Team
+Role
+
+
+Knowledge
+
+Public
+Private
+Protected
+
+
+Instruments
+Actions
+
+
+
+Book language
+
+Book file
+
+Section
+
+Heading
+Description
+Command
+Block
+Return statement
+
+
+Comment
+Import
+Scope
+
+
+
+💯 Core concepts
+
+📚 Collection of pipelines
+📯 Pipeline
+🙇‍♂️ Tasks and pipeline sections
+🤼 Personas
+⭕ Parameters
+🚀 Pipeline execution
+🧪 Expectations
+✂️ Postprocessing
+🔣 Words not tokens
+☯ Separation of concerns
+
+Advanced concepts
+
+📚 Knowledge (Retrieval-augmented generation)
+🌏 Remote server
+🃏 Jokers (conditions)
+🔳 Metaprompting
+🌏 Linguistically typed languages
+🌍 Auto-Translations
+📽 Images, audio, video, spreadsheets
+🔙 Expectation-aware generation
+⏳ Just-in-time fine-tuning
+🔴 Anomaly detection
+👮 Agent adversary expectations
+view more
+
+Terms specific to Promptbook TypeScript implementation
+
+Anonymous mode
+Application mode
+
+
+🔌 Usage in Typescript / Javascript
+
+Simple usage
+Usage with client and remote server
+
+➕➖ When to use Promptbook?
+➕ When to use
+
+When you are writing app that generates complex things via LLM - like websites, articles, presentations, code, stories, songs,...
+When you want to separate code from text prompts
+When you want to describe complex prompt pipelines and don't want to do it in the code
+When you want to orchestrate multiple prompts together
+When you want to reuse parts of prompts in multiple places
+When you want to version your prompts and test multiple versions
+When you want to log the execution of prompts and backtrace the issues
+
+See more
+➖ When not to use
+
+When you have already implemented single simple prompt and it works fine for your job
+When OpenAI Assistant (GPTs) is enough for you
+When you need streaming (this may be implemented in the future, see discussion).
+When you need to use something other than JavaScript or TypeScript (other languages are on the way, see the discussion)
+When your main focus is on something other than text - like images, audio, video, spreadsheets (other media types may be added in the future, see discussion)
+When you need to use recursion (see the discussion)
+
+See more
+🐜 Known issues
+
+🤸‍♂️ Iterations not working yet
+⤵️ Imports not working yet
+
+🧼 Intentionally not implemented features
+
+➿ No recursion
+🏳 There are no types, just strings
+
+❔ FAQ
+If you have a question start a discussion, open an issue or write me an email.
+
+❔ Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?
+❔ How is it different from the OpenAI`s GPTs?
+❔ How is it different from the Langchain?
+❔ How is it different from the DSPy?
+❔ How is it different from anything?
+❔ Is Promptbook using RAG (Retrieval-Augmented Generation)?
+❔ Is Promptbook using function calling?
+
+⌚ Changelog
+See CHANGELOG.md
+📜 License
+Promptbook by Pavol Hejný is licensed under CC BY 4.0
+🎯 Todos
+See TODO.md
+
+
+🤝 Partners
+
+🖋️ Contributing
+I am open to pull requests, feedback, and suggestions. Or if you like this utility, you can ☕ buy me a coffee or donate via cryptocurrencies.
+You can also ⭐ star the promptbook package, follow me on GitHub or various other social networks.
+
