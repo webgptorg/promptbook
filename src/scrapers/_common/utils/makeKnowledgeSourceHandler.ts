@@ -8,7 +8,6 @@ import {
     DEFAULT_DOWNLOAD_CACHE_DIRNAME,
     DEFAULT_IS_VERBOSE,
     DEFAULT_MAX_FILE_SIZE,
-    MAX_FILE_SIZE,
     MAX_FILENAME_LENGTH,
 } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
