@@ -110,7 +110,7 @@ export async function makeKnowledgeSourceHandler(
             throw new LimitReachedError(
                 `File is too large (${Math.round(
                     fileContent.length / 1024 / 1024,
-                )}MB). Maximum allowed size is ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB.`,
+                )}MB). Maximum allowed size is ${Math.round(DEFAULT_MAX_FILE_SIZE / 1024 / 1024)}MB.`,
             );
         }
 
