@@ -1,8 +1,6 @@
 import { readFile } from 'fs/promises';
-import type { MarkItDown } from 'markitdown-ts'; // <- TODO: !!! Use Markitdown directly not through this package
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import type { MarkItDown } from 'markitdown-ts'; // <- TODO: [🍀] Use Markitdown directly not through this package
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -13,8 +11,7 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
@@ -55,7 +52,7 @@ export class MarkitdownScraper implements Converter, Scraper {
         // Note: Module `markitdown-ts` has no types available, so it is imported using `require`
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { MarkItDown } = require('markitdown-ts');
-        // <- TODO: 'Use Markitdown directly not through this package
+        // <- TODO: [🍀] Use Markitdown directly not through this package
 
         this.markitdown = new MarkItDown();
     }

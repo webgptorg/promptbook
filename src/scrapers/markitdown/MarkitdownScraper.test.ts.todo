@@ -1,5 +1,5 @@
 /*
-TODO: !!! This test is not wotking in Jest:
+TODO: !! This test is not wotking in Jest:
 
 
 Jest (promptbook)
@@ -103,7 +103,7 @@ describe('how creating knowledge by MarkitdownScraper works', () => {
             },
         ]));
 
-    // TODO: !!! Add all samples
+    // TODO: !! Add all samples
 
     it('should NOT scrape irrelevant information', () =>
         expect(
