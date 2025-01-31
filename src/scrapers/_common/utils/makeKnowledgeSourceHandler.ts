@@ -40,7 +40,7 @@ export async function makeKnowledgeSourceHandler(
     tools: Pick<ExecutionTools, 'fs' | 'fetch'>,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
-    console.log('!!! makeKnowledgeSourceHandler', knowledgeSource);
+    // console.log('!! makeKnowledgeSourceHandler', knowledgeSource);
 
     const { fetch = scraperFetch } = tools;
     const { knowledgeSourceContent } = knowledgeSource;
