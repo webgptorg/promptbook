@@ -13,7 +13,7 @@ export type PromptbookServer_Identification<TCustomOptions> =
     | PromptbookServer_AnonymousIdentification;
 
 /**
- * Application mode is @@@!!!
+ * Application mode is situation when you run known and well-defined books with your own api keys
  *
  * @public exported from `@promptbook/remote-server`
  * @public exported from `@promptbook/remote-client`
@@ -27,7 +27,10 @@ export type PromptbookServer_ApplicationIdentification<TCustomOptions> =
     };
 
 /**
- * Anonymous mode is @@@!!!
+ * Anonymous mode is when you run arbitrary user books without api keys from user
+ *
+ * Note: This is useful in situations when the LLM provider does not allow to call the API requests from the client side
+ *       It is kind of a proxy mode
  *
  * @public exported from `@promptbook/remote-server`
  * @public exported from `@promptbook/remote-client`
