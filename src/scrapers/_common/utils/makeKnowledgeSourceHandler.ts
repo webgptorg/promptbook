@@ -118,7 +118,7 @@ export async function makeKnowledgeSourceHandler(
         await tools.fs!.writeFile(join(rootDirname, filepath), fileContent);
 
         // TODO: [💵] Check the file security
-        // TODO: !!!!!!!! Delete the file after the scraping is done
+        // TODO: [🧹][🧠] Delete the file after the scraping is done
 
         return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, {
             ...options,

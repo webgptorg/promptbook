@@ -13,13 +13,13 @@ See [TODO.md](./TODO.md)
 -   `[🧠]` Marks a place where there is something to decide and think about.
 -   `[🔼]` Marks an entity (function, class, type,...) in other project (like Promptbook.studio) which should be moved to this repository
 -   `[🚉]` Marks an types / interfaces / structures fully serializable as JSON, not marking `string_` and `number_` prefixed aliases
+-   `[🧹]` Need to implement garbage collection
 -   `[🐣]` Easter eggs
 -   `[💩]` Shitty code that needs refactoring
 -   `$` When entity (function, class) starts by `$`, it means it is not pure and can have side effects.
 -   3x `!` Marks a place that needs to be fixed before releasing a pre-release version.
 -   4x (and more) `!` Marks a place that needs to be fixed as soon as possible.
 -   `@@@` Marks a place where text / documentation / ... must be written.
-
 -   [⚫] Code in this file should never be published in any package
 -   [🟢] Code in this file should never be published into packages that could be imported into browser environment
 -   [🔵] Code in this file should never be published outside of `@promptbook/browser`
