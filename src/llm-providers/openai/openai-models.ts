@@ -411,6 +411,32 @@ export const OPENAI_MODELS: ReadonlyArray<
         /**/
         {
             modelVariant: 'CHAT',
+            modelTitle: 'o1',
+            modelName: 'o1',
+            pricing: {
+                prompt: computeUsage(`$3.00 / 1M tokens`),
+                output: computeUsage(`$12.00 / 1M tokens`),
+                // <- TODO: !!! Unsure, check the pricing
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'o3-mini',
+            modelName: 'o3-mini',
+            pricing: {
+                prompt: computeUsage(`$3.00 / 1M tokens`),
+                output: computeUsage(`$12.00 / 1M tokens`),
+                // <- TODO: !!! Unsure, check the pricing
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
             modelTitle: 'o1-mini-2024-09-12',
             modelName: 'o1-mini-2024-09-12',
             pricing: {
