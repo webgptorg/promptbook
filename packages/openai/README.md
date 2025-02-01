@@ -16,6 +16,7 @@
 
 ## 🌟 New Features
 
+-   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
 -   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
@@ -642,11 +643,9 @@ See [TODO.md](./TODO.md)
 
 
 
-
 ## 🤝 Partners
 
 [![Technology Incubation](./other/partners/CI-Technology-Incubation.png)](https://technologickainkubace.org/en/about-technology-incubation/about-the-project/)
-
 
 ## 🖋️ Contributing
 
