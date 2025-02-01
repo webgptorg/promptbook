@@ -493,10 +493,17 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             // <- Note: [🧃] Using only `dependencies` (not `devDependencies`)
         }
 
-        if (packageFullname === '@promptbook/cli') {
+        if (
+            packageFullname === '@promptbook/cli' /* || packageFullname === '@promptbook/ptbk'
+                                                      <- TODO: !!! Is `npx ptbk` without previous install working without this commented condition?
+            */
+        ) {
             packageJson.bin = {
                 promptbook: 'bin/promptbook-cli.js',
                 ptbk: 'bin/promptbook-cli.js',
+                book: 'bin/promptbook-cli.js',
+                bk: 'bin/promptbook-cli.js',
+                // <- TODO: [🧠] Pick one of and remove rest
             };
         }
 
