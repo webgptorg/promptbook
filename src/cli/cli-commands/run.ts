@@ -20,8 +20,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../../scrapers/_common/utils/scraperFetch';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -43,11 +42,7 @@ export function initializeRunCommand(program: Program) {
 
     // TODO: [🧅] DRY command arguments
 
-    runCommand.argument(
-        '<pipelineSource>',
-        // <- Note: [🧟‍♂️] This is NOT promptbook collection directory BUT direct path to .book.md file
-        'Path to book file OR URL to book file',
-    );
+    runCommand.argument('[pipelineSource]', 'Path to book file OR URL to book file, if not provided it will be asked');
     runCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
     runCommand.option('-v, --verbose', `Is output verbose`, false);
     runCommand.option(
@@ -137,6 +132,26 @@ export function initializeRunCommand(program: Program) {
             return process.exit(1);
         }
 
+        if (!pipelineSource) {
+            const response = await prompts({
+                type: 'text',
+                name: 'pipelineSource',
+                message: '>',
+                validate: (value) => (value.length > 0 ? true : 'Pipeline source is required'),
+            });
+
+            if (!response.pipelineSource) {
+                console.error(colors.red('Pipeline source is required'));
+                return process.exit(1);
+            }
+
+            pipelineSource = response.pipelineSource;
+        }
+
+        if (isVerbose) {
+            console.info(colors.gray('--- Getting the tools ---'));
+        }
+
         const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,
@@ -149,11 +164,7 @@ export function initializeRunCommand(program: Program) {
         } satisfies ExecutionTools;
 
         if (isVerbose) {
-            console.info(colors.gray('--- Reading file ---'));
-        }
-
-        if (isVerbose) {
-            console.info(colors.gray('--- Preparing pipeline ---'));
+            console.info(colors.gray('--- Getting the book ---'));
         }
 
         let pipeline: PipelineJson;
