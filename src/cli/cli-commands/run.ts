@@ -3,6 +3,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { writeFile } from 'fs/promises';
+import { join } from 'path';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -23,6 +24,7 @@ import { scraperFetch } from '../../scrapers/_common/utils/scraperFetch';
 import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
+import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $getCompiledBook } from '../../wizzard/$getCompiledBook';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
@@ -129,6 +131,24 @@ export function initializeRunCommand(program: Program) {
                     ),
                 ),
             );
+
+            if (!(await isFileExisting('.env', fs))) {
+                await writeFile(
+                    join(process.cwd(), '.env'),
+                    $llmToolsMetadataRegister
+                        .list()
+                        .flatMap(({ title, envVariables }) =>
+                            envVariables === null
+                                ? []
+                                : [`# ${title}`, ...envVariables.map((varname) => `# ${varname}=...`), ''],
+                        )
+                        .join('\n'),
+                    'utf8',
+                );
+            }
+
+            // TODO: If the cwd is git repository, auto-create .gitignore and add .env to it
+
             return process.exit(1);
         }
 
@@ -136,7 +156,7 @@ export function initializeRunCommand(program: Program) {
             const response = await prompts({
                 type: 'text',
                 name: 'pipelineSource',
-                message: '>',
+                message: '', // <- TODO: [🧠] What is the message here
                 validate: (value) => (value.length > 0 ? true : 'Pipeline source is required'),
             });
 
