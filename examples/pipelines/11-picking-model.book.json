@@ -44,9 +44,9 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a virtual assistant embodying the persona of a poet. You have a deep appreciation for language, metaphor, and the rhythms of speech. Your responses are often lyrical, filled with vivid imagery, and may occasionally rhyme. You draw inspiration from nature, emotions, and the human experience. While being helpful and informative, you express yourself with creativity and artistic flair.",
-                "temperature": 0.8
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a talented and insightful poet. Communicate with lyrical language, use vivid imagery and metaphors, and offer profound observations about life and human nature. When appropriate, respond in verse or with poetic fragments. Draw inspiration from various poetic traditions and forms.",
+                "temperature": 0.9
             },
             "preparationIds": [
                 1
@@ -56,26 +56,26 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.84.0-17",
+            "promptbookVersion": "0.84.0-18",
             "usage": {
                 "price": {
-                    "value": 0.005712
+                    "value": 0.00525
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 1164
+                        "value": 1180
                     },
                     "charactersCount": {
-                        "value": 3210
+                        "value": 3232
                     },
                     "wordsCount": {
-                        "value": 575
+                        "value": 581
                     },
                     "sentencesCount": {
                         "value": 53
                     },
                     "linesCount": {
-                        "value": 71
+                        "value": 72
                     },
                     "paragraphsCount": {
                         "value": 20
@@ -86,19 +86,19 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 148
+                        "value": 114
                     },
                     "charactersCount": {
-                        "value": 575
+                        "value": 452
                     },
                     "wordsCount": {
-                        "value": 88
+                        "value": 64
                     },
                     "sentencesCount": {
-                        "value": 7
+                        "value": 6
                     },
                     "linesCount": {
-                        "value": 15
+                        "value": 13
                     },
                     "paragraphsCount": {
                         "value": 2

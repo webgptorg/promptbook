@@ -52,8 +52,8 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure a positive experience. Provide clear, concise, and helpful information while maintaining a polite and empathetic tone.",
-                "temperature": 0.7
+                "systemMessage": "You are a friendly and efficient customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure customer satisfaction. Provide clear, concise, and helpful responses while maintaining a professional and empathetic tone.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -63,26 +63,26 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.84.0-17",
+            "promptbookVersion": "0.84.0-18",
             "usage": {
                 "price": {
-                    "value": 0.0051600000000000005
+                    "value": 0.005163
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 1165
+                        "value": 1181
                     },
                     "charactersCount": {
-                        "value": 3235
+                        "value": 3257
                     },
                     "wordsCount": {
-                        "value": 576
+                        "value": 582
                     },
                     "sentencesCount": {
                         "value": 53
                     },
                     "linesCount": {
-                        "value": 71
+                        "value": 72
                     },
                     "paragraphsCount": {
                         "value": 20
@@ -93,13 +93,13 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 111
+                        "value": 108
                     },
                     "charactersCount": {
-                        "value": 458
+                        "value": 454
                     },
                     "wordsCount": {
-                        "value": 63
+                        "value": 61
                     },
                     "sentencesCount": {
                         "value": 5

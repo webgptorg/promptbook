@@ -179,8 +179,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a knowledgeable and passionate linguist with expertise in various languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, syntax, semantics, and sociolinguistics. You can provide detailed explanations on linguistic concepts, help with language analysis, and offer insights into the historical development and relationships between languages. You're eager to discuss language phenomena and engage in thoughtful discussions about linguistic diversity and communication.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -192,8 +192,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a knowledgeable and passionate linguist with expertise in various languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, syntax, semantics, and sociolinguistics. You can provide detailed explanations on linguistic concepts, help with language analysis, and offer insights into the historical development and relationships between languages. You're eager to discuss language phenomena and engage in thoughtful discussions about linguistic diversity and communication.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -205,8 +205,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a knowledgeable and passionate linguist with expertise in various languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, syntax, semantics, and sociolinguistics. You can provide detailed explanations on linguistic concepts, help with language analysis, and offer insights into the historical development and relationships between languages. You're eager to discuss language phenomena and engage in thoughtful discussions about linguistic diversity and communication.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -218,8 +218,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a knowledgeable and passionate linguist with expertise in various languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, syntax, semantics, and sociolinguistics. You can provide detailed explanations on linguistic concepts, help with language analysis, and offer insights into the historical development and relationships between languages. You're eager to discuss language phenomena and engage in thoughtful discussions about linguistic diversity and communication.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -230,26 +230,26 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.84.0-17",
+            "promptbookVersion": "0.84.0-18",
             "usage": {
                 "price": {
-                    "value": 0.023760000000000003
+                    "value": 0.023952
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 4660
+                        "value": 4724
                     },
                     "charactersCount": {
-                        "value": 12856
+                        "value": 12944
                     },
                     "wordsCount": {
-                        "value": 2300
+                        "value": 2324
                     },
                     "sentencesCount": {
                         "value": 212
                     },
                     "linesCount": {
-                        "value": 284
+                        "value": 288
                     },
                     "paragraphsCount": {
                         "value": 80
@@ -263,16 +263,16 @@
                         "value": 652
                     },
                     "charactersCount": {
-                        "value": 2844
+                        "value": 2952
                     },
                     "wordsCount": {
-                        "value": 400
+                        "value": 396
                     },
                     "sentencesCount": {
                         "value": 24
                     },
                     "linesCount": {
-                        "value": 68
+                        "value": 72
                     },
                     "paragraphsCount": {
                         "value": 8

@@ -99,7 +99,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. Your role is to assist users with questions about prompt engineering, AI development, and the Promptbook Project specifically. You have in-depth knowledge of various AI models, prompt design techniques, and best practices in AI development. Offer clear, concise, and technically accurate information while maintaining a helpful and collaborative tone.",
+                "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. As a helpful assistant, you possess in-depth knowledge of AI technologies, software development practices, and the specific features and goals of the Promptbook Project. Your role is to provide accurate, insightful, and practical assistance related to AI engineering, prompt engineering, and the Promptbook Project's development and usage.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -112,7 +112,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced AI engineer and helpful virtual assistant. Your role is to provide knowledgeable and accurate responses on a wide range of topics, with a focus on technology and artificial intelligence. You are friendly, professional, and always aim to give the most relevant and up-to-date information to users.",
+                "systemMessage": "You are an experienced AI engineer and helpful virtual assistant. Your role is to provide accurate and relevant information, assist with various tasks, and offer thoughtful solutions to problems across a wide range of topics.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -123,26 +123,26 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.84.0-17",
+            "promptbookVersion": "0.84.0-18",
             "usage": {
                 "price": {
-                    "value": 0.011229
+                    "value": 0.010875
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 2338
+                        "value": 2370
                     },
                     "charactersCount": {
-                        "value": 6468
+                        "value": 6512
                     },
                     "wordsCount": {
-                        "value": 1155
+                        "value": 1167
                     },
                     "sentencesCount": {
                         "value": 106
                     },
                     "linesCount": {
-                        "value": 142
+                        "value": 144
                     },
                     "paragraphsCount": {
                         "value": 40
@@ -153,19 +153,19 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 281
+                        "value": 251
                     },
                     "charactersCount": {
-                        "value": 1142
+                        "value": 1012
                     },
                     "wordsCount": {
-                        "value": 173
+                        "value": 149
                     },
                     "sentencesCount": {
-                        "value": 11
+                        "value": 9
                     },
                     "linesCount": {
-                        "value": 30
+                        "value": 27
                     },
                     "paragraphsCount": {
                         "value": 4

@@ -58,8 +58,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, linguistic theories, and the history of language. Your role is to assist users with questions about languages, grammar, etymology, phonetics, semantics, and any other linguistic topics. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible way and to engage in discussions about language at various levels of technicality.",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a knowledgeable and passionate linguist with expertise in various languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, syntax, semantics, and sociolinguistics. You can provide detailed explanations on linguistic concepts, help with language analysis, and offer insights into the historical development and relationships between languages. You're eager to discuss language phenomena and engage in thoughtful discussions about linguistic diversity and communication.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -70,26 +70,26 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.84.0-17",
+            "promptbookVersion": "0.84.0-18",
             "usage": {
                 "price": {
-                    "value": 0.005940000000000001
+                    "value": 0.005988
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 1165
+                        "value": 1181
                     },
                     "charactersCount": {
-                        "value": 3214
+                        "value": 3236
                     },
                     "wordsCount": {
-                        "value": 575
+                        "value": 581
                     },
                     "sentencesCount": {
                         "value": 53
                     },
                     "linesCount": {
-                        "value": 71
+                        "value": 72
                     },
                     "paragraphsCount": {
                         "value": 20
@@ -103,16 +103,16 @@
                         "value": 163
                     },
                     "charactersCount": {
-                        "value": 711
+                        "value": 738
                     },
                     "wordsCount": {
-                        "value": 100
+                        "value": 99
                     },
                     "sentencesCount": {
                         "value": 6
                     },
                     "linesCount": {
-                        "value": 17
+                        "value": 18
                     },
                     "paragraphsCount": {
                         "value": 2

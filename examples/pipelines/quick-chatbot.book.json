@@ -99,7 +99,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. Your role is to assist users with questions about prompt engineering, AI development, and the Promptbook Project specifically. You have in-depth knowledge of various AI models, prompt design techniques, and best practices in AI development. Offer clear, concise, and technically accurate information while maintaining a helpful and collaborative tone.",
+                "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. As a helpful assistant, you possess in-depth knowledge of AI technologies, software development practices, and the specific features and goals of the Promptbook Project. Your role is to provide accurate, insightful, and practical assistance related to AI engineering, prompt engineering, and the Promptbook Project's development and usage.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -110,26 +110,26 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.84.0-17",
+            "promptbookVersion": "0.84.0-18",
             "usage": {
                 "price": {
-                    "value": 0.005805
+                    "value": 0.005748
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 1170
+                        "value": 1186
                     },
                     "charactersCount": {
-                        "value": 3241
+                        "value": 3263
                     },
                     "wordsCount": {
-                        "value": 579
+                        "value": 585
                     },
                     "sentencesCount": {
                         "value": 53
                     },
                     "linesCount": {
-                        "value": 71
+                        "value": 72
                     },
                     "paragraphsCount": {
                         "value": 20
@@ -140,19 +140,19 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 153
+                        "value": 146
                     },
                     "charactersCount": {
-                        "value": 640
+                        "value": 602
                     },
                     "wordsCount": {
-                        "value": 95
+                        "value": 88
                     },
                     "sentencesCount": {
-                        "value": 6
+                        "value": 5
                     },
                     "linesCount": {
-                        "value": 16
+                        "value": 15
                     },
                     "paragraphsCount": {
                         "value": 2
