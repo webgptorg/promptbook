@@ -64,7 +64,10 @@ export const QuickChatbotHla = {
                 description: 'Chatbot response',
                 isInput: false,
                 isOutput: true,
-                exampleValues: ['Hello, I am a Pavol`s virtual avatar. How can I help you?'],
+                exampleValues: [
+                    'Hello, how can I help you?',
+                    // <- TODO: [🧠] Make this dynamic, async, prepare-phase HLAs
+                ],
             },
         );
 
