@@ -4,7 +4,8 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { CLAIM } from '../../config';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION } from '../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Initializes `about` command for Promptbook CLI utilities
