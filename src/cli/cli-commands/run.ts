@@ -132,6 +132,8 @@ export function initializeRunCommand(program: Program) {
                 ),
             );
 
+            // TODO: Maybe allow to sign-in as Promptbook.studio user here
+
             if (!(await isFileExisting('.env', fs))) {
                 await writeFile(
                     join(process.cwd(), '.env'),
