@@ -4,15 +4,16 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { CLAIM } from '../../config';
-import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Initializes `about` command for Promptbook CLI utilities
  *
+ * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI
+ *
  * @private internal function of `promptbookCli`
  */
-export function initializeAboutCommand(program: Program) {
+export function $initializeAboutCommand(program: Program) {
     const makeCommand = program.command('about');
     makeCommand.description(
         spaceTrim(`

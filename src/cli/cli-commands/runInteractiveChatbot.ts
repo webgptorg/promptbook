@@ -2,9 +2,9 @@ import colors from 'colors';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import type { PipelineExecutor } from '../../execution/PipelineExecutor';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { just } from '../../utils/organization/just';
 
 /**

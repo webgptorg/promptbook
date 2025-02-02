@@ -5,14 +5,14 @@ import { CLAIM } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
-import { initializeAboutCommand } from './cli-commands/about';
-import { initializeHelloCommand } from './cli-commands/hello';
-import { initializeListModelsCommand } from './cli-commands/list-models';
-import { initializeListScrapersCommand } from './cli-commands/list-scrapers';
-import { initializeMakeCommand } from './cli-commands/make';
-import { initializePrettifyCommand } from './cli-commands/prettify';
-import { initializeRunCommand } from './cli-commands/run';
-import { initializeTestCommand } from './cli-commands/test-command';
+import { $initializeAboutCommand } from './cli-commands/about';
+import { $initializeHelloCommand } from './cli-commands/hello';
+import { $initializeListModelsCommand } from './cli-commands/list-models';
+import { $initializeListScrapersCommand } from './cli-commands/list-scrapers';
+import { $initializeMakeCommand } from './cli-commands/make';
+import { $initializePrettifyCommand } from './cli-commands/prettify';
+import { $initializeRunCommand } from './cli-commands/run';
+import { $initializeTestCommand } from './cli-commands/test-command';
 
 /**
  * Runs CLI utilities of Promptbook package
@@ -46,14 +46,14 @@ export async function promptbookCli(): Promise<void> {
     program.version(PROMPTBOOK_ENGINE_VERSION);
     program.description(CLAIM);
 
-    initializeAboutCommand(program);
-    initializeRunCommand(program);
-    initializeHelloCommand(program);
-    initializeMakeCommand(program);
-    initializePrettifyCommand(program);
-    initializeTestCommand(program);
-    initializeListModelsCommand(program);
-    initializeListScrapersCommand(program);
+    $initializeAboutCommand(program);
+    $initializeRunCommand(program);
+    $initializeHelloCommand(program);
+    $initializeMakeCommand(program);
+    $initializePrettifyCommand(program);
+    $initializeTestCommand(program);
+    $initializeListModelsCommand(program);
+    $initializeListScrapersCommand(program);
 
     program.parse(process.argv);
 }

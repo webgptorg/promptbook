@@ -8,9 +8,11 @@ import { forTime } from 'waitasecond';
 /**
  * Initializes testing `hello` command for Promptbook CLI utilities
  *
+ * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI
+ *
  * @private internal function of `promptbookCli`
  */
-export function initializeHelloCommand(program: Program) {
+export function $initializeHelloCommand(program: Program) {
     const helloCommand = program.command('hello');
     helloCommand.description(
         spaceTrim(`
