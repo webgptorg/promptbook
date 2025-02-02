@@ -28,16 +28,31 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
         throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
     }
 
+    const envFilePatterns = [
+        '.env',
+        '.env.test',
+        '.env.local',
+        '.env.development.local',
+        '.env.development',
+
+        '.env.production.local',
+        '.env.production',
+        '.env.prod.local',
+        '.env.prod',
+
+        // <- TODO: Maybe add more patterns
+    ];
+
     let rootDirname = process.cwd();
 
     up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
-        const envFilename = join(rootDirname, '.env' /* <- TODO: [🕝] Make here more candidates */);
+        for (const pattern of envFilePatterns) {
+            const envFilename = join(rootDirname, pattern);
 
-        // console.log({ rootDirname, envFilename });
-
-        if (await isFileExisting(envFilename, $provideFilesystemForNode())) {
-            dotenv.config({ path: envFilename });
-            break up_to_root;
+            if (await isFileExisting(envFilename, $provideFilesystemForNode())) {
+                dotenv.config({ path: envFilename });
+                break up_to_root;
+            }
         }
 
         if (isRootPath(rootDirname)) {
