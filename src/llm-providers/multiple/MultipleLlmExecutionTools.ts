@@ -3,17 +3,14 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
 
 /**
@@ -98,7 +95,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
      * Note: This should be private or protected but is public to be usable with duck typing
      */
     public async callCommonModel(prompt: Prompt): Promise<PromptResult> {
-        const errors: Array<Error> = [];
+        const errors: Array<{ llmExecutionTools: LlmExecutionTools; error: Error }> = [];
 
         llm: for (const llmExecutionTools of this.llmExecutionTools) {
             try {
@@ -138,7 +135,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                     throw error;
                 }
 
-                errors.push(error);
+                errors.push({ llmExecutionTools, error });
             }
         }
 
@@ -156,7 +153,12 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
 
                           ${block(
                               errors
-                                  .map((error, i) => `${i + 1}) **${error.name || 'Error'}:** ${error.message}`)
+                                  .map(
+                                      ({ error, llmExecutionTools }, i) =>
+                                          `${i + 1}) **${llmExecutionTools.title}** thrown **${
+                                              error.name || 'Error'
+                                          }:** ${error.message}`,
+                                  )
                                   .join('\n'),
                           )}
 
