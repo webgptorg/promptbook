@@ -1,5 +1,4 @@
-import { DEFAULT_IS_AUTO_INSTALLED } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -35,6 +34,14 @@ export async function $provideScrapersForNode(
     const scrapers: Array<Scraper> = [];
     for (const scraperFactory of $scrapersRegister.list()) {
         const scraper = await scraperFactory(tools, options || {});
+
+        if (
+            scraper.metadata.packageName === '@promptbook/boilerplate' ||
+            scraper.metadata.mimeTypes.some((mimeType) => mimeType.includes('DISABLED'))
+        ) {
+            continue;
+        }
+
         scrapers.push(scraper);
     }
 

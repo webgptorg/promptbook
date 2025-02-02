@@ -29,10 +29,19 @@ export function $initializeListScrapersCommand(program: Program) {
                 (block) => `
                     ${block($registeredScrapersMessage(scrapers))}
 
+                    All mime-types which can be scraped:
+                    ${block(
+                        Array.from(new Set(Object.values(scrapers).flatMap(({ metadata }) => metadata.mimeTypes)))
+                            .map((mimeType, i) => `${i + 1}) ${mimeType}`)
+                            .join('\n'),
+                    )}
+
                     Available executables:
-                    ${Object.entries(executables)
-                        .map(([name, path], i) => `${i + 1}) **${name}** ${path}`)
-                        .join('\n')}
+                    ${block(
+                        Object.entries(executables)
+                            .map(([name, path], i) => `${i + 1}) **${name}** ${path}`)
+                            .join('\n'),
+                    )}
                 `,
             ),
         );
