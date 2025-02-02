@@ -8,6 +8,7 @@ import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { initializeAboutCommand } from './cli-commands/about';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeListModelsCommand } from './cli-commands/list-models';
+import { initializeListScrapersCommand } from './cli-commands/list-scrapers';
 import { initializeMakeCommand } from './cli-commands/make';
 import { initializePrettifyCommand } from './cli-commands/prettify';
 import { initializeRunCommand } from './cli-commands/run';
@@ -52,6 +53,7 @@ export async function promptbookCli(): Promise<void> {
     initializePrettifyCommand(program);
     initializeTestCommand(program);
     initializeListModelsCommand(program);
+    initializeListScrapersCommand(program);
 
     program.parse(process.argv);
 }
