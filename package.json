@@ -40,8 +40,7 @@
         "anthropic",
         "LLMOps"
     ],
-    "license": "FSL-1.1-Apache-2.0",
-    "--note-1": " <- [🥙] Since FSL is not yet in the SPDX license list, this is the most accurate way to represent it while maintaining compatibility with package managers",
+    "license": "BUSL-1.1",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },

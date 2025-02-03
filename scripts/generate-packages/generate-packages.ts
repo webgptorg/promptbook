@@ -277,9 +277,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         if (packageFullname === '@promptbook/utils' || packageFullname === '@promptbook/markdown-utils') {
             packageJson.license = 'CC-BY-4.0';
         } else {
-            packageJson.license = 'UNLICENSED';
-            // <- TODO: !!!!!
-            // <- Note: [🥙] Since FSL is not yet in the SPDX license list, this is the most accurate way to represent it while maintaining compatibility with package managers
+            packageJson.license = 'BUSL-1.1';
         }
 
         packageJson.name = packageFullname;
