@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/pdf",
-    "version": "0.84.0-21",
+    "version": "0.84.0",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -38,7 +38,7 @@
         "anthropic",
         "LLMOps"
     ],
-    "license": "UNLICENSED",
+    "license": "BUSL-1.1",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/pdf.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.84.0-21"
+        "@promptbook/core": "0.84.0"
     },
     "dependencies": {
         "crypto-js": "4.2.0",
