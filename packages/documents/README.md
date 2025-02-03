@@ -441,7 +441,17 @@ See [TODO.md](./TODO.md)
 
 ## 🤝 Partners
 
-[![Technology Incubation](./other/partners/CI-Technology-Incubation.png)](https://technologickainkubace.org/en/about-technology-incubation/about-the-project/)
+<div style="display: flex; align-items: center; gap: 20px;">
+
+  <a href="https://promptbook.studio/">
+    <img src="./other/design/promptbook-studio-logo.png" alt="Partner 3" height="100">
+  </a>
+
+  <a href="https://technologickainkubace.org/en/about-technology-incubation/about-the-project/">
+    <img src="./other/partners/CI-Technology-Incubation.png" alt="Technology Incubation" height="100">
+  </a>
+
+</div>
 
 ## 🖋️ Contributing
 
