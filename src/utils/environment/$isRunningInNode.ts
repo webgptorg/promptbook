@@ -12,3 +12,8 @@ export const $isRunningInNode = new Function(`
         return false;
     }
 `);
+
+
+/**
+ * TODO: [☑]
+ */

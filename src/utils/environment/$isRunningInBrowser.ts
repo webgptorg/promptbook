@@ -12,3 +12,8 @@ export const $isRunningInBrowser = new Function(`
         return false;
     }
 `);
+
+
+/**
+ * TODO: [☑]
+ */

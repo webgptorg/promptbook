@@ -16,3 +16,7 @@ export const $isRunningInWebWorker = new Function(`
         return false;
     }
 `);
+
+/**
+ * TODO: [☑]
+ */
