@@ -9,6 +9,7 @@ import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { isRootPath } from '../../../utils/validators/filePath/isRootPath';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import { $setUsedEnvFilename } from './$registeredLlmToolsMessage';
 
 /**
  * @@@
@@ -50,6 +51,7 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
             const envFilename = join(rootDirname, pattern);
 
             if (await isFileExisting(envFilename, $provideFilesystemForNode())) {
+                $setUsedEnvFilename(envFilename);
                 dotenv.config({ path: envFilename });
                 break up_to_root;
             }

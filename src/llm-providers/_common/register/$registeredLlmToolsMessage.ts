@@ -1,13 +1,35 @@
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type { string_filename, string_markdown, string_name } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';
 import type { LlmToolsMetadata } from './LlmToolsMetadata';
+
+/**
+ * Path to the `.env` file which was used to configure LLM tools
+ *
+ * Note: `$` is used to indicate that this variable is changed by side effect in `$provideLlmToolsConfigurationFromEnv` through `$setUsedEnvFilename`
+ */
+let $usedEnvFilename: string | null = null;
+
+
+
+/**
+ * Pass the `.env` file which was used to configure LLM tools
+ *
+ * Note: `$` is used to indicate that this variable is making side effect
+ *
+ * @private internal log of `$provideLlmToolsConfigurationFromEnv` and `$registeredLlmToolsMessage`
+ */
+export function $setUsedEnvFilename(filepath: string_filename){
+    $usedEnvFilename = filepath;
+}
+
+
+
 
 /**
  * Creates a message with all registered LLM tools
@@ -68,12 +90,24 @@ export function $registeredLlmToolsMessage(): string_markdown {
         return { ...metadata, isMetadataAviailable, isInstalled, isFullyConfigured, isPartiallyConfigured };
     });
 
+    const usedEnvMessage =
+        $usedEnvFilename === null ? `Unknown \`.env\` file` : `Used \`.env\` file:\n${$usedEnvFilename}`;
+
     if (metadata.length === 0) {
-        return `No LLM providers are available.`;
+        return spaceTrim(
+            (block) => `
+                No LLM providers are available.
+
+                ${block(usedEnvMessage)}
+          `,
+        );
     }
 
     return spaceTrim(
         (block) => `
+
+            ${block(usedEnvMessage)}
+
             Relevant environment variables:
             ${block(
                 Object.keys(env)
