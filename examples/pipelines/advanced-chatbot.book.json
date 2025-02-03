@@ -65,7 +65,7 @@
             "title": "Summarize the conversation",
             "content": "Summarize the conversation in a few words:\n\n## Rules\n\n-   Summarise the text of the conversation in a few words\n-   Convert the text to its basic idea\n-   Imagine you are writing the headline or subject line of an email\n-   Respond with a few words of summary only\n\n## Conversation\n\n**User:**\n\n> {userMessage}\n\n**You:**\n\n> {chatbotResponse}",
             "resultingParameterName": "conversationSummary",
-            "personaName": "A` Paul",
+            "personaName": "Paul",
             "expectations": {
                 "words": {
                     "min": 1,
@@ -105,19 +105,6 @@
             "preparationIds": [
                 1
             ]
-        },
-        {
-            "name": "A` Paul",
-            "description": "",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced AI engineer and helpful virtual assistant. Your role is to provide accurate and relevant information, assist with various tasks, and offer thoughtful solutions to problems across a wide range of topics.",
-                "temperature": 0.7
-            },
-            "preparationIds": [
-                1
-            ]
         }
     ],
     "preparations": [
@@ -126,52 +113,52 @@
             "promptbookVersion": "0.84.0-20",
             "usage": {
                 "price": {
-                    "value": 0.010875
+                    "value": 0.005748
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 2370
+                        "value": 1186
                     },
                     "charactersCount": {
-                        "value": 6512
+                        "value": 3263
                     },
                     "wordsCount": {
-                        "value": 1167
+                        "value": 585
                     },
                     "sentencesCount": {
-                        "value": 106
+                        "value": 53
                     },
                     "linesCount": {
-                        "value": 144
+                        "value": 72
                     },
                     "paragraphsCount": {
-                        "value": 40
+                        "value": 20
                     },
                     "pagesCount": {
-                        "value": 4
+                        "value": 2
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 251
+                        "value": 146
                     },
                     "charactersCount": {
-                        "value": 1012
+                        "value": 602
                     },
                     "wordsCount": {
-                        "value": 149
+                        "value": 88
                     },
                     "sentencesCount": {
-                        "value": 9
+                        "value": 5
                     },
                     "linesCount": {
-                        "value": 27
+                        "value": 15
                     },
                     "paragraphsCount": {
-                        "value": 4
+                        "value": 2
                     },
                     "pagesCount": {
-                        "value": 2
+                        "value": 1
                     }
                 }
             }
@@ -398,7 +385,7 @@
         {
             "type": "BOOK",
             "path": null,
-            "content": "# ✨ Advanced Chatbot\n\nShow how to define chatbot in advanced and low-level controlled way.\n\n-   PIPELINE URL https://promptbook.studio/examples/advanced-chatbot.book.md\n-   KNOWLEDGE https://ptbk.io\n-   KNOWLEDGE https://pavolhejny.com\n-   FORMFACTOR Chat\n-   INPUT PARAMETER `{previousTitle}` Previous title of the conversation\n-   INPUT PARAMETER `{previousConversationSummary}` Previous conversation summary\n-   INPUT PARAMETER `{userMessage}` User message\n-   OUTPUT PARAMETER `{title}` Title of the conversation\n-   OUTPUT PARAMETER `{conversationSummary}` Summary of the conversation\n-   OUTPUT PARAMETER `{chatbotResponse}` Chatbot response\n\n## Initial message\n\n-   EXAMPLE\n\n```\nHello, I am a Pavol`s virtual avatar. How can I help you?\n```\n\n`-> {chatbotResponse}`\n\n## Knowledge\n\n-   KNOWLEDGE\n\n```\nPavol Hejný is a software engineer and creator of Promptbook.\n```\n\n## Create an answer\n\n-   PERSONA Paul, a developer of the Promptbook Project\n\n```markdown\nWrite a response to the user message:\n\n**Question from user**\n\n> {userMessage}\n\n**Previous conversation**\n\n> {previousConversationSummary}\n```\n\n`-> {chatbotResponse}`\n\n## Summarize the conversation\n\n-   `PERSONA` Paul <!-- TODO: !!6 Persona normalization -->\n-   EXPECT MIN 1 Word\n-   EXPECT MAX 10 Words\n\n```markdown\nSummarize the conversation in a few words:\n\n## Rules\n\n-   Summarise the text of the conversation in a few words\n-   Convert the text to its basic idea\n-   Imagine you are writing the headline or subject line of an email\n-   Respond with a few words of summary only\n\n## Conversation\n\n**User:**\n\n> {userMessage}\n\n**You:**\n\n> {chatbotResponse}\n```\n\n`-> {conversationSummary}`\n\n## Title\n\n-   SIMPLE TEMPLATE\n\n> {conversationSummary}\n\n`-> {title}`\n"
+            "content": "# ✨ Advanced Chatbot\n\nShow how to define chatbot in advanced and low-level controlled way.\n\n-   PIPELINE URL https://promptbook.studio/examples/advanced-chatbot.book.md\n-   KNOWLEDGE https://ptbk.io\n-   KNOWLEDGE https://pavolhejny.com\n-   FORMFACTOR Chat\n-   INPUT PARAMETER `{previousTitle}` Previous title of the conversation\n-   INPUT PARAMETER `{previousConversationSummary}` Previous conversation summary\n-   INPUT PARAMETER `{userMessage}` User message\n-   OUTPUT PARAMETER `{title}` Title of the conversation\n-   OUTPUT PARAMETER `{conversationSummary}` Summary of the conversation\n-   OUTPUT PARAMETER `{chatbotResponse}` Chatbot response\n\n## Initial message\n\n-   EXAMPLE\n\n```\nHello, I am a Pavol`s virtual avatar. How can I help you?\n```\n\n`-> {chatbotResponse}`\n\n## Knowledge\n\n-   KNOWLEDGE\n\n```\nPavol Hejný is a software engineer and creator of Promptbook.\n```\n\n## Create an answer\n\n-   PERSONA Paul, a developer of the Promptbook Project\n\n```markdown\nWrite a response to the user message:\n\n**Question from user**\n\n> {userMessage}\n\n**Previous conversation**\n\n> {previousConversationSummary}\n```\n\n`-> {chatbotResponse}`\n\n## Summarize the conversation\n\n-   PERSONA Paul <!-- TODO: !!6 Persona normalization -->\n-   EXPECT MIN 1 Word\n-   EXPECT MAX 10 Words\n\n```markdown\nSummarize the conversation in a few words:\n\n## Rules\n\n-   Summarise the text of the conversation in a few words\n-   Convert the text to its basic idea\n-   Imagine you are writing the headline or subject line of an email\n-   Respond with a few words of summary only\n\n## Conversation\n\n**User:**\n\n> {userMessage}\n\n**You:**\n\n> {chatbotResponse}\n```\n\n`-> {conversationSummary}`\n\n## Title\n\n-   SIMPLE TEMPLATE\n\n> {conversationSummary}\n\n`-> {title}`\n"
         }
     ]
 }
