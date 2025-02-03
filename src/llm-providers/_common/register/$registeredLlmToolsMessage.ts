@@ -1,6 +1,8 @@
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import type { string_filename, string_markdown, string_name } from '../../../types/typeAliases';
+import type { string_filename } from '../../../types/typeAliases';
+import type { string_markdown } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { just } from '../../../utils/organization/just';
@@ -15,8 +17,6 @@ import type { LlmToolsMetadata } from './LlmToolsMetadata';
  */
 let $usedEnvFilename: string | null = null;
 
-
-
 /**
  * Pass the `.env` file which was used to configure LLM tools
  *
@@ -24,12 +24,9 @@ let $usedEnvFilename: string | null = null;
  *
  * @private internal log of `$provideLlmToolsConfigurationFromEnv` and `$registeredLlmToolsMessage`
  */
-export function $setUsedEnvFilename(filepath: string_filename){
+export function $setUsedEnvFilename(filepath: string_filename) {
     $usedEnvFilename = filepath;
 }
-
-
-
 
 /**
  * Creates a message with all registered LLM tools

@@ -3,14 +3,13 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
-import {
-    $isRunningInBrowser,
-    $isRunningInJest,
-    $isRunningInNode,
-    $isRunningInWebWorker,
-} from '../../_packages/utils.index';
+import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
+import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
+import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
 import { CLAIM } from '../../config';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION } from '../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Initializes `about` command for Promptbook CLI utilities
