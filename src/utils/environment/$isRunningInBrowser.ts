@@ -13,7 +13,6 @@ export const $isRunningInBrowser = new Function(`
     }
 `);
 
-
 /**
- * TODO: [☑]
+ * TODO: [🎺]
  */

@@ -34,7 +34,7 @@ export function $initializeAboutCommand(program: Program) {
         if ($isRunningInNode()) {
             console.info(colors.cyan(`Environment: Node.js`));
             console.info(colors.cyan(`Node.js version: ${process.version}`));
-            // <- TODO: [🧠][☑] Make robust system to check platform requirements like browser/node environment, version of node, available memory, disk space, ...
+            // <- TODO: [🧠][🎺] Make robust system to check platform requirements like browser/node environment, version of node, available memory, disk space, ...
             console.info(colors.cyan(`Platform type: ${process.platform}`));
             console.info(colors.cyan(`Platform architecture: ${process.arch}`));
             // console.info(colors.cyan(`Available memory: ${process.availableMemory()}`));

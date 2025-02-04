@@ -501,7 +501,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             };
         } else if (packageFullname === '@promptbook/ptbk') {
             packageJson.bin = {
-                ptbk: '../@promptbook/cli/bin/promptbook-cli.js',
+                ptbk: 'bin/promptbook-cli-proxy.js',
             };
         }
 

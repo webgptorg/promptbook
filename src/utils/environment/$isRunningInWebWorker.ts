@@ -18,5 +18,5 @@ export const $isRunningInWebWorker = new Function(`
 `);
 
 /**
- * TODO: [☑]
+ * TODO: [🎺]
  */

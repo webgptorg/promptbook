@@ -13,7 +13,6 @@ export const $isRunningInJest = new Function(`
     }
 `);
 
-
 /**
- * TODO: [☑]
+ * TODO: [🎺]
  */

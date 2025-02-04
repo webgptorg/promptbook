@@ -13,7 +13,6 @@ export const $isRunningInNode = new Function(`
     }
 `);
 
-
 /**
- * TODO: [☑]
+ * TODO: [🎺]
  */
