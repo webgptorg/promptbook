@@ -704,8 +704,8 @@ Server queue and tasks
 -   Remote server can run entire books not just single prompt tasks <!-- <- TODO: !!!! -->
 -   Remote server supports callbacks / pingbacks <!-- <- TODO: !!!! -->
 -   Remote server has internal task queue <!-- <- TODO: !!!! -->
--   _(Maybe not implementing)_ Remote server can run in Docker <!-- <- TODO: !!!! -->
--   _(Maybe not implementing)_ Remote server persists its queue in SQLite <!-- <- TODO: !!!! -->
+-   _(Maybe not implementing)_ Remote server can run in `Docker` <!-- <- TODO: !!!! -->
+-   _(Maybe not implementing)_ Remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j` <!-- <- TODO: !!!! -->
 
 ## Drafts
 
