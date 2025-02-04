@@ -700,10 +700,12 @@ Compile via remote server
 
 Server queue and tasks
 
--   Remote server run in both `REST` and `Socket.io` mode
+-   Remote server run in both `REST` and `Socket.io` mode <!-- <- TODO: !!!! -->
+-   Remote server can run entire books not just single prompt tasks <!-- <- TODO: !!!! -->
 -   Remote server supports callbacks / pingbacks <!-- <- TODO: !!!! -->
 -   Remote server has internal task queue <!-- <- TODO: !!!! -->
--   Remote server can run in Docker <!-- <- TODO: !!!! -->
+-   _(Maybe not implementing)_ Remote server can run in Docker <!-- <- TODO: !!!! -->
+-   _(Maybe not implementing)_ Remote server persists its queue in SQLite <!-- <- TODO: !!!! -->
 
 ## Drafts
 
