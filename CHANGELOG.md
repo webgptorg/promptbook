@@ -91,7 +91,7 @@ Better execution reports
 
 Export less functions from `@promptbook/utils`
 
-## ~~0.33.0~~ _(Skipped)_
+### ~~0.33.0~~ _(Skipped)_
 
 ~~Iterating over parameters~~
 
@@ -496,8 +496,6 @@ Was accidentally released skipped
 -   Rename `LlmTemplateJson` -> `PromptTemplateJson`
 -   Rename `ParsingError` -> `ParseError`
 
-## In prepare
-
 ### `0.69.0` _(2024-09-)_
 
 Command `FOREACH`
@@ -679,7 +677,7 @@ Compile via remote server
 -   Add `DEFAULT_TASK_TITLE`
 -   Enforce LF (\n) lines
 
-### `0.83.0` and `0.84.0` _(2025-01-20)_
+### `0.83.0` and `0.84.0` _(2025-02-04)_
 
 `@promptbook/editable` and integration of `markitdown`
 
@@ -697,6 +695,14 @@ Compile via remote server
 -   Change admin email to `pavol@ptbk.io`
 
 ## In pre-release
+
+### `0.85.0` _(2025-02-)_
+
+Server queue and tasks
+
+-   Remote server supports callbacks / pingbacks <!-- <- TODO: !!!! -->
+-   Remote server has internal task queue <!-- <- TODO: !!!! -->
+-   Remote server can run in Docker <!-- <- TODO: !!!! -->
 
 ## Drafts
 
