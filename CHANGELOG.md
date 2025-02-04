@@ -700,6 +700,7 @@ Compile via remote server
 
 Server queue and tasks
 
+-   Remote server run in both `REST` and `Socket.io` mode
 -   Remote server supports callbacks / pingbacks <!-- <- TODO: !!!! -->
 -   Remote server has internal task queue <!-- <- TODO: !!!! -->
 -   Remote server can run in Docker <!-- <- TODO: !!!! -->
