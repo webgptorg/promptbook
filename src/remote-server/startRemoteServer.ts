@@ -15,8 +15,10 @@ import { createLlmToolsFromConfiguration } from '../llm-providers/_common/regist
 import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
+import { string_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
+import { TODO_USE } from '../utils/organization/TODO_USE';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
@@ -62,7 +64,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
 
     const app = express();
-    
+
     app.get('/', async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
@@ -91,6 +93,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
             `,
             ),
         );
+    });
+
+    app.post<{ callbackUrl: string_url }>('/execute', async (request, response) => {
+        // <- TODO: !!!!!! What is the correct method
+
+        TODO_USE(request);
+        TODO_USE(response);
+
+        await fetch(request.body.callbackUrl);
+        // <- TODO: !!!!!! Should be here transferred data as POSY / PUT
     });
 
     const httpServer = http.createServer(app);
@@ -335,6 +347,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
+ * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
