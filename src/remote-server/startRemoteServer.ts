@@ -1,5 +1,6 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { IDestroyable } from 'destroyable';
+import express from 'express';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
@@ -60,12 +61,14 @@ export function startRemoteServer<TCustomOptions = undefined>(
     };
     // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
 
-    const httpServer = http.createServer({}, async (request, response) => {
+    const app = express();
+    
+    app.get('/', async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
         }
 
-        response.write(
+        response.send(
             await spaceTrim(
                 async (block) => `
                     Server for processing promptbook remote requests is running.
@@ -88,8 +91,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
             `,
             ),
         );
-        response.end();
     });
+
+    const httpServer = http.createServer(app);
 
     const server: Server = new Server(httpServer, {
         path,
