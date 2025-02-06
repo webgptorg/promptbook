@@ -704,6 +704,8 @@ export type number_positive = number;
 export type number_negative = number;
 export type number_integer = number;
 
+export type number_port = number_positive & number_integer;
+
 /**
  * Semantic helper;
  * Percentage from 0 to 1 (100%) (and bellow and above)

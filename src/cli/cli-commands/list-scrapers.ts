@@ -18,7 +18,7 @@ export function $initializeListScrapersCommand(program: Program) {
     listModelsCommand.description(
         spaceTrim(`
             List all available and configured scrapers and executables
-      `),
+        `),
     );
 
     listModelsCommand.action(async () => {

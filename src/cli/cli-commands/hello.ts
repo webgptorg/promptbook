@@ -17,7 +17,7 @@ export function $initializeHelloCommand(program: Program) {
     helloCommand.description(
         spaceTrim(`
             Just command for testing
-      `),
+        `),
     );
 
     helloCommand.argument('[name]', 'Your name', 'Paul');

@@ -42,7 +42,7 @@ export function $initializeRunCommand(program: Program) {
     runCommand.description(
         spaceTrim(`
             Runs a pipeline
-      `),
+        `),
     );
 
     // TODO: [🧅] DRY command arguments

@@ -18,7 +18,7 @@ export function $initializeListModelsCommand(program: Program) {
     listModelsCommand.description(
         spaceTrim(`
             List all available and configured LLM models
-      `),
+        `),
     );
 
     listModelsCommand.action(async () => {

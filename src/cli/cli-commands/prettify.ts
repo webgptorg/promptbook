@@ -23,7 +23,7 @@ export function $initializePrettifyCommand(program: Program) {
 
             1) Adds Mermaid graph
             2) Prettifies the markdown
-      `),
+        `),
     );
 
     prettifyCommand.argument(
