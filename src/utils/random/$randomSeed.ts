@@ -5,7 +5,8 @@ import type { number_seed } from '../../types/typeAliases';
  *
  * Note: `$` is used to indicate that this function is not a pure function - it is not deterministic
  * Warning: This function is NOT cryptographically secure (it uses Math.random internally)
- * @public exported from `@promptbook/utils`
+ * 
+ * @private internal helper function
  */
 export function $randomSeed(): number_seed {
     return Math.random();

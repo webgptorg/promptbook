@@ -53,6 +53,7 @@ export type PipelineExecutorResult = {
 };
 
 /**
+ * TODO: [🐚] Enwrap in ExecutionTask
  * TODO: [🧠] Should this file be in /execution or /types folder?
  * TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`
  */

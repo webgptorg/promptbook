@@ -8,6 +8,7 @@ import { DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
+import { ExecutionTask } from '../execution/ExecutionTask';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { PromptResult } from '../execution/PromptResult';
@@ -95,7 +96,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
-    app.post<{ callbackUrl: string_url }>('/execute', async (request, response) => {
+    const executions: Array<ExecutionTask> = [];
+
+    app.get<{ callbackUrl: string_url }>('/executions', async (request, response) => {
         // <- TODO: !!!!!! What is the correct method
 
         TODO_USE(request);
@@ -103,6 +106,23 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
         await fetch(request.body.callbackUrl);
         // <- TODO: !!!!!! Should be here transferred data as POSY / PUT
+    });
+
+    app.get<{ callbackUrl: string_url }>('/executions/{executionId}', async (request, response) => {
+        TODO_USE(request);
+        TODO_USE(response);
+    });
+
+    app.post<{ callbackUrl: string_url }>('/executions/new', async (request, response) => {
+        // <- TODO: !!!!!! What is the correct method
+
+        TODO_USE(request);
+        TODO_USE(response);
+
+        /*
+        await fetch(request.body.callbackUrl);
+        // <- TODO: !!!!!! Should be here transferred data as POST / PUT
+        */
     });
 
     const httpServer = http.createServer(app);

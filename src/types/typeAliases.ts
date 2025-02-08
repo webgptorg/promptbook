@@ -663,6 +663,7 @@ export type string_javascript_name = string;
 export type string_postprocessing_function_name = string;
 
 export type id = string | number;
+export type task_id = string ;
 export type string_token = string;
 export type string_license_token = string_token;
 export type string_password = string;
