@@ -4,6 +4,8 @@ import express from 'express';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
+import { createPipelineExecutor } from '../_packages/core.index';
+import { TODO_any } from '../_packages/types.index';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -16,10 +18,9 @@ import { createLlmToolsFromConfiguration } from '../llm-providers/_common/regist
 import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
-import { string_url } from '../types/typeAliases';
+import { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
-import { TODO_USE } from '../utils/organization/TODO_USE';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
@@ -66,12 +67,15 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     const app = express();
 
+    app.use(express.json());
+
     app.get('/', async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
         }
 
         response.send(
+            // TODO: !!!!!! Make this either valid html or text - http://localhost:4460/
             await spaceTrim(
                 async (block) => `
                     Server for processing promptbook remote requests is running.
@@ -81,10 +85,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     Application mode: ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
-                        !isApplicationModeAllowed
+                        !isApplicationModeAllowed || collection === null
                             ? ''
                             : 'Pipelines in collection:\n' +
-                                  (await collection!.listPipelines())
+                                  (await collection.listPipelines())
                                       .map((pipelineUrl) => `- ${pipelineUrl}`)
                                       .join('\n'),
                     )}
@@ -96,33 +100,83 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
-    const executions: Array<ExecutionTask> = [];
+    const runningExecutionTasks: Array<ExecutionTask> = [];
 
-    app.get<{ callbackUrl: string_url }>('/executions', async (request, response) => {
-        // <- TODO: !!!!!! What is the correct method
+    // TODO: !!!!!! Do here some garbage collection of finished tasks
 
-        TODO_USE(request);
-        TODO_USE(response);
-
-        await fetch(request.body.callbackUrl);
-        // <- TODO: !!!!!! Should be here transferred data as POSY / PUT
+    app.get('/executions', async (request, response) => {
+        response.send(
+            runningExecutionTasks,
+            // <- TODO: !!! Better and more information
+        );
     });
 
-    app.get<{ callbackUrl: string_url }>('/executions/{executionId}', async (request, response) => {
-        TODO_USE(request);
-        TODO_USE(response);
+    app.get('/executions/:taskId', async (request, response) => {
+        const { taskId } = request.query;
+
+        // TODO: !!! Check `taskId`
+
+        const execution = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
+
+        if (execution === undefined) {
+            response.status(404).send(`Execution "${taskId}" not found`);
+            return;
+        }
+
+        response.send(
+            execution,
+            // <- TODO: !!! Better and more information
+        );
     });
 
-    app.post<{ callbackUrl: string_url }>('/executions/new', async (request, response) => {
+    app.post<{
+        pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
+        inputParameters: InputParameters;
+    }>('/executions/new', async (request, response) => {
         // <- TODO: !!!!!! What is the correct method
 
-        TODO_USE(request);
-        TODO_USE(response);
+        const { pipelineUrl, inputParameters } = request.body;
+
+        // TODO: !!! Check `pipelineUrl` and `inputParameters`
+
+        const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
+
+        if (pipeline === undefined) {
+            response.status(404).send(`Pipeline "${pipelineUrl}" not found`);
+            return;
+        }
+
+        // TODO: !!!!!! Identify user here - use something common with `getExecutionToolsFromIdentification`
+        const llm = await createLlmExecutionTools!({
+            appId: '!!!!',
+            userId: '!!!!',
+            customOptions: {} as TODO_any,
+        });
+
+        // ------
+        // TODO: !!!!!! Use something common with `getExecutionToolsFromIdentification`
+        const fs = $provideFilesystemForNode();
+        const executables = await $provideExecutablesForNode();
+        const tools = {
+            llm,
+            fs,
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }),
+            // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
+        };
+        // ------
+
+        const pipelineExecutor = createPipelineExecutor({ pipeline, tools, ...options });
+
+        const executionTask = pipelineExecutor(inputParameters);
+
+        runningExecutionTasks.push(executionTask);
+
+        response.send(executionTask);
 
         /*
-        await fetch(request.body.callbackUrl);
-        // <- TODO: !!!!!! Should be here transferred data as POST / PUT
-        */
+            await fetch(request.body.callbackUrl);
+            // <- TODO: !!!!!! Should be here transferred data as POST / PUT
+            */
     });
 
     const httpServer = http.createServer(app);
