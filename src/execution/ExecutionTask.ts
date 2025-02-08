@@ -4,6 +4,7 @@ import { string_SCREAMING_CASE } from '../_packages/utils.index';
 import type { task_id } from '../types/typeAliases';
 import { $randomToken } from '../utils/random/$randomToken';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
+import { BehaviorSubject, concat, from, lastValueFrom } from 'rxjs';
 
 /**
  * Options for creating a new task
@@ -36,10 +37,10 @@ export async function createTask<TTask extends AbstractTask<TTaskResult>, TTaskR
 
     const taskId = `${taskType.toLowerCase()}-${await $randomToken(256 /* <- TODO: !!! To global config */)}`;
 
-    let ongoingResult: PartialDeep<TTaskResult>;
+    const resultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
 
     const finalResult = /* not await */ taskProcessCallback((newOngoingResult: PartialDeep<TTaskResult>) => {
-        ongoingResult = newOngoingResult;
+        resultSubject.next(newOngoingResult);
     });
 
     return {
@@ -48,7 +49,13 @@ export async function createTask<TTask extends AbstractTask<TTaskResult>, TTaskR
         asPromise() {
             return /* not await */ finalResult;
         },
-    } satisfies TTask;
+        asObservable() {
+            return concat(
+                resultSubject.asObservable(),
+                from(finalResult)
+            );
+        },
+    } as TTask;
 }
 
 /**
@@ -100,4 +107,3 @@ export type Task = ExecutionTask | PreparationTask;
 /**
  * TODO: Maybe allow to terminate the task and add getter `isFinished` or `status`
  * TODO: [🐚] Split into more files and make `PrepareTask` & `RemoteTask` + split the function
- */
