@@ -2,7 +2,6 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
-import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../pipeline/PipelineString';
@@ -60,9 +59,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         });
 
         expect(() =>
-            getPipelineExecutor()
-                .then((pipelineExecutor) => pipelineExecutor({}).asPromise())
-                .then(assertsExecutionSuccessful),
+            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({}).asPromise()),
         ).rejects.toThrowError(/Parameter `\{thing\}` is required as an input parameter/);
     });
 });

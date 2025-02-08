@@ -80,7 +80,6 @@
             import { JavascriptEvalExecutionTools } from 'https://unpkg.com/@promptbook/execute-javascript@0.47.0-0';
             import { OpenAiExecutionTools } from 'https://unpkg.com/@promptbook/openai@0.47.0-0';
             import {
-                assertsExecutionSuccessful,
                 executionReportJsonToString,
             } from 'https://unpkg.com/@promptbook/utils@0.47.0-0';
 
@@ -130,7 +129,7 @@
 
                 const executionReportString = executionReportJsonToString(executionReport);
 
-                assertsExecutionSuccessful({ isSuccessful, errors });
+            
             }
         </script>
         -->

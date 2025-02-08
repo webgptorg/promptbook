@@ -13,7 +13,7 @@ This will emit `index.ts` with `getPipelineCollection` function file in `books` 
 Then just use it:
 
 ```typescript
-import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { getPipelineCollection } from './books'; // <- Importing from pre-built library

@@ -2,7 +2,6 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
-import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../pipeline/PipelineString';
@@ -64,8 +63,8 @@ describe('createPipelineExecutor + missing custom function', () => {
 
     it('should throw error when custom postprocessing function does not exist', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(() =>
-            pipelineExecutor({ yourName: 'Matthew' }).asPromise().then(assertsExecutionSuccessful),
-        ).rejects.toThrowError(/Function addHello\(\) is not defined/);
+        expect(() => pipelineExecutor({ yourName: 'Matthew' }).asPromise()).rejects.toThrowError(
+            /Function addHello\(\) is not defined/,
+        );
     });
 });

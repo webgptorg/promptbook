@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { compilePipeline } from '../conversion/compilePipeline';
-import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../pipeline/PipelineString';
@@ -32,7 +31,7 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
             errors: [/Parameter `{thing}` is required as an input parameter/i],
         });
 
-        expect(() => pipelineExecutor({}).asPromise().then(assertsExecutionSuccessful)).rejects.toThrowError(
+        expect(() => pipelineExecutor({}).asPromise()).rejects.toThrowError(
             /Parameter `\{thing\}` is required as an input parameter/i,
         );
     });

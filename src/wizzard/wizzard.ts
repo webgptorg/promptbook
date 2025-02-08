@@ -1,7 +1,6 @@
 import { VALUE_STRINGS } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
-import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
@@ -65,10 +64,7 @@ class Wizzard {
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result = await pipelineExecutor(inputParameters);
-
-        // ▶ Fail if the execution was not successful
-        assertsExecutionSuccessful(result);
+        const result = await pipelineExecutor(inputParameters).asPromise();
 
         const { outputParameters } = result;
         const outputParametersLength = Object.keys(outputParameters).length;

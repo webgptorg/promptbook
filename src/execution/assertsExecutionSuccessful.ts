@@ -10,7 +10,7 @@ import type { PipelineExecutorResult } from './PipelineExecutorResult';
  *
  * @param executionResult - The partial result of the Promptbook execution
  * @throws {PipelineExecutionError} If the execution is not successful or if multiple errors occurred
- * @public exported from `@promptbook/core`
+ * @private internal helper function of `asPromise` method of `ExecutionTask`
  */
 export function assertsExecutionSuccessful(
     executionResult: Pick<PipelineExecutorResult, 'isSuccessful' | 'errors' | 'warnings'>,
