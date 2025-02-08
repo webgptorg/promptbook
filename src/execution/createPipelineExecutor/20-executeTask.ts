@@ -75,8 +75,6 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         isNotPreparedWarningSupressed,
     } = options;
 
-    const name = `pipeline-executor-frame-${currentTask.name}`;
-    const title = currentTask.title;
     const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
 
     await onProgress({
@@ -207,8 +205,4 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
 
 /**
  * TODO: [🤹‍♂️]
- */
-
-/**
- * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
  */

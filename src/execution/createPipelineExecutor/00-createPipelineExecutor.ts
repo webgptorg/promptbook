@@ -117,7 +117,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     };
 
     const pipelineExecutor: PipelineExecutor = (inputParameters: InputParameters): ExecutionTask =>
-        createTask<ExecutionTask>((updateOngoingResult) => {
+        createTask<PipelineExecutorResult>((updateOngoingResult) => {
             return pipelineExecutorWithCallback(inputParameters, async (newOngoingResult) => {
                 updateOngoingResult(newOngoingResult);
             });
@@ -125,7 +125,3 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     return pipelineExecutor;
 }
-
-/**
- * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
- */

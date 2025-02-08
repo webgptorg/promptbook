@@ -3,14 +3,15 @@ import { BehaviorSubject, concat, from } from 'rxjs';
 import { PartialDeep } from 'type-fest';
 import { string_SCREAMING_CASE } from '../_packages/utils.index';
 import type { task_id } from '../types/typeAliases';
-import { TODO_USE } from '../utils/organization/TODO_USE';
 import { $randomToken } from '../utils/random/$randomToken';
+import { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
+import { assertsTaskSuccessful } from './assertsTaskSuccessful';
 
 /**
  * Options for creating a new task
  */
-type CreateTaskOptions<TTaskResult> = {
+type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
     /**
      * The type of task to create
      */
@@ -31,29 +32,44 @@ type CreateTaskOptions<TTaskResult> = {
  *
  * @private internal helper function
  */
-export function createTask<TTaskResult>(options: CreateTaskOptions<TTaskResult>): AbstractTask<TTaskResult> {
+export function createTask<TTaskResult extends AbstractTaskResult>(
+    options: CreateTaskOptions<TTaskResult>,
+): AbstractTask<TTaskResult> {
     const { taskType, taskProcessCallback } = options;
 
     const taskId = `${taskType.toLowerCase()}-${$randomToken(256 /* <- TODO: !!! To global config */)}`;
 
     const resultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
 
-    const finalResult = /* not await */ taskProcessCallback((newOngoingResult: PartialDeep<TTaskResult>) => {
+    const finalResultPromise = /* not await */ taskProcessCallback((newOngoingResult: PartialDeep<TTaskResult>) => {
         resultSubject.next(newOngoingResult);
     });
+
+    async function asPromise(options?: { readonly isCrashedOnError?: boolean }) {
+        const { isCrashedOnError = true } = options || {};
+
+        const finalResult = await finalResultPromise;
+
+        if (isCrashedOnError) {
+            assertsTaskSuccessful(finalResult);
+        }
+
+        return finalResult;
+    }
 
     return {
         taskType,
         taskId,
-        asPromise(options) {
-            const { isCrashedOnError = true } = options || {};
-
-            TODO_USE(isCrashedOnError);
-
-            return /* not await */ finalResult;
-        },
+        asPromise,
         asObservable() {
-            return concat(resultSubject.asObservable(), from(finalResult));
+            return concat(
+                resultSubject.asObservable(),
+                from(
+                    asPromise({
+                        isCrashedOnError: true,
+                    }),
+                ),
+            );
         },
     } as AbstractTask<TTaskResult>;
 }
@@ -78,7 +94,7 @@ export type PreparationTask = AbstractTask<PipelineExecutorResult> & {
 /**
  * Base interface for all task types
  */
-export type AbstractTask<TTaskResult> = {
+export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
     /**
      * Type of the task
      */

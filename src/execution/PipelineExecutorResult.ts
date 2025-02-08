@@ -1,7 +1,7 @@
 import { ReadonlyDeep } from 'type-fest';
-import type { ErrorJson } from '../errors/utils/ErrorJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { Parameters } from '../types/typeAliases';
+import { AbstractTaskResult } from './AbstractTaskResult';
 import type { ExecutionReportJson } from './execution-report/ExecutionReportJson';
 import type { PromptResultUsage } from './PromptResultUsage';
 
@@ -10,7 +10,7 @@ import type { PromptResultUsage } from './PromptResultUsage';
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PipelineExecutorResult = {
+export type PipelineExecutorResult = AbstractTaskResult & {
     /**
      * Result parameters of the execution
      *
@@ -19,24 +19,9 @@ export type PipelineExecutorResult = {
     readonly outputParameters: Readonly<Parameters>;
 
     /**
-     * Whether the execution was successful, details are aviable in `executionReport`
-     */
-    readonly isSuccessful: boolean;
-
-    /**
      * Added usage of whole execution, detailed usage is aviable in `executionReport`
      */
     readonly usage: ReadonlyDeep<PromptResultUsage>;
-
-    /**
-     * Errors that occured during the execution, details are aviable in `executionReport`
-     */
-    readonly errors: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
-
-    /**
-     * Warnings that occured during the execution, details are aviable in `executionReport`
-     */
-    readonly warnings: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 
     /**
      * The report of the execution with all details
@@ -53,7 +38,5 @@ export type PipelineExecutorResult = {
 };
 
 /**
- * TODO: [🐚] Enwrap in ExecutionTask
  * TODO: [🧠] Should this file be in /execution or /types folder?
- * TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`
  */

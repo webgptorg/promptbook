@@ -74,7 +74,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'cat' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters).asPromise({ isXxx: true });
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;
@@ -127,7 +127,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'dog' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters).asPromise({ isXxx: true });
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;
@@ -197,7 +197,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'dog' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters).asPromise({ isXxx: true });
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;

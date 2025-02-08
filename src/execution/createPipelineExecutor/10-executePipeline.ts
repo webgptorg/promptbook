@@ -411,6 +411,3 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     }) satisfies PipelineExecutorResult;
 }
 
-/**
- * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
- */
