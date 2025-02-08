@@ -68,7 +68,7 @@ event.target);
                 const pipelineExecutor = library.createExecutor('advanced', tools);
 
                 const input = { word };
-                const output = await pipelineExecutor(input);
+                const output = await pipelineExecutor(input).asPromise();
 
                 console.info(output);
                 outputElement.innerText = JSON.stringify(output, null, 4);

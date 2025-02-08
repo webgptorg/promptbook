@@ -90,7 +90,7 @@ async function main() {
         rules: 'Write best text for corporate CV',
         /**/
     };
-    const executionTask = await pipelineExecutor(inputParameters);
+    const executionTask = pipelineExecutor(inputParameters);
 
     executionTask.asObservable().subscribe((progress) => {
         console.info('progress', progress);

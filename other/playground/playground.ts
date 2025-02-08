@@ -92,9 +92,7 @@ async function playground() {
         `),
     };
 
-    const executionTask = await pipelineExecutor(inputParameters, (progress) => {
-        console.info(progress.isDone ? '☑' : '☐', progress);
-    });
+    const executionTask = pipelineExecutor(inputParameters);
 
     executionTask.asObservable().subscribe((progress) => {
         console.info('progress', progress);

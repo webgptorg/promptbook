@@ -32,10 +32,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provid
 const inputParameters = { word: 'cat' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isXxx: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;

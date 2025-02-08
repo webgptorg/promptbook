@@ -708,7 +708,6 @@ Compile via remote server
 -   Hide `$randomSeed`
 -   Remove `TaskProgress`
 -   Remove `assertsExecutionSuccessful`
--   Change `await pipelineExecutor(` -> `pipelineExecutor(`
 -   `PipelineExecutor`: Change `onProgress` -> `ExecutionTask`
 -   _(Maybe not implementing)_ Remote server can run in `Docker` <!-- <- TODO: !!!! -->
 -   _(Maybe not implementing)_ Remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j` <!-- <- TODO: !!!! -->
