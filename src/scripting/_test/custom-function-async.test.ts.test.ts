@@ -11,7 +11,7 @@ import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools
 describe('createPipelineExecutor + custom async function ', () => {
     it('should use custom postprocessing function', () => {
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Matthew' }, () => {})),
+            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Matthew' }).asPromise()),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -21,7 +21,7 @@ describe('createPipelineExecutor + custom async function ', () => {
         });
 
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Mark' }, () => {})),
+            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Mark' }).asPromise()),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -31,7 +31,7 @@ describe('createPipelineExecutor + custom async function ', () => {
         });
 
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Luke' }, () => {})),
+            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Luke' }).asPromise()),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -41,7 +41,7 @@ describe('createPipelineExecutor + custom async function ', () => {
         });
 
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'John' }, () => {})),
+            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'John' }).asPromise()),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],

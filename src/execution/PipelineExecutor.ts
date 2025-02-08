@@ -10,9 +10,7 @@ import { ExecutionTask } from './ExecutionTask';
  * @see https://github.com/webgptorg/promptbook#executor
  */
 export type PipelineExecutor = {
-    (
-        inputParameters: InputParameters
-    ): Promise<ExecutionTask>;
+    (inputParameters: InputParameters): ExecutionTask;
 };
 
 /**

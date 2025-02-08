@@ -12,21 +12,21 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
     it('should work when every INPUT  PARAMETER is allowed', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise()).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'b cup of coffee',
             },
         });
-        expect(pipelineExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'arrow' }).asPromise()).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'brrow',
             },
         });
-        expect(pipelineExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'aaa' }).asPromise()).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -39,7 +39,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         const pipelineExecutor = await getPipelineExecutor();
 
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
-            expect(pipelineExecutor({ thing }, () => {})).resolves.toMatchObject({
+            expect(pipelineExecutor({ thing }).asPromise()).resolves.toMatchObject({
                 isSuccessful: false,
                 errors: [/Error: I do not like Apples!/i],
                 warnings: [
@@ -47,7 +47,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 ],
             });
 
-            expect(() => pipelineExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+            expect(() => pipelineExecutor({ thing }).asPromise().then(assertsExecutionSuccessful)).rejects.toThrowError(
                 /I do not like Apples!/i,
             );
         }

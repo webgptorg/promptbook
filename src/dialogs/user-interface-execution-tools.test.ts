@@ -11,12 +11,12 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(pipelineExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'apple' }).asPromise()).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
             },
         });
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise()).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing:
                     'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
@@ -27,12 +27,12 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
     it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({}).asPromise()).resolves.toMatchObject({
             isSuccessful: false,
             errors: [/Parameter `{thing}` is required as an input parameter/i],
         });
 
-        expect(() => pipelineExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+        expect(() => pipelineExecutor({}).asPromise().then(assertsExecutionSuccessful)).rejects.toThrowError(
             /Parameter `\{thing\}` is required as an input parameter/i,
         );
     });

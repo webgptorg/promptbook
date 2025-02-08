@@ -14,6 +14,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 
 import type { InputParameters } from '../../types/typeAliases';
+import { createTask, ExecutionTask } from '../ExecutionTask';
 import type { PipelineExecutor } from '../PipelineExecutor';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
@@ -82,7 +83,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     let runCount = 0;
 
-    const pipelineExecutor: PipelineExecutor = async (
+    const pipelineExecutorWithCallback = async (
         inputParameters: InputParameters,
         onProgress?: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>,
     ): Promise<PipelineExecutorResult> => {
@@ -114,6 +115,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             isAutoInstalled,
         });
     };
+
+    const pipelineExecutor: PipelineExecutor = (inputParameters: InputParameters): ExecutionTask =>
+        createTask<ExecutionTask>((updateOngoingResult) => {
+            return pipelineExecutorWithCallback(inputParameters, async (newOngoingResult) => {
+                updateOngoingResult(newOngoingResult);
+            });
+        });
 
     return pipelineExecutor;
 }

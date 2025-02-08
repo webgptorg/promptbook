@@ -11,7 +11,7 @@ import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools
 describe('createPipelineExecutor + executing scripts in promptbook', () => {
     it('should work when every INPUT  PARAMETER defined', () => {
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ thing: 'apple' }, () => {})),
+            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ thing: 'apple' }).asPromise()),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -20,7 +20,9 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
             },
         });
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ thing: 'a cup of coffee' }, () => {})),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ thing: 'a cup of coffee' }).asPromise(),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -31,10 +33,11 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({}, () => {}))).resolves.toMatchObject(
-            {
-                isSuccessful: false,
-                /*
+        expect(
+            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({}).asPromise()),
+        ).resolves.toMatchObject({
+            isSuccessful: false,
+            /*
             TODO:
             errors: [
                 new PipelineExecutionError(
@@ -54,12 +57,11 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 ),
             ],
             */
-            },
-        );
+        });
 
         expect(() =>
             getPipelineExecutor()
-                .then((pipelineExecutor) => pipelineExecutor({}, () => {}))
+                .then((pipelineExecutor) => pipelineExecutor({}).asPromise())
                 .then(assertsExecutionSuccessful),
         ).rejects.toThrowError(/Parameter `\{thing\}` is required as an input parameter/);
     });

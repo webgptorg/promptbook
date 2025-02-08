@@ -1,6 +1,5 @@
-import type { string_token } from '@promptbook/types';
 import { randomBytes } from 'crypto';
-
+import { string_token } from '../../types/typeAliases';
 
 /**
  * Generates random token
@@ -10,22 +9,10 @@ import { randomBytes } from 'crypto';
  * @private internal helper function
  * @returns secure random token
  */
-export async function $randomToken(randomness: number): Promise<string_token> {
-  
-
-    const token = await new Promise((resolve, reject) => {
-        randomBytes(randomness, function (err, buffer) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(buffer.toString('hex'));
-            }
-        });
-    });
-
-    return token;
+export function $randomToken(randomness: number): string_token {
+    return randomBytes(randomness).toString('hex');
 }
 
 /**
- * TODO: Maybe use nanoid internally https://github.com/ai/nanoid
+ * TODO: Maybe use nanoid instead https://github.com/ai/nanoid
  */

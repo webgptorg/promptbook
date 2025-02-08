@@ -10,11 +10,11 @@ import type { PipelineExecutorResult } from './PipelineExecutorResult';
 /**
  * Options for creating a new task
  */
-type CreateTaskOptions<TTask extends AbstractTask<TTaskResult>, TTaskResult> = {
+type CreateTaskOptions<TTaskResult> = {
     /**
      * The type of task to create
      */
-    readonly taskType: TTask['taskType'];
+    readonly taskType: AbstractTask<TTaskResult>['taskType'];
 
     /**
      * Callback that processes the task and updates the ongoing result
@@ -31,12 +31,10 @@ type CreateTaskOptions<TTask extends AbstractTask<TTaskResult>, TTaskResult> = {
  *
  * @private internal helper function
  */
-export async function createTask<TTask extends AbstractTask<TTaskResult>, TTaskResult>(
-    options: CreateTaskOptions<TTask, TTaskResult>,
-): Promise<TTask> {
+export function createTask<TTaskResult>(options: CreateTaskOptions<TTaskResult>): AbstractTask<TTaskResult> {
     const { taskType, taskProcessCallback } = options;
 
-    const taskId = `${taskType.toLowerCase()}-${await $randomToken(256 /* <- TODO: !!! To global config */)}`;
+    const taskId = `${taskType.toLowerCase()}-${$randomToken(256 /* <- TODO: !!! To global config */)}`;
 
     const resultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
 
@@ -57,7 +55,7 @@ export async function createTask<TTask extends AbstractTask<TTaskResult>, TTaskR
         asObservable() {
             return concat(resultSubject.asObservable(), from(finalResult));
         },
-    } as TTask;
+    } as AbstractTask<TTaskResult>;
 }
 
 /**
