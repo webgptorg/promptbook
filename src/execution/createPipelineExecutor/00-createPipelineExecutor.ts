@@ -125,6 +125,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 });
             },
         }) as ExecutionTask;
+    //        <- TODO: Make types such as there is no need to do `as` for `createTask`
 
     return pipelineExecutor;
 }
