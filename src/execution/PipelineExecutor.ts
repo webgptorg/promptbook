@@ -1,5 +1,5 @@
 import type { InputParameters } from '../types/typeAliases';
-import { ExecutionTask } from './ExecutionTask';
+import type { ExecutionTask } from './ExecutionTask';
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.

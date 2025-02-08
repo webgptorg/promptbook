@@ -8,7 +8,7 @@ import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
-import { PipelineExecutorResult } from '../PipelineExecutorResult';
+import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeFormatSubvalues } from './30-executeFormatSubvalues';
 import { getReservedParametersForTask } from './getReservedParametersForTask';

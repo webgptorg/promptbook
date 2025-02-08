@@ -1,10 +1,10 @@
 import type { Observable } from 'rxjs';
 import { BehaviorSubject, concat, from } from 'rxjs';
 import { PartialDeep } from 'type-fest';
-import { string_SCREAMING_CASE } from '../_packages/utils.index';
+import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { task_id } from '../types/typeAliases';
 import { $randomToken } from '../utils/random/$randomToken';
-import { AbstractTaskResult } from './AbstractTaskResult';
+import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
 

@@ -4,7 +4,7 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
-import { number_port } from '../../types/typeAliases';
+import type { number_port } from '../../types/typeAliases';
 
 /**
  * Initializes `start-server` command for Promptbook CLI utilities
