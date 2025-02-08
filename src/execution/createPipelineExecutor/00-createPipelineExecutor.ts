@@ -13,6 +13,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 
+import { TODO_any } from '../../_packages/types.index';
 import type { InputParameters } from '../../types/typeAliases';
 import { createTask, ExecutionTask } from '../ExecutionTask';
 import type { PipelineExecutor } from '../PipelineExecutor';
@@ -117,11 +118,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     };
 
     const pipelineExecutor: PipelineExecutor = (inputParameters: InputParameters): ExecutionTask =>
-        createTask<PipelineExecutorResult>((updateOngoingResult) => {
-            return pipelineExecutorWithCallback(inputParameters, async (newOngoingResult) => {
-                updateOngoingResult(newOngoingResult);
-            });
-        });
+        createTask<PipelineExecutorResult & TODO_any>({
+            taskType: 'EXECUTION' as TODO_any,
+            taskProcessCallback(updateOngoingResult: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => void) {
+                return pipelineExecutorWithCallback(inputParameters, async (newOngoingResult) => {
+                    updateOngoingResult(newOngoingResult);
+                });
+            },
+        } as TODO_any) as TODO_any;
 
     return pipelineExecutor;
 }

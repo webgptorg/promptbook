@@ -123,13 +123,13 @@ export class MarkdownScraper implements Scraper {
               */
 
                 try {
-                    const titleResult = await prepareTitleExecutor({ knowledgePieceContent });
+                    const titleResult = await prepareTitleExecutor({ knowledgePieceContent }).asPromise();
                     const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
                     title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
                     name = titleToName(title);
 
                     // --- Keywords
-                    const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent });
+                    const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent }).asPromise();
                     const { keywords: keywordsRaw = '' } = keywordsResult.outputParameters;
                     keywords = (keywordsRaw || '')
                         .split(',')
