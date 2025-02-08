@@ -15,7 +15,7 @@ import { number_port } from '../../types/typeAliases';
  */
 export function $initializeStartServerCommand(program: Program) {
     const startServerCommand = program.command('start-server');
-    startServerCommand.option('--port <port>', `Port to start the server on`, 4460);
+    startServerCommand.option('--port <port>', `Port to start the server on`, '4460');
 
     startServerCommand.description(
         spaceTrim(`
@@ -23,10 +23,10 @@ export function $initializeStartServerCommand(program: Program) {
         `),
     );
 
-    startServerCommand.action(async ({ port }: { port: number_port }) => {
+    startServerCommand.action(async ({ port }: { port: string }) => {
         startRemoteServer({
             path: '/promptbook',
-            port,
+            port: parseInt(port, 10) as number_port,
             isAnonymousModeAllowed: true,
             isApplicationModeAllowed: true,
             // <- TODO: !!!!!!
