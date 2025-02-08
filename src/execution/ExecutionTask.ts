@@ -1,10 +1,10 @@
 import type { Observable } from 'rxjs';
+import { BehaviorSubject, concat, from } from 'rxjs';
 import { PartialDeep } from 'type-fest';
 import { string_SCREAMING_CASE } from '../_packages/utils.index';
 import type { task_id } from '../types/typeAliases';
 import { $randomToken } from '../utils/random/$randomToken';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
-import { BehaviorSubject, concat, from, lastValueFrom } from 'rxjs';
 
 /**
  * Options for creating a new task
@@ -50,10 +50,7 @@ export async function createTask<TTask extends AbstractTask<TTaskResult>, TTaskR
             return /* not await */ finalResult;
         },
         asObservable() {
-            return concat(
-                resultSubject.asObservable(),
-                from(finalResult)
-            );
+            return concat(resultSubject.asObservable(), from(finalResult));
         },
     } as TTask;
 }
@@ -107,3 +104,4 @@ export type Task = ExecutionTask | PreparationTask;
 /**
  * TODO: Maybe allow to terminate the task and add getter `isFinished` or `status`
  * TODO: [🐚] Split into more files and make `PrepareTask` & `RemoteTask` + split the function
+ */
