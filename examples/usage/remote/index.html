@@ -68,9 +68,7 @@ event.target);
                 const pipelineExecutor = library.createExecutor('advanced', tools);
 
                 const input = { word };
-                const output = await pipelineExecutor(input,(progress)=>{
-                    console.info('☑',progress);
-                });
+                const output = await pipelineExecutor(input);
 
                 console.info(output);
                 outputElement.innerText = JSON.stringify(output, null, 4);

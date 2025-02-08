@@ -91,12 +91,16 @@ async function playground() {
             Speak for ordinary people
         `),
     };
-    const { isSuccessful, errors, warnings, outputParameters, usage } = await pipelineExecutor(
-        inputParameters,
-        (progress) => {
-            console.info(progress.isDone ? '☑' : '☐', progress);
-        },
-    );
+
+    const executionTask = await pipelineExecutor(inputParameters, (progress) => {
+        console.info(progress.isDone ? '☑' : '☐', progress);
+    });
+
+    executionTask.asObservable().subscribe((progress) => {
+        console.info('progress', progress);
+    });
+
+    const { isSuccessful, errors, warnings, outputParameters, usage } = await executionTask.asPromise();
 
     for (const warning of warnings) {
         console.error(colors.bgYellow(warning.name /* <- 11:11 */));

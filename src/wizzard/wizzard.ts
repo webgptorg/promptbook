@@ -43,7 +43,6 @@ class Wizzard {
     public async execute(
         book: string_pipeline_url | string_filename | PipelineString,
         inputParameters: InputParameters,
-        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<
         {
             /**
@@ -66,7 +65,7 @@ class Wizzard {
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result = await pipelineExecutor(inputParameters, onProgress);
+        const result = await pipelineExecutor(inputParameters);
 
         // ▶ Fail if the execution was not successful
         assertsExecutionSuccessful(result);
@@ -152,5 +151,6 @@ class Wizzard {
 export const wizzard = new Wizzard();
 
 /**
+ * TODO: [🧠] Maybe some way how to handle the progress and streaming?
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

@@ -21,8 +21,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../../scrapers/_common/utils/scraperFetch';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -320,19 +319,22 @@ export function $initializeRunCommand(program: Program) {
             console.info(colors.gray('--- Executing ---'));
         }
 
-        const result = await pipelineExecutor(inputParameters, (taskProgress) => {
-            if (isVerbose) {
+        const executionTask = await pipelineExecutor(inputParameters);
+
+        if (isVerbose) {
+            executionTask.asObservable().subscribe((progress) => {
                 console.info(colors.gray('--- Progress ---'));
                 console.info(
-                    taskProgress,
+                    progress,
                     // <- TODO: Pretty print taskProgress
                 );
-            }
-        });
+            });
+        }
 
-        // assertsExecutionSuccessful(result);
-
-        const { isSuccessful, errors, warnings, outputParameters, executionReport } = result;
+        const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } =
+            await executionTask.asPromise({
+                isCrashedOnError: false,
+            });
 
         if (isVerbose) {
             console.info(colors.gray('--- Detailed Result ---'));
@@ -356,7 +358,7 @@ export function $initializeRunCommand(program: Program) {
 
         if (isVerbose) {
             console.info(colors.gray('--- Usage ---'));
-            console.info(colors.cyan(usageToHuman(result.usage)));
+            console.info(colors.cyan(usageToHuman(usage)));
         }
 
         if (json === undefined || isVerbose === true) {

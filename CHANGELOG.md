@@ -698,7 +698,7 @@ Compile via remote server
 
 ### `0.85.0` _(2025-02-)_
 
-Server queue and tasks
+[🐚] Server queue and tasks
 
 -   Remote server run in both `REST` and `Socket.io` mode <!-- <- TODO: !!!! -->
 -   Remote server can run entire books not just single prompt tasks <!-- <- TODO: !!!! -->
@@ -706,6 +706,7 @@ Server queue and tasks
 -   Remote server has internal task queue <!-- <- TODO: !!!! -->
 -   Remote server can be started via `ptbk start-server`
 -   Hide `$randomSeed`
+-   `PipelineExecutor`: Change `onProgress` -> `ExecutionTask`
 -   _(Maybe not implementing)_ Remote server can run in `Docker` <!-- <- TODO: !!!! -->
 -   _(Maybe not implementing)_ Remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j` <!-- <- TODO: !!!! -->
 

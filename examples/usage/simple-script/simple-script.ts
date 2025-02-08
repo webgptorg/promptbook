@@ -90,12 +90,14 @@ async function main() {
         rules: 'Write best text for corporate CV',
         /**/
     };
-    const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(
-        inputParameters,
-        (progress) => {
-            console.info(progress.isDone ? '☑' : '☐', progress);
-        },
-    );
+    const executionTask = await pipelineExecutor(inputParameters);
+
+    executionTask.asObservable().subscribe((progress) => {
+        console.info('progress', progress);
+    });
+
+    const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } =
+        await executionTask.asPromise();
 
     console.info('outputParameters', outputParameters);
 
