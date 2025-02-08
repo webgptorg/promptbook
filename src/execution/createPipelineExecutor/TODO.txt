@@ -7,6 +7,5 @@ TODO: [♈] Probbably move expectations from templates to parameters
 TODO: [🧠] When not meet expectations in DIALOG_TEMPLATE, make some way to tell the user
 TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
 Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
-TODO: [🧠][🍸] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
 TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
 TODO: [🧠][💷] `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result BUT maybe NOT to preserve pure JSON object

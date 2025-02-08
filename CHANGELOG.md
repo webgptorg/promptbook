@@ -706,6 +706,9 @@ Compile via remote server
 -   Remote server has internal task queue <!-- <- TODO: !!!! -->
 -   Remote server can be started via `ptbk start-server`
 -   Hide `$randomSeed`
+-   Remove `TaskProgress`
+-   Remove `assertsExecutionSuccessful`
+-   Change `await pipelineExecutor(` -> `pipelineExecutor(`
 -   `PipelineExecutor`: Change `onProgress` -> `ExecutionTask`
 -   _(Maybe not implementing)_ Remote server can run in `Docker` <!-- <- TODO: !!!! -->
 -   _(Maybe not implementing)_ Remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j` <!-- <- TODO: !!!! -->

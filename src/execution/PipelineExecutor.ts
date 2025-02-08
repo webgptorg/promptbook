@@ -1,5 +1,3 @@
-import type { Promisable } from 'type-fest';
-import type { TaskProgress } from '../types/TaskProgress';
 import type { InputParameters } from '../types/typeAliases';
 import { ExecutionTask } from './ExecutionTask';
 
@@ -13,12 +11,10 @@ import { ExecutionTask } from './ExecutionTask';
  */
 export type PipelineExecutor = {
     (
-        inputParameters: InputParameters,
-        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+        inputParameters: InputParameters
     ): Promise<ExecutionTask>;
 };
 
 /**
- * TODO: [🐚] Maybe return just `ExecutionTask` instead of `Promise<ExecutionTask>`
  * TODO: [🧠] Should this file be in /execution or /types folder?
  */

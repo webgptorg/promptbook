@@ -1,9 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
+import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { valueToString } from '../../utils/parameters/valueToString';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -11,11 +9,8 @@ import { serializeError } from '../../errors/utils/serializeError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
-import type { TaskProgress } from '../../types/TaskProgress';
-import type { InputParameters } from '../../types/typeAliases';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { InputParameters, Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
+import { valueToString } from '../../utils/parameters/valueToString';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
@@ -40,7 +35,7 @@ type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * @@@
      */
-    onProgress?(taskProgress: TaskProgress): Promisable<void>;
+    onProgress?(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
 
     /**
      * @@@
@@ -292,7 +287,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     preparedPipeline,
                     parametersToPass,
                     tools,
-                    onProgress(progress: TaskProgress) {
+                    onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>) {
                         if (isReturned) {
                             throw new UnexpectedError(
                                 spaceTrim(
@@ -302,7 +297,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                                         ${block(pipelineIdentification)}
 
                                         ${block(
-                                            JSON.stringify(progress, null, 4)
+                                            JSON.stringify(newOngoingResult, null, 4)
                                                 .split('\n')
                                                 .map((line) => `> ${line}`)
                                                 .join('\n'),
@@ -313,7 +308,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         }
 
                         if (onProgress) {
-                            onProgress(progress);
+                            onProgress(newOngoingResult);
                         }
                     },
                     $executionReport: executionReport,
