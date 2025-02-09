@@ -92,8 +92,8 @@ async function main() {
     };
     const executionTask = pipelineExecutor(inputParameters);
 
-    executionTask.asObservable().subscribe((progress) => {
-        console.info('progress', progress);
+    executionTask.asObservable().subscribe((partialResult) => {
+        console.info('progress', partialResult);
     });
 
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } =

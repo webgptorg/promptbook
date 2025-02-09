@@ -323,10 +323,10 @@ export function $initializeRunCommand(program: Program) {
         const executionTask = await pipelineExecutor(inputParameters);
 
         if (isVerbose) {
-            executionTask.asObservable().subscribe((progress) => {
+            executionTask.asObservable().subscribe((partialResult) => {
                 console.info(colors.gray('--- Progress ---'));
                 console.info(
-                    progress,
+                    partialResult,
                     // <- TODO: Pretty print taskProgress
                 );
             });

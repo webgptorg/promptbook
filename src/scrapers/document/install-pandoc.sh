@@ -1,4 +1,5 @@
 #!/bin/bash
+# install-pandoc.sh
 
 # TODO: [👩🏼‍🤝‍🧑🏽] This is a draft of auto-installation script for Pandoc
 #       Move it into production after testing and verification

@@ -39,10 +39,10 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 
     const taskId = `${taskType.toLowerCase()}-${$randomToken(256 /* <- TODO: !!! To global config */)}`;
 
-    const resultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
+    const partialResultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
 
     const finalResultPromise = /* not await */ taskProcessCallback((newOngoingResult: PartialDeep<TTaskResult>) => {
-        resultSubject.next(newOngoingResult);
+        partialResultSubject.next(newOngoingResult);
     });
 
     async function asPromise(options?: { readonly isCrashedOnError?: boolean }) {
@@ -63,7 +63,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
         asPromise,
         asObservable() {
             return concat(
-                resultSubject.asObservable(),
+                partialResultSubject.asObservable(),
                 from(
                     asPromise({
                         isCrashedOnError: true,
