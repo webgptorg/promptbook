@@ -83,9 +83,15 @@ export function startRemoteServer<TCustomOptions = undefined>(
             .filter((part) => part !== '')
             .join('/');
 
+    const startupDate = new Date();
+
     const app = express();
 
     app.use(express.json());
+    app.use(function (request, response, next) {
+        response.setHeader('X-Powered-By', 'Promptbook engine');
+        next();
+    });
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
 
@@ -95,8 +101,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         if (request.url?.includes('socket.io')) {
             return;
         }
-
-        console.log(app._router.stack);
 
         response.type('text/markdown').send(
             await spaceTrim(
@@ -111,9 +115,12 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     ---
 
+                    ## Details
+
                     **Server port:** ${port}
                     **Server root path:** ${rootPath}
                     **Socket.io path:** ${socketioPath}
+                    **Startup date:** ${startupDate.toISOString()}
                     **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
@@ -128,9 +135,19 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     ---
 
-                    ${block(app._router.stack.map(({ path }: really_any) => `- ${path}`).join('\n'))}
+                    ## Paths
+
+                    ${block(
+                        app._router.stack
+                            .map(({ route }: really_any) => route?.path || null)
+                            .filter((path: string) => path !== null)
+                            .map((path: string) => `- ${path}`)
+                            .join('\n'),
+                    )}
 
                     ---
+
+                    ## Instructions
 
                     To connect to this server use:
 
@@ -468,6 +485,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
+ * TODO: !!!!!!! CORS and security
  * TODO: !!!!!!! Allow to pass tokem here
  * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
