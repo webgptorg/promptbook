@@ -25,7 +25,7 @@ export function $initializeStartServerCommand(program: Program) {
 
     startServerCommand.action(async ({ port }: { port: string }) => {
         startRemoteServer({
-            path: '/promptbook',
+            rootPath: '/promptbook',
             port: parseInt(port, 10) as number_port,
             isAnonymousModeAllowed: true,
             isApplicationModeAllowed: true,

@@ -4,7 +4,7 @@ import express from 'express';
 import http from 'node:http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
@@ -21,7 +21,7 @@ import type { InputParameters, string_pipeline_url } from '../types/typeAliases'
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
@@ -32,9 +32,9 @@ import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/Prom
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './types/RemoteServerOptions';
 
-keepTypeImported<PromptbookServer_Prompt_Response>();
-keepTypeImported<PromptbookServer_Error>();
-keepTypeImported<PromptbookServer_ListModels_Response>();
+keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
+keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
+keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -50,7 +50,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 ): IDestroyable {
     const {
         port,
-        path,
+
         collection,
         createLlmExecutionTools,
         isAnonymousModeAllowed,
@@ -64,24 +64,52 @@ export function startRemoteServer<TCustomOptions = undefined>(
         ...options,
     };
     // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
+    let { rootPath = '/' } = options;
+
+    if (!rootPath.startsWith('/')) {
+        rootPath = `/${rootPath}`;
+    } /* not else */
+    if (rootPath.endsWith('/')) {
+        rootPath = rootPath.slice(0, -1);
+    } /* not else */
+    if (rootPath === '/') {
+        rootPath = '';
+    }
+
+    const socketioPath =
+        '/' +
+        `${rootPath}/socket.io`
+            .split('/')
+            .filter((part) => part !== '')
+            .join('/');
 
     const app = express();
 
     app.use(express.json());
 
-    app.get('/', async (request, response) => {
+    const runningExecutionTasks: Array<ExecutionTask> = [];
+
+    // TODO: !!!!!! Do here some garbage collection of finished tasks
+
+    app.get(['/', rootPath], async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
         }
 
-        response.send(
-            // TODO: !!!!!! Make this either valid html or text - http://localhost:4460/
+        response.type('text').send(
             await spaceTrim(
                 async (block) => `
-                    Server for processing promptbook remote requests is running.
+                    Promptbook: ${CLAIM}
 
-                    Version: ${PROMPTBOOK_ENGINE_VERSION}
-                    Socket.io path: ${path}/socket.io
+                    Book language version: ${BOOK_LANGUAGE_VERSION}
+                    Promptbook engine version: ${PROMPTBOOK_ENGINE_VERSION}
+                    Node.js version: ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
+
+                    ---
+
+                    Server port: ${port}
+                    Server root path: ${rootPath}
+                    Socket.io path: ${socketioPath}
                     Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     Application mode: ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
@@ -92,26 +120,26 @@ export function startRemoteServer<TCustomOptions = undefined>(
                                       .map((pipelineUrl) => `- ${pipelineUrl}`)
                                       .join('\n'),
                     )}
+                    Running executions: ${runningExecutionTasks.length}
+
+                    ---
 
                     For more information look at:
                     https://github.com/webgptorg/promptbook
-            `,
+                `,
             ),
+            // <- TODO: [🗽] Unite branding and make single place for it
         );
     });
 
-    const runningExecutionTasks: Array<ExecutionTask> = [];
-
-    // TODO: !!!!!! Do here some garbage collection of finished tasks
-
-    app.get('/executions', async (request, response) => {
+    app.get(`${rootPath}/executions`, async (request, response) => {
         response.send(
             runningExecutionTasks,
             // <- TODO: !!! Better and more information
         );
     });
 
-    app.get('/executions/:taskId', async (request, response) => {
+    app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
         const { taskId } = request.query;
 
         // TODO: !!! Check `taskId`
@@ -132,7 +160,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     app.post<{
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
-    }>('/executions/new', async (request, response) => {
+    }>(`${rootPath}/executions/new`, async (request, response) => {
         // <- TODO: !!!!!! What is the correct method
 
         const { pipelineUrl, inputParameters } = request.body;
@@ -182,7 +210,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     const httpServer = http.createServer(app);
 
     const server: Server = new Server(httpServer, {
-        path,
+        path: socketioPath,
         transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
         cors: {
             origin: '*',

@@ -2,9 +2,7 @@ import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_app_id, string_uri, string_user_id } from '../../types/typeAliases';
 
 /**
  * @@@
@@ -27,12 +25,14 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     readonly port: number;
 
     /**
-     * Path for the Socket.io server to listen
+     * Root path of the server
      *
-     * @default '/socket.io'
-     * @example '/promptbook/socket.io'
+     * Note: This is useful when you reverse proxy the server without changing the path
+     *
+     * @default '/'
+     * @example '/api/promptbook/'
      */
-    readonly path: string_uri;
+    readonly rootPath: string_uri;
 } & (
         | AnonymousRemoteServerOptions
         | ApplicationRemoteServerOptions<TCustomOptions>

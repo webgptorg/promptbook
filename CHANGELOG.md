@@ -709,6 +709,7 @@ Compile via remote server
 -   Remove `TaskProgress`
 -   Remove `assertsExecutionSuccessful`
 -   `PipelineExecutor`: Change `onProgress` -> `ExecutionTask`
+-   Remote server allows to set `rootPath`
 -   _(Maybe not implementing)_ Remote server can run in `Docker` <!-- <- TODO: !!!! -->
 -   _(Maybe not implementing)_ Remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j` <!-- <- TODO: !!!! -->
 
