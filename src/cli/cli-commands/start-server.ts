@@ -2,7 +2,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
-import { createCollectionFromDirectory } from '../../_packages/node.index';
+import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
