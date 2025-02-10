@@ -24,7 +24,7 @@
         },
         {
             "name": "👨‍💻🔵 Run remote example (💸)",
-            "command": "./examples/usage/remote/server.ts",
+            "command": "npx ts-node ./examples/usage/remote/server.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -73,7 +73,7 @@
         },
         {
             "name": "🤪 Find fresh emoji tag",
-            "command": "./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
+            "command": "npx ts-node ./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
             "execute": true,
             "focus": true
         },
@@ -86,14 +86,14 @@
         },
         {
             "name": "🏭📦 Generate packages",
-            "commands": ["./scripts/generate-packages/generate-packages.ts --skip-bundler"],
+            "commands": ["npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler"],
             "execute": false,
             "onlySingle": true,
             "focus": false
         },
         {
             "name": "🏭📚 Generate documentation",
-            "commands": ["./scripts/generate-documentation/generate-documentation.ts"],
+            "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
             "execute": false,
             "onlySingle": true,
             "focus": false
@@ -101,8 +101,8 @@
         {
             "name": "🏭📖 Generate examples .book.md -> .book.json (💸) [🍠]",
             "commands": [
-                "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
             ],
             "execute": false,
             "onlySingle": false,
@@ -111,7 +111,7 @@
         {
             "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
             "commands": [
-                "src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book.md' --ignore 'examples/pipelines/errors/**/*.book.md'"
+                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book.md' --ignore 'examples/pipelines/errors/**/*.book.md'"
             ],
             "execute": false,
             "onlySingle": false,
@@ -119,14 +119,14 @@
         },
         {
             "name": "🏭📖 Generate reports .report.json -> .report.md",
-            "commands": ["./scripts/generate-example-reports/generate-example-reports.ts"],
+            "commands": ["npx ts-node ./scripts/generate-example-reports/generate-example-reports.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🏭🩹 Fix imports",
-            "commands": ["./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
+            "commands": ["npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -139,64 +139,64 @@
         },
         {
             "name": "🔎🩹 Find name discrepancies",
-            "commands": ["./scripts/find-name-discrepancies/find-name-discrepancies.ts"],
+            "commands": ["npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Playground (💸)",
-            "command": "./other/playground/playground.ts",
+            "command": "npx ts-node ./other/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 OpenAI playground (💸)",
-            "command": "./src/llm-providers/openai/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Anthropic Claude playground (💸)",
-            "command": "./src/llm-providers/anthropic-claude/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Vercel playground (💸)",
-            "command": "./src/llm-providers/vercel/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Azure OpenAI playground (💸)",
-            "command": "./src/llm-providers/azure-openai/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Langtail playground (💸)",
-            "command": "./src/llm-providers/langtail/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/langtail/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Multiple LLMs playground (💸)",
-            "command": "./src/llm-providers/multiple/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/multiple/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Remote server playground",
-            "command": "./src/llm-providers/remote/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/remote/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
-                "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
@@ -204,8 +204,8 @@
         {
             "name": "🧸📄💡 Scrape knowledge by Markitdown (playground) (💸) [🍠]",
             "commands": [
-                "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "./src/scrapers/markitdown/playground/markitdown-scraper-playground.ts"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/markitdown/playground/markitdown-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
@@ -214,8 +214,8 @@
         {
             "name": "🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
-                "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "./src/scrapers/document/playground/document-scraper-playground.ts"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/document/playground/document-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
@@ -224,8 +224,8 @@
         {
             "name": "🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
             "commands": [
-                "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
@@ -234,8 +234,8 @@
         {
             "name": "🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
             "commands": [
-                "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "./src/scrapers/pdf/playground/pdf-scraper-playground.ts"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/pdf/playground/pdf-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
@@ -244,8 +244,8 @@
         {
             "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸) [🍠]",
             "commands": [
-                "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "./src/scrapers/website/playground/website-scraper-playground.ts"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
@@ -253,7 +253,7 @@
 
         {
             "name": "📖 Make Promptbook collection (💸) [🍠]",
-            "command": "./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
+            "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
             "onlySingle": true,
             "focus": true
         },
