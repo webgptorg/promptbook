@@ -1,5 +1,5 @@
-import { spawn } from 'child_process';
 import colors from 'colors';
+import { spawn } from 'node:child_process';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { DEFAULT_IS_VERBOSE } from '../../config';

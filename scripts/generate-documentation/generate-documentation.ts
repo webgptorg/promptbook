@@ -3,8 +3,8 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import spaceTrim from 'spacetrim';
 import { COMMANDS } from '../../src/commands/index';
 import { FORMFACTOR_DEFINITIONS } from '../../src/formfactors/index';
@@ -58,7 +58,7 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
             ## Commands
 
             ${block(COMMANDS.map(({ name, documentationUrl }) => `- [${name}](${documentationUrl})`).join('\n'))}
-          
+
         `,
     );
 

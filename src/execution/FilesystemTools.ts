@@ -1,4 +1,4 @@
-import type fs from 'fs/promises';
+import type fs from 'node:fs/promises';
 
 /**
  * Container for all the tools needed to manipulate with filesystem

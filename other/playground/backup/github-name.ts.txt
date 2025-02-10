@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import { join } from 'path';
+import { join } from 'node:path';
 import { checkGithubName } from '../../src/expectations/drafts/isGithubNameFree';
 
 if (process.cwd() !== join(__dirname, '../..')) {

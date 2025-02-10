@@ -2,7 +2,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { readFile, writeFile } from 'fs';
 import glob from 'glob-promise';
 import JSON5 from 'json5';
-import { join } from 'path';
+import { join } from 'node:path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';

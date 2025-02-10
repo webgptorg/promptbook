@@ -2,8 +2,8 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
+import { readFile } from 'node:fs/promises';
 import spaceTrim from 'spacetrim';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
-import { join } from 'path';
+import { join } from 'node:path';
 import { spaceTrim } from 'spacetrim';
 import { compilePipeline } from '../compilePipeline';
 import { importPipelineWithoutPreparation } from './_importPipeline';

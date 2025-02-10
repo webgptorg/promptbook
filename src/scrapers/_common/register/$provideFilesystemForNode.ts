@@ -1,4 +1,4 @@
-import { access, constants, mkdir, readdir, readFile, stat, writeFile } from 'fs/promises';
+import { access, constants, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { FilesystemTools } from '../../../execution/FilesystemTools';

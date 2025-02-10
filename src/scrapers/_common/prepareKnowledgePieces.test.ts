@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { join } from 'path';
+import { join } from 'node:path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgePieces } from './prepareKnowledgePieces';
 

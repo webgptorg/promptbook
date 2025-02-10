@@ -6,7 +6,7 @@ Note: [🔁] In your app you will be importing '@promptbook/core' instead of '..
 
 import colors from 'colors';
 import * as dotenv from 'dotenv';
-import { writeFile } from 'fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { forTime } from 'waitasecond';
 import {
     createPipelineExecutor,

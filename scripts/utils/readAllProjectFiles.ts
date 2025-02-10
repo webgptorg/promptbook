@@ -1,4 +1,4 @@
-import { readFile } from 'fs/promises';
+import { readFile } from 'node:fs/promises';
 import { findAllProjectFiles } from './findAllProjectFiles';
 
 export async function readAllProjectFiles(): Promise<ReadonlyArray<{ path: string; content: string }>> {

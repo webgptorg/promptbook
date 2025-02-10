@@ -1,9 +1,9 @@
 import jsonPlugin from '@rollup/plugin-json';
 import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
-import { join } from 'path';
+import { join } from 'node:path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
-import { visualizer } from "rollup-plugin-visualizer";
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // Note: Note using raw imports via `rollup-plugin-raw` - it is not maintained and has security and compatibility issues
 
@@ -59,11 +59,12 @@ export default function () {
                 */
             }
 
-
-            plugins.push(visualizer({
-              emitFile: true,
-              filename: "stats.html", // <- TODO: [🧠] Pick better filename for this
-            }));
+            plugins.push(
+                visualizer({
+                    emitFile: true,
+                    filename: 'stats.html', // <- TODO: [🧠] Pick better filename for this
+                }),
+            );
 
             return {
                 input: entryIndexFilePath,

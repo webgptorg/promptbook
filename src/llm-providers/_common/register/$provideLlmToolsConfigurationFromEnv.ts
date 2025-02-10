@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { join } from 'path';
+import { join } from 'node:path';
 import { LOOP_LIMIT } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
@@ -8,8 +8,8 @@ import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { isRootPath } from '../../../utils/validators/filePath/isRootPath';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
-import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 import { $setUsedEnvFilename } from './$registeredLlmToolsMessage';
+import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
  * @@@

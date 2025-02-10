@@ -6,9 +6,9 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { dirname, join } from 'path';
+import { readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { stringifyPipelineJson } from '../../src/utils/editable/utils/stringifyPipelineJson';

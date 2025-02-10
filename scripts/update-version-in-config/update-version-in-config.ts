@@ -3,8 +3,8 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { spaceTrim } from 'spacetrim';
 import { version } from '../../package.json';
 import { GENERATOR_WARNING } from '../../src/config';

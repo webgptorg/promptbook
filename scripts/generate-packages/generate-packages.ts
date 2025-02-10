@@ -3,9 +3,9 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import fs, { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { dirname, join, relative } from 'path';
+import fs, { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join, relative } from 'node:path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';

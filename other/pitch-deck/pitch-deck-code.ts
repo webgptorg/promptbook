@@ -5,8 +5,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import { join } from 'node:path';
 import OpenAI from 'openai';
-import { join } from 'path';
 import spaceTrim from 'spacetrim';
 
 if (process.cwd() !== join(__dirname, '../..')) {
