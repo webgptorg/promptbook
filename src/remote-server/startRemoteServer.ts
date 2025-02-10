@@ -96,33 +96,47 @@ export function startRemoteServer<TCustomOptions = undefined>(
             return;
         }
 
-        response.type('text').send(
+        console.log(app._router.stack);
+
+        response.type('text/markdown').send(
             await spaceTrim(
                 async (block) => `
-                    Promptbook: ${CLAIM}
+                    # Promptbook
 
-                    Book language version: ${BOOK_LANGUAGE_VERSION}
-                    Promptbook engine version: ${PROMPTBOOK_ENGINE_VERSION}
-                    Node.js version: ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
+                    > ${block(CLAIM)}
+
+                    **Book language version:** ${BOOK_LANGUAGE_VERSION}
+                    **Promptbook engine version:** ${PROMPTBOOK_ENGINE_VERSION}
+                    **Node.js version:** ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
 
                     ---
 
-                    Server port: ${port}
-                    Server root path: ${rootPath}
-                    Socket.io path: ${socketioPath}
-                    Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
-                    Application mode: ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
+                    **Server port:** ${port}
+                    **Server root path:** ${rootPath}
+                    **Socket.io path:** ${socketioPath}
+                    **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
+                    **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
                         !isApplicationModeAllowed || collection === null
                             ? ''
-                            : 'Pipelines in collection:\n' +
+                            : '**Pipelines in collection:**\n' +
                                   (await collection.listPipelines())
                                       .map((pipelineUrl) => `- ${pipelineUrl}`)
                                       .join('\n'),
                     )}
-                    Running executions: ${runningExecutionTasks.length}
+                    **Running executions:** ${runningExecutionTasks.length}
 
                     ---
+
+                    ${block(app._router.stack.map(({ path }: really_any) => `- ${path}`).join('\n'))}
+
+                    ---
+
+                    To connect to this server use:
+
+                    1) The client https://www.npmjs.com/package/@promptbook/remote-client
+                    2) OpenAI compatible client *(Not wotking yet)*
+                    3) REST API
 
                     For more information look at:
                     https://github.com/webgptorg/promptbook
@@ -130,6 +144,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
             ),
             // <- TODO: [🗽] Unite branding and make single place for it
         );
+    });
+
+    app.get(`${rootPath}/books`, async (request, response) => {
+        response.send(collection === null ? [] : await collection.listPipelines());
     });
 
     app.get(`${rootPath}/executions`, async (request, response) => {
@@ -163,7 +181,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
     }>(`${rootPath}/executions/new`, async (request, response) => {
         // <- TODO: !!!!!! What is the correct method
 
-        const { pipelineUrl, inputParameters } = request.body;
+        const { inputParameters } = request.body;
+        const pipelineUrl = request.body.pipelineUrl || request.body.book;
 
         // TODO: !!! Check `pipelineUrl` and `inputParameters`
 
@@ -449,6 +468,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
+ * TODO: !!!!!!! Allow to pass tokem here
  * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`

@@ -153,6 +153,7 @@ export function $initializeMakeCommand(program: Program) {
                 ],
             } satisfies ExecutionTools;
 
+            // TODO: [🧟‍♂️][◽] DRY:
             const collection = await createCollectionFromDirectory(path, tools, {
                 isVerbose,
                 rootUrl,
