@@ -3,21 +3,21 @@
     "terminals": [
         {
             "name": "👨‍💻⚫ Run CLI example (💸)",
-            "command": "ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md",
+            "command": "./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "👨‍💻⚪ Run simple-script example (💸)",
-            "command": "npx ts-node ./examples/usage/simple-script/simple-script.ts",
+            "command": "./examples/usage/simple-script/simple-script.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "👨‍💻🔴 Run logging example (💸)",
-            "command": "npx ts-node ./examples/usage/logging/logging.ts",
+            "command": "./examples/usage/logging/logging.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
