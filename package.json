@@ -59,12 +59,12 @@
         "test": "jest",
         "test-types": "tsc",
         "lint": "eslint src",
-        "generate-packages": "./scripts/generate-packages/generate-packages.ts --commit",
-        "generate-documentation": "./scripts/generate-packages/generate-packages.ts --commit",
-        "update-version-in-config": "./scripts/update-version-in-config/update-version-in-config.ts --commit",
-        "use-packages": "./scripts/use-packages/use-packages.ts",
-        "preversion": "git pull && ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
-        "postversion": "npm run update-version-in-config && ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages --commit && npm run generate-documentation --commit && git push && git push --tags && npm run use-packages"
+        "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "generate-documentation": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
+        "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
+        "preversion": "git pull && ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
+        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages --commit && npm run generate-documentation --commit && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
         "@rollup/plugin-json": "6.1.0",
