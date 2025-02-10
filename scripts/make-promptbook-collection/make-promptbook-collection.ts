@@ -106,7 +106,7 @@ async function makePipelineCollection({
 
     const filePath = `./src/other/templates/getTemplatesPipelineCollection.ts`;
     await $execCommand(
-        `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --root-url https://github.com/webgptorg/book/blob/main/books/templates/ --format typescript --output ${filePath} --function-name getTemplatesPipelineCollection ${
+        `./src/cli/test/ptbk.ts make ./book/books --root-url https://github.com/webgptorg/book/blob/main/books/templates/ --format typescript --output ${filePath} --function-name getTemplatesPipelineCollection ${
             !isVerbose ? '' : '--verbose'
         }`,
     );

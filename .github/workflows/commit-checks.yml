@@ -64,4 +64,4 @@ jobs:
               run: npm ci --only=production
 
             - name: Find name discrepancies
-              run: npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
+              run: ./scripts/find-name-discrepancies/find-name-discrepancies.ts
