@@ -12,9 +12,9 @@ import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { number_port, string_url } from '../../types/typeAliases';
+import { suffixUrl } from '../../utils/normalization/suffixUrl';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import { suffixUrl } from '../../utils/normalization/suffixUrl';
 
 /**
  * Initializes `start-server` command for Promptbook CLI utilities
