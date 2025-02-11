@@ -43,7 +43,7 @@ export function $initializeStartServerCommand(program: Program) {
 
     startServerCommand.action(
         async (path, { port, allowAnonymous: isAnonymousModeAllowed, reload: isCacheReloaded, verbose: isVerbose }) => {
-            console.log('startServerCommand.action', { port, isAnonymousModeAllowed, isCacheReloaded, isVerbose });
+            // console.log('startServerCommand.action', { port, isAnonymousModeAllowed, isCacheReloaded, isVerbose });
 
             // TODO: DRY [◽]
             const prepareAndScrapeOptions = {
