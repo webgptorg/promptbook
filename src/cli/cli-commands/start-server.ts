@@ -1,3 +1,4 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -10,9 +11,10 @@ import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/reg
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { number_port } from '../../types/typeAliases';
+import type { number_port, string_url } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { suffixUrl } from '../../utils/normalization/suffixUrl';
 
 /**
  * Initializes `start-server` command for Promptbook CLI utilities
@@ -31,6 +33,16 @@ export function $initializeStartServerCommand(program: Program) {
         DEFAULT_BOOKS_DIRNAME,
     );
     startServerCommand.option('--port <port>', `Port to start the server on`, '4460');
+    startServerCommand.option(
+        '-u, --url',
+        spaceTrim(`
+            Public root url of the server
+            It is used for following purposes:
+
+            1) It is suffixed with /books and used as rootUrl for all served books
+            2) Path (if not just /) is used as rootPath for the server
+        `),
+    );
     startServerCommand.option('--allow-anonymous', `Is anonymous mode allowed`, false);
     startServerCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
     startServerCommand.option('-v, --verbose', `Is output verbose`, false);
@@ -42,8 +54,31 @@ export function $initializeStartServerCommand(program: Program) {
     );
 
     startServerCommand.action(
-        async (path, { port, allowAnonymous: isAnonymousModeAllowed, reload: isCacheReloaded, verbose: isVerbose }) => {
-            // console.log('startServerCommand.action', { port, isAnonymousModeAllowed, isCacheReloaded, isVerbose });
+        async (
+            path,
+            { port, url: rawUrl, allowAnonymous: isAnonymousModeAllowed, reload: isCacheReloaded, verbose: isVerbose },
+        ) => {
+            const url = !rawUrl ? null : new URL(rawUrl);
+
+            if (url !== null && url.port !== port) {
+                console.warn(
+                    colors.yellow(
+                        `Port in --url is different from --port which the server will listen on, this is ok only if you proxy from one port to another, for exaple via nginx or docker`,
+                    ),
+                );
+            }
+
+            let rootUrl: string_url | undefined = undefined;
+
+            if (url !== null) {
+                rootUrl = suffixUrl(url, '/books');
+            }
+
+            let rootPath = '/';
+
+            if (url !== null) {
+                rootPath = url.pathname;
+            }
 
             // TODO: DRY [◽]
             const prepareAndScrapeOptions = {
@@ -66,8 +101,7 @@ export function $initializeStartServerCommand(program: Program) {
             // TODO: [🧟‍♂️][◽] DRY:
             const collection = await createCollectionFromDirectory(path, tools, {
                 isVerbose,
-                // TODO: [🧠] Utilize implicit urls for books
-                // rootUrl: `http://localhost:${port}/books`,
+                rootUrl,
                 isRecursive: true,
                 isLazyLoaded: false,
                 isCrashedOnError: true,
@@ -75,7 +109,7 @@ export function $initializeStartServerCommand(program: Program) {
             });
 
             const server = startRemoteServer({
-                rootPath: '/',
+                rootPath,
                 port: parseInt(port, 10) as number_port,
                 isAnonymousModeAllowed,
                 isApplicationModeAllowed: true,
