@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 //               <- TODO: [🎺] Ensure correct version of Node.js is used
+// promptbook-cli.js
 
 /**
  * Note: [🔺] Purpose of this file is to run CLI in production environment

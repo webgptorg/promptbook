@@ -499,7 +499,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 bk: 'bin/promptbook-cli.js',
                 // <- TODO: [🧠] Pick one of and remove rest
             };
-        } else if (packageFullname === '@promptbook/ptbk') {
+        } else if (packageFullname === 'ptbk') {
             packageJson.bin = {
                 ptbk: 'bin/promptbook-cli-proxy.js',
             };
