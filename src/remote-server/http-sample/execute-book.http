@@ -1,0 +1,30 @@
+### List all books
+
+# !!!!!! List also inputParameters required for the execution
+
+GET http://localhost:4460/books
+
+
+### Execute one of them
+
+POST http://localhost:4460/executions/new
+content-type: application/json
+
+{
+    "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md",
+    "inputParameters": {
+        "knowledgeContent": "Prague is a political, cultural, and economic hub of Central Europe, with a rich history and Romanesque, Gothic, Renaissance and Baroque architecture. It was the capital of the Kingdom of Bohemia and residence of several Holy Roman Emperors, most notably Charles IV (r. 1346–1378) and Rudolf II (r. 1575–1611). It was an important city to the Habsburg monarchy and Austria-Hungary. The city played major roles in the Bohemian and the Protestant Reformations, the Thirty Years' War and in 20th-century history as the capital of Czechoslovakia between the World Wars and the post-war Communist era."
+    }
+}
+
+
+### Get status of the execution
+
+# !!!!!! Not wotking yet
+# !!!!!! Shorter IDs
+
+GET http://localhost:4460/executions/execution-b43a52e56c4045412d35aafeb5a6b73d18cc404106e48d579d6ebd1a16b07181a49587b707674bf3277e7d2ee018aaa5c41fd13a4cc504e2652064cbf71a047245e5949a4dccbfc49b56bcfc378ea1daeb5106f2953356299c7456e5b754603cc6bd1fbf1345b311f9c3844c6207f5959c760aa15d723fc8bd530840b48568253524948f50d527f041aab9aea72823159f5e6c1d7aa53b784557703d009be8e3565a91a6a1cb5c05bfed31485fbea60b9aeff94c477a0a508d88387d28792de18613d6d686b814a785b81986a90992649903a7647033cc9722e918b0ce4ce70663e361363a50dbd1c4f9795e2a8d70cd9e5e32ee9c048490f7858f234eeb7564
+
+### List all running executions
+
+GET http://localhost:4460/executions
