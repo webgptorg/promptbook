@@ -4,7 +4,7 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forEver } from 'waitasecond';
-import { isValidUrl } from '../../_packages/utils.index';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -13,7 +13,8 @@ import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/reg
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { number_port, string_url } from '../../types/typeAliases';
+import type { number_port } from '../../types/typeAliases';
+import type { string_url } from '../../types/typeAliases';
 import { suffixUrl } from '../../utils/normalization/suffixUrl';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { keepUnused } from '../../utils/organization/keepUnused';
