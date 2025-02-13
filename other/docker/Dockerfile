@@ -1,12 +1,23 @@
 # [🐋] Dockerfile
 
-FROM node:22
-
-#Install some dependencies
-
+# Build stage
+FROM node:20-slim AS builder
 WORKDIR /usr/app
-COPY ./books /usr/app/books
-RUN npm i ptbk
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-# Add `ptbk` to the path
+# Production stage
+FROM node:20-slim
+WORKDIR /usr/app
+COPY --from=builder /usr/app/dist ./dist
+COPY --from=builder /usr/app/package*.json ./
+COPY --from=builder /usr/app/books ./books
+RUN npm ci --only=production
+
+ENV NODE_ENV=production
 ENV PATH="/usr/app/node_modules/.bin:${PATH}"
+
+EXPOSE 4460
+CMD ["ptbk", "start-server", "--port", "4460"]
