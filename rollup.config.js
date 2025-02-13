@@ -1,7 +1,7 @@
 import jsonPlugin from '@rollup/plugin-json';
 import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
-import { join } from 'node:path';
+import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import { visualizer } from 'rollup-plugin-visualizer';
 

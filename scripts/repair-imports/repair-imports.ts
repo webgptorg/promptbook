@@ -3,7 +3,7 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';

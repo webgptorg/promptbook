@@ -1,5 +1,5 @@
 import glob from 'glob-promise';
-import { join } from 'node:path';
+import { join } from 'path';
 
 /**
  * @@@

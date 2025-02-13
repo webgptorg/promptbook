@@ -1,4 +1,4 @@
-import { join } from 'node:path';
+import { join } from 'path';
 import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';

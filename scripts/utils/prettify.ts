@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import prettier from 'prettier';
 import { spaceTrim } from 'spacetrim';
 import { TODO_any } from '../../src/utils/organization/TODO_any';

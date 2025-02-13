@@ -1,7 +1,7 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
-import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
+import { dirname, join } from 'path';
 import { MAX_FILENAME_LENGTH } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../errors/UnexpectedError';

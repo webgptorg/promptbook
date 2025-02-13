@@ -3,8 +3,8 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
 

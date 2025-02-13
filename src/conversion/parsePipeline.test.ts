@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
-import { join } from 'node:path';
+import { join } from 'path';
 import { parsePipeline } from './parsePipeline';
 import { importPipelineWithoutPreparation } from './validation/_importPipeline';
 

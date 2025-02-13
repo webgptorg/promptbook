@@ -1,13 +1,15 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
-import { dirname, join } from 'node:path';
+import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_DOWNLOAD_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { DEFAULT_MAX_FILE_SIZE } from '../../../config';
-import { MAX_FILENAME_LENGTH } from '../../../config';
+import {
+    DEFAULT_DOWNLOAD_CACHE_DIRNAME,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_FILE_SIZE,
+    MAX_FILENAME_LENGTH,
+} from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { LimitReachedError } from '../../../errors/LimitReachedError';
 import { NotFoundError } from '../../../errors/NotFoundError';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { join } from 'node:path';
+import { join } from 'path';
 import { getScraperIntermediateSource } from './getScraperIntermediateSource';
 
 describe('how `getScraperIntermediateSource` works', () => {

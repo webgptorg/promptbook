@@ -1,7 +1,7 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
-import { mkdir, rm } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { mkdir, rm } from 'fs/promises';
+import { dirname, join } from 'path';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
 import type { string_file_extension } from '../../../types/typeAliases';

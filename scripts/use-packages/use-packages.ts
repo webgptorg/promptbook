@@ -6,8 +6,8 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';

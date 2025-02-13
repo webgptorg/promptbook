@@ -1,6 +1,6 @@
 import colors from 'colors';
-import { mkdir, unlink, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { mkdir, unlink, writeFile } from 'fs/promises';
+import { dirname, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { isWorkingTreeClean } from './isWorkingTreeClean';

@@ -12,7 +12,7 @@ import { $provideFilesystemForNode } from '@promptbook/node';
 import { MarkdownScraper } from '@promptbook/markdown-utils';
 import { spaceTrim } from '@promptbook/utils';
 import chalk from 'chalk';
-import { join } from 'node:path';
+import { join } from 'path';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(chalk.red(`CWD must be root of the project`));

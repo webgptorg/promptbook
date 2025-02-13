@@ -1,4 +1,4 @@
-import { basename } from 'node:path';
+import { basename } from 'path';
 import { removeEmojis } from '../removeEmojis';
 import { isValidFilePath } from '../validators/filePath/isValidFilePath';
 import { isValidUrl } from '../validators/url/isValidUrl';

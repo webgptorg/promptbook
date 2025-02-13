@@ -8,7 +8,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { readFileSync } from 'fs';
 import glob from 'glob-promise';
-import { join } from 'node:path';
+import { join } from 'path';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { $shuffleItems } from './utils/$shuffleItems';
 import { difference } from './utils/difference';

@@ -1,4 +1,4 @@
-import { join } from 'node:path';
+import { join } from 'path';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';

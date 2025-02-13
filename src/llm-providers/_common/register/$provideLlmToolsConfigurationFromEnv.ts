@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { join } from 'node:path';
+import { join } from 'path';
 import { LOOP_LIMIT } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
