@@ -3,7 +3,7 @@ import { BehaviorSubject, concat, from } from 'rxjs';
 import { PartialDeep } from 'type-fest';
 import type { task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
-import { TODO_remove_as } from '../utils/organization/TODO_remove_as';
+import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import { $randomToken } from '../utils/random/$randomToken';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
