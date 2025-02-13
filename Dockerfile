@@ -1,6 +1,7 @@
 # [🐋] Dockerfile
 
 FROM node:22
+  # <- TODO: !!!!!! Use tini version of node
 
 #Install some dependencies
 

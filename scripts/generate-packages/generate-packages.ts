@@ -566,6 +566,34 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             })),
                         ],
                     },
+                    'publish-docker': {
+                        name: 'Publish Docker image to DockerHub',
+                        'runs-on': 'ubuntu-latest',
+                        steps: [
+                            {
+                                name: 'Checkout',
+                                uses: 'actions/checkout@v4',
+                            },
+                            {
+                                name: 'Login to DockerHub',
+                                uses: 'docker/login-action@v2',
+                                with: {
+                                    username: '${{ secrets.DOCKERHUB_USER }}',
+                                    password: '${{ secrets.DOCKERHUB_TOKEN }}',
+                                },
+                            },
+                            {
+                                name: 'Build and Push Docker Image',
+                                uses: 'docker/build-push-action@v2',
+                                with: {
+                                    context: '.',
+                                    push: true,
+                                    tags: 'hejny/promptbook:latest',
+                                    // <- TODO: !!!!!! Add version tag
+                                },
+                            },
+                        ],
+                    },
                 },
             },
             { indent: 4 },

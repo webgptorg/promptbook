@@ -1,0 +1,15 @@
+# [🐋] docker-compose.yml
+services:
+    promptbook:
+        build: .
+        image: hejny/promptbook:latest
+        # <- TODO: !!!!!! Make propper versioning of the image
+        # <- TODO: Make better scope/organization of the image
+        ports:
+            - 4460:4460
+        command: ptbk start-server --port 4460
+        # TODO: !!!!!! Make volume for `.promptbook` folder
+        # volumes:
+        #     - ./logs:/opt/chutoo/promptbook-module/
+        env_file: '.env'
+        # <- TODO: !!!!!!! Is this secure?
