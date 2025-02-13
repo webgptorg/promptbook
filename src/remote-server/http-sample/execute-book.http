@@ -3,7 +3,7 @@
 
 GET http://localhost:4460/books
 
-# <- TODO: [🧠] List `inputParameters` required for the execution
+# <- TODO: [🧠][👩🏾‍🤝‍🧑🏿] List `inputParameters` required for the execution
 
 
 ### Execute one of them
@@ -22,10 +22,13 @@ content-type: application/json
 
 ### Get status of the execution
 
-GET http://localhost:4460/executions/exec-53041ab09b7b8353
+GET http://localhost:4460/executions/exec-e3cbc02c04a5be8d
 
 # <- TODO: !!!!!! Handle error when execution is errored
 
 ### List all running executions
 
 GET http://localhost:4460/executions
+
+
+# <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token

@@ -4,6 +4,7 @@ import express from 'express';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
+import { forTime } from 'waitasecond';
 import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -164,13 +165,22 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     app.get(`${rootPath}/books`, async (request, response) => {
-        response.send(collection === null ? [] : await collection.listPipelines());
+        if (collection === null) {
+            response.status(500).send('No collection available');
+            return;
+        }
+
+        const pipelines = await collection.listPipelines();
+        // <- TODO: [🧠][👩🏾‍🤝‍🧑🏿] List `inputParameters` required for the execution
+
+        response.send(pipelines);
     });
 
     app.get(`${rootPath}/executions`, async (request, response) => {
         response.send(
             runningExecutionTasks,
-            // <- TODO: !!! Better and more information
+            // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
+            // <- TODO: [🧠] Better and more information
         );
     });
 
@@ -232,11 +242,23 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
             runningExecutionTasks.push(executionTask);
 
+            await forTime(10);
+            // <- Note: Wait for a while to wait for quick responses or sudden but asynchronous errors
+            // <- TODO: Put this into configuration
+
             response.send(executionTask);
 
-            // TODO: !!!!!! Remove this:
-            executionTask.asObservable().subscribe((_) => {
-                console.log('!!!', _);
+            // TODO: !!!!!! isVerbose
+            executionTask.asObservable().subscribe({
+                next(partialResult) {
+                    console.info(executionTask.taskId, 'next', partialResult);
+                },
+                error(error) {
+                    console.info(executionTask.taskId, 'error', error);
+                },
+                complete() {
+                    console.info(executionTask.taskId, 'complete');
+                },
             });
 
             /*

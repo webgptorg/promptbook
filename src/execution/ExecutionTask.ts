@@ -1,6 +1,7 @@
 import type { Observable } from 'rxjs';
-import { BehaviorSubject, concat, from } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { PartialDeep } from 'type-fest';
+import { really_any } from '../_packages/types.index';
 import type { task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
@@ -48,12 +49,33 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
         partialResultSubject.next(newOngoingResult);
     });
 
+    finalResultPromise
+        .catch((error) => {
+            // console.error('!!!!! Task failed:', error);
+            partialResultSubject.error(error);
+        })
+        .then((value) => {
+            // console.error('!!!!! Task finished:', value);
+            if (value) {
+                try {
+                    assertsTaskSuccessful(value);
+                    partialResultSubject.next(value as really_any);
+                } catch (error) {
+                    partialResultSubject.error(error);
+                }
+            }
+
+            partialResultSubject.complete();
+        });
+
     async function asPromise(options?: { readonly isCrashedOnError?: boolean }) {
         const { isCrashedOnError = true } = options || {};
 
         const finalResult = await finalResultPromise;
+        console.error('!!!!! finalResult:', finalResult);
 
         if (isCrashedOnError) {
+            console.error('!!!!! isCrashedOnError:', finalResult);
             assertsTaskSuccessful(finalResult);
         }
 
@@ -65,14 +87,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
         taskId,
         asPromise,
         asObservable() {
-            return concat(
-                partialResultSubject.asObservable(),
-                from(
-                    asPromise({
-                        isCrashedOnError: true,
-                    }),
-                ),
-            );
+            return partialResultSubject.asObservable();
         },
         get currentValue() {
             return partialResultSubject.value;

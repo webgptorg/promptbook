@@ -3,6 +3,8 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
+import { forEver } from 'waitasecond';
+import { isValidUrl } from '../../_packages/utils.index';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -11,8 +13,7 @@ import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/reg
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import type { number_port } from '../../types/typeAliases';
-import type { string_url } from '../../types/typeAliases';
+import type { number_port, string_url } from '../../types/typeAliases';
 import { suffixUrl } from '../../utils/normalization/suffixUrl';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -35,7 +36,7 @@ export function $initializeStartServerCommand(program: Program) {
     );
     startServerCommand.option('--port <port>', `Port to start the server on`, '4460');
     startServerCommand.option(
-        '-u, --url',
+        '-u, --url <url>',
         spaceTrim(`
             Public root url of the server
             It is used for following purposes:
@@ -57,11 +58,28 @@ export function $initializeStartServerCommand(program: Program) {
     startServerCommand.action(
         async (
             path,
-            { port, url: rawUrl, allowAnonymous: isAnonymousModeAllowed, reload: isCacheReloaded, verbose: isVerbose },
+            {
+                port: portRaw,
+                url: rawUrl,
+                allowAnonymous: isAnonymousModeAllowed,
+                reload: isCacheReloaded,
+                verbose: isVerbose,
+            },
         ) => {
+            if (rawUrl && !isValidUrl(rawUrl)) {
+                console.error(colors.red(`Invalid URL: ${rawUrl}`));
+                return process.exit(1);
+            }
+
+            const port: number_port = parseInt(portRaw, 10);
+            if (isNaN(port) || port <= 0 || port > 65535) {
+                console.error(colors.red(`Invalid port number: ${portRaw}`));
+                return process.exit(1);
+            }
+
             const url = !rawUrl ? null : new URL(rawUrl);
 
-            if (url !== null && url.port !== port) {
+            if (url !== null && url.port !== port.toString()) {
                 console.warn(
                     colors.yellow(
                         `Port in --url is different from --port which the server will listen on, this is ok only if you proxy from one port to another, for exaple via nginx or docker`,
@@ -111,7 +129,7 @@ export function $initializeStartServerCommand(program: Program) {
 
             const server = startRemoteServer({
                 rootPath,
-                port: parseInt(port, 10) as number_port,
+                port,
                 isAnonymousModeAllowed,
                 isApplicationModeAllowed: true,
                 collection,
@@ -126,6 +144,8 @@ export function $initializeStartServerCommand(program: Program) {
 
             // Note: Already logged by `startRemoteServer`
             // console.error(colors.green(`Server started on port ${port}`));
+
+            return await forEver();
         },
     );
 }
