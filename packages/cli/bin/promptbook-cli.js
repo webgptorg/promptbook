@@ -12,6 +12,6 @@ const { _CLI } = require('../umd/index.umd.js');
 _CLI._initialize_promptbookCli();
 
 /**
- * TODO: !!! During the build check that this file exists
+ * TODO: [👩‍👩‍👧‍👦] During the build check that this file exists
  * TODO: [🕌] When more functionalities, rename
  */

@@ -24,7 +24,6 @@ content-type: application/json
 
 GET http://localhost:4460/executions/exec-e3cbc02c04a5be8d
 
-# <- TODO: !!!!!! Handle error when execution is errored
 
 ### List all running executions
 

@@ -96,7 +96,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
 
-    // TODO: !!!!!! Do here some garbage collection of finished tasks
+    // TODO: [🧠] Do here some garbage collection of finished tasks
 
     app.get(['/', rootPath], async (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -201,8 +201,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
     }>(`${rootPath}/executions/new`, async (request, response) => {
-        // <- TODO: !!!!!! What is the correct method
-
         try {
             const { inputParameters } = request.body;
             const pipelineUrl = request.body.pipelineUrl || request.body.book;
@@ -210,7 +208,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
             // TODO: !!! Check `pipelineUrl` and `inputParameters`
 
             const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
-            // <- TODO: !!!!!! NotFoundError
 
             if (pipeline === undefined) {
                 response.status(404).send(`Pipeline "${pipelineUrl}" not found`);
@@ -248,7 +245,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
             response.send(executionTask);
 
-            // TODO: !!!!!! isVerbose
+            /*/
             executionTask.asObservable().subscribe({
                 next(partialResult) {
                     console.info(executionTask.taskId, 'next', partialResult);
@@ -260,10 +257,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     console.info(executionTask.taskId, 'complete');
                 },
             });
+            /**/
 
             /*
             await fetch(request.body.callbackUrl);
-            // <- TODO: !!!!!! Should be here transferred data as POST / PUT
+            // <- TODO: [🧠] Should be here transferred data as POST / PUT
             */
         } catch (error) {
             if (!(error instanceof Error)) {
