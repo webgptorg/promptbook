@@ -1,8 +1,9 @@
 ### List all books
 
-# !!!!!! List also inputParameters required for the execution
 
 GET http://localhost:4460/books
+
+# <- TODO: [🧠] List `inputParameters` required for the execution
 
 
 ### Execute one of them
@@ -18,12 +19,12 @@ content-type: application/json
 }
 
 
+
 ### Get status of the execution
 
-# !!!!!! Not wotking yet
-# !!!!!! Shorter IDs
+GET http://localhost:4460/executions/exec-53041ab09b7b8353
 
-GET http://localhost:4460/executions/execution-b43a52e56c4045412d35aafeb5a6b73d18cc404106e48d579d6ebd1a16b07181a49587b707674bf3277e7d2ee018aaa5c41fd13a4cc504e2652064cbf71a047245e5949a4dccbfc49b56bcfc378ea1daeb5106f2953356299c7456e5b754603cc6bd1fbf1345b311f9c3844c6207f5959c760aa15d723fc8bd530840b48568253524948f50d527f041aab9aea72823159f5e6c1d7aa53b784557703d009be8e3565a91a6a1cb5c05bfed31485fbea60b9aeff94c477a0a508d88387d28792de18613d6d686b814a785b81986a90992649903a7647033cc9722e918b0ce4ce70663e361363a50dbd1c4f9795e2a8d70cd9e5e32ee9c048490f7858f234eeb7564
+# <- TODO: !!!!!! Handle error when execution is errored
 
 ### List all running executions
 

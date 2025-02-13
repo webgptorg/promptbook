@@ -1,8 +1,9 @@
 import type { Observable } from 'rxjs';
 import { BehaviorSubject, concat, from } from 'rxjs';
 import { PartialDeep } from 'type-fest';
-import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { task_id } from '../types/typeAliases';
+import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import { $randomToken } from '../utils/random/$randomToken';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
@@ -37,7 +38,9 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 ): AbstractTask<TTaskResult> {
     const { taskType, taskProcessCallback } = options;
 
-    const taskId = `${taskType.toLowerCase()}-${$randomToken(256 /* <- TODO: !!! To global config */)}`;
+    const taskId = `${taskType.toLowerCase().substring(0, 4)}-${$randomToken(
+        8 /* <- TODO: !!! To global config + Use Base58 to avoid simmilar char conflicts   */,
+    )}`;
 
     const partialResultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
 
@@ -71,7 +74,10 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
                 ),
             );
         },
-    } as AbstractTask<TTaskResult>;
+        get currentValue() {
+            return partialResultSubject.value;
+        },
+    } as TODO_remove_as<AbstractTask<TTaskResult>>;
 }
 
 /**
@@ -79,7 +85,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
  */
 export type ExecutionTask = AbstractTask<PipelineExecutorResult> & {
     readonly taskType: 'EXECUTION';
-    readonly taskId: `execution-${task_id}`;
+    readonly taskId: `exec-${task_id}`; // <- Note: This is an exception to use shortcuts
 };
 
 /**
@@ -88,7 +94,7 @@ export type ExecutionTask = AbstractTask<PipelineExecutorResult> & {
  */
 export type PreparationTask = AbstractTask<PipelineExecutorResult> & {
     readonly taskType: 'PREPARATION';
-    readonly taskId: `preparation-${task_id}`;
+    readonly taskId: `prep-${task_id}`; // <- Note: This is an exception to use shortcuts
 };
 
 /**
@@ -114,6 +120,11 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
      * Gets an observable stream of partial task results
      */
     asObservable(): Observable<PartialDeep<TTaskResult>>;
+
+    /**
+     * Gets just the current value which is mutated during the task processing
+     */
+    currentValue: PartialDeep<TTaskResult>;
 
     // <- TODO: asMutableObject(): PartialDeep<TTaskResult>;
 };

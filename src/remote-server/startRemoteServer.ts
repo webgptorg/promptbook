@@ -175,9 +175,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
-        const { taskId } = request.query;
-
-        // TODO: !!! Check `taskId`
+        const { taskId } = request.params;
 
         const execution = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
 
@@ -186,10 +184,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             return;
         }
 
-        response.send(
-            execution,
-            // <- TODO: !!! Better and more information
-        );
+        response.send(execution.currentValue);
     });
 
     app.post<{
@@ -198,50 +193,63 @@ export function startRemoteServer<TCustomOptions = undefined>(
     }>(`${rootPath}/executions/new`, async (request, response) => {
         // <- TODO: !!!!!! What is the correct method
 
-        const { inputParameters } = request.body;
-        const pipelineUrl = request.body.pipelineUrl || request.body.book;
+        try {
+            const { inputParameters } = request.body;
+            const pipelineUrl = request.body.pipelineUrl || request.body.book;
 
-        // TODO: !!! Check `pipelineUrl` and `inputParameters`
+            // TODO: !!! Check `pipelineUrl` and `inputParameters`
 
-        const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
-        // <- TODO: !!!!!! NotFoundError
+            const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
+            // <- TODO: !!!!!! NotFoundError
 
-        if (pipeline === undefined) {
-            response.status(404).send(`Pipeline "${pipelineUrl}" not found`);
-            return;
-        }
+            if (pipeline === undefined) {
+                response.status(404).send(`Pipeline "${pipelineUrl}" not found`);
+                return;
+            }
 
-        // TODO: !!!!!! Identify user here - use something common with `getExecutionToolsFromIdentification`
-        const llm = await createLlmExecutionTools!({
-            appId: '!!!!',
-            userId: '!!!!',
-            customOptions: {} as TODO_any,
-        });
+            // TODO: !!!!!! Identify user here - use something common with `getExecutionToolsFromIdentification`
+            const llm = await createLlmExecutionTools!({
+                appId: '!!!!',
+                userId: '!!!!',
+                customOptions: {} as TODO_any,
+            });
 
-        // ------
-        // TODO: !!!!!! Use something common with `getExecutionToolsFromIdentification`
-        const fs = $provideFilesystemForNode();
-        const executables = await $provideExecutablesForNode();
-        const tools = {
-            llm,
-            fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-            // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
-        };
-        // ------
+            // ------
+            // TODO: !!!!!! Use something common with `getExecutionToolsFromIdentification`
+            const fs = $provideFilesystemForNode();
+            const executables = await $provideExecutablesForNode();
+            const tools = {
+                llm,
+                fs,
+                scrapers: await $provideScrapersForNode({ fs, llm, executables }),
+                // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
+            };
+            // ------
 
-        const pipelineExecutor = createPipelineExecutor({ pipeline, tools, ...options });
+            const pipelineExecutor = createPipelineExecutor({ pipeline, tools, ...options });
 
-        const executionTask = pipelineExecutor(inputParameters);
+            const executionTask = pipelineExecutor(inputParameters);
 
-        runningExecutionTasks.push(executionTask);
+            runningExecutionTasks.push(executionTask);
 
-        response.send(executionTask);
+            response.send(executionTask);
 
-        /*
+            // TODO: !!!!!! Remove this:
+            executionTask.asObservable().subscribe((_) => {
+                console.log('!!!', _);
+            });
+
+            /*
             await fetch(request.body.callbackUrl);
             // <- TODO: !!!!!! Should be here transferred data as POST / PUT
             */
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            response.status(400).send({ error: serializeError(error) });
+        }
     });
 
     const httpServer = http.createServer(app);
