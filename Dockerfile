@@ -1,7 +1,7 @@
 # [🐋] Dockerfile
 
-FROM node:22
-  # <- TODO: !!!!!! Use tini version of node
+FROM node:22-slim
+  # <- TODO: !!!!!! Verify that node:22-slim is working
 
 #Install some dependencies
 
