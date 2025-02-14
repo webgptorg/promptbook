@@ -60,8 +60,8 @@ export default function () {
                 */
             }
 
-            if (Math.random() > 2) {
-                // <- TODO: !!!!!! Comment in changelog + allow for full versions
+            if (!version.includes('-')) {
+                // <- Note: Do not generate stats for pre-releases
                 plugins.push(
                     visualizer({
                         emitFile: true,

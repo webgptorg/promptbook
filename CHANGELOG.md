@@ -713,6 +713,7 @@ Compile via remote server
 -   Remote server allows to set `rootPath`
 -   Remote server can run in `Docker`
 -   _In future_ remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j`
+-   Do not generate stats for pre-releases to speed up the build process
 
 ## Drafts
 
