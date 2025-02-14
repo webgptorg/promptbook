@@ -4,6 +4,7 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { version } from './package.json';
 
 // Note: Note using raw imports via `rollup-plugin-raw` - it is not maintained and has security and compatibility issues
 
@@ -59,12 +60,17 @@ export default function () {
                 */
             }
 
-            plugins.push(
-                visualizer({
-                    emitFile: true,
-                    filename: 'stats.html', // <- TODO: [🧠] Pick better filename for this
-                }),
-            );
+            if (Math.random() > 2) {
+                // <- TODO: !!!!!! Comment in changelog + allow for full versions
+                plugins.push(
+                    visualizer({
+                        emitFile: true,
+                        filename: 'stats.html', // <- TODO: [🧠] Pick better filename for this
+                    }),
+                );
+            }
+
+            console.info(`Building ${packageFullname} v${version}`);
 
             return {
                 input: entryIndexFilePath,
