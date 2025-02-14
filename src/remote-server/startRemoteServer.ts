@@ -257,7 +257,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             const { inputParameters, identification } = request.body;
             const pipelineUrl = request.body.pipelineUrl || request.body.book;
 
-            // TODO: !!! Check `pipelineUrl` and `inputParameters`
+            // TODO: [🧠] Check `pipelineUrl` and `inputParameters` here or it should be responsibility of `collection.getPipelineByUrl` and `pipelineExecutor`
 
             const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
 

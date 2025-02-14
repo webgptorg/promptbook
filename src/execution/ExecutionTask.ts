@@ -40,7 +40,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     const { taskType, taskProcessCallback } = options;
 
     const taskId = `${taskType.toLowerCase().substring(0, 4)}-${$randomToken(
-        8 /* <- TODO: !!! To global config + Use Base58 to avoid simmilar char conflicts   */,
+        8 /* <- TODO: To global config + Use Base58 to avoid simmilar char conflicts   */,
     )}`;
 
     const partialResultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
