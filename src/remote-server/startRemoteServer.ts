@@ -5,8 +5,7 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
@@ -19,13 +18,10 @@ import { createLlmToolsFromConfiguration } from '../llm-providers/_common/regist
 import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
-import type { TODO_any } from '../utils/organization/TODO_any';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
@@ -88,6 +84,58 @@ export function startRemoteServer<TCustomOptions = undefined>(
             .join('/');
 
     const startupDate = new Date();
+
+    async function getExecutionToolsFromIdentification(
+        identification: PromptbookServer_Identification<TCustomOptions>,
+    ): Promise<ExecutionTools & { llm: LlmExecutionTools }> {
+        if (identification === null || identification === undefined) {
+            throw new Error(`Identification is not provided`);
+        }
+
+        const { isAnonymous } = identification;
+
+        if (isAnonymous === true && !isAnonymousModeAllowed) {
+            throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!3 Test
+        }
+
+        if (isAnonymous === false && !isApplicationModeAllowed) {
+            throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!3 Test
+        }
+
+        // TODO: [main] !!4 Validate here userId (pass validator as dependency)
+
+        let llm: LlmExecutionTools;
+
+        if (isAnonymous === true) {
+            // Note: Anonymouse mode
+            // TODO: Maybe check that configuration is not empty
+            const { llmToolsConfiguration } = identification;
+            llm = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
+        } else if (isAnonymous === false && createLlmExecutionTools !== null) {
+            // Note: Application mode
+            const { appId, userId, customOptions } = identification;
+            llm = await createLlmExecutionTools!({
+                appId,
+                userId,
+                customOptions,
+            });
+        } else {
+            throw new PipelineExecutionError(
+                `You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured`,
+            );
+        }
+
+        const fs = $provideFilesystemForNode();
+        const executables = await $provideExecutablesForNode();
+        const tools = {
+            llm,
+            fs,
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }),
+            // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
+        };
+
+        return tools;
+    }
 
     const app = express();
 
@@ -203,9 +251,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
     app.post<{
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
+        identification: PromptbookServer_Identification<TCustomOptions>;
     }>(`${rootPath}/executions/new`, async (request, response) => {
         try {
-            const { inputParameters } = request.body;
+            const { inputParameters, identification } = request.body;
             const pipelineUrl = request.body.pipelineUrl || request.body.book;
 
             // TODO: !!! Check `pipelineUrl` and `inputParameters`
@@ -217,24 +266,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 return;
             }
 
-            // TODO: !!!!!! Identify user here - use something common with `getExecutionToolsFromIdentification`
-            const llm = await createLlmExecutionTools!({
-                appId: '!!!!',
-                userId: '!!!!',
-                customOptions: {} as TODO_any,
-            });
-
-            // ------
-            // TODO: !!!!!! Use something common with `getExecutionToolsFromIdentification`
-            const fs = $provideFilesystemForNode();
-            const executables = await $provideExecutablesForNode();
-            const tools = {
-                llm,
-                fs,
-                scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-                // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
-            };
-            // ------
+            const tools = await getExecutionToolsFromIdentification(identification);
 
             const pipelineExecutor = createPipelineExecutor({ pipeline, tools, ...options });
 
@@ -291,54 +323,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
             console.info(colors.gray(`Client connected`), socket.id);
         }
 
-        const getExecutionToolsFromIdentification = async (
-            identification: PromptbookServer_Identification<TCustomOptions>,
-        ): Promise<ExecutionTools & { llm: LlmExecutionTools }> => {
-            const { isAnonymous } = identification;
-
-            if (isAnonymous === true && !isAnonymousModeAllowed) {
-                throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!3 Test
-            }
-
-            if (isAnonymous === false && !isApplicationModeAllowed) {
-                throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!3 Test
-            }
-
-            // TODO: [main] !!4 Validate here userId (pass validator as dependency)
-
-            let llm: LlmExecutionTools;
-
-            if (isAnonymous === true) {
-                // Note: Anonymouse mode
-                // TODO: Maybe check that configuration is not empty
-                const { llmToolsConfiguration } = identification;
-                llm = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
-            } else if (isAnonymous === false && createLlmExecutionTools !== null) {
-                // Note: Application mode
-                const { appId, userId, customOptions } = identification;
-                llm = await createLlmExecutionTools!({
-                    appId,
-                    userId,
-                    customOptions,
-                });
-            } else {
-                throw new PipelineExecutionError(
-                    `You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured`,
-                );
-            }
-
-            const fs = $provideFilesystemForNode();
-            const executables = await $provideExecutablesForNode();
-            const tools = {
-                llm,
-                fs,
-                scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-                // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
-            };
-
-            return tools;
-        };
-
         // -----------
 
         socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request<TCustomOptions>) => {
@@ -349,8 +333,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
             }
 
             try {
-                const executionTools = await getExecutionToolsFromIdentification(identification);
-                const { llm } = executionTools;
+                const tools = await getExecutionToolsFromIdentification(identification);
+                const { llm } = tools;
 
                 if (
                     identification.isAnonymous === false &&
@@ -425,8 +409,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
             }
 
             try {
-                const executionTools = await getExecutionToolsFromIdentification(identification);
-                const { llm } = executionTools;
+                const tools = await getExecutionToolsFromIdentification(identification);
+                const { llm } = tools;
 
                 const models = await llm.listModels();
 
@@ -459,9 +443,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 }
 
                 try {
-                    const executionTools = await getExecutionToolsFromIdentification(identification);
+                    const tools = await getExecutionToolsFromIdentification(identification);
 
-                    const preparedPipeline = await preparePipeline(pipeline, executionTools, options);
+                    const preparedPipeline = await preparePipeline(pipeline, tools, options);
 
                     socket.emit(
                         'preparePipeline-response',
@@ -517,8 +501,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODO: !!!!!!! CORS and security
- * TODO: !!!!!!! Allow to pass tokem here
+ * TODO: !! Add CORS and security - probbably via `helmet`
  * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
