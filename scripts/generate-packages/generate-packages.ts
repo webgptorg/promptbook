@@ -588,8 +588,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 with: {
                                     context: '.',
                                     push: true,
-                                    tags: 'hejny/promptbook:latest',
-                                    // <- TODO: !!!!!! Add version tag
+                                    tags: `hejny/promptbook:${mainPackageJson.version}`,
                                 },
                             },
                         ],
