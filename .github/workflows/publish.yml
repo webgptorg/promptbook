@@ -173,4 +173,4 @@ jobs:
               with:
                   context: .
                   push: true
-                  tags: hejny/promptbook:0.85.0-9
+                  tags: hejny/promptbook:0.85.0-10
