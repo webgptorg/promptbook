@@ -714,6 +714,7 @@ Compile via remote server
 -   Remote server can run in `Docker`
 -   _In future_ remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j`
 -   Do not generate stats for pre-releases to speed up the build process
+-   Allow pipeline URLs on private and unsecured networks
 
 ## Drafts
 
