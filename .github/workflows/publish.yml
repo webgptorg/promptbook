@@ -168,9 +168,12 @@ jobs:
               with:
                   username: ${{ secrets.DOCKERHUB_USER }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: Load current version into the environment
+              run: echo 'VERSION=$(node -p 'require('./package.json').version')' >>
+                  $GITHUB_ENV
             - name: Build and Push Docker Image
               uses: docker/build-push-action@v2
               with:
                   context: .
                   push: true
-                  tags: hejny/promptbook:0.85.0-11
+                  tags: hejny/promptbook:${{ env.VERSION }}
