@@ -584,7 +584,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             },
                             {
                                 name: 'Load current version into the environment',
-                                run: 'echo "VERSION=$(node -p "require(\'./package.json\').version")" >> $GITHUB_ENV',
+                                run: 'echo "VERSION=$(node -p \\"require(\'./package.json\').version\\")" >> $GITHUB_ENV',
                             },
                             {
                                 name: 'Build and Push Docker Image',
