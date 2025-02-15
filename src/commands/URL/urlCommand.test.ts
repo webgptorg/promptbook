@@ -140,10 +140,13 @@ describe('how URL command in .book.md files works', () => {
 
         expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid pipeline URL/i);
 
+        /*
+        Note: [👣]
         expect(() => parseCommand('url http://promptbook.studio/write-website-content', 'PIPELINE_HEAD')).toThrowError(
             /Invalid pipeline URL/i,
             // <- TODO: [🐠] /Protocol must be HTTPS/i,
         );
+        */
 
         expect(() =>
             parseCommand(

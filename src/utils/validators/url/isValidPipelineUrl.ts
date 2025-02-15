@@ -16,7 +16,7 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
         return false;
     }
 
-    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+    if (!url.startsWith('https://') && !url.startsWith('http://') /* <- Note: [👣] */) {
         return false;
     }
 
@@ -26,7 +26,7 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
     }
 
     /*
-    Note: [🧠] Is it secure to allow pipeline URLs on private and unsecured networks?
+    Note: [👣][🧠] Is it secure to allow pipeline URLs on private and unsecured networks?
     if (isUrlOnPrivateNetwork(url)) {
         return false;
     }
