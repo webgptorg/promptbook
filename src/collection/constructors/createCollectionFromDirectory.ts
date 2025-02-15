@@ -1,9 +1,8 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { readFile } from 'fs/promises';
-import { dirname, join } from 'path';
+import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -16,9 +15,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_root_url } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_root_url, string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -27,7 +24,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 /**
  * Options for `createCollectionFromDirectory` function
  *
- * Note: `rootDirname` is not needed because it is the folder in which `.book.md` file is located
+ * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book.md` file is located
  *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
@@ -79,14 +76,14 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  *
  * Note: Works only in Node.js environment because it reads the file system
  *
- * @param path - path to the directory with pipelines
+ * @param rootPath - path to the directory with pipelines
  * @param tools - Execution tools to be used for pipeline preparation if needed - If not provided, `$provideExecutionToolsForNode` will be used
  * @param options - Options for the collection creation
  * @returns PipelineCollection
  * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
-    path: string_dirname,
+    rootPath: string_dirname,
     tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
@@ -102,7 +99,7 @@ export async function createCollectionFromDirectory(
     // TODO: [🍖] Allow to skip
 
     const madeLibraryFilePath = join(
-        path,
+        rootPath,
         `${
             DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
             // <- TODO: [🦒] Allow to override (pass different value into the function)
@@ -134,18 +131,18 @@ export async function createCollectionFromDirectory(
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
-            console.info(colors.cyan(`Creating pipeline collection from path ${path.split('\\').join('/')}`));
+            console.info(colors.cyan(`Creating pipeline collection from path ${rootPath.split('\\').join('/')}`));
         }
 
-        const fileNames = await listAllFiles(path, isRecursive, tools!.fs!);
+        const fileNames = await listAllFiles(rootPath, isRecursive, tools!.fs!);
 
-        // Note: First load all .book.json and then .book.md files
-        //       .book.json can be prepared so it is faster to load
+        // Note: First load all `.book.json` and then `.book` / `.book.md` files
+        //       `.book.json` can be prepared so it is faster to load
         fileNames.sort((a, b) => {
-            if (a.endsWith('.json') && b.endsWith('.md')) {
+            if (a.endsWith('.json') && (b.endsWith('.book') || b.endsWith('.book.md'))) {
                 return -1;
             }
-            if (a.endsWith('.md') && b.endsWith('.json')) {
+            if ((a.endsWith('.book') || a.endsWith('.book.md')) && b.endsWith('.json')) {
                 return 1;
             }
             return 0;
@@ -160,7 +157,7 @@ export async function createCollectionFromDirectory(
             try {
                 let pipeline: PipelineJson | null = null;
 
-                if (fileName.endsWith('.book.md')) {
+                if (fileName.endsWith('.book') || fileName.endsWith('.book.md')) {
                     const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
                     pipeline = await compilePipeline(pipelineString, tools, {
                         rootDirname,
@@ -184,7 +181,9 @@ export async function createCollectionFromDirectory(
                 if (pipeline !== null) {
                     if (rootUrl !== undefined) {
                         if (pipeline.pipelineUrl === undefined) {
-                            const pipelineUrl = rootUrl + '/' + fileName.split('\\').join('/');
+                            const pipelineUrl = rootUrl + '/' + relative(rootPath, fileName).split('\\').join('/');
+
+                            // console.log({ pipelineUrl, rootPath, rootUrl, fileName });
 
                             if (isVerbose) {
                                 console.info(

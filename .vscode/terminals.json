@@ -10,7 +10,7 @@
         },
         {
             "name": "👨‍💻🟣 Run ptbk run-server",
-            "command": "./src/cli/test/ptbk.ts start-server",
+            "command": "./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460",
             "execute": false,
             "onlySingle": false,
             "focus": false
