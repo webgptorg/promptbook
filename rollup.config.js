@@ -60,8 +60,10 @@ export default function () {
                 */
             }
 
-            if (!version.includes('-')) {
-                // <- Note: Do not generate stats for pre-releases
+            const isPreRelease = version.includes('-');
+
+            if (!isPreRelease) {
+                // <- Note: Do not generate stats for pre-releases to shotten the build time
                 plugins.push(
                     visualizer({
                         emitFile: true,
@@ -70,7 +72,7 @@ export default function () {
                 );
             }
 
-            console.info(`Building ${packageFullname} v${version}`);
+            console.info(`Building ${packageFullname} v${version}${isPreRelease ? ' (pre-release)' : ''}`);
 
             return {
                 input: entryIndexFilePath,
