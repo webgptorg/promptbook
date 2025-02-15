@@ -1,12 +1,8 @@
-name: Publish new version *(experiment with escaping)*
+name: Publish new version
 on:
     push:
         branches:
             - main
-    pull_request:
-        branches:
-            - main
-
 jobs:
     publish-docker:
         name: Publish Docker image to DockerHub
