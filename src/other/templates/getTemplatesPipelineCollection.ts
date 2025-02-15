@@ -140,7 +140,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.005748
@@ -531,7 +531,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.005748
@@ -1054,7 +1054,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.005745
@@ -1121,7 +1121,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
             },
             {
                 "title": "💌 Generate a letter",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generator.book.md",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//templates/generator.book.md",
                 "formfactorName": "GENERATOR",
                 "parameters": [
                     {
@@ -1177,7 +1177,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.005595
@@ -1244,7 +1244,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
             },
             {
                 "title": "😂 Joke Generator",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//book/books/templates/generic.book.md",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//templates/generic.book.md",
                 "formfactorName": "GENERIC",
                 "parameters": [
                     {
@@ -1274,7 +1274,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -1392,7 +1392,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.005172
@@ -1523,7 +1523,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.005247
@@ -1800,7 +1800,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-10",
+                        "promptbookVersion": "0.85.0-11",
                         "usage": {
                             "price": {
                                 "value": 0.00585
