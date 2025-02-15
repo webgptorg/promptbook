@@ -20,7 +20,7 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USER }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: Load current version into the environment
-              run: echo "VERSION=$(node -p 'require(`./package.json`).version')" >>
+              run: echo 'VERSION=$(node -p \'require("./package.json").version\')' >>
                   $GITHUB_ENV
             - name: Build and Push Docker Image
               uses: docker/build-push-action@v2
