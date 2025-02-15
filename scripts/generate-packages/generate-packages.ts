@@ -600,9 +600,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 },
             },
             { indent: 4 },
-        )
-            .split('"')
-            .join("'") /* <- TODO: Can the replace be done directly in YAML.stringify options? */,
+        ),
     );
     //     <- TODO: Add GENERATOR_WARNING to publish.yml
 
