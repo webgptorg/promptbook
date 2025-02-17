@@ -1,7 +1,6 @@
 # [🐋] Dockerfile
 
 FROM node:22-slim
-# <- TODO: !!!!!! Verify that node:22-slim is working
 
 # Install the Promptbook CLI
 WORKDIR /usr/app
