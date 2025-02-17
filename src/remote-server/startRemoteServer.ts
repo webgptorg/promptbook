@@ -5,8 +5,7 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
@@ -19,12 +18,10 @@ import { createLlmToolsFromConfiguration } from '../llm-providers/_common/regist
 import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
@@ -230,6 +227,47 @@ export function startRemoteServer<TCustomOptions = undefined>(
         response.send(pipelines);
     });
 
+    // TODO: [🧠] Is it secure / good idea to expose source codes of hosted books
+    app.get(`${rootPath}/books/*`, async (request, response) => {
+        try {
+            if (collection === null) {
+                response.status(500).send('No collection nor books available');
+                return;
+            }
+
+            const pipelines = await collection.listPipelines();
+
+            const fullUrl = request.protocol + '://' + request.get('host') + request.originalUrl;
+            const pipelineUrl = pipelines.find((pipelineUrl) => pipelineUrl.endsWith(request.originalUrl)) || fullUrl;
+
+            const pipeline = await collection.getPipelineByUrl(pipelineUrl);
+
+            const source = pipeline.sources[0];
+
+            if (source === undefined || source.type !== 'BOOK') {
+                throw new Error('Pipeline source is not a book');
+            }
+
+            response
+                .type(
+                    'text/markdown',
+                    // <- TODO: [🧠] Make custom mime-type for books
+                )
+                .send(source.content);
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            response
+                .status(
+                    404,
+                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
+                )
+                .send({ error: serializeError(error) });
+        }
+    });
+
     app.get(`${rootPath}/executions`, async (request, response) => {
         response.send(
             runningExecutionTasks,
@@ -244,7 +282,12 @@ export function startRemoteServer<TCustomOptions = undefined>(
         const execution = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
 
         if (execution === undefined) {
-            response.status(404).send(`Execution "${taskId}" not found`);
+            response
+                .status(
+                    404,
+                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
+                )
+                .send(`Execution "${taskId}" not found`);
             return;
         }
 
