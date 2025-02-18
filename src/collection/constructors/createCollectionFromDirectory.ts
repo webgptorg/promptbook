@@ -24,7 +24,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 /**
  * Options for `createCollectionFromDirectory` function
  *
- * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book.md` file is located
+ * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
  *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
@@ -136,7 +136,7 @@ export async function createCollectionFromDirectory(
 
         const fileNames = await listAllFiles(rootPath, isRecursive, tools!.fs!);
 
-        // Note: First load all `.book.json` and then `.book` / `.book.md` files
+        // Note: First load all `.book.json` and then `.book` / `.book` files
         //       `.book.json` can be prepared so it is faster to load
         fileNames.sort((a, b) => {
             if (a.endsWith('.json') && (b.endsWith('.book') || b.endsWith('.book'))) {

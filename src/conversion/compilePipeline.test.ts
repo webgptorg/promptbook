@@ -16,7 +16,7 @@ describe('compilePipeline', () => {
     for (const { name } of examples) {
         it(`should compile ${name}`, () => {
             const pipelineFromMarkdownPromise = Promise.resolve(
-                importPipelineWithoutPreparation(name as `${string}.book.md`),
+                importPipelineWithoutPreparation(name as `${string}.book`),
             )
                 .then((pipelineString) => compilePipeline(pipelineString))
                 .then((pipeline) => ({ ...pipeline, title: undefined })); // <- Note: [0] Title is not compared because it can be changed in `preparePipeline`

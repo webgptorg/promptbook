@@ -91,7 +91,7 @@ describe('how URL command in .book.md files works', () => {
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
         expect(
-            parseCommand('`https://promptbook.studio/webgpt/write-website-content-cs.book.md`', 'PIPELINE_HEAD'),
+            parseCommand('`https://promptbook.studio/webgpt/write-website-content-cs.book`', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),

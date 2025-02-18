@@ -16,7 +16,7 @@ describe('validatePipeline with errors', () => {
     for (const { name, path } of examples) {
         it(`should check ${name}`, () => {
             expect(async () => {
-                const pipelineString = importPipelineWithoutPreparation(path as `${string}.book.md`);
+                const pipelineString = importPipelineWithoutPreparation(path as `${string}.book`);
                 const pipelineJson = await compilePipeline(pipelineString);
                 validatePipeline(pipelineJson);
 

@@ -20,9 +20,7 @@ describe('validatePipeline with parse errors', () => {
     for (const { name } of examples) {
         it(`should parse ${name} parse`, () => {
             expect(async () => {
-                const pipelineString = importPipelineWithoutPreparation(
-                    ('errors/parse/' + name) as `${string}.book.md`,
-                );
+                const pipelineString = importPipelineWithoutPreparation(('errors/parse/' + name) as `${string}.book`);
                 const pipelineJson = await compilePipeline(pipelineString);
 
                 try {

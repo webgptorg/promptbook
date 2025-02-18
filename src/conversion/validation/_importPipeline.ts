@@ -15,7 +15,7 @@ import type { string_filename, string_json } from '../../types/typeAliases';
  * @param path - The path to the file relative to examples/pipelines directory
  * @private internal function of tests
  */
-export function importPipelineWithoutPreparation(path: `${string}.book.md`): PipelineString;
+export function importPipelineWithoutPreparation(path: `${string}.book`): PipelineString;
 export function importPipelineWithoutPreparation(path: `${string}.book.json`): PipelineJson;
 export function importPipelineWithoutPreparation(path: string_filename): PipelineString | PipelineJson {
     const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config

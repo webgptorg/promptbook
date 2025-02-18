@@ -1,8 +1,7 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -11,8 +10,7 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import { validatePipelineString } from '../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { isRootPath } from '../utils/validators/filePath/isRootPath';
@@ -37,7 +35,7 @@ export async function $getCompiledBook(
 
         const filePathRaw = pipelineSource;
         let filePath: string_filename | null = null;
-        let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book.md`, `${filePathRaw}.book.md`]; // <- TODO: [🕝] To config
+        let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book`, `${filePathRaw}.book`]; // <- TODO: [🕝] To config
         filePathCandidates = [...filePathCandidates, ...filePathCandidates.map((path) => path.split('\\').join('/'))];
         //                       <- Note: This line is to work with Windows paths
         //                                File "C:Usersmeworkaihello-worldbookshello.book.md" does not exist
@@ -145,7 +143,7 @@ export async function $getCompiledBook(
         }
 
         const pipelineJson = await compilePipeline(pipelineString, tools, {
-            rootDirname: null, // <- TODO: !!6 Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book.md`
+            rootDirname: null, // <- TODO: !!6 Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book`
             ...options,
         });
 

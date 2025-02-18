@@ -1,6 +1,6 @@
 # Prepare Persona
 
--   PIPELINE URL `https://promptbook.studio/promptbook/prepare-persona.book.md`
+-   PIPELINE URL `https://promptbook.studio/promptbook/prepare-persona.book`
 -   INPUT PARAMETER `{availableModelNames}` List of available model names separated by comma (,)
 -   INPUT PARAMETER `{personaDescription}` Description of the persona
 -   OUTPUT PARAMETER `{modelRequirements}` Specific requirements for the model

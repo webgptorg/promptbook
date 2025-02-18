@@ -55,11 +55,11 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        // `https://promptbook.studio/examples/foreach-list.book.md`,
-        // `https://promptbook.studio/examples/foreach-csv.book.md`,
-        `https://promptbook.studio/examples/simple-knowledge.book.md`,
-        // `https://promptbook.studio/examples/simple.book.md`,
-        // `https://promptbook.studio/examples/language-capabilities.book.md`,
+        // `https://promptbook.studio/examples/foreach-list.book`,
+        // `https://promptbook.studio/examples/foreach-csv.book`,
+        `https://promptbook.studio/examples/simple-knowledge.book`,
+        // `https://promptbook.studio/examples/simple.book`,
+        // `https://promptbook.studio/examples/language-capabilities.book`,
     );
 
     if (!pipeline.sourceFile) {

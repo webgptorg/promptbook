@@ -751,7 +751,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         if (pipelineUrl === undefined) {
             pipelineUrl = `https://promptbook.studio/${collectionName}/${
                 $randomPipelineName({ prefix: pipelineName, length: 8 }) /* <- TODO: [🎑] Derive dynamically */
-            }.book.md`;
+            }.book`;
         }
 
         const { collectionName: collectionName_, pipelineName: pipelineName_ } =

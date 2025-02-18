@@ -22,7 +22,7 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Get single Pipeline
 const promptbook = await getPipelineCollection().getPipelineByUrl(
-    `https://promptbook.studio/my-collection/write-article.book.md`,
+    `https://promptbook.studio/my-collection/write-article.book`,
 );
 
 // ▶ Create executor - the function that will execute the Pipeline

@@ -1,6 +1,6 @@
 # Prepare Title
 
--   PIPELINE URL `https://promptbook.studio/promptbook/prepare-title.book.md`
+-   PIPELINE URL `https://promptbook.studio/promptbook/prepare-title.book`
 -   INPUT PARAMETER `{book}` The book to prepare the title for
 -   OUTPUT PARAMETER `{title}` Best title for the book
 

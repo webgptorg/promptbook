@@ -397,7 +397,7 @@ export type string_pipeline_root_url = string;
  *
  * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md"`
  */
-export type string_pipeline_url = string; // <- TODO: `${string}.book.md`
+export type string_pipeline_url = string; // <- TODO: `${string}.book`
 
 /**
  * Semantic helper
@@ -663,7 +663,7 @@ export type string_javascript_name = string;
 export type string_postprocessing_function_name = string;
 
 export type id = string | number;
-export type task_id = string ;
+export type task_id = string;
 export type string_token = string;
 export type string_license_token = string_token;
 export type string_password = string;

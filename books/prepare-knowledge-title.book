@@ -1,6 +1,6 @@
 # Prepare Knowledge-piece Title
 
--   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-title.book.md`
+-   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-title.book`
 -   INPUT PARAMETER `{knowledgePieceContent}` The content
 -   OUTPUT PARAMETER `{title}` The title of the document
 

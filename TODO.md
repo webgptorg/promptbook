@@ -44,6 +44,6 @@ There are a lot of TODOs in the repository, in the future there will probably be
 -   [ ] [🎶] Naming "constructor" vs "creator" vs "factory"
 -   [ ] [🍓][🧠][🔛] Auto-translate of entire pipelines
 -   [ ] [🍓][♏] Maybe auto-add expectations as text of the prompt content
--   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.book.md` should not struggle with this
+-   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.book` should not struggle with this
 -   [ ] [🍓][🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`
 -   [ ] [🍓] Across entire project pick one of "examples" vs "examples" (vs "snippets")

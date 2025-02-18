@@ -1,6 +1,6 @@
 # Prepare Keywords
 
--   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md`
+-   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-keywords.book`
 -   INPUT PARAMETER `{knowledgePieceContent}` The content
 -   OUTPUT PARAMETER `{keywords}` Keywords separated by comma
 
