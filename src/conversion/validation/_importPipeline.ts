@@ -4,7 +4,8 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_filename, string_json } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
+import type { string_json } from '../../types/typeAliases';
 
 /**
  * Import the pipeline.book or pipeline.book.json file
