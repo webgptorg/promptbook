@@ -14,6 +14,7 @@
 
 ## 🌟 New Features
 
+-   📂 We have plugin for [VSCode](https://github.com/webgptorg/book-extension) to support `.book` file extension
 -   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
@@ -32,8 +33,6 @@
 **It's time for a paradigm shift! The future of software is in plain English, French or Latin.**
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
-
-
 
 It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
 
@@ -92,32 +91,25 @@ We also have a community of developers and users of **Promptbook**:
 -   [Landing page `ptbk.io`](https://ptbk.io)
 -   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 -   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536) 
+-   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
 
 And **Promptbook.studio** branded socials:
 
-
-
 -   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
-
-
 
 And **Promptujeme** sub-brand:
 
-*/Subbrand for Czech clients/*
-
-
+_/Subbrand for Czech clients/_
 
 -   [Promptujeme.cz](https://www.promptujeme.cz/)
 -   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
 
-
 And **Promptbook.city** branded socials:
 
-*/Sub-brand for images and graphics generated via Promptbook prompting/*
+_/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
--   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569) 
+-   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
 
 <!--/Import ./book/SIGNPOST.md-->
 
@@ -253,11 +245,6 @@ Or you can install them separately:
 
 ## 📚 Dictionary
 
-
-
-
-
-
 ### 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
@@ -272,8 +259,6 @@ The following glossary is used to clarify certain concepts:
 -   **Meta-learning** is a machine learning paradigm where a model is trained on a variety of tasks and is able to learn new tasks with minimal additional training. This is achieved by learning a set of meta-parameters that can be quickly adapted to new tasks.
 -   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
-
-
 
 _Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
 
@@ -334,8 +319,6 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
-
-
 
 ### Terms specific to Promptbook TypeScript implementation
 
