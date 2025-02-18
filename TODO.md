@@ -21,7 +21,7 @@ There are a lot of TODOs in the repository, in the future there will probably be
 -   [x] Use `spaceTrim` more effectively
 -   [ ] [🍓][🗯] Allow chats to be continued with previous message
 -   [ ] [🍓] Allow to set top_t and other model params
--   [ ] [🧠][🗯] How to mark continued chat in .book.md format?
+-   [ ] [🧠][🗯] How to mark continued chat in book?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🍓][🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 -   [x] Register .ptbk file extension
