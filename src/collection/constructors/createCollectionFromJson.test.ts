@@ -37,7 +37,7 @@ describe('createCollectionFromJson', () => {
         const pipeline = await compilePipeline(pipelineString);
         const collection = createCollectionFromJson(pipeline);
         const pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/examples/pipeline.book.md',
+            'https://promptbook.studio/examples/pipeline.book',
         );
         expect(pipelineFromCollection).toEqual(await compilePipeline(pipelineString));
     });

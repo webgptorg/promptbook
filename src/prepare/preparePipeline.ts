@@ -1,9 +1,7 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -101,7 +99,7 @@ export async function preparePipeline(
         const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
         const prepareTitleExecutor = createPipelineExecutor({
-            pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book.md'),
+            pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book'),
             tools,
         });
 

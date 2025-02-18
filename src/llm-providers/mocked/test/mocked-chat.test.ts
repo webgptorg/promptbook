@@ -16,7 +16,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
             executionReport: {
                 title: 'Example prompt',
                 promptbookRequestedVersion: '1.0.0',
-                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book.md',
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book',
                 promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
             outputParameters: {
@@ -38,7 +38,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
                 title: 'Example prompt',
                 description: 'Show how to use a simple chat prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book.md',
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },

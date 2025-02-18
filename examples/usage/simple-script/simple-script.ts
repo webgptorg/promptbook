@@ -102,7 +102,7 @@ async function main() {
     console.info('outputParameters', outputParameters);
 
     await writeFile(
-        pipeline.sourceFile.split('.book.md').join('.report.md').split('.book.json').join('.report.json'),
+        pipeline.sourceFile.split('.book').join('.report.md').split('.book.json').join('.report.json'),
         //                  <- TODO: [0] More elegant way to replace extension
         stringifyPipelineJson(executionReport),
         'utf-8',
@@ -111,7 +111,7 @@ async function main() {
     const executionReportString = executionReportJsonToString(executionReport);
 
     await writeFile(
-        pipeline.sourceFile.split('.book.md').join('.report.md').split('.book.json').join('.report.md'),
+        pipeline.sourceFile.split('.book').join('.report.md').split('.book.json').join('.report.md'),
         //                  <- TODO: [0] More elegant way to replace extension
         executionReportString,
         'utf-8',

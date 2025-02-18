@@ -1,15 +1,13 @@
 import spaceTrim from 'spacetrim';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -67,7 +65,7 @@ export class MarkdownScraper implements Scraper {
 
         const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
-                'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md',
+                'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book',
             ),
             tools: {
                 llm: llm,
@@ -76,7 +74,7 @@ export class MarkdownScraper implements Scraper {
 
         const prepareTitleExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
-                'https://promptbook.studio/promptbook/prepare-knowledge-title.book.md',
+                'https://promptbook.studio/promptbook/prepare-knowledge-title.book',
             ),
             tools: {
                 llm: llm,
@@ -85,7 +83,7 @@ export class MarkdownScraper implements Scraper {
 
         const prepareKeywordsExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
-                'https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md',
+                'https://promptbook.studio/promptbook/prepare-knowledge-keywords.book',
             ),
             tools: {
                 llm: llm,

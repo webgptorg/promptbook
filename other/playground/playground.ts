@@ -44,7 +44,7 @@ async function playground() {
         },
     );
 
-    const pipeline = await collection.getPipelineByUrl('https://promptbook.studio/examples/simple-knowledge.book.md');
+    const pipeline = await collection.getPipelineByUrl('https://promptbook.studio/examples/simple-knowledge.book');
 
     await forTime(100);
 

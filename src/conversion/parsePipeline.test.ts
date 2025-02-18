@@ -11,7 +11,7 @@ describe('parsePipeline', () => {
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
         .filter((dirent) => dirent.isFile())
-        .filter(({ name }) => name.endsWith('.book.md'));
+        .filter(({ name }) => name.endsWith('.book'));
 
     for (const { name } of examples) {
         it(`should parse ${name}`, () => {
@@ -23,7 +23,7 @@ describe('parsePipeline', () => {
 
             const pipelineJson = {
                 ...importPipelineWithoutPreparation(
-                    join(examplesDir, name).replace('.book.md', '.book.json') as `${string}.book.json`,
+                    join(examplesDir, name).replace('.book', '.book.json') as `${string}.book.json`,
                 ),
                 title: undefined,
                 // <- Note: [0]

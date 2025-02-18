@@ -64,7 +64,7 @@ export function $initializeTestCommand(program: Program) {
             try {
                 let pipeline: PipelineJson;
 
-                if (filename.endsWith('.book.md')) {
+                if (filename.endsWith('.book')) {
                     const pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
                     pipeline = await compilePipeline(pipelineMarkdown, tools);
 

@@ -2,8 +2,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { readFile } from 'fs/promises';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -16,9 +15,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_root_url } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_root_url, string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -142,10 +139,10 @@ export async function createCollectionFromDirectory(
         // Note: First load all `.book.json` and then `.book` / `.book.md` files
         //       `.book.json` can be prepared so it is faster to load
         fileNames.sort((a, b) => {
-            if (a.endsWith('.json') && (b.endsWith('.book') || b.endsWith('.book.md'))) {
+            if (a.endsWith('.json') && (b.endsWith('.book') || b.endsWith('.book'))) {
                 return -1;
             }
-            if ((a.endsWith('.book') || a.endsWith('.book.md')) && b.endsWith('.json')) {
+            if ((a.endsWith('.book') || a.endsWith('.book')) && b.endsWith('.json')) {
                 return 1;
             }
             return 0;
@@ -160,7 +157,7 @@ export async function createCollectionFromDirectory(
             try {
                 let pipeline: PipelineJson | null = null;
 
-                if (fileName.endsWith('.book') || fileName.endsWith('.book.md')) {
+                if (fileName.endsWith('.book') || fileName.endsWith('.book')) {
                     const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
                     pipeline = await compilePipeline(pipelineString, tools, {
                         rootDirname,

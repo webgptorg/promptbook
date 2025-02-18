@@ -15,7 +15,7 @@ describe('validatePipeline with logic errors', () => {
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
         .filter((dirent) => dirent.isFile())
-        .filter(({ name }) => name.endsWith('.book.md'));
+        .filter(({ name }) => name.endsWith('.book'));
 
     for (const { name } of examples) {
         it(`should validate ${name} logic`, () => {

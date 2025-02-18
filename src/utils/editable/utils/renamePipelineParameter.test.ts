@@ -80,7 +80,7 @@ describe('how renamePipelineParameter works', () => {
             renamePipelineParameter({
                 pipeline: validatePipeline({
                     title: '✨ Example prompt with two consecutive prompts',
-                    pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
+                    pipelineUrl: 'https://promptbook.studio/examples/two.book',
                     bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     formfactorName: 'GENERIC',
@@ -142,7 +142,7 @@ describe('how renamePipelineParameter works', () => {
         ).toEqual(
             validatePipeline({
                 title: '✨ Example prompt with two consecutive prompts',
-                pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
+                pipelineUrl: 'https://promptbook.studio/examples/two.book',
                 bookVersion: '1.0.0',
                 description: 'Show how to use two consecutive prompts with one parameter each.',
                 formfactorName: 'GENERIC',
@@ -205,7 +205,7 @@ describe('how renamePipelineParameter works', () => {
             renamePipelineParameter({
                 pipeline: validatePipeline({
                     title: '✨ Example prompt with two consecutive prompts',
-                    pipelineUrl: 'https://promptbook.studio/examples/two.book.md',
+                    pipelineUrl: 'https://promptbook.studio/examples/two.book',
                     bookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     formfactorName: 'GENERIC',

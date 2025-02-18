@@ -5640,7 +5640,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
                       collection = createCollectionFromJson.apply(void 0, __spreadArray([], __read(PipelineCollection), false));
                       _b = createPipelineExecutor;
                       _c = {};
-                      return [4 /*yield*/, collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book.md')];
+                      return [4 /*yield*/, collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book')];
                   case 1:
                       preparePersonaExecutor = _b.apply(void 0, [(_c.pipeline = _d.sent(),
                               _c.tools = tools,
@@ -6425,7 +6425,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
                       collection = createCollectionFromJson.apply(void 0, __spreadArray([], __read(PipelineCollection), false));
                       _c = createPipelineExecutor;
                       _d = {};
-                      return [4 /*yield*/, collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book.md')];
+                      return [4 /*yield*/, collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book')];
                   case 1:
                       prepareTitleExecutor = _c.apply(void 0, [(_d.pipeline = _e.sent(),
                               _d.tools = tools,

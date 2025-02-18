@@ -118,7 +118,7 @@
         {
             "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
             "commands": [
-                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book.md' --ignore 'examples/pipelines/errors/**/*.book.md'"
+                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book' --ignore 'examples/pipelines/errors/**/*.book'"
             ],
             "execute": false,
             "onlySingle": false,
