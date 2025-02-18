@@ -85,7 +85,7 @@ describe('how URL command in .book.md files works', () => {
         */
 
         expect(
-            parseCommand('url *https://promptbook.studio/webgpt/write-website-content-cs.book.md*', 'PIPELINE_HEAD'),
+            parseCommand('url *https://promptbook.studio/webgpt/write-website-content-cs.book*', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
@@ -133,7 +133,7 @@ describe('how URL command in .book.md files works', () => {
         expect(() => parseCommand('URL', 'PIPELINE_HEAD')).toThrowError(/URL is required/i);
         expect(() =>
             parseCommand(
-                'URL https://promptbook.studio/webgpt/write-website-content-cs.book.md https://promptbook.studio/webgpt/write-website-content-cs.book',
+                'URL https://promptbook.studio/webgpt/write-website-content-cs.book https://promptbook.studio/webgpt/write-website-content-cs.book',
                 'PIPELINE_HEAD',
             ),
         ).toThrowError(/Can not have more than one pipeline URL/i);
@@ -150,7 +150,7 @@ describe('how URL command in .book.md files works', () => {
 
         expect(() =>
             parseCommand(
-                'url https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords',
+                'url https://promptbook.studio/webgpt/write-website-content-cs.book#keywords',
                 'PIPELINE_HEAD',
             ),
         ).toThrowError(
