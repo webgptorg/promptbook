@@ -1,6 +1,6 @@
 {
     "title": "✨ Empty pipeline",
-    "pipelineUrl": "https://promptbook.studio/examples/empty.book.md",
+    "pipelineUrl": "https://promptbook.studio/examples/empty.book",
     "description": "Show how to use an empty pipeline.",
     "formfactorName": "GENERIC",
     "parameters": [],
