@@ -140,7 +140,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0.005748
@@ -418,7 +418,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "# 💭 Advanced Chatbot\n\nShow how to define chatbot in advanced and low-level controlled way.\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/advanced-chatbot.book.md\n-   KNOWLEDGE https://ptbk.io\n-   KNOWLEDGE https://pavolhejny.com\n-   FORMFACTOR Chat\n-   INPUT PARAMETER `{previousTitle}` Previous title of the conversation\n-   INPUT PARAMETER `{previousConversationSummary}` Previous conversation summary\n-   INPUT PARAMETER `{userMessage}` User message\n-   OUTPUT PARAMETER `{title}` Title of the conversation\n-   OUTPUT PARAMETER `{conversationSummary}` Summary of the conversation\n-   OUTPUT PARAMETER `{chatbotResponse}` Chatbot response\n\n## Initial message\n\n-   EXAMPLE\n\n```\nHello, I am a Pavol`s virtual avatar. How can I help you?\n```\n\n`-> {chatbotResponse}`\n\n## Knowledge\n\n-   KNOWLEDGE\n\n```\nPavol Hejný is a software engineer and creator of Promptbook.\n```\n\n## Create an answer\n\n-   PERSONA Paul, a developer of the Promptbook Project\n\n```markdown\nWrite a response to the user message:\n\n**Question from user**\n\n> {userMessage}\n\n**Previous conversation**\n\n> {previousConversationSummary}\n```\n\n`-> {chatbotResponse}`\n\n## Summarize the conversation\n\n-   PERSONA Paul\n-   EXPECT MIN 1 Word\n-   EXPECT MAX 10 Words\n\n```markdown\nSummarize the conversation in a few words:\n\n## Rules\n\n-   Summarise the text of the conversation in a few words\n-   Convert the text to its basic idea\n-   Imagine you are writing the headline or subject line of an email\n-   Respond with a few words of summary only\n\n## Conversation\n\n**User:**\n\n> {userMessage}\n\n**You:**\n\n> {chatbotResponse}\n```\n\n`-> {conversationSummary}`\n\n## Title\n\n-   SIMPLE TEMPLATE\n\n> {conversationSummary}\n\n`-> {title}`\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/advanced-chatbot.book.md"
+                "sourceFile": "./book/books/templates/advanced-chatbot.book"
             },
             {
                 "title": "💬 Chatbot",
@@ -531,7 +531,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0.005748
@@ -1003,7 +1003,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "# 💬 Chatbot\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/chatbot.book.md\n-   PERSONA Paul, a developer of the Promptbook Project\n-   KNOWLEDGE https://ptbk.io\n-   KNOWLEDGE https://github.com/webgptorg/promptbook\n\n## Knowledge\n\n-   KNOWLEDGE\n\n```\n🤍 The Book Abstract\n\nIt's time for a paradigm shift! The future of software is in plain English, French or Latin.\n\nDuring the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!\n\nIt's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!\n\nThe incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.\n\nThis shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.\n\nJoin us in this journey!\n```\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/chatbot.book.md"
+                "sourceFile": "./book/books/templates/chatbot.book"
             },
             {
                 "title": "🐜 Corrector",
@@ -1054,7 +1054,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0.005745
@@ -1117,11 +1117,11 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "# 🐜 Corrector\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/corrector.book.md\n-   FORMFACTOR Translator\n-   INPUT PARAMETER {inputMessage} Raw text\n-   OUTPUT PARAMETER {outputMessage} Corrected text\n\n## Translate\n\n-   PERSONA Jane, a linguist and Corrector\n\n```markdown\nCorrect the text\n\n> {inputMessage}\n\n# Rules\n\n-   Fix the grammar, spelling, and punctuation\n-   Enhance stylistic elements\n-   Preserve the language of the text\n-   Write only the corrected text\n```\n\n-> {outputMessage}\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/corrector.book.md"
+                "sourceFile": "./book/books/templates/corrector.book"
             },
             {
                 "title": "💌 Generate a letter",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//templates/generator.book.md",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//templates/generator.book",
                 "formfactorName": "GENERATOR",
                 "parameters": [
                     {
@@ -1177,7 +1177,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0.005595
@@ -1240,11 +1240,11 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "# 💌 Generate a letter\n\n-   FORMFACTOR GENERATOR\n\n## Write a letter\n\n-   PERSONA Jane, skilled copywriter for eshop\n-   EXPECT MIN 3 Words\n-   EXPECT MAX 3 Pages\n\n```markdown\nWrite a letter\n\n> {inputMessage}\n\n-   Write only the letter\n-   If you are missing some information, make it up\n-   The letter should be polite and friendly\n-   Write in English\n-   The letter should be well-structured\n-   Use HTML tags for formatting\n-   You can use css for styling\n    -   When using css, use inline styling or `<style>` tag\n```\n\n-> {result}\n\n## Example of user input\n\n-   EXAMPLE\n\n```\nWrite to Paul about\nour new watch collection\n```\n\n-> {inputMessage}\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/generator.book.md"
+                "sourceFile": "./book/books/templates/generator.book"
             },
             {
                 "title": "😂 Joke Generator",
-                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//templates/generic.book.md",
+                "pipelineUrl": "https://github.com/webgptorg/book/blob/main/books/templates//templates/generic.book",
                 "formfactorName": "GENERIC",
                 "parameters": [
                     {
@@ -1274,7 +1274,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -1337,7 +1337,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "Write a joke about {topic}"
                     }
                 ],
-                "sourceFile": "./book/books/templates/generic.book.md"
+                "sourceFile": "./book/books/templates/generic.book"
             },
             {
                 "title": "🖼 Image generator",
@@ -1392,7 +1392,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0.005172
@@ -1455,7 +1455,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "# 🖼 Image generator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/image-generator.book.md\n-   FORMFACTOR IMAGE_GENERATOR\n\n## Create image prompt\n\n-   PERSONA Michal, experienced marketing specialist and business consultant\n\n```markdown\nWrite prompt for image generator from raw user input.\n\n## User input\n\n> {inputMessage}\n\n## Rules\n\n-   Enrich the user input with given context and details\n-   Prompt must be in English\n-   Prompt describes the content and details of the picture\n-   Correct grammar, spelling and punctuation\n-   Improve stylistic elements\n-   Write only the corrected text\n\n## Context\n\nYou are generating an image for page \"Promptujeme.cz\" This is web about AI and LLMs in business and marketing.\n\nBrand colours are yellow (#FFD103), black (#000000) and white (#FFFFFF). Symbols are 0 and 1 and a cube with an arrow.\n```\n\n-> {prompt}\n\n## Example of user input\n\n-   EXAMPLE\n\n```\nTwo people shaking hands\n- Man and woman\n- futuristic\n```\n\n-> {inputMessage}\n\n## Example of prompt\n\n-   EXAMPLE\n\n```\nCreate an image of a futuristic business landscape with digital elements and artificial intelligence. The scene should include binary symbols (0 and 1) that are seamlessly integrated into the design, as well as cubes with arrows that symbolise forward thinking and innovation. Use a colour palette dominated by yellow (#FFD103), black (#000000) and white (#FFFFFF), reflecting the brand's identity. The setting should convey a sense of modernity and technological advancement in business and marketing.\n```\n\n-> {prompt}\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/image-generator.book.md"
+                "sourceFile": "./book/books/templates/image-generator.book"
             },
             {
                 "title": "🧮  Spreadsheet processing",
@@ -1523,7 +1523,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0.005247
@@ -1749,7 +1749,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "# 🧮  Spreadsheet processing\n\n<!--\n<- TODO: This is a hack to show filename in left panel instead of \"Write email for each customer\"\n         Put back \"Write email for each customer\"\n-->\n\nShow how to use a simple prompt\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/sheets.book.md\n-   FORMFACTOR Sheets\n-   INPUT PARAMETER `{inputSheet}` Customer names each customer on each row\n-   OUTPUT PARAMETER `{outputSheet}` Greeting to each customer on each row\n\n## About eshop\n\n-   KNOWLEDGE\n\n```text\nCoolstore is an eshop that sells various hobby, home and garden products. It has a wide range of products from garden gnomes to kitchen gadgets.\nIt has 3 physical stores in the UK and a large online store that operates in the UK + EU + Switzerland. Key benefits are fast delivery and excellent customer service with a personal touch.\n```\n\n## About UV LED Garden Gnomes\n\n-   KNOWLEDGE\n\n<!-- TODO: ALlow two ```blocks in KNOWLEDGE template -->\n\n```text\nUranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.\n```\n\n## Write a email\n\n<!--\nTODO: [🔼] Promptbook lib: Change syntax\n-   FOREACH Csv row `{inputSheet}` -> `{firstName},{lastName},{note}`,`+{email}`\n-->\n\n-   FOREACH Csv row `{inputSheet}` -> `{firstName}` `{lastName}` `{note}` `+{email}`\n-   PERSONA Jane, customer service representative and skilled copywriter for eshop\n<!--- TODO: Add EXPECT -->\n\n```markdown\nWrite an email from Coolstore shop to customer \"{firstName} {lastName}\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   {note}\n```\n\n`-> {outputSheet}`\n\n### Samples of customers\n\n-   SAMPLE\n\n```csv\nFirst name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\n```\n\n<!-- TODO: [🧩] Allow to import from sheets-sample-email.csv -->\n\n`-> {inputSheet}`\n\n<!--\n\n### Samples of emails\n\nTODO: Write\n\n-->\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/sheets.book.md"
+                "sourceFile": "./book/books/templates/sheets.book"
             },
             {
                 "title": "🎌 Translator",
@@ -1800,7 +1800,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.85.0-16",
+                        "promptbookVersion": "0.85.0",
                         "usage": {
                             "price": {
                                 "value": 0.00585
@@ -1863,7 +1863,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "content": "# 🎌 Translator\n\n-   URL https://github.com/webgptorg/book/blob/main/books/templates/translator.book.md\n-   INPUT PARAMETER {inputMessage} English\n-   OUTPUT PARAMETER {outputMessage} Esperanto\n\n## Translate\n\n-   PERSONA Jane, linguist and Esperantist\n\n```markdown\nTranslate text to Esperanto\n\n> {inputMessage}\n\n# Rules\n\n-   Write only the translated text\n```\n\n-> {outputMessage}\n"
                     }
                 ],
-                "sourceFile": "./book/books/templates/translator.book.md"
+                "sourceFile": "./book/books/templates/translator.book"
             }
         );
     }
