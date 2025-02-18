@@ -327,7 +327,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         await forTime(1000 * 60 * 60 * 0);
         await $execCommand({
             isVerbose: true,
-            command: `node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+            command: `node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
         });
     }
 
