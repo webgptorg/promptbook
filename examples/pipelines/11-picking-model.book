@@ -2,7 +2,7 @@
 
 Show how to pick exact model
 
--   PIPELINE URL https://promptbook.studio/examples/picking-model.book.md
+-   PIPELINE URL https://promptbook.studio/examples/picking-model.book
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{poem}`
 

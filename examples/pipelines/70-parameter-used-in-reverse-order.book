@@ -4,7 +4,7 @@ Example of using parameter in reverse order
 
 _Note: This is not recommended but it should work_
 
--   PIPELINE URL https://promptbook.studio/examples/parameter-used-in-reverse-order.book.md
+-   PIPELINE URL https://promptbook.studio/examples/parameter-used-in-reverse-order.book
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
 

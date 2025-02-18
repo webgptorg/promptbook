@@ -3,7 +3,7 @@
 Show how to define chatbot in quick way.
 Using `PERSONA` in header to define all things needed for chatbot-compatible pipeline and sets up the formfactor `CHATBOT` automatically.
 
--   PIPELINE URL https://promptbook.studio/examples/quick-chatbot.book.md
+-   PIPELINE URL https://promptbook.studio/examples/quick-chatbot.book
 -   PERSONA Paul, a developer of the Promptbook Project
 -   KNOWLEDGE https://ptbk.io
 -   KNOWLEDGE https://pavolhejny.com

@@ -1,6 +1,6 @@
 # ✨ Example: Expectations
 
--   PIPELINE URL https://promptbook.studio/examples/expectations.book.md
+-   PIPELINE URL https://promptbook.studio/examples/expectations.book
 -   INPUT  PARAMETER {yourName} Name of the hero
 -   OUTPUT PARAMETER `{greeting}`
 

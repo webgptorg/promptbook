@@ -1,6 +1,6 @@
 # ✨ Example: Postprocessing 2
 
--   PIPELINE URL https://promptbook.studio/examples/postprocessing-2.book.md
+-   PIPELINE URL https://promptbook.studio/examples/postprocessing-2.book
 -   INPUT  PARAMETER {yourName} Name of the hero
 -   OUTPUT PARAMETER `{greeting}`
 

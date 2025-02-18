@@ -2,7 +2,7 @@
 
 Show how to use two consecutive prompts with one parameter each.
 
--   PIPELINE URL https://promptbook.studio/examples/postprocessing-1.book.md
+-   PIPELINE URL https://promptbook.studio/examples/postprocessing-1.book
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{sentence}` Resulting sentence with two synonyms
 

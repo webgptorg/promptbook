@@ -2,7 +2,7 @@
 
 Show how to use a simple prompt with no parameters.
 
--   PIPELINE URL https://promptbook.studio/examples/simple.book.md
+-   PIPELINE URL https://promptbook.studio/examples/simple.book
 
 <!--
 Note: No need to explicitly define the input and output parameters
