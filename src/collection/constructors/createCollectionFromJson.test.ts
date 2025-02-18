@@ -11,7 +11,7 @@ describe('createCollectionFromJson', () => {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 

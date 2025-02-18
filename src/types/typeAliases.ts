@@ -395,14 +395,14 @@ export type string_pipeline_root_url = string;
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book"`
  */
 export type string_pipeline_url = string; // <- TODO: `${string}.book`
 
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book#keywords"`
  */
 export type string_pipeline_url_with_task_hash = string;
 

@@ -112,9 +112,9 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     /**
-     * Create a new instance of PipelineEditable from pipeline.book.md
+     * Create a new instance of PipelineEditable from pipeline.book
      *
-     * @param sourceMarkdown content of pipeline.book.md
+     * @param sourceMarkdown content of pipeline.book
      * @returns PipelineEditable instance
      * @throws {PipelineParseError} if the pipeline string is not valid
      * @throws {PipelineLogicError} on logical error in the pipeline

@@ -38,7 +38,7 @@ export async function $getCompiledBook(
         let filePathCandidates = [filePathRaw, `${filePathRaw}.md`, `${filePathRaw}.book`, `${filePathRaw}.book`]; // <- TODO: [🕝] To config
         filePathCandidates = [...filePathCandidates, ...filePathCandidates.map((path) => path.split('\\').join('/'))];
         //                       <- Note: This line is to work with Windows paths
-        //                                File "C:Usersmeworkaihello-worldbookshello.book.md" does not exist
+        //                                File "C:Usersmeworkaihello-worldbookshello.book" does not exist
         //                                @see https://collboard.fra1.cdn.digitaloceanspaces.com/usercontent/education/image/png/1/2/ad/image.png
 
         for (const filePathCandidate of filePathCandidates) {
@@ -169,9 +169,9 @@ export async function $getCompiledBook(
                 ${block(pipelineSource)}
 
                 Pipelines can be loaded from:
-                1) As a file ./books/write-cv.book.md
-                2) As a URL https://promptbook.studio/hejny/write-cv.book.md found in ./books folder recursively
-                2) As a URL https://promptbook.studio/hejny/write-cv.book.md fetched from the internet
+                1) As a file ./books/write-cv.book
+                2) As a URL https://promptbook.studio/hejny/write-cv.book found in ./books folder recursively
+                2) As a URL https://promptbook.studio/hejny/write-cv.book fetched from the internet
                 3) As a string
 
 

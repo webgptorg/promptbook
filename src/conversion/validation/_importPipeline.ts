@@ -7,7 +7,7 @@ import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { string_filename, string_json } from '../../types/typeAliases';
 
 /**
- * Import the pipeline.book.md or pipeline.book.json file
+ * Import the pipeline.book or pipeline.book.json file
  *
  * Note: Using here custom import to work in jest tests
  * Note: Using sync version is 💩 in the production code, but it's ok here in tests

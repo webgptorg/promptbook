@@ -113,7 +113,7 @@ async function getPipelineExecutor() {
             Show how to use a simple chat prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {thing} Any thing to buy

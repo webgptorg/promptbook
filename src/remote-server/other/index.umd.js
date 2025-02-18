@@ -1984,7 +1984,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
    * TODO: [🏛] Maybe make some markdown builder
    * TODO: [🏛] Escape all
-   * TODO: [🧠] Should be in generated .book.md file GENERATOR_WARNING
+   * TODO: [🧠] Should be in generated .book file GENERATOR_WARNING
    */
 
   /**
@@ -4519,7 +4519,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
                                               promptTitle: task.title,
                                               promptMessage: templateParameters(task.description || '', parameters),
                                               defaultValue: templateParameters(preparedContent, parameters),
-                                              // TODO: [🧠] Figure out how to define placeholder in .book.md file
+                                              // TODO: [🧠] Figure out how to define placeholder in `.book` file
                                               placeholder: undefined,
                                               priority: priority,
                                           }))];
