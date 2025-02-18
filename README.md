@@ -14,6 +14,7 @@
 
 ## 🌟 New Features
 
+-   📂 We have plugin for [VSCode](https://github.com/webgptorg/book-extension) to support `.book` file extension
 -   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
