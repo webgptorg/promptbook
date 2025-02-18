@@ -2,23 +2,37 @@
 
 # ✨ Promptbook
 
+
+
+
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
+
+
+
+
 ## 🌟 New Features
 
+-   📂 We have plugin for [VSCode](https://github.com/webgptorg/book-extension) to support `.book` file extension
 -   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
 -   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
 -   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
 -   📚 Support of `.docx`, `.doc` and `.pdf` documents as knowledge
 
+
+
+<blockquote style="color: #ff8811">
+    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
+
 ## 📦 Package `@promptbook/wizzard`
 
--   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
--   This package `@promptbook/wizzard` is one part of the promptbook ecosystem.
+- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+- This package `@promptbook/wizzard` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -46,9 +60,13 @@ const {
 console.info(joke);
 ```
 
+
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
+
+
+
 
 ## 🤍 The Book Abstract
 
@@ -56,13 +74,15 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
 
-It's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!
+It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
 
 The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
 
 This shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.
 
 **Join us in this journey!**
+
+
 
 ## 🚀 Get started
 
@@ -72,6 +92,9 @@ Take a look at the simple starter kit with books integrated into the **Hello Wor
 -   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
+
+
+
 ## 💜 The Promptbook Project
 
 Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
@@ -80,41 +103,24 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   <thead>
     <tr>
       <th>Project</th>
-      <th>Description</th>
-      <th>Link</th>
+      <th>About</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Core</td>
-      <td>Promptbook Core is a description and documentation of the basic concepts, ideas and inner workings of how Promptbook should be implemented, and defines what features must be describable by book language.</td>
-      <td rowspan=2>https://github.com/webgptorg/book</td>
-    </tr>
-    <tr>
-      <td>Book language</td>
+      <td><a href="https://github.com/webgptorg/book">Book language</a></td>
       <td>
-          Book is a markdown-like language to define core entities like projects, pipelines, knowledge,.... It is designed to be understandable by non-programmers and non-technical people
+          Book is a markdown-like language to define core entities like personas, knowledge, tasks,.... It is designed to be understandable by non-programmers and non-technical people<hr>
+          There is also <a href="https://github.com/webgptorg/book-extension">a plugin for VSCode</a> to support <code>.book</code> file extension
       </td>
     </tr>
     <tr>
-      <td>Promptbook typescript project</td>
-      <td>Promptbook implementation in TypeScript released as multiple NPM packages</td>
-      <td>https://github.com/webgptorg/promptbook + <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">Multiple packages published on NPM</a></td>
+      <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
+      <td>Promptbook implementation in TypeScript released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Docker HUB</a></td>
     </tr>
     <tr>
-      <td>Promptbook studio</td>
+      <td><a href="https://promptbook.studio">Promptbook Studio</a></td>
       <td>Studio to write Books and instantly publish them as miniapps</td>
-      <td>
-        https://promptbook.studio<br/>
-        https://github.com/hejny/promptbook-studio</td>
-      </tr><tr>
-      <td>Hello World</td>
-      <td>Simple starter kit with Books integrated into the sample applications</td>
-       <td>
-          https://github.com/webgptorg/hello-world<br/>
-          https://github.com/webgptorg/hello-world-node-js<br/>
-          https://github.com/webgptorg/hello-world-next-js
-       </td>
     </tr>
   </tbody>
 </table>
@@ -145,7 +151,12 @@ _/Sub-brand for images and graphics generated via Promptbook prompting/_
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
 -   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
 
+
+
 ## 💙 Book language _(for prompt-engineer)_
+
+
+
 
 ## 💙 The blueprint of book language
 
@@ -172,7 +183,7 @@ Following is the documentation and blueprint of the Book language.
 
 File is designed to be easy to read and write. It is strict subset of markdown. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
 
-It has file with `.book` or `.book` extension with `UTF-8` non BOM encoding.
+It has file with `.book.md` or `.book` extension with `UTF-8` non BOM encoding.
 
 As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
 
@@ -222,6 +233,8 @@ Todo todo
 
 ### Examples
 
+
+
 ## 📦 Packages _(for developers)_
 
 This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -246,7 +259,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
@@ -264,6 +277,11 @@ Or you can install them separately:
 -   **[@promptbook/templates](https://www.npmjs.com/package/@promptbook/templates)** - Usefull templates and examples of books which can be used as a starting point
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
+
+
+
+
+
 
 ## 📚 Dictionary
 
@@ -347,6 +365,8 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   Anonymous mode
 -   Application mode
 
+
+
 ## 🔌 Usage in Typescript / Javascript
 
 -   [Simple usage](./examples/usage/simple-script)
@@ -410,6 +430,9 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
+
+
+
 
 ## 🤝 Partners
 
