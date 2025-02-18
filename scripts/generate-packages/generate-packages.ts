@@ -568,6 +568,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     },
                     'publish-docker': {
                         name: 'Publish Docker image to DockerHub',
+                        needs: 'publish-npm',
                         'runs-on': 'ubuntu-latest',
                         steps: [
                             {
