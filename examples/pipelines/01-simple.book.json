@@ -1,6 +1,6 @@
 {
     "title": "✨ Example prompt with URL",
-    "pipelineUrl": "https://promptbook.studio/examples/simple.book.md",
+    "pipelineUrl": "https://promptbook.studio/examples/simple.book",
     "description": "Show how to use a simple prompt with no parameters.",
     "formfactorName": "GENERIC",
     "parameters": [
@@ -33,7 +33,7 @@
         {
             "type": "BOOK",
             "path": null,
-            "content": "# ✨ Example prompt with URL\n\nShow how to use a simple prompt with no parameters.\n\n-   PIPELINE URL https://promptbook.studio/examples/simple.book.md\n\n<!--\nNote: No need to explicitly define the input and output parameters\n-   OUTPUT PARAMETER `{greetingResponse}`\n-->\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Example prompt with URL\"\n\n      direction TB\n\n      input((Input)):::input\n      prompt(\"💬 Prompt\")\n\n      prompt--\"{greetingResponse}\"-->output\n      output((Output)):::output\n\n      click prompt href \"#prompt\" \"💬 Prompt\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n## 💬 Prompt\n\n```text\nHello\n```\n\n`-> {greetingResponse}`\n\n### Normal response\n\n-   EXAMPLE\n\n```text\nHello, how are you?\n```\n\n`-> {greetingResponse}`\n\n### Formal response\n\n-   EXAMPLE\n\n```text\nDear Sir, how may I help you?\n```\n\n`-> {greetingResponse}`\n\n### Informal response\n\n-   EXAMPLE\n\n```text\nHey, what's up?\n```\n\n`-> {greetingResponse}`\n"
+            "content": "# ✨ Example prompt with URL\n\nShow how to use a simple prompt with no parameters.\n\n-   PIPELINE URL https://promptbook.studio/examples/simple.book\n\n<!--\nNote: No need to explicitly define the input and output parameters\n-   OUTPUT PARAMETER `{greetingResponse}`\n-->\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Example prompt with URL\"\n\n      direction TB\n\n      input((Input)):::input\n      prompt(\"💬 Prompt\")\n\n      prompt--\"{greetingResponse}\"-->output\n      output((Output)):::output\n\n      click prompt href \"#prompt\" \"💬 Prompt\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n## 💬 Prompt\n\n```text\nHello\n```\n\n`-> {greetingResponse}`\n\n### Normal response\n\n-   EXAMPLE\n\n```text\nHello, how are you?\n```\n\n`-> {greetingResponse}`\n\n### Formal response\n\n-   EXAMPLE\n\n```text\nDear Sir, how may I help you?\n```\n\n`-> {greetingResponse}`\n\n### Informal response\n\n-   EXAMPLE\n\n```text\nHey, what's up?\n```\n\n`-> {greetingResponse}`\n"
         }
     ]
 }
