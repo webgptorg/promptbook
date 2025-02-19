@@ -84,6 +84,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         ),
     );
 
+    if (isCommited) {
+        await commit(['src'], `🆚 Update \`${version}\` -> \`version.ts\``);
+    }
+
     // Note: Just append the version into loooong list
     // TODO: Is there a secure and simple way to write in append-only mode?
     // TODO: [🧠] Maybe handle this dynamically via `npm view ptbk/* versions` (but its not complete)
@@ -93,7 +97,15 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     await writeFile(`./src/versions.txt`, newAllVersions, 'utf-8');
 
     if (isCommited) {
-        await commit(['src'], `🆚 Update version in config`);
+        await commit(['src'], `🆚 Add \`${version}\` -> \`versions.txt\``);
+    }
+
+    let dockerfile = await readFile(`./Dockerfile`, 'utf-8');
+    dockerfile = dockerfile.replace(/^RUN\s+npm\s+i\s+ptbk@?.*$/m, `RUN npm i ptbk@${version}`);
+    await writeFile(`./Dockerfile`, dockerfile, 'utf-8');
+
+    if (isCommited) {
+        await commit(['Dockerfile'], `🆚🐋 Update \`${version}\` -> \`Dockerfile\``);
     }
 }
 
