@@ -584,6 +584,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 },
                             },
                             {
+                                name: 'Update version in Dockerfile',
+                                run: 'ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
+                                // <- Note: Update version in Dockerfile before building the image
+                            },
+                            {
                                 name: 'Load current version into the environment',
                                 run: 'echo "VERSION=$(node -p \'require(`./package.json`).version\')" >> $GITHUB_ENV',
                             },
