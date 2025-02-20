@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/types",
-    "version": "0.86.0-6",
+    "version": "0.86.0-7",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -45,6 +45,6 @@
     "homepage": "https://ptbk.io/",
     "typings": "./esm/typings/src/_packages/types.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.86.0-6"
+        "@promptbook/core": "0.86.0-7"
     }
 }
