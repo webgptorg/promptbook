@@ -177,7 +177,7 @@ jobs:
             - name: Install dependencies
               run: npm ci
             - name: Update version in Dockerfile
-              run: ts-node ./scripts/update-version-in-config/update-version-in-config.ts
+              run: npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts
             - name: Load current version into the environment
               run: echo "VERSION=$(node -p 'require(`./package.json`).version')" >>
                   $GITHUB_ENV

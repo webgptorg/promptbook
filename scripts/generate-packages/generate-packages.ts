@@ -598,7 +598,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             },
                             {
                                 name: 'Update version in Dockerfile',
-                                run: 'ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
+                                run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
                                 // <- Note: Update version in Dockerfile before building the image
                             },
                             {
