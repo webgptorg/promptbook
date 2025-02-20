@@ -566,6 +566,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             })),
                         ],
                     },
+                    // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
                     'publish-docker': {
                         name: 'Publish Docker image to DockerHub',
                         needs: 'publish-npm',
@@ -582,6 +583,18 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     username: '${{ secrets.DOCKERHUB_USER }}',
                                     password: '${{ secrets.DOCKERHUB_TOKEN }}',
                                 },
+                            },
+                            {
+                                name: 'Setup Node.js',
+                                uses: 'actions/setup-node@v4',
+                                with: {
+                                    'node-version': 22,
+                                    'registry-url': 'https://registry.npmjs.org/',
+                                },
+                            },
+                            {
+                                name: 'Install dependencies',
+                                run: 'npm ci',
                             },
                             {
                                 name: 'Update version in Dockerfile',
