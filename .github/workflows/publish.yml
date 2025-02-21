@@ -176,6 +176,8 @@ jobs:
                   registry-url: https://registry.npmjs.org/
             - name: Install dependencies
               run: npm ci
+            - name: Clone book submodule
+              run: git submodule update --init --recursive
             - name: Update version in Dockerfile
               run: npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts
             - name: Load current version into the environment
