@@ -722,6 +722,7 @@ Use `.book` as default extension for books
 
 -   Rename `.book.md` -> `.book.md`
 -   Rename `.book.json` -> `.bookc`
+-   Establish `.bookc` format - compiled book json in zip archive
 -   Use [VCCode extension `Promptbook .book language support`](https://marketplace.visualstudio.com/items?itemName=promptbook.book-extension)
 -   Fix: Version published to Docker Hub does not lag behind the NPM version
 

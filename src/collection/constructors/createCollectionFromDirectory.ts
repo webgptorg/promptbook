@@ -103,7 +103,7 @@ export async function createCollectionFromDirectory(
         `${
             DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
             // <- TODO: [🦒] Allow to override (pass different value into the function)
-        }.json`,
+        }.bookc`,
     );
 
     if (!(await isFileExisting(madeLibraryFilePath, tools.fs))) {
@@ -139,10 +139,10 @@ export async function createCollectionFromDirectory(
         // Note: First load all `.bookc` and then `.book` / `.book` files
         //       `.bookc` can be prepared so it is faster to load
         fileNames.sort((a, b) => {
-            if (a.endsWith('.json') && (b.endsWith('.book') || b.endsWith('.book'))) {
+            if ((a.endsWith('.bookc') || a.endsWith('.json')) && (b.endsWith('.book') || b.endsWith('.md'))) {
                 return -1;
             }
-            if ((a.endsWith('.book') || a.endsWith('.book')) && b.endsWith('.json')) {
+            if ((a.endsWith('.book') || a.endsWith('.md')) && (b.endsWith('.bookc') || b.endsWith('.json'))) {
                 return 1;
             }
             return 0;
@@ -163,7 +163,7 @@ export async function createCollectionFromDirectory(
                         rootDirname,
                     });
                     pipeline = { ...pipeline, sourceFile };
-                } else if (fileName.endsWith('.bookc')) {
+                } else if (fileName.endsWith('.bookc') || fileName.endsWith('.json')) {
                     // TODO: Handle non-valid JSON files
                     pipeline = JSON.parse(await readFile(fileName, 'utf-8')) as PipelineJson;
                     // TODO: [🌗]

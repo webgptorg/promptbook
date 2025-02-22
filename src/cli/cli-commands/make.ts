@@ -7,10 +7,12 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -55,11 +57,11 @@ export function $initializeMakeCommand(program: Program) {
     makeCommand.option(
         '-f, --format <format>',
         spaceTrim(`
-            Output format of builded collection "javascript", "typescript" or "json"
+            Output format of builded collection "bookc", "javascript", "typescript" or "json"
 
             Note: You can use multiple formats separated by comma
         `),
-        'javascript' /* <- Note: [🏳‍🌈] */,
+        'bookc' /* <- Note: [🏳‍🌈] */,
     );
     makeCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
     makeCommand.option(
@@ -221,6 +223,12 @@ export function $initializeMakeCommand(program: Program) {
                 // Note: Log despite of verbose mode
                 console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
             };
+
+            if (formats.includes('bookc')) {
+                formats = formats.filter((format) => format !== 'bookc');
+                await saveFile('bookc', collectionJsonString);
+                // <- TODO: !!!!!! Do here the index.book.json in zip
+            }
 
             if (formats.includes('json')) {
                 formats = formats.filter((format) => format !== 'json');
