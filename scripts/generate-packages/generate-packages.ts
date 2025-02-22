@@ -550,6 +550,15 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 run: 'npm ci',
                             },
                             {
+                                name: '🔽 Clone book submodule',
+                                run: 'git submodule update --init --recursive',
+                            },
+                            {
+                                name: '🆚 Update version in Dockerfile',
+                                run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
+                                // <- Note: Update version in Dockerfile before building the image
+                            },
+                            {
                                 name: '🏭 Build packages bundles',
                                 // Note: [🔙] Generate packages before publishing to put the recent version in each package.json
                                 // TODO: It will be better to have here just "npx rollup --config rollup.config.js" / "node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js" BUT it will not work because:
