@@ -247,7 +247,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     /**
-     * Version of the .book.json file
+     * Version of the .bookc file
      */
     public get bookVersion(): string_semantic_version | undefined {
         return this.data.bookVersion;

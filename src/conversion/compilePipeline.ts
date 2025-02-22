@@ -16,7 +16,7 @@ import { parsePipeline } from './parsePipeline';
  * @param pipelineString {Promptbook} in string markdown format (.book.md)
  * @param tools - Tools for the preparation and scraping - if not provided together with `llm`, the preparation will be skipped
  * @param options - Options and tools for the compilation
- * @returns {Promptbook} compiled in JSON format (.book.json)
+ * @returns {Promptbook} compiled in JSON format (.bookc)
  * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */

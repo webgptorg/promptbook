@@ -1,11 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { importPipelineJson } from '../../../conversion/validation/_importPipeline';
-import { importPipelineJsonAsString } from '../../../conversion/validation/_importPipeline';
+import { importPipelineJson, importPipelineJsonAsString } from '../../../conversion/validation/_importPipeline';
 import { stringifyPipelineJson } from './stringifyPipelineJson';
 
 describe('how stringifyPipelineJson works', () => {
-    it('should work with markdown-knowledge.book.json', () =>
+    it('should work with markdown-knowledge.bookc', () =>
         expect(
             stringifyPipelineJson({
                 index: [
@@ -30,8 +29,8 @@ describe('how stringifyPipelineJson works', () => {
             ) + '\n',
         ));
 
-    it('should work with markdown-knowledge.book.json', () =>
-        expect(stringifyPipelineJson(importPipelineJson('26-markdown-knowledge.book.json'))).toBe(
-            importPipelineJsonAsString('26-markdown-knowledge.book.json'),
+    it('should work with markdown-knowledge.bookc', () =>
+        expect(stringifyPipelineJson(importPipelineJson('26-markdown-knowledge.bookc'))).toBe(
+            importPipelineJsonAsString('26-markdown-knowledge.bookc'),
         ));
 });

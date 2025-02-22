@@ -23,7 +23,7 @@ describe('compilePipeline', () => {
 
             const pipelineJson = {
                 ...importPipelineWithoutPreparation(
-                    join(examplesDir, name).replace('.book', '.book.json') as `${string}.book.json`,
+                    join(examplesDir, name).replace('.book', '.bookc') as `${string}.bookc`,
                 ),
                 title: undefined,
                 // <- Note: [0]

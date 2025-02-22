@@ -720,7 +720,8 @@ Compile via remote server
 
 Use `.book` as default extension for books
 
--   Rename `.ptbk.md` -> `.book.md`
+-   Rename `.book.md` -> `.book.md`
+-   Rename `.book.json` -> `.bookc`
 -   Use [VCCode extension `Promptbook .book language support`](https://marketplace.visualstudio.com/items?itemName=promptbook.book-extension)
 -   Fix: Version published to Docker Hub does not lag behind the NPM version
 
