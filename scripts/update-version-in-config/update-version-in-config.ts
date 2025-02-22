@@ -33,13 +33,15 @@ generatePackages({ isCommited })
     });
 
 async function generatePackages({ isCommited }: { isCommited: boolean }) {
-    console.info(`🆚 Update version in config`);
-
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
 
     const BOOK_LANGUAGE_VERSION = await readFile(`./book/version.txt`, 'utf-8');
+
+    console.info(
+        `🆚 Update Promptbook engine version to ${version} and book language version to ${BOOK_LANGUAGE_VERSION}`,
+    );
 
     await writeFile(
         `./src/version.ts`, // <- Note: [🏳‍🌈] Maybe use json file (used .ts file (not .json) to avoid support of json files in bundle)
