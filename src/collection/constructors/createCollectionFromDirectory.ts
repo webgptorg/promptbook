@@ -136,13 +136,13 @@ export async function createCollectionFromDirectory(
 
         const fileNames = await listAllFiles(rootPath, isRecursive, tools!.fs!);
 
-        // Note: First load all `.bookc` and then `.book` / `.book` files
-        //       `.bookc` can be prepared so it is faster to load
+        // Note: First load compiled `.bookc` files and then source `.book` files
+        //       `.bookc` are already compiled and can be used faster
         fileNames.sort((a, b) => {
-            if ((a.endsWith('.bookc') || a.endsWith('.json')) && (b.endsWith('.book') || b.endsWith('.md'))) {
+            if ((a.endsWith('.bookc') || a.endsWith('.book.json')) && (b.endsWith('.book') || b.endsWith('.book.md'))) {
                 return -1;
             }
-            if ((a.endsWith('.book') || a.endsWith('.md')) && (b.endsWith('.bookc') || b.endsWith('.json'))) {
+            if ((a.endsWith('.book') || a.endsWith('.book.md')) && (b.endsWith('.bookc') || b.endsWith('.book.json'))) {
                 return 1;
             }
             return 0;
@@ -157,13 +157,13 @@ export async function createCollectionFromDirectory(
             try {
                 let pipeline: PipelineJson | null = null;
 
-                if (fileName.endsWith('.book') || fileName.endsWith('.book')) {
+                if (fileName.endsWith('.book') || fileName.endsWith('.book.md')) {
                     const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
                     pipeline = await compilePipeline(pipelineString, tools, {
                         rootDirname,
                     });
                     pipeline = { ...pipeline, sourceFile };
-                } else if (fileName.endsWith('.bookc') || fileName.endsWith('.json')) {
+                } else if (fileName.endsWith('.bookc') || fileName.endsWith('.book.json')) {
                     // TODO: Handle non-valid JSON files
                     pipeline = JSON.parse(await readFile(fileName, 'utf-8')) as PipelineJson;
                     // TODO: [🌗]
