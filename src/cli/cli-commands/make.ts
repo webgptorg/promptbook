@@ -226,7 +226,10 @@ export function $initializeMakeCommand(program: Program) {
 
             if (formats.includes('bookc')) {
                 formats = formats.filter((format) => format !== 'bookc');
-                await saveFile('bookc', collectionJsonString);
+                await saveFile(
+                    'bookc',
+                    collectionJsonString + '\n\n\n\n\n\n\n\n' /* <- TODO: !!!!!! Remove new lines */,
+                );
                 // <- TODO: !!!!!! Do here the index.book.json in zip
             }
 
