@@ -610,6 +610,14 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 run: 'echo "VERSION=$(node -p \'require(`./package.json`).version\')" >> $GITHUB_ENV',
                             },
                             {
+                                name: 'Log version from previous step',
+                                run: 'echo $VERSION',
+                            },
+                            {
+                                name: 'Log contents of the Dockerfile',
+                                run: 'cat Dockerfile',
+                            },
+                            {
                                 name: 'Build and Push Docker Image',
                                 uses: 'docker/build-push-action@v2',
                                 with: {
