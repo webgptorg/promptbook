@@ -633,7 +633,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             { indent: 4 },
         ),
     );
-    //     <- TODO: Add GENERATOR_WARNING to publish.yml
+    // <- Note: All changes affects up to version folowing the next one, so it is safe to run "🏭📦 Generate packages" script to affect the next version
+    // <- TODO: Add GENERATOR_WARNING to publish.yml
 
     // ==============================
     // 9️⃣ Commit the changes
