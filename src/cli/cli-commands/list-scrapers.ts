@@ -21,6 +21,8 @@ export function $initializeListScrapersCommand(program: Program) {
         `),
     );
 
+    listModelsCommand.alias('scrapers');
+
     listModelsCommand.action(async () => {
         const scrapers = await $provideScrapersForNode({});
         const executables = await $provideExecutablesForNode();
