@@ -106,6 +106,7 @@
         "express": "^4.21.2",
         "glob-promise": "6.0.5",
         "jsdom": "25.0.1",
+        "jszip": "^3.10.1",
         "lorem-ipsum": "2.0.8",
         "markitdown-ts": "^0.0.4",
         "moment": "2.30.1",

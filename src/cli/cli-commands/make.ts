@@ -3,6 +3,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
+import JSZip from 'jszip';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
@@ -211,7 +212,7 @@ export function $initializeMakeCommand(program: Program) {
                 return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
             })();
 
-            const saveFile = async (extension: string_file_extension, content: string) => {
+            const saveFile = async (extension: string_file_extension, content: string | JSZip) => {
                 const filename =
                     output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
                         ? output
@@ -222,7 +223,14 @@ export function $initializeMakeCommand(program: Program) {
                 }
 
                 await mkdir(dirname(filename), { recursive: true });
-                await writeFile(filename, content, 'utf-8');
+
+                if (typeof content === 'string') {
+                    await writeFile(filename, content, 'utf-8');
+                } else {
+                    // TODO: Add metadata to zip
+                    const data = await content.generateAsync({ type: 'nodebuffer', streamFiles: true });
+                    await writeFile(filename, data);
+                }
 
                 // Note: Log despite of verbose mode
                 console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
@@ -230,11 +238,13 @@ export function $initializeMakeCommand(program: Program) {
 
             if (formats.includes('bookc')) {
                 formats = formats.filter((format) => format !== 'bookc');
-                await saveFile(
-                    'bookc',
-                    collectionJsonString + '\n\n\n\n\n\n\n\n' /* <- TODO: !!!!!! Remove new lines */,
-                );
-                // <- TODO: !!!!!! Do here the index.book.json in zip
+
+                // TODO: Handling of `.bookc` files: extract un/compression in separate function
+                const bookcBundle = new JSZip();
+
+                bookcBundle.file('index.book.json', collectionJsonString);
+
+                await saveFile('bookc', bookcBundle);
             }
 
             if (formats.includes('json')) {
