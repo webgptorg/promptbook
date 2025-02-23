@@ -15,11 +15,9 @@
 ## 🌟 New Features
 
 -   📂 We have plugin for [VSCode](https://github.com/webgptorg/book-extension) to support `.book` file extension
+-   🐳 Available [Docker image](https://hub.docker.com/r/hejny/promptbook/)
 -   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
--   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
--   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
--   📚 Support of `.docx`, `.doc` and `.pdf` documents as knowledge
 
 <!-- <- TODO: !!3 Make this warning dynamic + link latest stable release automatically -->
 
@@ -237,6 +235,7 @@ Or you can install them separately:
 -   **[@promptbook/templates](https://www.npmjs.com/package/@promptbook/templates)** - Usefull templates and examples of books which can be used as a starting point
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
+-   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
 
 <!-- <- Note: When creating new package look at places marked by [➕] -->
 
