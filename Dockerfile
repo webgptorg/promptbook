@@ -8,3 +8,6 @@ RUN npm i ptbk@0.86.0-15
 
 # Add `ptbk` to the path
 ENV PATH="/usr/app/node_modules/.bin:${PATH}"
+
+# Add the README for Docker Hub
+COPY README.md /README.md
