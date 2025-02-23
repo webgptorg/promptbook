@@ -43,41 +43,24 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   
     
       Project
-      Description
-      Link
+      About
     
   
   
-    
-      Core
-      Promptbook Core is a description and documentation of the basic concepts, ideas and inner workings of how Promptbook should be implemented, and defines what features must be describable by book language.
-      https://github.com/webgptorg/book
-    
     
       Book language
       
-          Book is a markdown-like language to define core entities like projects, pipelines, knowledge,.... It is designed to be understandable by non-programmers and non-technical people
+          Book is a markdown-like language to define core entities like personas, knowledge, tasks,.... It is designed to be understandable by non-programmers and non-technical people
+          There is also a plugin for VSCode to support .book file extension
       
     
     
-      Promptbook typescript project
-      Promptbook implementation in TypeScript released as multiple NPM packages
-      https://github.com/webgptorg/promptbook + Multiple packages published on NPM
+      Promptbook Engine
+      Promptbook implementation in TypeScript released as multiple NPM packages and Docker HUB
     
     
-      Promptbook studio
+      Promptbook Studio
       Studio to write Books and instantly publish them as miniapps
-      
-        https://promptbook.studio
-        https://github.com/hejny/promptbook-studio
-      
-      Hello World
-      Simple starter kit with Books integrated into the sample applications
-       
-          https://github.com/webgptorg/hello-world
-          https://github.com/webgptorg/hello-world-node-js
-          https://github.com/webgptorg/hello-world-next-js
-       
     
   
 
@@ -114,6 +97,11 @@ Following is the documentation and blueprint of the Book language.
 Example
 # 🌟 My first Book
 
+-   BOOK VERSION 1.0.0
+-   URL https://promptbook.studio/my-first-book/
+
+# Write an article
+
 -   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
 -   KNOWLEDGE https://ptbk.io
 -   KNOWLEDGE ./promptbook.pdf
@@ -124,38 +112,26 @@ Example
 > Look specifically at the impact of Promptbook on the AI industry.
 
 -> {article}
-Goals and principles of book language
-File is designed to be easy to read and write. It is strict subset of markdown. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
-It has file with .book.md or .book extension with UTF-8 non BOM encoding.
+What: Workflows, Tasks and Parameters
+
+PARAMETER
+
+Who: Personas
+
+PERSONA
+
+How: Knowledge, Instruments and Actions
+
+KNOWLEDGE
+INSTRUMENT
+ACTION
+
+General principles of book language
+Book language is based on markdown. It is subset of markdown. It is designed to be easy to read and write. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
+The file has .book extension. It uses UTF-8 non BOM encoding.
+Book has two variants: flat - which is just a prompt with no structure, and full - which has a structure with tasks, commands and prompts.
 As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
 But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
-Structure
-Book is divided into sections. Each section starts with heading. The language itself is not sensitive to the type of heading (h1, h2, h3, ...) but it is recommended to use h1 for header section and h2 for other sections.
-Header
-Header is the first section of the book. It contains metadata about the pipeline. It is recommended to use h1 heading for header section but it is not required.
-Parameter
-Foo bar
-Parameter names
-Reserved words:
-
-each command like PERSONA, EXPECT, KNOWLEDGE, etc.
-content
-context
-knowledge
-examples
-modelName
-currentDate
-
-Parameter notation
-Task
-Task type
-Todo todo
-Command
-Todo todo
-Block
-Todo todo
-Return parameter
-Examples
 
 📦 Packages (for developers)
 This library is divided into several packages, all are published from single monorepo.
