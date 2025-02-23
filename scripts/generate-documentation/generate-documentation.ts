@@ -1,6 +1,9 @@
 #!/usr/bin/env ts-node
 // generate-documentation.ts
 
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env' });
+
 import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
@@ -58,11 +61,31 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
             ## Commands
 
             ${block(COMMANDS.map(({ name, documentationUrl }) => `- [${name}](${documentationUrl})`).join('\n'))}
-          
+
         `,
     );
 
     await writeFile('documents/README.md', indexContent, 'utf-8');
+
+    const githubDiscussions = await fetchGitHubDiscussions();
+
+    console.log('GitHub Discussions:', { githubDiscussions });
+
+    for (const command of COMMANDS) {
+        const { name, documentationUrl } = command;
+
+        console.log('Command:', { name, documentationUrl });
+
+        const githubDiscussion = githubDiscussions.find((discussion) => discussion.url === documentationUrl);
+
+        if (githubDiscussion === undefined) {
+            console.error(`❌ Discussion not found for ${name}`);
+            continue;
+        }
+
+        await writeFile(`documents/commands/${name}.md`, githubDiscussion.body, 'utf-8');
+        // <- TODO: !!!!!! Add generator warnings
+    }
 
     // ==============================
     // 9️⃣ Commit the changes
@@ -70,6 +93,66 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
     if (isCommited) {
         await commit(['documents'], `📚 Generating documentation`);
     }
+}
+
+interface GitHubDiscussion {
+    id: string;
+    title: string;
+    body: string;
+    answer?: {
+        body: string;
+    } | null;
+    url: string;
+    updatedAt: string;
+}
+
+async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
+    // TODO: !!!!!! Paginate through all discussions
+    const query = `
+        query {
+            repository(owner: "webgptorg", name: "promptbook") {
+                discussions(first: 100) {
+                    nodes {
+                        id
+                        title
+                        body
+                        answer {
+                            body
+                        }
+                        url
+                        updatedAt
+                    }
+                }
+            }
+        }
+    `;
+
+    const response = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+
+    console.log('GitHub Discussions:', { data });
+
+    if (typeof data.data === 'undefined') {
+        throw new Error(
+            spaceTrim(
+                (block) => `
+                  Failed to fetch GitHub Discussions
+
+                  ${block(data.message || 'No message provided')}
+
+          `,
+            ),
+        );
+    }
+    return data.data.repository.discussions.nodes;
 }
 
 /**
