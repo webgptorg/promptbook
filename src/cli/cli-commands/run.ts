@@ -6,6 +6,7 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
+import { normalizeToKebabCase } from '../../_packages/utils.index';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -74,6 +75,11 @@ export function $initializeRunCommand(program: Program) {
             verbose: isVerbose,
             saveReport,
         } = options;
+
+        if (pipelineSource.includes('-') && normalizeToKebabCase(pipelineSource) === pipelineSource) {
+            console.error(colors.red(`""${pipelineSource}" is not a valid command or book. See 'ptbk --help'.`));
+            return process.exit(1);
+        }
 
         if (saveReport && !saveReport.endsWith('.json') && !saveReport.endsWith('.md')) {
             console.error(colors.red(`Report file must be .json or .md`));
