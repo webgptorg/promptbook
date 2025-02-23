@@ -10,12 +10,14 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { COMMANDS } from '../../src/commands/index';
+import { GENERATOR_WARNING } from '../../src/config';
 import { FORMFACTOR_DEFINITIONS } from '../../src/formfactors/index';
 import { NonTaskSectionTypes, SectionTypes } from '../../src/types/SectionType';
 import { TaskTypes } from '../../src/types/TaskType';
 import { TODO_USE } from '../../src/utils/organization/TODO_USE';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
+import { prettify } from '../utils/prettify';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -56,25 +58,31 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
 
     const indexContent = spaceTrim(
         (block) => `
+            <!--${GENERATOR_WARNING}-->
+
             #  Documentation
 
             ## Commands
 
-            ${block(COMMANDS.map(({ name, documentationUrl }) => `- [${name}](${documentationUrl})`).join('\n'))}
+            ${block(COMMANDS.map(({ name }) => `- [${name}](./commands/${name}.md)`).join('\n'))}
 
         `,
     );
 
-    await writeFile('documents/README.md', indexContent, 'utf-8');
+    await writeFile('documents/README.md', await prettify(indexContent, 'markdown'), 'utf-8');
 
     const githubDiscussions = await fetchGitHubDiscussions();
 
-    console.log('GitHub Discussions:', { githubDiscussions });
+    //console.log('GitHub Discussions:', { githubDiscussions });
 
     for (const command of COMMANDS) {
-        const { name, documentationUrl } = command;
+        const { name, documentationUrl, description, examples } = command;
 
-        console.log('Command:', { name, documentationUrl });
+        if (name === 'BOILERPLATE') {
+            continue;
+        }
+
+        // console.log('Command:', { name, documentationUrl });
 
         const githubDiscussion = githubDiscussions.find((discussion) => discussion.url === documentationUrl);
 
@@ -83,7 +91,29 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
             continue;
         }
 
-        await writeFile(`documents/commands/${name}.md`, githubDiscussion.body, 'utf-8');
+        const commandContent = spaceTrim(
+            (block) => `
+                <!--${GENERATOR_WARNING}-->
+
+                # \`${name}\` Command
+
+                ${description}
+
+                ## Example usage
+
+                \`\`\`
+                ${block(examples.map((example) => `- ${example}`).join('\n'))}
+                \`\`\`
+
+                ## ${githubDiscussion.title}
+
+                ${block(githubDiscussion.body)}
+
+                *[All commands](../README.md)* | *[Edit source](${documentationUrl})* | *[Discuss](${documentationUrl})*
+            `,
+        );
+
+        await writeFile(`documents/commands/${name}.md`, await prettify(commandContent, 'markdown'), 'utf-8');
         // <- TODO: !!!!!! Add generator warnings
     }
 
@@ -138,7 +168,7 @@ async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
 
     const data = await response.json();
 
-    console.log('GitHub Discussions:', { data });
+    // console.log('GitHub Discussions:', { data });
 
     if (typeof data.data === 'undefined') {
         throw new Error(
