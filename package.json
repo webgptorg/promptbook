@@ -61,7 +61,7 @@
         "lint": "eslint src",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "generate-documentation": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
-        "import-markdowns": "deno ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git commit --message \"📄 Import markdowns\" && cd .. && git commit --message \"📄 Import markdowns\"",
+        "import-markdowns": "deno ./book/scripts/import-markdown/import-markdown.ts --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports && cd ./book && git commit --message \"📄 Import markdowns\" && cd .. && git commit --message \"📄 Import markdowns\"",
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "preversion": "git pull && ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
