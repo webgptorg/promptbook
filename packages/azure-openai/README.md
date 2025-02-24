@@ -333,12 +333,13 @@ _/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 
 
-## 💙 Book language _(for prompt-engineer)_
 
 
 
 
-## 💙 The blueprint of book language
+## 💙 The Book language
+
+
 
 Following is the documentation and blueprint of the Book language.
 
