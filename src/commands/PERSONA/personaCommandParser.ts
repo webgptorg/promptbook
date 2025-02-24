@@ -1,13 +1,16 @@
 import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -126,11 +129,15 @@ function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, 
     const { personaName, personaDescription } = command;
 
     if ($taskJson !== null) {
-        if ($taskJson.taskType !== 'PROMPT_TASK') {
+        if ($taskJson.isSectionTypeSet && $taskJson.taskType !== 'PROMPT_TASK') {
             throw new ParseError(`PERSONA command can be used only in PROMPT_TASK block`);
         }
 
-        $taskJson.personaName = personaName;
+        // TODO: What about non-PROMPT_TASK tasks?
+
+        // $taskJson.taskType = 'PROMPT_TASK';
+        // $taskJson.isSectionTypeSet = true;
+        ($taskJson as TODO_any).personaName = personaName;
     } else {
         // TODO: [🛳] Default PERSONA for the pipeline `defaultPersonaName` (same as `defaultModelRequirements`)
     }
