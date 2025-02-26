@@ -57,7 +57,7 @@ This will emit `index.ts` with `getPipelineCollection` function file in `books` 
 Then just use it:
 
 ```typescript
-import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { getPipelineCollection } from './books'; // <- Importing from pre-built library
@@ -76,10 +76,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provid
 const inputParameters = { word: 'cat' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;

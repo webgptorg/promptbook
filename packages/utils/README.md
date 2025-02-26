@@ -181,12 +181,11 @@ See also the documentation for all the functions in the `@promptbook/utils` pack
 
 
 
-`assertsExecutionSuccessful`,
-`checkExpectations`,
-`executionReportJsonToString`,
-`isPassingExpectations`,
-`isValidJsonString`,
-`parseNumber`
+-   `checkExpectations`,
+-   `executionReportJsonToString`,
+-   `isPassingExpectations`,
+-   `isValidJsonString`,
+-   `parseNumber`
 
 
 ---

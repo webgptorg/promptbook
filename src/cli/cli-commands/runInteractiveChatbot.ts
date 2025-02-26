@@ -2,7 +2,6 @@ import colors from 'colors';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import type { PipelineExecutor } from '../../execution/PipelineExecutor';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { just } from '../../utils/organization/just';
@@ -132,9 +131,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
                 userMessage,
             };
 
-            const result = await pipelineExecutor(inputParameters);
-
-            assertsExecutionSuccessful(result);
+            const result = await pipelineExecutor(inputParameters).asPromise();
 
             console.info(`\n`);
             console.info(

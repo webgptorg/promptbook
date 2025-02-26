@@ -698,16 +698,23 @@ Compile via remote server
 
 ### `0.85.0` _(2025-02-)_
 
-Server queue and tasks
+[🐚] Server queue and tasks
 
--   Remote server run in both `REST` and `Socket.io` mode <!-- <- TODO: !!!! -->
--   Remote server can run entire books not just single prompt tasks <!-- <- TODO: !!!! -->
--   Remote server supports callbacks / pingbacks <!-- <- TODO: !!!! -->
--   Remote server has internal task queue <!-- <- TODO: !!!! -->
+-   Publishing Promptbook into [Docker Hub](https://hub.docker.com/r/hejny/promptbook/)
+-   Remote server run in both `REST` and `Socket.io` mode
+-   Remote server can run entire books not just single prompt tasks _(for now just in REST mode)_
+-   _In future_ remote server will support callbacks / pingbacks
+-   Remote server has internal task queue
 -   Remote server can be started via `ptbk start-server`
 -   Hide `$randomSeed`
--   _(Maybe not implementing)_ Remote server can run in `Docker` <!-- <- TODO: !!!! -->
--   _(Maybe not implementing)_ Remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j` <!-- <- TODO: !!!! -->
+-   Remove `TaskProgress`
+-   Remove `assertsExecutionSuccessful`
+-   `PipelineExecutor`: Change `onProgress` -> `ExecutionTask`
+-   Remote server allows to set `rootPath`
+-   Remote server can run in `Docker`
+-   _In future_ remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j`
+-   Do not generate stats for pre-releases to speed up the build process
+-   Allow pipeline URLs on private and unsecured networks
 
 ## Drafts
 

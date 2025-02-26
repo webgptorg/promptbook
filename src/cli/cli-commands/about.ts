@@ -8,7 +8,8 @@ import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION } from '../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Initializes `about` command for Promptbook CLI utilities
@@ -56,7 +57,6 @@ export function $initializeAboutCommand(program: Program) {
 }
 
 /**
- * TODO: !!! Test this in `deno`
  * TODO: [🗽] Unite branding and make single place for it
  * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`

@@ -10,7 +10,7 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise()).resolves.toMatchObject({
             outputParameters: {
                 response: spaceTrim(`
                     One day I went to the shop and bought a cup of coffee.
@@ -23,7 +23,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example comp
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({}).asPromise()).resolves.toMatchObject({
             isSuccessful: false,
             errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {
@@ -92,7 +92,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example comp
     /*
     TODO: [🧠] Should be this failing or not?
     it('should fail when there is INPUT  PARAMETER extra', () => {
-        expect(pipelineExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
+        expect(pipelineExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }).asPromise()).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
     });
     */
 });

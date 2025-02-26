@@ -4,11 +4,14 @@ import express from 'express';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
+import { forTime } from 'waitasecond';
+import { CLAIM } from '../config';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
-import { ExecutionTask } from '../execution/ExecutionTask';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
+import type { ExecutionTask } from '../execution/ExecutionTask';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { PromptResult } from '../execution/PromptResult';
@@ -16,10 +19,11 @@ import { createLlmToolsFromConfiguration } from '../llm-providers/_common/regist
 import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
-import { string_url } from '../types/typeAliases';
+import type { InputParameters } from '../types/typeAliases';
+import type { string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
-import { TODO_USE } from '../utils/organization/TODO_USE';
+import { BOOK_LANGUAGE_VERSION } from '../version';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
@@ -31,9 +35,9 @@ import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/Prom
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './types/RemoteServerOptions';
 
-keepTypeImported<PromptbookServer_Prompt_Response>();
-keepTypeImported<PromptbookServer_Error>();
-keepTypeImported<PromptbookServer_ListModels_Response>();
+keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
+keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
+keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -49,7 +53,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 ): IDestroyable {
     const {
         port,
-        path,
+
         collection,
         createLlmExecutionTools,
         isAnonymousModeAllowed,
@@ -63,72 +67,299 @@ export function startRemoteServer<TCustomOptions = undefined>(
         ...options,
     };
     // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
+    let { rootPath = '/' } = options;
+
+    if (!rootPath.startsWith('/')) {
+        rootPath = `/${rootPath}`;
+    } /* not else */
+    if (rootPath.endsWith('/')) {
+        rootPath = rootPath.slice(0, -1);
+    } /* not else */
+    if (rootPath === '/') {
+        rootPath = '';
+    }
+
+    const socketioPath =
+        '/' +
+        `${rootPath}/socket.io`
+            .split('/')
+            .filter((part) => part !== '')
+            .join('/');
+
+    const startupDate = new Date();
+
+    async function getExecutionToolsFromIdentification(
+        identification: PromptbookServer_Identification<TCustomOptions>,
+    ): Promise<ExecutionTools & { llm: LlmExecutionTools }> {
+        if (identification === null || identification === undefined) {
+            throw new Error(`Identification is not provided`);
+        }
+
+        const { isAnonymous } = identification;
+
+        if (isAnonymous === true && !isAnonymousModeAllowed) {
+            throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!3 Test
+        }
+
+        if (isAnonymous === false && !isApplicationModeAllowed) {
+            throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!3 Test
+        }
+
+        // TODO: [main] !!4 Validate here userId (pass validator as dependency)
+
+        let llm: LlmExecutionTools;
+
+        if (isAnonymous === true) {
+            // Note: Anonymouse mode
+            // TODO: Maybe check that configuration is not empty
+            const { llmToolsConfiguration } = identification;
+            llm = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
+        } else if (isAnonymous === false && createLlmExecutionTools !== null) {
+            // Note: Application mode
+            const { appId, userId, customOptions } = identification;
+            llm = await createLlmExecutionTools!({
+                appId,
+                userId,
+                customOptions,
+            });
+        } else {
+            throw new PipelineExecutionError(
+                `You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured`,
+            );
+        }
+
+        const fs = $provideFilesystemForNode();
+        const executables = await $provideExecutablesForNode();
+        const tools = {
+            llm,
+            fs,
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }),
+            // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
+        };
+
+        return tools;
+    }
 
     const app = express();
 
-    app.get('/', async (request, response) => {
+    app.use(express.json());
+    app.use(function (request, response, next) {
+        response.setHeader('X-Powered-By', 'Promptbook engine');
+        next();
+    });
+
+    const runningExecutionTasks: Array<ExecutionTask> = [];
+
+    // TODO: [🧠] Do here some garbage collection of finished tasks
+
+    app.get(['/', rootPath], async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
         }
 
-        response.send(
+        response.type('text/markdown').send(
             await spaceTrim(
                 async (block) => `
-                    Server for processing promptbook remote requests is running.
+                    # Promptbook
 
-                    Version: ${PROMPTBOOK_ENGINE_VERSION}
-                    Socket.io path: ${path}/socket.io
-                    Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
-                    Application mode: ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
+                    > ${block(CLAIM)}
+
+                    **Book language version:** ${BOOK_LANGUAGE_VERSION}
+                    **Promptbook engine version:** ${PROMPTBOOK_ENGINE_VERSION}
+                    **Node.js version:** ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
+
+                    ---
+
+                    ## Details
+
+                    **Server port:** ${port}
+                    **Server root path:** ${rootPath}
+                    **Socket.io path:** ${socketioPath}
+                    **Startup date:** ${startupDate.toISOString()}
+                    **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
+                    **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
-                        !isApplicationModeAllowed
+                        !isApplicationModeAllowed || collection === null
                             ? ''
-                            : 'Pipelines in collection:\n' +
-                                  (await collection!.listPipelines())
+                            : '**Pipelines in collection:**\n' +
+                                  (await collection.listPipelines())
                                       .map((pipelineUrl) => `- ${pipelineUrl}`)
                                       .join('\n'),
                     )}
+                    **Running executions:** ${runningExecutionTasks.length}
+
+                    ---
+
+                    ## Paths
+
+                    ${block(
+                        app._router.stack
+                            .map(({ route }: really_any) => route?.path || null)
+                            .filter((path: string) => path !== null)
+                            .map((path: string) => `- ${path}`)
+                            .join('\n'),
+                    )}
+
+                    ---
+
+                    ## Instructions
+
+                    To connect to this server use:
+
+                    1) The client https://www.npmjs.com/package/@promptbook/remote-client
+                    2) OpenAI compatible client *(Not wotking yet)*
+                    3) REST API
 
                     For more information look at:
                     https://github.com/webgptorg/promptbook
-            `,
+                `,
             ),
+            // <- TODO: [🗽] Unite branding and make single place for it
         );
     });
 
-    const executions: Array<ExecutionTask> = [];
+    app.get(`${rootPath}/books`, async (request, response) => {
+        if (collection === null) {
+            response.status(500).send('No collection available');
+            return;
+        }
 
-    app.get<{ callbackUrl: string_url }>('/executions', async (request, response) => {
-        // <- TODO: !!!!!! What is the correct method
+        const pipelines = await collection.listPipelines();
+        // <- TODO: [🧠][👩🏾‍🤝‍🧑🏿] List `inputParameters` required for the execution
 
-        TODO_USE(request);
-        TODO_USE(response);
-
-        await fetch(request.body.callbackUrl);
-        // <- TODO: !!!!!! Should be here transferred data as POSY / PUT
+        response.send(pipelines);
     });
 
-    app.get<{ callbackUrl: string_url }>('/executions/{executionId}', async (request, response) => {
-        TODO_USE(request);
-        TODO_USE(response);
+    // TODO: [🧠] Is it secure / good idea to expose source codes of hosted books
+    app.get(`${rootPath}/books/*`, async (request, response) => {
+        try {
+            if (collection === null) {
+                response.status(500).send('No collection nor books available');
+                return;
+            }
+
+            const pipelines = await collection.listPipelines();
+
+            const fullUrl = request.protocol + '://' + request.get('host') + request.originalUrl;
+            const pipelineUrl = pipelines.find((pipelineUrl) => pipelineUrl.endsWith(request.originalUrl)) || fullUrl;
+
+            const pipeline = await collection.getPipelineByUrl(pipelineUrl);
+
+            const source = pipeline.sources[0];
+
+            if (source === undefined || source.type !== 'BOOK') {
+                throw new Error('Pipeline source is not a book');
+            }
+
+            response
+                .type(
+                    'text/markdown',
+                    // <- TODO: [🧠] Make custom mime-type for books
+                )
+                .send(source.content);
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            response
+                .status(
+                    404,
+                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
+                )
+                .send({ error: serializeError(error) });
+        }
     });
 
-    app.post<{ callbackUrl: string_url }>('/executions/new', async (request, response) => {
-        // <- TODO: !!!!!! What is the correct method
+    app.get(`${rootPath}/executions`, async (request, response) => {
+        response.send(
+            runningExecutionTasks,
+            // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
+            // <- TODO: [🧠] Better and more information
+        );
+    });
 
-        TODO_USE(request);
-        TODO_USE(response);
+    app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
+        const { taskId } = request.params;
 
-        /*
-        await fetch(request.body.callbackUrl);
-        // <- TODO: !!!!!! Should be here transferred data as POST / PUT
-        */
+        const execution = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
+
+        if (execution === undefined) {
+            response
+                .status(
+                    404,
+                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
+                )
+                .send(`Execution "${taskId}" not found`);
+            return;
+        }
+
+        response.send(execution.currentValue);
+    });
+
+    app.post<{
+        pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
+        inputParameters: InputParameters;
+        identification: PromptbookServer_Identification<TCustomOptions>;
+    }>(`${rootPath}/executions/new`, async (request, response) => {
+        try {
+            const { inputParameters, identification } = request.body;
+            const pipelineUrl = request.body.pipelineUrl || request.body.book;
+
+            // TODO: [🧠] Check `pipelineUrl` and `inputParameters` here or it should be responsibility of `collection.getPipelineByUrl` and `pipelineExecutor`
+
+            const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
+
+            if (pipeline === undefined) {
+                response.status(404).send(`Pipeline "${pipelineUrl}" not found`);
+                return;
+            }
+
+            const tools = await getExecutionToolsFromIdentification(identification);
+
+            const pipelineExecutor = createPipelineExecutor({ pipeline, tools, ...options });
+
+            const executionTask = pipelineExecutor(inputParameters);
+
+            runningExecutionTasks.push(executionTask);
+
+            await forTime(10);
+            // <- Note: Wait for a while to wait for quick responses or sudden but asynchronous errors
+            // <- TODO: Put this into configuration
+
+            response.send(executionTask);
+
+            /*/
+            executionTask.asObservable().subscribe({
+                next(partialResult) {
+                    console.info(executionTask.taskId, 'next', partialResult);
+                },
+                error(error) {
+                    console.info(executionTask.taskId, 'error', error);
+                },
+                complete() {
+                    console.info(executionTask.taskId, 'complete');
+                },
+            });
+            /**/
+
+            /*
+            await fetch(request.body.callbackUrl);
+            // <- TODO: [🧠] Should be here transferred data as POST / PUT
+            */
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            response.status(400).send({ error: serializeError(error) });
+        }
     });
 
     const httpServer = http.createServer(app);
 
     const server: Server = new Server(httpServer, {
-        path,
+        path: socketioPath,
         transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
         cors: {
             origin: '*',
@@ -141,54 +372,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
             console.info(colors.gray(`Client connected`), socket.id);
         }
 
-        const getExecutionToolsFromIdentification = async (
-            identification: PromptbookServer_Identification<TCustomOptions>,
-        ): Promise<ExecutionTools & { llm: LlmExecutionTools }> => {
-            const { isAnonymous } = identification;
-
-            if (isAnonymous === true && !isAnonymousModeAllowed) {
-                throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!3 Test
-            }
-
-            if (isAnonymous === false && !isApplicationModeAllowed) {
-                throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!3 Test
-            }
-
-            // TODO: [main] !!4 Validate here userId (pass validator as dependency)
-
-            let llm: LlmExecutionTools;
-
-            if (isAnonymous === true) {
-                // Note: Anonymouse mode
-                // TODO: Maybe check that configuration is not empty
-                const { llmToolsConfiguration } = identification;
-                llm = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
-            } else if (isAnonymous === false && createLlmExecutionTools !== null) {
-                // Note: Application mode
-                const { appId, userId, customOptions } = identification;
-                llm = await createLlmExecutionTools!({
-                    appId,
-                    userId,
-                    customOptions,
-                });
-            } else {
-                throw new PipelineExecutionError(
-                    `You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured`,
-                );
-            }
-
-            const fs = $provideFilesystemForNode();
-            const executables = await $provideExecutablesForNode();
-            const tools = {
-                llm,
-                fs,
-                scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-                // TODO: Allow when `JavascriptExecutionTools` more secure *(without eval)*> script: [new JavascriptExecutionTools()],
-            };
-
-            return tools;
-        };
-
         // -----------
 
         socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request<TCustomOptions>) => {
@@ -199,8 +382,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
             }
 
             try {
-                const executionTools = await getExecutionToolsFromIdentification(identification);
-                const { llm } = executionTools;
+                const tools = await getExecutionToolsFromIdentification(identification);
+                const { llm } = tools;
 
                 if (
                     identification.isAnonymous === false &&
@@ -275,8 +458,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
             }
 
             try {
-                const executionTools = await getExecutionToolsFromIdentification(identification);
-                const { llm } = executionTools;
+                const tools = await getExecutionToolsFromIdentification(identification);
+                const { llm } = tools;
 
                 const models = await llm.listModels();
 
@@ -309,9 +492,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 }
 
                 try {
-                    const executionTools = await getExecutionToolsFromIdentification(identification);
+                    const tools = await getExecutionToolsFromIdentification(identification);
 
-                    const preparedPipeline = await preparePipeline(pipeline, executionTools, options);
+                    const preparedPipeline = await preparePipeline(pipeline, tools, options);
 
                     socket.emit(
                         'preparePipeline-response',
@@ -367,6 +550,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
+ * TODO: !! Add CORS and security - probbably via `helmet`
  * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`

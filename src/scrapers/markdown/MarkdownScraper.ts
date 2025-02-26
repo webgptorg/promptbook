@@ -12,7 +12,6 @@ import { DEFAULT_IS_VERBOSE } from '../../config';
 import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
@@ -95,9 +94,7 @@ export class MarkdownScraper implements Scraper {
 
         const knowledgeContent = await source.asText();
 
-        const result = await prepareKnowledgeFromMarkdownExecutor({ knowledgeContent });
-
-        assertsExecutionSuccessful(result);
+        const result = await prepareKnowledgeFromMarkdownExecutor({ knowledgeContent }).asPromise();
 
         const { outputParameters } = result;
         const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
@@ -128,13 +125,13 @@ export class MarkdownScraper implements Scraper {
               */
 
                 try {
-                    const titleResult = await prepareTitleExecutor({ knowledgePieceContent });
+                    const titleResult = await prepareTitleExecutor({ knowledgePieceContent }).asPromise();
                     const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
                     title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
                     name = titleToName(title);
 
                     // --- Keywords
-                    const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent });
+                    const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent }).asPromise();
                     const { keywords: keywordsRaw = '' } = keywordsResult.outputParameters;
                     keywords = (keywordsRaw || '')
                         .split(',')

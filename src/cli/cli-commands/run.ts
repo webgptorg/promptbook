@@ -320,19 +320,22 @@ export function $initializeRunCommand(program: Program) {
             console.info(colors.gray('--- Executing ---'));
         }
 
-        const result = await pipelineExecutor(inputParameters, (taskProgress) => {
-            if (isVerbose) {
+        const executionTask = await pipelineExecutor(inputParameters);
+
+        if (isVerbose) {
+            executionTask.asObservable().subscribe((partialResult) => {
                 console.info(colors.gray('--- Progress ---'));
                 console.info(
-                    taskProgress,
+                    partialResult,
                     // <- TODO: Pretty print taskProgress
                 );
-            }
-        });
+            });
+        }
 
-        // assertsExecutionSuccessful(result);
-
-        const { isSuccessful, errors, warnings, outputParameters, executionReport } = result;
+        const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } =
+            await executionTask.asPromise({
+                isCrashedOnError: false,
+            });
 
         if (isVerbose) {
             console.info(colors.gray('--- Detailed Result ---'));
@@ -356,7 +359,7 @@ export function $initializeRunCommand(program: Program) {
 
         if (isVerbose) {
             console.info(colors.gray('--- Usage ---'));
-            console.info(colors.cyan(usageToHuman(result.usage)));
+            console.info(colors.cyan(usageToHuman(usage)));
         }
 
         if (json === undefined || isVerbose === true) {

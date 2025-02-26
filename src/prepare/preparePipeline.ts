@@ -6,7 +6,6 @@ import { DEFAULT_IS_VERBOSE } from '../config';
 import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
-import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -108,9 +107,7 @@ export async function preparePipeline(
 
         const result = await prepareTitleExecutor({
             book: sources.map(({ content }) => content).join('\n\n'),
-        });
-
-        assertsExecutionSuccessful(result);
+        }).asPromise();
 
         const { outputParameters } = result;
         const { title: titleRaw } = outputParameters;

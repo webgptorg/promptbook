@@ -416,7 +416,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             pricing: {
                 prompt: computeUsage(`$3.00 / 1M tokens`),
                 output: computeUsage(`$12.00 / 1M tokens`),
-                // <- TODO: !!! Unsure, check the pricing
+                // <- TODO: !! Unsure, check the pricing
             },
         },
         /**/
@@ -429,7 +429,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             pricing: {
                 prompt: computeUsage(`$3.00 / 1M tokens`),
                 output: computeUsage(`$12.00 / 1M tokens`),
-                // <- TODO: !!! Unsure, check the pricing
+                // <- TODO: !! Unsure, check the pricing
             },
         },
         /**/

@@ -1,8 +1,6 @@
-import { Promisable } from 'type-fest';
 import { VALUE_STRINGS } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
-import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
@@ -12,7 +10,6 @@ import type { PipelineString } from '../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../scrapers/_common/utils/scraperFetch';
-import type { TaskProgress } from '../types/TaskProgress';
 import type { InputParameters } from '../types/typeAliases';
 import type { string_filename } from '../types/typeAliases';
 import type { string_parameter_value } from '../types/typeAliases';
@@ -43,7 +40,6 @@ class Wizzard {
     public async execute(
         book: string_pipeline_url | string_filename | PipelineString,
         inputParameters: InputParameters,
-        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<
         {
             /**
@@ -66,10 +62,7 @@ class Wizzard {
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result = await pipelineExecutor(inputParameters, onProgress);
-
-        // ▶ Fail if the execution was not successful
-        assertsExecutionSuccessful(result);
+        const result = await pipelineExecutor(inputParameters).asPromise();
 
         const { outputParameters } = result;
         const outputParametersLength = Object.keys(outputParameters).length;
@@ -152,5 +145,6 @@ class Wizzard {
 export const wizzard = new Wizzard();
 
 /**
+ * TODO: [🧠] Maybe some way how to handle the progress and streaming?
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

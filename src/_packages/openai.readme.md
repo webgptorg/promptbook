@@ -3,7 +3,7 @@
 ## 🧡 Usage
 
 ```typescript
-import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor } from '@promptbook/core';
 import {
     createCollectionFromDirectory,
     $provideExecutionToolsForNode,
@@ -42,10 +42,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'cat' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;
@@ -89,7 +86,7 @@ console.info(joke);
 You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
@@ -110,10 +107,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'dog' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;
@@ -127,7 +121,7 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor } from '@promptbook/core';
 import {
     createCollectionFromDirectory,
     $provideExecutionToolsForNode,
@@ -185,10 +179,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'dog' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;

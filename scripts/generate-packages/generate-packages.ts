@@ -499,7 +499,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 bk: 'bin/promptbook-cli.js',
                 // <- TODO: [🧠] Pick one of and remove rest
             };
-        } else if (packageFullname === '@promptbook/ptbk') {
+        } else if (packageFullname === 'ptbk') {
             packageJson.bin = {
                 ptbk: 'bin/promptbook-cli-proxy.js',
             };
@@ -551,7 +551,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             },
                             {
                                 name: 'Build packages bundles',
-                                // Note: Generate packages before publishing to put the recent version in each package.json
+                                // Note: [🔙] Generate packages before publishing to put the recent version in each package.json
                                 // TODO: It will be better to have here just "npx rollup --config rollup.config.js" / "node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js" BUT it will not work because:
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
@@ -566,12 +566,41 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             })),
                         ],
                     },
+                    'publish-docker': {
+                        name: 'Publish Docker image to DockerHub',
+                        'runs-on': 'ubuntu-latest',
+                        steps: [
+                            {
+                                name: 'Checkout',
+                                uses: 'actions/checkout@v4',
+                            },
+                            {
+                                name: 'Login to DockerHub',
+                                uses: 'docker/login-action@v2',
+                                with: {
+                                    username: '${{ secrets.DOCKERHUB_USER }}',
+                                    password: '${{ secrets.DOCKERHUB_TOKEN }}',
+                                },
+                            },
+                            {
+                                name: 'Load current version into the environment',
+                                run: 'echo "VERSION=$(node -p \'require(`./package.json`).version\')" >> $GITHUB_ENV',
+                            },
+                            {
+                                name: 'Build and Push Docker Image',
+                                uses: 'docker/build-push-action@v2',
+                                with: {
+                                    context: '.',
+                                    push: true,
+                                    tags: 'hejny/promptbook:${{ env.VERSION }}',
+                                },
+                            },
+                        ],
+                    },
                 },
             },
             { indent: 4 },
-        )
-            .split('"')
-            .join("'") /* <- TODO: Can the replace be done directly in YAML.stringify options? */,
+        ),
     );
     //     <- TODO: Add GENERATOR_WARNING to publish.yml
 

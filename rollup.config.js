@@ -3,7 +3,8 @@ import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
-import { visualizer } from "rollup-plugin-visualizer";
+import { visualizer } from 'rollup-plugin-visualizer';
+import { version } from './package.json';
 
 // Note: Note using raw imports via `rollup-plugin-raw` - it is not maintained and has security and compatibility issues
 
@@ -59,11 +60,19 @@ export default function () {
                 */
             }
 
+            const isPreRelease = version.includes('-');
 
-            plugins.push(visualizer({
-              emitFile: true,
-              filename: "stats.html", // <- TODO: [🧠] Pick better filename for this
-            }));
+            if (!isPreRelease) {
+                // <- Note: Do not generate stats for pre-releases to shotten the build time
+                plugins.push(
+                    visualizer({
+                        emitFile: true,
+                        filename: 'stats.html', // <- TODO: [🧠] Pick better filename for this
+                    }),
+                );
+            }
+
+            console.info(`Building ${packageFullname} v${version}${isPreRelease ? ' (pre-release)' : ''}`);
 
             return {
                 input: entryIndexFilePath,

@@ -1,4 +1,5 @@
 #!/bin/bash
+# install-libreoffice.sh
 
 # TODO: [👩🏼‍🤝‍🧑🏽] This is a draft of auto-installation script for LibreOffice
 #       Move it into production after testing and verification
