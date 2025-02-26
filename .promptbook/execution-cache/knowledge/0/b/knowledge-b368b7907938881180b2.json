@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:33:12.611Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook is divided into several NPM packages, including core functionality, execution tools for different AI APIs, utilities, and integrations with various services."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, NPM packages, core functionality, execution tools, AI APIs, utilities, integrations, services",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:33:11.697Z",
+            "complete": "2025-02-26T15:33:12.611Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000621
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 77
+                },
+                "charactersCount": {
+                    "value": 362
+                },
+                "wordsCount": {
+                    "value": 48
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 26
+                },
+                "charactersCount": {
+                    "value": 105
+                },
+                "wordsCount": {
+                    "value": 12
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook is divided into several NPM packages, including core functionality, execution tools for different AI APIs, utilities, and integrations with various services.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook is divided into several NPM packages, including core functionality, execution tools for different AI APIs, utilities, and integrations with various services."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_0153ofedLZDEfKZta5XJ4ynw",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook, NPM packages, core functionality, execution tools, AI APIs, utilities, integrations, services"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 77,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 26
+            }
+        }
+    }
+}
