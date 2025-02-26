@@ -37,11 +37,13 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     private getFilenameForKey(key: string): string_filename {
         // TODO: [👬] DRY
         const name = titleToName(key);
+        const nameStart = name.split('-', 2)[0] || 'unnamed';
         const hash = sha256(hexEncoder.parse(name)).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
 
         return join(
             this.options.rootFolderPath,
+            nameStart, // <- Note: This mechanism is to better segment the files in .promptbook cache folder
             ...nameToSubfolderPath(hash /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
             `${name.substring(0, MAX_FILENAME_LENGTH)}.json`,
         );
