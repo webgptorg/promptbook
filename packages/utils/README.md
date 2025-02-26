@@ -184,7 +184,7 @@ See also the documentation for all the functions in the `@promptbook/utils` pack
 -   `executionReportJsonToString`,
 -   `isPassingExpectations`,
 -   `isValidJsonString`,
--   `parseNumber`
+-   `parseNumber` 
 
 
 ---
@@ -264,7 +264,7 @@ We also have a community of developers and users of **Promptbook**:
 -   [Landing page `ptbk.io`](https://ptbk.io)
 -   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 -   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
+-   [Facebook `Promptbook`](https://www.facebook.com/61560776453536) 
 
 And **Promptbook.studio** branded socials:
 
@@ -287,9 +287,9 @@ And **Promptbook.city** branded socials:
 _/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
--   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
+-   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569) 
 
-##
+## 
 
 
 
@@ -376,7 +376,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
