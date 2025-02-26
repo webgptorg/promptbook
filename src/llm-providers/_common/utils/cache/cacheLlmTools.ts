@@ -5,9 +5,11 @@ import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
@@ -53,10 +55,15 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     };
 
     const callCommonModel = async (prompt: Prompt): Promise<TODO_any> => {
+        const { parameters, content, modelRequirements } = prompt;
+        // <- Note: These are relevant things from the prompt that the cache key should depend on.
+
         const key = titleToName(
             prompt.title.substring(0, MAX_FILENAME_LENGTH - 10) +
                 '-' +
-                sha256(hexEncoder.parse(JSON.stringify(prompt.parameters))).toString(/* hex */),
+                sha256(
+                    hexEncoder.parse(JSON.stringify({ parameters, content, modelRequirements })),
+                ).toString(/* hex */),
             //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         );
 
