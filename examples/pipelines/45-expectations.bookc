@@ -1,0 +1,65 @@
+{
+    "title": "✨ Example: Expectations",
+    "pipelineUrl": "https://promptbook.studio/examples/expectations.book",
+    "formfactorName": "GENERIC",
+    "parameters": [
+        {
+            "name": "yourName",
+            "description": "Name of the hero",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "greeting",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "Hello John!"
+            ]
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "question",
+            "title": "💬 Question",
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greeting",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "expectations": {
+                "characters": {
+                    "max": 30,
+                    "min": 2
+                },
+                "words": {
+                    "max": 3
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                },
+                "lines": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": [
+                "yourName"
+            ]
+        }
+    ],
+    "personas": [],
+    "preparations": [],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Example: Expectations\n\n-   PIPELINE URL https://promptbook.studio/examples/expectations.book\n-   INPUT  PARAMETER {yourName} Name of the hero\n-   OUTPUT PARAMETER `{greeting}`\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Example: Expectations\"\n\n      direction TB\n\n      input((Input)):::input\n      question(\"💬 Question\")\n      input--\"{yourName}\"-->question\n\n      question--\"{greeting}\"-->output\n      output((Output)):::output\n\n      click question href \"#question\" \"💬 Question\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n## 💬 Question\n\n-   MODEL VARIANT Chat\n-   MODEL NAME `gpt-3.5-turbo`\n-   EXPECT MAX 30 CHARACTERS\n-   EXPECT MIN 2 CHARACTERS\n-   EXPECT MAX 3 WORDS\n-   EXPECT EXACTLY 1 SENTENCE\n-   EXPECT EXACTLY 1 LINE\n\n```markdown\nHello {yourName}!\n```\n\n`-> {greeting}`\n\n### Example\n\nExample must pass the expectations\n\n-   EXAMPLE\n\n```text\nHello John!\n```\n\n`-> {greeting}`\n"
+        }
+    ]
+}

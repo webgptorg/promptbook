@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/utils",
-    "version": "0.84.0",
+    "version": "0.86.1",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -42,7 +42,7 @@
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
-    "homepage": "https://www.npmjs.com/package/@promptbook/core",
+    "homepage": "https://ptbk.io/",
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/utils.index.d.ts",

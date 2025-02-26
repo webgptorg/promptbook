@@ -1,6 +1,5 @@
 import type { string_pipeline_url } from '../../../types/typeAliases';
 import type { really_unknown } from '../../organization/really_unknown';
-import { isUrlOnPrivateNetwork } from './isUrlOnPrivateNetwork';
 import { isValidUrl } from './isValidUrl';
 
 /**
@@ -17,7 +16,7 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
         return false;
     }
 
-    if (!url.startsWith('https://')) {
+    if (!url.startsWith('https://') && !url.startsWith('http://') /* <- Note: [👣] */) {
         return false;
     }
 
@@ -26,9 +25,12 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
         return false;
     }
 
+    /*
+    Note: [👣][🧠] Is it secure to allow pipeline URLs on private and unsecured networks?
     if (isUrlOnPrivateNetwork(url)) {
         return false;
     }
+    */
 
     return true;
 }

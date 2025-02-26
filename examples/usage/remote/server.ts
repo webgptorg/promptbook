@@ -47,14 +47,14 @@ async function main() {
         collection,
         isAnonymousModeAllowed: true,
         isApplicationModeAllowed: true,
-        createLlmExecutionTools(userId) {
-            console.log('userId', userId);
+        createLlmExecutionTools(options) {
+            const { userId } = options;
             return new OpenAiExecutionTools(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
                     apiKey: process.env.OPENAI_API_KEY!,
-                    user: userId,
+                    userId: userId,
                 },
             );
         },

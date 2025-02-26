@@ -4,13 +4,16 @@ import { isValidPipelineUrl } from './isValidPipelineUrl';
 describe(`validation of urls`, () => {
     it(`is valid pipeline url`, () => {
         expect(isValidPipelineUrl(`https://promptbook.studio/library/promptbook.book`)).toBe(true);
-        expect(isValidPipelineUrl(`https://promptbook.studio/library/promptbook.book.md`)).toBe(true);
+        expect(isValidPipelineUrl(`https://promptbook.studio/library/promptbook.book`)).toBe(true);
     });
 
+    /*
+    Note: [👣]
     it(`is valid pipeline url BUT not secure`, () => {
-        expect(isValidPipelineUrl(`http://promptbook.studio/library/promptbook.book.md`)).toBe(false);
-        expect(isValidPipelineUrl(`https://192.168.5.3/library/promptbook.book.md`)).toBe(false);
+        expect(isValidPipelineUrl(`http://promptbook.studio/library/promptbook.book`)).toBe(false);
+        expect(isValidPipelineUrl(`https://192.168.5.3/library/promptbook.book`)).toBe(false);
     });
+    */
 
     it(`is NOT valid url`, () => {
         expect(isValidPipelineUrl(``)).toBe(false);

@@ -112,7 +112,7 @@ export type CommonPrompt = {
     /**
      * Unique identifier of the pipeline with specific task name as hash
      *
-     * @example https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords
+     * @example https://promptbook.studio/webgpt/write-website-content-cs.book#keywords
      */
     readonly pipelineUrl?: string_pipeline_url_with_task_hash;
 

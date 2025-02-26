@@ -10,7 +10,7 @@ import { MockedFackedLlmExecutionTools } from '../MockedFackedLlmExecutionTools'
 describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise()).resolves.toMatchObject({
             outputParameters: {
                 response: /.*/,
             },
@@ -19,14 +19,14 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example co
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({}).asPromise()).resolves.toMatchObject({
             isSuccessful: false,
             errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {
                 title: 'Example prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book.md',
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
@@ -94,7 +94,7 @@ async function getPipelineExecutor() {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 

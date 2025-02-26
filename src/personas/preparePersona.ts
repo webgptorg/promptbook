@@ -2,7 +2,6 @@ import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
-import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
@@ -34,7 +33,7 @@ export async function preparePersona(
     const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
     const preparePersonaExecutor = createPipelineExecutor({
-        pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book.md'),
+        pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book'),
         tools,
     });
 
@@ -48,9 +47,7 @@ export async function preparePersona(
         .map(({ modelName }) => modelName)
         .join(',');
 
-    const result = await preparePersonaExecutor({ availableModelNames, personaDescription });
-
-    assertsExecutionSuccessful(result);
+    const result = await preparePersonaExecutor({ availableModelNames, personaDescription }).asPromise();
 
     const { outputParameters } = result;
     const { modelRequirements: modelRequirementsRaw } = outputParameters;

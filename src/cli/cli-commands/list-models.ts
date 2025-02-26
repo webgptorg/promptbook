@@ -21,6 +21,9 @@ export function $initializeListModelsCommand(program: Program) {
         `),
     );
 
+    listModelsCommand.alias('models');
+    listModelsCommand.alias('llm');
+
     listModelsCommand.action(async () => {
         const llm = await $provideLlmToolsForWizzardOrCli({});
         $sideEffect(llm);

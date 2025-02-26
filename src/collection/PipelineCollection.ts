@@ -13,6 +13,7 @@ export type PipelineCollection = {
      * Gets all pipelines in the collection
      */
     listPipelines(): Promisable<ReadonlyArray<string_pipeline_url>>;
+    // <- TODO: [🧠][👩🏾‍🤝‍🧑🏿] List `inputParameters` required for the execution
 
     /**
      * Gets pipeline by its URL

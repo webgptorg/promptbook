@@ -1,14 +1,14 @@
 import { spaceTrim } from 'spacetrim';
-import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
+import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { extractParameterNamesFromTask } from '../../conversion/utils/extractParameterNamesFromTask';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
+import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeFormatSubvalues } from './30-executeFormatSubvalues';
 import { getReservedParametersForTask } from './getReservedParametersForTask';
@@ -37,7 +37,7 @@ type executeSingleTaskOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * @@@
      */
-    readonly onProgress: (taskProgress: TaskProgress) => Promisable<void>;
+    readonly onProgress: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>;
 
     /**
      * @@@
@@ -75,19 +75,12 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         isNotPreparedWarningSupressed,
     } = options;
 
-    const name = `pipeline-executor-frame-${currentTask.name}`;
-    const title = currentTask.title;
     const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
 
     await onProgress({
-        name,
-        title,
-        isStarted: false,
-        isDone: false,
-        taskType: currentTask.taskType,
-        parameterName: currentTask.resultingParameterName,
-        parameterValue: null,
-        // <- [🍸]
+        outputParameters: {
+            [currentTask.resultingParameterName]: '', // <- TODO: [🧠] What is the best value here?
+        },
     });
 
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
@@ -198,14 +191,9 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
     });
 
     await onProgress({
-        name,
-        title,
-        isStarted: true,
-        isDone: true,
-        taskType: currentTask.taskType,
-        parameterName: currentTask.resultingParameterName,
-        parameterValue: resultString,
-        // <- [🍸]
+        outputParameters: {
+            [currentTask.resultingParameterName]: resultString,
+        },
     });
 
     return Object.freeze({
@@ -217,8 +205,4 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
 
 /**
  * TODO: [🤹‍♂️]
- */
-
-/**
- * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
  */

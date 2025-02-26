@@ -1,0 +1,111 @@
+{
+    "date": "2025-02-24T15:07:31.163Z",
+    "promptbookVersion": "0.86.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The Book language is based on markdown, uses UTF-8 non BOM encoding, and has two variants: flat and full. It is designed to be version control friendly and understandable by non-programmers."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Markdown-Based Book Language Guide",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-24T15:07:29.912Z",
+            "complete": "2025-02-24T15:07:31.163Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000435
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 95
+                },
+                "charactersCount": {
+                    "value": 366
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 10
+                },
+                "charactersCount": {
+                    "value": 34
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The Book language is based on markdown, uses UTF-8 non BOM encoding, and has two variants: flat and full. It is designed to be version control friendly and understandable by non-programmers.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The Book language is based on markdown, uses UTF-8 non BOM encoding, and has two variants: flat and full. It is designed to be version control friendly and understandable by non-programmers."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01JvSEHRK6nvCTBj6prpxHUJ",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Markdown-Based Book Language Guide"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 95,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 10
+            }
+        }
+    }
+}

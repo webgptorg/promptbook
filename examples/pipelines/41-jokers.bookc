@@ -1,0 +1,57 @@
+{
+    "title": "✨ Example: Jokers",
+    "pipelineUrl": "https://promptbook.studio/examples/jokers.book",
+    "formfactorName": "GENERIC",
+    "parameters": [
+        {
+            "name": "name1",
+            "description": "First name or nothing",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "name2",
+            "description": "Second name or nothing",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "name",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "question",
+            "title": "💬 Question",
+            "content": "Write some name for hero",
+            "resultingParameterName": "name",
+            "jokerParameterNames": [
+                "name1",
+                "name2"
+            ],
+            "expectations": {
+                "words": {
+                    "min": 2
+                }
+            },
+            "dependentParameterNames": [
+                "name1",
+                "name2"
+            ]
+        }
+    ],
+    "personas": [],
+    "preparations": [],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Example: Jokers\n\n-   PIPELINE URL https://promptbook.studio/examples/jokers.book\n-   INPUT  PARAMETER {name1} First name or nothing\n-   INPUT  PARAMETER {name2} Second name or nothing\n-   OUTPUT PARAMETER `{name}`\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Example: Jokers\"\n\n      direction TB\n\n      input((Input)):::input\n      question(\"💬 Question\")\n      input--\"{name1}\"-->question\n      input--\"{name2}\"-->question\n\n      question--\"{name}\"-->output\n      output((Output)):::output\n\n      click question href \"#question\" \"💬 Question\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n## 💬 Question\n\n-   JOKER {name1}\n-   JOKER {name2}\n-   EXPECT MIN 2 WORDS\n\n```markdown\nWrite some name for hero\n```\n\n`-> {name}`\n"
+        }
+    ]
+}

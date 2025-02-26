@@ -112,9 +112,9 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     /**
-     * Create a new instance of PipelineEditable from pipeline.book.md
+     * Create a new instance of PipelineEditable from pipeline.book
      *
-     * @param sourceMarkdown content of pipeline.book.md
+     * @param sourceMarkdown content of pipeline.book
      * @returns PipelineEditable instance
      * @throws {PipelineParseError} if the pipeline string is not valid
      * @throws {PipelineLogicError} on logical error in the pipeline
@@ -247,7 +247,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     /**
-     * Version of the .book.json file
+     * Version of the .bookc file
      */
     public get bookVersion(): string_semantic_version | undefined {
         return this.data.bookVersion;
@@ -751,7 +751,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         if (pipelineUrl === undefined) {
             pipelineUrl = `https://promptbook.studio/${collectionName}/${
                 $randomPipelineName({ prefix: pipelineName, length: 8 }) /* <- TODO: [🎑] Derive dynamically */
-            }.book.md`;
+            }.book`;
         }
 
         const { collectionName: collectionName_, pipelineName: pipelineName_ } =

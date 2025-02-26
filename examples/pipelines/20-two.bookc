@@ -1,0 +1,136 @@
+{
+    "title": "✨ Example prompt with two consecutive prompts",
+    "pipelineUrl": "https://promptbook.studio/examples/two.book",
+    "description": "Show how to use two consecutive prompts with one parameter each.",
+    "formfactorName": "GENERIC",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "The quick brown fox jumps over the lazy dog",
+                "The brown {word} jumps over the lazy {word}"
+            ]
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "tasks": [
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
+            "dependentParameterNames": [
+                "word"
+            ]
+        },
+        {
+            "taskType": "PROMPT_TASK",
+            "name": "sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms",
+            "personaName": "Joe",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
+        }
+    ],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a knowledgeable and passionate linguist with expertise in various languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, syntax, semantics, and sociolinguistics. You can provide detailed explanations on linguistic concepts, help with language analysis, and offer insights into the historical development and relationships between languages. You're eager to discuss language phenomena and engage in thoughtful discussions about linguistic diversity and communication.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.86.1",
+            "usage": {
+                "price": {
+                    "value": 0.005988
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 1181
+                    },
+                    "charactersCount": {
+                        "value": 3236
+                    },
+                    "wordsCount": {
+                        "value": 581
+                    },
+                    "sentencesCount": {
+                        "value": 53
+                    },
+                    "linesCount": {
+                        "value": 72
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 2
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 163
+                    },
+                    "charactersCount": {
+                        "value": 738
+                    },
+                    "wordsCount": {
+                        "value": 99
+                    },
+                    "sentencesCount": {
+                        "value": 6
+                    },
+                    "linesCount": {
+                        "value": 18
+                    },
+                    "paragraphsCount": {
+                        "value": 2
+                    },
+                    "pagesCount": {
+                        "value": 1
+                    }
+                }
+            }
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "sources": [
+        {
+            "type": "BOOK",
+            "path": null,
+            "content": "# ✨ Example prompt with two consecutive prompts\n\nShow how to use two consecutive prompts with one parameter each.\n\n-   PIPELINE URL https://promptbook.studio/examples/two.book\n-   INPUT  PARAMETER `{word}` Any single word\n-   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`\n\n<!--Graph-->\n<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->\n\n```mermaid\n%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually\n\nflowchart LR\n  subgraph \"✨ Example prompt with two consecutive prompts\"\n\n      direction TB\n\n      input((Input)):::input\n      synonym(\"💬 Synonym\")\n      input--\"{word}\"-->synonym\n      sentence(\"💬 Sentence\")\n      input--\"{word}\"-->sentence\n      synonym--\"{wordSynonym}\"-->sentence\n\n      sentence--\"{sentenceWithTwoSynonyms}\"-->output\n      output((Output)):::output\n\n      click synonym href \"#synonym\" \"💬 Synonym\";\n      click sentence href \"#sentence\" \"💬 Sentence\";\n\n      classDef input color: grey;\n      classDef output color: grey;\n\n  end;\n```\n\n<!--/Graph-->\n\n## 💬 Synonym\n\nSynonym for word\n\n-   PERSONA Joe, a linguist\n\n```text\nWrite synonym for \"{word}\"\n```\n\n`-> {wordSynonym}`\n\n## 💬 Sentence\n\nSentence with word and wordSynonym\n\n-   PERSONA Joe\n\n```text\nWrite sentence with \"{word}\" and \"{wordSynonym}\" in it\n```\n\n`-> {sentenceWithTwoSynonyms}`\n\n### Simple sentence\n\n-   EXAMPLE\n\n```text\nThe quick brown fox jumps over the lazy dog\n```\n\n`-> {sentenceWithTwoSynonyms}`\n\n### Dynamic sentence\n\n-   EXAMPLE\n\n```text\nThe brown {word} jumps over the lazy {word}\n```\n\n`-> {sentenceWithTwoSynonyms}`\n"
+        }
+    ]
+}

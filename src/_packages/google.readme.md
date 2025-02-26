@@ -3,7 +3,7 @@
 ## 🧡 Usage
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
 import {
     createCollectionFromDirectory,
     $provideExecutionToolsForNode,
@@ -33,7 +33,7 @@ const tools = {
 const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -42,10 +42,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'rabbit' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;
@@ -64,7 +61,7 @@ import { wizzard } from '@promptbook/wizzard';
 
 const {
     outputParameters: { joke },
-} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md`, {
+} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book`, {
     topic: 'Prague',
 });
 
@@ -81,7 +78,7 @@ console.info(joke);
 You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
@@ -93,7 +90,7 @@ const tools = await $provideExecutionToolsForNode();
 const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -102,10 +99,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'dog' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;
@@ -119,7 +113,7 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
@@ -164,7 +158,7 @@ const tools = {
 const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -173,10 +167,7 @@ const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 const inputParameters = { word: 'bunny' };
 
 // 🚀▶ Execute the Pipeline
-const result = await pipelineExecutor(inputParameters);
-
-// ▶ Fail if the execution was not successful
-assertsExecutionSuccessful(result);
+const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
 // ▶ Handle the result
 const { isSuccessful, errors, outputParameters, executionReport } = result;

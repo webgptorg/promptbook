@@ -3,7 +3,14 @@
     "terminals": [
         {
             "name": "👨‍💻⚫ Run CLI example (💸)",
-            "command": "ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md",
+            "command": "./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "👨‍💻🟣 Run ptbk run-server",
+            "command": "./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -31,7 +38,7 @@
         },
         {
             "name": "👨‍💻🔵 Run CLI `ptbk about`",
-            "command": "ts-node ./src/cli/test/ptbk.ts about",
+            "command": "./src/cli/test/ptbk.ts about",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -99,7 +106,7 @@
             "focus": false
         },
         {
-            "name": "🏭📖 Generate examples .book.md -> .book.json (💸) [🍠]",
+            "name": "🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
@@ -111,7 +118,7 @@
         {
             "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
             "commands": [
-                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book.md' --ignore 'examples/pipelines/errors/**/*.book.md'"
+                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book' --ignore 'examples/pipelines/errors/**/*.book'"
             ],
             "execute": false,
             "onlySingle": false,

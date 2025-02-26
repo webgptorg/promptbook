@@ -9,7 +9,7 @@ import { TaskParameterJson } from '../../types/PipelineJson/TaskParameterJson';
 
 describe('how findUsableParameters works', () => {
     it('should find no usable parameter', () => {
-        const promptbook = importPipeline(`50-advanced.book.json`);
+        const promptbook = importPipeline(`50-advanced.bookc`);
         const task = promptbook.tasks[0];
 
         expect(findUsableParameters({ promptbook, task })).toBe([]);

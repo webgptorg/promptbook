@@ -10,13 +10,13 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise()).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             executionReport: {
                 title: 'Example prompt',
                 promptbookRequestedVersion: '1.0.0',
-                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book.md',
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book',
                 promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
             outputParameters: {
@@ -31,14 +31,14 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({}).asPromise()).resolves.toMatchObject({
             isSuccessful: false,
             errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {
                 title: 'Example prompt',
                 description: 'Show how to use a simple chat prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book.md',
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },
@@ -100,7 +100,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
     /*
     TODO: [🧠] Should be this failing or not?
     it('should fail when there is INPUT  PARAMETER extra', () => {
-        expect(pipelineExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
+        expect(pipelineExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }).asPromise()).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
     });
     */
 });
@@ -113,7 +113,7 @@ async function getPipelineExecutor() {
             Show how to use a simple chat prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {thing} Any thing to buy

@@ -12,8 +12,8 @@ import { $initializeListScrapersCommand } from './cli-commands/list-scrapers';
 import { $initializeMakeCommand } from './cli-commands/make';
 import { $initializePrettifyCommand } from './cli-commands/prettify';
 import { $initializeRunCommand } from './cli-commands/run';
-import { $initializeTestCommand } from './cli-commands/test-command';
 import { $initializeStartServerCommand } from './cli-commands/start-server';
+import { $initializeTestCommand } from './cli-commands/test-command';
 
 /**
  * Runs CLI utilities of Promptbook package
@@ -57,12 +57,11 @@ export async function promptbookCli(): Promise<void> {
     $initializeListScrapersCommand(program);
     $initializeStartServerCommand(program);
 
-
     program.parse(process.argv);
 }
 
 /**
- * TODO: [🧠] Maybe `run` command the default, instead of `ptbk run ./foo.book.md` -> `ptbk ./foo.book.md`
+ * TODO: [🧠] Maybe `run` command the default, instead of `ptbk run ./foo.book` -> `ptbk ./foo.book`
  * TODO: [🥠] Do not export, its just for CLI script
  * TODO: [🕌] When more functionalities, rename
  * Note: 11:11

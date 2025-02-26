@@ -4,12 +4,12 @@ import { urlCommandParser } from './urlCommandParser';
 
 describe('how URL command in .book.md files works', () => {
     it('should parse URL command', () => {
-        expect(
-            parseCommand('https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
-        });
+        expect(parseCommand('https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD')).toEqual(
+            {
+                type: 'URL',
+                pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
+            },
+        );
         expect(
             parseCommand(
                 '   https://promptbook.studio/webgpt/write-website-content-cs.book.md        ',
@@ -20,81 +20,81 @@ describe('how URL command in .book.md files works', () => {
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
         });
         expect(
-            parseCommand('url https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
+            parseCommand('url https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
         expect(
-            parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
+            parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
-        });
-
-        /*
-        TODO: [🧠][🌘] Should this work:
-        expect(
-            parseCommand(
-                'pipelineurl https://promptbook.studio/webgpt/write-website-content-cs.book.md',
-                'PIPELINE_HEAD',
-            ),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
-        });
-
-        expect(
-            parseCommand(
-                'pipelineUrl https://promptbook.studio/webgpt/write-website-content-cs.book.md',
-                'PIPELINE_HEAD',
-            ),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
-        });
-        */
-
-        expect(
-            parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
 
         /*
         TODO: [🧠][🌘] Should this work:
         expect(
             parseCommand(
-                'PIPELINE URL https://promptbook.studio/webgpt/write-website-content-cs.book.md',
+                'pipelineurl https://promptbook.studio/webgpt/write-website-content-cs.book',
                 'PIPELINE_HEAD',
             ),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
+
         expect(
             parseCommand(
-                'PROMPTBOOK URL https://promptbook.studio/webgpt/write-website-content-cs.book.md',
+                'pipelineUrl https://promptbook.studio/webgpt/write-website-content-cs.book',
                 'PIPELINE_HEAD',
             ),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
         */
 
         expect(
-            parseCommand('url *https://promptbook.studio/webgpt/write-website-content-cs.book.md*', 'PIPELINE_HEAD'),
+            parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
+        });
+
+        /*
+        TODO: [🧠][🌘] Should this work:
+        expect(
+            parseCommand(
+                'PIPELINE URL https://promptbook.studio/webgpt/write-website-content-cs.book',
+                'PIPELINE_HEAD',
+            ),
+        ).toEqual({
+            type: 'URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
         expect(
-            parseCommand('`https://promptbook.studio/webgpt/write-website-content-cs.book.md`', 'PIPELINE_HEAD'),
+            parseCommand(
+                'PROMPTBOOK URL https://promptbook.studio/webgpt/write-website-content-cs.book',
+                'PIPELINE_HEAD',
+            ),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
+        });
+        */
+
+        expect(
+            parseCommand('url *https://promptbook.studio/webgpt/write-website-content-cs.book*', 'PIPELINE_HEAD'),
+        ).toEqual({
+            type: 'URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
+        });
+        expect(
+            parseCommand('`https://promptbook.studio/webgpt/write-website-content-cs.book`', 'PIPELINE_HEAD'),
+        ).toEqual({
+            type: 'URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
     });
 
@@ -103,28 +103,28 @@ describe('how URL command in .book.md files works', () => {
     it('should parse URL command in shortcut form', () => {
 
         expect(
-            parseCommand('ptbkurl https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
+            parseCommand('ptbkurl https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
         expect(
-            parseCommand('ptbkUrl https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
+            parseCommand('ptbkUrl https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
         expect(
-            parseCommand('PTBK_URL https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
+            parseCommand('PTBK_URL https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
         expect(
-            parseCommand('PTBK URL https://promptbook.studio/webgpt/write-website-content-cs.book.md', 'PIPELINE_HEAD'),
+            parseCommand('PTBK URL https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
         });
     });
     */
@@ -133,21 +133,24 @@ describe('how URL command in .book.md files works', () => {
         expect(() => parseCommand('URL', 'PIPELINE_HEAD')).toThrowError(/URL is required/i);
         expect(() =>
             parseCommand(
-                'URL https://promptbook.studio/webgpt/write-website-content-cs.book.md https://promptbook.studio/webgpt/write-website-content-cs.book.md',
+                'URL https://promptbook.studio/webgpt/write-website-content-cs.book https://promptbook.studio/webgpt/write-website-content-cs.book',
                 'PIPELINE_HEAD',
             ),
         ).toThrowError(/Can not have more than one pipeline URL/i);
 
         expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid pipeline URL/i);
 
+        /*
+        Note: [👣]
         expect(() => parseCommand('url http://promptbook.studio/write-website-content', 'PIPELINE_HEAD')).toThrowError(
             /Invalid pipeline URL/i,
             // <- TODO: [🐠] /Protocol must be HTTPS/i,
         );
+        */
 
         expect(() =>
             parseCommand(
-                'url https://promptbook.studio/webgpt/write-website-content-cs.book.md#keywords',
+                'url https://promptbook.studio/webgpt/write-website-content-cs.book#keywords',
                 'PIPELINE_HEAD',
             ),
         ).toThrowError(

@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { Promisable, ReadonlyDeep } from 'type-fest';
+import type { PartialDeep, Promisable, ReadonlyDeep } from 'type-fest';
 import { DEFAULT_CSV_SETTINGS } from '../../config';
 import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
 import { DEFAULT_IS_AUTO_INSTALLED } from '../../config';
@@ -10,8 +10,10 @@ import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
-import type { TaskProgress } from '../../types/TaskProgress';
+
 import type { InputParameters } from '../../types/typeAliases';
+import type { ExecutionTask } from '../ExecutionTask';
+import { createTask } from '../ExecutionTask';
 import type { PipelineExecutor } from '../PipelineExecutor';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
@@ -80,9 +82,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     let runCount = 0;
 
-    const pipelineExecutor: PipelineExecutor = async (
+    const pipelineExecutorWithCallback = async (
         inputParameters: InputParameters,
-        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+        onProgress?: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>,
     ): Promise<PipelineExecutorResult> => {
         runCount++;
 
@@ -113,9 +115,16 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         });
     };
 
+    const pipelineExecutor: PipelineExecutor = (inputParameters: InputParameters): ExecutionTask =>
+        createTask<PipelineExecutorResult>({
+            taskType: 'EXECUTION',
+            taskProcessCallback(updateOngoingResult: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => void) {
+                return pipelineExecutorWithCallback(inputParameters, async (newOngoingResult) => {
+                    updateOngoingResult(newOngoingResult);
+                });
+            },
+        }) as ExecutionTask;
+    //        <- TODO: Make types such as there is no need to do `as` for `createTask`
+
     return pipelineExecutor;
 }
-
-/**
- * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
- */

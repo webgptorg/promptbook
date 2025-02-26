@@ -14,7 +14,7 @@ import { parsePipeline } from './parsePipeline';
  *
  * @param pipelineString {Promptbook} in string markdown format (.book.md)
  * @param options - Configuration of the remote server
- * @returns {Promptbook} compiled in JSON format (.book.json)
+ * @returns {Promptbook} compiled in JSON format (.bookc)
  * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/remote-client`
  */
@@ -31,5 +31,5 @@ export async function compilePipelineOnRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODO: [🐚] Do not return Promise<PipelineJson> But PreparePipelineTask
+ * TODO: [🐚] Do not return `Promise<PipelineJson>` But `PreparationTask`
  */

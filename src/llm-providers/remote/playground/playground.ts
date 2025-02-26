@@ -30,7 +30,7 @@ async function playground() {
 
     console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Starting remote server`));
     startRemoteServer({
-        path: '/promptbook',
+        rootPath: '/promptbook',
         port: 4460,
         isVerbose: true,
         isAnonymousModeAllowed: true,

@@ -27,12 +27,14 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     readonly port: number;
 
     /**
-     * Path for the Socket.io server to listen
+     * Root path of the server
      *
-     * @default '/socket.io'
-     * @example '/promptbook/socket.io'
+     * Note: This is useful when you reverse proxy the server without changing the path
+     *
+     * @default '/'
+     * @example '/api/promptbook/'
      */
-    readonly path: string_uri;
+    readonly rootPath: string_uri;
 } & (
         | AnonymousRemoteServerOptions
         | ApplicationRemoteServerOptions<TCustomOptions>

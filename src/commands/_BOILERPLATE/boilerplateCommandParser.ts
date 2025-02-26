@@ -11,7 +11,7 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
 /**
  * Parses the boilerplate command
  *
- * Note: @@@ This command is used as boilerplate for new commands - it should NOT be used in any `.book.md` file
+ * Note: @@@ This command is used as boilerplate for new commands - it should NOT be used in any `.book` file
  *
  * @see `documentationUrl` for more details
  * @private within the commands folder
