@@ -1,11 +1,11 @@
 {
-    "date": "2025-02-26T15:15:05.279Z",
+    "date": "2025-02-26T16:06:50.237Z",
     "promptbookVersion": "0.86.6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Here is the key information extracted from the document:"
+            "knowledgePieceContent": "---\n\nSpringfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -14,31 +14,31 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "The document provided does not contain any actual content to extract keywords from. It only includes instructions for extracting key information from an unspecified document. Without the actual document text, I cannot detect or provide any meaningful keywords.",
+        "content": "Springfield, Illinois, population, sixth most populous city, 10,566, 2019",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:15:02.299Z",
-            "complete": "2025-02-26T15:15:05.278Z"
+            "start": "2025-02-26T16:06:49.272Z",
+            "complete": "2025-02-26T16:06:50.237Z"
         },
         "usage": {
             "price": {
-                "value": 0.0008880000000000001
+                "value": 0.000561
             },
             "input": {
                 "tokensCount": {
-                    "value": 56
+                    "value": 77
                 },
                 "charactersCount": {
-                    "value": 250
+                    "value": 299
                 },
                 "wordsCount": {
-                    "value": 35
+                    "value": 44
                 },
                 "sentencesCount": {
                     "value": 2
                 },
                 "linesCount": {
-                    "value": 7
+                    "value": 10
                 },
                 "paragraphsCount": {
                     "value": 6
@@ -49,19 +49,19 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 48
+                    "value": 22
                 },
                 "charactersCount": {
-                    "value": 260
+                    "value": 73
                 },
                 "wordsCount": {
-                    "value": 38
+                    "value": 10
                 },
                 "sentencesCount": {
-                    "value": 3
+                    "value": 1
                 },
                 "linesCount": {
-                    "value": 5
+                    "value": 2
                 },
                 "paragraphsCount": {
                     "value": 1
@@ -71,35 +71,35 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Here is the key information extracted from the document:",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019.",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Here is the key information extracted from the document:"
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_01U3fE7Fo5aBjhMAQUY2t71o",
+            "id": "msg_012mSNknhACTLEZveqZXL1YK",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "The document provided does not contain any actual content to extract keywords from. It only includes instructions for extracting key information from an unspecified document. Without the actual document text, I cannot detect or provide any meaningful keywords."
+                    "text": "Springfield, Illinois, population, sixth most populous city, 10,566, 2019"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 56,
+                "input_tokens": 77,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 48
+                "output_tokens": 22
             }
         }
     }

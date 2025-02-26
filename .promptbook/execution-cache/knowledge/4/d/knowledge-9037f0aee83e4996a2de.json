@@ -1,52 +1,47 @@
 {
-    "date": "2025-02-26T15:15:02.274Z",
+    "date": "2025-02-26T16:06:51.617Z",
     "promptbookVersion": "0.86.6",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Here is the key information extracted from the document:"
+            "knowledgePieceContent": "Springfield serves as the county seat of Sangamon County in the U.S. state of Illinois.\n\n---"
         },
-        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
             "modelVariant": "CHAT"
         },
-        "expectations": {
-            "words": {
-                "min": 1,
-                "max": 8
-            }
-        }
+        "expectations": {}
     },
     "promptResult": {
-        "content": "Essential Document Rules and Guidelines",
+        "content": "Springfield, county seat, Sangamon County, Illinois, U.S. state",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:15:00.704Z",
-            "complete": "2025-02-26T15:15:02.273Z"
+            "start": "2025-02-26T16:06:49.875Z",
+            "complete": "2025-02-26T16:06:51.616Z"
         },
         "usage": {
             "price": {
-                "value": 0.00030000000000000003
+                "value": 0.000519
             },
             "input": {
                 "tokensCount": {
-                    "value": 60
+                    "value": 73
                 },
                 "charactersCount": {
-                    "value": 232
+                    "value": 290
                 },
                 "wordsCount": {
-                    "value": 35
+                    "value": 42
                 },
                 "sentencesCount": {
-                    "value": 2
+                    "value": 5
                 },
                 "linesCount": {
-                    "value": 7
+                    "value": 10
                 },
                 "paragraphsCount": {
-                    "value": 5
+                    "value": 6
                 },
                 "pagesCount": {
                     "value": 1
@@ -54,16 +49,16 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 8
+                    "value": 20
                 },
                 "charactersCount": {
-                    "value": 39
+                    "value": 63
                 },
                 "wordsCount": {
-                    "value": 5
+                    "value": 9
                 },
                 "sentencesCount": {
-                    "value": 1
+                    "value": 3
                 },
                 "linesCount": {
                     "value": 1
@@ -76,35 +71,35 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Here is the key information extracted from the document:",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Springfield serves as the county seat of Sangamon County in the U.S. state of Illinois.\n> \n> ---",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Here is the key information extracted from the document:"
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Springfield serves as the county seat of Sangamon County in the U.S. state of Illinois.\n> \n> ---"
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_01HFX9mqjiPUAfVNUD1j3FKt",
+            "id": "msg_016MgzaF9HoWunf88e3gMjMF",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Essential Document Rules and Guidelines"
+                    "text": "Springfield, county seat, Sangamon County, Illinois, U.S. state"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 60,
+                "input_tokens": 73,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 8
+                "output_tokens": 20
             }
         }
     }
