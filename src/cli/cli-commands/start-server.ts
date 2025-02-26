@@ -56,6 +56,8 @@ export function $initializeStartServerCommand(program: Program) {
         `),
     );
 
+    startServerCommand.alias('server');
+
     startServerCommand.action(
         async (
             path,

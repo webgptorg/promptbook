@@ -20,6 +20,8 @@ export function $initializeHelloCommand(program: Program) {
         `),
     );
 
+    helloCommand.alias('hi');
+
     helloCommand.argument('[name]', 'Your name', 'Paul');
     helloCommand.option('-g, --greeting <greeting>', `Greeting`, 'Hello');
 

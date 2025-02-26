@@ -12,7 +12,7 @@ describe('createCollectionFromPromise', () => {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.book
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -41,7 +41,7 @@ describe('createCollectionFromPromise', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/examples/pipeline.book.md',
+            'https://promptbook.studio/examples/pipeline.book',
         );
         expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline));
     });

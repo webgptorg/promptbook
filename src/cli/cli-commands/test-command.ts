@@ -26,7 +26,7 @@ export function $initializeTestCommand(program: Program) {
     const testCommand = program.command('test');
     testCommand.description(
         spaceTrim(`
-            Iterates over \`.book.md\` and \`.book.json\` and checks if they are parsable and logically valid
+            Iterates over \`.book.md\` and \`.bookc\` and checks if they are parsable and logically valid
       `),
     );
 
@@ -64,7 +64,7 @@ export function $initializeTestCommand(program: Program) {
             try {
                 let pipeline: PipelineJson;
 
-                if (filename.endsWith('.book.md')) {
+                if (filename.endsWith('.book')) {
                     const pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
                     pipeline = await compilePipeline(pipelineMarkdown, tools);
 
@@ -72,7 +72,7 @@ export function $initializeTestCommand(program: Program) {
                         console.info(colors.green(`Parsed ${filename}`));
                     }
                 }
-                if (filename.endsWith('.book.json')) {
+                if (filename.endsWith('.bookc')) {
                     pipeline = JSON.parse(await readFile(filename, 'utf-8')) as PipelineJson;
                 } else {
                     if (isVerbose) {

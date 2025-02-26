@@ -30,9 +30,9 @@ class Wizzard {
      * Run the book
      *
      * It can be loaded from:
-     * 1) As a file ./books/write-cv.book.md
-     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md found in ./books folder recursively
-     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md fetched from the internet
+     * 1) As a file ./books/write-cv.book
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book found in ./books folder recursively
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book fetched from the internet
      * 3) As a string
      *
      * Note: This works simmilar to the `ptbk run` command
@@ -119,9 +119,9 @@ class Wizzard {
      * Load book from the source
      *
      * Pipelines can be loaded from:
-     * 1) As a file ./books/write-cv.book.md
-     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md found in ./books folder recursively
-     * 2) As a URL https://promptbook.studio/hejny/write-cv.book.md fetched from the internet
+     * 1) As a file ./books/write-cv.book
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book found in ./books folder recursively
+     * 2) As a URL https://promptbook.studio/hejny/write-cv.book fetched from the internet
      * 3) As a string
      *
      * @param pipelineSource

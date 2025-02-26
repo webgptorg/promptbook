@@ -11,7 +11,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  * Converts promptbook in JSON format to string format
  *
  * @deprecated TODO: [🥍][🧠] Backup original files in `PipelineJson` same as in Promptbook.studio
- * @param pipelineJson Promptbook in JSON format (.book.json)
+ * @param pipelineJson Promptbook in JSON format (.bookc)
  * @returns Promptbook in string format (.book.md)
  * @public exported from `@promptbook/core`
  */

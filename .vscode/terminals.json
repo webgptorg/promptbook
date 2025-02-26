@@ -106,7 +106,7 @@
             "focus": false
         },
         {
-            "name": "🏭📖 Generate examples .book.md -> .book.json (💸) [🍠]",
+            "name": "🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
@@ -118,7 +118,7 @@
         {
             "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
             "commands": [
-                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book.md' --ignore 'examples/pipelines/errors/**/*.book.md'"
+                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book' --ignore 'examples/pipelines/errors/**/*.book'"
             ],
             "execute": false,
             "onlySingle": false,

@@ -15,11 +15,9 @@
 ## 🌟 New Features
 
 -   📂 We have plugin for [VSCode](https://github.com/webgptorg/book-extension) to support `.book` file extension
+-   🐳 Available [Docker image](https://hub.docker.com/r/hejny/promptbook/)
 -   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
--   💙 Working [the **Book** language v1.0.0](https://github.com/webgptorg/book)
--   🖤 Run books from CLI - `npx ptbk run path/to/your/book`
--   📚 Support of `.docx`, `.doc` and `.pdf` documents as knowledge
 
 <!-- <- TODO: !!3 Make this warning dynamic + link latest stable release automatically -->
 
@@ -72,17 +70,22 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td><a href="https://github.com/webgptorg/book">Book language</a></td>
       <td>
-          Book is a markdown-like language to define core entities like personas, knowledge, tasks,.... It is designed to be understandable by non-programmers and non-technical people<hr>
+          Book is a human-understandable markup language for writing AI applications such as chatbots, knowledge bases, agents, avarars, translators, automations and more.
+          <hr>
           There is also <a href="https://github.com/webgptorg/book-extension">a plugin for VSCode</a> to support <code>.book</code> file extension
       </td>
     </tr>
     <tr>
       <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
-      <td>Promptbook implementation in TypeScript released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Docker HUB</a></td>
+      <td>
+          Promptbook engine can run applications written in Book language. It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Docker HUB</a>
+      </td>
     </tr>
     <tr>
       <td><a href="https://promptbook.studio">Promptbook Studio</a></td>
-      <td>Studio to write Books and instantly publish them as miniapps</td>
+      <td>
+          Promptbook.studio is a web-based editor and runner for book applications. It is still in the experimental MVP stage.
+      </td>
     </tr>
   </tbody>
 </table>
@@ -101,27 +104,26 @@ And **Promptbook.studio** branded socials:
 
 -   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
 
-
-
 And **Promptujeme** sub-brand:
 
-*/Subbrand for Czech clients/*
+_/Subbrand for Czech clients/_
+
 
 
 
 -   [Promptujeme.cz](https://www.promptujeme.cz/)
 -   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
 
-
 And **Promptbook.city** branded socials:
 
-*/Sub-brand for images and graphics generated via Promptbook prompting/*
+_/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
 -   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569) 
 
-<!--/Import ./book/SIGNPOST.md-->
+## 
 
+<!--/Import ./book/SIGNPOST.md-->
 
 <!--Import ./book/BLUEPRINT.md-->
 <!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
@@ -224,6 +226,7 @@ Or you can install them separately:
 -   **[@promptbook/templates](https://www.npmjs.com/package/@promptbook/templates)** - Usefull templates and examples of books which can be used as a starting point
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
+-   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
 
 <!-- <- Note: When creating new package look at places marked by [➕] -->
 

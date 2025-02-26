@@ -33,7 +33,7 @@ export async function preparePersona(
     const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
     const preparePersonaExecutor = createPipelineExecutor({
-        pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book.md'),
+        pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book'),
         tools,
     });
 

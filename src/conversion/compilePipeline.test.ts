@@ -11,19 +11,19 @@ describe('compilePipeline', () => {
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
         .filter((dirent) => dirent.isFile())
-        .filter(({ name }) => name.endsWith('.book.md'));
+        .filter(({ name }) => name.endsWith('.book'));
 
     for (const { name } of examples) {
         it(`should compile ${name}`, () => {
             const pipelineFromMarkdownPromise = Promise.resolve(
-                importPipelineWithoutPreparation(name as `${string}.book.md`),
+                importPipelineWithoutPreparation(name as `${string}.book`),
             )
                 .then((pipelineString) => compilePipeline(pipelineString))
                 .then((pipeline) => ({ ...pipeline, title: undefined })); // <- Note: [0] Title is not compared because it can be changed in `preparePipeline`
 
             const pipelineJson = {
                 ...importPipelineWithoutPreparation(
-                    join(examplesDir, name).replace('.book.md', '.book.json') as `${string}.book.json`,
+                    join(examplesDir, name).replace('.book', '.bookc') as `${string}.bookc`,
                 ),
                 title: undefined,
                 // <- Note: [0]

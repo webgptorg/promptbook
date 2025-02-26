@@ -33,13 +33,15 @@ generatePackages({ isCommited })
     });
 
 async function generatePackages({ isCommited }: { isCommited: boolean }) {
-    console.info(`🆚 Update version in config`);
-
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
 
     const BOOK_LANGUAGE_VERSION = await readFile(`./book/version.txt`, 'utf-8');
+
+    console.info(
+        `🆚 Update Promptbook engine version to ${version} and book language version to ${BOOK_LANGUAGE_VERSION}`,
+    );
 
     await writeFile(
         `./src/version.ts`, // <- Note: [🏳‍🌈] Maybe use json file (used .ts file (not .json) to avoid support of json files in bundle)
@@ -84,6 +86,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         ),
     );
 
+    if (isCommited) {
+        await commit(['src'], `🆚 Update \`${version}\` -> \`version.ts\``);
+    }
+
     // Note: Just append the version into loooong list
     // TODO: Is there a secure and simple way to write in append-only mode?
     // TODO: [🧠] Maybe handle this dynamically via `npm view ptbk/* versions` (but its not complete)
@@ -93,7 +99,15 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     await writeFile(`./src/versions.txt`, newAllVersions, 'utf-8');
 
     if (isCommited) {
-        await commit(['src'], `🆚 Update version in config`);
+        await commit(['src'], `🆚 Add \`${version}\` -> \`versions.txt\``);
+    }
+
+    let dockerfile = await readFile(`./Dockerfile`, 'utf-8');
+    dockerfile = dockerfile.replace(/^RUN\s+npm\s+i\s+ptbk@?.*$/m, `RUN npm i ptbk@${version}`);
+    await writeFile(`./Dockerfile`, dockerfile, 'utf-8');
+
+    if (isCommited) {
+        await commit(['Dockerfile'], `🆚🐋 Update \`${version}\` -> \`Dockerfile\``);
     }
 }
 

@@ -33,7 +33,7 @@ const tools = {
 const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -61,7 +61,7 @@ import { wizzard } from '@promptbook/wizzard';
 
 const {
     outputParameters: { joke },
-} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md`, {
+} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book`, {
     topic: 'Prague',
 });
 
@@ -90,7 +90,7 @@ const tools = await $provideExecutionToolsForNode();
 const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -158,7 +158,7 @@ const tools = {
 const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
