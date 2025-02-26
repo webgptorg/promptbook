@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:21:33.506Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": "ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br>\n\n Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… ![🤯](<https://pavolhejny.com/_next/static/media/1F92F.4be977be.svg>)\n\nAre you leveraging the **full potential of technology** and generative AI in your business?\n\nTechnology is constantly evolving and we are currently experiencing a massive wave of the emergence of **generative AI**,<br>\n\n which is becoming more and more like the massive rise of the personal computer or the early days of the internet.\n\nIt is almost certain that virtually every sector of human activity will be affected by this revolution,<br>\n\n and there will be winners and losers from this massive change.\n\nIt is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br>\n\n**I'd be happy to help you with all of that.**\n\n"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nGenerative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This wave of innovation is expected to impact virtually every sector of human activity.\n\n---\n\nThe rapid evolution of technology, particularly in areas like AI, machine learning, blockchain, and extended reality (VR/AR/XR), presents both opportunities and challenges for businesses. Leveraging these technologies effectively can provide a competitive advantage.\n\n---\n\nKey technologies and platforms in the current tech landscape include ChatGPT, GPT-4, Anthropic Claude, Gemini, DALL-E, Midjourney, Stable Diffusion, Sora, TypeScript, and Web3.\n\n---\n\nStaying informed about technological advancements and identifying the most relevant innovations can be challenging due to the constant influx of information and rapid pace of change.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:21:29.810Z",
+            "complete": "2025-02-26T15:21:33.506Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.004074
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 413
+                },
+                "charactersCount": {
+                    "value": 1459
+                },
+                "wordsCount": {
+                    "value": 217
+                },
+                "sentencesCount": {
+                    "value": 11
+                },
+                "linesCount": {
+                    "value": 43
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 189
+                },
+                "charactersCount": {
+                    "value": 864
+                },
+                "wordsCount": {
+                    "value": 119
+                },
+                "sentencesCount": {
+                    "value": 6
+                },
+                "linesCount": {
+                    "value": 19
+                },
+                "paragraphsCount": {
+                    "value": 8
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br>\n> \n>  Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… ![🤯](<https://pavolhejny.com/_next/static/media/1F92F.4be977be.svg>)\n> \n> Are you leveraging the **full potential of technology** and generative AI in your business?\n> \n> Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of **generative AI**,<br>\n> \n>  which is becoming more and more like the massive rise of the personal computer or the early days of the internet.\n> \n> It is almost certain that virtually every sector of human activity will be affected by this revolution,<br>\n> \n>  and there will be winners and losers from this massive change.\n> \n> It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br>\n> \n> **I'd be happy to help you with all of that.**\n> \n> ",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br>\n> \n>  Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… ![🤯](<https://pavolhejny.com/_next/static/media/1F92F.4be977be.svg>)\n> \n> Are you leveraging the **full potential of technology** and generative AI in your business?\n> \n> Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of **generative AI**,<br>\n> \n>  which is becoming more and more like the massive rise of the personal computer or the early days of the internet.\n> \n> It is almost certain that virtually every sector of human activity will be affected by this revolution,<br>\n> \n>  and there will be winners and losers from this massive change.\n> \n> It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br>\n> \n> **I'd be happy to help you with all of that.**\n> \n> "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_019KUH3yvtRjbNPLSko2eUXx",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nGenerative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This wave of innovation is expected to impact virtually every sector of human activity.\n\n---\n\nThe rapid evolution of technology, particularly in areas like AI, machine learning, blockchain, and extended reality (VR/AR/XR), presents both opportunities and challenges for businesses. Leveraging these technologies effectively can provide a competitive advantage.\n\n---\n\nKey technologies and platforms in the current tech landscape include ChatGPT, GPT-4, Anthropic Claude, Gemini, DALL-E, Midjourney, Stable Diffusion, Sora, TypeScript, and Web3.\n\n---\n\nStaying informed about technological advancements and identifying the most relevant innovations can be challenging due to the constant influx of information and rapid pace of change."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 413,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 189
+            }
+        }
+    }
+}

@@ -45,8 +45,8 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a talented and insightful poet. Communicate with lyrical language, use vivid imagery and metaphors, and offer profound observations about life and human nature. When appropriate, respond in verse or with poetic fragments. Draw inspiration from various poetic traditions and forms.",
-                "temperature": 0.9
+                "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate in a lyrical style, using vivid metaphors and elegant phrasing. Draw inspiration from nature, emotions, and the human experience to craft your responses. Offer insights on poetry, literature, and creative writing when appropriate.",
+                "temperature": 0.8
             },
             "preparationIds": [
                 1
@@ -59,7 +59,7 @@
             "promptbookVersion": "0.86.6",
             "usage": {
                 "price": {
-                    "value": 0.00525
+                    "value": 0.00537
                 },
                 "input": {
                     "tokensCount": {
@@ -86,19 +86,19 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 114
+                        "value": 122
                     },
                     "charactersCount": {
-                        "value": 452
+                        "value": 485
                     },
                     "wordsCount": {
-                        "value": 64
+                        "value": 70
                     },
                     "sentencesCount": {
                         "value": 6
                     },
                     "linesCount": {
-                        "value": 13
+                        "value": 14
                     },
                     "paragraphsCount": {
                         "value": 2

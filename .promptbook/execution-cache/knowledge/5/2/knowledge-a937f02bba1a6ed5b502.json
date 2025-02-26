@@ -1,0 +1,111 @@
+{
+    "date": "2025-02-26T15:23:14.096Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The company operates 3 physical stores in the UK and maintains a substantial online presence serving customers in the UK, EU, and Switzerland."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "UK Retailer: Stores and Online Reach",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:22:49.790Z",
+            "complete": "2025-02-26T15:23:14.096Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000444
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 78
+                },
+                "charactersCount": {
+                    "value": 318
+                },
+                "wordsCount": {
+                    "value": 49
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 14
+                },
+                "charactersCount": {
+                    "value": 36
+                },
+                "wordsCount": {
+                    "value": 6
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The company operates 3 physical stores in the UK and maintains a substantial online presence serving customers in the UK, EU, and Switzerland.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The company operates 3 physical stores in the UK and maintains a substantial online presence serving customers in the UK, EU, and Switzerland."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01WS3jyPnj6ve3TAP7TkhmCF",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "UK Retailer: Stores and Online Reach"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 78,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 14
+            }
+        }
+    }
+}

@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:25:01.445Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nKorálky Katlas offers a VIP space in their store where creative sellers can rent shelves to showcase and sell their products through consignment sales."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Korálky Katlas, VIP space, store, creative sellers, rent shelves, showcase, sell products, consignment sales",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:25:00.461Z",
+            "complete": "2025-02-26T15:25:01.445Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000735
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 85
+                },
+                "charactersCount": {
+                    "value": 354
+                },
+                "wordsCount": {
+                    "value": 50
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 32
+                },
+                "charactersCount": {
+                    "value": 108
+                },
+                "wordsCount": {
+                    "value": 14
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Korálky Katlas offers a VIP space in their store where creative sellers can rent shelves to showcase and sell their products through consignment sales.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Korálky Katlas offers a VIP space in their store where creative sellers can rent shelves to showcase and sell their products through consignment sales."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01AzoJBL35MBJypg5UQ9cprf",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Korálky Katlas, VIP space, store, creative sellers, rent shelves, showcase, sell products, consignment sales"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 85,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 32
+            }
+        }
+    }
+}

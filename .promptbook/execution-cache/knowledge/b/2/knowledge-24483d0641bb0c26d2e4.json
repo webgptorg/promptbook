@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:15:00.682Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": "Springfield is a city in the U.S. state of Illinois. It is the county\nseat of Sangamon County. The city\\'s population of 10566 as of 2019\nmakes it the sixth most populous city in the state.\n"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Here is the key information extracted from the document:\n\n---\n\nSpringfield is a city located in Illinois, United States. It serves as the county seat of Sangamon County and is the sixth most populous city in the state, with a population of 10,566 as of 2019.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:14:59.036Z",
+            "complete": "2025-02-26T15:15:00.680Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001458
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 166
+                },
+                "charactersCount": {
+                    "value": 660
+                },
+                "wordsCount": {
+                    "value": 96
+                },
+                "sentencesCount": {
+                    "value": 7
+                },
+                "linesCount": {
+                    "value": 19
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 64
+                },
+                "charactersCount": {
+                    "value": 258
+                },
+                "wordsCount": {
+                    "value": 46
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 6
+                },
+                "paragraphsCount": {
+                    "value": 3
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Springfield is a city in the U.S. state of Illinois. It is the county\n> seat of Sangamon County. The city\\'s population of 10566 as of 2019\n> makes it the sixth most populous city in the state.\n> ",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Springfield is a city in the U.S. state of Illinois. It is the county\n> seat of Sangamon County. The city\\'s population of 10566 as of 2019\n> makes it the sixth most populous city in the state.\n> "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_016y8rQLRatGTPQ8dSedUaVT",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Here is the key information extracted from the document:\n\n---\n\nSpringfield is a city located in Illinois, United States. It serves as the county seat of Sangamon County and is the sixth most populous city in the state, with a population of 10,566 as of 2019."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 166,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 64
+            }
+        }
+    }
+}

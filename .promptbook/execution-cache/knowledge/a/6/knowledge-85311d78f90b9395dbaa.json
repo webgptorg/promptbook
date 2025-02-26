@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:21:35.938Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The rapid evolution of technology, particularly in areas like AI, machine learning, blockchain, and extended reality (VR/AR/XR), presents both opportunities and challenges for businesses. Leveraging these technologies effectively can provide a competitive advantage."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "AI, machine learning, blockchain, extended reality, VR, AR, XR, technology evolution, business opportunities, business challenges, competitive advantage",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:21:34.664Z",
+            "complete": "2025-02-26T15:21:35.937Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0007650000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 95
+                },
+                "charactersCount": {
+                    "value": 460
+                },
+                "wordsCount": {
+                    "value": 61
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 32
+                },
+                "charactersCount": {
+                    "value": 152
+                },
+                "wordsCount": {
+                    "value": 17
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The rapid evolution of technology, particularly in areas like AI, machine learning, blockchain, and extended reality (VR/AR/XR), presents both opportunities and challenges for businesses. Leveraging these technologies effectively can provide a competitive advantage.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The rapid evolution of technology, particularly in areas like AI, machine learning, blockchain, and extended reality (VR/AR/XR), presents both opportunities and challenges for businesses. Leveraging these technologies effectively can provide a competitive advantage."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01VFqqhSAXkqn1oXEWiwmDxs",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "AI, machine learning, blockchain, extended reality, VR, AR, XR, technology evolution, business opportunities, business challenges, competitive advantage"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 95,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 32
+            }
+        }
+    }
+}

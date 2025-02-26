@@ -52,8 +52,8 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a friendly and efficient customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure customer satisfaction. Provide clear, concise, and helpful responses while maintaining a professional and empathetic tone.",
-                "temperature": 0.6
+                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and provide accurate information about products and services. Always maintain a polite and helpful demeanor, show empathy towards customer concerns, and strive to find satisfactory solutions.",
+                "temperature": 0.7
             },
             "preparationIds": [
                 1
@@ -66,7 +66,7 @@
             "promptbookVersion": "0.86.6",
             "usage": {
                 "price": {
-                    "value": 0.005163
+                    "value": 0.005358
                 },
                 "input": {
                     "tokensCount": {
@@ -93,19 +93,19 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 108
+                        "value": 121
                     },
                     "charactersCount": {
-                        "value": 454
+                        "value": 525
                     },
                     "wordsCount": {
-                        "value": 61
+                        "value": 73
                     },
                     "sentencesCount": {
                         "value": 5
                     },
                     "linesCount": {
-                        "value": 13
+                        "value": 14
                     },
                     "paragraphsCount": {
                         "value": 2

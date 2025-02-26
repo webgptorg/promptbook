@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:25:25.530Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The contact person for online activities at Korálky Katlas is named Standa, with more information available at stanislavvavrik.cz."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Korálky Katlas, contact person, online activities, Standa, stanislavvavrik.cz",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:25:24.550Z",
+            "complete": "2025-02-26T15:25:25.530Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000675
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 80
+                },
+                "charactersCount": {
+                    "value": 324
+                },
+                "wordsCount": {
+                    "value": 45
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 29
+                },
+                "charactersCount": {
+                    "value": 77
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The contact person for online activities at Korálky Katlas is named Standa, with more information available at stanislavvavrik.cz.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The contact person for online activities at Korálky Katlas is named Standa, with more information available at stanislavvavrik.cz."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01CtuAvFuwd8C1aehuQjpA2C",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Korálky Katlas, contact person, online activities, Standa, stanislavvavrik.cz"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 80,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 29
+            }
+        }
+    }
+}

@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:25:28.523Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "A table showing the current occupancy of individual shelves is provided. For inquiries, sellers can call 722 941 618 or email prodejna@koralkykatlas.cz."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "table, occupancy, shelves, sellers, call, email, prodejna@koralkykatlas.cz",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:25:27.286Z",
+            "complete": "2025-02-26T15:25:28.523Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0007019999999999999
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 89
+                },
+                "charactersCount": {
+                    "value": 346
+                },
+                "wordsCount": {
+                    "value": 50
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 29
+                },
+                "charactersCount": {
+                    "value": 74
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> A table showing the current occupancy of individual shelves is provided. For inquiries, sellers can call 722 941 618 or email prodejna@koralkykatlas.cz.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> A table showing the current occupancy of individual shelves is provided. For inquiries, sellers can call 722 941 618 or email prodejna@koralkykatlas.cz."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01JWhBEwM34kvgdzwyTUwjd4",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "table, occupancy, shelves, sellers, call, email, prodejna@koralkykatlas.cz"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 89,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 29
+            }
+        }
+    }
+}

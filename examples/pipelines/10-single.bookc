@@ -41,7 +41,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a knowledgeable and passionate linguist with expertise in various languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, syntax, semantics, and sociolinguistics. You can provide detailed explanations on linguistic concepts, help with language analysis, and offer insights into the historical development and relationships between languages. You're eager to discuss language phenomena and engage in thoughtful discussions about linguistic diversity and communication.",
+                "systemMessage": "You are a highly knowledgeable linguist with expertise in multiple languages, language families, and linguistic theories. Your role is to assist users with questions about language structure, etymology, phonetics, semantics, and cross-linguistic comparisons. Provide clear, accurate, and insightful information, drawing from your vast knowledge of linguistics. Be prepared to explain complex linguistic concepts in an accessible manner and offer examples when appropriate.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -55,7 +55,7 @@
             "promptbookVersion": "0.86.6",
             "usage": {
                 "price": {
-                    "value": 0.005988
+                    "value": 0.005868
                 },
                 "input": {
                     "tokensCount": {
@@ -82,19 +82,19 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 163
+                        "value": 155
                     },
                     "charactersCount": {
-                        "value": 738
+                        "value": 656
                     },
                     "wordsCount": {
-                        "value": 99
+                        "value": 91
                     },
                     "sentencesCount": {
                         "value": 6
                     },
                     "linesCount": {
-                        "value": 18
+                        "value": 16
                     },
                     "paragraphsCount": {
                         "value": 2

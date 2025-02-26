@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:23:53.683Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": "✨ Try It YourselfWhat People Are SayingThe Future of ProgrammingNatural Language ProgrammingWrite specifications in plain English. Our AI understands your intent and generates the code.AI-Powered GenerationAdvanced language models ensure your specifications are translated accurately into working code.Rapid DevelopmentBuild applications in minutes instead of weeks. Focus on what you want, not how to code it.Enterprise ReadyProduction-grade code with built-in security, testing, and scalability considerations.Trusted by Developers WorldwideSenior Backend EngineerLeading AI Driven Software Agency\"The Book programming language has revolutionized how we integrate LLM applications, cutting development time by 70%.\"Frontend DeveloperInnovative Fintech Startup\"Using Promptbook feels like magic. We describe features in plain English and get working app immediately.\"Software ArchitectEducational Platform Provider\"Promptbook has transformed how we design and deploy software with much more personalized content.\"Product ManagerSaaS Collaboration Platform\"The Book language bridges the gap between technical and non-technical teams, making collaboration seamless.\"Full-Stack DeveloperDigital Agency\"Promptbook's natural language approach simplifies coding and accelerates project delivery.\"DevOps EngineerEnterprise Software Company\"Our CI/CD pipelines are now faster and more reliable thanks to Promptbook's automation capabilities.\"Meet Our TeamFrequently Asked Questions"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nNatural Language Programming allows users to write specifications in plain English, which are then translated into working code by AI.\n\n---\n\nAI-Powered Generation uses advanced language models to accurately convert user specifications into functional code.\n\n---\n\nRapid Development enables building applications in minutes rather than weeks, focusing on desired outcomes rather than coding details.\n\n---\n\nEnterprise Ready features include production-grade code with built-in security, testing, and scalability considerations.\n\n---\n\nThe Book programming language has reportedly reduced development time for LLM applications by 70% according to a Senior Backend Engineer.\n\n---\n\nPromptbook is described as feeling \"like magic\" by a Frontend Developer, allowing for immediate creation of working apps from plain English descriptions.\n\n---\n\nThe natural language approach of Promptbook is said to simplify coding and accelerate project delivery by a Full-Stack Developer.\n\n---\n\nPromptbook is reported to improve collaboration between technical and non-technical teams, as stated by a Product Manager.\n\n---\n\nDevOps processes, including CI/CD pipelines, are said to be faster and more reliable due to Promptbook's automation capabilities, according to a DevOps Engineer.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:23:45.697Z",
+            "complete": "2025-02-26T15:23:53.683Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.005022
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 424
+                },
+                "charactersCount": {
+                    "value": 1938
+                },
+                "wordsCount": {
+                    "value": 250
+                },
+                "sentencesCount": {
+                    "value": 15
+                },
+                "linesCount": {
+                    "value": 37
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 250
+                },
+                "charactersCount": {
+                    "value": 1266
+                },
+                "wordsCount": {
+                    "value": 173
+                },
+                "sentencesCount": {
+                    "value": 9
+                },
+                "linesCount": {
+                    "value": 33
+                },
+                "paragraphsCount": {
+                    "value": 18
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ✨ Try It YourselfWhat People Are SayingThe Future of ProgrammingNatural Language ProgrammingWrite specifications in plain English. Our AI understands your intent and generates the code.AI-Powered GenerationAdvanced language models ensure your specifications are translated accurately into working code.Rapid DevelopmentBuild applications in minutes instead of weeks. Focus on what you want, not how to code it.Enterprise ReadyProduction-grade code with built-in security, testing, and scalability considerations.Trusted by Developers WorldwideSenior Backend EngineerLeading AI Driven Software Agency\"The Book programming language has revolutionized how we integrate LLM applications, cutting development time by 70%.\"Frontend DeveloperInnovative Fintech Startup\"Using Promptbook feels like magic. We describe features in plain English and get working app immediately.\"Software ArchitectEducational Platform Provider\"Promptbook has transformed how we design and deploy software with much more personalized content.\"Product ManagerSaaS Collaboration Platform\"The Book language bridges the gap between technical and non-technical teams, making collaboration seamless.\"Full-Stack DeveloperDigital Agency\"Promptbook's natural language approach simplifies coding and accelerates project delivery.\"DevOps EngineerEnterprise Software Company\"Our CI/CD pipelines are now faster and more reliable thanks to Promptbook's automation capabilities.\"Meet Our TeamFrequently Asked Questions",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ✨ Try It YourselfWhat People Are SayingThe Future of ProgrammingNatural Language ProgrammingWrite specifications in plain English. Our AI understands your intent and generates the code.AI-Powered GenerationAdvanced language models ensure your specifications are translated accurately into working code.Rapid DevelopmentBuild applications in minutes instead of weeks. Focus on what you want, not how to code it.Enterprise ReadyProduction-grade code with built-in security, testing, and scalability considerations.Trusted by Developers WorldwideSenior Backend EngineerLeading AI Driven Software Agency\"The Book programming language has revolutionized how we integrate LLM applications, cutting development time by 70%.\"Frontend DeveloperInnovative Fintech Startup\"Using Promptbook feels like magic. We describe features in plain English and get working app immediately.\"Software ArchitectEducational Platform Provider\"Promptbook has transformed how we design and deploy software with much more personalized content.\"Product ManagerSaaS Collaboration Platform\"The Book language bridges the gap between technical and non-technical teams, making collaboration seamless.\"Full-Stack DeveloperDigital Agency\"Promptbook's natural language approach simplifies coding and accelerates project delivery.\"DevOps EngineerEnterprise Software Company\"Our CI/CD pipelines are now faster and more reliable thanks to Promptbook's automation capabilities.\"Meet Our TeamFrequently Asked Questions"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_016zcNUVLVQLb15jr4miv5As",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nNatural Language Programming allows users to write specifications in plain English, which are then translated into working code by AI.\n\n---\n\nAI-Powered Generation uses advanced language models to accurately convert user specifications into functional code.\n\n---\n\nRapid Development enables building applications in minutes rather than weeks, focusing on desired outcomes rather than coding details.\n\n---\n\nEnterprise Ready features include production-grade code with built-in security, testing, and scalability considerations.\n\n---\n\nThe Book programming language has reportedly reduced development time for LLM applications by 70% according to a Senior Backend Engineer.\n\n---\n\nPromptbook is described as feeling \"like magic\" by a Frontend Developer, allowing for immediate creation of working apps from plain English descriptions.\n\n---\n\nThe natural language approach of Promptbook is said to simplify coding and accelerate project delivery by a Full-Stack Developer.\n\n---\n\nPromptbook is reported to improve collaboration between technical and non-technical teams, as stated by a Product Manager.\n\n---\n\nDevOps processes, including CI/CD pipelines, are said to be faster and more reliable due to Promptbook's automation capabilities, according to a DevOps Engineer."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 424,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 250
+            }
+        }
+    }
+}

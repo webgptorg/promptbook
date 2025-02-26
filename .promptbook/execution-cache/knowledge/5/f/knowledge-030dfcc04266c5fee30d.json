@@ -1,0 +1,111 @@
+{
+    "date": "2025-02-26T15:20:53.370Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Pavol has worked on scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, participates in juries, and mentors in various competitions, both in the Czech Republic and internationally."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Bird Expert's International Scientific Journey",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:20:52.423Z",
+            "complete": "2025-02-26T15:20:53.370Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00042
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 95
+                },
+                "charactersCount": {
+                    "value": 406
+                },
+                "wordsCount": {
+                    "value": 58
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 9
+                },
+                "charactersCount": {
+                    "value": 46
+                },
+                "wordsCount": {
+                    "value": 6
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol has worked on scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, participates in juries, and mentors in various competitions, both in the Czech Republic and internationally.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol has worked on scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, participates in juries, and mentors in various competitions, both in the Czech Republic and internationally."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01FCWAbChfFfAPf6Y6uqKbph",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Bird Expert's International Scientific Journey"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 95,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 9
+            }
+        }
+    }
+}

@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-26T15:21:35.552Z",
+    "promptbookVersion": "0.86.6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Staying informed about technological advancements and identifying the most relevant innovations can be challenging due to the constant influx of information and rapid pace of change."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Technological advancements, innovations, information influx, rapid change, staying informed",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-26T15:21:34.643Z",
+            "complete": "2025-02-26T15:21:35.552Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000531
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 77
+                },
+                "charactersCount": {
+                    "value": 376
+                },
+                "wordsCount": {
+                    "value": 52
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 20
+                },
+                "charactersCount": {
+                    "value": 91
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Staying informed about technological advancements and identifying the most relevant innovations can be challenging due to the constant influx of information and rapid pace of change.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Staying informed about technological advancements and identifying the most relevant innovations can be challenging due to the constant influx of information and rapid pace of change."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01T46BMpjNpmXoxBqsXCskF8",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Technological advancements, innovations, information influx, rapid change, staying informed"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 77,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 20
+            }
+        }
+    }
+}
