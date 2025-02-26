@@ -7,7 +7,7 @@ import { wizzard } from '@promptbook/wizzard';
 
 const {
     outputParameters: { joke },
-} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book.md`, {
+} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book`, {
     topic: 'Prague',
 });
 

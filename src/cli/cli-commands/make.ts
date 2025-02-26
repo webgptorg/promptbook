@@ -3,6 +3,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
+import JSZip from 'jszip';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
@@ -42,6 +43,10 @@ export function $initializeMakeCommand(program: Program) {
         `),
     );
 
+    makeCommand.alias('compile');
+    makeCommand.alias('prepare');
+    makeCommand.alias('build');
+
     // TODO: [🧅] DRY command arguments
 
     makeCommand.argument(
@@ -55,11 +60,11 @@ export function $initializeMakeCommand(program: Program) {
     makeCommand.option(
         '-f, --format <format>',
         spaceTrim(`
-            Output format of builded collection "javascript", "typescript" or "json"
+            Output format of builded collection "bookc", "javascript", "typescript" or "json"
 
             Note: You can use multiple formats separated by comma
         `),
-        'javascript' /* <- Note: [🏳‍🌈] */,
+        'bookc' /* <- Note: [🏳‍🌈] */,
     );
     makeCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
     makeCommand.option(
@@ -205,7 +210,7 @@ export function $initializeMakeCommand(program: Program) {
                 return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
             })();
 
-            const saveFile = async (extension: string_file_extension, content: string) => {
+            const saveFile = async (extension: string_file_extension, content: string | JSZip) => {
                 const filename =
                     output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
                         ? output
@@ -216,11 +221,27 @@ export function $initializeMakeCommand(program: Program) {
                 }
 
                 await mkdir(dirname(filename), { recursive: true });
-                await writeFile(filename, content, 'utf-8');
+
+                if (typeof content === 'string') {
+                    await writeFile(filename, content, 'utf-8');
+                } else {
+                    // TODO: Add metadata to zip
+                    const data = await content.generateAsync({ type: 'nodebuffer', streamFiles: true });
+                    await writeFile(filename, data);
+                }
 
                 // Note: Log despite of verbose mode
                 console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
             };
+
+            if (formats.includes('bookc')) {
+                formats = formats.filter((format) => format !== 'bookc');
+
+                // TODO: [🥱] DRY Handling of `.bookc` files: extract un/compression in separate function
+                const bookcBundle = new JSZip();
+                bookcBundle.file('index.book.json', collectionJsonString);
+                await saveFile('bookc', bookcBundle);
+            }
 
             if (formats.includes('json')) {
                 formats = formats.filter((format) => format !== 'json');

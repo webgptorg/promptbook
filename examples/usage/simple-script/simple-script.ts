@@ -55,11 +55,11 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        // `https://promptbook.studio/examples/foreach-list.book.md`,
-        // `https://promptbook.studio/examples/foreach-csv.book.md`,
-        `https://promptbook.studio/examples/simple-knowledge.book.md`,
-        // `https://promptbook.studio/examples/simple.book.md`,
-        // `https://promptbook.studio/examples/language-capabilities.book.md`,
+        // `https://promptbook.studio/examples/foreach-list.book`,
+        // `https://promptbook.studio/examples/foreach-csv.book`,
+        `https://promptbook.studio/examples/simple-knowledge.book`,
+        // `https://promptbook.studio/examples/simple.book`,
+        // `https://promptbook.studio/examples/language-capabilities.book`,
     );
 
     if (!pipeline.sourceFile) {
@@ -102,7 +102,7 @@ async function main() {
     console.info('outputParameters', outputParameters);
 
     await writeFile(
-        pipeline.sourceFile.split('.book.md').join('.report.md').split('.book.json').join('.report.json'),
+        pipeline.sourceFile.split('.book').join('.report.md').split('.bookc').join('.report.json'),
         //                  <- TODO: [0] More elegant way to replace extension
         stringifyPipelineJson(executionReport),
         'utf-8',
@@ -111,7 +111,7 @@ async function main() {
     const executionReportString = executionReportJsonToString(executionReport);
 
     await writeFile(
-        pipeline.sourceFile.split('.book.md').join('.report.md').split('.book.json').join('.report.md'),
+        pipeline.sourceFile.split('.book').join('.report.md').split('.bookc').join('.report.md'),
         //                  <- TODO: [0] More elegant way to replace extension
         executionReportString,
         'utf-8',

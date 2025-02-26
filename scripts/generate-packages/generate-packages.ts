@@ -327,7 +327,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         await forTime(1000 * 60 * 60 * 0);
         await $execCommand({
             isVerbose: true,
-            command: `node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+            command: `node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
         });
     }
 
@@ -534,11 +534,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                         },
                         steps: [
                             {
-                                name: 'Checkout',
+                                name: '🔽 Checkout',
                                 uses: 'actions/checkout@v4',
                             },
                             {
-                                name: 'Setup Node.js',
+                                name: '🔽 Setup Node.js',
                                 uses: 'actions/setup-node@v4',
                                 with: {
                                     'node-version': 22,
@@ -546,18 +546,27 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 },
                             },
                             {
-                                name: 'Install dependencies',
+                                name: '🔽 Install dependencies',
                                 run: 'npm ci',
                             },
                             {
-                                name: 'Build packages bundles',
+                                name: '🔽 Clone book submodule',
+                                run: 'git submodule update --init --recursive',
+                            },
+                            {
+                                name: '🆚 Update version in Dockerfile',
+                                run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
+                                // <- Note: Update version in Dockerfile before building the image
+                            },
+                            {
+                                name: '🏭 Build packages bundles',
                                 // Note: [🔙] Generate packages before publishing to put the recent version in each package.json
                                 // TODO: It will be better to have here just "npx rollup --config rollup.config.js" / "node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js" BUT it will not work because:
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
                             ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
-                                name: `Publish ${packageFullname}`,
+                                name: `🔼 Publish ${packageFullname}`,
                                 'working-directory': `./packages/${packageBasename}`,
                                 run: 'npm publish --provenance --access public',
                                 env: {
@@ -566,16 +575,18 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             })),
                         ],
                     },
+                    // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
                     'publish-docker': {
                         name: 'Publish Docker image to DockerHub',
+                        needs: 'publish-npm',
                         'runs-on': 'ubuntu-latest',
                         steps: [
                             {
-                                name: 'Checkout',
+                                name: '🔽 Checkout',
                                 uses: 'actions/checkout@v4',
                             },
                             {
-                                name: 'Login to DockerHub',
+                                name: '🔑 Login to DockerHub',
                                 uses: 'docker/login-action@v2',
                                 with: {
                                     username: '${{ secrets.DOCKERHUB_USER }}',
@@ -583,11 +594,40 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 },
                             },
                             {
-                                name: 'Load current version into the environment',
+                                name: '🔽 Setup Node.js',
+                                uses: 'actions/setup-node@v4',
+                                with: {
+                                    'node-version': 22,
+                                    'registry-url': 'https://registry.npmjs.org/',
+                                },
+                            },
+                            {
+                                name: '🔽 Install dependencies',
+                                run: 'npm ci',
+                            },
+                            {
+                                name: '🔽 Clone book submodule',
+                                run: 'git submodule update --init --recursive',
+                            },
+                            {
+                                name: '🆚 Update version in Dockerfile',
+                                run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
+                                // <- Note: Update version in Dockerfile before building the image
+                            },
+                            {
+                                name: '🆚 Load current version into the environment',
                                 run: 'echo "VERSION=$(node -p \'require(`./package.json`).version\')" >> $GITHUB_ENV',
                             },
                             {
-                                name: 'Build and Push Docker Image',
+                                name: '👁‍🗨 Log version from previous step',
+                                run: 'echo $VERSION',
+                            },
+                            {
+                                name: '👁‍🗨 Log contents of the Dockerfile',
+                                run: 'cat Dockerfile',
+                            },
+                            {
+                                name: '🏭🔼 Build and Push Docker Image',
                                 uses: 'docker/build-push-action@v2',
                                 with: {
                                     context: '.',
@@ -602,7 +642,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             { indent: 4 },
         ),
     );
-    //     <- TODO: Add GENERATOR_WARNING to publish.yml
+    // <- Note: All changes affects up to version folowing the next one, so it is safe to run "🏭📦 Generate packages" script to affect the next version
+    // <- TODO: Add GENERATOR_WARNING to publish.yml
 
     // ==============================
     // 9️⃣ Commit the changes

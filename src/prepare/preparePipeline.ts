@@ -101,7 +101,7 @@ export async function preparePipeline(
         const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
         const prepareTitleExecutor = createPipelineExecutor({
-            pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book.md'),
+            pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book'),
             tools,
         });
 

@@ -46,7 +46,11 @@ export async function prepareTasks(
             let { /* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames } = task;
             let preparedContent: string | undefined = undefined;
 
-            if (knowledgePiecesCount > 0 && !dependentParameterNames.includes('knowledge')) {
+            if (
+                task.taskType === 'PROMPT_TASK' &&
+                knowledgePiecesCount > 0 &&
+                !dependentParameterNames.includes('knowledge')
+            ) {
                 preparedContent = spaceTrim(`
                     {content}
 

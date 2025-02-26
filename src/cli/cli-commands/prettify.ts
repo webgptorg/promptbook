@@ -39,7 +39,7 @@ export function $initializePrettifyCommand(program: Program) {
         //                       <- TODO: [😶]
 
         for (const filename of filenames) {
-            if (!filename.endsWith('.book.md') && isVerbose) {
+            if (!filename.endsWith('.book') && isVerbose) {
                 console.info(colors.gray(`Skipping ${filename}`));
                 continue;
             }

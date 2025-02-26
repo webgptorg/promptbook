@@ -27,7 +27,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 /**
  * Options for `createCollectionFromDirectory` function
  *
- * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book.md` file is located
+ * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
  *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
@@ -106,7 +106,7 @@ export async function createCollectionFromDirectory(
         `${
             DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
             // <- TODO: [🦒] Allow to override (pass different value into the function)
-        }.json`,
+        }.bookc`,
     );
 
     if (!(await isFileExisting(madeLibraryFilePath, tools.fs))) {
@@ -139,13 +139,13 @@ export async function createCollectionFromDirectory(
 
         const fileNames = await listAllFiles(rootPath, isRecursive, tools!.fs!);
 
-        // Note: First load all `.book.json` and then `.book` / `.book.md` files
-        //       `.book.json` can be prepared so it is faster to load
+        // Note: First load compiled `.bookc` files and then source `.book` files
+        //       `.bookc` are already compiled and can be used faster
         fileNames.sort((a, b) => {
-            if (a.endsWith('.json') && (b.endsWith('.book') || b.endsWith('.book.md'))) {
+            if ((a.endsWith('.bookc') || a.endsWith('.book.json')) && (b.endsWith('.book') || b.endsWith('.book.md'))) {
                 return -1;
             }
-            if ((a.endsWith('.book') || a.endsWith('.book.md')) && b.endsWith('.json')) {
+            if ((a.endsWith('.book') || a.endsWith('.book.md')) && (b.endsWith('.bookc') || b.endsWith('.book.json'))) {
                 return 1;
             }
             return 0;
@@ -166,7 +166,7 @@ export async function createCollectionFromDirectory(
                         rootDirname,
                     });
                     pipeline = { ...pipeline, sourceFile };
-                } else if (fileName.endsWith('.book.json')) {
+                } else if (fileName.endsWith('.bookc') || fileName.endsWith('.book.json')) {
                     // TODO: Handle non-valid JSON files
                     pipeline = JSON.parse(await readFile(fileName, 'utf-8')) as PipelineJson;
                     // TODO: [🌗]

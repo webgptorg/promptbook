@@ -15,7 +15,7 @@ const tools = await $provideExecutionToolsForNode();
 const collection = await createCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });

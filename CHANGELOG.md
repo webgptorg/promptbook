@@ -696,7 +696,7 @@ Compile via remote server
 
 ## In pre-release
 
-### `0.85.0` _(2025-02-)_
+### `0.85.0` _(2025-02-17)_
 
 [🐚] Server queue and tasks
 
@@ -715,6 +715,16 @@ Compile via remote server
 -   _In future_ remote server persists its queue in `SQLite` / `.promptbook` / `Neo4j`
 -   Do not generate stats for pre-releases to speed up the build process
 -   Allow pipeline URLs on private and unsecured networks
+
+### `0.85.0` _(2025-02-18)_
+
+Use `.book` as default extension for books
+
+-   Rename `.book.md` -> `.book.md`
+-   Rename `.book.json` -> `.bookc`
+-   Establish `.bookc` format - compiled book json in zip archive
+-   Use [VCCode extension `Promptbook .book language support`](https://marketplace.visualstudio.com/items?itemName=promptbook.book-extension)
+-   Fix: Version published to Docker Hub does not lag behind the NPM version
 
 ## Drafts
 

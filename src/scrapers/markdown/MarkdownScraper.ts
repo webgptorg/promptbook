@@ -67,7 +67,7 @@ export class MarkdownScraper implements Scraper {
 
         const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
-                'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book.md',
+                'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book',
             ),
             tools: {
                 llm: llm,
@@ -76,7 +76,7 @@ export class MarkdownScraper implements Scraper {
 
         const prepareTitleExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
-                'https://promptbook.studio/promptbook/prepare-knowledge-title.book.md',
+                'https://promptbook.studio/promptbook/prepare-knowledge-title.book',
             ),
             tools: {
                 llm: llm,
@@ -85,7 +85,7 @@ export class MarkdownScraper implements Scraper {
 
         const prepareKeywordsExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
-                'https://promptbook.studio/promptbook/prepare-knowledge-keywords.book.md',
+                'https://promptbook.studio/promptbook/prepare-knowledge-keywords.book',
             ),
             tools: {
                 llm: llm,
