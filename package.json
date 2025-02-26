@@ -61,10 +61,11 @@
         "lint": "eslint src",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "generate-documentation": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "import-markdowns": "deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git add . && git commit --message \"📄 Import markdowns\" && cd .. && git add . && git commit --message \"📄 Import markdowns\"",
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "preversion": "git pull && ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
-        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages --commit && npm run generate-documentation --commit && git push && git push --tags && npm run use-packages"
+        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages --commit && npm run generate-documentation && npm run import-markdowns && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
         "@rollup/plugin-json": "6.1.0",
@@ -112,6 +113,7 @@
         "openai": "4.63.0",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
+        "promptbook": "link:",
         "prompts": "^2.4.2",
         "rxjs": "^7.8.1",
         "showdown": "2.1.0",
