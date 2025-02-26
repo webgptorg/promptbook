@@ -1,8 +1,8 @@
+import JSZip from 'jszip';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../config';
-import { LOOP_LIMIT } from '../config';
+import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { compilePipeline } from '../conversion/compilePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -11,8 +11,7 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import { validatePipelineString } from '../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { string_filename, string_pipeline_url } from '../types/typeAliases';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { isRootPath } from '../utils/validators/filePath/isRootPath';
@@ -54,6 +53,14 @@ export async function $getCompiledBook(
                     rootDirname: process.cwd(),
                     ...options,
                 });
+
+                // TODO: [🥱] DRY Handling of `.bookc` files: extract un/compression in separate function
+                const compiledFilePath = filePath.replace('.book.md', '.book').replace('.book', '.bookc');
+                const bookcBundle = new JSZip();
+                bookcBundle.file('index.book.json', JSON.stringify([pipelineJson]));
+                const data = await bookcBundle.generateAsync({ type: 'nodebuffer', streamFiles: true });
+                await fs.writeFile(compiledFilePath, data);
+
                 return pipelineJson;
             }
         }
