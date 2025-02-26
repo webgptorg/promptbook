@@ -289,17 +289,22 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td><a href="https://github.com/webgptorg/book">Book language</a></td>
       <td>
-          Book is a markdown-like language to define core entities like personas, knowledge, tasks,.... It is designed to be understandable by non-programmers and non-technical people<hr>
+          Book is a human-understandable markup language for writing AI applications such as chatbots, knowledge bases, agents, avarars, translators, automations and more.
+          <hr>
           There is also <a href="https://github.com/webgptorg/book-extension">a plugin for VSCode</a> to support <code>.book</code> file extension
       </td>
     </tr>
     <tr>
       <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
-      <td>Promptbook implementation in TypeScript released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Docker HUB</a></td>
+      <td>
+          Promptbook engine can run applications written in Book language. It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Docker HUB</a>
+      </td>
     </tr>
     <tr>
       <td><a href="https://promptbook.studio">Promptbook Studio</a></td>
-      <td>Studio to write Books and instantly publish them as miniapps</td>
+      <td>
+          Promptbook.studio is a web-based editor and runner for book applications. It is still in the experimental MVP stage.
+      </td>
     </tr>
   </tbody>
 </table>
@@ -318,24 +323,24 @@ And **Promptbook.studio** branded socials:
 
 -   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
 
-
-
 And **Promptujeme** sub-brand:
 
-*/Subbrand for Czech clients/*
+_/Subbrand for Czech clients/_
+
 
 
 
 -   [Promptujeme.cz](https://www.promptujeme.cz/)
 -   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
 
-
 And **Promptbook.city** branded socials:
 
-*/Sub-brand for images and graphics generated via Promptbook prompting/*
+_/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
 -   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569) 
+
+## 
 
 
 
