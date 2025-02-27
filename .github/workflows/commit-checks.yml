@@ -9,6 +9,36 @@ on:
             - main
 
 jobs:
+    test-books:
+        name: 🧪✨ Test Books
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Test Books
+              run: ./src/cli/test/ptbk.ts make ./books --format typescript --verbose
+
+    test-types:
+        name: 🧪 Test types
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Test types
+              run: tsc
+
     lint:
         name: 🧪 Lint
         runs-on: ubuntu-latest
