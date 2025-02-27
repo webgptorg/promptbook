@@ -4,11 +4,11 @@
  * @public exported from `@promptbook/core`
  */
 export class BoilerplateError extends Error {
-    public readonly name = 'BoilerplateError';
-    public constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, BoilerplateError.prototype);
-    }
+	public readonly name = "BoilerplateError";
+	public constructor(message: string) {
+		super(message);
+		Object.setPrototypeOf(this, BoilerplateError.prototype);
+	}
 }
 
 /**

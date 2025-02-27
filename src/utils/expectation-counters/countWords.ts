@@ -1,5 +1,5 @@
-import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
-import { removeDiacritics } from '../normalization/removeDiacritics';
+import type { ExpectationAmount } from "../../pipeline/PipelineJson/Expectations";
+import { removeDiacritics } from "../normalization/removeDiacritics";
 
 /**
  * Counts number of words in the text
@@ -7,8 +7,8 @@ import { removeDiacritics } from '../normalization/removeDiacritics';
  * @public exported from `@promptbook/utils`
  */
 export function countWords(text: string): ExpectationAmount {
-    text = text.replace(/[\p{Extended_Pictographic}]/gu, 'a');
-    text = removeDiacritics(text);
+	text = text.replace(/[\p{Extended_Pictographic}]/gu, "a");
+	text = removeDiacritics(text);
 
-    return text.split(/[^a-zа-я0-9]+/i).filter((word) => word.length > 0).length;
+	return text.split(/[^a-zа-я0-9]+/i).filter((word) => word.length > 0).length;
 }

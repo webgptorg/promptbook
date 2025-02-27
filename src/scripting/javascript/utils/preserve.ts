@@ -1,5 +1,5 @@
-import { forTime } from 'waitasecond';
-import type { really_any } from '../../../utils/organization/really_any';
+import { forTime } from "waitasecond";
+import type { really_any } from "../../../utils/organization/really_any";
 
 /**
  * Does nothing, but preserves the function in the bundle
@@ -9,20 +9,22 @@ import type { really_any } from '../../../utils/organization/really_any';
  * @returns nothing
  * @private internal function of `JavascriptExecutionTools` and `JavascriptEvalExecutionTools`
  */
-export function preserve(func: (...params: ReadonlyArray<really_any>) => unknown): void {
-    // Note: NOT calling the function
+export function preserve(
+	func: (...params: ReadonlyArray<really_any>) => unknown,
+): void {
+	// Note: NOT calling the function
 
-    (async () => {
-        // TODO: [💩] Change to `await forEver` or something better
-        await forTime(100000000);
+	(async () => {
+		// TODO: [💩] Change to `await forEver` or something better
+		await forTime(100000000);
 
-        // [1]
-        try {
-            await func();
-        } finally {
-            // do nothing
-        }
-    })();
+		// [1]
+		try {
+			await func();
+		} finally {
+			// do nothing
+		}
+	})();
 }
 
 /**

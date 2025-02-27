@@ -1,79 +1,84 @@
 #!/usr/bin/env ts-node
 
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: '.env' });
+dotenv.config({ path: ".env" });
 
-import { createOpenAI } from '@ai-sdk/openai';
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
-import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import type { Prompt } from '../../../types/Prompt';
-import { keepUnused } from '../../../utils/organization/keepUnused';
-import { createExecutionToolsFromVercelProvider } from '../createExecutionToolsFromVercelProvider';
+import { createOpenAI } from "@ai-sdk/openai";
+import colors from "colors"; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { embeddingVectorToString } from "../../../execution/embeddingVectorToString";
+import { usageToHuman } from "../../../execution/utils/usageToHuman";
+import type { Prompt } from "../../../types/Prompt";
+import { keepUnused } from "../../../utils/organization/keepUnused";
+import { createExecutionToolsFromVercelProvider } from "../createExecutionToolsFromVercelProvider";
 
 playground()
-    .catch((error) => {
-        console.error(colors.bgRed(error.name || 'NamelessError'));
-        console.error(error);
-        process.exit(1);
-    })
-    .then(() => {
-        process.exit(0);
-    });
+	.catch((error) => {
+		console.error(colors.bgRed(error.name || "NamelessError"));
+		console.error(error);
+		process.exit(1);
+	})
+	.then(() => {
+		process.exit(0);
+	});
 
 async function playground() {
-    console.info(`🧸  Vercel Playground`);
+	console.info(`🧸  Vercel Playground`);
 
-    // Do here stuff you want to test
-    //========================================>
+	// Do here stuff you want to test
+	//========================================>
 
-    const openaiVercelProvider = createOpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-        // custom settings, e.g.
-        compatibility: 'strict', // strict mode, enable when using the OpenAI API
-    });
+	const openaiVercelProvider = createOpenAI({
+		apiKey: process.env.OPENAI_API_KEY,
+		// custom settings, e.g.
+		compatibility: "strict", // strict mode, enable when using the OpenAI API
+	});
 
-    const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
-        title: 'OpenAI',
-        vercelProvider: openaiVercelProvider,
-        availableModels: [
-            {
-                modelName: 'gpt-3.5-turbo',
-                modelVariant: 'CHAT',
-            },
-        ],
-    });
+	const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider(
+		{
+			title: "OpenAI",
+			vercelProvider: openaiVercelProvider,
+			availableModels: [
+				{
+					modelName: "gpt-3.5-turbo",
+					modelVariant: "CHAT",
+				},
+			],
+		},
+	);
 
-    keepUnused(openaiPromptbookExecutionTools);
-    keepUnused(embeddingVectorToString);
-    keepUnused(usageToHuman);
-    keepUnused<Prompt>();
+	keepUnused(openaiPromptbookExecutionTools);
+	keepUnused(embeddingVectorToString);
+	keepUnused(usageToHuman);
+	keepUnused<Prompt>();
 
-    /*/
+	/*/
     const models = await openaiPromptbookExecutionTools.listModels();
     console.info({ models });
     /**/
 
-    /**/
-    const chatPrompt = {
-        title: 'Promptbook speech',
-        parameters: {},
-        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
-        modelRequirements: {
-            modelVariant: 'CHAT',
-            systemMessage: 'You are an assistant who only speaks in rhymes.',
-            temperature: 1.5,
-        },
-    } as const satisfies Prompt;
-    const chatPromptResult = await openaiPromptbookExecutionTools.callChatModel!(chatPrompt);
-    console.info({ chatPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
-    /**/
+	/**/
+	const chatPrompt = {
+		title: "Promptbook speech",
+		parameters: {},
+		content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
+		modelRequirements: {
+			modelVariant: "CHAT",
+			systemMessage: "You are an assistant who only speaks in rhymes.",
+			temperature: 1.5,
+		},
+	} as const satisfies Prompt;
+	const chatPromptResult =
+		await openaiPromptbookExecutionTools.callChatModel!(chatPrompt);
+	console.info({ chatPromptResult });
+	console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+	console.info(colors.bgBlue(" User: ") + colors.blue(chatPrompt.content));
+	console.info(
+		colors.bgGreen(" Chat: ") + colors.green(chatPromptResult.content),
+	);
+	/**/
 
-    /*/
+	/*/
     const completionPrompt = {
         title: 'Hello',
         parameters: {},
@@ -88,11 +93,11 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+	/*/
     // TODO: Test Translations in playground
     /**/
 
-    /*/
+	/*/
     const prompt = {
         title: 'Hello',
         parameters: {},
@@ -109,11 +114,11 @@ async function playground() {
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/
 
-    /*/
+	/*/
     // <- Note: [🤖] Test here new model variant if needed
     /**/
 
-    //========================================/
+	//========================================/
 }
 
 /**

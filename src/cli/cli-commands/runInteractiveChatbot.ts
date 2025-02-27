@@ -1,29 +1,29 @@
-import colors from 'colors';
-import prompts from 'prompts';
-import spaceTrim from 'spacetrim';
-import { forTime } from 'waitasecond';
-import type { PipelineExecutor } from '../../execution/PipelineExecutor';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import { just } from '../../utils/organization/just';
+import colors from "colors";
+import prompts from "prompts";
+import spaceTrim from "spacetrim";
+import { forTime } from "waitasecond";
+import type { PipelineExecutor } from "../../execution/PipelineExecutor";
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import { just } from "../../utils/organization/just";
 
 /**
  * Options for running the interactive chatbot
  */
 type RunInteractiveChatbotOptions = {
-    /**
-     * Prepared pipeline to run
-     */
-    pipeline: PipelineJson;
+	/**
+	 * Prepared pipeline to run
+	 */
+	pipeline: PipelineJson;
 
-    /**
-     * Prepared pipeline executor
-     */
-    pipelineExecutor: PipelineExecutor;
+	/**
+	 * Prepared pipeline executor
+	 */
+	pipelineExecutor: PipelineExecutor;
 
-    /**
-     * Whether to show verbose output
-     */
-    isVerbose: boolean;
+	/**
+	 * Whether to show verbose output
+	 */
+	isVerbose: boolean;
 };
 
 /**
@@ -32,68 +32,74 @@ type RunInteractiveChatbotOptions = {
  * @returns Never-ending promise or process exit
  * @private internal function of `promptbookCli` and `initializeRunCommand`
  */
-export async function runInteractiveChatbot(options: RunInteractiveChatbotOptions): Promise<void | never> {
-    const { pipeline, pipelineExecutor, isVerbose } = options;
+export async function runInteractiveChatbot(
+	options: RunInteractiveChatbotOptions,
+): Promise<void | never> {
+	const { pipeline, pipelineExecutor, isVerbose } = options;
 
-    let ongoingParameters = {
-        /**
-         * Title of the conversation
-         */
-        title: '',
+	let ongoingParameters = {
+		/**
+		 * Title of the conversation
+		 */
+		title: "",
 
-        /**
-         * Summary of the conversation
-         */
-        conversationSummary: '',
+		/**
+		 * Summary of the conversation
+		 */
+		conversationSummary: "",
 
-        /**
-         * Chatbot response
-         */
-        chatbotResponse: '',
-    };
+		/**
+		 * Chatbot response
+		 */
+		chatbotResponse: "",
+	};
 
-    if (isVerbose) {
-        console.info(colors.gray('--- Running interactive chatbot ---'));
-    }
+	if (isVerbose) {
+		console.info(colors.gray("--- Running interactive chatbot ---"));
+	}
 
-    const initialMessage = (pipeline.parameters.find(({ name }) => name === 'chatbotResponse')?.exampleValues || [])[0];
+	const initialMessage = (pipeline.parameters.find(
+		({ name }) => name === "chatbotResponse",
+	)?.exampleValues || [])[0];
 
-    if (initialMessage) {
-        console.info(`\n`);
-        console.info(
-            spaceTrim(
-                (block) => `
+	if (initialMessage) {
+		console.info(`\n`);
+		console.info(
+			spaceTrim(
+				(block) => `
 
-                    ${colors.bold(colors.green('Chatbot:'))}
+                    ${colors.bold(colors.green("Chatbot:"))}
                     ${block(colors.green(initialMessage))}
 
                 `,
-            ),
-        );
-    }
+			),
+		);
+	}
 
-    while (just(true)) {
-        try {
-            await forTime(100);
+	while (just(true)) {
+		try {
+			await forTime(100);
 
-            const { title, conversationSummary } = ongoingParameters;
+			const { title, conversationSummary } = ongoingParameters;
 
-            console.info(`\n`);
-            if (
-                title !== '' &&
-                just(false) /* <- TODO: [⛲️] Some better way how to show the title of ongoing conversation */
-            ) {
-                console.info(colors.gray(`--- ${title} ---`));
-            } else {
-                console.info(colors.gray(`---`));
-            }
+			console.info(`\n`);
+			if (
+				title !== "" &&
+				just(
+					false,
+				) /* <- TODO: [⛲️] Some better way how to show the title of ongoing conversation */
+			) {
+				console.info(colors.gray(`--- ${title} ---`));
+			} else {
+				console.info(colors.gray(`---`));
+			}
 
-            const response = await prompts({
-                type: 'text',
-                name: 'userMessage',
-                message: 'User message',
-                hint: spaceTrim(
-                    (block) => `
+			const response = await prompts({
+				type: "text",
+				name: "userMessage",
+				message: "User message",
+				hint: spaceTrim(
+					(block) => `
                         Type "exit" to exit,
 
                         previousTitle
@@ -103,59 +109,63 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
                         ${block(conversationSummary)}
 
                     `,
-                ),
-            });
+				),
+			});
 
-            const { userMessage } = response;
+			const { userMessage } = response;
 
-            if (userMessage === 'exit' || userMessage === 'quit' || userMessage === undefined) {
-                return process.exit(0);
-            }
+			if (
+				userMessage === "exit" ||
+				userMessage === "quit" ||
+				userMessage === undefined
+			) {
+				return process.exit(0);
+			}
 
-            console.info(`\n`);
-            console.info(
-                spaceTrim(
-                    (block) => `
+			console.info(`\n`);
+			console.info(
+				spaceTrim(
+					(block) => `
 
-                        ${colors.bold(colors.blue('User:'))}
+                        ${colors.bold(colors.blue("User:"))}
                         ${block(colors.blue(userMessage))}
 
                     `,
-                ),
-            );
+				),
+			);
 
-            const inputParameters = {
-                previousTitle: title,
+			const inputParameters = {
+				previousTitle: title,
 
-                previousConversationSummary: conversationSummary,
-                userMessage,
-            };
+				previousConversationSummary: conversationSummary,
+				userMessage,
+			};
 
-            const result = await pipelineExecutor(inputParameters).asPromise();
+			const result = await pipelineExecutor(inputParameters).asPromise();
 
-            console.info(`\n`);
-            console.info(
-                spaceTrim(
-                    (block) => `
+			console.info(`\n`);
+			console.info(
+				spaceTrim(
+					(block) => `
 
-                        ${colors.bold(colors.green('Chatbot:'))}
+                        ${colors.bold(colors.green("Chatbot:"))}
                         ${block(colors.green(result.outputParameters.chatbotResponse!))}
 
                     `,
-                ),
-            );
+				),
+			);
 
-            ongoingParameters = result.outputParameters as typeof ongoingParameters;
-        } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+			ongoingParameters = result.outputParameters as typeof ongoingParameters;
+		} catch (error) {
+			if (!(error instanceof Error)) {
+				throw error;
+			}
 
-            // TODO: Allow to ressurect the chatbot after an error - prompt the user to continue
-            console.error(colors.red(error.stack || error.message));
-            return process.exit(1);
-        }
-    }
+			// TODO: Allow to ressurect the chatbot after an error - prompt the user to continue
+			console.error(colors.red(error.stack || error.message));
+			return process.exit(1);
+		}
+	}
 }
 
 /**

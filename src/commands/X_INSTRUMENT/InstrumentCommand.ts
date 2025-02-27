@@ -5,5 +5,5 @@
  * @public exported from `@promptbook/editable`
  */
 export type InstrumentCommand = {
-    readonly type: 'INSTRUMENT';
+	readonly type: "INSTRUMENT";
 };

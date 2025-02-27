@@ -1,6 +1,6 @@
-import type { Registration } from '../../utils/$Register';
-import { $llmToolsRegister } from '../_common/register/$llmToolsRegister';
-import { createAnthropicClaudeExecutionTools } from './createAnthropicClaudeExecutionTools';
+import type { Registration } from "../../utils/$Register";
+import { $llmToolsRegister } from "../_common/register/$llmToolsRegister";
+import { createAnthropicClaudeExecutionTools } from "./createAnthropicClaudeExecutionTools";
 
 /**
  * Registration of LLM provider
@@ -12,9 +12,8 @@ import { createAnthropicClaudeExecutionTools } from './createAnthropicClaudeExec
  * @public exported from `@promptbook/cli`
  *
  */
-export const _AnthropicClaudeRegistration: Registration = $llmToolsRegister.register(
-    createAnthropicClaudeExecutionTools,
-);
+export const _AnthropicClaudeRegistration: Registration =
+	$llmToolsRegister.register(createAnthropicClaudeExecutionTools);
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

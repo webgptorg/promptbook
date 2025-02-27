@@ -1,8 +1,8 @@
-import spaceTrim from 'spacetrim';
-import { ParseError } from '../../errors/ParseError';
-import type { string_markdown } from '../../types/typeAliases';
-import type { CodeBlock } from './extractAllBlocksFromMarkdown';
-import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
+import spaceTrim from "spacetrim";
+import { ParseError } from "../../errors/ParseError";
+import type { string_markdown } from "../../types/typeAliases";
+import type { CodeBlock } from "./extractAllBlocksFromMarkdown";
+import { extractAllBlocksFromMarkdown } from "./extractAllBlocksFromMarkdown";
 
 /**
  * Extracts exactly ONE code block from markdown.
@@ -20,23 +20,25 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
  * @public exported from `@promptbook/markdown-utils`
  * @throws {ParseError} if there is not exactly one code block in the markdown
  */
-export function extractOneBlockFromMarkdown(markdown: string_markdown): CodeBlock {
-    const codeBlocks = extractAllBlocksFromMarkdown(markdown);
+export function extractOneBlockFromMarkdown(
+	markdown: string_markdown,
+): CodeBlock {
+	const codeBlocks = extractAllBlocksFromMarkdown(markdown);
 
-    if (codeBlocks.length !== 1) {
-        throw new ParseError(
-            spaceTrim(
-                (block) => `
+	if (codeBlocks.length !== 1) {
+		throw new ParseError(
+			spaceTrim(
+				(block) => `
                     There should be exactly 1 code block in task section, found ${codeBlocks.length} code blocks
 
-                    ${block(codeBlocks.map((block, i) => `Block ${i + 1}:\n${block.content}`).join('\n\n\n'))}
+                    ${block(codeBlocks.map((block, i) => `Block ${i + 1}:\n${block.content}`).join("\n\n\n"))}
                 `,
-            ),
-            // <- [🚞]
-        );
-    }
+			),
+			// <- [🚞]
+		);
+	}
 
-    return codeBlocks[0]!;
+	return codeBlocks[0]!;
 }
 
 /***

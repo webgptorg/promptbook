@@ -1,7 +1,7 @@
-import type { AvailableModel } from '../../execution/AvailableModel';
-import type { number_usd } from '../../types/typeAliases';
-import { exportJson } from '../../utils/serialization/exportJson';
-import { computeUsage } from '../openai/computeUsage';
+import type { AvailableModel } from "../../execution/AvailableModel";
+import type { number_usd } from "../../types/typeAliases";
+import { exportJson } from "../../utils/serialization/exportJson";
+import { computeUsage } from "../openai/computeUsage";
 
 /**
  * List of available Anthropic Claude models with pricing
@@ -12,81 +12,81 @@ import { computeUsage } from '../openai/computeUsage';
  * @public exported from `@promptbook/anthropic-claude`
  */
 export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
-    AvailableModel & {
-        pricing?: {
-            readonly prompt: number_usd;
-            readonly output: number_usd;
-        };
-    }
+	AvailableModel & {
+		pricing?: {
+			readonly prompt: number_usd;
+			readonly output: number_usd;
+		};
+	}
 > = exportJson({
-    name: 'ANTHROPIC_CLAUDE_MODELS',
-    value: [
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Claude 3.5 Sonnet',
-            modelName: 'claude-3-5-sonnet-20240620',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Claude 3 Opus',
-            modelName: 'claude-3-opus-20240229',
-            pricing: {
-                prompt: computeUsage(`$15.00 / 1M tokens`),
-                output: computeUsage(`$75.00 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Claude 3 Sonnet',
-            modelName: 'claude-3-sonnet-20240229',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Claude 3 Haiku',
-            modelName: '	claude-3-haiku-20240307',
-            pricing: {
-                prompt: computeUsage(`$0.25 / 1M tokens`),
-                output: computeUsage(`$1.25 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Claude 2.1',
-            modelName: 'claude-2.1',
-            pricing: {
-                prompt: computeUsage(`$8.00 / 1M tokens`),
-                output: computeUsage(`$24.00 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Claude 2',
-            modelName: 'claude-2.0',
-            pricing: {
-                prompt: computeUsage(`$8.00 / 1M tokens`),
-                output: computeUsage(`$24.00 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: '	Claude Instant 1.2',
-            modelName: 'claude-instant-1.2',
-            pricing: {
-                prompt: computeUsage(`$0.80 / 1M tokens`),
-                output: computeUsage(`$2.40 / 1M tokens`),
-            },
-        },
+	name: "ANTHROPIC_CLAUDE_MODELS",
+	value: [
+		{
+			modelVariant: "CHAT",
+			modelTitle: "Claude 3.5 Sonnet",
+			modelName: "claude-3-5-sonnet-20240620",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$15.00 / 1M tokens`),
+			},
+		},
+		{
+			modelVariant: "CHAT",
+			modelTitle: "Claude 3 Opus",
+			modelName: "claude-3-opus-20240229",
+			pricing: {
+				prompt: computeUsage(`$15.00 / 1M tokens`),
+				output: computeUsage(`$75.00 / 1M tokens`),
+			},
+		},
+		{
+			modelVariant: "CHAT",
+			modelTitle: "Claude 3 Sonnet",
+			modelName: "claude-3-sonnet-20240229",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$15.00 / 1M tokens`),
+			},
+		},
+		{
+			modelVariant: "CHAT",
+			modelTitle: "Claude 3 Haiku",
+			modelName: "	claude-3-haiku-20240307",
+			pricing: {
+				prompt: computeUsage(`$0.25 / 1M tokens`),
+				output: computeUsage(`$1.25 / 1M tokens`),
+			},
+		},
+		{
+			modelVariant: "CHAT",
+			modelTitle: "Claude 2.1",
+			modelName: "claude-2.1",
+			pricing: {
+				prompt: computeUsage(`$8.00 / 1M tokens`),
+				output: computeUsage(`$24.00 / 1M tokens`),
+			},
+		},
+		{
+			modelVariant: "CHAT",
+			modelTitle: "Claude 2",
+			modelName: "claude-2.0",
+			pricing: {
+				prompt: computeUsage(`$8.00 / 1M tokens`),
+				output: computeUsage(`$24.00 / 1M tokens`),
+			},
+		},
+		{
+			modelVariant: "CHAT",
+			modelTitle: "	Claude Instant 1.2",
+			modelName: "claude-instant-1.2",
+			pricing: {
+				prompt: computeUsage(`$0.80 / 1M tokens`),
+				output: computeUsage(`$2.40 / 1M tokens`),
+			},
+		},
 
-        // TODO: [main] !!3 Claude 1 and 2 has also completion versions - ask Hoagy
-    ],
+		// TODO: [main] !!3 Claude 1 and 2 has also completion versions - ask Hoagy
+	],
 });
 
 /**

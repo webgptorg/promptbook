@@ -5,5 +5,5 @@
  * @see @@@ https://github.com/webgptorg/promptbook#promptbook
  */
 export type PipelineString = string & {
-    readonly _type: 'Promptbook' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
+	readonly _type: "Promptbook" /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
 };

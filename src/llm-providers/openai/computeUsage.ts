@@ -14,7 +14,11 @@ type string_model_price = `$${number}.${number} / ${number}M tokens`;
  * @private within the repository, used only as internal helper for `OPENAI_MODELS`
  */
 export function computeUsage(value: string_model_price): number {
-    const [price, tokens] = value.split(' / ');
+	const [price, tokens] = value.split(" / ");
 
-    return parseFloat(price!.replace('$', '')) / parseFloat(tokens!.replace('M tokens', '')) / 1000000;
+	return (
+		Number.parseFloat(price!.replace("$", "")) /
+		Number.parseFloat(tokens!.replace("M tokens", "")) /
+		1000000
+	);
 }

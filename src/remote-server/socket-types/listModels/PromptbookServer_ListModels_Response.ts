@@ -1,4 +1,4 @@
-import type { AvailableModel } from '../../../execution/AvailableModel';
+import type { AvailableModel } from "../../../execution/AvailableModel";
 
 /**
  * Models available for use in the server
@@ -8,10 +8,10 @@ import type { AvailableModel } from '../../../execution/AvailableModel';
  * @private internal type of remote server
  */
 export type PromptbookServer_ListModels_Response = {
-    /**
-     * Available models that can be used
-     */
-    readonly models: ReadonlyArray<AvailableModel>;
+	/**
+	 * Available models that can be used
+	 */
+	readonly models: ReadonlyArray<AvailableModel>;
 };
 
 /**

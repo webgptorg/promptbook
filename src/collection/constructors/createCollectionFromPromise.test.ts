@@ -1,12 +1,12 @@
-import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
-import { forTime } from 'waitasecond';
-import { compilePipeline } from '../../conversion/compilePipeline';
-import type { PipelineString } from '../../pipeline/PipelineString';
-import { createCollectionFromPromise } from './createCollectionFromPromise';
+import { describe, expect, it } from "@jest/globals";
+import spaceTrim from "spacetrim";
+import { forTime } from "waitasecond";
+import { compilePipeline } from "../../conversion/compilePipeline";
+import type { PipelineString } from "../../pipeline/PipelineString";
+import { createCollectionFromPromise } from "./createCollectionFromPromise";
 
-describe('createCollectionFromPromise', () => {
-    const pipeline = spaceTrim(`
+describe("createCollectionFromPromise", () => {
+	const pipeline = spaceTrim(`
             # Example prompt
 
             Show how to use a simple completion prompt
@@ -31,18 +31,18 @@ describe('createCollectionFromPromise', () => {
 
             -> {response}
          `) as PipelineString;
-    // <- TODO: [📼] Use`book\`` string literal notation
+	// <- TODO: [📼] Use`book\`` string literal notation
 
-    const collection = createCollectionFromPromise(async () => {
-        await forTime(100);
-        return [await compilePipeline(pipeline)];
-    });
+	const collection = createCollectionFromPromise(async () => {
+		await forTime(100);
+		return [await compilePipeline(pipeline)];
+	});
 
-    it('should get pipeline by url from collection', async () => {
-        expect.assertions(1);
-        const pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/examples/pipeline.book',
-        );
-        expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline));
-    });
+	it("should get pipeline by url from collection", async () => {
+		expect.assertions(1);
+		const pipelineFromCollection = await collection.getPipelineByUrl(
+			"https://promptbook.studio/examples/pipeline.book",
+		);
+		expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline));
+	});
 });

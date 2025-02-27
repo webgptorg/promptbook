@@ -1,4 +1,4 @@
-import type { ForeachJson } from './ForeachJson';
+import type { ForeachJson } from "./ForeachJson";
 
 /**
  * Parsed FOREACH command which is used to iterate over a table of values
@@ -7,5 +7,5 @@ import type { ForeachJson } from './ForeachJson';
  * @public exported from `@promptbook/editable`
  */
 export type ForeachCommand = {
-    readonly type: 'FOREACH';
+	readonly type: "FOREACH";
 } & ForeachJson;

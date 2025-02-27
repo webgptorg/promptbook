@@ -1,6 +1,6 @@
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
-import { AzureOpenAiExecutionTools } from './AzureOpenAiExecutionTools';
-import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
+import type { LlmExecutionToolsConstructor } from "../../execution/LlmExecutionToolsConstructor";
+import { AzureOpenAiExecutionTools } from "./AzureOpenAiExecutionTools";
+import type { AzureOpenAiExecutionToolsOptions } from "./AzureOpenAiExecutionToolsOptions";
 
 /**
  * Execution Tools for calling Azure OpenAI API
@@ -8,13 +8,13 @@ import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToo
  * @public exported from `@promptbook/azure-openai`
  */
 export const createAzureOpenAiExecutionTools = Object.assign(
-    (options: AzureOpenAiExecutionToolsOptions): AzureOpenAiExecutionTools => {
-        return new AzureOpenAiExecutionTools(options);
-    },
-    {
-        packageName: '@promptbook/azure-openai',
-        className: 'AzureOpenAiExecutionTools',
-    },
+	(options: AzureOpenAiExecutionToolsOptions): AzureOpenAiExecutionTools => {
+		return new AzureOpenAiExecutionTools(options);
+	},
+	{
+		packageName: "@promptbook/azure-openai",
+		className: "AzureOpenAiExecutionTools",
+	},
 ) satisfies LlmExecutionToolsConstructor;
 
 /**

@@ -1,8 +1,8 @@
-import spaceTrim from 'spacetrim';
-import { DEFAULT_BOOK_TITLE } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
-import { parseMarkdownSection } from './parseMarkdownSection';
-import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
+import spaceTrim from "spacetrim";
+import { DEFAULT_BOOK_TITLE } from "../../config";
+import type { string_markdown } from "../../types/typeAliases";
+import { parseMarkdownSection } from "./parseMarkdownSection";
+import { splitMarkdownIntoSections } from "./splitMarkdownIntoSections";
 
 /**
  * Normalizes the markdown by flattening the structure
@@ -12,32 +12,34 @@ import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function flattenMarkdown<TContent extends string_markdown>(markdown: TContent): TContent {
-    const sections = splitMarkdownIntoSections(markdown);
+export function flattenMarkdown<TContent extends string_markdown>(
+	markdown: TContent,
+): TContent {
+	const sections = splitMarkdownIntoSections(markdown);
 
-    if (sections.length === 0) {
-        return `# ${DEFAULT_BOOK_TITLE}` as TContent;
-    }
+	if (sections.length === 0) {
+		return `# ${DEFAULT_BOOK_TITLE}` as TContent;
+	}
 
-    let flattenedMarkdown: string_markdown = '';
+	let flattenedMarkdown: string_markdown = "";
 
-    const parsedSections = sections.map(parseMarkdownSection);
-    const firstSection = parsedSections.shift()!;
+	const parsedSections = sections.map(parseMarkdownSection);
+	const firstSection = parsedSections.shift()!;
 
-    if (firstSection.level === 1) {
-        flattenedMarkdown += `# ${firstSection.title}` + `\n\n`;
-        flattenedMarkdown += firstSection.content + `\n\n`; // <- [🧠] Maybe 3 new lines?
-    } else {
-        parsedSections.unshift(firstSection);
-        flattenedMarkdown += `# ${DEFAULT_BOOK_TITLE}` + `\n\n`; // <- [🧠] Maybe 3 new lines?
-    }
+	if (firstSection.level === 1) {
+		flattenedMarkdown += `# ${firstSection.title}` + `\n\n`;
+		flattenedMarkdown += firstSection.content + `\n\n`; // <- [🧠] Maybe 3 new lines?
+	} else {
+		parsedSections.unshift(firstSection);
+		flattenedMarkdown += `# ${DEFAULT_BOOK_TITLE}` + `\n\n`; // <- [🧠] Maybe 3 new lines?
+	}
 
-    for (const { title, content } of parsedSections) {
-        flattenedMarkdown += `## ${title}` + `\n\n`;
-        flattenedMarkdown += content + `\n\n`; // <- [🧠] Maybe 3 new lines?
-    }
+	for (const { title, content } of parsedSections) {
+		flattenedMarkdown += `## ${title}` + `\n\n`;
+		flattenedMarkdown += content + `\n\n`; // <- [🧠] Maybe 3 new lines?
+	}
 
-    return spaceTrim(flattenedMarkdown) as TContent;
+	return spaceTrim(flattenedMarkdown) as TContent;
 }
 
 /**

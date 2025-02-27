@@ -1,9 +1,9 @@
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
-import type { TODO_object } from '../utils/organization/TODO_object';
-import type { EmbeddingVector } from './EmbeddingVector';
-import type { PromptResultUsage } from './PromptResultUsage';
+import type { string_date_iso8601 } from "../types/typeAliases";
+import type { string_model_name } from "../types/typeAliases";
+import type { string_prompt } from "../types/typeAliases";
+import type { TODO_object } from "../utils/organization/TODO_object";
+import type { EmbeddingVector } from "./EmbeddingVector";
+import type { PromptResultUsage } from "./PromptResultUsage";
 
 /**
  * Prompt result is the simplest concept of execution.
@@ -11,7 +11,10 @@ import type { PromptResultUsage } from './PromptResultUsage';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = CompletionPromptResult | ChatPromptResult | EmbeddingPromptResult /* <- [🤖] */;
+export type PromptResult =
+	| CompletionPromptResult
+	| ChatPromptResult
+	| EmbeddingPromptResult /* <- [🤖] */;
 
 /**
  * Completion prompt result
@@ -27,7 +30,7 @@ export type CompletionPromptResult = CommonPromptResult;
  * Note: [🚉] This is fully serializable as JSON
  */
 export type ChatPromptResult = CommonPromptResult & {
-    // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+	// TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
 };
 
 /**
@@ -35,11 +38,11 @@ export type ChatPromptResult = CommonPromptResult & {
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
-    /**
-     * The response from the model
-     */
-    content: EmbeddingVector;
+export type EmbeddingPromptResult = Omit<CommonPromptResult, "content"> & {
+	/**
+	 * The response from the model
+	 */
+	content: EmbeddingVector;
 };
 
 // <- Note: [🤖] Add new model variant here
@@ -52,64 +55,64 @@ export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
  * @private just abstract the common properties of the prompt results
  */
 export type CommonPromptResult = {
-    // TODO: [🗯] Unique messageId + threadId + remoteId
-    // TODO: [🗯] prompt
+	// TODO: [🗯] Unique messageId + threadId + remoteId
+	// TODO: [🗯] prompt
 
-    /**
-     * Exact text response from the model
-     */
-    readonly content: string;
+	/**
+	 * Exact text response from the model
+	 */
+	readonly content: string;
 
-    /**
-     * Name of the model used to generate the response
-     */
-    readonly modelName: string_model_name;
+	/**
+	 * Name of the model used to generate the response
+	 */
+	readonly modelName: string_model_name;
 
-    /**
-     * Timing
-     */
-    readonly timing: {
-        /**
-         * Start of the execution
-         */
-        readonly start: string_date_iso8601;
+	/**
+	 * Timing
+	 */
+	readonly timing: {
+		/**
+		 * Start of the execution
+		 */
+		readonly start: string_date_iso8601;
 
-        /**
-         * First token generated
-         */
-        readonly firstToken?: string_date_iso8601;
+		/**
+		 * First token generated
+		 */
+		readonly firstToken?: string_date_iso8601;
 
-        /**
-         * End of the execution
-         */
-        readonly complete: string_date_iso8601;
-    };
+		/**
+		 * End of the execution
+		 */
+		readonly complete: string_date_iso8601;
+	};
 
-    /**
-     * Usage of the prompt execution
-     */
-    readonly usage: PromptResultUsage;
+	/**
+	 * Usage of the prompt execution
+	 */
+	readonly usage: PromptResultUsage;
 
-    /**
-     * Exact text of the prompt (with all replacements)
-     *
-     * Note: This contains redundant information
-     */
-    readonly rawPromptContent: string_prompt;
+	/**
+	 * Exact text of the prompt (with all replacements)
+	 *
+	 * Note: This contains redundant information
+	 */
+	readonly rawPromptContent: string_prompt;
 
-    /**
-     * Raw request to the model
-     *
-     * Note: This contains redundant information
-     */
-    readonly rawRequest: TODO_object | null;
+	/**
+	 * Raw request to the model
+	 *
+	 * Note: This contains redundant information
+	 */
+	readonly rawRequest: TODO_object | null;
 
-    /**
-     * Raw response from the model
-     *
-     * Note: This contains redundant information
-     */
-    readonly rawResponse: TODO_object;
+	/**
+	 * Raw response from the model
+	 *
+	 * Note: This contains redundant information
+	 */
+	readonly rawResponse: TODO_object;
 };
 
 /**

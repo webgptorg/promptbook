@@ -1,38 +1,38 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { just } from '../organization/just';
-import { escapeMarkdownBlock } from './escapeMarkdownBlock';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { just } from "../organization/just";
+import { escapeMarkdownBlock } from "./escapeMarkdownBlock";
 
-describe('how escapeMarkdownBlock works', () => {
-    it('should work with string that does not need any escaping', () => {
-        expect(escapeMarkdownBlock('Foo')).toBe('Foo');
-        expect(
-            escapeMarkdownBlock(
-                spaceTrim(`
+describe("how escapeMarkdownBlock works", () => {
+	it("should work with string that does not need any escaping", () => {
+		expect(escapeMarkdownBlock("Foo")).toBe("Foo");
+		expect(
+			escapeMarkdownBlock(
+				spaceTrim(`
                     Foo
 
                     Bar
 
                     Baz
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Foo
 
                     Bar
 
                     Baz
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should work with block in block', () => {
-        expect(
-            escapeMarkdownBlock(
-                spaceTrim(`
+	it("should work with block in block", () => {
+		expect(
+			escapeMarkdownBlock(
+				spaceTrim(`
                     Foo
 
                     \`\`\`javascript
@@ -41,10 +41,10 @@ describe('how escapeMarkdownBlock works', () => {
 
                     Baz
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Foo
 
                     \\\`\\\`\\\`javascript
@@ -53,7 +53,7 @@ describe('how escapeMarkdownBlock works', () => {
 
                     Baz
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 });

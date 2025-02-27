@@ -1,6 +1,6 @@
-import type { ClientOptions } from '@anthropic-ai/sdk';
-import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { RemoteClientOptions } from '../../remote-server/types/RemoteClientOptions';
+import type { ClientOptions } from "@anthropic-ai/sdk";
+import type { CommonToolsOptions } from "../../execution/CommonToolsOptions";
+import type { RemoteClientOptions } from "../../remote-server/types/RemoteClientOptions";
 
 /**
  * Options for `AnthropicClaudeExecutionTools`
@@ -9,8 +9,8 @@ import type { RemoteClientOptions } from '../../remote-server/types/RemoteClient
  * @public exported from `@promptbook/anthropic-claude`
  */
 export type AnthropicClaudeExecutionToolsOptions =
-    | AnthropicClaudeExecutionToolsDirectOptions
-    | AnthropicClaudeExecutionToolsProxiedOptions;
+	| AnthropicClaudeExecutionToolsDirectOptions
+	| AnthropicClaudeExecutionToolsProxiedOptions;
 
 /**
  * Options for directly used `AnthropicClaudeExecutionTools`
@@ -19,9 +19,9 @@ export type AnthropicClaudeExecutionToolsOptions =
  * @public exported from `@promptbook/anthropic-claude`
  */
 export type AnthropicClaudeExecutionToolsDirectOptions = CommonToolsOptions &
-    ClientOptions & {
-        isProxied?: false;
-    };
+	ClientOptions & {
+		isProxied?: false;
+	};
 
 /**
  * Options for proxied `AnthropicClaudeExecutionTools`
@@ -30,9 +30,9 @@ export type AnthropicClaudeExecutionToolsDirectOptions = CommonToolsOptions &
  * @public exported from `@promptbook/anthropic-claude`
  */
 export type AnthropicClaudeExecutionToolsProxiedOptions = CommonToolsOptions &
-    ClientOptions & {
-        isProxied: true;
-    } & Pick<RemoteClientOptions<undefined>, 'remoteUrl' | 'path'>;
+	ClientOptions & {
+		isProxied: true;
+	} & Pick<RemoteClientOptions<undefined>, "remoteUrl" | "path">;
 
 /**
  * TODO: [🧠][🤺] Pass `userId`

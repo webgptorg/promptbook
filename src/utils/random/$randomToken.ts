@@ -1,5 +1,5 @@
-import { randomBytes } from 'crypto';
-import type { string_token } from '../../types/typeAliases';
+import { randomBytes } from "crypto";
+import type { string_token } from "../../types/typeAliases";
 
 /**
  * Generates random token
@@ -10,7 +10,7 @@ import type { string_token } from '../../types/typeAliases';
  * @returns secure random token
  */
 export function $randomToken(randomness: number): string_token {
-    return randomBytes(randomness).toString('hex');
+	return randomBytes(randomness).toString("hex");
 }
 
 /**

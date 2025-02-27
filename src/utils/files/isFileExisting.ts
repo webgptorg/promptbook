@@ -1,27 +1,30 @@
-import type { FilesystemTools } from '../../execution/FilesystemTools';
-import type { string_filename } from '../../types/typeAliases';
+import type { FilesystemTools } from "../../execution/FilesystemTools";
+import type { string_filename } from "../../types/typeAliases";
 
 /**
  * Checks if the file exists
  *
  * @private within the repository
  */
-export async function isFileExisting(filename: string_filename, fs: FilesystemTools): Promise<boolean> {
-    const isReadAccessAllowed = await fs
-        .access(filename, fs.constants.R_OK)
-        .then(() => true)
-        .catch(() => false);
+export async function isFileExisting(
+	filename: string_filename,
+	fs: FilesystemTools,
+): Promise<boolean> {
+	const isReadAccessAllowed = await fs
+		.access(filename, fs.constants.R_OK)
+		.then(() => true)
+		.catch(() => false);
 
-    if (!isReadAccessAllowed) {
-        return false;
-    }
+	if (!isReadAccessAllowed) {
+		return false;
+	}
 
-    const isFile = await fs
-        .stat(filename)
-        .then((fileStat) => fileStat.isFile())
-        .catch(() => false);
+	const isFile = await fs
+		.stat(filename)
+		.then((fileStat) => fileStat.isFile())
+		.catch(() => false);
 
-    return isFile;
+	return isFile;
 }
 
 /**

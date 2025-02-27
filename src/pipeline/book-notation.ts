@@ -1,7 +1,7 @@
-import spaceTrim from 'spacetrim';
-import type { PipelineString } from './PipelineString';
-import { isValidPipelineString } from './isValidPipelineString';
-import { prompt } from './prompt-notation';
+import spaceTrim from "spacetrim";
+import type { PipelineString } from "./PipelineString";
+import { isValidPipelineString } from "./isValidPipelineString";
+import { prompt } from "./prompt-notation";
 
 /**
  * Tag function for notating a pipeline with a book\`...\ notation as template literal
@@ -16,23 +16,26 @@ import { prompt } from './prompt-notation';
  * @returns the pipeline string
  * @public exported from `@promptbook/core`
  */
-export function book(strings: TemplateStringsArray, ...values: Array<string>): PipelineString {
-    const pipelineString = prompt(strings, ...values);
+export function book(
+	strings: TemplateStringsArray,
+	...values: Array<string>
+): PipelineString {
+	const pipelineString = prompt(strings, ...values);
 
-    if (!isValidPipelineString(pipelineString)) {
-        // TODO: Make the CustomError for this
-        throw new Error(
-            spaceTrim(`
+	if (!isValidPipelineString(pipelineString)) {
+		// TODO: Make the CustomError for this
+		throw new Error(
+			spaceTrim(`
                 The string is not a valid pipeline string
 
                 book\`
                     ${pipelineString}
                 \`
             `),
-        );
-    }
+		);
+	}
 
-    return pipelineString;
+	return pipelineString;
 }
 
 /**

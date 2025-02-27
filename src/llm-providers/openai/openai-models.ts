@@ -1,7 +1,7 @@
-import type { AvailableModel } from '../../execution/AvailableModel';
-import type { number_usd } from '../../types/typeAliases';
-import { exportJson } from '../../utils/serialization/exportJson';
-import { computeUsage } from './computeUsage';
+import type { AvailableModel } from "../../execution/AvailableModel";
+import type { number_usd } from "../../types/typeAliases";
+import { exportJson } from "../../utils/serialization/exportJson";
+import { computeUsage } from "./computeUsage";
 
 /**
  * List of available OpenAI models with pricing
@@ -13,99 +13,99 @@ import { computeUsage } from './computeUsage';
  * @public exported from `@promptbook/openai`
  */
 export const OPENAI_MODELS: ReadonlyArray<
-    AvailableModel & {
-        pricing?: {
-            readonly prompt: number_usd;
-            readonly output: number_usd;
-        };
-    }
+	AvailableModel & {
+		pricing?: {
+			readonly prompt: number_usd;
+			readonly output: number_usd;
+		};
+	}
 > = exportJson({
-    name: 'OPENAI_MODELS',
-    value: [
-        /*/
+	name: "OPENAI_MODELS",
+	value: [
+		/*/
           {
               modelTitle: 'dall-e-3',
               modelName: 'dall-e-3',
           },
           /**/
 
-        /*/
+		/*/
           {
               modelTitle: 'whisper-1',
               modelName: 'whisper-1',
           },
         /**/
 
-        /**/
-        {
-            modelVariant: 'COMPLETION',
-            modelTitle: 'davinci-002',
-            modelName: 'davinci-002',
-            pricing: {
-                prompt: computeUsage(`$2.00 / 1M tokens`), // <- not sure
-                output: computeUsage(`$2.00 / 1M tokens`), // <- not sure
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "COMPLETION",
+			modelTitle: "davinci-002",
+			modelName: "davinci-002",
+			pricing: {
+				prompt: computeUsage(`$2.00 / 1M tokens`), // <- not sure
+				output: computeUsage(`$2.00 / 1M tokens`), // <- not sure
+			},
+		},
+		/**/
 
-        /*/
+		/*/
       {
           modelTitle: 'dall-e-2',
           modelName: 'dall-e-2',
       },
       /**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-3.5-turbo-16k',
-            modelName: 'gpt-3.5-turbo-16k',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$4.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-3.5-turbo-16k",
+			modelName: "gpt-3.5-turbo-16k",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$4.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /*/
+		/*/
       {
           modelTitle: 'tts-1-hd-1106',
           modelName: 'tts-1-hd-1106',
       },
       /**/
 
-        /*/
+		/*/
       {
           modelTitle: 'tts-1-hd',
           modelName: 'tts-1-hd',
       },
       /**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4',
-            modelName: 'gpt-4',
-            pricing: {
-                prompt: computeUsage(`$30.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4",
+			modelName: "gpt-4",
+			pricing: {
+				prompt: computeUsage(`$30.00 / 1M tokens`),
+				output: computeUsage(`$60.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4-32k',
-            modelName: 'gpt-4-32k',
-            pricing: {
-                prompt: computeUsage(`$60.00 / 1M tokens`),
-                output: computeUsage(`$120.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4-32k",
+			modelName: "gpt-4-32k",
+			pricing: {
+				prompt: computeUsage(`$60.00 / 1M tokens`),
+				output: computeUsage(`$120.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /*/
+		/*/
         {
             modelVariant: 'CHAT',
             modelTitle: 'gpt-4-0613',
@@ -117,216 +117,216 @@ export const OPENAI_MODELS: ReadonlyArray<
         },
         /**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4-turbo-2024-04-09',
-            modelName: 'gpt-4-turbo-2024-04-09',
-            pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4-turbo-2024-04-09",
+			modelName: "gpt-4-turbo-2024-04-09",
+			pricing: {
+				prompt: computeUsage(`$10.00 / 1M tokens`),
+				output: computeUsage(`$30.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-3.5-turbo-1106',
-            modelName: 'gpt-3.5-turbo-1106',
-            pricing: {
-                prompt: computeUsage(`$1.00 / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-3.5-turbo-1106",
+			modelName: "gpt-3.5-turbo-1106",
+			pricing: {
+				prompt: computeUsage(`$1.00 / 1M tokens`),
+				output: computeUsage(`$2.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4-turbo',
-            modelName: 'gpt-4-turbo',
-            pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4-turbo",
+			modelName: "gpt-4-turbo",
+			pricing: {
+				prompt: computeUsage(`$10.00 / 1M tokens`),
+				output: computeUsage(`$30.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'COMPLETION',
-            modelTitle: 'gpt-3.5-turbo-instruct-0914',
-            modelName: 'gpt-3.5-turbo-instruct-0914',
-            pricing: {
-                prompt: computeUsage(`$1.50  / 1M tokens`), // <- For gpt-3.5-turbo-instruct
-                output: computeUsage(`$2.00 / 1M tokens`), // <- For gpt-3.5-turbo-instruct
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "COMPLETION",
+			modelTitle: "gpt-3.5-turbo-instruct-0914",
+			modelName: "gpt-3.5-turbo-instruct-0914",
+			pricing: {
+				prompt: computeUsage(`$1.50  / 1M tokens`), // <- For gpt-3.5-turbo-instruct
+				output: computeUsage(`$2.00 / 1M tokens`), // <- For gpt-3.5-turbo-instruct
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'COMPLETION',
-            modelTitle: 'gpt-3.5-turbo-instruct',
-            modelName: 'gpt-3.5-turbo-instruct',
-            pricing: {
-                prompt: computeUsage(`$1.50  / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "COMPLETION",
+			modelTitle: "gpt-3.5-turbo-instruct",
+			modelName: "gpt-3.5-turbo-instruct",
+			pricing: {
+				prompt: computeUsage(`$1.50  / 1M tokens`),
+				output: computeUsage(`$2.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /*/
+		/*/
       {
           modelTitle: 'tts-1',
           modelName: 'tts-1',
       },
       /**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-3.5-turbo',
-            modelName: 'gpt-3.5-turbo',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`), // <- Not sure, refer to gpt-3.5-turbo in Fine-tuning models
-                output: computeUsage(`$6.00 / 1M tokens`), // <- Not sure, refer to gpt-3.5-turbo in Fine-tuning models
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-3.5-turbo",
+			modelName: "gpt-3.5-turbo",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`), // <- Not sure, refer to gpt-3.5-turbo in Fine-tuning models
+				output: computeUsage(`$6.00 / 1M tokens`), // <- Not sure, refer to gpt-3.5-turbo in Fine-tuning models
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-3.5-turbo-0301',
-            modelName: 'gpt-3.5-turbo-0301',
-            pricing: {
-                prompt: computeUsage(`$1.50 / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-3.5-turbo-0301",
+			modelName: "gpt-3.5-turbo-0301",
+			pricing: {
+				prompt: computeUsage(`$1.50 / 1M tokens`),
+				output: computeUsage(`$2.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'COMPLETION',
-            modelTitle: 'babbage-002',
-            modelName: 'babbage-002',
-            pricing: {
-                prompt: computeUsage(`$0.40 / 1M tokens`), // <- Not sure
-                output: computeUsage(`$0.40 / 1M tokens`), // <- Not sure
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "COMPLETION",
+			modelTitle: "babbage-002",
+			modelName: "babbage-002",
+			pricing: {
+				prompt: computeUsage(`$0.40 / 1M tokens`), // <- Not sure
+				output: computeUsage(`$0.40 / 1M tokens`), // <- Not sure
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4-1106-preview',
-            modelName: 'gpt-4-1106-preview',
-            pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4-1106-preview",
+			modelName: "gpt-4-1106-preview",
+			pricing: {
+				prompt: computeUsage(`$10.00 / 1M tokens`),
+				output: computeUsage(`$30.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4-0125-preview',
-            modelName: 'gpt-4-0125-preview',
-            pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4-0125-preview",
+			modelName: "gpt-4-0125-preview",
+			pricing: {
+				prompt: computeUsage(`$10.00 / 1M tokens`),
+				output: computeUsage(`$30.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /*/
+		/*/
       {
           modelTitle: 'tts-1-1106',
           modelName: 'tts-1-1106',
       },
       /**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-3.5-turbo-0125',
-            modelName: 'gpt-3.5-turbo-0125',
-            pricing: {
-                prompt: computeUsage(`$0.50 / 1M tokens`),
-                output: computeUsage(`$1.50  / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-3.5-turbo-0125",
+			modelName: "gpt-3.5-turbo-0125",
+			pricing: {
+				prompt: computeUsage(`$0.50 / 1M tokens`),
+				output: computeUsage(`$1.50  / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4-turbo-preview',
-            modelName: 'gpt-4-turbo-preview',
-            pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`), // <- Not sure, just for gpt-4-turbo
-                output: computeUsage(`$30.00 / 1M tokens`), // <- Not sure, just for gpt-4-turbo
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4-turbo-preview",
+			modelName: "gpt-4-turbo-preview",
+			pricing: {
+				prompt: computeUsage(`$10.00 / 1M tokens`), // <- Not sure, just for gpt-4-turbo
+				output: computeUsage(`$30.00 / 1M tokens`), // <- Not sure, just for gpt-4-turbo
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'EMBEDDING',
-            modelTitle: 'text-embedding-3-large',
-            modelName: 'text-embedding-3-large',
-            pricing: {
-                prompt: computeUsage(`$0.13  / 1M tokens`),
-                // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
-                output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "EMBEDDING",
+			modelTitle: "text-embedding-3-large",
+			modelName: "text-embedding-3-large",
+			pricing: {
+				prompt: computeUsage(`$0.13  / 1M tokens`),
+				// TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
+				output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'EMBEDDING',
-            modelTitle: 'text-embedding-3-small',
-            modelName: 'text-embedding-3-small',
-            pricing: {
-                prompt: computeUsage(`$0.02 / 1M tokens`),
-                // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
-                output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "EMBEDDING",
+			modelTitle: "text-embedding-3-small",
+			modelName: "text-embedding-3-small",
+			pricing: {
+				prompt: computeUsage(`$0.02 / 1M tokens`),
+				// TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
+				output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-3.5-turbo-0613',
-            modelName: 'gpt-3.5-turbo-0613',
-            pricing: {
-                prompt: computeUsage(`$1.50 / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-3.5-turbo-0613",
+			modelName: "gpt-3.5-turbo-0613",
+			pricing: {
+				prompt: computeUsage(`$1.50 / 1M tokens`),
+				output: computeUsage(`$2.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'EMBEDDING',
-            modelTitle: 'text-embedding-ada-002',
-            modelName: 'text-embedding-ada-002',
-            pricing: {
-                prompt: computeUsage(`$0.1 / 1M tokens`), // <- Not sure, taken from https://tokescompare.io/product/openai-text-embedding-ada-002/, no official pricing
-                // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
-                output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "EMBEDDING",
+			modelTitle: "text-embedding-ada-002",
+			modelName: "text-embedding-ada-002",
+			pricing: {
+				prompt: computeUsage(`$0.1 / 1M tokens`), // <- Not sure, taken from https://tokescompare.io/product/openai-text-embedding-ada-002/, no official pricing
+				// TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
+				output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
+			},
+		},
+		/**/
 
-        /*/
+		/*/
       {
           modelVariant: 'CHAT',
           modelTitle: 'gpt-4-1106-vision-preview',
@@ -334,7 +334,7 @@ export const OPENAI_MODELS: ReadonlyArray<
       },
       /**/
 
-        /*/
+		/*/
       {
           modelVariant: 'CHAT',
           modelTitle: 'gpt-4-vision-preview',
@@ -346,118 +346,118 @@ export const OPENAI_MODELS: ReadonlyArray<
       },
       /**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4o-2024-05-13',
-            modelName: 'gpt-4o-2024-05-13',
-            pricing: {
-                prompt: computeUsage(`$5.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
-            },
-            //TODO: [main] !!3 Add gpt-4o-mini-2024-07-18 and all others to be up to date
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4o-2024-05-13",
+			modelName: "gpt-4o-2024-05-13",
+			pricing: {
+				prompt: computeUsage(`$5.00 / 1M tokens`),
+				output: computeUsage(`$15.00 / 1M tokens`),
+			},
+			//TODO: [main] !!3 Add gpt-4o-mini-2024-07-18 and all others to be up to date
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4o',
-            modelName: 'gpt-4o',
-            pricing: {
-                prompt: computeUsage(`$5.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-4o",
+			modelName: "gpt-4o",
+			pricing: {
+				prompt: computeUsage(`$5.00 / 1M tokens`),
+				output: computeUsage(`$15.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'o1-preview',
-            modelName: 'o1-preview',
-            pricing: {
-                prompt: computeUsage(`$15.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "o1-preview",
+			modelName: "o1-preview",
+			pricing: {
+				prompt: computeUsage(`$15.00 / 1M tokens`),
+				output: computeUsage(`$60.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'o1-preview-2024-09-12',
-            modelName: 'o1-preview-2024-09-12',
-            //             <- TODO: [💩] Some better system to organize theese date suffixes and versions
-            pricing: {
-                prompt: computeUsage(`$15.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "o1-preview-2024-09-12",
+			modelName: "o1-preview-2024-09-12",
+			//             <- TODO: [💩] Some better system to organize theese date suffixes and versions
+			pricing: {
+				prompt: computeUsage(`$15.00 / 1M tokens`),
+				output: computeUsage(`$60.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'o1-mini',
-            modelName: 'o1-mini',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "o1-mini",
+			modelName: "o1-mini",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$12.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'o1',
-            modelName: 'o1',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
-                // <- TODO: !! Unsure, check the pricing
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "o1",
+			modelName: "o1",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$12.00 / 1M tokens`),
+				// <- TODO: !! Unsure, check the pricing
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'o3-mini',
-            modelName: 'o3-mini',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
-                // <- TODO: !! Unsure, check the pricing
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "o3-mini",
+			modelName: "o3-mini",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$12.00 / 1M tokens`),
+				// <- TODO: !! Unsure, check the pricing
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'o1-mini-2024-09-12',
-            modelName: 'o1-mini-2024-09-12',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
-            },
-        },
-        /**/
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "o1-mini-2024-09-12",
+			modelName: "o1-mini-2024-09-12",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$12.00 / 1M tokens`),
+			},
+		},
+		/**/
 
-        /**/
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-3.5-turbo-16k-0613',
-            modelName: 'gpt-3.5-turbo-16k-0613',
-            pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$4.00 / 1M tokens`),
-            },
-        },
-        /**/
-    ],
+		/**/
+		{
+			modelVariant: "CHAT",
+			modelTitle: "gpt-3.5-turbo-16k-0613",
+			modelName: "gpt-3.5-turbo-16k-0613",
+			pricing: {
+				prompt: computeUsage(`$3.00 / 1M tokens`),
+				output: computeUsage(`$4.00 / 1M tokens`),
+			},
+		},
+		/**/
+	],
 });
 
 /**

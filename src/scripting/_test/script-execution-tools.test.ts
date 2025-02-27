@@ -1,42 +1,46 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { compilePipeline } from '../../conversion/compilePipeline';
-import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
-import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../../pipeline/PipelineString';
-import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { compilePipeline } from "../../conversion/compilePipeline";
+import { CallbackInterfaceTools } from "../../dialogs/callback/CallbackInterfaceTools";
+import { createPipelineExecutor } from "../../execution/createPipelineExecutor/00-createPipelineExecutor";
+import { MockedEchoLlmExecutionTools } from "../../llm-providers/mocked/MockedEchoLlmExecutionTools";
+import type { PipelineString } from "../../pipeline/PipelineString";
+import { JavascriptExecutionTools } from "../javascript/JavascriptExecutionTools";
 
-describe('createPipelineExecutor + executing scripts in promptbook', () => {
-    it('should work when every INPUT  PARAMETER defined', () => {
-        expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ thing: 'apple' }).asPromise()),
-        ).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                bhing: 'bpple',
-            },
-        });
-        expect(
-            getPipelineExecutor().then((pipelineExecutor) =>
-                pipelineExecutor({ thing: 'a cup of coffee' }).asPromise(),
-            ),
-        ).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                bhing: 'b cup of coffee',
-            },
-        });
-    });
+describe("createPipelineExecutor + executing scripts in promptbook", () => {
+	it("should work when every INPUT  PARAMETER defined", () => {
+		expect(
+			getPipelineExecutor().then((pipelineExecutor) =>
+				pipelineExecutor({ thing: "apple" }).asPromise(),
+			),
+		).resolves.toMatchObject({
+			isSuccessful: true,
+			errors: [],
+			outputParameters: {
+				bhing: "bpple",
+			},
+		});
+		expect(
+			getPipelineExecutor().then((pipelineExecutor) =>
+				pipelineExecutor({ thing: "a cup of coffee" }).asPromise(),
+			),
+		).resolves.toMatchObject({
+			isSuccessful: true,
+			errors: [],
+			outputParameters: {
+				bhing: "b cup of coffee",
+			},
+		});
+	});
 
-    it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({}).asPromise()),
-        ).resolves.toMatchObject({
-            isSuccessful: false,
-            /*
+	it("should fail when some INPUT  PARAMETER is missing", () => {
+		expect(
+			getPipelineExecutor().then((pipelineExecutor) =>
+				pipelineExecutor({}).asPromise(),
+			),
+		).resolves.toMatchObject({
+			isSuccessful: false,
+			/*
             TODO:
             errors: [
                 new PipelineExecutionError(
@@ -56,17 +60,21 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 ),
             ],
             */
-        });
+		});
 
-        expect(() =>
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({}).asPromise()),
-        ).rejects.toThrowError(/Parameter `\{thing\}` is required as an input parameter/);
-    });
+		expect(() =>
+			getPipelineExecutor().then((pipelineExecutor) =>
+				pipelineExecutor({}).asPromise(),
+			),
+		).rejects.toThrowError(
+			/Parameter `\{thing\}` is required as an input parameter/,
+		);
+	});
 });
 
 async function getPipelineExecutor() {
-    const pipeline = await compilePipeline(
-        spaceTrim(`
+	const pipeline = await compilePipeline(
+		spaceTrim(`
           # Example prompt
 
           Show how to execute a script
@@ -85,26 +93,26 @@ async function getPipelineExecutor() {
 
           -> {bhing}
       `) as PipelineString,
-        // <- TODO: [📼] Use`book\`` string literal notation
-    );
-    const pipelineExecutor = createPipelineExecutor({
-        pipeline,
-        tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-            script: [
-                new JavascriptExecutionTools({
-                    isVerbose: true,
-                    // Note: [🕎] Custom functions are tested elsewhere
-                }),
-            ],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
-                },
-            }),
-        },
-    });
+		// <- TODO: [📼] Use`book\`` string literal notation
+	);
+	const pipelineExecutor = createPipelineExecutor({
+		pipeline,
+		tools: {
+			llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+			script: [
+				new JavascriptExecutionTools({
+					isVerbose: true,
+					// Note: [🕎] Custom functions are tested elsewhere
+				}),
+			],
+			userInterface: new CallbackInterfaceTools({
+				isVerbose: true,
+				async callback() {
+					return "Hello";
+				},
+			}),
+		},
+	});
 
-    return pipelineExecutor;
+	return pipelineExecutor;
 }

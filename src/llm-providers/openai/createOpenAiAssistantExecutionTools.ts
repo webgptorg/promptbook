@@ -1,8 +1,8 @@
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
-import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
-import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
-import { OpenAiAssistantExecutionTools } from './OpenAiAssistantExecutionTools';
-import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { LlmExecutionToolsConstructor } from "../../execution/LlmExecutionToolsConstructor";
+import { $isRunningInBrowser } from "../../utils/environment/$isRunningInBrowser";
+import { $isRunningInWebWorker } from "../../utils/environment/$isRunningInWebWorker";
+import { OpenAiAssistantExecutionTools } from "./OpenAiAssistantExecutionTools";
+import type { OpenAiAssistantExecutionToolsOptions } from "./OpenAiAssistantExecutionToolsOptions";
 
 /**
  * Execution Tools for calling OpenAI API
@@ -10,19 +10,24 @@ import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExec
  * @public exported from `@promptbook/openai`
  */
 export const createOpenAiAssistantExecutionTools = Object.assign(
-    (options: OpenAiAssistantExecutionToolsOptions): OpenAiAssistantExecutionTools => {
-        // TODO: [🧠][main] !!4 If browser, auto add `dangerouslyAllowBrowser`
+	(
+		options: OpenAiAssistantExecutionToolsOptions,
+	): OpenAiAssistantExecutionTools => {
+		// TODO: [🧠][main] !!4 If browser, auto add `dangerouslyAllowBrowser`
 
-        if (($isRunningInBrowser() || $isRunningInWebWorker()) && !options.dangerouslyAllowBrowser) {
-            options = { ...options, dangerouslyAllowBrowser: true };
-        }
+		if (
+			($isRunningInBrowser() || $isRunningInWebWorker()) &&
+			!options.dangerouslyAllowBrowser
+		) {
+			options = { ...options, dangerouslyAllowBrowser: true };
+		}
 
-        return new OpenAiAssistantExecutionTools(options);
-    },
-    {
-        packageName: '@promptbook/openai',
-        className: 'OpenAiAssistantExecutionTools',
-    },
+		return new OpenAiAssistantExecutionTools(options);
+	},
+	{
+		packageName: "@promptbook/openai",
+		className: "OpenAiAssistantExecutionTools",
+	},
 ) satisfies LlmExecutionToolsConstructor;
 
 /**

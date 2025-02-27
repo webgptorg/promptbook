@@ -1,6 +1,6 @@
-import spaceTrim from 'spacetrim';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
+import spaceTrim from "spacetrim";
+import type { LlmExecutionTools } from "../../execution/LlmExecutionTools";
+import { MultipleLlmExecutionTools } from "./MultipleLlmExecutionTools";
 
 /**
  * Joins multiple LLM Execution Tools into one
@@ -18,20 +18,20 @@ import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
  * @public exported from `@promptbook/core`
  */
 export function joinLlmExecutionTools(
-    ...llmExecutionTools: ReadonlyArray<LlmExecutionTools>
+	...llmExecutionTools: ReadonlyArray<LlmExecutionTools>
 ): MultipleLlmExecutionTools {
-    if (llmExecutionTools.length === 0) {
-        const warningMessage = spaceTrim(`
+	if (llmExecutionTools.length === 0) {
+		const warningMessage = spaceTrim(`
             You have not provided any \`LlmExecutionTools\`
             This means that you won't be able to execute any prompts that require large language models like GPT-4 or Anthropic's Claude.
 
             Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.
         `);
 
-        // TODO: [🟥] Detect browser / node and make it colorfull
-        console.warn(warningMessage);
+		// TODO: [🟥] Detect browser / node and make it colorfull
+		console.warn(warningMessage);
 
-        /*
+		/*
         return {
             async listModels() {
                 // TODO: [🟥] Detect browser / node and make it colorfull
@@ -51,9 +51,9 @@ export function joinLlmExecutionTools(
             },
         };
         */
-    }
+	}
 
-    return new MultipleLlmExecutionTools(...llmExecutionTools);
+	return new MultipleLlmExecutionTools(...llmExecutionTools);
 }
 
 /**

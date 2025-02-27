@@ -1,5 +1,5 @@
-import type { createDeepSeek } from '@ai-sdk/deepseek';
-import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptions';
+import type { createDeepSeek } from "@ai-sdk/deepseek";
+import type { VercelExecutionToolsOptions } from "../vercel/VercelExecutionToolsOptions";
 
 /**
  * Options for `DeepseekExecutionTools`
@@ -8,7 +8,7 @@ import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionTools
  * @public exported from `@promptbook/deepseek`
  */
 export type DeepseekExecutionToolsOptions = Omit<
-    VercelExecutionToolsOptions,
-    'title' | 'description' | 'vercelProvider' | 'availableModels'
+	VercelExecutionToolsOptions,
+	"title" | "description" | "vercelProvider" | "availableModels"
 > &
-    Parameters<typeof createDeepSeek>[0];
+	Parameters<typeof createDeepSeek>[0];

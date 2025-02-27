@@ -1,14 +1,14 @@
-import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
+import type { LlmExecutionTools } from "../../../../execution/LlmExecutionTools";
+import type { PromptResultUsage } from "../../../../execution/PromptResultUsage";
 
 /**
  * LLM tools with option to get total usage of the execution
  */
 export type LlmExecutionToolsWithTotalUsage = LlmExecutionTools & {
-    /**
-     * Get total cost of the execution up to this point
-     */
-    getTotalUsage(): PromptResultUsage;
+	/**
+	 * Get total cost of the execution up to this point
+	 */
+	getTotalUsage(): PromptResultUsage;
 };
 
 /**

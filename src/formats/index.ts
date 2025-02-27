@@ -1,7 +1,7 @@
-import { CsvFormatDefinition } from './csv/CsvFormatDefinition';
-import { JsonFormatDefinition } from './json/JsonFormatDefinition';
-import { TextFormatDefinition } from './text/TextFormatDefinition';
-import { XmlFormatDefinition } from './xml/XmlFormatDefinition';
+import { CsvFormatDefinition } from "./csv/CsvFormatDefinition";
+import { JsonFormatDefinition } from "./json/JsonFormatDefinition";
+import { TextFormatDefinition } from "./text/TextFormatDefinition";
+import { XmlFormatDefinition } from "./xml/XmlFormatDefinition";
 
 /**
  * Definitions for all formats supported by Promptbook
@@ -9,12 +9,11 @@ import { XmlFormatDefinition } from './xml/XmlFormatDefinition';
  * @private internal index of `...` <- TODO [🏢]
  */
 export const FORMAT_DEFINITIONS = [
-    JsonFormatDefinition,
-    XmlFormatDefinition,
-    TextFormatDefinition,
-    CsvFormatDefinition,
+	JsonFormatDefinition,
+	XmlFormatDefinition,
+	TextFormatDefinition,
+	CsvFormatDefinition,
 ] as const;
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

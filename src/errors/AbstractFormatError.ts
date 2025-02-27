@@ -7,11 +7,11 @@
  * @public exported from `@promptbook/core`
  */
 export class AbstractFormatError extends Error {
-    // Note: To allow instanceof do not put here error `name`
-    // public readonly name = 'AbstractFormatError';
+	// Note: To allow instanceof do not put here error `name`
+	// public readonly name = 'AbstractFormatError';
 
-    public constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, AbstractFormatError.prototype);
-    }
+	public constructor(message: string) {
+		super(message);
+		Object.setPrototypeOf(this, AbstractFormatError.prototype);
+	}
 }

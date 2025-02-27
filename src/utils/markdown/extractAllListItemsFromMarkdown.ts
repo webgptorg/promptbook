@@ -1,5 +1,5 @@
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown } from "../../types/typeAliases";
+import type { string_markdown_text } from "../../types/typeAliases";
 
 /**
  * Utility function to extract all list items from markdown
@@ -13,24 +13,29 @@ import type { string_markdown_text } from '../../types/typeAliases';
  * @returns @@@
  * @public exported from `@promptbook/markdown-utils`
  */
-export function extractAllListItemsFromMarkdown(markdown: string_markdown): string_markdown_text[] {
-    const lines = markdown.split('\n');
-    const listItems: string_markdown_text[] = [];
+export function extractAllListItemsFromMarkdown(
+	markdown: string_markdown,
+): string_markdown_text[] {
+	const lines = markdown.split("\n");
+	const listItems: string_markdown_text[] = [];
 
-    let isInCodeBlock = false;
+	let isInCodeBlock = false;
 
-    for (const line of lines) {
-        const trimmedLine = line.trim();
+	for (const line of lines) {
+		const trimmedLine = line.trim();
 
-        if (trimmedLine.startsWith('```')) {
-            isInCodeBlock = !isInCodeBlock;
-        }
+		if (trimmedLine.startsWith("```")) {
+			isInCodeBlock = !isInCodeBlock;
+		}
 
-        if (!isInCodeBlock && (trimmedLine.startsWith('-') || trimmedLine.match(/^\d+\./))) {
-            const listItem = trimmedLine.replace(/^-|\d+\./, '').trim();
-            listItems.push(listItem);
-        }
-    }
+		if (
+			!isInCodeBlock &&
+			(trimmedLine.startsWith("-") || trimmedLine.match(/^\d+\./))
+		) {
+			const listItem = trimmedLine.replace(/^-|\d+\./, "").trim();
+			listItems.push(listItem);
+		}
+	}
 
-    return listItems;
+	return listItems;
 }

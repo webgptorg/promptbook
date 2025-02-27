@@ -1,53 +1,42 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { DEFAULT_BOOK_TITLE } from '../../config';
-import { just } from '../organization/just';
-import { flattenMarkdown } from './flattenMarkdown';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { DEFAULT_BOOK_TITLE } from "../../config";
+import { just } from "../organization/just";
+import { flattenMarkdown } from "./flattenMarkdown";
 
-describe('flattenMarkdown', () => {
-    it('keep simple case', () => {
-        expect(flattenMarkdown('# Title')).toBe('# Title');
-    });
+describe("flattenMarkdown", () => {
+	it("keep simple case", () => {
+		expect(flattenMarkdown("# Title")).toBe("# Title");
+	});
 
-    it('adds missing h1', () => {
-        expect(flattenMarkdown('')).toBe(`# ${DEFAULT_BOOK_TITLE}`);
-    });
+	it("adds missing h1", () => {
+		expect(flattenMarkdown("")).toBe(`# ${DEFAULT_BOOK_TITLE}`);
+	});
 
-    it('keep simple case without h2', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("keep simple case without h2", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('keep simple case with multi-line text', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
-                    # Title
-
-                    Text below title
-                    Text below title
-                    Text below title
-                    Text below title
-                `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+	it("keep simple case with multi-line text", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -55,34 +44,45 @@ describe('flattenMarkdown', () => {
                     Text below title
                     Text below title
                 `),
-            ),
-        );
-    });
-
-    it('keep simple case with bold/italic text', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
-                    Text below title **bold** *italic*
+                    Text below title
+                    Text below title
+                    Text below title
+                    Text below title
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		);
+	});
+
+	it("keep simple case with bold/italic text", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title **bold** *italic*
                 `),
-            ),
-        );
-    });
+			),
+		).toBe(
+			just(
+				spaceTrim(`
+                    # Title
 
-    it('keep simple case with ul/ol text', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+                    Text below title **bold** *italic*
+                `),
+			),
+		);
+	});
+
+	it("keep simple case with ul/ol text", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -93,10 +93,10 @@ describe('flattenMarkdown', () => {
                     2. ol 2
                     3. ol 3
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -107,14 +107,14 @@ describe('flattenMarkdown', () => {
                     2. ol 2
                     3. ol 3
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('flatten simple case with text and section', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("flatten simple case with text and section", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -123,10 +123,10 @@ describe('flattenMarkdown', () => {
 
                     Text below section 1
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -135,14 +135,14 @@ describe('flattenMarkdown', () => {
 
                     Text below section 1
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('ignores structure in code blocks', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("ignores structure in code blocks", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -159,10 +159,10 @@ describe('flattenMarkdown', () => {
 
                     \`\`\`
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -179,24 +179,24 @@ describe('flattenMarkdown', () => {
 
                     \`\`\`
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should work when the first heading is not h1', () => {
-        expect(flattenMarkdown(`## Section 1`)).toBe(
-            spaceTrim(`
+	it("should work when the first heading is not h1", () => {
+		expect(flattenMarkdown(`## Section 1`)).toBe(
+			spaceTrim(`
                 # ${DEFAULT_BOOK_TITLE}
 
                 ## Section 1
             `),
-        );
-    });
+		);
+	});
 
-    it('should work when there is heading level mismatch', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("should work when there is heading level mismatch", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -205,10 +205,10 @@ describe('flattenMarkdown', () => {
 
                     Text below subsection 1.1
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -217,14 +217,14 @@ describe('flattenMarkdown', () => {
 
                     Text below subsection 1.1
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should work when there are multiple h1', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("should work when there are multiple h1", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -233,10 +233,10 @@ describe('flattenMarkdown', () => {
 
                     Text below title 2
               `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -245,14 +245,14 @@ describe('flattenMarkdown', () => {
 
                     Text below title 2
               `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should work when there is h2 at begining', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("should work when there is h2 at begining", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     ## Subtitle
 
                     Text below subtitle
@@ -261,10 +261,10 @@ describe('flattenMarkdown', () => {
 
                     Text below title
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # ${DEFAULT_BOOK_TITLE}
 
                     ## Subtitle
@@ -275,24 +275,24 @@ describe('flattenMarkdown', () => {
 
                     Text below title
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should work when there is no h1 is not at begining', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("should work when there is no h1 is not at begining", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     Text before title
 
                     # Title
 
                     Text below title
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # ${DEFAULT_BOOK_TITLE}
 
                     Text before title
@@ -301,14 +301,14 @@ describe('flattenMarkdown', () => {
 
                     Text below title
               `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('flatten advanced heading case', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("flatten advanced heading case", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -329,10 +329,10 @@ describe('flattenMarkdown', () => {
 
                     Text below subsection 2.2
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                   # Title
 
                   Text below title
@@ -353,14 +353,14 @@ describe('flattenMarkdown', () => {
 
                   Text below subsection 2.2
               `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should not be cunfused by heading in comment (which should not be taken as heading)', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("should not be cunfused by heading in comment (which should not be taken as heading)", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -379,10 +379,10 @@ describe('flattenMarkdown', () => {
 
                     Text below subsection 2.2
               `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -401,14 +401,14 @@ describe('flattenMarkdown', () => {
 
                     Text below subsection 2.2
               `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should not be cunfused by heading in code block (which should not be taken as heading)', () => {
-        expect(
-            flattenMarkdown(
-                spaceTrim(`
+	it("should not be cunfused by heading in code block (which should not be taken as heading)", () => {
+		expect(
+			flattenMarkdown(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -427,10 +427,10 @@ describe('flattenMarkdown', () => {
 
                     Text below subsection 2.2
               `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -449,7 +449,7 @@ describe('flattenMarkdown', () => {
 
                     Text below subsection 2.2
               `),
-            ),
-        );
-    });
+			),
+		);
+	});
 });

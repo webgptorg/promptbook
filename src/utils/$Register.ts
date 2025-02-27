@@ -1,37 +1,37 @@
-import { type IDestroyable } from 'destroyable';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { NotYetImplementedError } from '../errors/NotYetImplementedError';
-import { UnexpectedError } from '../errors/UnexpectedError';
-import type { string_name } from '../types/typeAliases';
-import { $getGlobalScope } from './environment/$getGlobalScope';
-import { normalizeTo_snake_case } from './normalization/normalizeTo_snake_case';
-import type { TODO_string } from './organization/TODO_string';
+import type { IDestroyable } from "destroyable";
+import { DEFAULT_IS_VERBOSE } from "../config";
+import { NotYetImplementedError } from "../errors/NotYetImplementedError";
+import { UnexpectedError } from "../errors/UnexpectedError";
+import type { string_name } from "../types/typeAliases";
+import { $getGlobalScope } from "./environment/$getGlobalScope";
+import { normalizeTo_snake_case } from "./normalization/normalizeTo_snake_case";
+import type { TODO_string } from "./organization/TODO_string";
 
 /**
  * @@@
  */
 export type Registered = {
-    /**
-     * @@@
-     */
-    readonly packageName: TODO_string;
+	/**
+	 * @@@
+	 */
+	readonly packageName: TODO_string;
 
-    /**
-     * @@@
-     */
-    readonly className: TODO_string;
+	/**
+	 * @@@
+	 */
+	readonly className: TODO_string;
 };
 
 /**
  * @@@
  */
 export type Registration = Registered &
-    IDestroyable & {
-        /**
-         * @@@
-         */
-        readonly registerName: string_name;
-    };
+	IDestroyable & {
+		/**
+		 * @@@
+		 */
+		readonly registerName: string_name;
+	};
 
 /**
  * Register is @@@
@@ -41,61 +41,66 @@ export type Registration = Registered &
  * @private internal utility, exported are only signleton instances of this class
  */
 export class $Register<TRegistered extends Registered> {
-    private readonly storage: Array<TRegistered>;
+	private readonly storage: Array<TRegistered>;
 
-    constructor(private readonly registerName: string_name) {
-        const storageName = `_promptbook_${normalizeTo_snake_case(registerName)}`;
+	constructor(private readonly registerName: string_name) {
+		const storageName = `_promptbook_${normalizeTo_snake_case(registerName)}`;
 
-        const globalScope = $getGlobalScope();
+		const globalScope = $getGlobalScope();
 
-        if (globalScope[storageName] === undefined) {
-            globalScope[storageName] = [];
-        } else if (!Array.isArray(globalScope[storageName])) {
-            throw new UnexpectedError(
-                `Expected (global) ${storageName} to be an array, but got ${typeof globalScope[storageName]}`,
-            );
-        }
+		if (globalScope[storageName] === undefined) {
+			globalScope[storageName] = [];
+		} else if (!Array.isArray(globalScope[storageName])) {
+			throw new UnexpectedError(
+				`Expected (global) ${storageName} to be an array, but got ${typeof globalScope[storageName]}`,
+			);
+		}
 
-        this.storage = globalScope[storageName];
-    }
+		this.storage = globalScope[storageName];
+	}
 
-    public list(): ReadonlyArray<TRegistered> {
-        // <- TODO: ReadonlyDeep<ReadonlyArray<TRegistered>>
-        return this.storage;
-    }
+	public list(): ReadonlyArray<TRegistered> {
+		// <- TODO: ReadonlyDeep<ReadonlyArray<TRegistered>>
+		return this.storage;
+	}
 
-    public register(registered: TRegistered): Registration {
-        const { packageName, className } = registered;
+	public register(registered: TRegistered): Registration {
+		const { packageName, className } = registered;
 
-        const existingRegistrationIndex = this.storage.findIndex(
-            (item) => item.packageName === packageName && item.className === className,
-        );
-        const existingRegistration = this.storage[existingRegistrationIndex];
+		const existingRegistrationIndex = this.storage.findIndex(
+			(item) =>
+				item.packageName === packageName && item.className === className,
+		);
+		const existingRegistration = this.storage[existingRegistrationIndex];
 
-        if (!existingRegistration) {
-            if (DEFAULT_IS_VERBOSE) {
-                console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.registerName}\``);
-            }
-            this.storage.push(registered);
-        } else {
-            if (DEFAULT_IS_VERBOSE) {
-                console.warn(`[📦] Re-registering \`${packageName}.${className}\` to \`${this.registerName}\``);
-            }
-            this.storage[existingRegistrationIndex] = registered;
-        }
+		if (!existingRegistration) {
+			if (DEFAULT_IS_VERBOSE) {
+				console.warn(
+					`[📦] Registering \`${packageName}.${className}\` to \`${this.registerName}\``,
+				);
+			}
+			this.storage.push(registered);
+		} else {
+			if (DEFAULT_IS_VERBOSE) {
+				console.warn(
+					`[📦] Re-registering \`${packageName}.${className}\` to \`${this.registerName}\``,
+				);
+			}
+			this.storage[existingRegistrationIndex] = registered;
+		}
 
-        return {
-            registerName: this.registerName,
-            packageName,
-            className,
-            get isDestroyed() {
-                return false;
-            },
-            destroy() {
-                throw new NotYetImplementedError(
-                    `Registration to ${this.registerName} is permanent in this version of Promptbook`,
-                );
-            },
-        };
-    }
+		return {
+			registerName: this.registerName,
+			packageName,
+			className,
+			get isDestroyed() {
+				return false;
+			},
+			destroy() {
+				throw new NotYetImplementedError(
+					`Registration to ${this.registerName} is permanent in this version of Promptbook`,
+				);
+			},
+		};
+	}
 }

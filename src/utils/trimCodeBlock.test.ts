@@ -1,163 +1,163 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { just } from './organization/just';
-import { trimCodeBlock } from './trimCodeBlock';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { just } from "./organization/just";
+import { trimCodeBlock } from "./trimCodeBlock";
 
-describe('how trimCodeBlock works', () => {
-    it('should preserve string without code block', () => {
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+describe("how trimCodeBlock works", () => {
+	it("should preserve string without code block", () => {
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     Foo
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Foo
                 `),
-            ),
-        );
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+			),
+		);
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     Hello:
 
                     "Bar"
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Hello:
 
                     "Bar"
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should preserve just block starting or ending', () => {
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+	it("should preserve just block starting or ending", () => {
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     \`\`\`markdown
                     Foo
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     \`\`\`markdown
                     Foo
                 `),
-            ),
-        );
+			),
+		);
 
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     \`\`\`
                     Foo
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     \`\`\`
                     Foo
                 `),
-            ),
-        );
+			),
+		);
 
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     Foo
                     \`\`\`
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Foo
                     \`\`\`
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should trim code block', () => {
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+	it("should trim code block", () => {
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     \`\`\`
                     Foo
                     \`\`\`
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Foo
                 `),
-            ),
-        );
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+			),
+		);
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     \`\`\`text
                     Foo
                     \`\`\`
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Foo
                 `),
-            ),
-        );
+			),
+		);
 
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     \`\`\`markdown
                     "Bar"
                     \`\`\`
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     "Bar"
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('should trim ending code block and some whitespace', () => {
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+	it("should trim ending code block and some whitespace", () => {
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                     \`\`\`
                     Foo
                     \`\`\`
-                `) + '\n\n ',
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+                `) + "\n\n ",
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     Foo
                 `),
-            ),
-        );
-    });
+			),
+		);
+	});
 
-    it('will work on real-life example', () => {
-        expect(
-            trimCodeBlock(
-                spaceTrim(`
+	it("will work on real-life example", () => {
+		expect(
+			trimCodeBlock(
+				spaceTrim(`
                   \`\`\`html
                   <form is="order-form">
                       <label>
@@ -206,11 +206,11 @@ describe('how trimCodeBlock works', () => {
                   </form>
                   \`\`\`
 
-              `) + '\n\n ',
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+              `) + "\n\n ",
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                   <form is="order-form">
                       <label>
                           <p>Vaše jméno:</p>
@@ -257,7 +257,7 @@ describe('how trimCodeBlock works', () => {
                       <label><input type="submit" value="Odeslat objednávku" /></label>
                   </form>
               `),
-            ),
-        );
-    });
+			),
+		);
+	});
 });

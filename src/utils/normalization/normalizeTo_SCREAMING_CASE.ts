@@ -10,7 +10,7 @@ export type string_SCREAMING_CASE = string;
 /**
  * @private type of `normalizeTo_SCREAMING_CASE`
  */
-type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
+type char_type = "LOWERCASE" | "UPPERCASE" | "NUMBER" | "SLASH" | "OTHER";
 
 /**
  * @@@
@@ -21,49 +21,51 @@ type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
  * @example 'I_LOVE_PROMPTBOOK'
  * @public exported from `@promptbook/utils`
  */
-export function normalizeTo_SCREAMING_CASE(text: string): string_SCREAMING_CASE {
-    let charType: char_type;
-    let lastCharType: char_type = 'OTHER';
+export function normalizeTo_SCREAMING_CASE(
+	text: string,
+): string_SCREAMING_CASE {
+	let charType: char_type;
+	let lastCharType: char_type = "OTHER";
 
-    let normalizedName = '';
+	let normalizedName = "";
 
-    for (const char of text) {
-        let normalizedChar: string;
+	for (const char of text) {
+		let normalizedChar: string;
 
-        if (/^[a-z]$/.test(char)) {
-            charType = 'LOWERCASE';
-            normalizedChar = char.toUpperCase();
-        } else if (/^[A-Z]$/.test(char)) {
-            charType = 'UPPERCASE';
-            normalizedChar = char;
-        } else if (/^[0-9]$/.test(char)) {
-            charType = 'NUMBER';
-            normalizedChar = char;
-        } else {
-            charType = 'OTHER';
-            normalizedChar = '_';
-        }
+		if (/^[a-z]$/.test(char)) {
+			charType = "LOWERCASE";
+			normalizedChar = char.toUpperCase();
+		} else if (/^[A-Z]$/.test(char)) {
+			charType = "UPPERCASE";
+			normalizedChar = char;
+		} else if (/^[0-9]$/.test(char)) {
+			charType = "NUMBER";
+			normalizedChar = char;
+		} else {
+			charType = "OTHER";
+			normalizedChar = "_";
+		}
 
-        if (
-            charType !== lastCharType &&
-            !(lastCharType === 'UPPERCASE' && charType === 'LOWERCASE') &&
-            !(lastCharType === 'NUMBER') &&
-            !(charType === 'NUMBER')
-        ) {
-            normalizedName += '_';
-        }
+		if (
+			charType !== lastCharType &&
+			!(lastCharType === "UPPERCASE" && charType === "LOWERCASE") &&
+			!(lastCharType === "NUMBER") &&
+			!(charType === "NUMBER")
+		) {
+			normalizedName += "_";
+		}
 
-        normalizedName += normalizedChar;
+		normalizedName += normalizedChar;
 
-        lastCharType = charType;
-    }
+		lastCharType = charType;
+	}
 
-    normalizedName = normalizedName.replace(/_+/g, '_');
-    normalizedName = normalizedName.replace(/_?\/_?/g, '/');
-    normalizedName = normalizedName.replace(/^_/, '');
-    normalizedName = normalizedName.replace(/_$/, '');
+	normalizedName = normalizedName.replace(/_+/g, "_");
+	normalizedName = normalizedName.replace(/_?\/_?/g, "/");
+	normalizedName = normalizedName.replace(/^_/, "");
+	normalizedName = normalizedName.replace(/_$/, "");
 
-    return normalizedName;
+	return normalizedName;
 }
 
 /**

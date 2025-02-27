@@ -1,7 +1,7 @@
-import { ORDER_OF_PIPELINE_JSON } from '../constants';
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import { extractParameterNames } from '../utils/parameters/extractParameterNames';
-import { exportJson } from '../utils/serialization/exportJson';
+import { ORDER_OF_PIPELINE_JSON } from "../constants";
+import type { PipelineJson } from "../pipeline/PipelineJson/PipelineJson";
+import { extractParameterNames } from "../utils/parameters/extractParameterNames";
+import { exportJson } from "../utils/serialization/exportJson";
 
 /**
  * Unprepare just strips the preparation data of the pipeline
@@ -10,39 +10,46 @@ import { exportJson } from '../utils/serialization/exportJson';
  * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
-    let { personas, knowledgeSources, tasks } = pipeline;
+	let { personas, knowledgeSources, tasks } = pipeline;
 
-    personas = personas.map((persona) => ({ ...persona, modelRequirements: undefined, preparationIds: undefined }));
-    knowledgeSources = knowledgeSources.map((knowledgeSource) => ({ ...knowledgeSource, preparationIds: undefined }));
-    tasks = tasks.map((task) => {
-        let { dependentParameterNames } = task;
+	personas = personas.map((persona) => ({
+		...persona,
+		modelRequirements: undefined,
+		preparationIds: undefined,
+	}));
+	knowledgeSources = knowledgeSources.map((knowledgeSource) => ({
+		...knowledgeSource,
+		preparationIds: undefined,
+	}));
+	tasks = tasks.map((task) => {
+		let { dependentParameterNames } = task;
 
-        const parameterNames = extractParameterNames(task.preparedContent || '');
+		const parameterNames = extractParameterNames(task.preparedContent || "");
 
-        dependentParameterNames = dependentParameterNames.filter(
-            (dependentParameterName) => !parameterNames.has(dependentParameterName),
-            // <- [🏷] This is the reverse process to remove {knowledge} from `dependentParameterNames`
-        );
+		dependentParameterNames = dependentParameterNames.filter(
+			(dependentParameterName) => !parameterNames.has(dependentParameterName),
+			// <- [🏷] This is the reverse process to remove {knowledge} from `dependentParameterNames`
+		);
 
-        const taskUnprepared = { ...task, dependentParameterNames };
-        delete taskUnprepared.preparedContent;
+		const taskUnprepared = { ...task, dependentParameterNames };
+		delete taskUnprepared.preparedContent;
 
-        return taskUnprepared;
-    });
+		return taskUnprepared;
+	});
 
-    return exportJson({
-        name: 'pipelineJson',
-        message: `Result of \`unpreparePipeline\``,
-        order: ORDER_OF_PIPELINE_JSON,
-        value: {
-            ...pipeline,
-            tasks,
-            knowledgeSources,
-            knowledgePieces: [],
-            personas,
-            preparations: [],
-        },
-    });
+	return exportJson({
+		name: "pipelineJson",
+		message: `Result of \`unpreparePipeline\``,
+		order: ORDER_OF_PIPELINE_JSON,
+		value: {
+			...pipeline,
+			tasks,
+			knowledgeSources,
+			knowledgePieces: [],
+			personas,
+			preparations: [],
+		},
+	});
 }
 
 /**

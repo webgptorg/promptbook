@@ -1,4 +1,4 @@
-import type { really_any } from './really_any';
+import type { really_any } from "./really_any";
 
 /**
  * Returns the same value that is passed as argument.
@@ -14,8 +14,8 @@ import type { really_any } from './really_any';
  * @private within the repository
  */
 export function just<T>(value?: T): T {
-    if (value === undefined) {
-        return undefined as really_any as T;
-    }
-    return value;
+	if (value === undefined) {
+		return undefined as really_any as T;
+	}
+	return value;
 }

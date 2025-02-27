@@ -1,12 +1,12 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { PipelineString } from '../../pipeline/PipelineString';
-import { validatePipelineString } from '../../pipeline/validatePipelineString';
-import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import type { string_filename } from '../../types/typeAliases';
-import { loadArchive } from '../archive/loadArchive';
+import { join } from "path";
+import { readFile } from "fs/promises";
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import type { PipelineString } from "../../pipeline/PipelineString";
+import { validatePipelineString } from "../../pipeline/validatePipelineString";
+import { unpreparePipeline } from "../../prepare/unpreparePipeline";
+import { $provideFilesystemForNode } from "../../scrapers/_common/register/$provideFilesystemForNode";
+import type { string_filename } from "../../types/typeAliases";
+import { loadArchive } from "../archive/loadArchive";
 
 /**
  * Import the pipeline.book or pipeline.bookc file
@@ -17,30 +17,36 @@ import { loadArchive } from '../archive/loadArchive';
  * @param path - The path to the file relative to examples/pipelines directory
  * @private internal function of tests
  */
-export async function importPipelineWithoutPreparation(path: `${string}.book`): Promise<PipelineString>;
-export async function importPipelineWithoutPreparation(path: `${string}.bookc`): Promise<PipelineJson>;
-export async function importPipelineWithoutPreparation(path: string_filename): Promise<PipelineString | PipelineJson> {
-    const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
-    const filePath = join(__dirname, examplesDir, path);
+export async function importPipelineWithoutPreparation(
+	path: `${string}.book`,
+): Promise<PipelineString>;
+export async function importPipelineWithoutPreparation(
+	path: `${string}.bookc`,
+): Promise<PipelineJson>;
+export async function importPipelineWithoutPreparation(
+	path: string_filename,
+): Promise<PipelineString | PipelineJson> {
+	const examplesDir = "../../../examples/pipelines"; // <- TODO: [🚏] DRY, to config
+	const filePath = join(__dirname, examplesDir, path);
 
-    if (path.endsWith('.bookc')) {
-        const pipelines = await loadArchive(filePath, $provideFilesystemForNode());
+	if (path.endsWith(".bookc")) {
+		const pipelines = await loadArchive(filePath, $provideFilesystemForNode());
 
-        if (pipelines.length !== 1) {
-            throw new Error('The archive must contain exactly one pipeline');
-        }
+		if (pipelines.length !== 1) {
+			throw new Error("The archive must contain exactly one pipeline");
+		}
 
-        let pipeline = pipelines[0]!;
+		let pipeline = pipelines[0]!;
 
-        pipeline = unpreparePipeline(pipeline);
-        return pipeline;
-    } else if (path.endsWith('.book')) {
-        const content = await readFile(filePath, 'utf-8');
+		pipeline = unpreparePipeline(pipeline);
+		return pipeline;
+	} else if (path.endsWith(".book")) {
+		const content = await readFile(filePath, "utf-8");
 
-        return validatePipelineString(content);
-    } else {
-        throw new Error('This should be used only for .book.md or .bookc files');
-    }
+		return validatePipelineString(content);
+	} else {
+		throw new Error("This should be used only for .book.md or .bookc files");
+	}
 }
 
 /**
@@ -48,18 +54,23 @@ export async function importPipelineWithoutPreparation(path: string_filename): P
  *
  * @private internal function of tests
  */
-export async function importPipelineJson(path: `${string}.bookc`): Promise<PipelineJson> {
-    const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
+export async function importPipelineJson(
+	path: `${string}.bookc`,
+): Promise<PipelineJson> {
+	const examplesDir = "../../../examples/pipelines"; // <- TODO: [🚏] DRY, to config
 
-    const pipelines = await loadArchive(join(__dirname, examplesDir, path), $provideFilesystemForNode());
+	const pipelines = await loadArchive(
+		join(__dirname, examplesDir, path),
+		$provideFilesystemForNode(),
+	);
 
-    if (pipelines.length !== 1) {
-        throw new Error('The archive must contain exactly one pipeline');
-    }
+	if (pipelines.length !== 1) {
+		throw new Error("The archive must contain exactly one pipeline");
+	}
 
-    const pipeline = pipelines[0]!;
+	const pipeline = pipelines[0]!;
 
-    return pipeline;
+	return pipeline;
 }
 
 /*

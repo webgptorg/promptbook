@@ -1,5 +1,5 @@
-import type { InputParameters } from '../types/typeAliases';
-import type { ExecutionTask } from './ExecutionTask';
+import type { InputParameters } from "../types/typeAliases";
+import type { ExecutionTask } from "./ExecutionTask";
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
@@ -9,9 +9,9 @@ import type { ExecutionTask } from './ExecutionTask';
  *
  * @see https://github.com/webgptorg/promptbook#executor
  */
-export type PipelineExecutor = {
-    (inputParameters: InputParameters): ExecutionTask;
-};
+export type PipelineExecutor = (
+	inputParameters: InputParameters,
+) => ExecutionTask;
 
 /**
  * TODO: [🧠] Should this file be in /execution or /types folder?

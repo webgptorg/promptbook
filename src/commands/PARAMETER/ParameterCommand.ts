@@ -1,5 +1,5 @@
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_markdown_text } from "../../types/typeAliases";
+import type { string_name } from "../../types/typeAliases";
 
 /**
  * Parsed PARAMETER command
@@ -8,9 +8,9 @@ import type { string_name } from '../../types/typeAliases';
  * @public exported from `@promptbook/editable`
  */
 export type ParameterCommand = {
-    readonly type: 'PARAMETER';
-    readonly isInput: boolean;
-    readonly isOutput: boolean;
-    readonly parameterName: string_name;
-    readonly parameterDescription: string_markdown_text | null;
+	readonly type: "PARAMETER";
+	readonly isInput: boolean;
+	readonly isOutput: boolean;
+	readonly parameterName: string_name;
+	readonly parameterDescription: string_markdown_text | null;
 };

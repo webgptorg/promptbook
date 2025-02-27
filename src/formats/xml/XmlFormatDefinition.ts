@@ -1,6 +1,6 @@
-import type { TODO_any } from '../../utils/organization/TODO_any';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { FormatDefinition } from '../_common/FormatDefinition';
+import { TODO_USE } from "../../utils/organization/TODO_USE";
+import type { TODO_any } from "../../utils/organization/TODO_any";
+import type { FormatDefinition } from "../_common/FormatDefinition";
 
 /**
  * Definition for XML format
@@ -8,37 +8,41 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  * @private still in development [🏢]
  */
 export const XmlFormatDefinition: FormatDefinition<
-    string /* <- [0] */,
-    string /* <- [👨‍⚖️] */,
-    TODO_any /* <- [1] */,
-    TODO_any /* <- [1] */
+	string /* <- [0] */,
+	string /* <- [👨‍⚖️] */,
+	TODO_any /* <- [1] */,
+	TODO_any /* <- [1] */
 > = {
-    formatName: 'XML',
+	formatName: "XML",
 
-    mimeType: 'application/xml',
+	mimeType: "application/xml",
 
-    isValid(value, settings, schema): value is string /* <- [0] */ {
-        TODO_USE(value /* <- TODO: Use value here */);
-        TODO_USE(settings /* <- TODO: Use settings here */);
-        TODO_USE(schema /* <- TODO: Use schema here */);
-        return true;
-    },
+	isValid(value, settings, schema): value is string /* <- [0] */ {
+		TODO_USE(value /* <- TODO: Use value here */);
+		TODO_USE(settings /* <- TODO: Use settings here */);
+		TODO_USE(schema /* <- TODO: Use schema here */);
+		return true;
+	},
 
-    canBeValid(partialValue, settings, schema): partialValue is string /* <- [0] */ {
-        TODO_USE(partialValue /* <- TODO: Use partialValue here */);
-        TODO_USE(settings /* <- TODO: Use settings here */);
-        TODO_USE(schema /* <- TODO: Use schema here */);
-        return true;
-    },
+	canBeValid(
+		partialValue,
+		settings,
+		schema,
+	): partialValue is string /* <- [0] */ {
+		TODO_USE(partialValue /* <- TODO: Use partialValue here */);
+		TODO_USE(settings /* <- TODO: Use settings here */);
+		TODO_USE(schema /* <- TODO: Use schema here */);
+		return true;
+	},
 
-    heal(value, settings, schema) {
-        TODO_USE(value /* <- TODO: Use partialValue here */);
-        TODO_USE(settings /* <- TODO: Use settings here */);
-        TODO_USE(schema /* <- TODO: Use schema here */);
-        throw new Error('Not implemented');
-    },
+	heal(value, settings, schema) {
+		TODO_USE(value /* <- TODO: Use partialValue here */);
+		TODO_USE(settings /* <- TODO: Use settings here */);
+		TODO_USE(schema /* <- TODO: Use schema here */);
+		throw new Error("Not implemented");
+	},
 
-    subvalueDefinitions: [],
+	subvalueDefinitions: [],
 };
 
 /**

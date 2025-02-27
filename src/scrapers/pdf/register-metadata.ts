@@ -1,8 +1,8 @@
-import type { Registration } from '../../utils/$Register';
-import { keepTypeImported } from '../../utils/organization/keepTypeImported';
-import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import { $scrapersMetadataRegister } from '../_common/register/$scrapersMetadataRegister';
-import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+import type { Registration } from "../../utils/$Register";
+import { keepTypeImported } from "../../utils/organization/keepTypeImported";
+import { $deepFreeze } from "../../utils/serialization/$deepFreeze";
+import { $scrapersMetadataRegister } from "../_common/register/$scrapersMetadataRegister";
+import type { ScraperAndConverterMetadata } from "../_common/register/ScraperAndConverterMetadata";
 
 keepTypeImported<ScraperAndConverterMetadata>();
 
@@ -12,14 +12,14 @@ keepTypeImported<ScraperAndConverterMetadata>();
  * @private within the scraper directory
  */
 export const pdfScraperMetadata = $deepFreeze({
-    title: 'Pdf scraper',
-    packageName: '@promptbook/pdf',
-    className: 'PdfScraper',
-    mimeTypes: ['application/pdf-DISABLED'], // <- TODO: [🌜] Remove `PdfScraper` or make it work or make it as alias of `MarkitdownScraper`
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
-    isAvilableInBrowser: false,
-    // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
-    requiredExecutables: [],
+	title: "Pdf scraper",
+	packageName: "@promptbook/pdf",
+	className: "PdfScraper",
+	mimeTypes: ["application/pdf-DISABLED"], // <- TODO: [🌜] Remove `PdfScraper` or make it work or make it as alias of `MarkitdownScraper`
+	documentationUrl: "https://github.com/webgptorg/promptbook/discussions/@@",
+	isAvilableInBrowser: false,
+	// <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
+	requiredExecutables: [],
 }) satisfies ScraperAndConverterMetadata; /* <- Note: [🤛] */
 
 /**
@@ -31,7 +31,8 @@ export const pdfScraperMetadata = $deepFreeze({
  * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
-export const _PdfScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register(pdfScraperMetadata);
+export const _PdfScraperMetadataRegistration: Registration =
+	$scrapersMetadataRegister.register(pdfScraperMetadata);
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

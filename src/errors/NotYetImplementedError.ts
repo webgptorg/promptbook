@@ -1,4 +1,4 @@
-import { spaceTrim } from 'spacetrim';
+import { spaceTrim } from "spacetrim";
 
 /**
  * This error type indicates that some part of the code is not implemented yet
@@ -6,11 +6,11 @@ import { spaceTrim } from 'spacetrim';
  * @public exported from `@promptbook/core`
  */
 export class NotYetImplementedError extends Error {
-    public readonly name = 'NotYetImplementedError';
-    public constructor(message: string) {
-        super(
-            spaceTrim(
-                (block) => `
+	public readonly name = "NotYetImplementedError";
+	public constructor(message: string) {
+		super(
+			spaceTrim(
+				(block) => `
                     ${block(message)}
 
                     Note: This feature is not implemented yet but it will be soon.
@@ -21,8 +21,8 @@ export class NotYetImplementedError extends Error {
                     Or contact us on pavol@ptbk.io
 
                 `,
-            ),
-        );
-        Object.setPrototypeOf(this, NotYetImplementedError.prototype);
-    }
+			),
+		);
+		Object.setPrototypeOf(this, NotYetImplementedError.prototype);
+	}
 }

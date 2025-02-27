@@ -4,11 +4,11 @@
  * @public exported from `@promptbook/core`
  */
 export class ParseError extends Error {
-    public readonly name = 'ParseError';
-    public constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, ParseError.prototype);
-    }
+	public readonly name = "ParseError";
+	public constructor(message: string) {
+		super(message);
+		Object.setPrototypeOf(this, ParseError.prototype);
+	}
 }
 
 /**

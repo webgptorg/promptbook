@@ -1,4 +1,4 @@
-import type { really_any } from '../organization/really_any';
+import type { really_any } from "../organization/really_any";
 
 /**
  * @@@
@@ -8,5 +8,5 @@ import type { really_any } from '../organization/really_any';
  *  @private internal function of `$Register`
  */
 export function $getGlobalScope(): really_any {
-    return Function('return this')();
+	return Function("return this")();
 }

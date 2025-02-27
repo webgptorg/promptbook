@@ -5,13 +5,13 @@
  * @public exported from `@promptbook/utils`
  */
 export function union<TItem>(...sets: ReadonlyArray<Set<TItem>>): Set<TItem> {
-    const union = new Set<TItem>();
+	const union = new Set<TItem>();
 
-    for (const set of sets) {
-        for (const item of Array.from(set)) {
-            union.add(item);
-        }
-    }
+	for (const set of sets) {
+		for (const item of Array.from(set)) {
+			union.add(item);
+		}
+	}
 
-    return union;
+	return union;
 }

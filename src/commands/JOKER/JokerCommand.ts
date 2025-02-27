@@ -1,4 +1,4 @@
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from "../../types/typeAliases";
 
 /**
  * Parsed JOKER command
@@ -7,6 +7,6 @@ import type { string_name } from '../../types/typeAliases';
  * @public exported from `@promptbook/editable`
  */
 export type JokerCommand = {
-    readonly type: 'JOKER';
-    readonly parameterName: string_name;
+	readonly type: "JOKER";
+	readonly parameterName: string_name;
 };

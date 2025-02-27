@@ -1,5 +1,5 @@
-import type { LlmExecutionToolsConstructor } from '../../../execution/LlmExecutionToolsConstructor';
-import { $Register } from '../../../utils/$Register';
+import type { LlmExecutionToolsConstructor } from "../../../execution/LlmExecutionToolsConstructor";
+import { $Register } from "../../../utils/$Register";
 
 /**
  * @@@
@@ -8,8 +8,9 @@ import { $Register } from '../../../utils/$Register';
  * @singleton Only one instance of each register is created per build, but thare can be more @@@
  * @public exported from `@promptbook/core`
  */
-export const $llmToolsRegister = new $Register<LlmExecutionToolsConstructor>('llm_execution_tools_constructors');
-
+export const $llmToolsRegister = new $Register<LlmExecutionToolsConstructor>(
+	"llm_execution_tools_constructors",
+);
 
 /**
  * TODO: [®] DRY Register logic

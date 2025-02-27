@@ -1,7 +1,7 @@
-import { describe, expect, it } from '@jest/globals';
-import { join } from 'path';
-import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
-import { prepareKnowledgePieces } from './prepareKnowledgePieces';
+import { join } from "path";
+import { describe, expect, it } from "@jest/globals";
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from "../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground";
+import { prepareKnowledgePieces } from "./prepareKnowledgePieces";
 
 /*
 // TODO: [🐝] Test markdown, file and website here, rest in their own preparers
@@ -19,17 +19,17 @@ describe('all the scrapers', () => {
 
 */
 
-describe('how prepareKnowledge works', () => {
-    it('should work with empty knowledge', async () => {
-        const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground();
-        await expect(
-            prepareKnowledgePieces(
-                [],
-                { llm: llmTools },
-                {
-                    rootDirname: join(__dirname, 'examples'),
-                },
-            ),
-        ).resolves.toEqual([]);
-    });
+describe("how prepareKnowledge works", () => {
+	it("should work with empty knowledge", async () => {
+		const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+		await expect(
+			prepareKnowledgePieces(
+				[],
+				{ llm: llmTools },
+				{
+					rootDirname: join(__dirname, "examples"),
+				},
+			),
+		).resolves.toEqual([]);
+	});
 });

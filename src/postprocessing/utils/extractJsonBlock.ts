@@ -1,8 +1,8 @@
-import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
-import type { string_json } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import { extractAllBlocksFromMarkdown } from '../../utils/markdown/extractAllBlocksFromMarkdown';
-import type { really_unknown } from '../../utils/organization/really_unknown';
+import { isValidJsonString } from "../../formats/json/utils/isValidJsonString";
+import type { string_json } from "../../types/typeAliases";
+import type { string_markdown } from "../../types/typeAliases";
+import { extractAllBlocksFromMarkdown } from "../../utils/markdown/extractAllBlocksFromMarkdown";
+import type { really_unknown } from "../../utils/organization/really_unknown";
 
 /**
  * Extracts  extracts exactly one valid JSON code block
@@ -21,27 +21,29 @@ import type { really_unknown } from '../../utils/organization/really_unknown';
  * @public exported from `@promptbook/markdown-utils`
  * @throws {ParseError} if there is no valid JSON block in the markdown
  */
-export function extractJsonBlock(markdown: string_markdown): string_json<really_unknown> {
-    if (isValidJsonString(markdown)) {
-        return markdown as string_json<really_unknown>;
-    }
+export function extractJsonBlock(
+	markdown: string_markdown,
+): string_json<really_unknown> {
+	if (isValidJsonString(markdown)) {
+		return markdown as string_json<really_unknown>;
+	}
 
-    const codeBlocks = extractAllBlocksFromMarkdown(markdown);
+	const codeBlocks = extractAllBlocksFromMarkdown(markdown);
 
-    const jsonBlocks = codeBlocks.filter(
-        ({ content }) => isValidJsonString(content),
-        //                 <- Note: It is not important if marked as JSON `language === 'json'` BUT if it is VALID JSON
-    );
+	const jsonBlocks = codeBlocks.filter(
+		({ content }) => isValidJsonString(content),
+		//                 <- Note: It is not important if marked as JSON `language === 'json'` BUT if it is VALID JSON
+	);
 
-    if (jsonBlocks.length === 0) {
-        throw new Error('There is no valid JSON block in the markdown');
-    }
+	if (jsonBlocks.length === 0) {
+		throw new Error("There is no valid JSON block in the markdown");
+	}
 
-    if (jsonBlocks.length > 1) {
-        throw new Error('There are multiple JSON code blocks in the markdown');
-    }
+	if (jsonBlocks.length > 1) {
+		throw new Error("There are multiple JSON code blocks in the markdown");
+	}
 
-    return jsonBlocks[0]!.content as string_json<really_unknown>;
+	return jsonBlocks[0]!.content as string_json<really_unknown>;
 }
 
 /**

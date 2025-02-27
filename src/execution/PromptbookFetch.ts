@@ -1,4 +1,4 @@
-import type { string_url } from '../types/typeAliases';
+import type { string_url } from "../types/typeAliases";
 
 /**
  * Fetch function used in Promptbook engine
@@ -10,4 +10,7 @@ import type { string_url } from '../types/typeAliases';
  * - Fetching knowledge sources
  * - Callbacks from remote server ([👩🏾‍🤝‍🧑🏾] Not yet implemented)
  */
-export type PromptbookFetch = (url: string_url, init?: RequestInit) => Promise<Response>;
+export type PromptbookFetch = (
+	url: string_url,
+	init?: RequestInit,
+) => Promise<Response>;

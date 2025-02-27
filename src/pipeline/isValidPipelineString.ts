@@ -1,5 +1,5 @@
-import type { PipelineString } from './PipelineString';
-import { validatePipelineString } from './validatePipelineString';
+import type { PipelineString } from "./PipelineString";
+import { validatePipelineString } from "./validatePipelineString";
 
 /**
  * Function `isValidPipelineString` will validate the if the string is a valid pipeline string
@@ -9,17 +9,19 @@ import { validatePipelineString } from './validatePipelineString';
  * @returns {boolean} if the string is a valid pipeline string
  * @public exported from `@promptbook/core`
  */
-export function isValidPipelineString(pipelineString: string): pipelineString is PipelineString {
-    try {
-        validatePipelineString(pipelineString);
-        return true;
-    } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+export function isValidPipelineString(
+	pipelineString: string,
+): pipelineString is PipelineString {
+	try {
+		validatePipelineString(pipelineString);
+		return true;
+	} catch (error) {
+		if (!(error instanceof Error)) {
+			throw error;
+		}
 
-        return false;
-    }
+		return false;
+	}
 }
 
 /**

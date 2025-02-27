@@ -1,22 +1,22 @@
-import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
-import type { CacheItem } from './CacheItem';
+import type { PromptbookStorage } from "../../../../storage/_common/PromptbookStorage";
+import type { CacheItem } from "./CacheItem";
 
 /**
  * @@@
  */
 export type CacheLlmToolsOptions = {
-    /**
-     * @@@
-     *
-     * @default MemoryStorage
-     */
-    storage: PromptbookStorage<CacheItem>;
+	/**
+	 * @@@
+	 *
+	 * @default MemoryStorage
+	 */
+	storage: PromptbookStorage<CacheItem>;
 
-    /**
-     * @@@
-     *
-     * @default false
-     */
-    isCacheReloaded?: boolean;
-    // <- TODO: [🎅] Maybe unite with `intermediateFilesStrategy` and change to `cacheStrategy`
+	/**
+	 * @@@
+	 *
+	 * @default false
+	 */
+	isCacheReloaded?: boolean;
+	// <- TODO: [🎅] Maybe unite with `intermediateFilesStrategy` and change to `cacheStrategy`
 };

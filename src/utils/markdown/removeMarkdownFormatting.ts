@@ -1,4 +1,4 @@
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from "../../types/typeAliases";
 
 /**
  * Removes Markdown formatting tags from a string.
@@ -8,14 +8,14 @@ import type { string_markdown_text } from '../../types/typeAliases';
  * @public exported from `@promptbook/markdown-utils`
  */
 export function removeMarkdownFormatting(str: string_markdown_text): string {
-    // Remove bold formatting
-    str = str.replace(/\*\*(.*?)\*\*/g, '$1');
+	// Remove bold formatting
+	str = str.replace(/\*\*(.*?)\*\*/g, "$1");
 
-    // Remove italic formatting
-    str = str.replace(/\*(.*?)\*/g, '$1');
+	// Remove italic formatting
+	str = str.replace(/\*(.*?)\*/g, "$1");
 
-    // Remove code formatting
-    str = str.replace(/`(.*?)`/g, '$1');
+	// Remove code formatting
+	str = str.replace(/`(.*?)`/g, "$1");
 
-    return str;
+	return str;
 }

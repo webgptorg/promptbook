@@ -1,61 +1,61 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { extractAllListItemsFromMarkdown } from './extractAllListItemsFromMarkdown';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { extractAllListItemsFromMarkdown } from "./extractAllListItemsFromMarkdown";
 
-describe('how extractAllListItemsFromMarkdown works', () => {
-    it('should work with example with no items', () => {
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+describe("how extractAllListItemsFromMarkdown works", () => {
+	it("should work with example with no items", () => {
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     Hello World
                 `),
-            ),
-        ).toEqual([]);
+			),
+		).toEqual([]);
 
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     Hello World
                     Hello World
                 `),
-            ),
-        ).toEqual([]);
+			),
+		).toEqual([]);
 
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     # Hello World
 
                     Content with **bold** and *italic* text
                 `),
-            ),
-        ).toEqual([]);
-    });
+			),
+		).toEqual([]);
+	});
 
-    it('should work with example with one item', () => {
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+	it("should work with example with one item", () => {
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     - Hello World
                 `),
-            ),
-        ).toEqual(['Hello World']);
+			),
+		).toEqual(["Hello World"]);
 
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     # Hello World
 
                     - Item with **bold** and *italic* text
                 `),
-            ),
-        ).toEqual(['Item with **bold** and *italic* text']);
-    });
+			),
+		).toEqual(["Item with **bold** and *italic* text"]);
+	});
 
-    it('should work with example with multiple items', () => {
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+	it("should work with example with multiple items", () => {
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     # Hello World
 
                     Some text that is not a list item
@@ -67,14 +67,14 @@ describe('how extractAllListItemsFromMarkdown works', () => {
 
                     Also not a list item - and not a list item too just a hyphen -
                 `),
-            ),
-        ).toEqual(['First item', 'Second item', 'Third item', 'Fourth item']);
-    });
+			),
+		).toEqual(["First item", "Second item", "Third item", "Fourth item"]);
+	});
 
-    it('should work with example with multiple items and nested lists', () => {
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+	it("should work with example with multiple items and nested lists", () => {
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     # Hello World
 
                     - First item
@@ -85,14 +85,21 @@ describe('how extractAllListItemsFromMarkdown works', () => {
                     - Fourth item
 
                 `),
-            ),
-        ).toEqual(['First item', 'Second item', 'Nested item 1', 'Nested item 2', 'Third item', 'Fourth item']);
-    });
+			),
+		).toEqual([
+			"First item",
+			"Second item",
+			"Nested item 1",
+			"Nested item 2",
+			"Third item",
+			"Fourth item",
+		]);
+	});
 
-    it('should work with example with multiple items and nested lists and markdown', () => {
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+	it("should work with example with multiple items and nested lists and markdown", () => {
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     # Hello World
 
                     - First item
@@ -112,27 +119,27 @@ describe('how extractAllListItemsFromMarkdown works', () => {
                     - Eighth item
 
                 `),
-            ),
-        ).toEqual([
-            'First item',
-            'Second item',
-            'Nested item 1',
-            'Nested item 2',
-            'Third item',
-            'Fourth item',
-            'Fifth item',
-            'Sixth item',
-            'Nested item 3',
-            'Nested item 4',
-            'Seventh item',
-            'Eighth item',
-        ]);
-    });
+			),
+		).toEqual([
+			"First item",
+			"Second item",
+			"Nested item 1",
+			"Nested item 2",
+			"Third item",
+			"Fourth item",
+			"Fifth item",
+			"Sixth item",
+			"Nested item 3",
+			"Nested item 4",
+			"Seventh item",
+			"Eighth item",
+		]);
+	});
 
-    it('should work with both with ol and ul', () => {
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+	it("should work with both with ol and ul", () => {
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     # Hello World
 
                     - First item
@@ -152,27 +159,27 @@ describe('how extractAllListItemsFromMarkdown works', () => {
                     4. Eighth item
 
                 `),
-            ),
-        ).toEqual([
-            'First item',
-            'Second item',
-            'Nested item 1',
-            'Nested item 2',
-            'Third item',
-            'Fourth item',
-            'Fifth item',
-            'Sixth item',
-            'Nested item 3',
-            'Nested item 4',
-            'Seventh item',
-            'Eighth item',
-        ]);
-    });
+			),
+		).toEqual([
+			"First item",
+			"Second item",
+			"Nested item 1",
+			"Nested item 2",
+			"Third item",
+			"Fourth item",
+			"Fifth item",
+			"Sixth item",
+			"Nested item 3",
+			"Nested item 4",
+			"Seventh item",
+			"Eighth item",
+		]);
+	});
 
-    it('should omit items in nested code block', () => {
-        expect(
-            extractAllListItemsFromMarkdown(
-                spaceTrim(`
+	it("should omit items in nested code block", () => {
+		expect(
+			extractAllListItemsFromMarkdown(
+				spaceTrim(`
                     # Hello World
 
                     - First item
@@ -184,7 +191,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
                     \`\`\`
 
                 `),
-            ),
-        ).toEqual(['First item', 'Second item']);
-    });
+			),
+		).toEqual(["First item", "Second item"]);
+	});
 });

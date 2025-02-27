@@ -1,8 +1,8 @@
-import { spaceTrim } from 'spacetrim';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import { COMMANDS } from '../index';
-import type { Command } from './types/Command';
-import type { CommandParser } from './types/CommandParser';
+import { spaceTrim } from "spacetrim";
+import { UnexpectedError } from "../../errors/UnexpectedError";
+import { COMMANDS } from "../index";
+import type { Command } from "./types/Command";
+import type { CommandParser } from "./types/CommandParser";
 
 /**
  * Gets the parser for the command
@@ -12,25 +12,29 @@ import type { CommandParser } from './types/CommandParser';
  *
  * @public exported from `@promptbook/editable`
  */
-export function getParserForCommand<TCommand extends Command>(command: TCommand): CommandParser<TCommand> {
-    const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
+export function getParserForCommand<TCommand extends Command>(
+	command: TCommand,
+): CommandParser<TCommand> {
+	const commandParser = COMMANDS.find(
+		(commandParser) => commandParser.name === command.type,
+	);
 
-    if (commandParser === undefined) {
-        throw new UnexpectedError(
-            spaceTrim(
-                (block) => `
+	if (commandParser === undefined) {
+		throw new UnexpectedError(
+			spaceTrim(
+				(block) => `
                     Command ${command.type} parser is not found
 
                     ${block(
-                        JSON.stringify(command, null, 4)
-                            .split('\n')
-                            .map((line) => `> ${line}`)
-                            .join('\n'),
-                    )}
+											JSON.stringify(command, null, 4)
+												.split("\n")
+												.map((line) => `> ${line}`)
+												.join("\n"),
+										)}
                 `,
-            ),
-        );
-    }
+			),
+		);
+	}
 
-    return commandParser as CommandParser<TCommand>;
+	return commandParser as CommandParser<TCommand>;
 }

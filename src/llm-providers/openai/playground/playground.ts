@@ -1,65 +1,65 @@
 #!/usr/bin/env ts-node
 
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: '.env' });
+dotenv.config({ path: ".env" });
 
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
-import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import type { Prompt } from '../../../types/Prompt';
-import { keepUnused } from '../../../utils/organization/keepUnused';
-import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
-import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
+import colors from "colors"; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { embeddingVectorToString } from "../../../execution/embeddingVectorToString";
+import { usageToHuman } from "../../../execution/utils/usageToHuman";
+import type { Prompt } from "../../../types/Prompt";
+import { keepUnused } from "../../../utils/organization/keepUnused";
+import { OpenAiAssistantExecutionTools } from "../OpenAiAssistantExecutionTools";
+import { OpenAiExecutionTools } from "../OpenAiExecutionTools";
 
 playground()
-    .catch((error) => {
-        console.error(colors.bgRed(error.name || 'NamelessError'));
-        console.error(error);
-        process.exit(1);
-    })
-    .then(() => {
-        process.exit(0);
-    });
+	.catch((error) => {
+		console.error(colors.bgRed(error.name || "NamelessError"));
+		console.error(error);
+		process.exit(1);
+	})
+	.then(() => {
+		process.exit(0);
+	});
 
 async function playground() {
-    console.info(`🧸  OpenAI Playground`);
+	console.info(`🧸  OpenAI Playground`);
 
-    // Do here stuff you want to test
-    //========================================>
+	// Do here stuff you want to test
+	//========================================>
 
-    const openAiExecutionTools = new OpenAiExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            isVerbose: true,
-            userId: 'playground',
-            apiKey: process.env.OPENAI_API_KEY!,
-        },
-    );
+	const openAiExecutionTools = new OpenAiExecutionTools(
+		//            <- TODO: [🧱] Implement in a functional (not new Class) way
+		{
+			isVerbose: true,
+			userId: "playground",
+			apiKey: process.env.OPENAI_API_KEY!,
+		},
+	);
 
-    const openAiAssistantExecutionTools = new OpenAiAssistantExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            isVerbose: true,
-            userId: 'playground',
-            apiKey: process.env.OPENAI_API_KEY!,
-            assistantId: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
-            //            <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
-        },
-    );
+	const openAiAssistantExecutionTools = new OpenAiAssistantExecutionTools(
+		//            <- TODO: [🧱] Implement in a functional (not new Class) way
+		{
+			isVerbose: true,
+			userId: "playground",
+			apiKey: process.env.OPENAI_API_KEY!,
+			assistantId: "asst_CJCZzFCbBL0f2D4OWMXVTdBB",
+			//            <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
+		},
+	);
 
-    keepUnused(openAiExecutionTools);
-    keepUnused(openAiAssistantExecutionTools);
-    keepUnused(embeddingVectorToString);
-    keepUnused(usageToHuman);
-    keepUnused<Prompt>();
+	keepUnused(openAiExecutionTools);
+	keepUnused(openAiAssistantExecutionTools);
+	keepUnused(embeddingVectorToString);
+	keepUnused(usageToHuman);
+	keepUnused<Prompt>();
 
-    /*/
+	/*/
     const models = await openAiExecutionTools.listModels();
     console.info({ models });
     /**/
 
-    /*/
+	/*/
     const completionPrompt = {
         title: 'Hello',
         parameters: {},
@@ -74,7 +74,7 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+	/*/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
@@ -92,11 +92,11 @@ async function playground() {
     console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
     /**/
 
-    /*/
+	/*/
     // TODO: Test Translations in playground
     /**/
 
-    /*/
+	/*/
     const prompt = {
         title: 'Hello',
         parameters: {},
@@ -113,32 +113,35 @@ async function playground() {
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/
 
-    /**/
-    const chatPrompt = {
-        title: 'Promptbook speech',
-        parameters: {},
-        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
-        modelRequirements: {
-            modelVariant: 'CHAT',
-            // TODO: [👨‍👨‍👧‍👧] systemMessage: 'You are an assistant who only speaks in rhymes.',
-            // TODO: [👨‍👨‍👧‍👧] temperature: 1.5,
-        },
+	/**/
+	const chatPrompt = {
+		title: "Promptbook speech",
+		parameters: {},
+		content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
+		modelRequirements: {
+			modelVariant: "CHAT",
+			// TODO: [👨‍👨‍👧‍👧] systemMessage: 'You are an assistant who only speaks in rhymes.',
+			// TODO: [👨‍👨‍👧‍👧] temperature: 1.5,
+		},
 
-        /*
+		/*
         [🗯]
         replyingTo: {
 
         }
         */
-    } as const satisfies Prompt;
-    const chatPromptResult = await openAiAssistantExecutionTools.callChatModel(chatPrompt);
-    console.info({ chatPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Assistant: ') + colors.green(chatPromptResult.content));
-    /**/
+	} as const satisfies Prompt;
+	const chatPromptResult =
+		await openAiAssistantExecutionTools.callChatModel(chatPrompt);
+	console.info({ chatPromptResult });
+	console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+	console.info(colors.bgBlue(" User: ") + colors.blue(chatPrompt.content));
+	console.info(
+		colors.bgGreen(" Assistant: ") + colors.green(chatPromptResult.content),
+	);
+	/**/
 
-    /*/
+	/*/
     const openai = await openAiExecutionTools.getClient();
     const stream = openai.beta.threads.createAndRunStream({
         stream: true,
@@ -172,11 +175,11 @@ async function playground() {
 
     /**/
 
-    /*/
+	/*/
     // <- Note: [🤖] Test here new model variant if needed
     /**/
 
-    //========================================/
+	//========================================/
 }
 
 /**

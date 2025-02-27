@@ -1,18 +1,18 @@
-import { describe, expect, it } from '@jest/globals';
-import { readFileSync } from 'fs';
-import spaceTrim from 'spacetrim';
-import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
+import { readFileSync } from "fs";
+import { describe, expect, it } from "@jest/globals";
+import spaceTrim from "spacetrim";
+import { extractAllBlocksFromMarkdown } from "./extractAllBlocksFromMarkdown";
 
-describe('how extractAllBlocksFromMarkdown works in real example', () => {
-    it('should work with example with no code blocks', () => {
-        expect(
-            extractAllBlocksFromMarkdown(
-                readFileSync('examples/pipelines/30-escaping.book', 'utf-8'),
-                // <- Note: Its OK to use sync in tests
-            ),
-        ).toContainEqual({
-            blockNotation: '>',
-            content: spaceTrim(`
+describe("how extractAllBlocksFromMarkdown works in real example", () => {
+	it("should work with example with no code blocks", () => {
+		expect(
+			extractAllBlocksFromMarkdown(
+				readFileSync("examples/pipelines/30-escaping.book", "utf-8"),
+				// <- Note: Its OK to use sync in tests
+			),
+		).toContainEqual({
+			blockNotation: ">",
+			content: spaceTrim(`
 
                 Rewrite the function below:
 
@@ -24,7 +24,7 @@ describe('how extractAllBlocksFromMarkdown works in real example', () => {
 
                 To return "Goodbye" from the function instead of "Hello".
             `),
-            language: null,
-        });
-    });
+			language: null,
+		});
+	});
 });

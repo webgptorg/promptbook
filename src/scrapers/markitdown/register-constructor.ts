@@ -1,6 +1,6 @@
-import type { Registration } from '../../utils/$Register';
-import { $scrapersRegister } from '../_common/register/$scrapersRegister';
-import { createMarkitdownScraper } from './createMarkitdownScraper';
+import type { Registration } from "../../utils/$Register";
+import { $scrapersRegister } from "../_common/register/$scrapersRegister";
+import { createMarkitdownScraper } from "./createMarkitdownScraper";
 
 /**
  * Registration of known scraper
@@ -12,7 +12,8 @@ import { createMarkitdownScraper } from './createMarkitdownScraper';
  * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
-export const _MarkitdownScraperRegistration: Registration = $scrapersRegister.register(createMarkitdownScraper);
+export const _MarkitdownScraperRegistration: Registration =
+	$scrapersRegister.register(createMarkitdownScraper);
 
 /**
  * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both

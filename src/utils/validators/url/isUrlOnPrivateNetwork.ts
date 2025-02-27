@@ -1,5 +1,5 @@
-import type { string_url } from '../../../types/typeAliases';
-import { isHostnameOnPrivateNetwork } from './isHostnameOnPrivateNetwork';
+import type { string_url } from "../../../types/typeAliases";
+import { isHostnameOnPrivateNetwork } from "./isHostnameOnPrivateNetwork";
 
 /**
  * Checks if an IP address or hostname is reserved for private networks or localhost.
@@ -13,8 +13,8 @@ import { isHostnameOnPrivateNetwork } from './isHostnameOnPrivateNetwork';
  * @public exported from `@promptbook/utils`
  */
 export function isUrlOnPrivateNetwork(url: URL | string_url): boolean {
-    if (typeof url === 'string') {
-        url = new URL(url);
-    }
-    return isHostnameOnPrivateNetwork(url.hostname);
+	if (typeof url === "string") {
+		url = new URL(url);
+	}
+	return isHostnameOnPrivateNetwork(url.hostname);
 }

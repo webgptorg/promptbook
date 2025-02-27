@@ -1,8 +1,8 @@
-import { locateLibreoffice } from './locateLibreoffice';
+import { locateLibreoffice } from "./locateLibreoffice";
 
-describe('locating the LibreOffice', () => {
-    it('should locate LibreOffice', async () => {
-        await expect(locateLibreoffice()).resolves.toMatch(/office/i);
-        expect.assertions(1);
-    });
+describe("locating the LibreOffice", () => {
+	it("should locate LibreOffice", async () => {
+		await expect(locateLibreoffice()).resolves.toMatch(/office/i);
+		expect.assertions(1);
+	});
 });

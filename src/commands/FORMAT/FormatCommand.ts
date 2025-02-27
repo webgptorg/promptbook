@@ -4,8 +4,8 @@
  * Note: [🚉] This is fully serializable as JSON
  */
 export type FormatCommand = {
-    readonly type: 'FORMAT';
-    readonly format: 'JSON'; // <- TODO: [🏢] Change to `formatName`
+	readonly type: "FORMAT";
+	readonly format: "JSON"; // <- TODO: [🏢] Change to `formatName`
 };
 
 // <- TODO: [🦽] Why this is constantly removed by repair-imports.ts

@@ -1,6 +1,6 @@
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { PipelineCollection } from '../PipelineCollection';
-import { SimplePipelineCollection } from '../SimplePipelineCollection';
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import type { PipelineCollection } from "../PipelineCollection";
+import { SimplePipelineCollection } from "../SimplePipelineCollection";
 
 /**
  * Creates PipelineCollection from array of PipelineJson or PipelineString
@@ -12,6 +12,8 @@ import { SimplePipelineCollection } from '../SimplePipelineCollection';
  * @returns PipelineCollection
  * @public exported from `@promptbook/core`
  */
-export function createCollectionFromJson(...promptbooks: ReadonlyArray<PipelineJson>): PipelineCollection {
-    return new SimplePipelineCollection(...promptbooks);
+export function createCollectionFromJson(
+	...promptbooks: ReadonlyArray<PipelineJson>
+): PipelineCollection {
+	return new SimplePipelineCollection(...promptbooks);
 }

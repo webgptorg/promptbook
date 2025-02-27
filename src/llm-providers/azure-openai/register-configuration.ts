@@ -1,7 +1,7 @@
-import type { string_name } from '../../types/typeAliases';
-import type { Registration } from '../../utils/$Register';
-import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
-import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import type { string_name } from "../../types/typeAliases";
+import type { Registration } from "../../utils/$Register";
+import { $llmToolsMetadataRegister } from "../_common/register/$llmToolsMetadataRegister";
+import type { LlmToolsConfiguration } from "../_common/register/LlmToolsConfiguration";
 
 /**
  * Registration of LLM provider metadata
@@ -12,47 +12,54 @@ import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfigur
  * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
-export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
-    title: 'Azure Open AI',
-    packageName: '@promptbook/azure-openai',
-    className: 'AzureOpenAiExecutionTools',
-    envVariables: ['AZUREOPENAI_RESOURCE_NAME', 'AZUREOPENAI_DEPLOYMENT_NAME', 'AZUREOPENAI_API_KEY'],
+export const _AzureOpenAiMetadataRegistration: Registration =
+	$llmToolsMetadataRegister.register({
+		title: "Azure Open AI",
+		packageName: "@promptbook/azure-openai",
+		className: "AzureOpenAiExecutionTools",
+		envVariables: [
+			"AZUREOPENAI_RESOURCE_NAME",
+			"AZUREOPENAI_DEPLOYMENT_NAME",
+			"AZUREOPENAI_API_KEY",
+		],
 
-    getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
-        return {
-            title: 'Azure Open AI (boilerplate)',
-            packageName: '@promptbook/azure-openai',
-            className: 'AzureOpenAiExecutionTools',
-            options: {
-                apiKey: 'sk-',
-            },
-        };
-    },
+		getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
+			return {
+				title: "Azure Open AI (boilerplate)",
+				packageName: "@promptbook/azure-openai",
+				className: "AzureOpenAiExecutionTools",
+				options: {
+					apiKey: "sk-",
+				},
+			};
+		},
 
-    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
-        // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
-        if (
-            typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' &&
-            typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' &&
-            typeof env.AZUREOPENAI_API_KEY === 'string'
-        ) {
-            return {
-                title: 'Azure Open AI (from env)',
-                packageName: '@promptbook/azure-openai',
-                className: 'AzureOpenAiExecutionTools',
-                options: {
-                    resourceName: env.AZUREOPENAI_RESOURCE_NAME,
-                    deploymentName: env.AZUREOPENAI_DEPLOYMENT_NAME,
-                    apiKey: env.AZUREOPENAI_API_KEY,
-                },
-            };
-        } else if (
-            typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' ||
-            typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ||
-            typeof env.AZUREOPENAI_API_KEY === 'string'
-        ) {
-            return null;
-            /*
+		createConfigurationFromEnv(
+			env: Record<string_name, string>,
+		): LlmToolsConfiguration[number] | null {
+			// Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
+			if (
+				typeof env.AZUREOPENAI_RESOURCE_NAME === "string" &&
+				typeof env.AZUREOPENAI_DEPLOYMENT_NAME === "string" &&
+				typeof env.AZUREOPENAI_API_KEY === "string"
+			) {
+				return {
+					title: "Azure Open AI (from env)",
+					packageName: "@promptbook/azure-openai",
+					className: "AzureOpenAiExecutionTools",
+					options: {
+						resourceName: env.AZUREOPENAI_RESOURCE_NAME,
+						deploymentName: env.AZUREOPENAI_DEPLOYMENT_NAME,
+						apiKey: env.AZUREOPENAI_API_KEY,
+					},
+				};
+			} else if (
+				typeof env.AZUREOPENAI_RESOURCE_NAME === "string" ||
+				typeof env.AZUREOPENAI_DEPLOYMENT_NAME === "string" ||
+				typeof env.AZUREOPENAI_API_KEY === "string"
+			) {
+				return null;
+				/*
             Note: [🗨] Partial configuration is handled more gracefully elsewhere
             > throw new Error(
             >     spaceTrim(`
@@ -68,11 +75,11 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
             >     `),
             > );
             */
-        }
+			}
 
-        return null;
-    },
-});
+			return null;
+		},
+	});
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,6 +1,6 @@
-import { extension } from 'mime-types';
-import type { string_file_extension } from '../../types/typeAliases';
-import type { string_mime_type } from '../../types/typeAliases';
+import { extension } from "mime-types";
+import type { string_file_extension } from "../../types/typeAliases";
+import type { string_mime_type } from "../../types/typeAliases";
 
 /**
  * Convert mime type to file extension
@@ -9,6 +9,8 @@ import type { string_mime_type } from '../../types/typeAliases';
  *
  * @private within the repository
  */
-export function mimeTypeToExtension(value: string_mime_type): string_file_extension | null {
-    return extension(value) || null;
+export function mimeTypeToExtension(
+	value: string_mime_type,
+): string_file_extension | null {
+	return extension(value) || null;
 }

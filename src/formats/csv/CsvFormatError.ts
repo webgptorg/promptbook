@@ -6,9 +6,9 @@ import { AbstractFormatError } from "../../errors/AbstractFormatError";
  * @public exported from `@promptbook/core`
  */
 export class CsvFormatError extends AbstractFormatError {
-    public readonly name = 'CsvFormatError';
-    public constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, CsvFormatError.prototype);
-    }
+	public readonly name = "CsvFormatError";
+	public constructor(message: string) {
+		super(message);
+		Object.setPrototypeOf(this, CsvFormatError.prototype);
+	}
 }

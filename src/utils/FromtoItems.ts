@@ -2,20 +2,20 @@
  * Represents items which are compared to each other
  */
 export type FromtoItems = ReadonlyArray<{
-    /**
-     * The title of the item
-     */
-    readonly title: string;
+	/**
+	 * The title of the item
+	 */
+	readonly title: string;
 
-    /**
-     * The start of the item
-     *
-     * This can mean anything, like seconds, milliseconds, dollars, etc.
-     */
-    readonly from: number;
+	/**
+	 * The start of the item
+	 *
+	 * This can mean anything, like seconds, milliseconds, dollars, etc.
+	 */
+	readonly from: number;
 
-    /**
-     * The end of the item
-     */
-    readonly to: number;
+	/**
+	 * The end of the item
+	 */
+	readonly to: number;
 }>;

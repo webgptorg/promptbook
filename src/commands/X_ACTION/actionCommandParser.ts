@@ -1,12 +1,12 @@
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
-import { keepUnused } from '../../utils/organization/keepUnused';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
-import type { ActionCommand } from './ActionCommand';
+import { NotYetImplementedError } from "../../errors/NotYetImplementedError";
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import type { string_markdown_text } from "../../types/typeAliases";
+import { TODO_USE } from "../../utils/organization/TODO_USE";
+import { keepUnused } from "../../utils/organization/keepUnused";
+import type { $PipelineJson } from "../_common/types/CommandParser";
+import type { CommandParserInput } from "../_common/types/CommandParser";
+import type { PipelineHeadCommandParser } from "../_common/types/CommandParser";
+import type { ActionCommand } from "./ActionCommand";
 
 /**
  * Parses the action command
@@ -15,74 +15,81 @@ import type { ActionCommand } from './ActionCommand';
  * @public exported from `@promptbook/editable`
  */
 export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
-    /**
-     * Name of the command
-     */
-    name: 'ACTION',
+	/**
+	 * Name of the command
+	 */
+	name: "ACTION",
 
-    /**
-     * ACTION command can be used in:
-     */
-    isUsedInPipelineHead: true,
-    isUsedInPipelineTask: false, // <- [👙] Maybe allow to use here and make relevant for just this task
+	/**
+	 * ACTION command can be used in:
+	 */
+	isUsedInPipelineHead: true,
+	isUsedInPipelineTask: false, // <- [👙] Maybe allow to use here and make relevant for just this task
 
-    /**
-     * Description of the ACTION command
-     */
-    description: `Actions influences from the pipeline or task into external world. Like turning on a light, sending an email, etc.`,
+	/**
+	 * Description of the ACTION command
+	 */
+	description: `Actions influences from the pipeline or task into external world. Like turning on a light, sending an email, etc.`,
 
-    /**
-     * Link to documentation
-     */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/72',
+	/**
+	 * Link to documentation
+	 */
+	documentationUrl: "https://github.com/webgptorg/promptbook/discussions/72",
 
-    /**
-     * Example usages of the ACTION command
-     */
-    examples: ['ACTION'],
+	/**
+	 * Example usages of the ACTION command
+	 */
+	examples: ["ACTION"],
 
-    /**
-     * Parses the ACTION command
-     */
-    parse(input: CommandParserInput): ActionCommand {
-        const { args } = input;
+	/**
+	 * Parses the ACTION command
+	 */
+	parse(input: CommandParserInput): ActionCommand {
+		const { args } = input;
 
-        TODO_USE(args);
+		TODO_USE(args);
 
-        return {
-            type: 'ACTION',
-        } satisfies ActionCommand;
-    },
+		return {
+			type: "ACTION",
+		} satisfies ActionCommand;
+	},
 
-    /**
-     * Apply the ACTION command to the `pipelineJson`
-     *
-     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
-     */
-    $applyToPipelineJson(command: ActionCommand, $pipelineJson: $PipelineJson): void {
-        keepUnused(command, $pipelineJson);
-        console.error(new NotYetImplementedError('[🛠] Actions are not implemented yet'));
-    },
+	/**
+	 * Apply the ACTION command to the `pipelineJson`
+	 *
+	 * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+	 */
+	$applyToPipelineJson(
+		command: ActionCommand,
+		$pipelineJson: $PipelineJson,
+	): void {
+		keepUnused(command, $pipelineJson);
+		console.error(
+			new NotYetImplementedError("[🛠] Actions are not implemented yet"),
+		);
+	},
 
-    /**
-     * Converts the ACTION command back to string
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    stringify(command: ActionCommand): string_markdown_text {
-        keepUnused(command);
-        throw new NotYetImplementedError('[🛠] Actions are not implemented yet');
-    },
+	/**
+	 * Converts the ACTION command back to string
+	 *
+	 * Note: This is used in `pipelineJsonToString` utility
+	 */
+	stringify(command: ActionCommand): string_markdown_text {
+		keepUnused(command);
+		throw new NotYetImplementedError("[🛠] Actions are not implemented yet");
+	},
 
-    /**
-     * Reads the ACTION command from the `PipelineJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ActionCommand> {
-        keepUnused(pipelineJson);
-        throw new NotYetImplementedError('[🛠] Actions are not implemented yet');
-    },
+	/**
+	 * Reads the ACTION command from the `PipelineJson`
+	 *
+	 * Note: This is used in `pipelineJsonToString` utility
+	 */
+	takeFromPipelineJson(
+		pipelineJson: PipelineJson,
+	): ReadonlyArray<ActionCommand> {
+		keepUnused(pipelineJson);
+		throw new NotYetImplementedError("[🛠] Actions are not implemented yet");
+	},
 };
 
 /**

@@ -1,4 +1,4 @@
-import { Converter as ShowdownConverter } from 'showdown';
+import { Converter as ShowdownConverter } from "showdown";
 
 /**
  * Create a new showdown converter instance
@@ -6,9 +6,9 @@ import { Converter as ShowdownConverter } from 'showdown';
  * @private utility of `WebsiteScraper`
  */
 export function createShowdownConverter() {
-    return new ShowdownConverter({
-        flavor: 'github',
-        /*
+	return new ShowdownConverter({
+		flavor: "github",
+		/*
         > import showdownHighlight from 'showdown-highlight';
         > extensions: [
         >     showdownHighlight({
@@ -19,5 +19,5 @@ export function createShowdownConverter() {
         >     }),
         > ],
         */
-    });
+	});
 }

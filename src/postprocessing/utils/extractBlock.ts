@@ -1,5 +1,5 @@
-import type { string_markdown } from '../../types/typeAliases';
-import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBlockFromMarkdown';
+import type { string_markdown } from "../../types/typeAliases";
+import { extractOneBlockFromMarkdown } from "../../utils/markdown/extractOneBlockFromMarkdown";
 
 /**
  * Extracts code block from markdown.
@@ -16,7 +16,7 @@ import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBloc
  * @throws {ParseError} if there is not exactly one code block in the markdown
  */
 export function extractBlock(markdown: string_markdown): string {
-    const { content } = extractOneBlockFromMarkdown(markdown);
+	const { content } = extractOneBlockFromMarkdown(markdown);
 
-    return content;
+	return content;
 }

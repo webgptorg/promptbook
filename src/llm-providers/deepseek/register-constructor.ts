@@ -1,6 +1,6 @@
-import type { Registration } from '../../utils/$Register';
-import { $llmToolsRegister } from '../_common/register/$llmToolsRegister';
-import { createDeepseekExecutionTools } from './createDeepseekExecutionTools';
+import type { Registration } from "../../utils/$Register";
+import { $llmToolsRegister } from "../_common/register/$llmToolsRegister";
+import { createDeepseekExecutionTools } from "./createDeepseekExecutionTools";
 
 /**
  * Registration of LLM provider
@@ -11,7 +11,9 @@ import { createDeepseekExecutionTools } from './createDeepseekExecutionTools';
  * @public exported from `@promptbook/wizzard`
  * @public exported from `@promptbook/cli`
  */
-export const _DeepseekRegistration: Registration = $llmToolsRegister.register(createDeepseekExecutionTools);
+export const _DeepseekRegistration: Registration = $llmToolsRegister.register(
+	createDeepseekExecutionTools,
+);
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

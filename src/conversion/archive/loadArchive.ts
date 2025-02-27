@@ -1,9 +1,9 @@
-import JSZip from 'jszip';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_filename } from '../../types/typeAliases';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { FilesystemTools } from '../../execution/FilesystemTools';
-import { validatePipeline } from '../validation/validatePipeline';
+import JSZip from "jszip";
+import { UnexpectedError } from "../../errors/UnexpectedError";
+import type { FilesystemTools } from "../../execution/FilesystemTools";
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import type { string_filename } from "../../types/typeAliases";
+import { validatePipeline } from "../validation/validatePipeline";
 
 /**
  * Loads the books from the archive file with `.bookc` extension
@@ -14,27 +14,32 @@ import { validatePipeline } from '../validation/validatePipeline';
  *
  * @private utility of Prompbook
  */
-export async function loadArchive(filePath: string_filename, fs: FilesystemTools): Promise<Array<PipelineJson>> {
-    if (!filePath.endsWith('.bookc')) {
-        throw new UnexpectedError(`Archive file must have '.bookc' extension`);
-    }
+export async function loadArchive(
+	filePath: string_filename,
+	fs: FilesystemTools,
+): Promise<Array<PipelineJson>> {
+	if (!filePath.endsWith(".bookc")) {
+		throw new UnexpectedError(`Archive file must have '.bookc' extension`);
+	}
 
-    const data = await fs.readFile(filePath);
-    const archive = await JSZip.loadAsync(data);
+	const data = await fs.readFile(filePath);
+	const archive = await JSZip.loadAsync(data);
 
-    const indexFile = archive.file('index.book.json');
+	const indexFile = archive.file("index.book.json");
 
-    if (!indexFile) {
-        throw new UnexpectedError(`Archive does not contain 'index.book.json' file`);
-    }
+	if (!indexFile) {
+		throw new UnexpectedError(
+			`Archive does not contain 'index.book.json' file`,
+		);
+	}
 
-    const collectionJson = JSON.parse(await indexFile.async('text'));
+	const collectionJson = JSON.parse(await indexFile.async("text"));
 
-    for (const pipeline of collectionJson) {
-        validatePipeline(pipeline);
-    }
+	for (const pipeline of collectionJson) {
+		validatePipeline(pipeline);
+	}
 
-    return collectionJson;
+	return collectionJson;
 }
 
 /**

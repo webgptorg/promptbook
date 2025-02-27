@@ -1,9 +1,9 @@
-import { ExpectError } from '../../errors/ExpectError';
-import type { Prompt } from '../../types/Prompt';
-import type { ChatPromptResult } from '../PromptResult';
-import type { CompletionPromptResult } from '../PromptResult';
-import type { EmbeddingPromptResult } from '../PromptResult';
-import type { PromptResult } from '../PromptResult';
+import type { ExpectError } from "../../errors/ExpectError";
+import type { Prompt } from "../../types/Prompt";
+import type { ChatPromptResult } from "../PromptResult";
+import type { CompletionPromptResult } from "../PromptResult";
+import type { EmbeddingPromptResult } from "../PromptResult";
+import type { PromptResult } from "../PromptResult";
 
 /**
  * @@@
@@ -11,44 +11,44 @@ import type { PromptResult } from '../PromptResult';
  * @private internal utility of `createPipelineExecutor`
  */
 export type $OngoingTaskResult = {
-    /**
-     * @@@
-     */
-    $prompt?: Prompt;
+	/**
+	 * @@@
+	 */
+	$prompt?: Prompt;
 
-    /**
-     * @@@
-     */
-    $chatResult?: ChatPromptResult;
+	/**
+	 * @@@
+	 */
+	$chatResult?: ChatPromptResult;
 
-    /**
-     * @@@
-     */
-    $completionResult?: CompletionPromptResult;
+	/**
+	 * @@@
+	 */
+	$completionResult?: CompletionPromptResult;
 
-    /**
-     * @@@
-     */
-    $embeddingResult?: EmbeddingPromptResult;
-    //  <- Note: [🤖]
+	/**
+	 * @@@
+	 */
+	$embeddingResult?: EmbeddingPromptResult;
+	//  <- Note: [🤖]
 
-    /**
-     * @@@
-     */
-    $result: PromptResult | null;
+	/**
+	 * @@@
+	 */
+	$result: PromptResult | null;
 
-    /**
-     * @@@
-     */
-    $resultString: string | null;
+	/**
+	 * @@@
+	 */
+	$resultString: string | null;
 
-    /**
-     * @@@
-     */
-    $expectError: ExpectError | null;
+	/**
+	 * @@@
+	 */
+	$expectError: ExpectError | null;
 
-    /**
-     * @@@
-     */
-    $scriptPipelineExecutionErrors: Array<Error>;
+	/**
+	 * @@@
+	 */
+	$scriptPipelineExecutionErrors: Array<Error>;
 };

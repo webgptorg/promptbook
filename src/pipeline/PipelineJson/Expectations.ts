@@ -1,6 +1,6 @@
-import type { TupleToUnion } from 'type-fest';
-import type { number_integer } from '../../types/typeAliases';
-import type { number_positive } from '../../types/typeAliases';
+import type { TupleToUnion } from "type-fest";
+import type { number_integer } from "../../types/typeAliases";
+import type { number_positive } from "../../types/typeAliases";
 
 /**
  * Expect this amount of each unit in the answer
@@ -12,7 +12,10 @@ import type { number_positive } from '../../types/typeAliases';
  * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type Expectations = Partial<
-    Record<Lowercase<ExpectationUnit>, { readonly min?: ExpectationAmount; readonly max?: ExpectationAmount }>
+	Record<
+		Lowercase<ExpectationUnit>,
+		{ readonly min?: ExpectationAmount; readonly max?: ExpectationAmount }
+	>
 >;
 
 /**
@@ -29,7 +32,14 @@ export type ExpectationUnit = TupleToUnion<typeof EXPECTATION_UNITS>;
  * @see https://github.com/webgptorg/promptbook/discussions/30
  * @public exported from `@promptbook/core`
  */
-export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', 'PARAGRAPHS', 'PAGES'] as const;
+export const EXPECTATION_UNITS = [
+	"CHARACTERS",
+	"WORDS",
+	"SENTENCES",
+	"LINES",
+	"PARAGRAPHS",
+	"PAGES",
+] as const;
 
 /**
  * Amount of text measurement

@@ -5,6 +5,6 @@
  * @private within the commands folder
  */
 export type BoilerplateCommand = {
-    readonly type: 'BOILERPLATE';
-    readonly value: string;
+	readonly type: "BOILERPLATE";
+	readonly value: string;
 };

@@ -1,16 +1,16 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { compilePipeline } from '../../conversion/compilePipeline';
-import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
-import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PipelineString } from '../../pipeline/PipelineString';
-import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { compilePipeline } from "../../conversion/compilePipeline";
+import { CallbackInterfaceTools } from "../../dialogs/callback/CallbackInterfaceTools";
+import { createPipelineExecutor } from "../../execution/createPipelineExecutor/00-createPipelineExecutor";
+import { MockedEchoLlmExecutionTools } from "../../llm-providers/mocked/MockedEchoLlmExecutionTools";
+import type { PipelineString } from "../../pipeline/PipelineString";
+import { JavascriptExecutionTools } from "../javascript/JavascriptExecutionTools";
 
-describe('createPipelineExecutor + missing custom function', () => {
-    async function getPipelineExecutor() {
-        const pipeline = await compilePipeline(
-            spaceTrim(`
+describe("createPipelineExecutor + missing custom function", () => {
+	async function getPipelineExecutor() {
+		const pipeline = await compilePipeline(
+			spaceTrim(`
                 # Custom functions
 
                 Show how to use custom postprocessing functions
@@ -30,41 +30,41 @@ describe('createPipelineExecutor + missing custom function', () => {
 
                 -> {greeting}
              `) as PipelineString,
-            // <- TODO: [📼] Use`book\`` string literal notation
-        );
+			// <- TODO: [📼] Use`book\`` string literal notation
+		);
 
-        const pipelineExecutor = createPipelineExecutor({
-            pipeline,
-            tools: {
-                llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-                script: [
-                    new JavascriptExecutionTools({
-                        isVerbose: true,
+		const pipelineExecutor = createPipelineExecutor({
+			pipeline,
+			tools: {
+				llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+				script: [
+					new JavascriptExecutionTools({
+						isVerbose: true,
 
-                        // Note: [🕎]
-                        functions: {
-                            addHelloWithTypo(value) {
-                                return `Hello ${value}`;
-                            },
-                        },
-                    }),
-                ],
-                userInterface: new CallbackInterfaceTools({
-                    isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
-                }),
-            },
-        });
+						// Note: [🕎]
+						functions: {
+							addHelloWithTypo(value) {
+								return `Hello ${value}`;
+							},
+						},
+					}),
+				],
+				userInterface: new CallbackInterfaceTools({
+					isVerbose: true,
+					async callback() {
+						return "Hello";
+					},
+				}),
+			},
+		});
 
-        return pipelineExecutor;
-    }
+		return pipelineExecutor;
+	}
 
-    it('should throw error when custom postprocessing function does not exist', async () => {
-        const pipelineExecutor = await getPipelineExecutor();
-        expect(() => pipelineExecutor({ yourName: 'Matthew' }).asPromise()).rejects.toThrowError(
-            /Function addHello\(\) is not defined/,
-        );
-    });
+	it("should throw error when custom postprocessing function does not exist", async () => {
+		const pipelineExecutor = await getPipelineExecutor();
+		expect(() =>
+			pipelineExecutor({ yourName: "Matthew" }).asPromise(),
+		).rejects.toThrowError(/Function addHello\(\) is not defined/);
+	});
 });

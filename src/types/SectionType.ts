@@ -1,5 +1,5 @@
-import type { TupleToUnion } from 'type-fest';
-import { TaskTypes } from './TaskType';
+import type { TupleToUnion } from "type-fest";
+import { TaskTypes } from "./TaskType";
 
 /**
  * Type of the section
@@ -11,7 +11,12 @@ export type SectionType = TupleToUnion<typeof SectionTypes>;
  *
  * @public exported from `@promptbook/core`
  */
-export const NonTaskSectionTypes = ['EXAMPLE', 'KNOWLEDGE', 'INSTRUMENT', 'ACTION'] as const;
+export const NonTaskSectionTypes = [
+	"EXAMPLE",
+	"KNOWLEDGE",
+	"INSTRUMENT",
+	"ACTION",
+] as const;
 
 /**
  * All available section types
@@ -23,6 +28,6 @@ export const NonTaskSectionTypes = ['EXAMPLE', 'KNOWLEDGE', 'INSTRUMENT', 'ACTIO
  * @public exported from `@promptbook/core`
  */
 export const SectionTypes = [
-    ...TaskTypes.map((TaskType) => `${TaskType}_TASK` as const),
-    ...NonTaskSectionTypes,
+	...TaskTypes.map((TaskType) => `${TaskType}_TASK` as const),
+	...NonTaskSectionTypes,
 ] as const;

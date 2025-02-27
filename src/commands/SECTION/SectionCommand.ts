@@ -1,4 +1,4 @@
-import type { SectionType } from '../../types/SectionType';
+import type { SectionType } from "../../types/SectionType";
 
 /**
  * Parsed SECTION command
@@ -7,6 +7,6 @@ import type { SectionType } from '../../types/SectionType';
  * @public exported from `@promptbook/editable`
  */
 export type SectionCommand = {
-    readonly type: 'SECTION';
-    readonly taskType: SectionType;
+	readonly type: "SECTION";
+	readonly taskType: SectionType;
 };

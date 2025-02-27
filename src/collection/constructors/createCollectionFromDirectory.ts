@@ -1,30 +1,30 @@
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { readFile } from 'fs/promises';
-import { dirname, join, relative } from 'path';
-import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { loadArchive } from '../../conversion/archive/loadArchive';
-import { compilePipeline } from '../../conversion/compilePipeline';
-import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
-import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { CollectionError } from '../../errors/CollectionError';
-import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { PipelineUrlError } from '../../errors/PipelineUrlError';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import { validatePipelineString } from '../../pipeline/validatePipelineString';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_pipeline_root_url } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import { isFileExisting } from '../../utils/files/isFileExisting';
-import { listAllFiles } from '../../utils/files/listAllFiles';
-import type { PipelineCollection } from '../PipelineCollection';
-import { createCollectionFromPromise } from './createCollectionFromPromise';
+import { dirname, join, relative } from "path";
+import colors from "colors"; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { readFile } from "fs/promises";
+import spaceTrim from "spacetrim";
+import { DEFAULT_IS_VERBOSE } from "../../config";
+import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from "../../config";
+import { loadArchive } from "../../conversion/archive/loadArchive";
+import { compilePipeline } from "../../conversion/compilePipeline";
+import { pipelineJsonToString } from "../../conversion/pipelineJsonToString";
+import { validatePipeline } from "../../conversion/validation/validatePipeline";
+import { CollectionError } from "../../errors/CollectionError";
+import { EnvironmentMismatchError } from "../../errors/EnvironmentMismatchError";
+import { PipelineUrlError } from "../../errors/PipelineUrlError";
+import type { ExecutionTools } from "../../execution/ExecutionTools";
+import { $provideExecutionToolsForNode } from "../../execution/utils/$provideExecutionToolsForNode";
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import { validatePipelineString } from "../../pipeline/validatePipelineString";
+import type { PrepareAndScrapeOptions } from "../../prepare/PrepareAndScrapeOptions";
+import { unpreparePipeline } from "../../prepare/unpreparePipeline";
+import type { string_dirname } from "../../types/typeAliases";
+import type { string_filename } from "../../types/typeAliases";
+import type { string_pipeline_root_url } from "../../types/typeAliases";
+import type { string_pipeline_url } from "../../types/typeAliases";
+import { isFileExisting } from "../../utils/files/isFileExisting";
+import { listAllFiles } from "../../utils/files/listAllFiles";
+import type { PipelineCollection } from "../PipelineCollection";
+import { createCollectionFromPromise } from "./createCollectionFromPromise";
 
 /**
  * Options for `createCollectionFromDirectory` function
@@ -32,48 +32,51 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
  * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
  *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
  */
-type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
-    /**
-     * If true, the directory is searched recursively for pipelines
-     *
-     * @default true
-     */
-    isRecursive?: boolean;
+type CreatePipelineCollectionFromDirectoryOptions = Omit<
+	PrepareAndScrapeOptions,
+	"rootDirname"
+> & {
+	/**
+	 * If true, the directory is searched recursively for pipelines
+	 *
+	 * @default true
+	 */
+	isRecursive?: boolean;
 
-    /**
-     * If true, the collection creation outputs information about each file it reads
-     *
-     * @default false
-     */
-    isVerbose?: boolean;
+	/**
+	 * If true, the collection creation outputs information about each file it reads
+	 *
+	 * @default false
+	 */
+	isVerbose?: boolean;
 
-    /**
-     * This will be used as a root URL for all pipelines in the collection
-     *
-     * It has 2 purposes:
-     * 1) Every pipeline in the collection is checked if it is a child of `rootUrl`
-     * 2) If the pipeline does not have a URL, it is created from the `rootUrl` and path to the pipeline
-     *
-     * @default false
-     */
-    rootUrl?: string_pipeline_root_url;
+	/**
+	 * This will be used as a root URL for all pipelines in the collection
+	 *
+	 * It has 2 purposes:
+	 * 1) Every pipeline in the collection is checked if it is a child of `rootUrl`
+	 * 2) If the pipeline does not have a URL, it is created from the `rootUrl` and path to the pipeline
+	 *
+	 * @default false
+	 */
+	rootUrl?: string_pipeline_root_url;
 
-    /**
-     * If true, directory will be scanned only when needed not during the construction
-     *
-     * @default false
-     */
-    isLazyLoaded?: boolean;
+	/**
+	 * If true, directory will be scanned only when needed not during the construction
+	 *
+	 * @default false
+	 */
+	isLazyLoaded?: boolean;
 
-    /**
-     * If true, whole collection creation crashes on error in any pipeline
-     * If true and isLazyLoaded is true, the error is thrown on first access to the pipeline
-     *
-     * @default true
-     */
-    isCrashedOnError?: boolean;
+	/**
+	 * If true, whole collection creation crashes on error in any pipeline
+	 * If true and isLazyLoaded is true, the error is thrown on first access to the pipeline
+	 *
+	 * @default true
+	 */
+	isCrashedOnError?: boolean;
 
-    // <- TODO: [🍖] Add `intermediateFilesStrategy`
+	// <- TODO: [🍖] Add `intermediateFilesStrategy`
 };
 
 /**
@@ -88,31 +91,33 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
-    rootPath: string_dirname,
-    tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
-    options?: CreatePipelineCollectionFromDirectoryOptions,
+	rootPath: string_dirname,
+	tools?: Pick<ExecutionTools, "llm" | "fs" | "scrapers">,
+	options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
-    if (tools === undefined) {
-        tools = await $provideExecutionToolsForNode();
-    }
+	if (tools === undefined) {
+		tools = await $provideExecutionToolsForNode();
+	}
 
-    if (tools === undefined || tools.fs === undefined) {
-        throw new EnvironmentMismatchError('Can not create collection without filesystem tools');
-        //          <- TODO: [🧠] What is the best error type here`
-    }
+	if (tools === undefined || tools.fs === undefined) {
+		throw new EnvironmentMismatchError(
+			"Can not create collection without filesystem tools",
+		);
+		//          <- TODO: [🧠] What is the best error type here`
+	}
 
-    // TODO: [🍖] Allow to skip
+	// TODO: [🍖] Allow to skip
 
-    const madeLibraryFilePath = join(
-        rootPath,
-        `${
-            DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
-            // <- TODO: [🦒] Allow to override (pass different value into the function)
-        }.bookc`,
-    );
+	const madeLibraryFilePath = join(
+		rootPath,
+		`${
+			DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
+			// <- TODO: [🦒] Allow to override (pass different value into the function)
+		}.bookc`,
+	);
 
-    if (!(await isFileExisting(madeLibraryFilePath, tools.fs))) {
-        /*
+	if (!(await isFileExisting(madeLibraryFilePath, tools.fs))) {
+		/*
         TODO: [🌗][🧠] Should this message be here or just ignore
         console.info(
             colors.yellow(
@@ -120,235 +125,267 @@ export async function createCollectionFromDirectory(
             ),
         );
         */
-    } else {
-        colors.green(`(In future, not implemented yet) Using your compiled pipeline collection ${madeLibraryFilePath}`);
-        // TODO: Implement;
-        // TODO: [🌗]
-    }
+	} else {
+		colors.green(
+			`(In future, not implemented yet) Using your compiled pipeline collection ${madeLibraryFilePath}`,
+		);
+		// TODO: Implement;
+		// TODO: [🌗]
+	}
 
-    const {
-        isRecursive = true,
-        isVerbose = DEFAULT_IS_VERBOSE,
-        isLazyLoaded = false,
-        isCrashedOnError = true,
-        rootUrl,
-    } = options || {};
+	const {
+		isRecursive = true,
+		isVerbose = DEFAULT_IS_VERBOSE,
+		isLazyLoaded = false,
+		isCrashedOnError = true,
+		rootUrl,
+	} = options || {};
 
-    const collection = createCollectionFromPromise(async () => {
-        if (isVerbose) {
-            console.info(colors.cyan(`Creating pipeline collection from path ${rootPath.split('\\').join('/')}`));
-        }
+	const collection = createCollectionFromPromise(async () => {
+		if (isVerbose) {
+			console.info(
+				colors.cyan(
+					`Creating pipeline collection from path ${rootPath.split("\\").join("/")}`,
+				),
+			);
+		}
 
-        const fileNames = await listAllFiles(rootPath, isRecursive, tools!.fs!);
+		const fileNames = await listAllFiles(rootPath, isRecursive, tools!.fs!);
 
-        // Note: First load compiled `.bookc` files and then source `.book` files
-        //       `.bookc` are already compiled and can be used faster
-        fileNames.sort((a, b) => {
-            if ((a.endsWith('.bookc') || a.endsWith('.book.json')) && (b.endsWith('.book') || b.endsWith('.book.md'))) {
-                return -1;
-            }
-            if ((a.endsWith('.book') || a.endsWith('.book.md')) && (b.endsWith('.bookc') || b.endsWith('.book.json'))) {
-                return 1;
-            }
-            return 0;
-        });
+		// Note: First load compiled `.bookc` files and then source `.book` files
+		//       `.bookc` are already compiled and can be used faster
+		fileNames.sort((a, b) => {
+			if (
+				(a.endsWith(".bookc") || a.endsWith(".book.json")) &&
+				(b.endsWith(".book") || b.endsWith(".book.md"))
+			) {
+				return -1;
+			}
+			if (
+				(a.endsWith(".book") || a.endsWith(".book.md")) &&
+				(b.endsWith(".bookc") || b.endsWith(".book.json"))
+			) {
+				return 1;
+			}
+			return 0;
+		});
 
-        const collection = new Map<string_pipeline_url, PipelineJson>();
-        const pipelinesWithFilenames: Array<{
-            fileName: string_filename;
-            sourceFile: string_filename;
-            pipeline: PipelineJson;
-        }> = [];
+		const collection = new Map<string_pipeline_url, PipelineJson>();
+		const pipelinesWithFilenames: Array<{
+			fileName: string_filename;
+			sourceFile: string_filename;
+			pipeline: PipelineJson;
+		}> = [];
 
-        for (const fileName of fileNames) {
-            const sourceFile = './' + fileName.split('\\').join('/');
-            const rootDirname = dirname(sourceFile).split('\\').join('/');
+		for (const fileName of fileNames) {
+			const sourceFile = "./" + fileName.split("\\").join("/");
+			const rootDirname = dirname(sourceFile).split("\\").join("/");
 
-            try {
-                if (fileName.endsWith('.book') || fileName.endsWith('.book.md')) {
-                    const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
-                    const pipeline = await compilePipeline(pipelineString, tools, {
-                        rootDirname,
-                    });
-                    pipelinesWithFilenames.push({ fileName, sourceFile, pipeline: { ...pipeline, sourceFile } });
-                } else if (fileName.endsWith('.bookc') || fileName.endsWith('.book.json')) {
-                    // TODO: Handle non-valid JSON files
+			try {
+				if (fileName.endsWith(".book") || fileName.endsWith(".book.md")) {
+					const pipelineString = validatePipelineString(
+						await readFile(fileName, "utf-8"),
+					);
+					const pipeline = await compilePipeline(pipelineString, tools, {
+						rootDirname,
+					});
+					pipelinesWithFilenames.push({
+						fileName,
+						sourceFile,
+						pipeline: { ...pipeline, sourceFile },
+					});
+				} else if (
+					fileName.endsWith(".bookc") ||
+					fileName.endsWith(".book.json")
+				) {
+					// TODO: Handle non-valid JSON files
 
-                    pipelinesWithFilenames.push(
-                        ...(await loadArchive(fileName, tools!.fs!)).map((pipeline) =>
-                            // TODO: [🌗]
-                            ({ fileName, sourceFile, pipeline: { ...pipeline, sourceFile } }),
-                        ),
-                    );
-                } else {
-                    if (isVerbose) {
-                        console.info(
-                            colors.gray(`Skipped file ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Not a book`),
-                        );
-                    }
-                }
+					pipelinesWithFilenames.push(
+						...(await loadArchive(fileName, tools!.fs!)).map((pipeline) =>
+							// TODO: [🌗]
+							({ fileName, sourceFile, pipeline: { ...pipeline, sourceFile } }),
+						),
+					);
+				} else {
+					if (isVerbose) {
+						console.info(
+							colors.gray(
+								`Skipped file ${fileName.split("\\").join("/")} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Not a book`,
+							),
+						);
+					}
+				}
 
-                // ---
-            } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+				// ---
+			} catch (error) {
+				if (!(error instanceof Error)) {
+					throw error;
+				}
 
-                // TODO: [7] DRY
-                const wrappedErrorMessage =
-                    spaceTrim(
-                        (block) => `
-                            ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
+				// TODO: [7] DRY
+				const wrappedErrorMessage =
+					spaceTrim(
+						(block) => `
+                            ${(error as Error).name} in pipeline ${fileName.split("\\").join("/")}⁠:
 
                             Original error message:
                             ${block((error as Error).message)}
 
                             Original stack trace:
-                            ${block((error as Error).stack || '')}
+                            ${block((error as Error).stack || "")}
 
                             ---
 
                         `,
-                    ) + '\n';
+					) + "\n";
 
-                if (isCrashedOnError) {
-                    throw new CollectionError(wrappedErrorMessage);
-                }
+				if (isCrashedOnError) {
+					throw new CollectionError(wrappedErrorMessage);
+				}
 
-                // TODO: [🟥] Detect browser / node and make it colorfull
-                console.error(wrappedErrorMessage);
-            }
-        }
+				// TODO: [🟥] Detect browser / node and make it colorfull
+				console.error(wrappedErrorMessage);
+			}
+		}
 
-        for (const pipelineWithFilenames of pipelinesWithFilenames) {
-            const { fileName, sourceFile } = pipelineWithFilenames;
-            let { pipeline } = pipelineWithFilenames;
+		for (const pipelineWithFilenames of pipelinesWithFilenames) {
+			const { fileName, sourceFile } = pipelineWithFilenames;
+			let { pipeline } = pipelineWithFilenames;
 
-            try {
-                if (rootUrl !== undefined) {
-                    if (pipeline.pipelineUrl === undefined) {
-                        const pipelineUrl = rootUrl + '/' + relative(rootPath, fileName).split('\\').join('/');
+			try {
+				if (rootUrl !== undefined) {
+					if (pipeline.pipelineUrl === undefined) {
+						const pipelineUrl =
+							rootUrl +
+							"/" +
+							relative(rootPath, fileName).split("\\").join("/");
 
-                        // console.log({ pipelineUrl, rootPath, rootUrl, fileName });
+						// console.log({ pipelineUrl, rootPath, rootUrl, fileName });
 
-                        if (isVerbose) {
-                            console.info(
-                                colors.yellow(
-                                    `Implicitly set pipeline URL to ${pipelineUrl} from ${fileName
-                                        .split('\\')
-                                        .join('/')}`,
-                                ),
-                            );
-                        }
-                        pipeline = { ...pipeline, pipelineUrl };
-                    } else if (!pipeline.pipelineUrl.startsWith(rootUrl)) {
-                        throw new PipelineUrlError(
-                            spaceTrim(`
+						if (isVerbose) {
+							console.info(
+								colors.yellow(
+									`Implicitly set pipeline URL to ${pipelineUrl} from ${fileName
+										.split("\\")
+										.join("/")}`,
+								),
+							);
+						}
+						pipeline = { ...pipeline, pipelineUrl };
+					} else if (!pipeline.pipelineUrl.startsWith(rootUrl)) {
+						throw new PipelineUrlError(
+							spaceTrim(`
                                 Pipeline with URL ${pipeline.pipelineUrl} is not a child of the root URL ${rootUrl} 🍏
 
                                 File:
-                                ${sourceFile || 'Unknown'}
+                                ${sourceFile || "Unknown"}
 
                             `),
-                        );
-                    }
-                }
+						);
+					}
+				}
 
-                // TODO: [👠] DRY
-                if (pipeline.pipelineUrl === undefined) {
-                    if (isVerbose) {
-                        console.info(
-                            colors.yellow(
-                                `Can not load pipeline from ${fileName.split('\\').join('/')} because of missing URL`,
-                            ),
-                        );
-                    }
-                } else {
-                    // Note: [🐨] Pipeline is checked multiple times
-                    // TODO: Maybe once is enough BUT be sure to check it - better to check it multiple times than not at all
-                    validatePipeline(pipeline);
+				// TODO: [👠] DRY
+				if (pipeline.pipelineUrl === undefined) {
+					if (isVerbose) {
+						console.info(
+							colors.yellow(
+								`Can not load pipeline from ${fileName.split("\\").join("/")} because of missing URL`,
+							),
+						);
+					}
+				} else {
+					// Note: [🐨] Pipeline is checked multiple times
+					// TODO: Maybe once is enough BUT be sure to check it - better to check it multiple times than not at all
+					validatePipeline(pipeline);
 
-                    if (
-                        // TODO: [🐽] comparePipelines(pipeline1,pipeline2): 'IDENTICAL' |'IDENTICAL_UNPREPARED' | 'IDENTICAL_INTERFACE' | 'DIFFERENT'
-                        !collection.has(pipeline.pipelineUrl)
-                    ) {
-                        if (isVerbose) {
-                            console.info(colors.green(`Loaded pipeline ${fileName.split('\\').join('/')}⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠`));
-                        }
+					if (
+						// TODO: [🐽] comparePipelines(pipeline1,pipeline2): 'IDENTICAL' |'IDENTICAL_UNPREPARED' | 'IDENTICAL_INTERFACE' | 'DIFFERENT'
+						!collection.has(pipeline.pipelineUrl)
+					) {
+						if (isVerbose) {
+							console.info(
+								colors.green(
+									`Loaded pipeline ${fileName.split("\\").join("/")}⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠`,
+								),
+							);
+						}
 
-                        // Note: [🦄] Pipeline with same url uniqueness will be double-checked automatically in SimplePipelineCollection
-                        collection.set(pipeline.pipelineUrl, pipeline);
-                    } else if (
-                        pipelineJsonToString(unpreparePipeline(pipeline)) ===
-                        pipelineJsonToString(unpreparePipeline(collection.get(pipeline.pipelineUrl)!))
-                    ) {
-                        if (isVerbose) {
-                            console.info(
-                                colors.gray(
-                                    `Skipped pipeline ${fileName
-                                        .split('\\')
-                                        .join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Already identical pipeline in the collection`,
-                                ),
-                            );
-                        }
-                    } else {
-                        const existing = collection.get(pipeline.pipelineUrl)!;
+						// Note: [🦄] Pipeline with same url uniqueness will be double-checked automatically in SimplePipelineCollection
+						collection.set(pipeline.pipelineUrl, pipeline);
+					} else if (
+						pipelineJsonToString(unpreparePipeline(pipeline)) ===
+						pipelineJsonToString(
+							unpreparePipeline(collection.get(pipeline.pipelineUrl)!),
+						)
+					) {
+						if (isVerbose) {
+							console.info(
+								colors.gray(
+									`Skipped pipeline ${fileName
+										.split("\\")
+										.join("/")} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Already identical pipeline in the collection`,
+								),
+							);
+						}
+					} else {
+						const existing = collection.get(pipeline.pipelineUrl)!;
 
-                        throw new PipelineUrlError(
-                            spaceTrim(`
+						throw new PipelineUrlError(
+							spaceTrim(`
                                 Pipeline with URL ${pipeline.pipelineUrl} is already in the collection 🍏
 
                                 Conflicting files:
-                                ${existing.sourceFile || 'Unknown'}
-                                ${pipeline.sourceFile || 'Unknown'}
+                                ${existing.sourceFile || "Unknown"}
+                                ${pipeline.sourceFile || "Unknown"}
 
                                 Note: You have probably forgotten to run "ptbk make" to update the collection
                                 Note: Pipelines with the same URL are not allowed
                                       Only exepction is when the pipelines are identical
 
                             `),
-                        );
-                    }
-                }
-            } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+						);
+					}
+				}
+			} catch (error) {
+				if (!(error instanceof Error)) {
+					throw error;
+				}
 
-                // TODO: [7] DRY
-                const wrappedErrorMessage =
-                    spaceTrim(
-                        (block) => `
-                            ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
+				// TODO: [7] DRY
+				const wrappedErrorMessage =
+					spaceTrim(
+						(block) => `
+                            ${(error as Error).name} in pipeline ${fileName.split("\\").join("/")}⁠:
 
                             Original error message:
                             ${block((error as Error).message)}
 
                             Original stack trace:
-                            ${block((error as Error).stack || '')}
+                            ${block((error as Error).stack || "")}
 
                             ---
 
                         `,
-                    ) + '\n';
+					) + "\n";
 
-                if (isCrashedOnError) {
-                    throw new CollectionError(wrappedErrorMessage);
-                }
+				if (isCrashedOnError) {
+					throw new CollectionError(wrappedErrorMessage);
+				}
 
-                // TODO: [🟥] Detect browser / node and make it colorfull
-                console.error(wrappedErrorMessage);
-            }
-        }
+				// TODO: [🟥] Detect browser / node and make it colorfull
+				console.error(wrappedErrorMessage);
+			}
+		}
 
-        return Array.from(collection.values());
-    });
+		return Array.from(collection.values());
+	});
 
-    if (isLazyLoaded === false) {
-        await collection.listPipelines();
-    }
+	if (isLazyLoaded === false) {
+		await collection.listPipelines();
+	}
 
-    return collection;
+	return collection;
 }
 
 /**

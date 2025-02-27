@@ -1,8 +1,8 @@
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { PipelineString } from '../pipeline/PipelineString';
-import { preparePipelineOnRemoteServer } from '../prepare/preparePipelineOnRemoteServer';
-import type { RemoteClientOptions } from '../remote-server/types/RemoteClientOptions';
-import { parsePipeline } from './parsePipeline';
+import type { PipelineJson } from "../pipeline/PipelineJson/PipelineJson";
+import type { PipelineString } from "../pipeline/PipelineString";
+import { preparePipelineOnRemoteServer } from "../prepare/preparePipelineOnRemoteServer";
+import type { RemoteClientOptions } from "../remote-server/types/RemoteClientOptions";
+import { parsePipeline } from "./parsePipeline";
 
 /**
  * Compile pipeline from string (markdown) format to JSON format
@@ -19,15 +19,15 @@ import { parsePipeline } from './parsePipeline';
  * @public exported from `@promptbook/remote-client`
  */
 export async function compilePipelineOnRemoteServer<TCustomOptions = undefined>(
-    pipelineString: PipelineString,
-    options: RemoteClientOptions<TCustomOptions>,
+	pipelineString: PipelineString,
+	options: RemoteClientOptions<TCustomOptions>,
 ): Promise<PipelineJson> {
-    let pipelineJson = parsePipeline(pipelineString);
+	let pipelineJson = parsePipeline(pipelineString);
 
-    pipelineJson = await preparePipelineOnRemoteServer(pipelineJson, options);
+	pipelineJson = await preparePipelineOnRemoteServer(pipelineJson, options);
 
-    // Note: No need to use `$exportJson` because `parsePipeline` and `preparePipeline` already do that
-    return pipelineJson;
+	// Note: No need to use `$exportJson` because `parsePipeline` and `preparePipeline` already do that
+	return pipelineJson;
 }
 
 /**

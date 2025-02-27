@@ -7,9 +7,9 @@
  * Note: This is a kindof subtype of PipelineExecutionError
  */
 export class ExpectError extends Error {
-    public readonly name = 'ExpectError';
-    public constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, ExpectError.prototype);
-    }
+	public readonly name = "ExpectError";
+	public constructor(message: string) {
+		super(message);
+		Object.setPrototypeOf(this, ExpectError.prototype);
+	}
 }

@@ -1,5 +1,5 @@
-import { $Register } from '../../../utils/$Register';
-import type { LlmToolsMetadata } from './LlmToolsMetadata';
+import { $Register } from "../../../utils/$Register";
+import type { LlmToolsMetadata } from "./LlmToolsMetadata";
 
 /**
  * @@@
@@ -8,9 +8,9 @@ import type { LlmToolsMetadata } from './LlmToolsMetadata';
  * @singleton Only one instance of each register is created per build, but thare can be more @@@
  * @public exported from `@promptbook/core`
  */
-export const $llmToolsMetadataRegister = new $Register<LlmToolsMetadata>('llm_tools_metadata');
-
-
+export const $llmToolsMetadataRegister = new $Register<LlmToolsMetadata>(
+	"llm_tools_metadata",
+);
 
 /**
  * TODO: [®] DRY Register logic

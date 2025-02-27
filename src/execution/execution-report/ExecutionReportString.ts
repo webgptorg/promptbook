@@ -9,7 +9,7 @@
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportString = string & {
-    readonly _type: 'ExecutionReportString' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
+	readonly _type: "ExecutionReportString" /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
 };
 
 /**

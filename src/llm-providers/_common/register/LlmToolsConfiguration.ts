@@ -1,6 +1,6 @@
-import type { string_title } from '../../../types/typeAliases';
-import type { Registered } from '../../../utils/$Register';
-import type { LlmToolsOptions } from './LlmToolsOptions';
+import type { string_title } from "../../../types/typeAliases";
+import type { Registered } from "../../../utils/$Register";
+import type { LlmToolsOptions } from "./LlmToolsOptions";
 
 /**
  * @@@
@@ -8,17 +8,17 @@ import type { LlmToolsOptions } from './LlmToolsOptions';
  * @@@ `LlmToolsMetadata` vs `LlmToolsConfiguration` vs `LlmToolsOptions` (vs `Registered`)
  */
 export type LlmToolsConfiguration = ReadonlyArray<
-    Registered & {
-        /**
-         * @@@
-         */
-        readonly title: string_title;
+	Registered & {
+		/**
+		 * @@@
+		 */
+		readonly title: string_title;
 
-        /**
-         * @@@
-         */
-        readonly options: LlmToolsOptions;
-    }
+		/**
+		 * @@@
+		 */
+		readonly options: LlmToolsOptions;
+	}
 >;
 
 /**

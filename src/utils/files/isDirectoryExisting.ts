@@ -1,27 +1,30 @@
-import type { FilesystemTools } from '../../execution/FilesystemTools';
-import type { string_dirname } from '../../types/typeAliases';
+import type { FilesystemTools } from "../../execution/FilesystemTools";
+import type { string_dirname } from "../../types/typeAliases";
 
 /**
  * Checks if the directory exists
  *
  * @private within the repository
  */
-export async function isDirectoryExisting(directoryPath: string_dirname, fs: FilesystemTools): Promise<boolean> {
-    const isReadAccessAllowed = await fs
-        .access(directoryPath, fs.constants.R_OK)
-        .then(() => true)
-        .catch(() => false);
+export async function isDirectoryExisting(
+	directoryPath: string_dirname,
+	fs: FilesystemTools,
+): Promise<boolean> {
+	const isReadAccessAllowed = await fs
+		.access(directoryPath, fs.constants.R_OK)
+		.then(() => true)
+		.catch(() => false);
 
-    if (!isReadAccessAllowed) {
-        return false;
-    }
+	if (!isReadAccessAllowed) {
+		return false;
+	}
 
-    const isDirectory = await fs
-        .stat(directoryPath)
-        .then((fileStat) => fileStat.isDirectory())
-        .catch(() => false);
+	const isDirectory = await fs
+		.stat(directoryPath)
+		.then((fileStat) => fileStat.isDirectory())
+		.catch(() => false);
 
-    return isDirectory;
+	return isDirectory;
 }
 
 /**

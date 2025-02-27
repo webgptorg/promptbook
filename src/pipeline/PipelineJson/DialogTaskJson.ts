@@ -1,4 +1,4 @@
-import type { CommonTaskJson } from './CommonTaskJson';
+import type { CommonTaskJson } from "./CommonTaskJson";
 
 /**
  * Task for prompt to user
@@ -7,7 +7,7 @@ import type { CommonTaskJson } from './CommonTaskJson';
  * @see https://github.com/webgptorg/promptbook/discussions/76
  */
 export type DialogTaskJson = CommonTaskJson & {
-    readonly taskType: 'DIALOG_TASK';
+	readonly taskType: "DIALOG_TASK";
 };
 
 /**

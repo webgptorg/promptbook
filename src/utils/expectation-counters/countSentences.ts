@@ -1,4 +1,4 @@
-import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
+import type { ExpectationAmount } from "../../pipeline/PipelineJson/Expectations";
 
 /**
  * Split text into sentences
@@ -6,7 +6,7 @@ import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations
  * @public exported from `@promptbook/utils`
  */
 export function splitIntoSentences(text: string): ReadonlyArray<string> {
-    return text.split(/[.!?]+/).filter((sentence) => sentence.trim() !== '');
+	return text.split(/[.!?]+/).filter((sentence) => sentence.trim() !== "");
 }
 
 /**
@@ -15,5 +15,5 @@ export function splitIntoSentences(text: string): ReadonlyArray<string> {
  * @public exported from `@promptbook/utils`
  */
 export function countSentences(text: string): ExpectationAmount {
-    return splitIntoSentences(text).length;
+	return splitIntoSentences(text).length;
 }

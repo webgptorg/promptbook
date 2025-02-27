@@ -1,4 +1,4 @@
-import type { Arrayable } from '../types/Arrayable';
+import type { Arrayable } from "../types/Arrayable";
 
 /**
  * Takes an item or an array of items and returns an array of items
@@ -9,14 +9,16 @@ import type { Arrayable } from '../types/Arrayable';
  *
  * @private internal utility
  */
-export function arrayableToArray<TItem>(input?: Arrayable<TItem>): ReadonlyArray<TItem> {
-    if (input === undefined) {
-        return [];
-    }
+export function arrayableToArray<TItem>(
+	input?: Arrayable<TItem>,
+): ReadonlyArray<TItem> {
+	if (input === undefined) {
+		return [];
+	}
 
-    if (input instanceof Array) {
-        return input;
-    }
+	if (input instanceof Array) {
+		return input;
+	}
 
-    return [input];
+	return [input];
 }

@@ -1,6 +1,6 @@
-import type { ReadonlyDeep } from 'type-fest';
-import type { really_any } from '../organization/really_any';
-import type { TODO_any } from '../organization/TODO_any';
+import type { ReadonlyDeep } from "type-fest";
+import type { TODO_any } from "../organization/TODO_any";
+import type { really_any } from "../organization/really_any";
 
 /**
  * Freezes the given object and all its nested objects recursively
@@ -11,22 +11,26 @@ import type { TODO_any } from '../organization/TODO_any';
  * @returns The same object as the input, but deeply frozen
  * @public exported from `@promptbook/utils`
  */
-export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<TObject> {
-    if (Array.isArray(objectValue)) {
-        return Object.freeze(objectValue.map((item) => $deepFreeze(item))) as TODO_any;
-    }
+export function $deepFreeze<TObject>(
+	objectValue: TObject,
+): ReadonlyDeep<TObject> {
+	if (Array.isArray(objectValue)) {
+		return Object.freeze(
+			objectValue.map((item) => $deepFreeze(item)),
+		) as TODO_any;
+	}
 
-    const propertyNames = Object.getOwnPropertyNames(objectValue);
-    for (const propertyName of propertyNames) {
-        const value = (objectValue as really_any)[propertyName];
-        if (value && typeof value === 'object') {
-            $deepFreeze(value);
-        }
-    }
+	const propertyNames = Object.getOwnPropertyNames(objectValue);
+	for (const propertyName of propertyNames) {
+		const value = (objectValue as really_any)[propertyName];
+		if (value && typeof value === "object") {
+			$deepFreeze(value);
+		}
+	}
 
-    Object.freeze(objectValue);
+	Object.freeze(objectValue);
 
-    return objectValue as ReadonlyDeep<TObject>;
+	return objectValue as ReadonlyDeep<TObject>;
 }
 
 /**

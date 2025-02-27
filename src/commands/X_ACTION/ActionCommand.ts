@@ -5,5 +5,5 @@
  * @public exported from `@promptbook/editable`
  */
 export type ActionCommand = {
-    readonly type: 'ACTION';
+	readonly type: "ACTION";
 };

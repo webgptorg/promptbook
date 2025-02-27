@@ -1,6 +1,6 @@
-import type { Promisable } from 'type-fest';
-import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/UserInterfaceTools';
+import type { Promisable } from "type-fest";
+import type { CommonToolsOptions } from "../../execution/CommonToolsOptions";
+import type { UserInterfaceToolsPromptDialogOptions } from "../../execution/UserInterfaceTools";
 
 /**
  * Options for `CallbackInterfaceTools`
@@ -8,8 +8,8 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/User
  * @public exported from `@promptbook/core`
  */
 export type CallbackInterfaceToolsOptions = CommonToolsOptions & {
-    /**
-     * The callback function to be called when promptDialog is called
-     */
-    callback(prompt: UserInterfaceToolsPromptDialogOptions): Promisable<string>;
+	/**
+	 * The callback function to be called when promptDialog is called
+	 */
+	callback(prompt: UserInterfaceToolsPromptDialogOptions): Promisable<string>;
 };

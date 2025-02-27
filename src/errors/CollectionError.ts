@@ -4,9 +4,9 @@
  * @public exported from `@promptbook/core`
  */
 export class CollectionError extends Error {
-    public readonly name = 'CollectionError';
-    public constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, CollectionError.prototype);
-    }
+	public readonly name = "CollectionError";
+	public constructor(message: string) {
+		super(message);
+		Object.setPrototypeOf(this, CollectionError.prototype);
+	}
 }

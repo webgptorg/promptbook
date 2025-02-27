@@ -1,4 +1,4 @@
-import { $execCommand } from './$execCommand';
+import { $execCommand } from "./$execCommand";
 
 /**
  * Run multiple commands in a shell in sequence
@@ -11,17 +11,17 @@ import { $execCommand } from './$execCommand';
  * @public exported from `@promptbook/node`
  */
 export async function $execCommands({
-    commands,
-    cwd,
-    crashOnError,
+	commands,
+	cwd,
+	crashOnError,
 }: {
-    readonly commands: string[];
-    readonly cwd: string;
-    readonly crashOnError?: boolean;
+	readonly commands: string[];
+	readonly cwd: string;
+	readonly crashOnError?: boolean;
 }) {
-    for (const command of commands) {
-        await $execCommand({ command, cwd, crashOnError });
-    }
+	for (const command of commands) {
+		await $execCommand({ command, cwd, crashOnError });
+	}
 }
 
 /**

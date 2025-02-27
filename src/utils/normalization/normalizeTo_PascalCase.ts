@@ -1,4 +1,4 @@
-import { normalizeTo_camelCase } from './normalizeTo_camelCase';
+import { normalizeTo_camelCase } from "./normalizeTo_camelCase";
 
 /**
  * Semantic helper for PascalCase strings
@@ -18,5 +18,5 @@ export type string_PascalCase = string;
  * @public exported from `@promptbook/utils`
  */
 export function normalizeTo_PascalCase(text: string): string_PascalCase {
-    return normalizeTo_camelCase(text, true);
+	return normalizeTo_camelCase(text, true);
 }

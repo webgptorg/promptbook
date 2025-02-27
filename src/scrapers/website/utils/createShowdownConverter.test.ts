@@ -1,68 +1,72 @@
-import { describe, expect, it } from '@jest/globals';
-import { JSDOM } from 'jsdom';
-import { spaceTrim } from 'spacetrim';
-import { createShowdownConverter } from './createShowdownConverter';
+import { describe, expect, it } from "@jest/globals";
+import { JSDOM } from "jsdom";
+import { spaceTrim } from "spacetrim";
+import { createShowdownConverter } from "./createShowdownConverter";
 
 describe(`markdownConverter`, () => {
-    const showdownConverter = createShowdownConverter();
-    const jsdom = new JSDOM();
+	const showdownConverter = createShowdownConverter();
+	const jsdom = new JSDOM();
 
-    it(`preserves supersimple markdown to html`, () => {
-        expect(showdownConverter.makeHtml('hello')).toEqual('<p>hello</p>');
-    });
+	it(`preserves supersimple markdown to html`, () => {
+		expect(showdownConverter.makeHtml("hello")).toEqual("<p>hello</p>");
+	});
 
-    it(`preserves supersimple html to markdown`, () => {
-        expect(spaceTrim(showdownConverter.makeMarkdown('<p>hello</p>', jsdom.window.document))).toEqual('hello');
-    });
+	it(`preserves supersimple html to markdown`, () => {
+		expect(
+			spaceTrim(
+				showdownConverter.makeMarkdown("<p>hello</p>", jsdom.window.document),
+			),
+		).toEqual("hello");
+	});
 
-    it(`converts simple markdown to html`, () => {
-        expect(
-            spaceTrim(
-                showdownConverter.makeHtml(
-                    spaceTrim(`
+	it(`converts simple markdown to html`, () => {
+		expect(
+			spaceTrim(
+				showdownConverter.makeHtml(
+					spaceTrim(`
 
                     # Hello World!
 
                     This is a **markdown** text.
 
                 `),
-                ),
-            ),
-        ).toEqual(
-            spaceTrim(`
+				),
+			),
+		).toEqual(
+			spaceTrim(`
 
                     <h1 id="helloworld">Hello World!</h1>
                     <p>This is a <strong>markdown</strong> text.</p>
 
             `),
-        );
-    });
+		);
+	});
 
-    it(`converts simple html to markdown`, () => {
-        expect(
-            spaceTrim(
-                showdownConverter.makeMarkdown(
-                    spaceTrim(`
+	it(`converts simple html to markdown`, () => {
+		expect(
+			spaceTrim(
+				showdownConverter.makeMarkdown(
+					spaceTrim(`
 
                     <h1>Hello World!</h1>
                     <p>This is a <strong>markdown</strong> text.</p>
 
                 `),
-                    jsdom.window.document,
-                ),
-            ),
-        ).toEqual(
-            spaceTrim(`
+					jsdom.window.document,
+				),
+			),
+		).toEqual(
+			spaceTrim(`
 
                     # Hello World!
 
                     This is a **markdown** text.
 
             `),
-        );
-    });
+		);
+	});
 
-    /*/
+	/*/
     Note: [🧠][🎐] Code can not be converted back from html to markdown
 
     it(`preserves advanced markdown when converted to html and back `, () => {

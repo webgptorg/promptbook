@@ -1,6 +1,6 @@
-import spaceTrim from 'spacetrim';
-import { ALL_ERRORS } from '../0-index';
-import type { ErrorJson } from './ErrorJson';
+import spaceTrim from "spacetrim";
+import { ALL_ERRORS } from "../0-index";
+import type { ErrorJson } from "./ErrorJson";
 
 /**
  * Deserializes the error object
@@ -8,25 +8,25 @@ import type { ErrorJson } from './ErrorJson';
  * @public exported from `@promptbook/utils`
  */
 export function deserializeError(error: ErrorJson): Error {
-    const { name, stack } = error;
-    let { message } = error;
-    let ErrorClass = ALL_ERRORS[error.name as keyof typeof ALL_ERRORS];
+	const { name, stack } = error;
+	let { message } = error;
+	let ErrorClass = ALL_ERRORS[error.name as keyof typeof ALL_ERRORS];
 
-    if (ErrorClass === undefined) {
-        ErrorClass = Error;
-        message = `${name}: ${message}`;
-    }
+	if (ErrorClass === undefined) {
+		ErrorClass = Error;
+		message = `${name}: ${message}`;
+	}
 
-    if (stack !== undefined && stack !== '') {
-        message = spaceTrim(
-            (block) => `
+	if (stack !== undefined && stack !== "") {
+		message = spaceTrim(
+			(block) => `
                 ${block(message)}
 
                 Original stack trace:
-                ${block(stack || '')}
+                ${block(stack || "")}
             `,
-        );
-    }
+		);
+	}
 
-    return new ErrorClass(message);
+	return new ErrorClass(message);
 }

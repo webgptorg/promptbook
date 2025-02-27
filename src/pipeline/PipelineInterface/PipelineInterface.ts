@@ -1,5 +1,5 @@
-import type { InputParameterJson } from '../PipelineJson/ParameterJson';
-import type { OutputParameterJson } from '../PipelineJson/ParameterJson';
+import type { InputParameterJson } from "../PipelineJson/ParameterJson";
+import type { OutputParameterJson } from "../PipelineJson/ParameterJson";
 
 /**
  * @@@
@@ -8,17 +8,17 @@ import type { OutputParameterJson } from '../PipelineJson/ParameterJson';
  * @see https://github.com/webgptorg/promptbook/discussions/171
  */
 export type PipelineInterface = {
-    /**
-     * @@@
-     *
-     * Note: Sorted alphabetically
-     */
-    readonly inputParameters: ReadonlyArray<InputParameterJson>;
+	/**
+	 * @@@
+	 *
+	 * Note: Sorted alphabetically
+	 */
+	readonly inputParameters: ReadonlyArray<InputParameterJson>;
 
-    /**
-     * @@@
-     *
-     * Note: Sorted alphabetically
-     */
-    readonly outputParameters: ReadonlyArray<OutputParameterJson>;
+	/**
+	 * @@@
+	 *
+	 * Note: Sorted alphabetically
+	 */
+	readonly outputParameters: ReadonlyArray<OutputParameterJson>;
 };

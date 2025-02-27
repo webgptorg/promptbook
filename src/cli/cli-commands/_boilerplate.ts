@@ -1,8 +1,8 @@
-import colors from 'colors';
+import colors from "colors";
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-} from 'commander';
-import spaceTrim from 'spacetrim';
+	Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from "commander";
+import spaceTrim from "spacetrim";
 
 /**
  * Initializes `boilerplate` command for Promptbook CLI utilities
@@ -12,21 +12,20 @@ import spaceTrim from 'spacetrim';
  * @private internal function of `promptbookCli`
  */
 export function $initializeBoilerplateCommand(program: Program) {
-    const boilerplateCommand = program.command('boilerplate');
-    boilerplateCommand.description(
-        spaceTrim(`
+	const boilerplateCommand = program.command("boilerplate");
+	boilerplateCommand.description(
+		spaceTrim(`
             @@@
         `),
-    );
+	);
 
-    boilerplateCommand.action(async () => {
-        // @@@
+	boilerplateCommand.action(async () => {
+		// @@@
 
-          console.error(colors.green(`@@@`));
+		console.error(colors.green(`@@@`));
 
-
-        return process.exit(0);
-    });
+		return process.exit(0);
+	});
 }
 
 /**

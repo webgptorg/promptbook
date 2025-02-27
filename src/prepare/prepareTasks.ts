@@ -1,24 +1,24 @@
-import { spaceTrim } from 'spacetrim';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
-import type { ExecutionTools } from '../execution/ExecutionTools';
-import { forEachAsync } from '../execution/utils/forEachAsync';
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
-import { TODO_USE } from '../utils/organization/TODO_USE';
-import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
+import { spaceTrim } from "spacetrim";
+import { DEFAULT_MAX_PARALLEL_COUNT } from "../config";
+import type { ExecutionTools } from "../execution/ExecutionTools";
+import { forEachAsync } from "../execution/utils/forEachAsync";
+import type { PipelineJson } from "../pipeline/PipelineJson/PipelineJson";
+import type { TaskJson } from "../pipeline/PipelineJson/TaskJson";
+import { TODO_USE } from "../utils/organization/TODO_USE";
+import type { PrepareAndScrapeOptions } from "./PrepareAndScrapeOptions";
 
-type PrepareTaskInput = Pick<PipelineJson, 'tasks' | 'parameters'> & {
-    /**
-     * @@@
-     */
-    readonly knowledgePiecesCount: number;
+type PrepareTaskInput = Pick<PipelineJson, "tasks" | "parameters"> & {
+	/**
+	 * @@@
+	 */
+	readonly knowledgePiecesCount: number;
 };
 
 type PreparedTasks = {
-    /**
-     * @@@ Sequence of tasks that are chained together to form a pipeline
-     */
-    readonly tasksPrepared: ReadonlyArray<TaskJson>;
+	/**
+	 * @@@ Sequence of tasks that are chained together to form a pipeline
+	 */
+	readonly tasksPrepared: ReadonlyArray<TaskJson>;
 };
 
 /**
@@ -27,58 +27,62 @@ type PreparedTasks = {
  * @public exported from `@promptbook/core`
  */
 export async function prepareTasks(
-    pipeline: PrepareTaskInput,
-    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
-    options: PrepareAndScrapeOptions,
+	pipeline: PrepareTaskInput,
+	tools: Pick<ExecutionTools, "llm" | "fs" | "scrapers">,
+	options: PrepareAndScrapeOptions,
 ): Promise<PreparedTasks> {
-    const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT } = options;
-    const { tasks, parameters, knowledgePiecesCount } = pipeline;
+	const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT } = options;
+	const { tasks, parameters, knowledgePiecesCount } = pipeline;
 
-    // TODO: [main] Apply examples to each task (if missing and is for the task defined)
-    TODO_USE(parameters);
+	// TODO: [main] Apply examples to each task (if missing and is for the task defined)
+	TODO_USE(parameters);
 
-    // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const tasksPrepared: Array<TaskJson> = new Array(tasks.length);
-    await forEachAsync(
-        tasks,
-        { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
-        async (task, index) => {
-            let { /* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames } = task;
-            let preparedContent: string | undefined = undefined;
+	// TODO: [🖌][🧠] Implement some `mapAsync` function
+	const tasksPrepared: Array<TaskJson> = new Array(tasks.length);
+	await forEachAsync(
+		tasks,
+		{
+			maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */,
+		},
+		async (task, index) => {
+			let {
+				/* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames,
+			} = task;
+			let preparedContent: string | undefined = undefined;
 
-            if (
-                task.taskType === 'PROMPT_TASK' &&
-                knowledgePiecesCount > 0 &&
-                !dependentParameterNames.includes('knowledge')
-            ) {
-                preparedContent = spaceTrim(`
+			if (
+				task.taskType === "PROMPT_TASK" &&
+				knowledgePiecesCount > 0 &&
+				!dependentParameterNames.includes("knowledge")
+			) {
+				preparedContent = spaceTrim(`
                     {content}
 
                     ## Knowledge
 
                     {knowledge}
                 `);
-                // <- TODO: [🧠][🧻] Cutomize shape/language/formatting of the addition to the prompt
+				// <- TODO: [🧠][🧻] Cutomize shape/language/formatting of the addition to the prompt
 
-                dependentParameterNames = [
-                    ...dependentParameterNames,
-                    'knowledge',
-                    // <- [🏷] There is the reverse process to remove {knowledge} from `dependentParameterNames`
-                ];
-            }
+				dependentParameterNames = [
+					...dependentParameterNames,
+					"knowledge",
+					// <- [🏷] There is the reverse process to remove {knowledge} from `dependentParameterNames`
+				];
+			}
 
-            const preparedTask: TaskJson = {
-                ...task,
-                dependentParameterNames,
-                preparedContent,
-                // <- TODO: [🍙] Make some standard order of json properties
-            };
+			const preparedTask: TaskJson = {
+				...task,
+				dependentParameterNames,
+				preparedContent,
+				// <- TODO: [🍙] Make some standard order of json properties
+			};
 
-            tasksPrepared[index] = preparedTask;
-        },
-    );
+			tasksPrepared[index] = preparedTask;
+		},
+	);
 
-    return { tasksPrepared };
+	return { tasksPrepared };
 }
 
 /**

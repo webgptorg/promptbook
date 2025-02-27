@@ -1,9 +1,9 @@
-import type { ExecutionTools } from '../execution/ExecutionTools';
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { PipelineString } from '../pipeline/PipelineString';
-import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import { preparePipeline } from '../prepare/preparePipeline';
-import { parsePipeline } from './parsePipeline';
+import type { ExecutionTools } from "../execution/ExecutionTools";
+import type { PipelineJson } from "../pipeline/PipelineJson/PipelineJson";
+import type { PipelineString } from "../pipeline/PipelineString";
+import type { PrepareAndScrapeOptions } from "../prepare/PrepareAndScrapeOptions";
+import { preparePipeline } from "../prepare/preparePipeline";
+import { parsePipeline } from "./parsePipeline";
 
 /**
  * Compile pipeline from string (markdown) format to JSON format
@@ -21,24 +21,24 @@ import { parsePipeline } from './parsePipeline';
  * @public exported from `@promptbook/core`
  */
 export async function compilePipeline(
-    pipelineString: PipelineString,
-    tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
-    options?: PrepareAndScrapeOptions,
+	pipelineString: PipelineString,
+	tools?: Pick<ExecutionTools, "llm" | "fs" | "scrapers">,
+	options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
-    let pipelineJson = parsePipeline(pipelineString);
+	let pipelineJson = parsePipeline(pipelineString);
 
-    if (tools !== undefined && tools.llm !== undefined) {
-        pipelineJson = await preparePipeline(
-            pipelineJson,
-            tools,
-            options || {
-                rootDirname: null,
-            },
-        );
-    }
+	if (tools !== undefined && tools.llm !== undefined) {
+		pipelineJson = await preparePipeline(
+			pipelineJson,
+			tools,
+			options || {
+				rootDirname: null,
+			},
+		);
+	}
 
-    // Note: No need to use `$exportJson` because `parsePipeline` and `preparePipeline` already do that
-    return pipelineJson;
+	// Note: No need to use `$exportJson` because `parsePipeline` and `preparePipeline` already do that
+	return pipelineJson;
 }
 
 /**

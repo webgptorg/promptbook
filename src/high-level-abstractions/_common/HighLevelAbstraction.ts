@@ -1,4 +1,4 @@
-import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
+import type { $PipelineJson } from "../../commands/_common/types/CommandParser";
 
 /**
  * Used in `parsePipeline`
@@ -6,14 +6,14 @@ import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
  * @private
  */
 export type SyncHighLevelAbstraction = /* CommonHighLevelAbstraction & */ {
-    type: 'SYNC';
+	type: "SYNC";
 
-    /**
-     * Apply the abstraction to the `pipelineJson`
-     *
-     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
-     */
-    $applyToPipelineJson($pipelineJson: $PipelineJson): void;
+	/**
+	 * Apply the abstraction to the `pipelineJson`
+	 *
+	 * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+	 */
+	$applyToPipelineJson($pipelineJson: $PipelineJson): void;
 };
 
 /*
