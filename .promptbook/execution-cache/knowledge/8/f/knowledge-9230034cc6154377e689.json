@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-27T16:40:55.046Z",
+    "promptbookVersion": "0.86.10",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Here is the extracted important knowledge from the document:"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "As an experienced data researcher, I cannot detect important keywords from the given document, as it does not contain any substantive content. The text provided is simply a placeholder instruction to \"Take information from this document:\" followed by an empty quote. Without actual document content to analyze, there are no keywords to extract.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-27T16:40:26.987Z",
+            "complete": "2025-02-27T16:40:55.046Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0011430000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 56
+                },
+                "charactersCount": {
+                    "value": 254
+                },
+                "wordsCount": {
+                    "value": 35
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 65
+                },
+                "charactersCount": {
+                    "value": 344
+                },
+                "wordsCount": {
+                    "value": 53
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 6
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Here is the extracted important knowledge from the document:",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Here is the extracted important knowledge from the document:"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_019PJbvF68wdU5t4ok7HWreM",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "As an experienced data researcher, I cannot detect important keywords from the given document, as it does not contain any substantive content. The text provided is simply a placeholder instruction to \"Take information from this document:\" followed by an empty quote. Without actual document content to analyze, there are no keywords to extract."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 56,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 65
+            }
+        }
+    }
+}

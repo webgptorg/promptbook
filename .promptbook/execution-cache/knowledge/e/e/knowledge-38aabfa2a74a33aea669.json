@@ -1,0 +1,106 @@
+{
+    "date": "2025-02-27T16:40:28.997Z",
+    "promptbookVersion": "0.86.10",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook is an ecosystem of projects and tools for writing AI applications in plain human language. It includes a markup language called Book, an engine to run Book applications, and a web-based editor called Promptbook Studio."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, ecosystem, AI applications, human language, markup language, Book, engine, web-based editor, Promptbook Studio",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-02-27T16:40:27.622Z",
+            "complete": "2025-02-27T16:40:28.997Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000741
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 92
+                },
+                "charactersCount": {
+                    "value": 423
+                },
+                "wordsCount": {
+                    "value": 63
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 31
+                },
+                "charactersCount": {
+                    "value": 122
+                },
+                "wordsCount": {
+                    "value": 15
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook is an ecosystem of projects and tools for writing AI applications in plain human language. It includes a markup language called Book, an engine to run Book applications, and a web-based editor called Promptbook Studio.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook is an ecosystem of projects and tools for writing AI applications in plain human language. It includes a markup language called Book, an engine to run Book applications, and a web-based editor called Promptbook Studio."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01CY6k6VvE5VqFEqkrDPyh53",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook, ecosystem, AI applications, human language, markup language, Book, engine, web-based editor, Promptbook Studio"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 92,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 31
+            }
+        }
+    }
+}
