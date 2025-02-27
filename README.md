@@ -119,9 +119,7 @@ And **Promptbook.city** branded socials:
 _/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
--   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569) 
-
-## 
+-   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
 
 <!--/Import ./book/SIGNPOST.md-->
 
