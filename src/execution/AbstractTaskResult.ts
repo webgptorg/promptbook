@@ -8,17 +8,17 @@ import type { ErrorJson } from '../errors/utils/ErrorJson';
  */
 export type AbstractTaskResult = {
     /**
-     * Whether the execution was successful, details are aviable in `executionReport`
+     * Whether the execution was successful, details are available in `executionReport`
      */
     readonly isSuccessful: boolean;
 
     /**
-     * Errors that occured during the execution, details are aviable in `executionReport`
+     * Errors that occured during the execution, details are available in `executionReport`
      */
     readonly errors: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 
     /**
-     * Warnings that occured during the execution, details are aviable in `executionReport`
+     * Warnings that occured during the execution, details are available in `executionReport`
      */
     readonly warnings: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 };

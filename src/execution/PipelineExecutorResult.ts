@@ -19,7 +19,7 @@ export type PipelineExecutorResult = AbstractTaskResult & {
     readonly outputParameters: Readonly<Parameters>;
 
     /**
-     * Added usage of whole execution, detailed usage is aviable in `executionReport`
+     * Added usage of whole execution, detailed usage is available in `executionReport`
      */
     readonly usage: ReadonlyDeep<PromptResultUsage>;
 

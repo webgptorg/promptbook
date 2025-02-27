@@ -94,40 +94,50 @@ Facebook Promptbook City
 
 
 
-
 💙 The Book language
 Following is the documentation and blueprint of the Book language.
+Book is a language that can be used to write AI applications, agents, workflows, automations, knowledgebases, translators, sheet processors, email automations and more. It allows you to harness the power of AI models in human-like terms, without the need to know the specifics and technicalities of the models.
 Example
 # 🌟 My first Book
 
 -   BOOK VERSION 1.0.0
--   URL https://promptbook.studio/my-first-book/
+-   URL https://promptbook.studio/hello.book
+-   INPUT PARAMETER {topic}
+-   OUTPUT PARAMETER {article}
 
 # Write an article
 
 -   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
--   KNOWLEDGE https://ptbk.io
--   KNOWLEDGE ./promptbook.pdf
+-   KNOWLEDGE https://wikipedia.org/
+-   KNOWLEDGE ./journalist-ethics.pdf
 -   EXPECT MIN 1 Sentence
--   EXPECT MAX 1 Paragraph
+-   EXPECT MAX 5 Pages
 
-> Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
-> Look specifically at the impact of Promptbook on the AI industry.
+> Write an article about {topic}
 
 -> {article}
+Each part of the book defines one of 3 circles:
 What: Workflows, Tasks and Parameters
+What work needs to be done. Each book defines a workflow, which is one or more tasks. Each workflow has a fixed input and output. For example, you have a book that generates an article from a topic. Once it generates an article about AI, once about marketing, once about cooking. The workflow (= your AI program) is the same, only the input and output change.
+Related commands:
 
 PARAMETER
 
 Who: Personas
+Who does the work. Each task is performed by a persona. A persona is a description of your virtual employee. It is a higher abstraction than the model, tokens, temperature, top-k, top-p and other model parameters.
+You can describe what you want in human language like Jane, creative writer with a sense of sharp humour instead of gpt-4-2024-13-31, temperature 1.2, top-k 40, STOP token ".\n",....
+Personas can have access to different knowledge, tools and actions. They can also consult their work with other personas or user, if allowed.
+Related commands:
 
 PERSONA
 
 How: Knowledge, Instruments and Actions
+The resources used by the personas are used to do the work.
+Related commands:
 
-KNOWLEDGE
-INSTRUMENT
-ACTION
+KNOWLEDGE of documents, websites, and other resources
+INSTRUMENT for real-time data like time, location, weather, stock prices, searching the internet, calculations, etc.
+ACTION for actions like sending emails, creating files, ending a workflow, etc.
 
 General principles of book language
 Book language is based on markdown. It is subset of markdown. It is designed to be easy to read and write. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
@@ -196,54 +206,6 @@ Retrieval-augmented generation is a machine learning paradigm where a model gene
 Longtail refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook
-Promptbook core
-
-Organization (legacy name collection) group jobs, workforce, knowledge, instruments, and actions into one package. Entities in one organization can share resources (= import resources from each other).
-
-Jobs
-
-Task
-Subtask
-
-
-Workforce
-
-Persona
-Team
-Role
-
-
-Knowledge
-
-Public
-Private
-Protected
-
-
-Instruments
-Actions
-
-
-
-Book language
-
-Book file
-
-Section
-
-Heading
-Description
-Command
-Block
-Return statement
-
-
-Comment
-Import
-Scope
-
-
-
 💯 Core concepts
 
 📚 Collection of pipelines

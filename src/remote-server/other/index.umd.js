@@ -1433,7 +1433,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
       return MultipleLlmExecutionTools;
   }());
   /**
-   * TODO: [🧠][🎛] Aggregating multiple models - have result not only from one first aviable model BUT all of them
+   * TODO: [🧠][🎛] Aggregating multiple models - have result not only from one first available model BUT all of them
    * TODO: [🏖] If no llmTools have for example not defined `callCompletionModel` this will still return object with defined `callCompletionModel` which just throws `PipelineExecutionError`, make it undefined instead
    *       Look how `countTotalUsage` (and `cacheLlmTools`) implements it
    */
@@ -3578,12 +3578,12 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
                   });
               },
           },
-          // <- TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages aviable as subvalues
+          // <- TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
       ],
   };
   /**
    * TODO: [1] Make type for XML Text and Schema
-   * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages aviable as subvalues
+   * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
    * TODO: [🍓] In `TextFormatDefinition` implement simple `isValid`
    * TODO: [🍓] In `TextFormatDefinition` implement partial `canBeValid`
    * TODO: [🍓] In `TextFormatDefinition` implement `heal

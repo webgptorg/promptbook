@@ -36,69 +36,90 @@ export function $initializeTestCommand(program: Program) {
         'Pipelines to test as glob pattern',
     );
     testCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
+
+    testCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
+    testCommand.option(
+        '--no-prepare',
+        `Do not prepare the pipelines, ideal when no LLM tools or scrapers available`,
+        true,
+    );
+
     testCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache `, false);
     testCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    testCommand.action(async (filesGlob, { ignore, reload: isCacheReloaded, verbose: isVerbose }) => {
-        // TODO: DRY [◽]
-        const prepareAndScrapeOptions = {
-            isVerbose,
-            isCacheReloaded,
-        }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-        const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-        const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
-        const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
-        const tools = {
-            llm,
-            fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-            script: [
-                /*new JavascriptExecutionTools(options)*/
-            ],
-        } satisfies ExecutionTools;
+    testCommand.action(
+        async (
+            filesGlob,
+            { ignore, validation: isValidated, prepare: isPrepared, reload: isCacheReloaded, verbose: isVerbose },
+        ) => {
+            console.log({ isValidated, isPrepared });
 
-        const filenames = await glob(filesGlob!, { ignore });
-        //                       <- TODO: [😶]
+            let tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers' | 'script'> | undefined = undefined;
 
-        pipelines: for (const filename of filenames) {
-            try {
-                let pipeline: PipelineJson;
-
-                if (filename.endsWith('.book')) {
-                    const pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
-                    pipeline = await compilePipeline(pipelineMarkdown, tools);
-
-                    if (isVerbose) {
-                        console.info(colors.green(`Parsed ${filename}`));
-                    }
-                }
-                if (filename.endsWith('.bookc')) {
-                    pipeline = JSON.parse(await readFile(filename, 'utf-8')) as PipelineJson;
-                } else {
-                    if (isVerbose) {
-                        console.info(colors.gray(`Skipping ${filename}`));
-                    }
-                    continue pipelines;
-                }
-
-                validatePipeline(pipeline);
-                console.info(colors.green(`Validated ${filename}`));
-            } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
-
-                console.info(colors.red(`Pipeline is not valid ${filename}`));
-                console.error(colors.bgRed(error.name /* <- 11:11 */));
-                console.error(colors.red(error.stack || error.message));
-
-                return process.exit(1);
+            if (isPrepared) {
+                // TODO: DRY [◽]
+                const prepareAndScrapeOptions = {
+                    isVerbose,
+                    isCacheReloaded,
+                }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
+                const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+                const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
+                const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+                tools = {
+                    llm,
+                    fs,
+                    scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
+                    script: [
+                        /*new JavascriptExecutionTools(options)*/
+                    ],
+                } satisfies ExecutionTools;
             }
-        }
 
-        console.info(colors.green(`All pipelines are valid`));
-        return process.exit(0);
-    });
+            const filenames = await glob(filesGlob!, { ignore });
+            //                       <- TODO: [😶]
+
+            pipelines: for (const filename of filenames) {
+                try {
+                    let pipeline: PipelineJson;
+
+                    if (filename.endsWith('.book')) {
+                        const pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
+                        pipeline = await compilePipeline(pipelineMarkdown, tools);
+
+                        if (isVerbose) {
+                            console.info(colors.green(`Parsed ${filename}`));
+                        }
+                    }
+                    if (filename.endsWith('.bookc')) {
+                        pipeline = JSON.parse(await readFile(filename, 'utf-8')) as PipelineJson;
+                    } else {
+                        if (isVerbose) {
+                            console.info(colors.gray(`Skipping ${filename}`));
+                        }
+                        continue pipelines;
+                    }
+
+                    if (isValidated) {
+                        validatePipeline(pipeline);
+                        console.info(colors.green(`Validated ${filename}`));
+                    }
+                } catch (error) {
+                    if (!(error instanceof Error)) {
+                        throw error;
+                    }
+
+                    console.info(colors.red(`Pipeline is not valid ${filename}`));
+                    console.error(colors.bgRed(error.name /* <- 11:11 */));
+                    console.error(colors.red(error.stack || error.message));
+
+                    return process.exit(1);
+                }
+            }
+
+            console.info(colors.green(`All pipelines are valid`));
+            return process.exit(0);
+        },
+    );
 }
 
 /**

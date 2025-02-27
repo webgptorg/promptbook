@@ -45,13 +45,13 @@ export const TextFormatDefinition: FormatDefinition<string, string, TODO_any /* 
                 return mappedLines.join('\n');
             },
         },
-        // <- TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages aviable as subvalues
+        // <- TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
     ],
 };
 
 /**
  * TODO: [1] Make type for XML Text and Schema
- * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages aviable as subvalues
+ * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
  * TODO: [🍓] In `TextFormatDefinition` implement simple `isValid`
  * TODO: [🍓] In `TextFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `TextFormatDefinition` implement `heal
