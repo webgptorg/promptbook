@@ -22,7 +22,7 @@ jobs:
               run: npm ci
 
             - name: Test Books
-              run: ./src/cli/test/ptbk.ts make ./books --format typescript --verbose
+              run: npx ts-node ./src/cli/test/ptbk.ts make ./books --format typescript --verbose
 
     test-types:
         name: 🧪 Test types
