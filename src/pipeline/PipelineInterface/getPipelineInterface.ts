@@ -1,9 +1,9 @@
-import type { WritableDeep } from 'type-fest';
-import type { TODO_remove_as } from '../../utils/organization/TODO_remove_as';
-import { deepClone } from '../../utils/serialization/deepClone';
-import { exportJson } from '../../utils/serialization/exportJson';
-import type { PipelineJson } from '../PipelineJson/PipelineJson';
-import type { PipelineInterface } from './PipelineInterface';
+import type { WritableDeep } from "type-fest";
+import type { TODO_remove_as } from "../../utils/organization/TODO_remove_as";
+import { deepClone } from "../../utils/serialization/deepClone";
+import { exportJson } from "../../utils/serialization/exportJson";
+import type { PipelineJson } from "../PipelineJson/PipelineJson";
+import type { PipelineInterface } from "./PipelineInterface";
 
 /**
  * @@@
@@ -13,38 +13,44 @@ import type { PipelineInterface } from './PipelineInterface';
  *
  * @public exported from `@promptbook/core`
  */
-export function getPipelineInterface(pipeline: PipelineJson): PipelineInterface {
-    const pipelineInterface: WritableDeep<PipelineInterface> = {
-        inputParameters: [],
-        outputParameters: [],
-    };
+export function getPipelineInterface(
+	pipeline: PipelineJson,
+): PipelineInterface {
+	const pipelineInterface: WritableDeep<PipelineInterface> = {
+		inputParameters: [],
+		outputParameters: [],
+	};
 
-    for (const parameter of pipeline.parameters) {
-        const { isInput, isOutput } = parameter;
+	for (const parameter of pipeline.parameters) {
+		const { isInput, isOutput } = parameter;
 
-        if (isInput) {
-            pipelineInterface.inputParameters.push(
-                deepClone(parameter),
-                // <- Note: Clone to prevent mutation when `$deepFreeze` is called at the end
-            );
-        }
+		if (isInput) {
+			pipelineInterface.inputParameters.push(
+				deepClone(parameter),
+				// <- Note: Clone to prevent mutation when `$deepFreeze` is called at the end
+			);
+		}
 
-        if (isOutput) {
-            pipelineInterface.outputParameters.push(
-                deepClone(parameter),
-                // <- Note: Clone to prevent mutation when `$deepFreeze` is called at the end
-            );
-        }
-    }
+		if (isOutput) {
+			pipelineInterface.outputParameters.push(
+				deepClone(parameter),
+				// <- Note: Clone to prevent mutation when `$deepFreeze` is called at the end
+			);
+		}
+	}
 
-    for (const key of ['inputParameters', 'outputParameters'] as Array<keyof PipelineInterface>) {
-        pipelineInterface[key].sort(({ name: name1 }, { name: name2 }) => name1.localeCompare(name2));
-    }
+	for (const key of ["inputParameters", "outputParameters"] as Array<
+		keyof PipelineInterface
+	>) {
+		pipelineInterface[key].sort(({ name: name1 }, { name: name2 }) =>
+			name1.localeCompare(name2),
+		);
+	}
 
-    return exportJson({
-        name: `pipelineInterface`,
-        message: `Result of \`getPipelineInterface\``,
-        order: ['inputParameters', 'outputParameters'],
-        value: pipelineInterface,
-    }) as TODO_remove_as<PipelineInterface>;
+	return exportJson({
+		name: `pipelineInterface`,
+		message: `Result of \`getPipelineInterface\``,
+		order: ["inputParameters", "outputParameters"],
+		value: pipelineInterface,
+	}) as TODO_remove_as<PipelineInterface>;
 }

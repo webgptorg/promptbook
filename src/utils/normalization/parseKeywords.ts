@@ -1,6 +1,6 @@
-import type { really_unknown } from '../organization/really_unknown';
-import type { Keywords } from './IKeywords';
-import { parseKeywordsFromString } from './parseKeywordsFromString';
+import type { really_unknown } from "../organization/really_unknown";
+import type { Keywords } from "./IKeywords";
+import { parseKeywordsFromString } from "./parseKeywordsFromString";
 
 /**
  * Parses keywords from any object and recursively walks through
@@ -12,19 +12,21 @@ import { parseKeywordsFromString } from './parseKeywordsFromString';
  * @public exported from `@promptbook/utils`
  */
 export function parseKeywords(input: really_unknown): Keywords {
-    if (typeof input === 'string') {
-        return parseKeywordsFromString(input);
-    } else if (typeof input === 'object') {
-        if (Array.isArray(input)) {
-            return input.map(parseKeywords).reduce((a, b) => new Set([...a, ...b]), new Set());
-        } else if (input === null) {
-            return new Set();
-        } else {
-            return parseKeywords(Object.values(input));
-        }
-    } else {
-        return new Set();
-    }
+	if (typeof input === "string") {
+		return parseKeywordsFromString(input);
+	} else if (typeof input === "object") {
+		if (Array.isArray(input)) {
+			return input
+				.map(parseKeywords)
+				.reduce((a, b) => new Set([...a, ...b]), new Set());
+		} else if (input === null) {
+			return new Set();
+		} else {
+			return parseKeywords(Object.values(input));
+		}
+	} else {
+		return new Set();
+	}
 }
 
 /**

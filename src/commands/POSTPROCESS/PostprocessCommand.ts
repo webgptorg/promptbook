@@ -1,4 +1,4 @@
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from "../../types/typeAliases";
 
 /**
  * Parsed POSTPROCESS command
@@ -7,6 +7,6 @@ import type { string_name } from '../../types/typeAliases';
  * @public exported from `@promptbook/editable`
  */
 export type PostprocessCommand = {
-    readonly type: 'POSTPROCESS';
-    readonly functionName: string_name;
+	readonly type: "POSTPROCESS";
+	readonly functionName: string_name;
 };

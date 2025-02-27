@@ -1,16 +1,16 @@
-import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
-import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
-import { forEachAsync } from '../../execution/utils/forEachAsync';
-import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
-import type { KnowledgeSourceJson } from '../../pipeline/PipelineJson/KnowledgeSourceJson';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import spaceTrim from "spacetrim";
+import { DEFAULT_IS_VERBOSE } from "../../config";
+import { DEFAULT_MAX_PARALLEL_COUNT } from "../../config";
+import { KnowledgeScrapeError } from "../../errors/KnowledgeScrapeError";
+import { forEachAsync } from "../../execution/utils/forEachAsync";
+import type { KnowledgePiecePreparedJson } from "../../pipeline/PipelineJson/KnowledgePieceJson";
+import type { KnowledgeSourceJson } from "../../pipeline/PipelineJson/KnowledgeSourceJson";
+import type { PrepareAndScrapeOptions } from "../../prepare/PrepareAndScrapeOptions";
 
-import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { arrayableToArray } from '../../utils/arrayableToArray';
-import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
-import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
+import type { ExecutionTools } from "../../execution/ExecutionTools";
+import { arrayableToArray } from "../../utils/arrayableToArray";
+import { $registeredScrapersMessage } from "./register/$registeredScrapersMessage";
+import { makeKnowledgeSourceHandler } from "./utils/makeKnowledgeSourceHandler";
 
 /**
  * Prepares the knowle
@@ -19,74 +19,87 @@ import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
  * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgePieces(
-    knowledgeSources: ReadonlyArray<KnowledgeSourceJson>,
-    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
-    options: PrepareAndScrapeOptions,
-): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
-    const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, rootDirname, isVerbose = DEFAULT_IS_VERBOSE } = options;
+	knowledgeSources: ReadonlyArray<KnowledgeSourceJson>,
+	tools: Pick<ExecutionTools, "llm" | "fs" | "scrapers">,
+	options: PrepareAndScrapeOptions,
+): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, "preparationIds">>> {
+	const {
+		maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT,
+		rootDirname,
+		isVerbose = DEFAULT_IS_VERBOSE,
+	} = options;
 
-    const knowledgePreparedUnflatten: Array<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> = new Array(
-        knowledgeSources.length,
-    );
+	const knowledgePreparedUnflatten: Array<
+		Array<Omit<KnowledgePiecePreparedJson, "preparationIds">>
+	> = new Array(knowledgeSources.length);
 
-    await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource, index) => {
-        let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
-        const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, tools, { rootDirname, isVerbose });
-        const scrapers = arrayableToArray(tools.scrapers);
+	await forEachAsync(
+		knowledgeSources,
+		{ maxParallelCount },
+		async (knowledgeSource, index) => {
+			let partialPieces:
+				| Omit<KnowledgePiecePreparedJson, "preparationIds" | "sources">[]
+				| null = null;
+			const sourceHandler = await makeKnowledgeSourceHandler(
+				knowledgeSource,
+				tools,
+				{ rootDirname, isVerbose },
+			);
+			const scrapers = arrayableToArray(tools.scrapers);
 
-        for (const scraper of scrapers) {
-            if (
-                !scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
-                // <- TODO: [🦔] Implement mime-type wildcards
-            ) {
-                continue;
-            }
+			for (const scraper of scrapers) {
+				if (
+					!scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
+					// <- TODO: [🦔] Implement mime-type wildcards
+				) {
+					continue;
+				}
 
-            const partialPiecesUnchecked = await scraper.scrape(sourceHandler);
+				const partialPiecesUnchecked = await scraper.scrape(sourceHandler);
 
-            if (partialPiecesUnchecked !== null) {
-                partialPieces = [...partialPiecesUnchecked];
-                // <- TODO: [🪓] Here should be no need for spreading new array, just `partialPieces = partialPiecesUnchecked`
+				if (partialPiecesUnchecked !== null) {
+					partialPieces = [...partialPiecesUnchecked];
+					// <- TODO: [🪓] Here should be no need for spreading new array, just `partialPieces = partialPiecesUnchecked`
 
-                break;
-            }
+					break;
+				}
 
-            console.warn(
-                spaceTrim(
-                    (block) => `
+				console.warn(
+					spaceTrim(
+						(block) => `
                         Cannot scrape knowledge from source despite the scraper \`${
-                            scraper.metadata.className
-                        }\` supports the mime type "${sourceHandler.mimeType}".
+													scraper.metadata.className
+												}\` supports the mime type "${sourceHandler.mimeType}".
 
                         The source:
                         ${block(
-                            knowledgeSource.knowledgeSourceContent
-                                .split('\n')
-                                .map((line) => `> ${line}`)
-                                .join('\n'),
-                        )}
+													knowledgeSource.knowledgeSourceContent
+														.split("\n")
+														.map((line) => `> ${line}`)
+														.join("\n"),
+												)}
 
                         ${block($registeredScrapersMessage(scrapers))}
 
 
                     `,
-                ),
-            );
-        }
+					),
+				);
+			}
 
-        if (partialPieces === null) {
-            throw new KnowledgeScrapeError(
-                spaceTrim(
-                    (block) => `
+			if (partialPieces === null) {
+				throw new KnowledgeScrapeError(
+					spaceTrim(
+						(block) => `
                         Cannot scrape knowledge
 
                         The source:
                         > ${block(
-                            knowledgeSource.knowledgeSourceContent
-                                .split('\n')
-                                .map((line) => `> ${line}`)
-                                .join('\n'),
-                        )}
+													knowledgeSource.knowledgeSourceContent
+														.split("\n")
+														.map((line) => `> ${line}`)
+														.join("\n"),
+												)}
 
                         No scraper found for the mime type "${sourceHandler.mimeType}"
 
@@ -94,28 +107,30 @@ export async function prepareKnowledgePieces(
 
 
                     `,
-                ),
-            );
-        }
+					),
+				);
+			}
 
-        const pieces = partialPieces.map((partialPiece) => ({
-            ...partialPiece,
-            sources: [
-                {
-                    name: knowledgeSource.name,
-                    // line, column <- TODO: [☀]
-                    // <- TODO: [❎]
-                },
-            ],
-        }));
+			const pieces = partialPieces.map((partialPiece) => ({
+				...partialPiece,
+				sources: [
+					{
+						name: knowledgeSource.name,
+						// line, column <- TODO: [☀]
+						// <- TODO: [❎]
+					},
+				],
+			}));
 
-        knowledgePreparedUnflatten[index] = pieces;
-    });
+			knowledgePreparedUnflatten[index] = pieces;
+		},
+	);
 
-    const knowledgePrepared: ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> =
-        knowledgePreparedUnflatten.flat();
+	const knowledgePrepared: ReadonlyArray<
+		Omit<KnowledgePiecePreparedJson, "preparationIds">
+	> = knowledgePreparedUnflatten.flat();
 
-    return knowledgePrepared;
+	return knowledgePrepared;
 }
 
 /*

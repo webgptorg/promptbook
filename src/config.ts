@@ -1,9 +1,9 @@
-import type { CsvSettings } from './formats/csv/CsvSettings';
-import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
-import { just } from './utils/organization/just';
+import type { CsvSettings } from "./formats/csv/CsvSettings";
+import type { IntermediateFilesStrategy } from "./types/IntermediateFilesStrategy";
+import type { string_email } from "./types/typeAliases";
+import type { string_name } from "./types/typeAliases";
+import type { string_url_image } from "./types/typeAliases";
+import { just } from "./utils/organization/just";
 
 /**
  * Warning message for the generated sections and files files
@@ -26,14 +26,14 @@ export const NAME = `Promptbook`;
  *
  * @public exported from `@promptbook/core`
  */
-export const ADMIN_EMAIL: string_email = 'pavol@ptbk.io';
+export const ADMIN_EMAIL: string_email = "pavol@ptbk.io";
 
 /**
  * Name of the responsible person for the Promptbook on GitHub
  *
  * @public exported from `@promptbook/core`
  */
-export const ADMIN_GITHUB_NAME: string_name = 'hejny';
+export const ADMIN_GITHUB_NAME: string_name = "hejny";
 
 /**
  * Claim for the Promptbook
@@ -89,7 +89,7 @@ export const DEFAULT_PROMPT_TASK_TITLE = `Prompt`;
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOK_OUTPUT_PARAMETER_NAME = 'result';
+export const DEFAULT_BOOK_OUTPUT_PARAMETER_NAME = "result";
 
 /**
  * Maximum file size limit
@@ -127,15 +127,15 @@ export const CHARACTER_LOOP_LIMIT = 100000;
  * @public exported from `@promptbook/utils`
  */
 export const VALUE_STRINGS = {
-    empty: '(nothing; empty string)',
-    null: '(no value; null)',
-    undefined: '(unknown value; undefined)',
+	empty: "(nothing; empty string)",
+	null: "(no value; null)",
+	undefined: "(unknown value; undefined)",
 
-    nan: '(not a number; NaN)',
-    infinity: '(infinity; ∞)',
-    negativeInfinity: '(negative infinity; -∞)',
+	nan: "(not a number; NaN)",
+	infinity: "(infinity; ∞)",
+	negativeInfinity: "(negative infinity; -∞)",
 
-    unserializable: '(unserializable value)',
+	unserializable: "(unserializable value)",
 } as const;
 
 /**
@@ -180,7 +180,8 @@ export const MAX_FILENAME_LENGTH = 30;
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_INTERMEDIATE_FILES_STRATEGY: IntermediateFilesStrategy = 'HIDE_AND_KEEP';
+export const DEFAULT_INTERMEDIATE_FILES_STRATEGY: IntermediateFilesStrategy =
+	"HIDE_AND_KEEP";
 //                                                     <- TODO: [😡] Change to 'VISIBLE'
 
 /**
@@ -219,7 +220,7 @@ export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOKS_DIRNAME = './books';
+export const DEFAULT_BOOKS_DIRNAME = "./books";
 // <- TODO: [🕝] Make also `BOOKS_DIRNAME_ALTERNATIVES`
 
 /**
@@ -229,7 +230,7 @@ export const DEFAULT_BOOKS_DIRNAME = './books';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = './.promptbook/download-cache';
+export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = "./.promptbook/download-cache";
 
 /**
  * Where to store the cache of executions for promptbook CLI
@@ -238,7 +239,7 @@ export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = './.promptbook/download-cache';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_EXECUTION_CACHE_DIRNAME = './.promptbook/execution-cache';
+export const DEFAULT_EXECUTION_CACHE_DIRNAME = "./.promptbook/execution-cache";
 
 /**
  * Where to store the scrape cache
@@ -247,7 +248,7 @@ export const DEFAULT_EXECUTION_CACHE_DIRNAME = './.promptbook/execution-cache';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
+export const DEFAULT_SCRAPE_CACHE_DIRNAME = "./.promptbook/scrape-cache";
 
 /**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
@@ -263,7 +264,7 @@ export const DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME = `index`;
  * @private within the repository - too low-level in comparison with other constants
  */
 export const MOMENT_ARG_THRESHOLDS = {
-    ss: 3, // <- least number of seconds to be counted in seconds, minus 1. Must be set after setting the `s` unit or without setting the `s` unit.
+	ss: 3, // <- least number of seconds to be counted in seconds, minus 1. Must be set after setting the `s` unit or without setting the `s` unit.
 } as const;
 
 /**
@@ -271,14 +272,14 @@ export const MOMENT_ARG_THRESHOLDS = {
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_REMOTE_URL = 'https://api.pavolhejny.com/';
+export const DEFAULT_REMOTE_URL = "https://api.pavolhejny.com/";
 
 /**
  * @@@
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
+export const DEFAULT_REMOTE_URL_PATH = "/promptbook/socket.io";
 
 // <- TODO: [🧜‍♂️]
 
@@ -288,10 +289,10 @@ export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_CSV_SETTINGS: CsvSettings = Object.freeze({
-    delimiter: ',',
-    quoteChar: '"',
-    newline: '\n',
-    skipEmptyLines: true,
+	delimiter: ",",
+	quoteChar: '"',
+	newline: "\n",
+	skipEmptyLines: true,
 });
 
 /**
@@ -309,7 +310,7 @@ export let DEFAULT_IS_VERBOSE = false;
  * @public exported from `@promptbook/core`
  */
 export function SET_IS_VERBOSE(isVerbose: boolean): void {
-    DEFAULT_IS_VERBOSE = isVerbose;
+	DEFAULT_IS_VERBOSE = isVerbose;
 }
 
 /**
@@ -332,19 +333,19 @@ export const DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME = `getPipelineCollect
  * @private within the repository
  */
 export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
-    /**/
-    // Note: In normal situations, we check the pipeline logic:
-    true,
-    /**/
+	/**/
+	// Note: In normal situations, we check the pipeline logic:
+	true,
+	/**/
 
-    /*/
+	/*/
     // When working on some new features, you can temporarily turn off the validation:
     false,
     /**/
 
-    // Commit message:
-    // [🔑] Temporarily **disable** pipeline validation
-    // [🔒] **Enable** pipeline validation
+	// Commit message:
+	// [🔑] Temporarily **disable** pipeline validation
+	// [🔒] **Enable** pipeline validation
 );
 
 /**
@@ -353,19 +354,19 @@ export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
  * @private within the repository
  */
 export const IS_COST_PREVENTED: boolean = just(
-    /*/
+	/*/
     // Note: In normal situations, we prevent ability to use real API keys in tests:
     true,
     /**/
 
-    /**/
-    // When working on preparations, you can temporarily turn off the prevention:
-    false,
-    /**/
+	/**/
+	// When working on preparations, you can temporarily turn off the prevention:
+	false,
+	/**/
 
-    // Commit message:
-    // [🔑] Temporarily **disable** cost-prevention
-    // [🔒] **Enable** cost-prevention
+	// Commit message:
+	// [🔑] Temporarily **disable** cost-prevention
+	// [🔒] **Enable** cost-prevention
 );
 
 /**

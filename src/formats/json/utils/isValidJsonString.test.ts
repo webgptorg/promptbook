@@ -1,13 +1,13 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { isValidJsonString } from './isValidJsonString';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { isValidJsonString } from "./isValidJsonString";
 
-describe('how isValidJsonString works', () => {
-    it('should tell that valid json is valid', () => {
-        expect(isValidJsonString(`{"foo": "bar"}`)).toBe(true);
-        expect(
-            isValidJsonString(
-                spaceTrim(`
+describe("how isValidJsonString works", () => {
+	it("should tell that valid json is valid", () => {
+		expect(isValidJsonString(`{"foo": "bar"}`)).toBe(true);
+		expect(
+			isValidJsonString(
+				spaceTrim(`
                     {
                         "foo": "bar",
                         "bar": "baz",
@@ -16,19 +16,19 @@ describe('how isValidJsonString works', () => {
                         }
                     }
                 `),
-            ),
-        ).toBe(true);
-    });
+			),
+		).toBe(true);
+	});
 
-    it('should tell that non-json is not valid', () => {
-        expect(
-            isValidJsonString(
-                spaceTrim(`
+	it("should tell that non-json is not valid", () => {
+		expect(
+			isValidJsonString(
+				spaceTrim(`
                   {
                       "foo": "bar
                   }
               `),
-            ),
-        ).toBe(false);
-    });
+			),
+		).toBe(false);
+	});
 });

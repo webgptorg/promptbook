@@ -1,4 +1,4 @@
-import type { TupleToUnion } from 'type-fest';
+import type { TupleToUnion } from "type-fest";
 
 /**
  * Where the command can be used
@@ -12,4 +12,4 @@ export type CommandUsagePlace = TupleToUnion<typeof CommandUsagePlaces>;
  *
  * @private internal base for `CommandUsagePlace`
  */
-export const CommandUsagePlaces = ['PIPELINE_HEAD', 'PIPELINE_TASK'] as const;
+export const CommandUsagePlaces = ["PIPELINE_HEAD", "PIPELINE_TASK"] as const;

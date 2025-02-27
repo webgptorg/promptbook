@@ -1,4 +1,4 @@
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from "../../types/typeAliases";
 
 /**
  * Function escapeMarkdownBlock will escape markdown block if needed
@@ -6,8 +6,10 @@ import type { string_markdown_text } from '../../types/typeAliases';
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function escapeMarkdownBlock(value: string_markdown_text): string_markdown_text {
-    return value.replace(/```/g, '\\`\\`\\`');
+export function escapeMarkdownBlock(
+	value: string_markdown_text,
+): string_markdown_text {
+	return value.replace(/```/g, "\\`\\`\\`");
 }
 
 /**

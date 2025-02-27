@@ -1,34 +1,34 @@
-import { describe } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { DEFAULT_BOOK_TITLE } from '../../config';
-import { just } from '../organization/just';
-import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
+import { describe } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { DEFAULT_BOOK_TITLE } from "../../config";
+import { just } from "../organization/just";
+import { splitMarkdownIntoSections } from "./splitMarkdownIntoSections";
 
-describe('how splitMarkdownIntoSections works', () => {
-    it('flatten simple cases', () => {
-        expect(splitMarkdownIntoSections(``)).toEqual([]);
-        expect(
-            splitMarkdownIntoSections(
-                spaceTrim(`
+describe("how splitMarkdownIntoSections works", () => {
+	it("flatten simple cases", () => {
+		expect(splitMarkdownIntoSections(``)).toEqual([]);
+		expect(
+			splitMarkdownIntoSections(
+				spaceTrim(`
                     # Title
 
                     Text below title
                 `),
-            ),
-        ).toEqual(
-            just([
-                spaceTrim(`
+			),
+		).toEqual(
+			just([
+				spaceTrim(`
                     # Title
 
                     Text below title
 
                 `),
-            ]),
-        );
+			]),
+		);
 
-        expect(
-            splitMarkdownIntoSections(
-                spaceTrim(`
+		expect(
+			splitMarkdownIntoSections(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -37,38 +37,38 @@ describe('how splitMarkdownIntoSections works', () => {
 
                     Text below section 1
                 `),
-            ),
-        ).toEqual(
-            just([
-                spaceTrim(`
+			),
+		).toEqual(
+			just([
+				spaceTrim(`
                     # Title
 
                     Text below title
 
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     ## Section 1
 
                     Text below section 1
                 `),
-            ]),
-        );
-    });
+			]),
+		);
+	});
 
-    it('adds "Untitled" if markdown does not starts with heading', () => {
-        expect(splitMarkdownIntoSections(`text`)).toEqual([
-            spaceTrim(`
+	it('adds "Untitled" if markdown does not starts with heading', () => {
+		expect(splitMarkdownIntoSections(`text`)).toEqual([
+			spaceTrim(`
                 # ${DEFAULT_BOOK_TITLE}
 
                 text
             `),
-        ]);
-    });
+		]);
+	});
 
-    it('works withs mismatched headings', () => {
-        expect(
-            splitMarkdownIntoSections(
-                spaceTrim(`
+	it("works withs mismatched headings", () => {
+		expect(
+			splitMarkdownIntoSections(
+				spaceTrim(`
                     ## Heading 2
 
                     a
@@ -89,42 +89,42 @@ describe('how splitMarkdownIntoSections works', () => {
 
                     e
                 `),
-            ),
-        ).toEqual(
-            just([
-                spaceTrim(`
+			),
+		).toEqual(
+			just([
+				spaceTrim(`
                     ## Heading 2
 
                     a
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     # Heading 1
 
                     b
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     # Heading 1
 
                     c
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     #### Heading 4
 
                     d
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     # Heading 1
 
                     e
                 `),
-            ]),
-        );
-    });
+			]),
+		);
+	});
 
-    it('flatten advanced case', () => {
-        expect(
-            splitMarkdownIntoSections(
-                spaceTrim(`
+	it("flatten advanced case", () => {
+		expect(
+			splitMarkdownIntoSections(
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -165,10 +165,10 @@ describe('how splitMarkdownIntoSections works', () => {
                     Text below subsection 2.4
                     \`\`\`
                 `),
-            ),
-        ).toEqual(
-            just([
-                spaceTrim(`
+			),
+		).toEqual(
+			just([
+				spaceTrim(`
                     # Title
 
                     Text below title
@@ -182,25 +182,25 @@ describe('how splitMarkdownIntoSections works', () => {
                     3) Cherry
 
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     ## Section 1
 
                     Text below section 1
 
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     ## Section 2
 
                     Text below section 2
 
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     ### Subsection 2.1
 
                     Text below subsection 2.1
 
                 `),
-                spaceTrim(`
+				spaceTrim(`
                     ### Subsection 2.2
 
                     Text below subsection 2.2
@@ -218,9 +218,9 @@ describe('how splitMarkdownIntoSections works', () => {
                     \`\`\`
 
                 `),
-            ]),
-        );
-    });
+			]),
+		);
+	});
 
-    // Note: More things are tested in flattenMarkdown.test.ts which uses splitMarkdownIntoSections
+	// Note: More things are tested in flattenMarkdown.test.ts which uses splitMarkdownIntoSections
 });

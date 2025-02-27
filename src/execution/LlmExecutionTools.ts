@@ -1,12 +1,12 @@
-import type { Promisable } from 'type-fest';
-import type { Prompt } from '../types/Prompt';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_markdown_text } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { AvailableModel } from './AvailableModel';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
+import type { Promisable } from "type-fest";
+import type { Prompt } from "../types/Prompt";
+import type { string_markdown } from "../types/typeAliases";
+import type { string_markdown_text } from "../types/typeAliases";
+import type { string_title } from "../types/typeAliases";
+import type { AvailableModel } from "./AvailableModel";
+import type { ChatPromptResult } from "./PromptResult";
+import type { CompletionPromptResult } from "./PromptResult";
+import type { EmbeddingPromptResult } from "./PromptResult";
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -16,47 +16,47 @@ import type { EmbeddingPromptResult } from './PromptResult';
  * @see https://github.com/webgptorg/promptbook#llm-execution-tools
  */
 export type LlmExecutionTools = {
-    /**
-     * Title of the model provider
-     *
-     * @example "OpenAI"
-     */
-    readonly title: string_title & string_markdown_text;
+	/**
+	 * Title of the model provider
+	 *
+	 * @example "OpenAI"
+	 */
+	readonly title: string_title & string_markdown_text;
 
-    /**
-     * Description of the provider
-     *
-     * @example "Use all models from OpenAI"
-     */
-    readonly description?: string_markdown;
+	/**
+	 * Description of the provider
+	 *
+	 * @example "Use all models from OpenAI"
+	 */
+	readonly description?: string_markdown;
 
-    /**
-     * Check comfiguration
-     *
-     * @returns nothing if configuration is correct
-     * @throws {Error} if configuration is incorrect
-     */
-    checkConfiguration(): Promisable<void>;
+	/**
+	 * Check comfiguration
+	 *
+	 * @returns nothing if configuration is correct
+	 * @throws {Error} if configuration is incorrect
+	 */
+	checkConfiguration(): Promisable<void>;
 
-    /**
-     * List all available models that can be used
-     */
-    listModels(): Promisable<ReadonlyArray<AvailableModel>>;
+	/**
+	 * List all available models that can be used
+	 */
+	listModels(): Promisable<ReadonlyArray<AvailableModel>>;
 
-    /**
-     * Calls a chat model
-     */
-    callChatModel?(prompt: Prompt): Promise<ChatPromptResult>;
+	/**
+	 * Calls a chat model
+	 */
+	callChatModel?(prompt: Prompt): Promise<ChatPromptResult>;
 
-    /**
-     * Calls a completion model
-     */
-    callCompletionModel?(prompt: Prompt): Promise<CompletionPromptResult>;
+	/**
+	 * Calls a completion model
+	 */
+	callCompletionModel?(prompt: Prompt): Promise<CompletionPromptResult>;
 
-    /**
-     * Calls an embedding model
-     */
-    callEmbeddingModel?(prompt: Prompt): Promise<EmbeddingPromptResult>;
+	/**
+	 * Calls an embedding model
+	 */
+	callEmbeddingModel?(prompt: Prompt): Promise<EmbeddingPromptResult>;
 };
 
 /**

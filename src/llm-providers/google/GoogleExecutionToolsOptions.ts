@@ -1,5 +1,5 @@
-import type { createGoogleGenerativeAI } from '@ai-sdk/google';
-import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptions';
+import type { createGoogleGenerativeAI } from "@ai-sdk/google";
+import type { VercelExecutionToolsOptions } from "../vercel/VercelExecutionToolsOptions";
 
 /**
  * Options for `GoogleExecutionTools`
@@ -8,7 +8,7 @@ import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionTools
  * @public exported from `@promptbook/google`
  */
 export type GoogleExecutionToolsOptions = Omit<
-    VercelExecutionToolsOptions,
-    'title' | 'description' | 'vercelProvider' | 'availableModels'
+	VercelExecutionToolsOptions,
+	"title" | "description" | "vercelProvider" | "availableModels"
 > &
-    Parameters<typeof createGoogleGenerativeAI>[0];
+	Parameters<typeof createGoogleGenerativeAI>[0];

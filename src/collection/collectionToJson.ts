@@ -1,5 +1,5 @@
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { PipelineCollection } from './PipelineCollection';
+import type { PipelineJson } from "../pipeline/PipelineJson/PipelineJson";
+import type { PipelineCollection } from "./PipelineCollection";
 
 /**
  * Converts PipelineCollection to serialized JSON
@@ -8,10 +8,14 @@ import type { PipelineCollection } from './PipelineCollection';
  *
  * @public exported from `@promptbook/core`
  */
-export async function collectionToJson(collection: PipelineCollection): Promise<ReadonlyArray<PipelineJson>> {
-    const pipelineUrls = await collection.listPipelines();
-    const promptbooks = await Promise.all(pipelineUrls.map((url) => collection.getPipelineByUrl(url)));
-    return promptbooks;
+export async function collectionToJson(
+	collection: PipelineCollection,
+): Promise<ReadonlyArray<PipelineJson>> {
+	const pipelineUrls = await collection.listPipelines();
+	const promptbooks = await Promise.all(
+		pipelineUrls.map((url) => collection.getPipelineByUrl(url)),
+	);
+	return promptbooks;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { keepUnused } from './keepUnused';
+import { keepUnused } from "./keepUnused";
 
 /**
  * Just says that the type is used but `organize-imports-cli` does not recognize it.
@@ -9,6 +9,6 @@ import { keepUnused } from './keepUnused';
  * @private within the repository
  */
 export function keepTypeImported<TTypeToKeep>(): void {
-    // Note: Do nothing
-    keepUnused(null as TTypeToKeep);
+	// Note: Do nothing
+	keepUnused(null as TTypeToKeep);
 }

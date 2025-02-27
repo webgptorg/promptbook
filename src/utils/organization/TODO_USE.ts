@@ -1,4 +1,4 @@
-import type { really_any } from './really_any';
+import type { really_any } from "./really_any";
 
 /**
  * Just marks a place of place where should be something implemented
@@ -11,6 +11,6 @@ import type { really_any } from './really_any';
  * @private within the repository
  */
 export function TODO_USE(...value: ReadonlyArray<really_any>): void {
-    // Note: Do nothing
-    value;
+	// Note: Do nothing
+	value;
 }

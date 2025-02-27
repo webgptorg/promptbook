@@ -1,5 +1,5 @@
-import type { string_email } from '../../../types/typeAliases';
-import type { really_unknown } from '../../organization/really_unknown';
+import type { string_email } from "../../../types/typeAliases";
+import type { really_unknown } from "../../organization/really_unknown";
 
 /**
  * Checks if value is valid email
@@ -7,13 +7,13 @@ import type { really_unknown } from '../../organization/really_unknown';
  * @public exported from `@promptbook/utils`
  */
 export function isValidEmail(email: really_unknown): email is string_email {
-    if (typeof email !== 'string') {
-        return false;
-    }
+	if (typeof email !== "string") {
+		return false;
+	}
 
-    if (email.split('\n').length > 1) {
-        return false;
-    }
+	if (email.split("\n").length > 1) {
+		return false;
+	}
 
-    return /^.+@.+\..+$/.test(email);
+	return /^.+@.+\..+$/.test(email);
 }

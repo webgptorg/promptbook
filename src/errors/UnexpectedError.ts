@@ -1,6 +1,6 @@
-import { spaceTrim } from 'spacetrim';
-import { ADMIN_EMAIL } from '../config';
-import { getErrorReportUrl } from './utils/getErrorReportUrl';
+import { spaceTrim } from "spacetrim";
+import { ADMIN_EMAIL } from "../config";
+import { getErrorReportUrl } from "./utils/getErrorReportUrl";
 
 /**
  * This error type indicates that the error should not happen and its last check before crashing with some other error
@@ -8,11 +8,11 @@ import { getErrorReportUrl } from './utils/getErrorReportUrl';
  * @public exported from `@promptbook/core`
  */
 export class UnexpectedError extends Error {
-    public readonly name = 'UnexpectedError';
-    public constructor(message: string) {
-        super(
-            spaceTrim(
-                (block) => `
+	public readonly name = "UnexpectedError";
+	public constructor(message: string) {
+		super(
+			spaceTrim(
+				(block) => `
                     ${block(message)}
 
                     Note: This error should not happen.
@@ -24,8 +24,8 @@ export class UnexpectedError extends Error {
                     Or contact us on ${ADMIN_EMAIL}
 
                 `,
-            ),
-        );
-        Object.setPrototypeOf(this, UnexpectedError.prototype);
-    }
+			),
+		);
+		Object.setPrototypeOf(this, UnexpectedError.prototype);
+	}
 }

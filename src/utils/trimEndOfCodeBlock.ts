@@ -1,4 +1,4 @@
-import { spaceTrim } from 'spacetrim';
+import { spaceTrim } from "spacetrim";
 
 /**
  * Function trimEndOfCodeBlock will remove ending code block from the string if it is present.
@@ -9,8 +9,8 @@ import { spaceTrim } from 'spacetrim';
  * @public exported from `@promptbook/utils`
  */
 export function trimEndOfCodeBlock(value: string): string {
-    value = spaceTrim(value);
-    value = value.replace(/```$/g, '');
-    value = spaceTrim(value);
-    return value;
+	value = spaceTrim(value);
+	value = value.replace(/```$/g, "");
+	value = spaceTrim(value);
+	return value;
 }

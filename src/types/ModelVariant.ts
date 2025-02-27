@@ -1,4 +1,4 @@
-import type { TupleToUnion } from 'type-fest';
+import type { TupleToUnion } from "type-fest";
 
 /**
  * Model variant describes the very general type of the model
@@ -14,4 +14,8 @@ export type ModelVariant = TupleToUnion<typeof MODEL_VARIANTS>;
  *
  * @public exported from `@promptbook/core`
  */
-export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'EMBEDDING' /* <- TODO [🏳] */ /* <- [🤖] */] as const;
+export const MODEL_VARIANTS = [
+	"COMPLETION",
+	"CHAT",
+	"EMBEDDING" /* <- TODO [🏳] */ /* <- [🤖] */,
+] as const;

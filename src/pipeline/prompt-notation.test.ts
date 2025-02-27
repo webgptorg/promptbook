@@ -1,87 +1,87 @@
-import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
-import { prompt } from './prompt-notation';
+import { describe, expect, it } from "@jest/globals";
+import spaceTrim from "spacetrim";
+import { prompt } from "./prompt-notation";
 
-describe('how prompt tag function works', () => {
-    it('should work with simple prompt', () =>
-        expect(
-            prompt`
+describe("how prompt tag function works", () => {
+	it("should work with simple prompt", () =>
+		expect(
+			prompt`
                 You are a biochemistry expert
 
                 - Explain the process of ATP synthesis in mitochondria
             `,
-        ).toBe(
-            spaceTrim(`
+		).toBe(
+			spaceTrim(`
                 You are a biochemistry expert
 
                 - Explain the process of ATP synthesis in mitochondria
             `),
-        ));
+		));
 
-    it('should work with interpolated string template', () =>
-        expect(
-            prompt`
+	it("should work with interpolated string template", () =>
+		expect(
+			prompt`
                 You are a chemistry expert
 
-                - Explain the chemical bonds in ${'water molecules'}
+                - Explain the chemical bonds in ${"water molecules"}
             `,
-        ).toBe(
-            spaceTrim(`
+		).toBe(
+			spaceTrim(`
                 You are a chemistry expert
 
                 - Explain the chemical bonds in water molecules
             `),
-        ));
+		));
 
-    it('should work with multiline interpolated string template', () =>
-        expect(
-            prompt`
+	it("should work with multiline interpolated string template", () =>
+		expect(
+			prompt`
                 You are a molecular biologist
 
-                ${'DNA replication\nTranscription'}
+                ${"DNA replication\nTranscription"}
             `,
-        ).toBe(
-            spaceTrim(`
+		).toBe(
+			spaceTrim(`
                 You are a molecular biologist
                 
                 DNA replication
                 Transcription
             `),
-        ));
+		));
 
-    it('should separate data and instructions', () =>
-        expect(
-            prompt`
+	it("should separate data and instructions", () =>
+		expect(
+			prompt`
                 You are a geneticist
 
-                - ${'Dominant alleles\nRecessive alleles'}
+                - ${"Dominant alleles\nRecessive alleles"}
             `,
-        ).toBe(
-            spaceTrim(`
+		).toBe(
+			spaceTrim(`
                 You are a geneticist
 
                 - Dominant alleles
                 - Recessive alleles
             `),
-        ));
+		));
 
-    it('should keep non-javascript parameters', () =>
-        expect(
-            prompt`
+	it("should keep non-javascript parameters", () =>
+		expect(
+			prompt`
                 You are a geneticist
 
-                - ${'Dominant alleles\nRecessive alleles'}
+                - ${"Dominant alleles\nRecessive alleles"}
                 - {more}
             `,
-        ).toBe(
-            spaceTrim(`
+		).toBe(
+			spaceTrim(`
                 You are a geneticist
 
                 - Dominant alleles
                 - Recessive alleles
                 - {more}
             `),
-        ));
+		));
 });
 
 /**

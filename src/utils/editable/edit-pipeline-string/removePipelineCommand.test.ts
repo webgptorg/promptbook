@@ -1,56 +1,56 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import type { PipelineString } from '../../../pipeline/PipelineString';
-import { just } from '../../organization/just';
-import { removePipelineCommand } from './removePipelineCommand';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import type { PipelineString } from "../../../pipeline/PipelineString";
+import { just } from "../../organization/just";
+import { removePipelineCommand } from "./removePipelineCommand";
 
-describe('how `removePipelineCommand` works', () => {
-    it('should keep the pipeline when command is not there', () =>
-        expect(
-            removePipelineCommand({
-                command: 'PERSONA',
-                pipelineString: spaceTrim(`
+describe("how `removePipelineCommand` works", () => {
+	it("should keep the pipeline when command is not there", () =>
+		expect(
+			removePipelineCommand({
+				command: "PERSONA",
+				pipelineString: spaceTrim(`
                     # Book
 
                     - KNOWLEDGE https://pavolhejny.com/
                 `) as PipelineString,
-                // <- TODO: [📼] Use`book\`` string literal notation
-            }),
-        ).toBe(
-            just(
-                spaceTrim(`
+				// <- TODO: [📼] Use`book\`` string literal notation
+			}),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Book
 
                     - KNOWLEDGE https://pavolhejny.com/
                 `),
-            ),
-        ));
+			),
+		));
 
-    it('should remove the command', () =>
-        expect(
-            removePipelineCommand({
-                command: 'KNOWLEDGE',
-                pipelineString: spaceTrim(`
+	it("should remove the command", () =>
+		expect(
+			removePipelineCommand({
+				command: "KNOWLEDGE",
+				pipelineString: spaceTrim(`
                     # Book
 
                     - KNOWLEDGE https://pavolhejny.com/
                 `) as PipelineString,
-                // <- TODO: [📼] Use`book\`` string literal notation
-            }),
-        ).toBe(
-            just(
-                spaceTrim(`
+				// <- TODO: [📼] Use`book\`` string literal notation
+			}),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Book
 
                 `),
-            ),
-        ));
+			),
+		));
 
-    it('should work in advanced case', () =>
-        expect(
-            removePipelineCommand({
-                command: 'KNOWLEDGE',
-                pipelineString: spaceTrim(`
+	it("should work in advanced case", () =>
+		expect(
+			removePipelineCommand({
+				command: "KNOWLEDGE",
+				pipelineString: spaceTrim(`
                     # Book
 
                     - KNOWLEDGE https://pavolhejny.com/
@@ -70,11 +70,11 @@ describe('how `removePipelineCommand` works', () => {
                     - KNOWLEDGE https://pavolhejny.com/
                     \`\`\`
                 `) as PipelineString,
-                // <- TODO: [📼] Use`book\`` string literal notation
-            }),
-        ).toBe(
-            just(
-                spaceTrim(`
+				// <- TODO: [📼] Use`book\`` string literal notation
+			}),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Book
 
                     - PERSONA Paul, developer of the Promptbook
@@ -92,6 +92,6 @@ describe('how `removePipelineCommand` works', () => {
                     - KNOWLEDGE https://pavolhejny.com/
                     \`\`\`
                 `),
-            ),
-        ));
+			),
+		));
 });

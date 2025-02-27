@@ -1,18 +1,18 @@
-import FormData from 'form-data';
-import fetch from 'node-fetch'; /* <- TODO: [🌿] Use the Node native fetch */
-import { spaceTrim } from 'spacetrim';
-import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
-import type { AutomaticTranslator } from './AutomaticTranslator';
-import type { TranslatorOptions } from './TranslatorOptions';
+import FormData from "form-data";
+import fetch from "node-fetch"; /* <- TODO: [🌿] Use the Node native fetch */
+import { spaceTrim } from "spacetrim";
+import { PipelineExecutionError } from "../../../../errors/PipelineExecutionError";
+import type { AutomaticTranslator } from "./AutomaticTranslator";
+import type { TranslatorOptions } from "./TranslatorOptions";
 
 /**
  * @@@
  */
 type LindatAutomaticTranslatorOptions = TranslatorOptions & {
-    /**
-     * @@@
-     */
-    readonly apiUrl?: URL;
+	/**
+	 * @@@
+	 */
+	readonly apiUrl?: URL;
 };
 
 /**
@@ -21,32 +21,35 @@ type LindatAutomaticTranslatorOptions = TranslatorOptions & {
  * @private still in development [🏳]
  */
 export class LindatAutomaticTranslator implements AutomaticTranslator {
-    public constructor(protected readonly options: LindatAutomaticTranslatorOptions) {}
-    public async translate(message: string): Promise<string> {
-        const formData = new FormData();
-        formData.append('input_text', message);
-        formData.append('src', this.options.from);
-        formData.append('tgt', this.options.to);
+	public constructor(
+		protected readonly options: LindatAutomaticTranslatorOptions,
+	) {}
+	public async translate(message: string): Promise<string> {
+		const formData = new FormData();
+		formData.append("input_text", message);
+		formData.append("src", this.options.from);
+		formData.append("tgt", this.options.to);
 
-        const response = await fetch( // <- TODO: [🏳] Probbably pass the fetching function
-            this.options.apiUrl || '!!',
+		const response = await fetch(
+			// <- TODO: [🏳] Probbably pass the fetching function
+			this.options.apiUrl || "!!",
 
-            {
-                method: 'POST',
-                body: formData,
-            },
-        );
+			{
+				method: "POST",
+				body: formData,
+			},
+		);
 
-        if (response.status === 200) {
-            const translation = await response.text();
-            return spaceTrim(translation);
-        } else {
-            const json = await response.json();
-            if (json.message) {
-                throw new PipelineExecutionError(json.message);
-            } else {
-                throw new PipelineExecutionError(
-                    spaceTrim(`
+		if (response.status === 200) {
+			const translation = await response.text();
+			return spaceTrim(translation);
+		} else {
+			const json = await response.json();
+			if (json.message) {
+				throw new PipelineExecutionError(json.message);
+			} else {
+				throw new PipelineExecutionError(
+					spaceTrim(`
                       Lindat: Unknown error
                       From: ${this.options.from}
                       To: ${this.options.to}
@@ -55,8 +58,8 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
                       Response: ${JSON.stringify(json)}
 
                   `),
-                );
-            }
-        }
-    }
+				);
+			}
+		}
+	}
 }

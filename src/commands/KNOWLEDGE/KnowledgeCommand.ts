@@ -1,4 +1,4 @@
-import type { string_knowledge_source_content } from '../../types/typeAliases';
+import type { string_knowledge_source_content } from "../../types/typeAliases";
 
 /**
  * Parsed KNOWLEDGE command
@@ -7,6 +7,6 @@ import type { string_knowledge_source_content } from '../../types/typeAliases';
  * @public exported from `@promptbook/editable`
  */
 export type KnowledgeCommand = {
-    readonly type: 'KNOWLEDGE';
-    readonly knowledgeSourceContent: string_knowledge_source_content;
+	readonly type: "KNOWLEDGE";
+	readonly knowledgeSourceContent: string_knowledge_source_content;
 };

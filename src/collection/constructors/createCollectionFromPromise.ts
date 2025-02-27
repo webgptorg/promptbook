@@ -1,8 +1,8 @@
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { Prompt } from '../../types/Prompt';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { PipelineCollection } from '../PipelineCollection';
-import { createCollectionFromJson } from './createCollectionFromJson';
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import type { Prompt } from "../../types/Prompt";
+import type { string_pipeline_url } from "../../types/typeAliases";
+import type { PipelineCollection } from "../PipelineCollection";
+import { createCollectionFromJson } from "./createCollectionFromJson";
 
 /**
  * Constructs Promptbook from async sources
@@ -25,40 +25,42 @@ import { createCollectionFromJson } from './createCollectionFromJson';
  * @public exported from `@promptbook/core`
  */
 export function createCollectionFromPromise(
-    promptbookSourcesPromiseOrFactory:
-        | Promise<ReadonlyArray<PipelineJson>>
-        | (() => Promise<ReadonlyArray<PipelineJson>>),
+	promptbookSourcesPromiseOrFactory:
+		| Promise<ReadonlyArray<PipelineJson>>
+		| (() => Promise<ReadonlyArray<PipelineJson>>),
 ): PipelineCollection {
-    let collection: PipelineCollection | null = null;
+	let collection: PipelineCollection | null = null;
 
-    async function load(): Promise<void> {
-        if (collection !== null) {
-            return;
-        }
-        if (typeof promptbookSourcesPromiseOrFactory === 'function') {
-            // Note: Calling factory function only once despite multiple calls to resolveSources
-            promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
-        }
-        const promptbookSources = await promptbookSourcesPromiseOrFactory;
-        collection = createCollectionFromJson(...promptbookSources);
-    }
+	async function load(): Promise<void> {
+		if (collection !== null) {
+			return;
+		}
+		if (typeof promptbookSourcesPromiseOrFactory === "function") {
+			// Note: Calling factory function only once despite multiple calls to resolveSources
+			promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
+		}
+		const promptbookSources = await promptbookSourcesPromiseOrFactory;
+		collection = createCollectionFromJson(...promptbookSources);
+	}
 
-    async function listPipelines(): Promise<ReadonlyArray<string_pipeline_url>> {
-        await load();
-        return /* not await */ collection!.listPipelines();
-    }
-    async function getPipelineByUrl(url: string_pipeline_url): Promise<PipelineJson> {
-        await load();
-        return /* not await */ collection!.getPipelineByUrl(url);
-    }
-    async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
-        await load();
-        return /* not await */ collection!.isResponsibleForPrompt(prompt);
-    }
+	async function listPipelines(): Promise<ReadonlyArray<string_pipeline_url>> {
+		await load();
+		return /* not await */ collection!.listPipelines();
+	}
+	async function getPipelineByUrl(
+		url: string_pipeline_url,
+	): Promise<PipelineJson> {
+		await load();
+		return /* not await */ collection!.getPipelineByUrl(url);
+	}
+	async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
+		await load();
+		return /* not await */ collection!.isResponsibleForPrompt(prompt);
+	}
 
-    return {
-        listPipelines,
-        getPipelineByUrl,
-        isResponsibleForPrompt,
-    };
+	return {
+		listPipelines,
+		getPipelineByUrl,
+		isResponsibleForPrompt,
+	};
 }

@@ -1,5 +1,5 @@
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
+import type { number_positive } from "../types/typeAliases";
+import type { number_usd } from "../types/typeAliases";
 
 /**
  * Number which can be uncertain
@@ -9,13 +9,13 @@ import type { number_usd } from '../types/typeAliases';
  * Note: Not using NaN or null because it looses the value which is better to be uncertain then not to be at all
  */
 export type UncertainNumber = {
-    /**
-     * The numeric value
-     */
-    readonly value: number_usd & (number_positive | 0);
+	/**
+	 * The numeric value
+	 */
+	readonly value: number_usd & (number_positive | 0);
 
-    /**
-     * Is the value uncertain
-     */
-    readonly isUncertain?: true;
+	/**
+	 * Is the value uncertain
+	 */
+	readonly isUncertain?: true;
 };

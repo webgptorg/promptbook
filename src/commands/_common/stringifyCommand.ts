@@ -1,6 +1,6 @@
-import type { string_markdown_text } from '../../types/typeAliases';
-import { getParserForCommand } from './getParserForCommand';
-import type { Command } from './types/Command';
+import type { string_markdown_text } from "../../types/typeAliases";
+import { getParserForCommand } from "./getParserForCommand";
+import type { Command } from "./types/Command";
 
 /**
  * Stringifies the command
@@ -12,6 +12,6 @@ import type { Command } from './types/Command';
  * @private within the compilePipeline
  */
 export function stringifyCommand(command: Command): string_markdown_text {
-    const commandParser = getParserForCommand(command);
-    return commandParser.stringify(command);
+	const commandParser = getParserForCommand(command);
+	return commandParser.stringify(command);
 }

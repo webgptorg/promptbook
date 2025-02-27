@@ -1,7 +1,7 @@
-import { isRunningInBrowser } from 'openai/core';
-import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import type { PromptbookStorage } from '../_common/PromptbookStorage';
-import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStorageFromWebStorage';
+import { isRunningInBrowser } from "openai/core";
+import { EnvironmentMismatchError } from "../../errors/EnvironmentMismatchError";
+import type { PromptbookStorage } from "../_common/PromptbookStorage";
+import { makePromptbookStorageFromWebStorage } from "./utils/makePromptbookStorageFromWebStorage";
 
 /**
  * Gets wrapper around `localStorage` object which can be used as `PromptbookStorage`
@@ -9,11 +9,13 @@ import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStora
  * @public exported from `@promptbook/browser`
  */
 export function getLocalStorage<TItem>(): PromptbookStorage<TItem> {
-    if (!isRunningInBrowser()) {
-        throw new EnvironmentMismatchError(`You can get localStorage works only in browser environment`);
-    }
+	if (!isRunningInBrowser()) {
+		throw new EnvironmentMismatchError(
+			`You can get localStorage works only in browser environment`,
+		);
+	}
 
-    return makePromptbookStorageFromWebStorage<TItem>(localStorage);
+	return makePromptbookStorageFromWebStorage<TItem>(localStorage);
 }
 
 /**

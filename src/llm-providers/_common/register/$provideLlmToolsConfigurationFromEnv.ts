@@ -1,15 +1,15 @@
-import * as dotenv from 'dotenv';
-import { join } from 'path';
-import { LOOP_LIMIT } from '../../../config';
-import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
-import type { string_name } from '../../../types/typeAliases';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { isFileExisting } from '../../../utils/files/isFileExisting';
-import { isRootPath } from '../../../utils/validators/filePath/isRootPath';
-import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
-import { $setUsedEnvFilename } from './$registeredLlmToolsMessage';
-import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import { join } from "path";
+import * as dotenv from "dotenv";
+import { LOOP_LIMIT } from "../../../config";
+import { EnvironmentMismatchError } from "../../../errors/EnvironmentMismatchError";
+import { $provideFilesystemForNode } from "../../../scrapers/_common/register/$provideFilesystemForNode";
+import type { string_name } from "../../../types/typeAliases";
+import { $isRunningInNode } from "../../../utils/environment/$isRunningInNode";
+import { isFileExisting } from "../../../utils/files/isFileExisting";
+import { isRootPath } from "../../../utils/validators/filePath/isRootPath";
+import { $llmToolsMetadataRegister } from "./$llmToolsMetadataRegister";
+import { $setUsedEnvFilename } from "./$registeredLlmToolsMessage";
+import type { LlmToolsConfiguration } from "./LlmToolsConfiguration";
 
 /**
  * @@@
@@ -25,52 +25,61 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @public exported from `@promptbook/node`
  */
 export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsConfiguration> {
-    if (!$isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
-    }
+	if (!$isRunningInNode()) {
+		throw new EnvironmentMismatchError(
+			"Function `$provideLlmToolsFromEnv` works only in Node.js environment",
+		);
+	}
 
-    const envFilePatterns = [
-        '.env',
-        '.env.test',
-        '.env.local',
-        '.env.development.local',
-        '.env.development',
+	const envFilePatterns = [
+		".env",
+		".env.test",
+		".env.local",
+		".env.development.local",
+		".env.development",
 
-        '.env.production.local',
-        '.env.production',
-        '.env.prod.local',
-        '.env.prod',
+		".env.production.local",
+		".env.production",
+		".env.prod.local",
+		".env.prod",
 
-        // <- TODO: Maybe add more patterns
-    ];
+		// <- TODO: Maybe add more patterns
+	];
 
-    let rootDirname = process.cwd();
+	let rootDirname = process.cwd();
 
-    up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
-        for (const pattern of envFilePatterns) {
-            const envFilename = join(rootDirname, pattern);
+	up_to_root: for (let i = 0; i < LOOP_LIMIT; i++) {
+		for (const pattern of envFilePatterns) {
+			const envFilename = join(rootDirname, pattern);
 
-            if (await isFileExisting(envFilename, $provideFilesystemForNode())) {
-                $setUsedEnvFilename(envFilename);
-                dotenv.config({ path: envFilename });
-                break up_to_root;
-            }
-        }
+			if (await isFileExisting(envFilename, $provideFilesystemForNode())) {
+				$setUsedEnvFilename(envFilename);
+				dotenv.config({ path: envFilename });
+				break up_to_root;
+			}
+		}
 
-        if (isRootPath(rootDirname)) {
-            break up_to_root;
-        }
+		if (isRootPath(rootDirname)) {
+			break;
+		}
 
-        // Note: If the directory does not exist, try the parent directory
-        rootDirname = join(rootDirname, '..');
-    }
+		// Note: If the directory does not exist, try the parent directory
+		rootDirname = join(rootDirname, "..");
+	}
 
-    const llmToolsConfiguration: LlmToolsConfiguration = $llmToolsMetadataRegister
-        .list()
-        .map((metadata) => metadata.createConfigurationFromEnv(process.env as Record<string_name, string>))
-        .filter((configuration): configuration is LlmToolsConfiguration[number] => configuration !== null);
+	const llmToolsConfiguration: LlmToolsConfiguration = $llmToolsMetadataRegister
+		.list()
+		.map((metadata) =>
+			metadata.createConfigurationFromEnv(
+				process.env as Record<string_name, string>,
+			),
+		)
+		.filter(
+			(configuration): configuration is LlmToolsConfiguration[number] =>
+				configuration !== null,
+		);
 
-    return llmToolsConfiguration;
+	return llmToolsConfiguration;
 }
 
 /**

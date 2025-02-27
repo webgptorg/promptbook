@@ -1,5 +1,5 @@
-import type { string_name } from '../../types/typeAliases';
-import type { string_persona_description } from '../../types/typeAliases';
+import type { string_name } from "../../types/typeAliases";
+import type { string_persona_description } from "../../types/typeAliases";
 
 /**
  * Parsed PERSONA command
@@ -8,7 +8,7 @@ import type { string_persona_description } from '../../types/typeAliases';
  * @public exported from `@promptbook/editable`
  */
 export type PersonaCommand = {
-    readonly type: 'PERSONA';
-    readonly personaName: string_name;
-    readonly personaDescription: string_persona_description | null;
+	readonly type: "PERSONA";
+	readonly personaName: string_name;
+	readonly personaDescription: string_persona_description | null;
 };

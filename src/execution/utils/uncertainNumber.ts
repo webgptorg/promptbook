@@ -1,4 +1,4 @@
-import type { UncertainNumber } from '../UncertainNumber';
+import type { UncertainNumber } from "../UncertainNumber";
 
 /**
  * Make UncertainNumber
@@ -7,10 +7,12 @@ import type { UncertainNumber } from '../UncertainNumber';
  *
  * @private utility for initializating UncertainNumber
  */
-export function uncertainNumber(value?: number | typeof NaN | undefined | null): UncertainNumber {
-    if (value === null || value === undefined || Number.isNaN(value)) {
-        return { value: 0, isUncertain: true };
-    }
+export function uncertainNumber(
+	value?: number | typeof NaN | undefined | null,
+): UncertainNumber {
+	if (value === null || value === undefined || Number.isNaN(value)) {
+		return { value: 0, isUncertain: true };
+	}
 
-    return { value };
+	return { value };
 }

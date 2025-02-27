@@ -1,24 +1,24 @@
-import { spaceTrim } from 'spacetrim';
+import { spaceTrim } from "spacetrim";
 
 /**
  * Additional options for `unwrapResult`
  */
 type UnwrapResultOptions = {
-    /**
-     * If true, the text is trimmed before processing
-     */
-    readonly isTrimmed?: boolean;
+	/**
+	 * If true, the text is trimmed before processing
+	 */
+	readonly isTrimmed?: boolean;
 
-    /**
-     * If true, the introduce sentence is removed
-     *
-     * For example:
-     * - If `true`>  'Hello, "world"' -> 'world'
-     * - If `false`> 'Hello, "world"' -> 'Hello, "world"'
-     *
-     * @default true
-     */
-    readonly isIntroduceSentenceRemoved?: boolean;
+	/**
+	 * If true, the introduce sentence is removed
+	 *
+	 * For example:
+	 * - If `true`>  'Hello, "world"' -> 'world'
+	 * - If `false`> 'Hello, "world"' -> 'Hello, "world"'
+	 *
+	 * @default true
+	 */
+	readonly isIntroduceSentenceRemoved?: boolean;
 };
 
 /**
@@ -34,75 +34,87 @@ type UnwrapResultOptions = {
  * @returns text without quotes
  * @public exported from `@promptbook/utils`
  */
-export function unwrapResult(text: string, options?: UnwrapResultOptions): string {
-    const { isTrimmed = true, isIntroduceSentenceRemoved = true } = options || {};
+export function unwrapResult(
+	text: string,
+	options?: UnwrapResultOptions,
+): string {
+	const { isTrimmed = true, isIntroduceSentenceRemoved = true } = options || {};
 
-    let trimmedText = text;
+	let trimmedText = text;
 
-    // Remove leading and trailing spaces and newlines
-    if (isTrimmed) {
-        trimmedText = spaceTrim(trimmedText);
-    }
+	// Remove leading and trailing spaces and newlines
+	if (isTrimmed) {
+		trimmedText = spaceTrim(trimmedText);
+	}
 
-    let processedText = trimmedText;
+	let processedText = trimmedText;
 
-    if (isIntroduceSentenceRemoved) {
-        const introduceSentenceRegex = /^[a-zěščřžýáíéúů:\s]*:\s*/i;
-        if (introduceSentenceRegex.test(text)) {
-            // Remove the introduce sentence and quotes by replacing it with an empty string
-            processedText = processedText.replace(introduceSentenceRegex, '');
-        }
-        processedText = spaceTrim(processedText);
-    }
+	if (isIntroduceSentenceRemoved) {
+		const introduceSentenceRegex = /^[a-zěščřžýáíéúů:\s]*:\s*/i;
+		if (introduceSentenceRegex.test(text)) {
+			// Remove the introduce sentence and quotes by replacing it with an empty string
+			processedText = processedText.replace(introduceSentenceRegex, "");
+		}
+		processedText = spaceTrim(processedText);
+	}
 
-    if (processedText.length < 3) {
-        return trimmedText;
-    }
+	if (processedText.length < 3) {
+		return trimmedText;
+	}
 
-    if (processedText.includes('\n')) {
-        return trimmedText;
-    }
+	if (processedText.includes("\n")) {
+		return trimmedText;
+	}
 
-    // Remove the quotes by extracting the substring without the first and last characters
-    const unquotedText = processedText.slice(1, -1);
+	// Remove the quotes by extracting the substring without the first and last characters
+	const unquotedText = processedText.slice(1, -1);
 
-    // Check if the text starts and ends with quotes
+	// Check if the text starts and ends with quotes
 
-    if (
-        (
-            [
-                ['"', '"'],
-                ["'", "'"],
-                ['`', '`'],
-                ['*', '*'],
-                ['_', '_'],
-                ['„', '“'],
-                ['«', '»'] /* <- QUOTES to config */,
-            ] as const
-        ).some(([startQuote, endQuote]) => {
-            if (!processedText.startsWith(startQuote)) {
-                return false;
-            }
+	if (
+		(
+			[
+				['"', '"'],
+				["'", "'"],
+				["`", "`"],
+				["*", "*"],
+				["_", "_"],
+				["„", "“"],
+				["«", "»"] /* <- QUOTES to config */,
+			] as const
+		).some(([startQuote, endQuote]) => {
+			if (!processedText.startsWith(startQuote)) {
+				return false;
+			}
 
-            if (!processedText.endsWith(endQuote)) {
-                return false;
-            }
+			if (!processedText.endsWith(endQuote)) {
+				return false;
+			}
 
-            if (unquotedText.includes(startQuote) && !unquotedText.includes(endQuote)) {
-                return false;
-            }
+			if (
+				unquotedText.includes(startQuote) &&
+				!unquotedText.includes(endQuote)
+			) {
+				return false;
+			}
 
-            if (!unquotedText.includes(startQuote) && unquotedText.includes(endQuote)) {
-                return false;
-            }
+			if (
+				!unquotedText.includes(startQuote) &&
+				unquotedText.includes(endQuote)
+			) {
+				return false;
+			}
 
-            return true;
-        })
-    ) {
-        return unwrapResult(unquotedText, { isTrimmed: false, isIntroduceSentenceRemoved: false });
-    } else {
-        return processedText;
-    }
+			return true;
+		})
+	) {
+		return unwrapResult(unquotedText, {
+			isTrimmed: false,
+			isIntroduceSentenceRemoved: false,
+		});
+	} else {
+		return processedText;
+	}
 }
 
 /**

@@ -1,10 +1,10 @@
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-} from 'commander';
-import spaceTrim from 'spacetrim';
-import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
-import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
-import { $sideEffect } from '../../utils/organization/$sideEffect';
+	Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from "commander";
+import spaceTrim from "spacetrim";
+import { $provideLlmToolsForWizzardOrCli } from "../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli";
+import { $registeredLlmToolsMessage } from "../../llm-providers/_common/register/$registeredLlmToolsMessage";
+import { $sideEffect } from "../../utils/organization/$sideEffect";
 
 /**
  * Initializes `list-models` command for Promptbook CLI utilities
@@ -14,24 +14,24 @@ import { $sideEffect } from '../../utils/organization/$sideEffect';
  * @private internal function of `promptbookCli`
  */
 export function $initializeListModelsCommand(program: Program) {
-    const listModelsCommand = program.command('list-models');
-    listModelsCommand.description(
-        spaceTrim(`
+	const listModelsCommand = program.command("list-models");
+	listModelsCommand.description(
+		spaceTrim(`
             List all available and configured LLM models
         `),
-    );
+	);
 
-    listModelsCommand.alias('models');
-    listModelsCommand.alias('llm');
+	listModelsCommand.alias("models");
+	listModelsCommand.alias("llm");
 
-    listModelsCommand.action(async () => {
-        const llm = await $provideLlmToolsForWizzardOrCli({});
-        $sideEffect(llm);
-        // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
+	listModelsCommand.action(async () => {
+		const llm = await $provideLlmToolsForWizzardOrCli({});
+		$sideEffect(llm);
+		// <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
 
-        console.info($registeredLlmToolsMessage());
-        return process.exit(0);
-    });
+		console.info($registeredLlmToolsMessage());
+		return process.exit(0);
+	});
 }
 
 /**

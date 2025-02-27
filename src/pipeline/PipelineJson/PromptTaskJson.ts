@@ -1,6 +1,6 @@
-import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { string_name } from '../../types/typeAliases';
-import type { CommonTaskJson } from './CommonTaskJson';
+import type { ModelRequirements } from "../../types/ModelRequirements";
+import type { string_name } from "../../types/typeAliases";
+import type { CommonTaskJson } from "./CommonTaskJson";
 
 /**
  * Task for prompt to LLM
@@ -8,18 +8,18 @@ import type { CommonTaskJson } from './CommonTaskJson';
  * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptTaskJson = CommonTaskJson & {
-    readonly taskType: 'PROMPT_TASK';
+	readonly taskType: "PROMPT_TASK";
 
-    /**
-     * Name of the persona who will be responding to this prompt
-     */
-    readonly personaName?: string_name;
+	/**
+	 * Name of the persona who will be responding to this prompt
+	 */
+	readonly personaName?: string_name;
 
-    /**
-     * Requirements for the model
-     * - This is required only for taskType PROMPT_TASK
-     */
-    readonly modelRequirements?: Partial<ModelRequirements>;
+	/**
+	 * Requirements for the model
+	 * - This is required only for taskType PROMPT_TASK
+	 */
+	readonly modelRequirements?: Partial<ModelRequirements>;
 };
 
 /**

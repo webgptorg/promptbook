@@ -1,10 +1,10 @@
-import type { Promisable } from 'type-fest';
-import type { PipelineCollection } from '../../collection/PipelineCollection';
-import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { Promisable } from "type-fest";
+import type { PipelineCollection } from "../../collection/PipelineCollection";
+import type { CommonToolsOptions } from "../../execution/CommonToolsOptions";
+import type { LlmExecutionTools } from "../../execution/LlmExecutionTools";
+import type { string_app_id } from "../../types/typeAliases";
+import type { string_uri } from "../../types/typeAliases";
+import type { string_user_id } from "../../types/typeAliases";
 
 /**
  * @@@
@@ -21,25 +21,26 @@ import type { string_user_id } from '../../types/typeAliases';
  * @public exported from `@promptbook/remote-server`
  */
 export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
-    /**
-     * Port on which the server will listen
-     */
-    readonly port: number;
+	/**
+	 * Port on which the server will listen
+	 */
+	readonly port: number;
 
-    /**
-     * Root path of the server
-     *
-     * Note: This is useful when you reverse proxy the server without changing the path
-     *
-     * @default '/'
-     * @example '/api/promptbook/'
-     */
-    readonly rootPath: string_uri;
+	/**
+	 * Root path of the server
+	 *
+	 * Note: This is useful when you reverse proxy the server without changing the path
+	 *
+	 * @default '/'
+	 * @example '/api/promptbook/'
+	 */
+	readonly rootPath: string_uri;
 } & (
-        | AnonymousRemoteServerOptions
-        | ApplicationRemoteServerOptions<TCustomOptions>
-        | (AnonymousRemoteServerOptions & ApplicationRemoteServerOptions<TCustomOptions>)
-    );
+		| AnonymousRemoteServerOptions
+		| ApplicationRemoteServerOptions<TCustomOptions>
+		| (AnonymousRemoteServerOptions &
+				ApplicationRemoteServerOptions<TCustomOptions>)
+	);
 //           <- TODO: [🐛] Typescript bug in this discriminated union
 //                    This should throw typescript error but it doesn't
 //
@@ -51,48 +52,48 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
 //                    > });
 
 export type AnonymousRemoteServerOptions = {
-    /**
-     * Enable anonymous mode
-     */
-    readonly isAnonymousModeAllowed: true;
+	/**
+	 * Enable anonymous mode
+	 */
+	readonly isAnonymousModeAllowed: true;
 };
 
 export type ApplicationRemoteServerOptions<TCustomOptions> = {
-    /**
-     * Enable application mode
-     */
-    readonly isApplicationModeAllowed: true;
+	/**
+	 * Enable application mode
+	 */
+	readonly isApplicationModeAllowed: true;
 
-    /**
-     * Promptbook collection to use
-     *
-     * This is used to check validity of the prompt to prevent misuse
-     */
-    readonly collection: PipelineCollection;
+	/**
+	 * Promptbook collection to use
+	 *
+	 * This is used to check validity of the prompt to prevent misuse
+	 */
+	readonly collection: PipelineCollection;
 
-    /**
-     * Creates llm execution tools for each client
-     */
-    createLlmExecutionTools(
-        options: ApplicationRemoteServerClientOptions<TCustomOptions>,
-    ): Promisable<LlmExecutionTools> /* <- TODO: [🍚] &({}|IDestroyable) */;
+	/**
+	 * Creates llm execution tools for each client
+	 */
+	createLlmExecutionTools(
+		options: ApplicationRemoteServerClientOptions<TCustomOptions>,
+	): Promisable<LlmExecutionTools> /* <- TODO: [🍚] &({}|IDestroyable) */;
 };
 
 export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
-    /**
-     * @@@
-     */
-    readonly appId: string_app_id | null;
+	/**
+	 * @@@
+	 */
+	readonly appId: string_app_id | null;
 
-    /**
-     * @@@
-     */
-    readonly userId?: string_user_id;
+	/**
+	 * @@@
+	 */
+	readonly userId?: string_user_id;
 
-    /**
-     * @@@
-     */
-    readonly customOptions?: TCustomOptions;
+	/**
+	 * @@@
+	 */
+	readonly customOptions?: TCustomOptions;
 };
 
 /**

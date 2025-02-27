@@ -1,5 +1,5 @@
-import type { ClientOptions } from 'openai';
-import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { ClientOptions } from "openai";
+import type { CommonToolsOptions } from "../../execution/CommonToolsOptions";
 
 /**
  * Options for `OpenAiExecutionTools`

@@ -1,8 +1,8 @@
-import { spaceTrim } from 'spacetrim';
-import type { ReadonlyDeep } from 'type-fest';
-import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { Parameters } from '../../types/typeAliases';
+import { spaceTrim } from "spacetrim";
+import type { ReadonlyDeep } from "type-fest";
+import { PipelineExecutionError } from "../../errors/PipelineExecutionError";
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import type { Parameters } from "../../types/typeAliases";
 
 /**
  * @@@
@@ -10,25 +10,25 @@ import type { Parameters } from '../../types/typeAliases';
  * @private internal type of `createPipelineExecutor`
  */
 type FilterJustOutputParametersOptions = {
-    /**
-     * @@@
-     */
-    readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
+	/**
+	 * @@@
+	 */
+	readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
-    /**
-     * @@@
-     */
-    readonly parametersToPass: Readonly<Parameters>;
+	/**
+	 * @@@
+	 */
+	readonly parametersToPass: Readonly<Parameters>;
 
-    /**
-     * @@@
-     */
-    readonly $warnings: PipelineExecutionError[];
+	/**
+	 * @@@
+	 */
+	readonly $warnings: PipelineExecutionError[];
 
-    /**
-     * @@@
-     */
-    readonly pipelineIdentification: string;
+	/**
+	 * @@@
+	 */
+	readonly pipelineIdentification: string;
 };
 
 /**
@@ -36,34 +36,43 @@ type FilterJustOutputParametersOptions = {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export function filterJustOutputParameters(options: FilterJustOutputParametersOptions): Parameters {
-    const { preparedPipeline, parametersToPass, $warnings, pipelineIdentification } = options;
+export function filterJustOutputParameters(
+	options: FilterJustOutputParametersOptions,
+): Parameters {
+	const {
+		preparedPipeline,
+		parametersToPass,
+		$warnings,
+		pipelineIdentification,
+	} = options;
 
-    const outputParameters: Parameters = {};
+	const outputParameters: Parameters = {};
 
-    // Note: Filter ONLY output parameters
-    // TODO: [👩🏾‍🤝‍👩🏻] Maybe use here `mapAvailableToExpectedParameters`
-    for (const parameter of preparedPipeline.parameters.filter(({ isOutput }) => isOutput)) {
-        if (parametersToPass[parameter.name] === undefined) {
-            // [4]
-            $warnings.push(
-                new PipelineExecutionError(
-                    spaceTrim(
-                        (block) => `
+	// Note: Filter ONLY output parameters
+	// TODO: [👩🏾‍🤝‍👩🏻] Maybe use here `mapAvailableToExpectedParameters`
+	for (const parameter of preparedPipeline.parameters.filter(
+		({ isOutput }) => isOutput,
+	)) {
+		if (parametersToPass[parameter.name] === undefined) {
+			// [4]
+			$warnings.push(
+				new PipelineExecutionError(
+					spaceTrim(
+						(block) => `
                             Parameter \`{${
-                                parameter.name
-                            }}\` should be an output parameter, but it was not generated during pipeline execution
+															parameter.name
+														}}\` should be an output parameter, but it was not generated during pipeline execution
 
                             ${block(pipelineIdentification)}
                         `,
-                    ),
-                ),
-                // <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
-            );
-            continue;
-        }
-        outputParameters[parameter.name] = parametersToPass[parameter.name] || '';
-    }
+					),
+				),
+				// <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
+			);
+			continue;
+		}
+		outputParameters[parameter.name] = parametersToPass[parameter.name] || "";
+	}
 
-    return outputParameters;
+	return outputParameters;
 }

@@ -1,4 +1,4 @@
-import { nameToUriPart } from './nameToUriPart';
+import { nameToUriPart } from "./nameToUriPart";
 
 /**
  * @@@
@@ -9,7 +9,7 @@ import { nameToUriPart } from './nameToUriPart';
  * @public exported from `@promptbook/utils`
  */
 export function nameToUriParts(name: string): string[] {
-    return nameToUriPart(name)
-        .split('-')
-        .filter((value) => value !== '');
+	return nameToUriPart(name)
+		.split("-")
+		.filter((value) => value !== "");
 }

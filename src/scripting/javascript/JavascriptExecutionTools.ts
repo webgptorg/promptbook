@@ -1,4 +1,4 @@
-import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
+import { JavascriptEvalExecutionTools } from "./JavascriptEvalExecutionTools";
 
 /**
  * Placeholder for better implementation of JavascriptExecutionTools - some propper sandboxing

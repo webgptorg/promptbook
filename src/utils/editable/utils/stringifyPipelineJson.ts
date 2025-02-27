@@ -1,9 +1,9 @@
-import spaceTrim from 'spacetrim';
-import { LOOP_LIMIT } from '../../../config';
-import { REPLACING_NONCE } from '../../../constants';
-import { UnexpectedError } from '../../../errors/UnexpectedError';
-import type { string_json } from '../../../types/typeAliases';
-import { isSerializableAsJson } from '../../serialization/isSerializableAsJson';
+import spaceTrim from "spacetrim";
+import { LOOP_LIMIT } from "../../../config";
+import { REPLACING_NONCE } from "../../../constants";
+import { UnexpectedError } from "../../../errors/UnexpectedError";
+import type { string_json } from "../../../types/typeAliases";
+import { isSerializableAsJson } from "../../serialization/isSerializableAsJson";
 
 /**
  * Stringify the PipelineJson with proper formatting
@@ -13,33 +13,37 @@ import { isSerializableAsJson } from '../../serialization/isSerializableAsJson';
  *
  * @public exported from `@promptbook/editable`
  */
-export function stringifyPipelineJson<TType>(pipeline: TType): string_json<TType> {
-    if (!isSerializableAsJson(pipeline)) {
-        throw new UnexpectedError(
-            spaceTrim(`
+export function stringifyPipelineJson<TType>(
+	pipeline: TType,
+): string_json<TType> {
+	if (!isSerializableAsJson(pipeline)) {
+		throw new UnexpectedError(
+			spaceTrim(`
                 Cannot stringify the pipeline, because it is not serializable as JSON
 
                 There can be multiple reasons:
                 1) The pipeline contains circular references
                 2) It is not a valid PipelineJson
             `),
-        );
-    }
+		);
+	}
 
-    let pipelineJsonStringified = JSON.stringify(pipeline, null, 4);
+	let pipelineJsonStringified = JSON.stringify(pipeline, null, 4);
 
-    for (let i = 0; i < LOOP_LIMIT; i++) {
-        pipelineJsonStringified = pipelineJsonStringified.replace(
-            /(-?0\.\d+),[\n\s]+(-?0\.\d+)/gms,
-            `$1${REPLACING_NONCE}$2`,
-        );
-    }
+	for (let i = 0; i < LOOP_LIMIT; i++) {
+		pipelineJsonStringified = pipelineJsonStringified.replace(
+			/(-?0\.\d+),[\n\s]+(-?0\.\d+)/gms,
+			`$1${REPLACING_NONCE}$2`,
+		);
+	}
 
-    pipelineJsonStringified = pipelineJsonStringified.split(REPLACING_NONCE).join(', ');
+	pipelineJsonStringified = pipelineJsonStringified
+		.split(REPLACING_NONCE)
+		.join(", ");
 
-    pipelineJsonStringified += '\n';
+	pipelineJsonStringified += "\n";
 
-    return pipelineJsonStringified as string_json<TType>;
+	return pipelineJsonStringified as string_json<TType>;
 }
 
 /**

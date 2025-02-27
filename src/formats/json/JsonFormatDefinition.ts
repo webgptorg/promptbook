@@ -1,7 +1,7 @@
-import type { TODO_any } from '../../utils/organization/TODO_any';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { FormatDefinition } from '../_common/FormatDefinition';
-import { isValidJsonString } from './utils/isValidJsonString';
+import { TODO_USE } from "../../utils/organization/TODO_USE";
+import type { TODO_any } from "../../utils/organization/TODO_any";
+import type { FormatDefinition } from "../_common/FormatDefinition";
+import { isValidJsonString } from "./utils/isValidJsonString";
 
 /**
  * Definition for JSON format
@@ -9,36 +9,40 @@ import { isValidJsonString } from './utils/isValidJsonString';
  * @private still in development [🏢]
  */
 export const JsonFormatDefinition: FormatDefinition<
-    string /* <- [0] */,
-    string /* <- [👨‍⚖️] */,
-    TODO_any /* <- [1] */,
-    TODO_any /* <- [1] */
+	string /* <- [0] */,
+	string /* <- [👨‍⚖️] */,
+	TODO_any /* <- [1] */,
+	TODO_any /* <- [1] */
 > = {
-    formatName: 'JSON',
+	formatName: "JSON",
 
-    mimeType: 'application/json',
+	mimeType: "application/json",
 
-    isValid(value, settings, schema): value is string /* <- [0] */ {
-        TODO_USE(schema /* <- TODO: Use schema here */);
-        TODO_USE(settings /* <- TODO: Use settings here */);
-        return isValidJsonString(value);
-    },
+	isValid(value, settings, schema): value is string /* <- [0] */ {
+		TODO_USE(schema /* <- TODO: Use schema here */);
+		TODO_USE(settings /* <- TODO: Use settings here */);
+		return isValidJsonString(value);
+	},
 
-    canBeValid(partialValue, settings, schema): partialValue is string /* <- [0] */ {
-        TODO_USE(partialValue /* <- TODO: Use partialValue here */);
-        TODO_USE(settings /* <- TODO: Use settings here */);
-        TODO_USE(schema /* <- TODO: Use schema here */);
-        return true;
-    },
+	canBeValid(
+		partialValue,
+		settings,
+		schema,
+	): partialValue is string /* <- [0] */ {
+		TODO_USE(partialValue /* <- TODO: Use partialValue here */);
+		TODO_USE(settings /* <- TODO: Use settings here */);
+		TODO_USE(schema /* <- TODO: Use schema here */);
+		return true;
+	},
 
-    heal(value, settings, schema) {
-        TODO_USE(value /* <- TODO: Use partialValue here */);
-        TODO_USE(settings /* <- TODO: Use settings here */);
-        TODO_USE(schema /* <- TODO: Use schema here */);
-        throw new Error('Not implemented');
-    },
+	heal(value, settings, schema) {
+		TODO_USE(value /* <- TODO: Use partialValue here */);
+		TODO_USE(settings /* <- TODO: Use settings here */);
+		TODO_USE(schema /* <- TODO: Use schema here */);
+		throw new Error("Not implemented");
+	},
 
-    subvalueDefinitions: [],
+	subvalueDefinitions: [],
 };
 
 /**

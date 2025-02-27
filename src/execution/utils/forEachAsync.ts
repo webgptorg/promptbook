@@ -1,12 +1,12 @@
-import type { Promisable } from 'type-fest';
+import type { Promisable } from "type-fest";
 
 type ForEachAsyncOptions = {
-    /**
-     * Maximum number of tasks running in parallel
-     *
-     * @default Infinity
-     */
-    readonly maxParallelCount?: number;
+	/**
+	 * Maximum number of tasks running in parallel
+	 *
+	 * @default Infinity
+	 */
+	readonly maxParallelCount?: number;
 };
 
 /**
@@ -19,29 +19,33 @@ type ForEachAsyncOptions = {
  * @deprecated [🪂] Use queues instead
  */
 export async function forEachAsync<TItem>(
-    array: ReadonlyArray<TItem>,
-    options: ForEachAsyncOptions,
-    callbackfunction: (value: TItem, index: number, array: ReadonlyArray<TItem>) => Promisable<void>,
+	array: ReadonlyArray<TItem>,
+	options: ForEachAsyncOptions,
+	callbackfunction: (
+		value: TItem,
+		index: number,
+		array: ReadonlyArray<TItem>,
+	) => Promisable<void>,
 ) {
-    const { maxParallelCount = Infinity } = options;
-    let index = 0;
+	const { maxParallelCount = Number.POSITIVE_INFINITY } = options;
+	let index = 0;
 
-    let runningTasks: Promisable<void>[] = [];
-    const tasks: Promisable<void>[] = [];
-    for (const item of array as ReadonlyArray<TItem>) {
-        const currentIndex = index++;
+	let runningTasks: Promisable<void>[] = [];
+	const tasks: Promisable<void>[] = [];
+	for (const item of array as ReadonlyArray<TItem>) {
+		const currentIndex = index++;
 
-        const task = callbackfunction(item, currentIndex, array);
-        tasks.push(task);
-        runningTasks.push(task);
+		const task = callbackfunction(item, currentIndex, array);
+		tasks.push(task);
+		runningTasks.push(task);
 
-        /* not await */ Promise.resolve(task).then(() => {
-            runningTasks = runningTasks.filter((t) => t !== task);
-        });
+		/* not await */ Promise.resolve(task).then(() => {
+			runningTasks = runningTasks.filter((t) => t !== task);
+		});
 
-        if (maxParallelCount < runningTasks.length) {
-            await Promise.race(runningTasks);
-        }
-    }
-    await Promise.all(tasks);
+		if (maxParallelCount < runningTasks.length) {
+			await Promise.race(runningTasks);
+		}
+	}
+	await Promise.all(tasks);
 }

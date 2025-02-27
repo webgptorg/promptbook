@@ -1,27 +1,27 @@
-import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
-import type { string_markdown } from '../../types/typeAliases';
-import type { Converter } from '../_common/Converter';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../books/books';
-import { Readability } from '@mozilla/readability';
-import { JSDOM } from 'jsdom';
-import { Converter as ShowdownConverter } from 'showdown';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
-import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
-import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
-import { websiteScraperMetadata } from './register-metadata';
-import { createShowdownConverter } from './utils/createShowdownConverter';
+import { Readability } from "@mozilla/readability";
+import { JSDOM } from "jsdom";
+import type { Converter as ShowdownConverter } from "showdown";
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from "../../config";
+import { DEFAULT_IS_VERBOSE } from "../../config";
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from "../../config";
+import { EnvironmentMismatchError } from "../../errors/EnvironmentMismatchError";
+import { KnowledgeScrapeError } from "../../errors/KnowledgeScrapeError";
+import { UnexpectedError } from "../../errors/UnexpectedError";
+import type { ExecutionTools } from "../../execution/ExecutionTools";
+import type { KnowledgePiecePreparedJson } from "../../pipeline/PipelineJson/KnowledgePieceJson";
+import type { PrepareAndScrapeOptions } from "../../prepare/PrepareAndScrapeOptions";
+import type { string_markdown } from "../../types/typeAliases";
+import type { Converter } from "../_common/Converter";
+import type { Scraper } from "../_common/Scraper";
+import type { ScraperSourceHandler } from "../_common/Scraper";
+import type { ScraperIntermediateSource } from "../_common/ScraperIntermediateSource";
+import type { ScraperAndConverterMetadata } from "../_common/register/ScraperAndConverterMetadata";
+import { getScraperIntermediateSource } from "../_common/utils/getScraperIntermediateSource";
+import { MarkdownScraper } from "../markdown/MarkdownScraper";
+import { websiteScraperMetadata } from "./register-metadata";
+import { createShowdownConverter } from "./utils/createShowdownConverter";
 
 /**
  * Scraper for websites
@@ -30,113 +30,126 @@ import { createShowdownConverter } from './utils/createShowdownConverter';
  * @public exported from `@promptbook/website-crawler`
  */
 export class WebsiteScraper implements Converter, Scraper {
-    /**
-     * Metadata of the scraper which includes title, mime types, etc.
-     */
-    public get metadata(): ScraperAndConverterMetadata {
-        return websiteScraperMetadata;
-    }
+	/**
+	 * Metadata of the scraper which includes title, mime types, etc.
+	 */
+	public get metadata(): ScraperAndConverterMetadata {
+		return websiteScraperMetadata;
+	}
 
-    /**
-     * Markdown scraper is used internally
-     */
-    private readonly markdownScraper: MarkdownScraper;
+	/**
+	 * Markdown scraper is used internally
+	 */
+	private readonly markdownScraper: MarkdownScraper;
 
-    /**
-     * Showdown converter is used internally
-     */
-    private readonly showdownConverter: ShowdownConverter;
+	/**
+	 * Showdown converter is used internally
+	 */
+	private readonly showdownConverter: ShowdownConverter;
 
-    public constructor(
-        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
-        private readonly options: PrepareAndScrapeOptions,
-    ) {
-        this.markdownScraper = new MarkdownScraper(tools, options);
-        this.showdownConverter = createShowdownConverter();
-    }
+	public constructor(
+		private readonly tools: Pick<ExecutionTools, "fs" | "llm">,
+		private readonly options: PrepareAndScrapeOptions,
+	) {
+		this.markdownScraper = new MarkdownScraper(tools, options);
+		this.showdownConverter = createShowdownConverter();
+	}
 
-    /**
-     * Convert the website  to `.md` file and returns intermediate source
-     *
-     * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
-     */
-    public async $convert(
-        source: ScraperSourceHandler,
-    ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
-        const {
-            // TODO: [🧠] Maybe in node use headless browser not just JSDOM
-            rootDirname = process.cwd(),
-            cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
-            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
-            isVerbose = DEFAULT_IS_VERBOSE,
-        } = this.options;
+	/**
+	 * Convert the website  to `.md` file and returns intermediate source
+	 *
+	 * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
+	 */
+	public async $convert(
+		source: ScraperSourceHandler,
+	): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
+		const {
+			// TODO: [🧠] Maybe in node use headless browser not just JSDOM
+			rootDirname = process.cwd(),
+			cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
+			intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+			isVerbose = DEFAULT_IS_VERBOSE,
+		} = this.options;
 
-        if (source.url === null) {
-            throw new KnowledgeScrapeError('Website scraper requires URL');
-        }
+		if (source.url === null) {
+			throw new KnowledgeScrapeError("Website scraper requires URL");
+		}
 
-        if (this.tools.fs === undefined) {
-            throw new EnvironmentMismatchError('Can not scrape websites without filesystem tools');
-        }
+		if (this.tools.fs === undefined) {
+			throw new EnvironmentMismatchError(
+				"Can not scrape websites without filesystem tools",
+			);
+		}
 
-        const jsdom = new JSDOM(await source.asText(), {
-            url: source.url,
-        });
+		const jsdom = new JSDOM(await source.asText(), {
+			url: source.url,
+		});
 
-        const reader = new Readability(jsdom.window.document);
-        const article = reader.parse();
+		const reader = new Readability(jsdom.window.document);
+		const article = reader.parse();
 
-        // console.log(article);
-        // await forTime(10000);
+		// console.log(article);
+		// await forTime(10000);
 
-        let html = article?.content || article?.textContent || jsdom.window.document.body.innerHTML;
+		let html =
+			article?.content ||
+			article?.textContent ||
+			jsdom.window.document.body.innerHTML;
 
-        // Note: Unwrap html such as it is convertable by `markdownConverter`
-        for (let i = 0; i < 2; i++) {
-            html = html.replace(/<div\s*(?:id="readability-page-\d+"\s+class="page")?>(.*)<\/div>/is, '$1');
-        }
+		// Note: Unwrap html such as it is convertable by `markdownConverter`
+		for (let i = 0; i < 2; i++) {
+			html = html.replace(
+				/<div\s*(?:id="readability-page-\d+"\s+class="page")?>(.*)<\/div>/is,
+				"$1",
+			);
+		}
 
-        if (html.includes('<div')) {
-            html = article?.textContent || '';
-        }
+		if (html.includes("<div")) {
+			html = article?.textContent || "";
+		}
 
-        const cacheFilehandler = await getScraperIntermediateSource(source, {
-            rootDirname,
-            cacheDirname,
-            intermediateFilesStrategy,
-            extension: 'html',
-            isVerbose,
-        });
+		const cacheFilehandler = await getScraperIntermediateSource(source, {
+			rootDirname,
+			cacheDirname,
+			intermediateFilesStrategy,
+			extension: "html",
+			isVerbose,
+		});
 
-        await this.tools.fs.writeFile(cacheFilehandler.filename, html, 'utf-8');
+		await this.tools.fs.writeFile(cacheFilehandler.filename, html, "utf-8");
 
-        const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
+		const markdown = this.showdownConverter.makeMarkdown(
+			html,
+			jsdom.window.document,
+		);
 
-        return { ...cacheFilehandler, markdown };
-    }
+		return { ...cacheFilehandler, markdown };
+	}
 
-    /**
-     * Scrapes the website and returns the knowledge pieces or `null` if it can't scrape it
-     */
-    public async scrape(
-        source: ScraperSourceHandler,
-    ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const cacheFilehandler = await this.$convert(source);
+	/**
+	 * Scrapes the website and returns the knowledge pieces or `null` if it can't scrape it
+	 */
+	public async scrape(
+		source: ScraperSourceHandler,
+	): Promise<ReadonlyArray<
+		Omit<KnowledgePiecePreparedJson, "sources" | "preparationIds">
+	> | null> {
+		const cacheFilehandler = await this.$convert(source);
 
-        const markdownSource = {
-            source: source.source,
-            filename: cacheFilehandler.filename,
-            url: null,
-            mimeType: 'text/markdown',
-            asText() {
-                return cacheFilehandler.markdown;
-            },
-            asJson() {
-                throw new UnexpectedError(
-                    'Did not expect that `markdownScraper` would need to get the content `asJson`',
-                );
-            },
-            /*
+		const markdownSource = {
+			source: source.source,
+			filename: cacheFilehandler.filename,
+			url: null,
+			mimeType: "text/markdown",
+			asText() {
+				return cacheFilehandler.markdown;
+			},
+			asJson() {
+				throw new UnexpectedError(
+					"Did not expect that `markdownScraper` would need to get the content `asJson`",
+				);
+			},
+			/*
             TODO: [🥽]
                 > asBlob() {
                 >     throw new UnexpectedError(
@@ -144,14 +157,14 @@ export class WebsiteScraper implements Converter, Scraper {
                 >     );
                 > },
             */
-        } satisfies ScraperSourceHandler;
+		} satisfies ScraperSourceHandler;
 
-        const knowledge = this.markdownScraper.scrape(markdownSource);
+		const knowledge = this.markdownScraper.scrape(markdownSource);
 
-        await cacheFilehandler.destroy();
+		await cacheFilehandler.destroy();
 
-        return knowledge;
-    }
+		return knowledge;
+	}
 }
 
 /**

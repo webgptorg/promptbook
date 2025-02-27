@@ -1,13 +1,13 @@
-import spaceTrim from 'spacetrim';
-import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { UnexpectedError } from '../../../errors/UnexpectedError';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
-import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
-import { $provideLlmToolsConfigurationFromEnv } from './$provideLlmToolsConfigurationFromEnv';
-import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
-import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
-import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfiguration';
+import spaceTrim from "spacetrim";
+import { EnvironmentMismatchError } from "../../../errors/EnvironmentMismatchError";
+import { UnexpectedError } from "../../../errors/UnexpectedError";
+import { $isRunningInNode } from "../../../utils/environment/$isRunningInNode";
+import type { MultipleLlmExecutionTools } from "../../multiple/MultipleLlmExecutionTools";
+import { $llmToolsMetadataRegister } from "./$llmToolsMetadataRegister";
+import { $provideLlmToolsConfigurationFromEnv } from "./$provideLlmToolsConfigurationFromEnv";
+import { $registeredLlmToolsMessage } from "./$registeredLlmToolsMessage";
+import type { CreateLlmToolsFromConfigurationOptions } from "./createLlmToolsFromConfiguration";
+import { createLlmToolsFromConfiguration } from "./createLlmToolsFromConfiguration";
 
 /**
  * @@@
@@ -25,40 +25,42 @@ import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfigurati
  * @public exported from `@promptbook/node`
  */
 export async function $provideLlmToolsFromEnv(
-    options: CreateLlmToolsFromConfigurationOptions = {},
+	options: CreateLlmToolsFromConfigurationOptions = {},
 ): Promise<MultipleLlmExecutionTools> {
-    if (!$isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
-    }
+	if (!$isRunningInNode()) {
+		throw new EnvironmentMismatchError(
+			"Function `$provideLlmToolsFromEnv` works only in Node.js environment",
+		);
+	}
 
-    const configuration = await $provideLlmToolsConfigurationFromEnv();
+	const configuration = await $provideLlmToolsConfigurationFromEnv();
 
-    if (configuration.length === 0) {
-        if ($llmToolsMetadataRegister.list().length === 0) {
-            throw new UnexpectedError(
-                spaceTrim(
-                    (block) => `
+	if (configuration.length === 0) {
+		if ($llmToolsMetadataRegister.list().length === 0) {
+			throw new UnexpectedError(
+				spaceTrim(
+					(block) => `
                         No LLM tools registered, this is probably a bug in the Promptbook library
 
                         ${block($registeredLlmToolsMessage())}}
                     `,
-                ),
-            );
-        }
+				),
+			);
+		}
 
-        // TODO: [🥃]
-        throw new Error(
-            spaceTrim(
-                (block) => `
+		// TODO: [🥃]
+		throw new Error(
+			spaceTrim(
+				(block) => `
                     No LLM tools found in the environment
 
                     ${block($registeredLlmToolsMessage())}}
                 `,
-            ),
-        );
-    }
+			),
+		);
+	}
 
-    return createLlmToolsFromConfiguration(configuration, options);
+	return createLlmToolsFromConfiguration(configuration, options);
 }
 
 /**

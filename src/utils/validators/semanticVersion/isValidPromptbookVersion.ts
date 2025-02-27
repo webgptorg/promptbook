@@ -1,6 +1,6 @@
-import type { string_promptbook_version } from '../../../version';
-import type { really_unknown } from '../../organization/really_unknown';
-import { isValidSemanticVersion } from './isValidSemanticVersion';
+import type { string_promptbook_version } from "../../../version";
+import type { really_unknown } from "../../organization/really_unknown";
+import { isValidSemanticVersion } from "./isValidSemanticVersion";
 
 /**
  * Tests if given string is valid promptbook version
@@ -14,15 +14,17 @@ import { isValidSemanticVersion } from './isValidSemanticVersion';
  *
  * @public exported from `@promptbook/utils`
  */
-export function isValidPromptbookVersion(version: really_unknown): version is string_promptbook_version {
-    if (!isValidSemanticVersion(version)) {
-        return false;
-    }
+export function isValidPromptbookVersion(
+	version: really_unknown,
+): version is string_promptbook_version {
+	if (!isValidSemanticVersion(version)) {
+		return false;
+	}
 
-    if (/* version === '1.0.0' || */ version === '2.0.0' || version === '3.0.0') {
-        return false;
-    }
-    // <- TODO: [main] !!3 Check isValidPromptbookVersion against PROMPTBOOK_ENGINE_VERSIONS
+	if (/* version === '1.0.0' || */ version === "2.0.0" || version === "3.0.0") {
+		return false;
+	}
+	// <- TODO: [main] !!3 Check isValidPromptbookVersion against PROMPTBOOK_ENGINE_VERSIONS
 
-    return true;
+	return true;
 }

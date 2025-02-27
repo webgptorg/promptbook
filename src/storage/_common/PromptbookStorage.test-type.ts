@@ -1,5 +1,5 @@
-import { keepUnused } from '../../utils/organization/keepUnused';
-import type { PromptbookStorage } from './PromptbookStorage';
+import { keepUnused } from "../../utils/organization/keepUnused";
+import type { PromptbookStorage } from "./PromptbookStorage";
 
 // Note: Checking that `localStorage` and `sessionStorage` are implementing `PromptbookStorage<string>`
 let storage: PromptbookStorage<string>;

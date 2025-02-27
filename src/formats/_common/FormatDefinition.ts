@@ -1,7 +1,7 @@
-import type { string_mime_type, string_name } from '../../types/typeAliases';
-import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
-import type { empty_object } from '../../utils/organization/empty_object';
-import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
+import type { string_mime_type, string_name } from "../../types/typeAliases";
+import type { string_SCREAMING_CASE } from "../../utils/normalization/normalizeTo_SCREAMING_CASE";
+import type { empty_object } from "../../utils/organization/empty_object";
+import type { FormatSubvalueDefinition } from "./FormatSubvalueDefinition";
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
@@ -12,64 +12,74 @@ import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
  * @private still in development [🏢]
  */
 export type FormatDefinition<
-    TValue extends TPartialValue,
-    TPartialValue extends string,
-    TSettings extends empty_object,
-    TSchema extends empty_object,
+	TValue extends TPartialValue,
+	TPartialValue extends string,
+	TSettings extends empty_object,
+	TSchema extends empty_object,
 > = {
-    /**
-     * The name of the format used in .book.md files
-     *
-     * @example "JSON"
-     */
-    readonly formatName: string_name & string_SCREAMING_CASE;
+	/**
+	 * The name of the format used in .book.md files
+	 *
+	 * @example "JSON"
+	 */
+	readonly formatName: string_name & string_SCREAMING_CASE;
 
-    /**
-     * Aliases for the `formatName`
-     */
-    readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
+	/**
+	 * Aliases for the `formatName`
+	 */
+	readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
-    /**
-     * The mime type of the format (if any)
-     *
-     * @example "application/json"
-     */
-    readonly mimeType?: string_mime_type;
+	/**
+	 * The mime type of the format (if any)
+	 *
+	 * @example "application/json"
+	 */
+	readonly mimeType?: string_mime_type;
 
-    /**
-     * Check if a value is fully valid
-     *
-     * @param value The value to check, for example "{\"foo\": true}"
-     * @param schema Optional schema to do extra validation
-     */
-    isValid(value: string, settings?: TSettings, schema?: TSchema): value is TValue;
+	/**
+	 * Check if a value is fully valid
+	 *
+	 * @param value The value to check, for example "{\"foo\": true}"
+	 * @param schema Optional schema to do extra validation
+	 */
+	isValid(
+		value: string,
+		settings?: TSettings,
+		schema?: TSchema,
+	): value is TValue;
 
-    /**
-     * Check if a first part of a value is valid
-     *
-     * @see https://github.com/webgptorg/promptbook/discussions/37
-     *
-     * @param partialValue Partial value to check, for example "{\"foo\": t"
-     * @param schema Optional schema to do extra validation
-     */
-    canBeValid(partialValue: string, settings?: TSettings, schema?: TSchema): partialValue is TPartialValue;
+	/**
+	 * Check if a first part of a value is valid
+	 *
+	 * @see https://github.com/webgptorg/promptbook/discussions/37
+	 *
+	 * @param partialValue Partial value to check, for example "{\"foo\": t"
+	 * @param schema Optional schema to do extra validation
+	 */
+	canBeValid(
+		partialValue: string,
+		settings?: TSettings,
+		schema?: TSchema,
+	): partialValue is TPartialValue;
 
-    /**
-     * Heal a value to make it valid if possible
-     *
-     * Note: This make sense in context of LLMs that often returns slightly invalid values
-     * @see https://github.com/webgptorg/promptbook/discussions/31
-     *
-     * @param value The value to heal, for example "{foo: true}"
-     * @param scheme
-     * @throws {Error} If the value cannot be healed
-     */
-    heal(value: string, settings?: TSettings, scheme?: TSchema): TValue;
+	/**
+	 * Heal a value to make it valid if possible
+	 *
+	 * Note: This make sense in context of LLMs that often returns slightly invalid values
+	 * @see https://github.com/webgptorg/promptbook/discussions/31
+	 *
+	 * @param value The value to heal, for example "{foo: true}"
+	 * @param scheme
+	 * @throws {Error} If the value cannot be healed
+	 */
+	heal(value: string, settings?: TSettings, scheme?: TSchema): TValue;
 
-    /**
-     * @@@
-     */
-    readonly subvalueDefinitions: ReadonlyArray<FormatSubvalueDefinition<TValue, TSettings>>;
+	/**
+	 * @@@
+	 */
+	readonly subvalueDefinitions: ReadonlyArray<
+		FormatSubvalueDefinition<TValue, TSettings>
+	>;
 };
 
 /**

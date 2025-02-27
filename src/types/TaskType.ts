@@ -1,4 +1,4 @@
-import type { TupleToUnion } from 'type-fest';
+import type { TupleToUnion } from "type-fest";
 
 /**
  * Type of the task
@@ -15,9 +15,9 @@ export type TaskType = TupleToUnion<typeof TaskTypes>;
  * @public exported from `@promptbook/core`
  */
 export const TaskTypes = [
-    'PROMPT',
-    'SIMPLE',
-    'SCRIPT',
-    'DIALOG',
-    // <- [🅱]
+	"PROMPT",
+	"SIMPLE",
+	"SCRIPT",
+	"DIALOG",
+	// <- [🅱]
 ] as const;

@@ -1,11 +1,11 @@
-import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
-import { compilePipeline } from '../../conversion/compilePipeline';
-import type { PipelineString } from '../../pipeline/PipelineString';
-import { createCollectionFromJson } from './createCollectionFromJson';
+import { describe, expect, it } from "@jest/globals";
+import spaceTrim from "spacetrim";
+import { compilePipeline } from "../../conversion/compilePipeline";
+import type { PipelineString } from "../../pipeline/PipelineString";
+import { createCollectionFromJson } from "./createCollectionFromJson";
 
-describe('createCollectionFromJson', () => {
-    const pipelineString = spaceTrim(`
+describe("createCollectionFromJson", () => {
+	const pipelineString = spaceTrim(`
             # Example prompt
 
             Show how to use a simple completion prompt
@@ -30,15 +30,17 @@ describe('createCollectionFromJson', () => {
 
             -> {response}
          `) as PipelineString;
-    // <- TODO: [📼] Use`book\`` string literal notation
+	// <- TODO: [📼] Use`book\`` string literal notation
 
-    it('should get pipeline by url from collection', async () => {
-        expect.assertions(1);
-        const pipeline = await compilePipeline(pipelineString);
-        const collection = createCollectionFromJson(pipeline);
-        const pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/examples/pipeline.book',
-        );
-        expect(pipelineFromCollection).toEqual(await compilePipeline(pipelineString));
-    });
+	it("should get pipeline by url from collection", async () => {
+		expect.assertions(1);
+		const pipeline = await compilePipeline(pipelineString);
+		const collection = createCollectionFromJson(pipeline);
+		const pipelineFromCollection = await collection.getPipelineByUrl(
+			"https://promptbook.studio/examples/pipeline.book",
+		);
+		expect(pipelineFromCollection).toEqual(
+			await compilePipeline(pipelineString),
+		);
+	});
 });

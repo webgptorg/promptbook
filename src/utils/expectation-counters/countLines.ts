@@ -1,5 +1,5 @@
-import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
-import { CHARACTERS_PER_STANDARD_LINE } from './constants';
+import type { ExpectationAmount } from "../../pipeline/PipelineJson/Expectations";
+import { CHARACTERS_PER_STANDARD_LINE } from "./constants";
 
 /**
  * Counts number of lines in the text
@@ -9,10 +9,14 @@ import { CHARACTERS_PER_STANDARD_LINE } from './constants';
  * @public exported from `@promptbook/utils`
  */
 export function countLines(text: string): ExpectationAmount {
-    text = text.replace('\r\n', '\n');
-    text = text.replace('\r', '\n');
+	text = text.replace("\r\n", "\n");
+	text = text.replace("\r", "\n");
 
-    const lines = text.split('\n');
+	const lines = text.split("\n");
 
-    return lines.reduce((count, line) => count + Math.ceil(line.length / CHARACTERS_PER_STANDARD_LINE), 0);
+	return lines.reduce(
+		(count, line) =>
+			count + Math.ceil(line.length / CHARACTERS_PER_STANDARD_LINE),
+		0,
+	);
 }

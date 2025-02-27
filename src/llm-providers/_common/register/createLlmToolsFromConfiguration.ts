@@ -1,13 +1,13 @@
-import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_user_id } from '../../../types/typeAliases';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
-import { joinLlmExecutionTools } from '../../multiple/joinLlmExecutionTools';
-import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
-import { $llmToolsRegister } from './$llmToolsRegister';
-import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
-import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import spaceTrim from "spacetrim";
+import { DEFAULT_IS_VERBOSE } from "../../../config";
+import type { LlmExecutionTools } from "../../../execution/LlmExecutionTools";
+import type { string_user_id } from "../../../types/typeAliases";
+import type { TODO_any } from "../../../utils/organization/TODO_any";
+import type { MultipleLlmExecutionTools } from "../../multiple/MultipleLlmExecutionTools";
+import { joinLlmExecutionTools } from "../../multiple/joinLlmExecutionTools";
+import { $llmToolsRegister } from "./$llmToolsRegister";
+import { $registeredLlmToolsMessage } from "./$registeredLlmToolsMessage";
+import type { LlmToolsConfiguration } from "./LlmToolsConfiguration";
 
 /**
  * Options for `$provideLlmToolsFromEnv`
@@ -15,19 +15,19 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @private internal type for `$provideLlmToolsFromEnv` and `$provideLlmToolsForTestingAndScriptsAndPlayground`
  */
 export type CreateLlmToolsFromConfigurationOptions = {
-    /**
-     * This will will be passed to the created `LlmExecutionTools`
-     *
-     * @default false
-     */
-    isVerbose?: boolean;
+	/**
+	 * This will will be passed to the created `LlmExecutionTools`
+	 *
+	 * @default false
+	 */
+	isVerbose?: boolean;
 
-    /**
-     * Identifier of the end user
-     *
-     * Note: This is passed to the LLM tools providers to identify misuse
-     */
-    readonly userId?: string_user_id ;
+	/**
+	 * Identifier of the end user
+	 *
+	 * Note: This is passed to the LLM tools providers to identify misuse
+	 */
+	readonly userId?: string_user_id;
 };
 
 /**
@@ -39,26 +39,28 @@ export type CreateLlmToolsFromConfigurationOptions = {
  * @public exported from `@promptbook/core`
  */
 export function createLlmToolsFromConfiguration(
-    configuration: LlmToolsConfiguration,
-    options: CreateLlmToolsFromConfigurationOptions = {},
+	configuration: LlmToolsConfiguration,
+	options: CreateLlmToolsFromConfigurationOptions = {},
 ): MultipleLlmExecutionTools {
-    const { isVerbose = DEFAULT_IS_VERBOSE, userId } = options;
+	const { isVerbose = DEFAULT_IS_VERBOSE, userId } = options;
 
-    const llmTools: ReadonlyArray<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
-        const registeredItem = $llmToolsRegister
-            .list()
-            .find(
-                ({ packageName, className }) =>
-                    llmConfiguration.packageName === packageName && llmConfiguration.className === className,
-            );
+	const llmTools: ReadonlyArray<LlmExecutionTools> = configuration.map(
+		(llmConfiguration: TODO_any) => {
+			const registeredItem = $llmToolsRegister
+				.list()
+				.find(
+					({ packageName, className }) =>
+						llmConfiguration.packageName === packageName &&
+						llmConfiguration.className === className,
+				);
 
-        if (registeredItem === undefined) {
-            throw new Error(
-                spaceTrim(
-                    (block) => `
+			if (registeredItem === undefined) {
+				throw new Error(
+					spaceTrim(
+						(block) => `
                         There is no constructor for LLM provider \`${llmConfiguration.className}\` from \`${
-                        llmConfiguration.packageName
-                    }\`
+													llmConfiguration.packageName
+												}\`
 
                         You have probably forgotten install and import the provider package.
                         To fix this issue, you can:
@@ -74,18 +76,19 @@ export function createLlmToolsFromConfiguration(
 
                         ${block($registeredLlmToolsMessage())}
                     `,
-                ),
-            );
-        }
+					),
+				);
+			}
 
-        return registeredItem({
-            isVerbose,
-            userId,
-            ...llmConfiguration.options,
-        });
-    });
+			return registeredItem({
+				isVerbose,
+				userId,
+				...llmConfiguration.options,
+			});
+		},
+	);
 
-    return joinLlmExecutionTools(...llmTools);
+	return joinLlmExecutionTools(...llmTools);
 }
 
 /**

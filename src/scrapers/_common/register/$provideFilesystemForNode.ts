@@ -1,34 +1,46 @@
-import { access, constants, mkdir, readdir, readFile, stat, writeFile } from 'fs/promises';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import type { FilesystemTools } from '../../../execution/FilesystemTools';
-import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { TODO_USE } from '../../../utils/organization/TODO_USE';
+import {
+	constants,
+	access,
+	mkdir,
+	readFile,
+	readdir,
+	stat,
+	writeFile,
+} from "fs/promises";
+import { DEFAULT_IS_VERBOSE } from "../../../config";
+import { EnvironmentMismatchError } from "../../../errors/EnvironmentMismatchError";
+import type { FilesystemTools } from "../../../execution/FilesystemTools";
+import type { PrepareAndScrapeOptions } from "../../../prepare/PrepareAndScrapeOptions";
+import { $isRunningInNode } from "../../../utils/environment/$isRunningInNode";
+import { TODO_USE } from "../../../utils/organization/TODO_USE";
 
 /**
  * @@@
  *
  * @public exported from `@promptbook/node`
  */
-export function $provideFilesystemForNode(options?: Pick<PrepareAndScrapeOptions, 'isVerbose'>): FilesystemTools {
-    if (!$isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `$provideFilesystemForNode` works only in Node.js environment');
-    }
+export function $provideFilesystemForNode(
+	options?: Pick<PrepareAndScrapeOptions, "isVerbose">,
+): FilesystemTools {
+	if (!$isRunningInNode()) {
+		throw new EnvironmentMismatchError(
+			"Function `$provideFilesystemForNode` works only in Node.js environment",
+		);
+	}
 
-    const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
+	const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
-    TODO_USE(isVerbose);
+	TODO_USE(isVerbose);
 
-    return {
-        stat,
-        access,
-        constants,
-        readFile,
-        writeFile,
-        readdir,
-        mkdir,
-    };
+	return {
+		stat,
+		access,
+		constants,
+		readFile,
+		writeFile,
+		readdir,
+		mkdir,
+	};
 }
 
 /**

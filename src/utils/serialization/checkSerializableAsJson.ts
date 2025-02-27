@@ -1,26 +1,26 @@
-import spaceTrim from 'spacetrim';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { string_name } from '../../types/typeAliases';
-import type { really_unknown } from '../organization/really_unknown';
+import spaceTrim from "spacetrim";
+import { UnexpectedError } from "../../errors/UnexpectedError";
+import type { string_name } from "../../types/typeAliases";
+import type { really_unknown } from "../organization/really_unknown";
 
 /**
  * Options for the `checkSerializableAsJson` function
  */
 export type CheckSerializableAsJsonOptions = {
-    /**
-     * Value to be checked
-     */
-    value: really_unknown;
+	/**
+	 * Value to be checked
+	 */
+	value: really_unknown;
 
-    /**
-     * Semantic name of the value for debugging purposes
-     */
-    name?: string_name;
+	/**
+	 * Semantic name of the value for debugging purposes
+	 */
+	name?: string_name;
 
-    /**
-     * Message alongside the value for debugging purposes
-     */
-    message?: string;
+	/**
+	 * Message alongside the value for debugging purposes
+	 */
+	message?: string;
 };
 
 /**
@@ -43,92 +43,102 @@ export type CheckSerializableAsJsonOptions = {
  * @throws UnexpectedError if the value is not serializable as JSON
  * @public exported from `@promptbook/utils`
  */
-export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions): void {
-    const { value, name, message } = options;
+export function checkSerializableAsJson(
+	options: CheckSerializableAsJsonOptions,
+): void {
+	const { value, name, message } = options;
 
-    if (value === undefined) {
-        throw new UnexpectedError(`${name} is undefined`);
-    } else if (value === null) {
-        return;
-    } else if (typeof value === 'boolean') {
-        return;
-    } else if (typeof value === 'number' && !isNaN(value)) {
-        return;
-    } else if (typeof value === 'string') {
-        return;
-    } else if (typeof value === 'symbol') {
-        throw new UnexpectedError(`${name} is symbol`);
-    } else if (typeof value === 'function') {
-        throw new UnexpectedError(`${name} is function`);
-    } else if (typeof value === 'object' && Array.isArray(value)) {
-        for (let i = 0; i < value.length; i++) {
-            checkSerializableAsJson({ name: `${name}[${i}]`, value: value[i], message });
-        }
-    } else if (typeof value === 'object') {
-        if (value instanceof Date) {
-            throw new UnexpectedError(
-                spaceTrim(
-                    (block) => `
+	if (value === undefined) {
+		throw new UnexpectedError(`${name} is undefined`);
+	} else if (value === null) {
+		return;
+	} else if (typeof value === "boolean") {
+		return;
+	} else if (typeof value === "number" && !isNaN(value)) {
+		return;
+	} else if (typeof value === "string") {
+		return;
+	} else if (typeof value === "symbol") {
+		throw new UnexpectedError(`${name} is symbol`);
+	} else if (typeof value === "function") {
+		throw new UnexpectedError(`${name} is function`);
+	} else if (typeof value === "object" && Array.isArray(value)) {
+		for (let i = 0; i < value.length; i++) {
+			checkSerializableAsJson({
+				name: `${name}[${i}]`,
+				value: value[i],
+				message,
+			});
+		}
+	} else if (typeof value === "object") {
+		if (value instanceof Date) {
+			throw new UnexpectedError(
+				spaceTrim(
+					(block) => `
                         \`${name}\` is Date
 
                         Use \`string_date_iso8601\` instead
 
                         Additional message for \`${name}\`:
-                        ${block(message || '(nothing)')}
+                        ${block(message || "(nothing)")}
                     `,
-                ),
-            );
-        } else if (value instanceof Map) {
-            throw new UnexpectedError(`${name} is Map`);
-        } else if (value instanceof Set) {
-            throw new UnexpectedError(`${name} is Set`);
-        } else if (value instanceof RegExp) {
-            throw new UnexpectedError(`${name} is RegExp`);
-        } else if (value instanceof Error) {
-            throw new UnexpectedError(
-                spaceTrim(
-                    (block) => `
+				),
+			);
+		} else if (value instanceof Map) {
+			throw new UnexpectedError(`${name} is Map`);
+		} else if (value instanceof Set) {
+			throw new UnexpectedError(`${name} is Set`);
+		} else if (value instanceof RegExp) {
+			throw new UnexpectedError(`${name} is RegExp`);
+		} else if (value instanceof Error) {
+			throw new UnexpectedError(
+				spaceTrim(
+					(block) => `
                         \`${name}\` is unserialized Error
 
                         Use function \`serializeError\`
 
                         Additional message for \`${name}\`:
-                        ${block(message || '(nothing)')}
+                        ${block(message || "(nothing)")}
 
                     `,
-                ),
-            );
-        } else {
-            for (const [subName, subValue] of Object.entries(value)) {
-                if (subValue === undefined) {
-                    // Note: undefined in object is serializable - it is just omited
-                    continue;
-                }
-                checkSerializableAsJson({ name: `${name}.${subName}`, value: subValue, message });
-            }
+				),
+			);
+		} else {
+			for (const [subName, subValue] of Object.entries(value)) {
+				if (subValue === undefined) {
+					// Note: undefined in object is serializable - it is just omited
+					continue;
+				}
+				checkSerializableAsJson({
+					name: `${name}.${subName}`,
+					value: subValue,
+					message,
+				});
+			}
 
-            try {
-                JSON.stringify(value); // <- TODO: [0]
-            } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+			try {
+				JSON.stringify(value); // <- TODO: [0]
+			} catch (error) {
+				if (!(error instanceof Error)) {
+					throw error;
+				}
 
-                throw new UnexpectedError(
-                    spaceTrim(
-                        (block) => `
+				throw new UnexpectedError(
+					spaceTrim(
+						(block) => `
                             \`${name}\` is not serializable
 
                             ${block((error as Error).stack || (error as Error).message)}
 
                             Additional message for \`${name}\`:
-                            ${block(message || '(nothing)')}
+                            ${block(message || "(nothing)")}
                         `,
-                    ),
-                );
-            }
+					),
+				);
+			}
 
-            /*
+			/*
             TODO: [0] Is there some more elegant way to check circular references?
             const seen = new Set();
             const stack = [{ value }];
@@ -148,20 +158,20 @@ export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions)
             }
             */
 
-            return;
-        }
-    } else {
-        throw new UnexpectedError(
-            spaceTrim(
-                (block) => `
+			return;
+		}
+	} else {
+		throw new UnexpectedError(
+			spaceTrim(
+				(block) => `
                     \`${name}\` is unknown type
 
                     Additional message for \`${name}\`:
-                    ${block(message || '(nothing)')}
+                    ${block(message || "(nothing)")}
                 `,
-            ),
-        );
-    }
+			),
+		);
+	}
 }
 
 /**

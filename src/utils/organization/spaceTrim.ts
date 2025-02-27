@@ -1,4 +1,4 @@
-import { spaceTrim as spaceTrimReexported } from 'spacetrim';
+import { spaceTrim as spaceTrimReexported } from "spacetrim";
 
 /**
  * Trims string from all 4 sides

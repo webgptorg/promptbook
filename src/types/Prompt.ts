@@ -1,15 +1,15 @@
-import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
-import type { Expectations } from '../pipeline/PipelineJson/Expectations';
-import type { ChatModelRequirements } from './ModelRequirements';
-import type { CompletionModelRequirements } from './ModelRequirements';
-import type { EmbeddingModelRequirements } from './ModelRequirements';
-import type { ModelRequirements } from './ModelRequirements';
-import type { Parameters } from './typeAliases';
-import type { string_pipeline_url_with_task_hash } from './typeAliases';
-import type { string_postprocessing_function_name } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_template } from './typeAliases';
-import type { string_title } from './typeAliases';
+import type { FormatCommand } from "../commands/FORMAT/FormatCommand";
+import type { Expectations } from "../pipeline/PipelineJson/Expectations";
+import type { ChatModelRequirements } from "./ModelRequirements";
+import type { CompletionModelRequirements } from "./ModelRequirements";
+import type { EmbeddingModelRequirements } from "./ModelRequirements";
+import type { ModelRequirements } from "./ModelRequirements";
+import type { Parameters } from "./typeAliases";
+import type { string_pipeline_url_with_task_hash } from "./typeAliases";
+import type { string_postprocessing_function_name } from "./typeAliases";
+import type { string_prompt } from "./typeAliases";
+import type { string_template } from "./typeAliases";
+import type { string_title } from "./typeAliases";
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -17,7 +17,10 @@ import type { string_title } from './typeAliases';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook#prompt
  */
-export type Prompt = CompletionPrompt | ChatPrompt | EmbeddingPrompt /* <- [🤖] */;
+export type Prompt =
+	| CompletionPrompt
+	| ChatPrompt
+	| EmbeddingPrompt /* <- [🤖] */;
 
 /**
  * Completion prompt
@@ -25,10 +28,10 @@ export type Prompt = CompletionPrompt | ChatPrompt | EmbeddingPrompt /* <- [🤖
  * Note: [🚉] This is fully serializable as JSON
  */
 export type CompletionPrompt = CommonPrompt & {
-    /**
-     * Requirements for completion model
-     */
-    modelRequirements: CompletionModelRequirements;
+	/**
+	 * Requirements for completion model
+	 */
+	modelRequirements: CompletionModelRequirements;
 };
 
 /**
@@ -37,12 +40,12 @@ export type CompletionPrompt = CommonPrompt & {
  * Note: [🚉] This is fully serializable as JSON
  */
 export type ChatPrompt = CommonPrompt & {
-    /**
-     * Requirements for chat model
-     */
-    modelRequirements: ChatModelRequirements;
+	/**
+	 * Requirements for chat model
+	 */
+	modelRequirements: ChatModelRequirements;
 
-    // <-TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+	// <-TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
 };
 
 /**
@@ -51,12 +54,12 @@ export type ChatPrompt = CommonPrompt & {
  * Note: [🚉] This is fully serializable as JSON
  */
 export type EmbeddingPrompt = CommonPrompt & {
-    /**
-     * Requirements for chat model
-     */
-    modelRequirements: EmbeddingModelRequirements;
+	/**
+	 * Requirements for chat model
+	 */
+	modelRequirements: EmbeddingModelRequirements;
 
-    // <-TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+	// <-TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
 };
 
 // <- Note: [🤖] Add new model variant here
@@ -69,59 +72,59 @@ export type EmbeddingPrompt = CommonPrompt & {
  * @private just abstract the common properties of the prompts
  */
 export type CommonPrompt = {
-    /**
-     * The title of the prompt
-     *
-     * Note: This has no effect on the model, it is just for the reporting
-     */
-    readonly title: string_title;
+	/**
+	 * The title of the prompt
+	 *
+	 * Note: This has no effect on the model, it is just for the reporting
+	 */
+	readonly title: string_title;
 
-    /**
-     * The text of the prompt with placeholders for parameters
-     *
-     * @example "What is the capital of {country}?"
-     */
-    readonly content: string_prompt & string_template;
+	/**
+	 * The text of the prompt with placeholders for parameters
+	 *
+	 * @example "What is the capital of {country}?"
+	 */
+	readonly content: string_prompt & string_template;
 
-    /**
-     * Requirements for the model
-     */
-    readonly modelRequirements: ModelRequirements;
+	/**
+	 * Requirements for the model
+	 */
+	readonly modelRequirements: ModelRequirements;
 
-    /**
-     * List of postprocessing steps that are executed after the prompt
-     */
-    readonly postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>;
+	/**
+	 * List of postprocessing steps that are executed after the prompt
+	 */
+	readonly postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>;
 
-    /**
-     * Expectations for the answer
-     *
-     * For example 5 words, 3 sentences, 2 paragraphs, ...
-     * If not set, nothing is expected from the answer
-     */
-    readonly expectations?: Expectations;
+	/**
+	 * Expectations for the answer
+	 *
+	 * For example 5 words, 3 sentences, 2 paragraphs, ...
+	 * If not set, nothing is expected from the answer
+	 */
+	readonly expectations?: Expectations;
 
-    /**
-     * Expect this format of the answer
-     *
-     * Note: Expectations are performed after all postprocessing steps
-     * @deprecated [💝]
-     */
-    readonly format?: FormatCommand['format'];
+	/**
+	 * Expect this format of the answer
+	 *
+	 * Note: Expectations are performed after all postprocessing steps
+	 * @deprecated [💝]
+	 */
+	readonly format?: FormatCommand["format"];
 
-    /**
-     * Unique identifier of the pipeline with specific task name as hash
-     *
-     * @example https://promptbook.studio/webgpt/write-website-content-cs.book#keywords
-     */
-    readonly pipelineUrl?: string_pipeline_url_with_task_hash;
+	/**
+	 * Unique identifier of the pipeline with specific task name as hash
+	 *
+	 * @example https://promptbook.studio/webgpt/write-website-content-cs.book#keywords
+	 */
+	readonly pipelineUrl?: string_pipeline_url_with_task_hash;
 
-    /**
-     * Parameters used in the `content`
-     */
-    readonly parameters: Parameters;
+	/**
+	 * Parameters used in the `content`
+	 */
+	readonly parameters: Parameters;
 
-    // <- Note: [🧆] Look here when adding new properties to `Prompt`
+	// <- Note: [🧆] Look here when adding new properties to `Prompt`
 };
 
 /**

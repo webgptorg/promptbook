@@ -1,6 +1,6 @@
-import type { ErrorJson } from '../../../errors/utils/ErrorJson';
-import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
-import type { string_date_iso8601 } from '../../../types/typeAliases';
+import type { ErrorJson } from "../../../errors/utils/ErrorJson";
+import type { PipelineJson } from "../../../pipeline/PipelineJson/PipelineJson";
+import type { string_date_iso8601 } from "../../../types/typeAliases";
 
 /**
  * Represents a single pipeline in PromptbookStudio
@@ -13,17 +13,17 @@ import type { string_date_iso8601 } from '../../../types/typeAliases';
  * @public exported from `@promptbook/editable`
  */
 export type PipelineEditableSerialized = PipelineJson & {
-    /**
-     * When was the pipeline created
-     */
-    readonly createdAt: string_date_iso8601;
+	/**
+	 * When was the pipeline created
+	 */
+	readonly createdAt: string_date_iso8601;
 
-    /**
-     * When was the pipeline last modified
-     */
-    readonly updatedAt: string_date_iso8601 | null;
+	/**
+	 * When was the pipeline last modified
+	 */
+	readonly updatedAt: string_date_iso8601 | null;
 
-    /*
+	/*
     TODO: [▫]
     /**
      * Unique identifier of the pipeline
@@ -33,8 +33,8 @@ export type PipelineEditableSerialized = PipelineJson & {
     readonly pipelineUrl: string_pipeline_url;
     */
 
-    /**
-     * Known errors to transfer to new PipelineEditable
-     */
-    readonly knownErrors: Array<ErrorJson>;
+	/**
+	 * Known errors to transfer to new PipelineEditable
+	 */
+	readonly knownErrors: Array<ErrorJson>;
 };

@@ -1,11 +1,11 @@
-import spaceTrim from 'spacetrim';
-import type { PipelineString } from '../../../pipeline/PipelineString';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import { deflatePipeline } from './deflatePipeline';
+import spaceTrim from "spacetrim";
+import type { PipelineString } from "../../../pipeline/PipelineString";
+import type { string_markdown_text } from "../../../types/typeAliases";
+import { deflatePipeline } from "./deflatePipeline";
 
 type AddPipelineCommandOptions = {
-    commandString: string_markdown_text;
-    pipelineString: PipelineString;
+	commandString: string_markdown_text;
+	pipelineString: PipelineString;
 };
 
 /**
@@ -13,35 +13,37 @@ type AddPipelineCommandOptions = {
  *
  * @public exported from `@promptbook/editable`
  */
-export function addPipelineCommand(options: AddPipelineCommandOptions): PipelineString {
-    const { commandString, pipelineString } = options;
+export function addPipelineCommand(
+	options: AddPipelineCommandOptions,
+): PipelineString {
+	const { commandString, pipelineString } = options;
 
-    const deflatedPipelineString = deflatePipeline(pipelineString);
+	const deflatedPipelineString = deflatePipeline(pipelineString);
 
-    const lines = deflatedPipelineString.split('\n');
-    const newLines: Array<string> = [];
-    let isCommandAdded = false;
+	const lines = deflatedPipelineString.split("\n");
+	const newLines: Array<string> = [];
+	let isCommandAdded = false;
 
-    for (const line of lines) {
-        // Add command before second (or more) heading
-        if (!isCommandAdded && line.startsWith('##')) {
-            newLines.push(`-   ${commandString}`);
-            newLines.push('');
-            isCommandAdded = true;
-        }
+	for (const line of lines) {
+		// Add command before second (or more) heading
+		if (!isCommandAdded && line.startsWith("##")) {
+			newLines.push(`-   ${commandString}`);
+			newLines.push("");
+			isCommandAdded = true;
+		}
 
-        newLines.push(line);
-    }
+		newLines.push(line);
+	}
 
-    if (!isCommandAdded) {
-        // Note: Only situation when this should happen is when pipeline has no tasks
+	if (!isCommandAdded) {
+		// Note: Only situation when this should happen is when pipeline has no tasks
 
-        if ((newLines[newLines.length - 1] || '').startsWith('#')) {
-            newLines.push('');
-        }
-        newLines.push(`-   ${commandString}`);
+		if ((newLines[newLines.length - 1] || "").startsWith("#")) {
+			newLines.push("");
+		}
+		newLines.push(`-   ${commandString}`);
 
-        /*
+		/*
         TODO: [🧠] Is this error relevant:
         throw new UnexpectedError(
             spaceTrim(
@@ -66,9 +68,9 @@ export function addPipelineCommand(options: AddPipelineCommandOptions): Pipeline
             ),
         );
         */
-    }
+	}
 
-    return spaceTrim(newLines.join('\n')) as PipelineString;
+	return spaceTrim(newLines.join("\n")) as PipelineString;
 }
 
 /**

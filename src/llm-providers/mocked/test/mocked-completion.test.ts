@@ -1,95 +1,97 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { compilePipeline } from '../../../conversion/compilePipeline';
-import { CallbackInterfaceTools } from '../../../dialogs/callback/CallbackInterfaceTools';
-import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import type { PipelineString } from '../../../pipeline/PipelineString';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../../version';
-import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { compilePipeline } from "../../../conversion/compilePipeline";
+import { CallbackInterfaceTools } from "../../../dialogs/callback/CallbackInterfaceTools";
+import { createPipelineExecutor } from "../../../execution/createPipelineExecutor/00-createPipelineExecutor";
+import type { PipelineString } from "../../../pipeline/PipelineString";
+import { PROMPTBOOK_ENGINE_VERSION } from "../../../version";
+import { MockedEchoLlmExecutionTools } from "../MockedEchoLlmExecutionTools";
 
-describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example completion prompt', () => {
-    it('should work when every INPUT PARAMETER defined', async () => {
-        const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise()).resolves.toMatchObject({
-            outputParameters: {
-                response: spaceTrim(`
+describe("createPipelineExecutor + MockedEchoLlmExecutionTools with example completion prompt", () => {
+	it("should work when every INPUT PARAMETER defined", async () => {
+		const pipelineExecutor = await getPipelineExecutor();
+		expect(
+			pipelineExecutor({ thing: "a cup of coffee" }).asPromise(),
+		).resolves.toMatchObject({
+			outputParameters: {
+				response: spaceTrim(`
                     One day I went to the shop and bought a cup of coffee.
                     Now I have a cup of coffee.
                     And so on...
                 `),
-            },
-        });
-    });
+			},
+		});
+	});
 
-    it('should fail when some INPUT PARAMETER is missing', async () => {
-        const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({}).asPromise()).resolves.toMatchObject({
-            isSuccessful: false,
-            errors: [/Parameter `{thing}` is required as an input parameter/i],
-            executionReport: {
-                title: 'Example prompt',
-                description: 'Show how to use a simple completion prompt',
-                promptExecutions: [],
-                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book',
-                promptbookRequestedVersion: '1.0.0',
-                promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
-            },
-            outputParameters: {},
-            usage: {
-                input: {
-                    charactersCount: {
-                        value: 0,
-                    },
-                    linesCount: {
-                        value: 0,
-                    },
-                    pagesCount: {
-                        value: 0,
-                    },
-                    paragraphsCount: {
-                        value: 0,
-                    },
-                    sentencesCount: {
-                        value: 0,
-                    },
-                    tokensCount: {
-                        value: 0,
-                    },
-                    wordsCount: {
-                        value: 0,
-                    },
-                },
-                output: {
-                    charactersCount: {
-                        value: 0,
-                    },
-                    linesCount: {
-                        value: 0,
-                    },
-                    pagesCount: {
-                        value: 0,
-                    },
-                    paragraphsCount: {
-                        value: 0,
-                    },
-                    sentencesCount: {
-                        value: 0,
-                    },
-                    tokensCount: {
-                        value: 0,
-                    },
-                    wordsCount: {
-                        value: 0,
-                    },
-                },
-                price: {
-                    value: 0,
-                },
-            },
-        });
-    });
+	it("should fail when some INPUT PARAMETER is missing", async () => {
+		const pipelineExecutor = await getPipelineExecutor();
+		expect(pipelineExecutor({}).asPromise()).resolves.toMatchObject({
+			isSuccessful: false,
+			errors: [/Parameter `{thing}` is required as an input parameter/i],
+			executionReport: {
+				title: "Example prompt",
+				description: "Show how to use a simple completion prompt",
+				promptExecutions: [],
+				pipelineUrl: "https://promptbook.studio/examples/pipeline.book",
+				promptbookRequestedVersion: "1.0.0",
+				promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
+			},
+			outputParameters: {},
+			usage: {
+				input: {
+					charactersCount: {
+						value: 0,
+					},
+					linesCount: {
+						value: 0,
+					},
+					pagesCount: {
+						value: 0,
+					},
+					paragraphsCount: {
+						value: 0,
+					},
+					sentencesCount: {
+						value: 0,
+					},
+					tokensCount: {
+						value: 0,
+					},
+					wordsCount: {
+						value: 0,
+					},
+				},
+				output: {
+					charactersCount: {
+						value: 0,
+					},
+					linesCount: {
+						value: 0,
+					},
+					pagesCount: {
+						value: 0,
+					},
+					paragraphsCount: {
+						value: 0,
+					},
+					sentencesCount: {
+						value: 0,
+					},
+					tokensCount: {
+						value: 0,
+					},
+					wordsCount: {
+						value: 0,
+					},
+				},
+				price: {
+					value: 0,
+				},
+			},
+		});
+	});
 
-    /*
+	/*
     TODO: [🧠] Should be this failing or not?
     it('should fail when there is INPUT  PARAMETER extra', () => {
         expect(pipelineExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }).asPromise()).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
@@ -98,8 +100,8 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example comp
 });
 
 async function getPipelineExecutor() {
-    const pipeline = await compilePipeline(
-        spaceTrim(`
+	const pipeline = await compilePipeline(
+		spaceTrim(`
             # Example prompt
 
             Show how to use a simple completion prompt
@@ -121,22 +123,22 @@ async function getPipelineExecutor() {
 
             -> {response}
        `) as PipelineString,
-        // <- TODO: [📼] Use`book\`` string literal notation
-    );
-    const pipelineExecutor = createPipelineExecutor({
-        pipeline,
-        tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-            script: [],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
-                },
-            }),
-        },
-    });
-    return pipelineExecutor;
+		// <- TODO: [📼] Use`book\`` string literal notation
+	);
+	const pipelineExecutor = createPipelineExecutor({
+		pipeline,
+		tools: {
+			llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+			script: [],
+			userInterface: new CallbackInterfaceTools({
+				isVerbose: true,
+				async callback() {
+					return "Hello";
+				},
+			}),
+		},
+	});
+	return pipelineExecutor;
 }
 
 /**

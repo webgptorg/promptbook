@@ -4,5 +4,5 @@
  * @public exported from `@promptbook/utils`
  */
 export function normalizeWhitespaces(sentence: string): string {
-    return sentence.replace(/\s+/gs, ' ').trim();
+	return sentence.replace(/\s+/gs, " ").trim();
 }

@@ -1,13 +1,13 @@
-import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { just } from '../organization/just';
-import { prettifyMarkdown } from './prettifyMarkdown';
+import { describe, expect, it } from "@jest/globals";
+import { spaceTrim } from "spacetrim";
+import { just } from "../organization/just";
+import { prettifyMarkdown } from "./prettifyMarkdown";
 
 describe(`prettifyMarkdown`, () => {
-    it(`should prettify the markdown`, () => {
-        expect(
-            prettifyMarkdown(
-                spaceTrim(`
+	it(`should prettify the markdown`, () => {
+		expect(
+			prettifyMarkdown(
+				spaceTrim(`
                     # Title
 
                     -   *Item* 1
@@ -22,10 +22,10 @@ describe(`prettifyMarkdown`, () => {
                     -   Item 1
 
                 `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
+			),
+		).toBe(
+			just(
+				spaceTrim(`
                     # Title
 
                     -   _Item_ 1
@@ -35,8 +35,8 @@ describe(`prettifyMarkdown`, () => {
 
                     -   Item 1
 
-                `) + '\n',
-            ),
-        );
-    });
+                `) + "\n",
+			),
+		);
+	});
 });

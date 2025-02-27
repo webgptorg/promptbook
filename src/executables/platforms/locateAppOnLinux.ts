@@ -1,6 +1,6 @@
-import { $execCommand } from '../../utils/execCommand/$execCommand';
-import type { string_executable_path } from '../../types/typeAliases';
-import type { LocateAppOptions } from '../locateApp';
+import type { string_executable_path } from "../../types/typeAliases";
+import { $execCommand } from "../../utils/execCommand/$execCommand";
+import type { LocateAppOptions } from "../locateApp";
 
 /**
  * @@@
@@ -8,19 +8,25 @@ import type { LocateAppOptions } from '../locateApp';
  * @private within the repository
  */
 export async function locateAppOnLinux({
-    linuxWhich,
-}: Pick<Required<LocateAppOptions>, 'linuxWhich'>): Promise<string_executable_path | null> {
-    try {
-        const result = await $execCommand({ crashOnError: true, command: `which ${linuxWhich}` });
+	linuxWhich,
+}: Pick<
+	Required<LocateAppOptions>,
+	"linuxWhich"
+>): Promise<string_executable_path | null> {
+	try {
+		const result = await $execCommand({
+			crashOnError: true,
+			command: `which ${linuxWhich}`,
+		});
 
-        return result.trim();
-    } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+		return result.trim();
+	} catch (error) {
+		if (!(error instanceof Error)) {
+			throw error;
+		}
 
-        return null;
-    }
+		return null;
+	}
 }
 
 /**

@@ -1,14 +1,14 @@
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
-import type { number_id } from '../../types/typeAliases';
-import type { string_promptbook_version } from '../../version';
+import type { PromptResultUsage } from "../../execution/PromptResultUsage";
+import type { number_id } from "../../types/typeAliases";
+import type { string_promptbook_version } from "../../version";
 
 export type PreparationJson = {
-    /**
-     * Incremental ID of the preparation
-     */
-    readonly id: number_id;
+	/**
+	 * Incremental ID of the preparation
+	 */
+	readonly id: number_id;
 
-    /*
+	/*
     TODO: [🍥]
     > /**
     >  * Date and time of the preparation
@@ -16,15 +16,15 @@ export type PreparationJson = {
     > readonly date: string_date_iso8601;
     */
 
-    /**
-     * Version of the promptbook used for the preparation
-     */
-    readonly promptbookVersion: string_promptbook_version;
+	/**
+	 * Version of the promptbook used for the preparation
+	 */
+	readonly promptbookVersion: string_promptbook_version;
 
-    /**
-     * Usage of the prompt execution
-     */
-    readonly usage: PromptResultUsage;
+	/**
+	 * Usage of the prompt execution
+	 */
+	readonly usage: PromptResultUsage;
 };
 
 /**

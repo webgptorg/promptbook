@@ -1,7 +1,7 @@
-import { spaceTrim } from 'spacetrim';
-import { PipelineExecutionError } from '../errors/PipelineExecutionError';
-import { deserializeError } from '../errors/utils/deserializeError';
-import type { PipelineExecutorResult } from './PipelineExecutorResult';
+import { spaceTrim } from "spacetrim";
+import { PipelineExecutionError } from "../errors/PipelineExecutionError";
+import { deserializeError } from "../errors/utils/deserializeError";
+import type { PipelineExecutorResult } from "./PipelineExecutorResult";
 
 /**
  * Asserts that the execution of a Promptbook is successful
@@ -13,43 +13,48 @@ import type { PipelineExecutorResult } from './PipelineExecutorResult';
  * @private internal helper function of `asPromise` method of `ExecutionTask`
  */
 export function assertsTaskSuccessful(
-    executionResult: Pick<PipelineExecutorResult, 'isSuccessful' | 'errors' | 'warnings'>,
+	executionResult: Pick<
+		PipelineExecutorResult,
+		"isSuccessful" | "errors" | "warnings"
+	>,
 ): void {
-    const { isSuccessful, errors, warnings } = executionResult;
+	const { isSuccessful, errors, warnings } = executionResult;
 
-    for (const warning of warnings) {
-        console.warn(warning.message);
-    }
+	for (const warning of warnings) {
+		console.warn(warning.message);
+	}
 
-    if (isSuccessful === true) {
-        return;
-    }
-    if (errors.length === 0) {
-        throw new PipelineExecutionError(`Promptbook Execution failed because of unknown reason`);
-    } else if (errors.length === 1) {
-        throw deserializeError(errors[0]!);
-    } else {
-        throw new PipelineExecutionError(
-            spaceTrim(
-                (block) => `
+	if (isSuccessful === true) {
+		return;
+	}
+	if (errors.length === 0) {
+		throw new PipelineExecutionError(
+			`Promptbook Execution failed because of unknown reason`,
+		);
+	} else if (errors.length === 1) {
+		throw deserializeError(errors[0]!);
+	} else {
+		throw new PipelineExecutionError(
+			spaceTrim(
+				(block) => `
                     Multiple errors occurred during Promptbook execution
 
                     ${block(
-                        errors
-                            .map(({ name, stack, message }, index) =>
-                                spaceTrim(
-                                    (block) => `
+											errors
+												.map(({ name, stack, message }, index) =>
+													spaceTrim(
+														(block) => `
                                         ${name} ${index + 1}:
                                         ${block(stack || message)}
                                     `,
-                                ),
-                            )
-                            .join('\n'),
-                    )}
+													),
+												)
+												.join("\n"),
+										)}
                 `,
-            ),
-        );
-    }
+			),
+		);
+	}
 }
 
 /**

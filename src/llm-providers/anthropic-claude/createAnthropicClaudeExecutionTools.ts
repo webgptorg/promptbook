@@ -1,7 +1,7 @@
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
-import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
-import { AnthropicClaudeExecutionTools } from './AnthropicClaudeExecutionTools';
-import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import type { LlmExecutionToolsConstructor } from "../../execution/LlmExecutionToolsConstructor";
+import { RemoteLlmExecutionTools } from "../remote/RemoteLlmExecutionTools";
+import { AnthropicClaudeExecutionTools } from "./AnthropicClaudeExecutionTools";
+import type { AnthropicClaudeExecutionToolsOptions } from "./AnthropicClaudeExecutionToolsOptions";
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -9,33 +9,35 @@ import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExec
  * @public exported from `@promptbook/anthropic-claude`
  */
 export const createAnthropicClaudeExecutionTools = Object.assign(
-    (options: AnthropicClaudeExecutionToolsOptions): AnthropicClaudeExecutionTools | RemoteLlmExecutionTools => {
-        if (options.isProxied) {
-            return new RemoteLlmExecutionTools({
-                ...options,
-                identification: {
-                    isAnonymous: true,
-                    llmToolsConfiguration: [
-                        {
-                            title: 'Anthropic Claude (proxied)',
-                            packageName: '@promptbook/anthropic-claude',
-                            className: 'AnthropicClaudeExecutionTools',
-                            options: {
-                                ...options,
-                                isProxied: false,
-                            },
-                        },
-                    ],
-                },
-            });
-        }
+	(
+		options: AnthropicClaudeExecutionToolsOptions,
+	): AnthropicClaudeExecutionTools | RemoteLlmExecutionTools => {
+		if (options.isProxied) {
+			return new RemoteLlmExecutionTools({
+				...options,
+				identification: {
+					isAnonymous: true,
+					llmToolsConfiguration: [
+						{
+							title: "Anthropic Claude (proxied)",
+							packageName: "@promptbook/anthropic-claude",
+							className: "AnthropicClaudeExecutionTools",
+							options: {
+								...options,
+								isProxied: false,
+							},
+						},
+					],
+				},
+			});
+		}
 
-        return new AnthropicClaudeExecutionTools(options);
-    },
-    {
-        packageName: '@promptbook/anthropic-claude',
-        className: 'AnthropicClaudeExecutionTools',
-    },
+		return new AnthropicClaudeExecutionTools(options);
+	},
+	{
+		packageName: "@promptbook/anthropic-claude",
+		className: "AnthropicClaudeExecutionTools",
+	},
 ) satisfies LlmExecutionToolsConstructor;
 
 /**

@@ -1,5 +1,5 @@
-import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import type { ModelRequirements } from "../../types/ModelRequirements";
+import type { TODO_any } from "../../utils/organization/TODO_any";
 
 /**
  * Parsed MODEL command
@@ -9,7 +9,7 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
  * @public exported from `@promptbook/editable`
  */
 export type ModelCommand = {
-    readonly type: 'MODEL';
-    readonly key: keyof ModelRequirements;
-    readonly value: TODO_any /* <- TODO: Infer from used key, can it be done in TypeScript */;
+	readonly type: "MODEL";
+	readonly key: keyof ModelRequirements;
+	readonly value: TODO_any /* <- TODO: Infer from used key, can it be done in TypeScript */;
 };

@@ -1,4 +1,4 @@
-import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
+import type { string_formfactor_name } from "../../formfactors/_common/string_formfactor_name";
 
 /**
  * Parsed FORMFACTOR command
@@ -7,6 +7,6 @@ import type { string_formfactor_name } from '../../formfactors/_common/string_fo
  * @public exported from `@promptbook/editable`
  */
 export type FormfactorCommand = {
-    readonly type: 'FORMFACTOR';
-    readonly formfactorName: string_formfactor_name;
+	readonly type: "FORMFACTOR";
+	readonly formfactorName: string_formfactor_name;
 };

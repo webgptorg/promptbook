@@ -1,68 +1,70 @@
-import spaceTrim from 'spacetrim';
-import { DEFAULT_BOOK_TITLE } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_section } from '../../types/typeAliases';
+import spaceTrim from "spacetrim";
+import { DEFAULT_BOOK_TITLE } from "../../config";
+import type { string_markdown } from "../../types/typeAliases";
+import type { string_markdown_section } from "../../types/typeAliases";
 
 /**
  * Splits the markdown into sections by headings
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function splitMarkdownIntoSections(markdown: string_markdown): ReadonlyArray<string_markdown_section> {
-    const lines = markdown.split('\n');
-    const sections: Array<string_markdown> = [];
+export function splitMarkdownIntoSections(
+	markdown: string_markdown,
+): ReadonlyArray<string_markdown_section> {
+	const lines = markdown.split("\n");
+	const sections: Array<string_markdown> = [];
 
-    // TODO: [🧽] DRY
-    let currentType: 'MARKDOWN' | 'CODE_BLOCK' | 'COMMENT' = 'MARKDOWN';
-    let buffer: Array<string_markdown> = [];
+	// TODO: [🧽] DRY
+	let currentType: "MARKDOWN" | "CODE_BLOCK" | "COMMENT" = "MARKDOWN";
+	let buffer: Array<string_markdown> = [];
 
-    const finishSection = () => {
-        if (buffer.length === 0) {
-            return;
-        }
+	const finishSection = () => {
+		if (buffer.length === 0) {
+			return;
+		}
 
-        let section = spaceTrim(buffer.join('\n'));
+		let section = spaceTrim(buffer.join("\n"));
 
-        if (section === '') {
-            return;
-        }
+		if (section === "") {
+			return;
+		}
 
-        if (!section.startsWith('#')) {
-            section = `# ${DEFAULT_BOOK_TITLE}\n\n${section}`;
-        }
+		if (!section.startsWith("#")) {
+			section = `# ${DEFAULT_BOOK_TITLE}\n\n${section}`;
+		}
 
-        sections.push(section);
-        buffer = [];
-    };
+		sections.push(section);
+		buffer = [];
+	};
 
-    for (const line of lines) {
-        if (currentType === 'MARKDOWN') {
-            if (line.startsWith('#')) {
-                finishSection();
-            }
+	for (const line of lines) {
+		if (currentType === "MARKDOWN") {
+			if (line.startsWith("#")) {
+				finishSection();
+			}
 
-            buffer.push(line);
+			buffer.push(line);
 
-            if (line.startsWith('```')) {
-                currentType = 'CODE_BLOCK';
-            } else if (line.includes('<!--')) {
-                currentType = 'COMMENT';
-            }
-        } else if (currentType === 'CODE_BLOCK') {
-            buffer.push(line);
-            if (line.startsWith('```')) {
-                currentType = 'MARKDOWN';
-            }
-        } else if (currentType === 'COMMENT') {
-            buffer.push(line);
-            if (line.includes('-->')) {
-                currentType = 'MARKDOWN';
-            }
-        }
-    }
+			if (line.startsWith("```")) {
+				currentType = "CODE_BLOCK";
+			} else if (line.includes("<!--")) {
+				currentType = "COMMENT";
+			}
+		} else if (currentType === "CODE_BLOCK") {
+			buffer.push(line);
+			if (line.startsWith("```")) {
+				currentType = "MARKDOWN";
+			}
+		} else if (currentType === "COMMENT") {
+			buffer.push(line);
+			if (line.includes("-->")) {
+				currentType = "MARKDOWN";
+			}
+		}
+	}
 
-    finishSection();
-    return sections;
+	finishSection();
+	return sections;
 }
 
 /**

@@ -1,9 +1,9 @@
-import { SetRequired } from 'type-fest';
-import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { NonEmptyReadonlyArray } from '../../types/NonEmptyArray';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection';
+import type { SetRequired } from "type-fest";
+import type { string_formfactor_name } from "../../formfactors/_common/string_formfactor_name";
+import type { PipelineJson } from "../../pipeline/PipelineJson/PipelineJson";
+import type { NonEmptyReadonlyArray } from "../../types/NonEmptyArray";
+import type { string_pipeline_url } from "../../types/typeAliases";
+import { getTemplatesPipelineCollection } from "./getTemplatesPipelineCollection";
 
 /**
  * @@@
@@ -11,7 +11,8 @@ import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection
  * @singleton
  * @private internal cache of `getBookTemplate`
  */
-export let pipelines: Array<SetRequired<PipelineJson, 'pipelineUrl'>> | null = null;
+export let pipelines: Array<SetRequired<PipelineJson, "pipelineUrl">> | null =
+	null;
 
 /**
  * Get template for new book
@@ -21,24 +22,31 @@ export let pipelines: Array<SetRequired<PipelineJson, 'pipelineUrl'>> | null = n
  * @public exported from `@promptbook/templates`
  */
 export function getBookTemplates(
-    formfactorName?: string_formfactor_name,
-): NonEmptyReadonlyArray<SetRequired<PipelineJson, 'pipelineUrl'>> {
-    if (pipelines === null) {
-        const collection = getTemplatesPipelineCollection();
-        const pipelineUrls = collection.listPipelines() as ReadonlyArray<string_pipeline_url>; // <- Note: [0] Function `listPipelines` is sync because `templatesPipelineCollection` is `SimplePipelineCollection`
-        pipelines = pipelineUrls.map(
-            (pipelineUrl) => collection?.getPipelineByUrl(pipelineUrl) as SetRequired<PipelineJson, 'pipelineUrl'>,
-            // <- Note: [0]
-        );
-    }
+	formfactorName?: string_formfactor_name,
+): NonEmptyReadonlyArray<SetRequired<PipelineJson, "pipelineUrl">> {
+	if (pipelines === null) {
+		const collection = getTemplatesPipelineCollection();
+		const pipelineUrls =
+			collection.listPipelines() as ReadonlyArray<string_pipeline_url>; // <- Note: [0] Function `listPipelines` is sync because `templatesPipelineCollection` is `SimplePipelineCollection`
+		pipelines = pipelineUrls.map(
+			(pipelineUrl) =>
+				collection?.getPipelineByUrl(pipelineUrl) as SetRequired<
+					PipelineJson,
+					"pipelineUrl"
+				>,
+			// <- Note: [0]
+		);
+	}
 
-    if (formfactorName === undefined) {
-        return pipelines as NonEmptyReadonlyArray<SetRequired<PipelineJson, 'pipelineUrl'>>;
-    } else {
-        return pipelines.filter((pipeline) => pipeline.formfactorName === formfactorName) as NonEmptyReadonlyArray<
-            SetRequired<PipelineJson, 'pipelineUrl'>
-        >;
-    }
+	if (formfactorName === undefined) {
+		return pipelines as NonEmptyReadonlyArray<
+			SetRequired<PipelineJson, "pipelineUrl">
+		>;
+	} else {
+		return pipelines.filter(
+			(pipeline) => pipeline.formfactorName === formfactorName,
+		) as NonEmptyReadonlyArray<SetRequired<PipelineJson, "pipelineUrl">>;
+	}
 }
 
 /**

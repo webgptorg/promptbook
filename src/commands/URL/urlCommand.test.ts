@@ -1,38 +1,55 @@
-import { describe, expect, it } from '@jest/globals';
-import { parseCommand } from '../_common/parseCommand';
-import { urlCommandParser } from './urlCommandParser';
+import { describe, expect, it } from "@jest/globals";
+import { parseCommand } from "../_common/parseCommand";
+import { urlCommandParser } from "./urlCommandParser";
 
-describe('how URL command in .book.md files works', () => {
-    it('should parse URL command', () => {
-        expect(parseCommand('https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD')).toEqual(
-            {
-                type: 'URL',
-                pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
-            },
-        );
-        expect(
-            parseCommand(
-                '   https://promptbook.studio/webgpt/write-website-content-cs.book.md        ',
-                'PIPELINE_HEAD',
-            ),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book.md'),
-        });
-        expect(
-            parseCommand('url https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
-        });
-        expect(
-            parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
-        });
+describe("how URL command in .book.md files works", () => {
+	it("should parse URL command", () => {
+		expect(
+			parseCommand(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book",
+				"PIPELINE_HEAD",
+			),
+		).toEqual({
+			type: "URL",
+			pipelineUrl: new URL(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book",
+			),
+		});
+		expect(
+			parseCommand(
+				"   https://promptbook.studio/webgpt/write-website-content-cs.book.md        ",
+				"PIPELINE_HEAD",
+			),
+		).toEqual({
+			type: "URL",
+			pipelineUrl: new URL(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book.md",
+			),
+		});
+		expect(
+			parseCommand(
+				"url https://promptbook.studio/webgpt/write-website-content-cs.book",
+				"PIPELINE_HEAD",
+			),
+		).toEqual({
+			type: "URL",
+			pipelineUrl: new URL(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book",
+			),
+		});
+		expect(
+			parseCommand(
+				"URL https://promptbook.studio/webgpt/write-website-content-cs.book",
+				"PIPELINE_HEAD",
+			),
+		).toEqual({
+			type: "URL",
+			pipelineUrl: new URL(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book",
+			),
+		});
 
-        /*
+		/*
         TODO: [🧠][🌘] Should this work:
         expect(
             parseCommand(
@@ -55,14 +72,19 @@ describe('how URL command in .book.md files works', () => {
         });
         */
 
-        expect(
-            parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.book', 'PIPELINE_HEAD'),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
-        });
+		expect(
+			parseCommand(
+				"URL https://promptbook.studio/webgpt/write-website-content-cs.book",
+				"PIPELINE_HEAD",
+			),
+		).toEqual({
+			type: "URL",
+			pipelineUrl: new URL(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book",
+			),
+		});
 
-        /*
+		/*
         TODO: [🧠][🌘] Should this work:
         expect(
             parseCommand(
@@ -84,21 +106,31 @@ describe('how URL command in .book.md files works', () => {
         });
         */
 
-        expect(
-            parseCommand('url *https://promptbook.studio/webgpt/write-website-content-cs.book*', 'PIPELINE_HEAD'),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
-        });
-        expect(
-            parseCommand('`https://promptbook.studio/webgpt/write-website-content-cs.book`', 'PIPELINE_HEAD'),
-        ).toEqual({
-            type: 'URL',
-            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.book'),
-        });
-    });
+		expect(
+			parseCommand(
+				"url *https://promptbook.studio/webgpt/write-website-content-cs.book*",
+				"PIPELINE_HEAD",
+			),
+		).toEqual({
+			type: "URL",
+			pipelineUrl: new URL(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book",
+			),
+		});
+		expect(
+			parseCommand(
+				"`https://promptbook.studio/webgpt/write-website-content-cs.book`",
+				"PIPELINE_HEAD",
+			),
+		).toEqual({
+			type: "URL",
+			pipelineUrl: new URL(
+				"https://promptbook.studio/webgpt/write-website-content-cs.book",
+			),
+		});
+	});
 
-    /*
+	/*
     TODO: [🧠][🌘] Should this work:
     it('should parse URL command in shortcut form', () => {
 
@@ -129,18 +161,22 @@ describe('how URL command in .book.md files works', () => {
     });
     */
 
-    it('should fail parsing URL command', () => {
-        expect(() => parseCommand('URL', 'PIPELINE_HEAD')).toThrowError(/URL is required/i);
-        expect(() =>
-            parseCommand(
-                'URL https://promptbook.studio/webgpt/write-website-content-cs.book https://promptbook.studio/webgpt/write-website-content-cs.book',
-                'PIPELINE_HEAD',
-            ),
-        ).toThrowError(/Can not have more than one pipeline URL/i);
+	it("should fail parsing URL command", () => {
+		expect(() => parseCommand("URL", "PIPELINE_HEAD")).toThrowError(
+			/URL is required/i,
+		);
+		expect(() =>
+			parseCommand(
+				"URL https://promptbook.studio/webgpt/write-website-content-cs.book https://promptbook.studio/webgpt/write-website-content-cs.book",
+				"PIPELINE_HEAD",
+			),
+		).toThrowError(/Can not have more than one pipeline URL/i);
 
-        expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid pipeline URL/i);
+		expect(() => parseCommand("url http:^404", "PIPELINE_HEAD")).toThrowError(
+			/Invalid pipeline URL/i,
+		);
 
-        /*
+		/*
         Note: [👣]
         expect(() => parseCommand('url http://promptbook.studio/write-website-content', 'PIPELINE_HEAD')).toThrowError(
             /Invalid pipeline URL/i,
@@ -148,21 +184,21 @@ describe('how URL command in .book.md files works', () => {
         );
         */
 
-        expect(() =>
-            parseCommand(
-                'url https://promptbook.studio/webgpt/write-website-content-cs.book#keywords',
-                'PIPELINE_HEAD',
-            ),
-        ).toThrowError(
-            /Invalid pipeline URL/i,
-            // <- TODO: [🐠] /URL must not contain hash/i
-        );
-    });
+		expect(() =>
+			parseCommand(
+				"url https://promptbook.studio/webgpt/write-website-content-cs.book#keywords",
+				"PIPELINE_HEAD",
+			),
+		).toThrowError(
+			/Invalid pipeline URL/i,
+			// <- TODO: [🐠] /URL must not contain hash/i
+		);
+	});
 
-    it(`should work with all examples`, () => {
-        // Note: This is tested also in the common test file parseCommand.test.ts
-        for (const example of urlCommandParser.examples) {
-            expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
-        }
-    });
+	it(`should work with all examples`, () => {
+		// Note: This is tested also in the common test file parseCommand.test.ts
+		for (const example of urlCommandParser.examples) {
+			expect(() => parseCommand(example, "PIPELINE_HEAD")).not.toThrowError();
+		}
+	});
 });

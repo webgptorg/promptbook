@@ -1,6 +1,6 @@
-import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
-import { LINES_PER_STANDARD_PAGE } from './constants';
-import { countLines } from './countLines';
+import type { ExpectationAmount } from "../../pipeline/PipelineJson/Expectations";
+import { LINES_PER_STANDARD_PAGE } from "./constants";
+import { countLines } from "./countLines";
 
 /**
  * Counts number of pages in the text
@@ -10,5 +10,5 @@ import { countLines } from './countLines';
  * @public exported from `@promptbook/utils`
  */
 export function countPages(text: string): ExpectationAmount {
-    return Math.ceil(countLines(text) / LINES_PER_STANDARD_PAGE);
+	return Math.ceil(countLines(text) / LINES_PER_STANDARD_PAGE);
 }

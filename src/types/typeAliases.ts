@@ -4,14 +4,19 @@
 '--------------------------------------------------'
 */
 
-import type { TupleToUnion } from 'type-fest';
-import { RESERVED_PARAMETER_NAMES } from '../constants';
-import type { really_unknown } from '../utils/organization/really_unknown';
+import type { TupleToUnion } from "type-fest";
+import type { RESERVED_PARAMETER_NAMES } from "../constants";
+import type { really_unknown } from "../utils/organization/really_unknown";
 
 /**
  * Semantic helper
  */
-export type string_business_category_name = 'restaurant' | 'grocery' | 'person' | 'conference' | string;
+export type string_business_category_name =
+	| "restaurant"
+	| "grocery"
+	| "person"
+	| "conference"
+	| string;
 
 /**
  * Semantic helper
@@ -19,18 +24,18 @@ export type string_business_category_name = 'restaurant' | 'grocery' | 'person' 
  * For example `"gpt-4"`
  */
 export type string_model_name =
-    | 'gpt-4'
-    | 'gpt-4-0314'
-    | 'gpt-4-0613'
-    | 'gpt-4-32k'
-    | 'gpt-4-32k-0314'
-    | 'gpt-4-32k-0613'
-    | 'gpt-3.5-turbo'
-    | 'gpt-3.5-turbo-16k'
-    | 'gpt-3.5-turbo-0301'
-    | 'gpt-3.5-turbo-0613'
-    | 'gpt-3.5-turbo-16k-0613'
-    | string /* <- TODO: Import from 'openai' package */;
+	| "gpt-4"
+	| "gpt-4-0314"
+	| "gpt-4-0613"
+	| "gpt-4-32k"
+	| "gpt-4-32k-0314"
+	| "gpt-4-32k-0613"
+	| "gpt-3.5-turbo"
+	| "gpt-3.5-turbo-16k"
+	| "gpt-3.5-turbo-0301"
+	| "gpt-3.5-turbo-0613"
+	| "gpt-3.5-turbo-16k-0613"
+	| string /* <- TODO: Import from 'openai' package */;
 
 /**
  * Semantic helper
@@ -80,7 +85,7 @@ export type string_completion_prompt = string_text_prompt;
  * For example `"index"` or `"explanation"`
  * Always in kebab-case
  */
-export type string_page = 'index' | string;
+export type string_page = "index" | string;
 
 /**
  * Semantic helper
@@ -141,7 +146,10 @@ export type string_parameter_value = string;
  * Note: [🚉] This is fully serializable as JSON
  * @see https://ptbk.io/parameters
  */
-export type Parameters = Exclude<Record<string_parameter_name, string_parameter_value>, ReservedParameters>;
+export type Parameters = Exclude<
+	Record<string_parameter_name, string_parameter_value>,
+	ReservedParameters
+>;
 
 /**
  * Parameters to pass to execution of the pipeline
@@ -149,7 +157,10 @@ export type Parameters = Exclude<Record<string_parameter_name, string_parameter_
  * Note: [🚉] This should be fully serializable as JSON
  * @see https://ptbk.io/parameters
  */
-export type InputParameters = Exclude<Record<string_parameter_name, really_unknown>, ReservedParameters>;
+export type InputParameters = Exclude<
+	Record<string_parameter_name, really_unknown>,
+	ReservedParameters
+>;
 
 // <- TODO: [🧠] Maybe rename `Parameters` because it is already defined in global scope and also it is used more generally [👩🏾‍🤝‍🧑🏽]
 
@@ -159,14 +170,19 @@ export type InputParameters = Exclude<Record<string_parameter_name, really_unkno
  *
  * For example `"context"`
  */
-export type string_reserved_parameter_name = TupleToUnion<typeof RESERVED_PARAMETER_NAMES>;
+export type string_reserved_parameter_name = TupleToUnion<
+	typeof RESERVED_PARAMETER_NAMES
+>;
 
 /**
  * @@@
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type ReservedParameters = Record<string_reserved_parameter_name, string_parameter_value>;
+export type ReservedParameters = Record<
+	string_reserved_parameter_name,
+	string_parameter_value
+>;
 
 /**
  * Semantic helper
@@ -202,7 +218,9 @@ export type string_model_description = string;
  *
  * @@@ string_knowledge_source vs string_knowledge_source_link
  */
-export type string_knowledge_source_content = string_knowledge_source_link | string_markdown;
+export type string_knowledge_source_content =
+	| string_knowledge_source_link
+	| string_markdown;
 
 /**
  * One link to knowledge source
@@ -282,15 +300,22 @@ export type string_markdown_text = string;
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export type string_markdown_codeblock_language = 'book' | 'markdown' | 'text' | 'javascript' | 'css' | 'json';
+export type string_markdown_codeblock_language =
+	| "book"
+	| "markdown"
+	| "text"
+	| "javascript"
+	| "css"
+	| "json";
 //          <- TODO: [🏥] DRY
 
 /**
  * @@@
  */
-export type string_promptbook_documentation_url = `https://github.com/webgptorg/promptbook/discussions/${
-    | number
-    | `@@${string}`}`;
+export type string_promptbook_documentation_url =
+	`https://github.com/webgptorg/promptbook/discussions/${
+		| number
+		| `@@${string}`}`;
 
 /**
  * Semantic helper
@@ -341,7 +366,10 @@ export type string_javascript = string;
  *
  * For example `{"foo": "bar"}`
  */
-export type string_json<TType> = string & { _type: 'string_json'; scheme: TType };
+export type string_json<TType> = string & {
+	_type: "string_json";
+	scheme: TType;
+};
 
 /**
  * Semantic helper
@@ -411,7 +439,8 @@ export type string_pipeline_url_with_task_hash = string;
  *
  * For example `"data:text/plain;base64,SGVsbG8sIFdvcmxkIQ=="`
  */
-export type string_data_url = `data:${string_mime_type};base64,${string_base64}`;
+export type string_data_url =
+	`data:${string_mime_type};base64,${string_base64}`;
 
 /**
  * Semantic helper
@@ -473,7 +502,7 @@ export type string_host = string;
 /**
  * Semantic helper
  */
-export type string_protocol = 'http:' | 'https:';
+export type string_protocol = "http:" | "https:";
 
 /**
  * Semantic helper
@@ -501,7 +530,7 @@ export type string_emails = string;
  * TODO: [🥬] Make some system for hashes and ids of promptbook
  */
 export type string_uuid = string & {
-    readonly _type: 'uuid' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
+	readonly _type: "uuid" /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
 };
 
 /**
@@ -563,7 +592,9 @@ export type string_relative_filename = string;
 /**
  * Semantic helper
  */
-export type string_filename = string_absolute_filename | string_relative_filename;
+export type string_filename =
+	| string_absolute_filename
+	| string_relative_filename;
 
 // TODO: Do not use universal string_filename/string_dirname but specific ones likestring_relative_filename
 
@@ -650,7 +681,7 @@ export type string_translate_name_not_normalized = string;
  *
  * TODO: Probably use enum
  */
-export type string_translate_language = 'en' | 'cs';
+export type string_translate_language = "en" | "cs";
 
 /**
  * Semantic helper; For example "callbackName" or "renderMe"
@@ -677,7 +708,8 @@ export type string_pgp_key = string;
  * @see https://en.wikipedia.org/wiki/ISO_8601
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
  */
-export type string_date_iso8601 = `${number}-${number}-${number}${string}${number}:${number}:${number}${string}`;
+export type string_date_iso8601 =
+	`${number}-${number}-${number}${string}${number}:${number}:${number}${string}`;
 
 //=========================[ Numbers ]=========================
 

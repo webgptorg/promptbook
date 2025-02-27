@@ -1,10 +1,10 @@
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-} from 'commander';
-import spaceTrim from 'spacetrim';
-import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
-import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import { $registeredScrapersMessage } from '../../scrapers/_common/register/$registeredScrapersMessage';
+	Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+} from "commander";
+import spaceTrim from "spacetrim";
+import { $provideExecutablesForNode } from "../../executables/$provideExecutablesForNode";
+import { $provideScrapersForNode } from "../../scrapers/_common/register/$provideScrapersForNode";
+import { $registeredScrapersMessage } from "../../scrapers/_common/register/$registeredScrapersMessage";
 
 /**
  * Initializes `list-scrapers` command for Promptbook CLI utilities
@@ -14,42 +14,50 @@ import { $registeredScrapersMessage } from '../../scrapers/_common/register/$reg
  * @private internal function of `promptbookCli`
  */
 export function $initializeListScrapersCommand(program: Program) {
-    const listModelsCommand = program.command('list-scrapers');
-    listModelsCommand.description(
-        spaceTrim(`
+	const listModelsCommand = program.command("list-scrapers");
+	listModelsCommand.description(
+		spaceTrim(`
             List all available and configured scrapers and executables
         `),
-    );
+	);
 
-    listModelsCommand.alias('scrapers');
+	listModelsCommand.alias("scrapers");
 
-    listModelsCommand.action(async () => {
-        const scrapers = await $provideScrapersForNode({});
-        const executables = await $provideExecutablesForNode();
+	listModelsCommand.action(async () => {
+		const scrapers = await $provideScrapersForNode({});
+		const executables = await $provideExecutablesForNode();
 
-        console.info(
-            spaceTrim(
-                (block) => `
+		console.info(
+			spaceTrim(
+				(block) => `
                     ${block($registeredScrapersMessage(scrapers))}
 
                     All mime-types which can be scraped:
                     ${block(
-                        Array.from(new Set(Object.values(scrapers).flatMap(({ metadata }) => metadata.mimeTypes)))
-                            .map((mimeType, i) => `${i + 1}) ${mimeType}`)
-                            .join('\n'),
-                    )}
+											Array.from(
+												new Set(
+													Object.values(scrapers).flatMap(
+														({ metadata }) => metadata.mimeTypes,
+													),
+												),
+											)
+												.map((mimeType, i) => `${i + 1}) ${mimeType}`)
+												.join("\n"),
+										)}
 
                     Available executables:
                     ${block(
-                        Object.entries(executables)
-                            .map(([name, path], i) => `${i + 1}) **${name}** ${path}`)
-                            .join('\n'),
-                    )}
+											Object.entries(executables)
+												.map(
+													([name, path], i) => `${i + 1}) **${name}** ${path}`,
+												)
+												.join("\n"),
+										)}
                 `,
-            ),
-        );
-        return process.exit(0);
-    });
+			),
+		);
+		return process.exit(0);
+	});
 }
 
 /**

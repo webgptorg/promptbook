@@ -1,9 +1,9 @@
-import { isValidEmail } from '../utils/validators/email/isValidEmail';
-import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
-import { isValidUrl } from '../utils/validators/url/isValidUrl';
-import { ParseError } from '../errors/ParseError';
-import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
-import type { PipelineString } from './PipelineString';
+import { ParseError } from "../errors/ParseError";
+import { isValidJsonString } from "../formats/json/utils/isValidJsonString";
+import { isValidEmail } from "../utils/validators/email/isValidEmail";
+import { isValidFilePath } from "../utils/validators/filePath/isValidFilePath";
+import { isValidUrl } from "../utils/validators/url/isValidUrl";
+import type { PipelineString } from "./PipelineString";
 
 /**
  * Function `validatePipelineString` will validate the if the string is a valid pipeline string
@@ -15,19 +15,25 @@ import type { PipelineString } from './PipelineString';
  * @public exported from `@promptbook/core`
  */
 export function validatePipelineString(pipelineString: string): PipelineString {
-    if (isValidJsonString(pipelineString)) {
-        throw new ParseError('Expected a book, but got a JSON string');
-    } else if (isValidUrl(pipelineString)) {
-        throw new ParseError(`Expected a book, but got just the URL "${pipelineString}"`);
-    } else if (isValidFilePath(pipelineString)) {
-        throw new ParseError(`Expected a book, but got just the file path "${pipelineString}"`);
-    } else if (isValidEmail(pipelineString)) {
-        throw new ParseError(`Expected a book, but got just the email "${pipelineString}"`);
-    }
+	if (isValidJsonString(pipelineString)) {
+		throw new ParseError("Expected a book, but got a JSON string");
+	} else if (isValidUrl(pipelineString)) {
+		throw new ParseError(
+			`Expected a book, but got just the URL "${pipelineString}"`,
+		);
+	} else if (isValidFilePath(pipelineString)) {
+		throw new ParseError(
+			`Expected a book, but got just the file path "${pipelineString}"`,
+		);
+	} else if (isValidEmail(pipelineString)) {
+		throw new ParseError(
+			`Expected a book, but got just the email "${pipelineString}"`,
+		);
+	}
 
-    // <- TODO: Implement the validation + add tests when the pipeline logic considered as invalid
+	// <- TODO: Implement the validation + add tests when the pipeline logic considered as invalid
 
-    return pipelineString as PipelineString;
+	return pipelineString as PipelineString;
 }
 
 /**

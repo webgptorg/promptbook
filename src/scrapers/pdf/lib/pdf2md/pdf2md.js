@@ -1,7 +1,7 @@
-const { parse } = require('./util/pdf');
-const { makeTransformations, transform } = require('./util/transformations');
-if (typeof document === 'undefined') {
-    require('./util/dom-stubs').setStubs(global);
+const { parse } = require("./util/pdf");
+const { makeTransformations, transform } = require("./util/transformations");
+if (typeof document === "undefined") {
+	require("./util/dom-stubs").setStubs(global);
 }
 /**
  * Reads a
@@ -18,11 +18,13 @@ if (typeof document === 'undefined') {
  *
  * @returns {Promise<string>} The Markdown text
  */
-module.exports = async function (pdfBuffer, callbacks) {
-    const result = await parse(pdfBuffer, callbacks);
-    const { fonts, pages } = result;
-    const transformations = makeTransformations(fonts.map);
-    const parseResult = transform(pages, transformations);
-    const text = parseResult.pages.map((page) => page.items.join('\n') + '\n').join('');
-    return text;
+module.exports = async (pdfBuffer, callbacks) => {
+	const result = await parse(pdfBuffer, callbacks);
+	const { fonts, pages } = result;
+	const transformations = makeTransformations(fonts.map);
+	const parseResult = transform(pages, transformations);
+	const text = parseResult.pages
+		.map((page) => page.items.join("\n") + "\n")
+		.join("");
+	return text;
 };

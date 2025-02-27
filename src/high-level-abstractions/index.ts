@@ -1,5 +1,5 @@
-import { ImplicitFormfactorHla } from './implicit-formfactor/ImplicitFormfactorHla';
-import { QuickChatbotHla } from './quick-chatbot/QuickChatbotHla';
+import { ImplicitFormfactorHla } from "./implicit-formfactor/ImplicitFormfactorHla";
+import { QuickChatbotHla } from "./quick-chatbot/QuickChatbotHla";
 
 /**
  * All high-level abstractions
@@ -7,9 +7,9 @@ import { QuickChatbotHla } from './quick-chatbot/QuickChatbotHla';
  * @private internal index of `parsePipeline` (= used for sync) and `preparePipeline` (= used for async)
  */
 export const HIGH_LEVEL_ABSTRACTIONS = [
-    ImplicitFormfactorHla,
-    QuickChatbotHla,
-    // <- Note: [♓️][💩] This is the order of the application of high-level abstractions application on pipeline JSON
+	ImplicitFormfactorHla,
+	QuickChatbotHla,
+	// <- Note: [♓️][💩] This is the order of the application of high-level abstractions application on pipeline JSON
 ] as const;
 
 /**
