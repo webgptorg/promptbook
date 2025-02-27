@@ -19,7 +19,7 @@ describe('validatePipeline with valid examples', () => {
             expect(
                 (async () => {
                     try {
-                        const pipelineString = importPipelineWithoutPreparation(name as `${string}.book`);
+                        const pipelineString = await importPipelineWithoutPreparation(name as `${string}.book`);
                         const pipelineJson = await compilePipeline(pipelineString);
                         validatePipeline(pipelineJson);
                     } catch (error) {

@@ -3,6 +3,7 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { compilePipeline } from '../compilePipeline';
+import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
 describe('validatePipeline with logic errors', () => {
