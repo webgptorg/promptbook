@@ -6,15 +6,14 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { dirname, join } from 'path';
 import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { stringifyPipelineJson } from '../../src/utils/editable/utils/stringifyPipelineJson';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { forTime } from 'waitasecond';
-import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
+import { saveArchive } from '../../src/conversion/archive/saveArchive';
 import { $provideExecutablesForNode } from '../../src/executables/$provideExecutablesForNode';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { validatePipelineString } from '../../src/pipeline/validatePipelineString';
@@ -104,10 +103,7 @@ async function generateExampleJsons({
 
             const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.book(\.md)?$/, '.bookc');
 
-            // Note: We want to ensure that the generated JSONs are logically correct
-            validatePipeline(pipelineJson);
-
-            await writeFile(pipelineJsonFilePath, stringifyPipelineJson(pipelineJson));
+            await saveArchive(pipelineJsonFilePath, [pipelineJson], fs);
 
             console.info(colors.green(`📖  Generated .bookc from ${pipelineMarkdownFilePath}`));
         } catch (error) {

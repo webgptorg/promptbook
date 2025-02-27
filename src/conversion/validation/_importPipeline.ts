@@ -1,11 +1,12 @@
-import { readFileSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { $provideFilesystemForNode } from '../../_packages/node.index';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { string_filename } from '../../types/typeAliases';
-import type { string_json } from '../../types/typeAliases';
+import { loadArchive } from '../archive/loadArchive';
 
 /**
  * Import the pipeline.book or pipeline.bookc file
@@ -16,18 +17,26 @@ import type { string_json } from '../../types/typeAliases';
  * @param path - The path to the file relative to examples/pipelines directory
  * @private internal function of tests
  */
-export function importPipelineWithoutPreparation(path: `${string}.book`): PipelineString;
-export function importPipelineWithoutPreparation(path: `${string}.bookc`): PipelineJson;
-export function importPipelineWithoutPreparation(path: string_filename): PipelineString | PipelineJson {
+export async function importPipelineWithoutPreparation(path: `${string}.book`): Promise<PipelineString>;
+export async function importPipelineWithoutPreparation(path: `${string}.bookc`): Promise<PipelineJson>;
+export async function importPipelineWithoutPreparation(path: string_filename): Promise<PipelineString | PipelineJson> {
     const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
-    const content = readFileSync(join(__dirname, examplesDir, path), 'utf-8');
-    //                         <- Note: In production it is not good practice to use synchronous functions
-    //                                  But this is only a test before the build, so it is okay
+    const filePath = join(__dirname, examplesDir, path);
+
     if (path.endsWith('.bookc')) {
-        let pipeline = JSON.parse(content) as PipelineJson;
+        const pipelines = await loadArchive(filePath, $provideFilesystemForNode());
+
+        if (pipelines.length !== 1) {
+            throw new Error('The archive must contain exactly one pipeline');
+        }
+
+        let pipeline = pipelines[0]!;
+
         pipeline = unpreparePipeline(pipeline);
         return pipeline;
     } else if (path.endsWith('.book')) {
+        const content = await readFile(filePath, 'utf-8');
+
         return validatePipelineString(content);
     } else {
         throw new Error('This should be used only for .book.md or .bookc files');
@@ -39,24 +48,30 @@ export function importPipelineWithoutPreparation(path: string_filename): Pipelin
  *
  * @private internal function of tests
  */
-export function importPipelineJson(path: `${string}.bookc`): PipelineJson {
-    const content = importPipelineJsonAsString(path);
-    const pipeline = JSON.parse(content) as PipelineJson;
+export async function importPipelineJson(path: `${string}.bookc`): Promise<PipelineJson> {
+    const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
+
+    const pipelines = await loadArchive(join(__dirname, examplesDir, path), $provideFilesystemForNode());
+
+    if (pipelines.length !== 1) {
+        throw new Error('The archive must contain exactly one pipeline');
+    }
+
+    const pipeline = pipelines[0]!;
+
     return pipeline;
 }
 
+/*
+TODO: [👩🏽‍🤝‍🧑🏾]
 /**
  * Import the pipeline.bookc file as string
  *
  * @private internal function of tests
- */
-export function importPipelineJsonAsString(path: `${string}.bookc`): string_json<PipelineJson> {
-    const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
-    const content = readFileSync(join(__dirname, examplesDir, path), 'utf-8');
-    //                         <- Note: In production it is not good practice to use synchronous functions
-    //                                  But this is only a test before the build, so it is okay
-    return content as string_json<PipelineJson>;
+ * /
+export async function importPipelineJsonAsString(path: `${string}.bookc`): Promise<string_json<PipelineJson>> {
 }
+*/
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

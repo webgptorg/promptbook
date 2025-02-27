@@ -1,8 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { importPipelineJson } from '../../../conversion/validation/_importPipeline';
-import { importPipelineJsonAsString } from '../../../conversion/validation/_importPipeline';
+import { importPipelineJson, importPipelineJsonAsString } from '../../../conversion/validation/_importPipeline';
 import { stringifyPipelineJson } from './stringifyPipelineJson';
+
+// TODO: [👩🏽‍🤝‍🧑🏾]
 
 describe('how stringifyPipelineJson works', () => {
     it('should work with markdown-knowledge.bookc', () =>
@@ -31,7 +32,7 @@ describe('how stringifyPipelineJson works', () => {
         ));
 
     it('should work with markdown-knowledge.bookc', () =>
-        expect(stringifyPipelineJson(importPipelineJson('26-markdown-knowledge.bookc'))).toBe(
+        expect(stringifyPipelineJson(await importPipelineJson('26-markdown-knowledge.bookc'))).toBe(
             importPipelineJsonAsString('26-markdown-knowledge.bookc'),
         ));
 });

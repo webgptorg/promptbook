@@ -2,8 +2,8 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { readFile } from 'fs/promises';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { loadArchive } from '../../conversion/archive/loadArchive';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -16,9 +16,12 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_root_url } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type {
+    string_dirname,
+    string_filename,
+    string_pipeline_root_url,
+    string_pipeline_url,
+} from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -152,25 +155,32 @@ export async function createCollectionFromDirectory(
         });
 
         const collection = new Map<string_pipeline_url, PipelineJson>();
+        const pipelinesWithFilenames: Array<{
+            fileName: string_filename;
+            sourceFile: string_filename;
+            pipeline: PipelineJson;
+        }> = [];
 
         for (const fileName of fileNames) {
             const sourceFile = './' + fileName.split('\\').join('/');
             const rootDirname = dirname(sourceFile).split('\\').join('/');
 
             try {
-                let pipeline: PipelineJson | null = null;
-
                 if (fileName.endsWith('.book') || fileName.endsWith('.book.md')) {
                     const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
-                    pipeline = await compilePipeline(pipelineString, tools, {
+                    const pipeline = await compilePipeline(pipelineString, tools, {
                         rootDirname,
                     });
-                    pipeline = { ...pipeline, sourceFile };
+                    pipelinesWithFilenames.push({ fileName, sourceFile, pipeline: { ...pipeline, sourceFile } });
                 } else if (fileName.endsWith('.bookc') || fileName.endsWith('.book.json')) {
                     // TODO: Handle non-valid JSON files
-                    pipeline = JSON.parse(await readFile(fileName, 'utf-8')) as PipelineJson;
-                    // TODO: [🌗]
-                    pipeline = { ...pipeline, sourceFile };
+
+                    pipelinesWithFilenames.push(
+                        ...(await loadArchive(fileName, tools!.fs!)).map((pipeline) =>
+                            // TODO: [🌗]
+                            ({ fileName, sourceFile, pipeline: { ...pipeline, sourceFile } }),
+                        ),
+                    );
                 } else {
                     if (isVerbose) {
                         console.info(
@@ -180,98 +190,125 @@ export async function createCollectionFromDirectory(
                 }
 
                 // ---
+            } catch (error) {
+                if (!(error instanceof Error)) {
+                    throw error;
+                }
 
-                if (pipeline !== null) {
-                    if (rootUrl !== undefined) {
-                        if (pipeline.pipelineUrl === undefined) {
-                            const pipelineUrl = rootUrl + '/' + relative(rootPath, fileName).split('\\').join('/');
+                // TODO: [7] DRY
+                const wrappedErrorMessage =
+                    spaceTrim(
+                        (block) => `
+                            ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
 
-                            // console.log({ pipelineUrl, rootPath, rootUrl, fileName });
+                            Original error message:
+                            ${block((error as Error).message)}
 
-                            if (isVerbose) {
-                                console.info(
-                                    colors.yellow(
-                                        `Implicitly set pipeline URL to ${pipelineUrl} from ${fileName
-                                            .split('\\')
-                                            .join('/')}`,
-                                    ),
-                                );
-                            }
-                            pipeline = { ...pipeline, pipelineUrl };
-                        } else if (!pipeline.pipelineUrl.startsWith(rootUrl)) {
-                            throw new PipelineUrlError(
-                                spaceTrim(`
-                                    Pipeline with URL ${
-                                        pipeline.pipelineUrl
-                                    } is not a child of the root URL ${rootUrl} 🍏
+                            Original stack trace:
+                            ${block((error as Error).stack || '')}
 
-                                    File:
-                                    ${sourceFile || 'Unknown'}
+                            ---
 
-                                `),
-                            );
-                        }
-                    }
+                        `,
+                    ) + '\n';
 
-                    // TODO: [👠] DRY
+                if (isCrashedOnError) {
+                    throw new CollectionError(wrappedErrorMessage);
+                }
+
+                // TODO: [🟥] Detect browser / node and make it colorfull
+                console.error(wrappedErrorMessage);
+            }
+        }
+
+        for (const pipelineWithFilenames of pipelinesWithFilenames) {
+            const { fileName, sourceFile } = pipelineWithFilenames;
+            let { pipeline } = pipelineWithFilenames;
+
+            try {
+                if (rootUrl !== undefined) {
                     if (pipeline.pipelineUrl === undefined) {
+                        const pipelineUrl = rootUrl + '/' + relative(rootPath, fileName).split('\\').join('/');
+
+                        // console.log({ pipelineUrl, rootPath, rootUrl, fileName });
+
                         if (isVerbose) {
                             console.info(
                                 colors.yellow(
-                                    `Can not load pipeline from ${fileName
+                                    `Implicitly set pipeline URL to ${pipelineUrl} from ${fileName
                                         .split('\\')
-                                        .join('/')} because of missing URL`,
+                                        .join('/')}`,
+                                ),
+                            );
+                        }
+                        pipeline = { ...pipeline, pipelineUrl };
+                    } else if (!pipeline.pipelineUrl.startsWith(rootUrl)) {
+                        throw new PipelineUrlError(
+                            spaceTrim(`
+                                Pipeline with URL ${pipeline.pipelineUrl} is not a child of the root URL ${rootUrl} 🍏
+
+                                File:
+                                ${sourceFile || 'Unknown'}
+
+                            `),
+                        );
+                    }
+                }
+
+                // TODO: [👠] DRY
+                if (pipeline.pipelineUrl === undefined) {
+                    if (isVerbose) {
+                        console.info(
+                            colors.yellow(
+                                `Can not load pipeline from ${fileName.split('\\').join('/')} because of missing URL`,
+                            ),
+                        );
+                    }
+                } else {
+                    // Note: [🐨] Pipeline is checked multiple times
+                    // TODO: Maybe once is enough BUT be sure to check it - better to check it multiple times than not at all
+                    validatePipeline(pipeline);
+
+                    if (
+                        // TODO: [🐽] comparePipelines(pipeline1,pipeline2): 'IDENTICAL' |'IDENTICAL_UNPREPARED' | 'IDENTICAL_INTERFACE' | 'DIFFERENT'
+                        !collection.has(pipeline.pipelineUrl)
+                    ) {
+                        if (isVerbose) {
+                            console.info(colors.green(`Loaded pipeline ${fileName.split('\\').join('/')}⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠`));
+                        }
+
+                        // Note: [🦄] Pipeline with same url uniqueness will be double-checked automatically in SimplePipelineCollection
+                        collection.set(pipeline.pipelineUrl, pipeline);
+                    } else if (
+                        pipelineJsonToString(unpreparePipeline(pipeline)) ===
+                        pipelineJsonToString(unpreparePipeline(collection.get(pipeline.pipelineUrl)!))
+                    ) {
+                        if (isVerbose) {
+                            console.info(
+                                colors.gray(
+                                    `Skipped pipeline ${fileName
+                                        .split('\\')
+                                        .join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Already identical pipeline in the collection`,
                                 ),
                             );
                         }
                     } else {
-                        // Note: [🐨] Pipeline is checked multiple times
-                        // TODO: Maybe once is enough BUT be sure to check it - better to check it multiple times than not at all
-                        validatePipeline(pipeline);
+                        const existing = collection.get(pipeline.pipelineUrl)!;
 
-                        if (
-                            // TODO: [🐽] comparePipelines(pipeline1,pipeline2): 'IDENTICAL' |'IDENTICAL_UNPREPARED' | 'IDENTICAL_INTERFACE' | 'DIFFERENT'
-                            !collection.has(pipeline.pipelineUrl)
-                        ) {
-                            if (isVerbose) {
-                                console.info(
-                                    colors.green(`Loaded pipeline ${fileName.split('\\').join('/')}⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠`),
-                                );
-                            }
+                        throw new PipelineUrlError(
+                            spaceTrim(`
+                                Pipeline with URL ${pipeline.pipelineUrl} is already in the collection 🍏
 
-                            // Note: [🦄] Pipeline with same url uniqueness will be double-checked automatically in SimplePipelineCollection
-                            collection.set(pipeline.pipelineUrl, pipeline);
-                        } else if (
-                            pipelineJsonToString(unpreparePipeline(pipeline)) ===
-                            pipelineJsonToString(unpreparePipeline(collection.get(pipeline.pipelineUrl)!))
-                        ) {
-                            if (isVerbose) {
-                                console.info(
-                                    colors.gray(
-                                        `Skipped pipeline ${fileName
-                                            .split('\\')
-                                            .join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Already identical pipeline in the collection`,
-                                    ),
-                                );
-                            }
-                        } else {
-                            const existing = collection.get(pipeline.pipelineUrl)!;
+                                Conflicting files:
+                                ${existing.sourceFile || 'Unknown'}
+                                ${pipeline.sourceFile || 'Unknown'}
 
-                            throw new PipelineUrlError(
-                                spaceTrim(`
-                                    Pipeline with URL ${pipeline.pipelineUrl} is already in the collection 🍏
+                                Note: You have probably forgotten to run "ptbk make" to update the collection
+                                Note: Pipelines with the same URL are not allowed
+                                      Only exepction is when the pipelines are identical
 
-                                    Conflicting files:
-                                    ${existing.sourceFile || 'Unknown'}
-                                    ${pipeline.sourceFile || 'Unknown'}
-
-                                    Note: You have probably forgotten to run "ptbk make" to update the collection
-                                    Note: Pipelines with the same URL are not allowed
-                                          Only exepction is when the pipelines are identical
-
-                                `),
-                            );
-                        }
+                            `),
+                        );
                     }
                 }
             } catch (error) {
@@ -279,6 +316,7 @@ export async function createCollectionFromDirectory(
                     throw error;
                 }
 
+                // TODO: [7] DRY
                 const wrappedErrorMessage =
                     spaceTrim(
                         (block) => `

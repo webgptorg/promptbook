@@ -3,7 +3,6 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { compilePipeline } from '../compilePipeline';
-import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
 describe('validatePipeline with logic errors', () => {
@@ -20,7 +19,9 @@ describe('validatePipeline with logic errors', () => {
     for (const { name } of examples) {
         it(`should validate ${name} logic`, () => {
             expect(async () => {
-                const pipelineString = importPipelineWithoutPreparation(('errors/logic/' + name) as `${string}.book`);
+                const pipelineString = await importPipelineWithoutPreparation(
+                    ('errors/logic/' + name) as `${string}.book`,
+                );
                 const pipelineJson = await compilePipeline(pipelineString);
                 validatePipeline(pipelineJson);
 

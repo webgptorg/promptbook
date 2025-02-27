@@ -3,15 +3,18 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
-import JSZip from 'jszip';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
+import { PipelineJson } from '../../_packages/types.index';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
+import { saveArchive } from '../../conversion/archive/saveArchive';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -190,6 +193,7 @@ export function $initializeMakeCommand(program: Program) {
             }
 
             const collectionJson = await collectionToJson(collection);
+
             const collectionJsonString = stringifyPipelineJson(collectionJson).trim();
             const collectionJsonItems = (() => {
                 const firstChar = collectionJsonString.charAt(0);
@@ -210,7 +214,10 @@ export function $initializeMakeCommand(program: Program) {
                 return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
             })();
 
-            const saveFile = async (extension: string_file_extension, content: string | JSZip) => {
+            const saveFile = async (
+                extension: string_file_extension,
+                content: string | ReadonlyArray<PipelineJson>,
+            ) => {
                 const filename =
                     output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
                         ? output
@@ -225,9 +232,7 @@ export function $initializeMakeCommand(program: Program) {
                 if (typeof content === 'string') {
                     await writeFile(filename, content, 'utf-8');
                 } else {
-                    // TODO: Add metadata to zip
-                    const data = await content.generateAsync({ type: 'nodebuffer', streamFiles: true });
-                    await writeFile(filename, data);
+                    await saveArchive(filename, content, fs);
                 }
 
                 // Note: Log despite of verbose mode
@@ -236,11 +241,7 @@ export function $initializeMakeCommand(program: Program) {
 
             if (formats.includes('bookc')) {
                 formats = formats.filter((format) => format !== 'bookc');
-
-                // TODO: [🥱] DRY Handling of `.bookc` files: extract un/compression in separate function
-                const bookcBundle = new JSZip();
-                bookcBundle.file('index.book.json', collectionJsonString);
-                await saveFile('bookc', bookcBundle);
+                await saveFile('bookc', collectionJson);
             }
 
             if (formats.includes('json')) {

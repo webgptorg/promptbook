@@ -18,9 +18,11 @@ describe('validatePipeline with parse errors', () => {
         .filter(({ name }) => name.endsWith('.book'));
 
     for (const { name } of examples) {
-        it(`should parse ${name} parse`, () => {
-            expect(async () => {
-                const pipelineString = importPipelineWithoutPreparation(('errors/parse/' + name) as `${string}.book`);
+        it(`should parse ${name} parse`, async () => {
+            await expect(async () => {
+                const pipelineString = await importPipelineWithoutPreparation(
+                    ('errors/parse/' + name) as `${string}.book`,
+                );
                 const pipelineJson = await compilePipeline(pipelineString);
 
                 try {

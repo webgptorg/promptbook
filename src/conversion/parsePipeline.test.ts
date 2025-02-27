@@ -14,22 +14,20 @@ describe('parsePipeline', () => {
         .filter(({ name }) => name.endsWith('.book'));
 
     for (const { name } of examples) {
-        it(`should parse ${name}`, () => {
-            const pipelineFromMarkdownPromise = Promise.resolve(
-                importPipelineWithoutPreparation(name as `${string}.book`),
-            )
+        it(`should parse ${name}`, async () => {
+            const pipelineFromMarkdownPromise = importPipelineWithoutPreparation(name as `${string}.book`)
                 .then((pipelineString) => parsePipeline(pipelineString))
                 .then((pipeline) => ({ ...pipeline, title: undefined })); // <- Note: [0] Title is not compared because it can be changed in `preparePipeline`
 
             const pipelineJson = {
-                ...importPipelineWithoutPreparation(
+                ...(await importPipelineWithoutPreparation(
                     join(examplesDir, name).replace('.book', '.bookc') as `${string}.bookc`,
-                ),
+                )),
                 title: undefined,
                 // <- Note: [0]
             };
 
-            expect(pipelineFromMarkdownPromise).resolves.toEqual(pipelineJson);
+            await expect(pipelineFromMarkdownPromise).resolves.toEqual(pipelineJson);
         });
     }
 });
