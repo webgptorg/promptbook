@@ -1,8 +1,9 @@
 import JSZip from 'jszip';
-import { stringifyPipelineJson } from '../../_packages/editable.index';
-import { PipelineJson, string_filename } from '../../_packages/types.index';
+import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { string_filename } from '../../types/typeAliases';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { FilesystemTools } from '../../execution/FilesystemTools';
+import type { FilesystemTools } from '../../execution/FilesystemTools';
 import { validatePipeline } from '../validation/validatePipeline';
 
 /**
