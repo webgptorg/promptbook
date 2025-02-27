@@ -1,18 +1,19 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
+import { TODO_any } from '../_packages/types.index';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { sectionCommandParser } from '../commands/SECTION/sectionCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TaskJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_TASK_TITLE } from '../config';
-import { ORDER_OF_PIPELINE_JSON } from '../constants';
-import { RESERVED_PARAMETER_NAMES } from '../constants';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
+import { DEFAULT_BOOK_TITLE, DEFAULT_TASK_TITLE } from '../config';
+import { ORDER_OF_PIPELINE_JSON, RESERVED_PARAMETER_NAMES } from '../constants';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { HIGH_LEVEL_ABSTRACTIONS } from '../high-level-abstractions/index';
@@ -24,9 +25,7 @@ import type { PipelineString } from '../pipeline/PipelineString';
 import { validatePipelineString } from '../pipeline/validatePipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import type { number_integer } from '../types/typeAliases';
-import type { number_positive } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
+import type { number_integer, number_positive, string_name } from '../types/typeAliases';
 import { deflatePipeline } from '../utils/editable/edit-pipeline-string/deflatePipeline';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
@@ -452,7 +451,11 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
 
                             Current state of the task:
                             ${block(JSON.stringify($taskJson, null, 4))}
-                               *<- Maybe wrong order of commands?*
+
+                            Command that failed to apply:
+                            ${block(JSON.stringify(command, null, 4))}
+
+                            *<- Maybe wrong order of commands in section?*
 
                             Raw command:
                             - ${listItem}
@@ -563,7 +566,7 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
                 (task) => task.resultingParameterName === parameter.name,
             );
             if (!isThisParameterResulting) {
-                parameter.isInput = true;
+                parameter.isInput = true as TODO_any;
                 // <- TODO: [💔] Why this is making typescript error in vscode but not in cli
                 //        > Type 'true' is not assignable to type 'false'.ts(2322)
                 //        > (property) isInput: false
@@ -577,7 +580,7 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
     if ($pipelineJson.parameters.every((parameter) => !parameter.isOutput)) {
         for (const parameter of $pipelineJson.parameters) {
             if (!parameter.isInput) {
-                parameter.isOutput = true;
+                parameter.isOutput = true as TODO_any;
                 // <- TODO: [💔]
             }
         }
