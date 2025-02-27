@@ -24,35 +24,7 @@ The following glossary is used to clarify certain concepts:
 
 _Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
 
-### Promptbook core
 
--   **Organization** _(legacy name collection)_ group jobs, workforce, knowledge, instruments, and actions into one package. Entities in one organization can share resources (= import resources from each other).
-    -   **Jobs**
-        -   **Task**
-        -   **Subtask**
-    -   **Workforce**
-        -   **Persona**
-        -   **Team**
-        -   **Role**
-    -   **Knowledge**
-        -   **Public**
-        -   **Private**
-        -   **Protected**
-    -   **Instruments**
-    -   **Actions**
-
-### Book language
-
--   **Book file**
-    -   **Section**
-        -   **Heading**
-        -   **Description**
-        -   **Command**
-        -   **Block**
-        -   **Return statement**
-    -   **Comment**
-    -   **Import**
-    -   **Scope**
 
 ### 💯 Core concepts
 
