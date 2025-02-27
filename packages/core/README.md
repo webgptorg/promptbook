@@ -410,12 +410,11 @@ See [CHANGELOG.md](./CHANGELOG.md)
 
 ## 📜 License
 
-<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://github.com/webgptorg/promptbook">Promptbook</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/hejny/">Pavol Hejný</a> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0</a></p>
+Promptbook project is under [BUSL 1.1 is an SPDX license](https://spdx.org/licenses/BUSL-1.1.html)
 
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
-
 
 
 
@@ -435,6 +434,6 @@ See [TODO.md](./TODO.md)
 
 ## 🖋️ Contributing
 
-I am open to pull requests, feedback, and suggestions. Or if you like this utility, you can [☕ buy me a coffee](https://www.buymeacoffee.com/hejny) or [donate via cryptocurrencies](https://github.com/hejny/hejny/blob/main/documents/crypto.md).
+We are open to pull requests, feedback, and suggestions.
 
-You can also ⭐ star the promptbook package, [follow me on GitHub](https://github.com/hejny) or [various other social networks](https://www.pavolhejny.com/contact/).
+You can also ⭐ star the project, [follow us on GitHub](https://github.com/hejny) or [various other social networks](https://www.pavolhejny.com/contact/).
