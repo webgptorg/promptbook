@@ -1,10 +1,10 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../pipeline/PipelineString';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { string_filename } from '../../types/typeAliases';
 import { loadArchive } from '../archive/loadArchive';
 
@@ -69,7 +69,7 @@ TODO: [👩🏽‍🤝‍🧑🏾]
  *
  * @private internal function of tests
  * /
-export async function importPipelineJsonAsString(path: `${string}.bookc`): Promise<string_json<PipelineJson>> {
+ex_port async function importPipelineJsonAsString(path: `${string}.bookc`): Promise<string_json<PipelineJson>> {
 }
 */
 
