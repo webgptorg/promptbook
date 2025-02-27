@@ -35,7 +35,7 @@ export function $initializeTestCommand(program: Program) {
         // <- TODO: [🧟‍♂️] Unite path to promptbook collection argument
         'Pipelines to test as glob pattern',
     );
-    testCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
+    testCommand.option('-i, --ignore <glob>', `Ignore as glob patterns separated by comma`, '');
 
     testCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
     testCommand.option(
@@ -50,10 +50,14 @@ export function $initializeTestCommand(program: Program) {
     testCommand.action(
         async (
             filesGlob,
-            { ignore, validation: isValidated, prepare: isPrepared, reload: isCacheReloaded, verbose: isVerbose },
+            {
+                ignore: ignoreRaw = '',
+                validation: isValidated,
+                prepare: isPrepared,
+                reload: isCacheReloaded,
+                verbose: isVerbose,
+            },
         ) => {
-            console.log({ isValidated, isPrepared });
-
             let tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers' | 'script'> | undefined = undefined;
 
             if (isPrepared) {
@@ -75,8 +79,13 @@ export function $initializeTestCommand(program: Program) {
                 } satisfies ExecutionTools;
             }
 
+            const ignore = (ignoreRaw as string).split(',').map((pattern) => pattern.trim());
+
             const filenames = await glob(filesGlob!, { ignore });
             //                       <- TODO: [😶]
+
+            // console.log({ filesGlob, ignore, filenames });
+            // await forTime(1000000);
 
             pipelines: for (const filename of filenames) {
                 try {
@@ -87,7 +96,7 @@ export function $initializeTestCommand(program: Program) {
                         pipeline = await compilePipeline(pipelineMarkdown, tools);
 
                         if (isVerbose) {
-                            console.info(colors.green(`Parsed ${filename}`));
+                            console.info(colors.green(`Parsable ${filename}`));
                         }
                     }
                     if (filename.endsWith('.bookc')) {

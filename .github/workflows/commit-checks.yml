@@ -31,7 +31,7 @@ jobs:
               #>     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
               #>     ANTHROPIC_CLAUDE_API_KEY: ${{ secrets.ANTHROPIC_CLAUDE_API_KEY }}
               #>     GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
-              run: npx ts-node ./src/cli/test/ptbk.ts test --no-prepare "./**/*.book" --verbose
+              run: npx ts-node ./src/cli/test/ptbk.ts test --no-prepare "./**/*.book" --ignore "./book/**/*,./examples/pipelines/errors/**/*" --verbose
 
     test-types:
         name: 🧪 Test types
