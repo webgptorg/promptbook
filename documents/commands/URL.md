@@ -7,9 +7,9 @@ Declares unique URL for the pipeline
 ## Example usage
 
 ```
-- PIPELINE URL https://promptbook.studio/library/write-cv.book.md
-- URL https://promptbook.studio/library/write-cv.book.md
-- https://promptbook.studio/library/write-cv.book.md
+- PIPELINE URL https://promptbook.studio/library/write-cv.book
+- URL https://promptbook.studio/library/write-cv.book
+- https://promptbook.studio/library/write-cv.book
 ```
 
 ## 🆔 Pipeline URLs and identification
