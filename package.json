@@ -64,7 +64,7 @@
         "import-markdowns": "deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git add . && git commit --message \"📄 Import markdowns\" && cd .. && git add . && git commit --message \"📄 Import markdowns\"",
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
-        "x-preversion": "git pull && ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
+        "preversion": "git pull && ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
         "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit && npm run generate-packages --commit && npm run generate-documentation && npm run import-markdowns && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
