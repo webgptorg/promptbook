@@ -6,6 +6,9 @@ import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
 export async function commit(addPaths: ReadonlyArray<string>, message: string): Promise<void> {
+    console.log(colors.blue('--- Commit ---'));
+    console.log(colors.blue(message));
+
     const projectPath = process.cwd();
     // const addPath = '.';
 
@@ -52,6 +55,8 @@ export async function commit(addPaths: ReadonlyArray<string>, message: string): 
         console.error(error);
     } finally {
         await unlink(commitMessageFilePath);
+
+        console.log(colors.blue('--- /Commit ---'));
     }
 }
 
