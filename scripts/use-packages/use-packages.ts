@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { basename, join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';
@@ -24,7 +24,7 @@ program.parse(process.argv);
 
 usePackages()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

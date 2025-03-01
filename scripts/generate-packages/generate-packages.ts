@@ -5,7 +5,7 @@ import colors from 'colors';
 import commander from 'commander';
 import fs, { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { dirname, join, relative } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
@@ -33,7 +33,7 @@ const { commit: isCommited, skipBundler: isBundlerSkipped } = program.opts();
 
 generatePackages({ isCommited, isBundlerSkipped })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

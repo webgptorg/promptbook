@@ -47,6 +47,8 @@ export async function commit(addPaths: ReadonlyArray<string>, message: string): 
             command: `git push --quiet`,
         });
     } catch (error) {
+        console.error(colors.red(`🚨 Error while commiting ${addPaths.join(', ')}`));
+        console.error(colors.magenta(message));
         console.error(error);
     } finally {
         await unlink(commitMessageFilePath);

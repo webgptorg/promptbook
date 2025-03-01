@@ -2,6 +2,7 @@
 
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import commander from 'commander';
+import { basename } from 'path';
 import { createBestTranslator } from './automatic-translators/createBestTranslator.ts.todo';
 import { translateMessages } from './translateMessages';
 
@@ -10,7 +11,7 @@ import { translateMessages } from './translateMessages';
 
 main()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

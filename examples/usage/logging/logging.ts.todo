@@ -6,6 +6,7 @@ Note: [🔁] In your app you will be importing '../../../src/_packages/core' ins
 
 import colors from 'colors';
 import * as dotenv from 'dotenv';
+import { basename } from 'path';
 
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
@@ -20,7 +21,7 @@ dotenv.config({ path: '.env' });
 
 main()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

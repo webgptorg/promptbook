@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { dirname, join } from 'path';
+import { basename, dirname, join } from 'path';
 import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
@@ -40,7 +40,7 @@ const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } =
 
 generateExampleJsons({ isCommited, isCacheReloaded, isVerbose })
     .catch((error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
@@ -113,7 +113,7 @@ async function generateExampleJsons({
 
             console.info(colors.bgWhite('========================='));
             console.info(colors.red(`Error in ${pipelineMarkdownFilePath}`));
-            console.error(colors.bgRed(error.name /* <- 11:11 */));
+            console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
             console.error(colors.red(error.stack || error.message));
             console.info(colors.bgWhite('========================='));
         }

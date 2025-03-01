@@ -5,6 +5,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
 
@@ -22,7 +23,7 @@ program.parse(process.argv);
  */
 findNameDiscrepancies()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

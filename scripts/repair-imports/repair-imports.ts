@@ -3,7 +3,7 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { dirname, join, relative } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -37,7 +37,7 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
  */
 repairImports({ isOrganized, isOrganizedAll, isCommited })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

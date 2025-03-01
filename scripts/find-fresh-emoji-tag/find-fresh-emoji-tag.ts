@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { readFileSync } from 'fs';
+import { basename } from 'path';
 import glob from 'glob-promise';
 import { join } from 'path';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
@@ -21,7 +22,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
 
 findFreshEmojiTag()
     .catch((error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

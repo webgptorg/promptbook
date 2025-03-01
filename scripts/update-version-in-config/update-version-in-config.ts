@@ -4,7 +4,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { basename, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { version } from '../../package.json';
 import { GENERATOR_WARNING } from '../../src/config';
@@ -24,7 +24,7 @@ const { commit: isCommited } = program.opts();
 
 generatePackages({ isCommited })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

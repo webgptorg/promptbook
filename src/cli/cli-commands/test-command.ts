@@ -4,6 +4,7 @@ import type {
 } from 'commander';
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
+import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -118,7 +119,7 @@ export function $initializeTestCommand(program: Program) {
                     }
 
                     console.info(colors.red(`Pipeline is not valid ${filename}`));
-                    console.error(colors.bgRed(error.name /* <- 11:11 */));
+                    console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
                     console.error(colors.red(error.stack || error.message));
 
                     return process.exit(1);

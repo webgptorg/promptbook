@@ -6,6 +6,7 @@ Note: [🔁] In your app you will be importing '../../../src/_packages/core' ins
 
 import colors from 'colors';
 import * as dotenv from 'dotenv';
+import { basename } from 'path';
 import { forEver } from 'waitasecond';
 import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
 import { OpenAiExecutionTools } from '../../../src/_packages/openai.index';
@@ -24,7 +25,7 @@ dotenv.config({ path: '.env' });
 
 main()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

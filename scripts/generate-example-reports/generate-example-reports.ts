@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { join } from 'path';
+import { basename, join } from 'path';
 import { executionReportJsonToString } from '../../src/types/execution-report/executionReportJsonToString';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -27,7 +27,7 @@ const { commit: isCommited } = program.opts();
 
 generateExampleJsons({ isCommited })
     .catch((error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })

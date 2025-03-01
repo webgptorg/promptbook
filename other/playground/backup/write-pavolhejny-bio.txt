@@ -6,6 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { join } from 'path';
+import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
@@ -100,7 +101,7 @@ async function playground() {
     }
 
     for (const error of errors) {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
     }
 

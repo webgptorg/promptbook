@@ -4,6 +4,7 @@ import type {
 } from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
+import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
@@ -64,7 +65,7 @@ export function $initializePrettifyCommand(program: Program) {
                 }
 
                 console.info(colors.red(`Prettify ${error.name} ${filename}`));
-                console.error(colors.bgRed(error.name /* <- 11:11 */));
+                console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
                 console.error(colors.red(error.stack || error.message));
 
                 return process.exit(1);

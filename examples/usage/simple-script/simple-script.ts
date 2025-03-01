@@ -7,6 +7,7 @@ Note: [🔁] In your app you will be importing '@promptbook/core' instead of '..
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
+import { basename } from 'path';
 import { forTime } from 'waitasecond';
 import {
     createPipelineExecutor,
@@ -29,7 +30,7 @@ dotenv.config({ path: '.env' });
 
 main()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
@@ -123,7 +124,7 @@ async function main() {
     }
 
     for (const error of errors) {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
     }
 
