@@ -9,8 +9,8 @@ import { usageToWorktime } from './usageToWorktime';
  */
 type PartialPromptResultUsage = Partial<PromptResultUsage> & {
     price: UncertainNumber;
-    input: Pick<PromptResultUsage['input'], 'wordsCount'>,
-    output: Pick<PromptResultUsage['output'], 'wordsCount'|'charactersCount'>
+    input: Pick<PromptResultUsage['input'], 'wordsCount'>;
+    output: Pick<PromptResultUsage['output'], 'wordsCount' | 'charactersCount'>;
 };
 
 /**
@@ -33,14 +33,16 @@ export function usageToHuman(usage: PartialPromptResultUsage): string_markdown {
         reportItems.push(`Negligible cost`);
     }
 
-    const worktime = usageToWorktime(usage);
+    const hoursCount = usageToWorktime(usage);
     if (
-        worktime.value >
+        hoursCount.value >
         1 / 60
         // <- TODO: [🍓][🧞‍♂️][👩🏽‍🤝‍🧑🏻]
     ) {
         reportItems.push(`Saved ${uncertainNumberToHuman(usageToWorktime(usage))} hours of human time`);
         // TODO: [🍓][🧞‍♂️] Show minutes, seconds, days NOT 0.1 hours
+        //     > const duration = moment.duration(hoursCount, 'hours');
+        //     > return duration.humanize();
     }
 
     if (usage.output.charactersCount.value > 0) {
