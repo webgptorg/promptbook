@@ -5,11 +5,20 @@ import type { UncertainNumber } from '../UncertainNumber';
 import { usageToWorktime } from './usageToWorktime';
 
 /**
+ * Minimal usage information required to calculate worktime
+ */
+type PartialPromptResultUsage = Partial<PromptResultUsage> & {
+    price: UncertainNumber;
+    input: Pick<PromptResultUsage['input'], 'wordsCount'>,
+    output: Pick<PromptResultUsage['output'], 'wordsCount'|'charactersCount'>
+};
+
+/**
  * Function `usageToHuman` will take usage and convert it to human readable report
  *
  * @public exported from `@promptbook/core`
  */
-export function usageToHuman(usage: PromptResultUsage): string_markdown {
+export function usageToHuman(usage: PartialPromptResultUsage): string_markdown {
     const reportItems: Array<string> = [];
 
     const uncertainNumberToHuman = ({ value, isUncertain }: UncertainNumber) =>

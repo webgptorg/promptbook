@@ -8,7 +8,7 @@ describe('how usageToWorktime works', () => {
     it('should count worktime', () =>
         expect(
             usageToWorktime({
-                price: { value: 1 },
+                // price: { value: 1 },
                 input: {
                     tokensCount: { value: 0 },
                     charactersCount: { value: 1 },
@@ -33,7 +33,7 @@ describe('how usageToWorktime works', () => {
     it('should count uncertain worktime', () =>
         expect(
             usageToWorktime({
-                price: { value: 1, isUncertain: true },
+                // price: { value: 1, isUncertain: true },
                 input: {
                     tokensCount: { value: 0, isUncertain: true },
                     charactersCount: { value: 1, isUncertain: true },

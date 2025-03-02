@@ -3,6 +3,14 @@ import type { PromptResultUsage } from '../PromptResultUsage';
 import type { UncertainNumber } from '../UncertainNumber';
 
 /**
+ * Minimal usage information required to calculate worktime
+ */
+type PartialPromptResultUsage = Pick<PromptResultUsage, 'input' | 'output'> & {
+    input: Pick<PromptResultUsage['input'], 'wordsCount'>;
+    output: Pick<PromptResultUsage['output'], 'wordsCount'>;
+};
+
+/**
  * Function usageToWorktime will take usage and estimate saved worktime in hours of reading / writing
  *
  * Note: This is an estimate based of theese sources:
@@ -11,7 +19,7 @@ import type { UncertainNumber } from '../UncertainNumber';
  *
  * @public exported from `@promptbook/core`
  */
-export function usageToWorktime(usage: PromptResultUsage): UncertainNumber {
+export function usageToWorktime(usage: PartialPromptResultUsage): UncertainNumber {
     const value =
         usage.input.wordsCount.value / (200 /* words per minute */ * 60) +
         usage.output.wordsCount.value / (40 /* words per minute */ * 60);
