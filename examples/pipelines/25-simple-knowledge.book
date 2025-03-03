@@ -74,7 +74,9 @@ Before the massive emergence of generative AI, I created the first Czech virtual
 
 ## Writing bio
 
+-   SECTION PROMPT
 -   PERSONA Jane, HR professional with prior experience in writing bios
+-   KNOWLEDGE (can be combined with persona)
 -   EXPECT MIN 1 Sentence
 
 ```markdown
