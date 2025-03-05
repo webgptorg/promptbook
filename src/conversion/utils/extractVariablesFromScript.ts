@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_javascript_name } from '../../types/typeAliases';
+import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
@@ -52,7 +51,7 @@ export function extractVariablesFromScript(script: string_javascript): Set<strin
                     script = `const ${variableName} = ()=>'';` + script;
                 } else {
                     variables.add(variableName);
-                    script = `const ${variableName} = '';` + script;
+                    script = `const ${variableName} = 'null';` + script;
                 }
             }
     } catch (error) {

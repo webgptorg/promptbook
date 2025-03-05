@@ -9,20 +9,27 @@ describe('extractVariablesFromScript', () => {
         expect([...extractVariablesFromScript('const a = 1;')]).toEqual([]);
     });
 
-    it('should parse one variable', () => {
+    it('should extract one variable', () => {
         expect([...extractVariablesFromScript('const a = name;')]).toEqual(['name']);
         expect([...extractVariablesFromScript('console.log(name);')]).toEqual(['name']);
         expect([...extractVariablesFromScript('const a = name; const b = name;')]).toEqual(['name']);
         expect([...extractVariablesFromScript('const a = 1; const b = name; const c = name;')]).toEqual(['name']);
     });
 
-    it('should NOT parse custom function', () => {
+    it('should extract variable used in functions', () => {
+        expect([...extractVariablesFromScript('foo(name);')]).toEqual(['name']);
+        expect([...extractVariablesFromScript('JSON.parse(name);')]).toEqual(['name']);
+        expect([...extractVariablesFromScript('JSON.stringify(name);')]).toEqual(['name']);
+        expect([...extractVariablesFromScript('console.log(name);')]).toEqual(['name']);
+    });
+
+    it('should NOT extract custom function', () => {
         expect([...extractVariablesFromScript('foo();')]).toEqual([]);
         expect([...extractVariablesFromScript('foo(name);')]).toEqual(['name']);
         expect([...extractVariablesFromScript('console.log(name);')]).toEqual(['name']);
     });
 
-    it('should parse multiple variables', () => {
+    it('should extract multiple variables', () => {
         expect([...extractVariablesFromScript('console.log(`${greeting} ${name}`);')]).toEqual(['greeting', 'name']);
     });
 });
