@@ -21,6 +21,21 @@ describe('countWords', () => {
         expect(countWords('Hello!?')).toBe(1);
     });
 
+    it('should count camelCase as multiple words', () => {
+        expect(countWords('helloWorld')).toBe(2);
+        expect(countWords('Hello World')).toBe(2);
+        expect(countWords('Oneword')).toBe(1);
+    });
+
+    it('should count CONSTANT_CASE as multiple words', () => {
+        expect(countWords('_')).toBe(0);
+        expect(countWords('_HELLO')).toBe(1);
+        expect(countWords('_HELLO_')).toBe(1);
+        expect(countWords('__HELLO__')).toBe(1);
+        expect(countWords('HELLO_WORLD')).toBe(2);
+        expect(countWords('ONEWORD')).toBe(1);
+    });
+
     it('should return the correct count for a string with multiple words', () => {
         expect(countWords('Hello World')).toBe(2);
         expect(countWords('Hello  World')).toBe(2);
@@ -65,4 +80,14 @@ describe('countWords', () => {
         expect(countWords('Hello\nWorld')).toBe(2);
         expect(countWords('Count\tthe\twords')).toBe(3);
     });
+
+    it('should count in JSONs', () => {
+        expect(countWords('null')).toBe(1);
+        expect(countWords('{"key": null}')).toBe(2);
+        expect(countWords('{"key": [null    ,true,\n\n\tfalse]}')).toBe(4);
+        expect(countWords('{"key-foo": "My name is Pavol"}')).toBe(6);
+        expect(countWords('{"keyFoo": "My name is Pavol"}')).toBe(6);
+    });
+
+    // TODO: Implement simmilar logic for other formats like CSV, XML, HTML, etc., use formats logic here
 });
