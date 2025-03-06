@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import spaceTrim from 'spacetrim';
 import { extractVariablesFromScript } from './extractVariablesFromScript';
 //import { extractVariablesFromScript } from './extractVariablesFromScript';
 
@@ -31,5 +32,17 @@ describe('extractVariablesFromScript', () => {
 
     it('should extract multiple variables', () => {
         expect([...extractVariablesFromScript('console.log(`${greeting} ${name}`);')]).toEqual(['greeting', 'name']);
+    });
+
+    it('should extract variables from script throwing error', () => {
+        expect([
+            ...extractVariablesFromScript(
+                spaceTrim(`
+                    if (wordSynonym === word) {
+                        throw new Error('Synonym returned from LLM is same as original word ' + word);
+                    }
+                `),
+            ),
+        ]).toEqual(['wordSynonym', 'word']);
     });
 });
