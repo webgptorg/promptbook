@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import { string_javascript, string_typescript } from '../../types/typeAliases';
+import type { string_javascript } from '../../types/typeAliases';
+import type { string_typescript } from '../../types/typeAliases';
 
 /**
  * Extract all used variable names from ginen JavaScript/TypeScript script
