@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_typescript } from '../../types/typeAliases';
+import type { string_javascript, string_typescript } from '../../types/typeAliases';
 
 /**
  * Extract all used variable names from ginen JavaScript/TypeScript script
@@ -95,7 +94,7 @@ export function extractVariablesFromScript(script: string_javascript | string_ty
             .replace(/'(?:\\.|[^'\\])*'/g, "''") // <- Note: Remove string literals
             .replace(/"(?:\\.|[^"\\])*"/g, '""')
             .replace(/`(?:\\.|[^`\\])*`/g, '``')
-            .replace(/\/(?:\\.|[^\/\\])*\/[gimsuy]*/g, '{}'); // <- Note: Remove regex literals
+            .replace(/\/(?:\\.|[^/\\])*\/[gimsuy]*/g, '{}'); // <- Note: Remove regex literals
 
         // Note: Find identifiers in function arguments
         const funcArgRegex = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/g;
