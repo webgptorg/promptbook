@@ -5,13 +5,15 @@ import type {
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { saveArchive } from '../../conversion/archive/saveArchive';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -19,6 +21,7 @@ import { $provideExecutablesForNode } from '../../executables/$provideExecutable
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { string_file_extension } from '../../types/typeAliases';
@@ -152,8 +155,7 @@ export function $initializeMakeCommand(program: Program) {
                 fs,
 
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                script: [
-                    /*new JavascriptExecutionTools
+                script: [new JavascriptExecutionTools()],
             } satisfies ExecutionTools;
 
             // TODO: [🧟‍♂️][◽] DRY:
