@@ -3,6 +3,8 @@ import spaceTrim from 'spacetrim';
 import { extractVariablesFromScript } from './extractVariablesFromScript';
 //import { extractVariablesFromScript } from './extractVariablesFromScript';
 
+// TODO: [🙊] Fix for all cases OR delete
+
 describe('extractVariablesFromScript', () => {
     it('should work in supersimple case without any variables', () => {
         expect([...extractVariablesFromScript('')]).toEqual([]);

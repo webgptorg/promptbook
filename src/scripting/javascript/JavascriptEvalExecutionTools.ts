@@ -1,6 +1,6 @@
 // Note: [💎]
 import _spaceTrim from 'spacetrim';
-import { valueToString } from '../../_packages/utils.index';
+import { templateParameters, valueToString } from '../../_packages/utils.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
@@ -164,6 +164,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                     `const ${functionName} = customFunctions.${functionName};`,
             )
             .join('\n');
+
+        script = templateParameters(script, parameters);
+        // <- Note: [🙊]
 
         const statementToEvaluate = _spaceTrim(
             (block) => `
