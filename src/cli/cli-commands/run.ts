@@ -30,7 +30,7 @@ import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $getCompiledBook } from '../../wizzard/$getCompiledBook';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
-import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
+import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 
 /**
  * Initializes `run` command for Promptbook CLI utilities
@@ -192,9 +192,7 @@ export function $initializeRunCommand(program: Program) {
             fs,
             fetch: scraperFetch,
             scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-            script: [
-                new JavascriptExecutionTools(options)
-            ],
+            script: [new JavascriptExecutionTools(options)],
         } satisfies ExecutionTools;
 
         if (isVerbose) {

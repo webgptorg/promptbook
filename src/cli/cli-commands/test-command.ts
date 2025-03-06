@@ -6,7 +6,7 @@ import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
-import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
+import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
