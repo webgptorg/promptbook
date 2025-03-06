@@ -17,6 +17,14 @@ describe('extractVariablesFromScript', () => {
         expect([...extractVariablesFromScript('const a = 1; const b = name; const c = name;')]).toEqual(['name']);
     });
 
+    it('should work with typescript', () => {
+        expect([...extractVariablesFromScript('const a: string = name;')]).toEqual(['name']);
+        expect([...extractVariablesFromScript('const a: string = name; const b: number = name;')]).toEqual(['name']);
+        expect([
+            ...extractVariablesFromScript('const a: string = name; const b: number = name; const c: boolean = name;'),
+        ]).toEqual(['name']);
+    });
+
     it('should extract variable used in functions', () => {
         expect([...extractVariablesFromScript('foo(name);')]).toEqual(['name']);
         expect([...extractVariablesFromScript('JSON.parse(name);')]).toEqual(['name']);

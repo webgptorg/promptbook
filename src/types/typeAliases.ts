@@ -335,6 +335,13 @@ export type string_script = string;
 export type string_javascript = string;
 
 /**
+ * Semantic helper
+ *
+ * For example `console.info("Hello World!" as string)`
+ */
+export type string_typescript = string;
+
+/**
  * Semantic helper for JSON strings
  *
  * Note: TType is a type of the JSON object inside the string

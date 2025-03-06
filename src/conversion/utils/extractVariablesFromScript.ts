@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import { string_javascript } from '../../types/typeAliases';
+import { string_javascript, string_typescript } from '../../types/typeAliases';
 
 /**
  * Extract all used variable names from ginen JavaScript/TypeScript script
@@ -10,7 +10,7 @@ import { string_javascript } from '../../types/typeAliases';
  * @throws {ParseError} if the script is invalid
  * @public exported from `@promptbook/utils` <- Note: [👖] This is usable elsewhere than in Promptbook, so keeping in utils
  */
-export function extractVariablesFromScript(script: string_javascript): Set<string> {
+export function extractVariablesFromScript(script: string_javascript | string_typescript): Set<string> {
     if (script.trim() === '') {
         return new Set<string>();
     }
@@ -61,6 +61,13 @@ export function extractVariablesFromScript(script: string_javascript): Set<strin
         'console',
         'JSON',
         'Error',
+
+        // Typescript types
+        'string',
+        'number',
+        'boolean',
+        'object',
+        'symbol',
     ]);
 
     try {
