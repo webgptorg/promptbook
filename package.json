@@ -1,6 +1,6 @@
 {
     "name": "promptbook-engine",
-    "version": "0.86.25",
+    "version": "0.86.26",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -64,7 +64,7 @@
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "generate-documentation": "ts-node ./scripts/generate-documentation/generate-documentation.ts --commit",
         "generate-examples-jsons": "ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit",
-        "import-markdowns": "deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git add . && git commit --allow-empty --message \"📄 Import markdowns\" && cd .. && git add . && git commit --allow-empty --message \"📄 Import markdowns\"",
+        "import-markdowns": "deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git add . && git commit --message \"📄 Import markdowns\" && cd .. && git add . && git commit --allow-empty --message \"📄 Import markdowns\"",
         "find-name-discrepancies": "ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts",
         "make-promptbook-collection": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit",
         "repair-imports": "ts-node ./scripts/repair-imports/repair-imports.ts --commit",
