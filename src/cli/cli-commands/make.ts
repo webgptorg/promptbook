@@ -153,8 +153,7 @@ export function $initializeMakeCommand(program: Program) {
 
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
                 script: [
-                    /*new JavascriptExecutionTools(options)*/
-                ],
+                    /*new JavascriptExecutionTools
             } satisfies ExecutionTools;
 
             // TODO: [🧟‍♂️][◽] DRY:

@@ -6,6 +6,7 @@ import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
+import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -74,9 +75,7 @@ export function $initializeTestCommand(program: Program) {
                     llm,
                     fs,
                     scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                    script: [
-                        /*new JavascriptExecutionTools(options)*/
-                    ],
+                    script: [new JavascriptExecutionTools(prepareAndScrapeOptions)],
                 } satisfies ExecutionTools;
             }
 
