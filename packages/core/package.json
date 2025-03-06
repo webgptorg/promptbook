@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.86.25",
+    "version": "0.86.26",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
