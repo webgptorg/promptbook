@@ -38,6 +38,10 @@ describe('extractVariablesFromScript', () => {
         expect([...extractVariablesFromScript('console.log(name);')]).toEqual(['name']);
     });
 
+    it('should NOT extract insides of regex', () => {
+        expect([...extractVariablesFromScript('if(/^Apple/gi.test(foo))')]).toEqual(['foo']);
+    });
+
     it('should extract multiple variables', () => {
         expect([...extractVariablesFromScript('console.log(`${greeting} ${name}`);')]).toEqual(['greeting', 'name']);
     });
