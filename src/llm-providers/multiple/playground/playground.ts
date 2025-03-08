@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
+import { $provideScriptingForNode } from '../../../scrapers/_common/register/$provideScriptingForNode';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AnthropicClaudeExecutionTools } from '../../anthropic-claude/AnthropicClaudeExecutionTools';

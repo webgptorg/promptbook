@@ -23,6 +23,7 @@ import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/reg
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
+import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
 import type { string_file_extension } from '../../types/typeAliases';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
