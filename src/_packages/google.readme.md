@@ -14,7 +14,8 @@ import {
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { GoogleExecutionTools } from '@promptbook/google';
 
-// ▶ Prepare tools
+// 🛠 Prepare the tools that will be used to compile and run your books
+// Note: Here you can allow or deny some LLM providers, such as not providing DeepSeek for privacy reasons
 const fs = $provideFilesystemForNode();
 const llm = new GoogleExecutionTools(
     //            <- TODO: [🧱] Implement in a functional (not new Class) way
@@ -85,7 +86,8 @@ import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 
-// ▶ Prepare tools
+// 🛠 Prepare the tools that will be used to compile and run your books
+// Note: Here you can allow or deny some LLM providers, such as not providing DeepSeek for privacy reasons
 const tools = await $provideExecutionToolsForNode();
 
 // ▶ Create whole pipeline collection
