@@ -55,7 +55,7 @@
         "@promptbook/deepseek": "0.86.31",
         "@promptbook/documents": "0.86.31",
         "@promptbook/editable": "0.86.31",
-        "@promptbook/execute-javascript": "0.86.31",
+        "@promptbook/javascript": "0.86.31",
         "@promptbook/fake-llm": "0.86.31",
         "@promptbook/google": "0.86.31",
         "@promptbook/legacy-documents": "0.86.31",

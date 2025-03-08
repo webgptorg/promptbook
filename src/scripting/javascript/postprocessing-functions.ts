@@ -34,7 +34,7 @@ const reverse = (str: string) => str.split('').reverse().join('');
 /**
  * @@@
  *
- * @public exported from `@promptbook/execute-javascript`
+ * @public exported from `@promptbook/javascript`
  */
 export const POSTPROCESSING_FUNCTIONS = {
     spaceTrim,

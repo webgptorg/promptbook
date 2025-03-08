@@ -40,7 +40,7 @@ import {
     $provideExecutionToolsForNode,
     $provideFilesystemForNode,
 } from '@promptbook/node';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { GoogleExecutionTools } from '@promptbook/google';
 
 // 🛠 Prepare the tools that will be used to compile and run your books
@@ -103,7 +103,7 @@ You can just use `$provideExecutionToolsForNode` function to create all required
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 
@@ -139,7 +139,7 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { GoogleExecutionTools } from '@promptbook/google';
 
@@ -389,7 +389,7 @@ Or you can install them separately:
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
 -   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
--   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
+-   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
 -   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities

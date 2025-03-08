@@ -1,15 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../../config';
 import { ParseError } from '../../../errors/ParseError';
-import type { string_javascript } from '../../../types/typeAliases';
-import type { string_javascript_name } from '../../../types/typeAliases';
+import type { string_javascript, string_javascript_name } from '../../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
  * @param script from which to extract the variables
  * @returns the list of variable names
  * @throws {ParseError} if the script is invalid
- * @public exported from `@promptbook/execute-javascript`
+ * @public exported from `@promptbook/javascript`
  */
 export function extractVariablesFromJavascript(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();

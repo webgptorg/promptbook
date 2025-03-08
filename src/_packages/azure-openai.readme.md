@@ -13,7 +13,7 @@ import {
     $provideScrapersForNode,
     $provideScriptingForNode,
 } from '@promptbook/node';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 
 // 🛠 Prepare the tools that will be used to compile and run your books
@@ -86,7 +86,7 @@ You can just use `$provideExecutionToolsForNode` function to create all required
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 
@@ -127,7 +127,7 @@ import {
     $provideExecutionToolsForNode,
     $provideFilesystemForNode,
 } from '@promptbook/node';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';

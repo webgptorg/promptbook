@@ -11,7 +11,7 @@ import {
     $provideScrapersForNode,
     $provideScriptingForNode,
 } from '@promptbook/node';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { GoogleExecutionTools } from '@promptbook/google';
 
 // 🛠 Prepare the tools that will be used to compile and run your books
@@ -82,7 +82,7 @@ You can just use `$provideExecutionToolsForNode` function to create all required
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 
@@ -120,7 +120,7 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { GoogleExecutionTools } from '@promptbook/google';
 

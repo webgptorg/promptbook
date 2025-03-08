@@ -66,8 +66,8 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: 🔼 Publish @promptbook/execute-javascript
-              working-directory: ./packages/execute-javascript
+            - name: 🔼 Publish @promptbook/javascript
+              working-directory: ./packages/javascript
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

@@ -17,7 +17,7 @@ import { createPipelineExecutor } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { getPipelineCollection } from './books'; // <- Importing from pre-built library
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Get single Pipeline

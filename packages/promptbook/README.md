@@ -2,17 +2,10 @@
 
 # ✨ Promptbook
 
-
-
-
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
-
-
-
-
 
 ## 🌟 New Features
 
@@ -21,20 +14,11 @@
 -   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
 
-
-
-
-
-
-
-
 ## 🤍 The Book Abstract
 
 **It's time for a paradigm shift! The future of software is in plain English, French or Latin.**
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
-
-
 
 It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
 
@@ -44,8 +28,6 @@ This shift is going to happen, whether we are ready for it or not. Our mission i
 
 **Join us in this journey!**
 
-
-
 ## 🚀 Get started
 
 Take a look at the simple starter kit with books integrated into the **Hello World** sample applications:
@@ -53,9 +35,6 @@ Take a look at the simple starter kit with books integrated into the **Hello Wor
 -   [Hello Book](https://github.com/webgptorg/hello-world)
 -   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
-
-
-
 
 ## 💜 The Promptbook Project
 
@@ -98,20 +77,15 @@ We also have a community of developers and users of **Promptbook**:
 -   [Landing page `ptbk.io`](https://ptbk.io)
 -   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 -   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536) 
+-   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
 
 And **Promptbook.studio** branded socials:
-
-
 
 -   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
 
 And **Promptujeme** sub-brand:
 
 _/Subbrand for Czech clients/_
-
-
-
 
 -   [Promptujeme.cz](https://www.promptujeme.cz/)
 -   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
@@ -123,14 +97,7 @@ _/Sub-brand for images and graphics generated via Promptbook prompting/_
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
 -   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
 
-
-
-
-
-
 ## 💙 The Book language
-
-
 
 Following is the documentation and blueprint of the [Book language](https://github.com/webgptorg/book).
 
@@ -181,8 +148,6 @@ Personas can have access to different knowledge, tools and actions. They can als
 
 -   [PERSONA](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PERSONA.md)
 
-
-
 ### **How:** Knowledge, Instruments and Actions
 
 The resources used by the personas are used to do the work.
@@ -204,8 +169,6 @@ Book has two variants: flat - which is just a prompt with no structure, and full
 As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
 
 But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
-
-
 
 ## 📦 Packages _(for developers)_
 
@@ -229,9 +192,9 @@ Or you can install them separately:
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
 -   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
--   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
+-   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
@@ -251,17 +214,7 @@ Or you can install them separately:
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 -   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
 
-
-
-
-
-
 ## 📚 Dictionary
-
-
-
-
-
 
 ### 📚 Dictionary
 
@@ -278,11 +231,7 @@ The following glossary is used to clarify certain concepts:
 -   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
-
-
 _Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 #### 💯 Core concepts
 
@@ -312,14 +261,10 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
 
-
-
 ### Terms specific to Promptbook TypeScript implementation
 
 -   Anonymous mode
 -   Application mode
-
-
 
 ## 🔌 Usage in Typescript / Javascript
 
@@ -384,8 +329,6 @@ Promptbook project is under [BUSL 1.1 is an SPDX license](https://spdx.org/licen
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
-
-
 
 ## 🤝 Partners
 

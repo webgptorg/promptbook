@@ -1,4 +1,4 @@
-import { JavascriptExecutionTools } from '../../../_packages/execute-javascript.index';
+import { JavascriptExecutionTools } from '../../../_packages/javascript.index';
 import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { ScriptExecutionTools } from '../../../execution/ScriptExecutionTools';
