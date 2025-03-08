@@ -2,8 +2,6 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
 
-// TODO: !!!!!! Uncomment this test
-
 describe('JavascriptEvalExecutionTools', () => {
     const javascriptEvalExecutionTools = new JavascriptEvalExecutionTools(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
@@ -138,8 +136,6 @@ describe('JavascriptEvalExecutionTools', () => {
             }),
         ).rejects.toThrowError(/not supported/i);
     });
-
-    // TODO: [🙊] !!! Write test with {parameter}
 });
 
 /**

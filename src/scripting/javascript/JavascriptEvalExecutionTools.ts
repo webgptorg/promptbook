@@ -166,7 +166,6 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             .join('\n');
 
         script = templateParameters(script, parameters);
-        // <- Note: [🙊]
 
         const statementToEvaluate = _spaceTrim(
             (block) => `

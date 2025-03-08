@@ -1,5 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
+import { extractVariablesFromJavascript } from '../../scripting/javascript/utils/extractVariablesFromJavascript';
 import type { string_parameter_name } from '../../types/typeAliases';
 import { extractParameterNames } from '../../utils/parameters/extractParameterNames';
 
@@ -19,7 +20,7 @@ export function extractParameterNamesFromTask(
         >
     >,
 ): Set<string_parameter_name> {
-    const { title, description, /* [🙊] taskType,*/ content, preparedContent, jokerParameterNames, foreach } = task;
+    const { title, description, taskType, content, preparedContent, jokerParameterNames, foreach } = task;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [
@@ -31,14 +32,15 @@ export function extractParameterNamesFromTask(
         parameterNames.add(parameterName);
     }
 
-    /*/
-    // TODO: [🙊] Fix `extractVariablesFromScript` or delete
     if (taskType === 'SCRIPT_TASK') {
-        for (const parameterName of extractVariablesFromScript(content)) {
+        // TODO: What if script is not javascript?
+        // const { contentLanguage } = task;
+        // if (contentLanguage !== 'javascript') {
+
+        for (const parameterName of extractVariablesFromJavascript(content)) {
             parameterNames.add(parameterName);
         }
     }
-    /**/
 
     for (const jokerName of jokerParameterNames || []) {
         parameterNames.add(jokerName);
