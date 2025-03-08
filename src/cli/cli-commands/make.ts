@@ -5,13 +5,14 @@ import type {
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { saveArchive } from '../../conversion/archive/saveArchive';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -153,7 +154,7 @@ export function $initializeMakeCommand(program: Program) {
                 fs,
 
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                script: [new JavascriptExecutionTools()],
+                script: await $provideScriptingForNode({}),
             } satisfies ExecutionTools;
 
             // TODO: [🧟‍♂️][◽] DRY:

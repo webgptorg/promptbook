@@ -10,6 +10,8 @@ import {
     createCollectionFromDirectory,
     $provideExecutionToolsForNode,
     $provideFilesystemForNode,
+    $provideScrapersForNode,
+    $provideScriptingForNode,
 } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
@@ -30,7 +32,7 @@ const tools = {
     llm,
     fs,
     scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-    script: [new JavascriptExecutionTools()],
+    script: await $provideScriptingForNode({}),
 };
 
 // ▶ Create whole pipeline collection
@@ -159,7 +161,7 @@ const tools = {
     llm,
     fs,
     scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-    script: [new JavascriptExecutionTools()],
+    script: await $provideScriptingForNode({}),
 };
 
 // ▶ Create whole pipeline collection
