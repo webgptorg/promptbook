@@ -147,6 +147,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
+    // <- TODO: [🤬] Identify the users
 
     // TODO: [🧠] Do here some garbage collection of finished tasks
 
@@ -280,6 +281,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
         const { taskId } = request.params;
 
+        // TODO: [🤬] Filter only for user
         const execution = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
 
         if (execution === undefined) {
@@ -295,13 +297,25 @@ export function startRemoteServer<TCustomOptions = undefined>(
         response.send(execution.currentValue);
     });
 
+    app.get(`${rootPath}/executions/last`, async (request, response) => {
+        // TODO: [🤬] Filter only for user
+
+        if (runningExecutionTasks.length === 0) {
+            response.status(404).send('No execution tasks found');
+            return;
+        }
+
+        const lastExecution = runningExecutionTasks[runningExecutionTasks.length - 1];
+        response.send(lastExecution);
+    });
+
     app.post<{
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
         identification: PromptbookServer_Identification<TCustomOptions>;
     }>(`${rootPath}/executions/new`, async (request, response) => {
         try {
-            const { inputParameters, identification } = request.body;
+            const { inputParameters, identification /* <- [🤬] */ } = request.body;
             const pipelineUrl = request.body.pipelineUrl || request.body.book;
 
             // TODO: [🧠] Check `pipelineUrl` and `inputParameters` here or it should be responsibility of `collection.getPipelineByUrl` and `pipelineExecutor`
