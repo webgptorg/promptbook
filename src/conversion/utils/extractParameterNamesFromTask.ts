@@ -1,7 +1,7 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { extractVariablesFromJavascript } from '../../scripting/javascript/utils/extractVariablesFromJavascript';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_javascript_name, string_parameter_name } from '../../types/typeAliases';
 import { extractParameterNames } from '../../utils/parameters/extractParameterNames';
 
 /**
@@ -23,23 +23,24 @@ export function extractParameterNamesFromTask(
     const { title, description, taskType, content, preparedContent, jokerParameterNames, foreach } = task;
     const parameterNames = new Set<string_parameter_name>();
 
-    for (const parameterName of [
-        ...extractParameterNames(title),
-        ...extractParameterNames(description || ''),
-        ...extractParameterNames(content),
-        ...extractParameterNames(preparedContent || ''),
-    ]) {
-        parameterNames.add(parameterName);
-    }
-
-    if (taskType === 'SCRIPT_TASK') {
+    let contentParameters: Set<string_javascript_name>;
+    if (taskType !== 'SCRIPT_TASK') {
+        contentParameters = extractParameterNames(content);
+    } else {
         // TODO: What if script is not javascript?
         // const { contentLanguage } = task;
         // if (contentLanguage !== 'javascript') {
 
-        for (const parameterName of extractVariablesFromJavascript(content)) {
-            parameterNames.add(parameterName);
-        }
+        contentParameters = extractVariablesFromJavascript(content);
+    }
+
+    for (const parameterName of [
+        ...extractParameterNames(title),
+        ...extractParameterNames(description || ''),
+        ...contentParameters,
+        ...extractParameterNames(preparedContent || ''),
+    ]) {
+        parameterNames.add(parameterName);
     }
 
     for (const jokerName of jokerParameterNames || []) {
