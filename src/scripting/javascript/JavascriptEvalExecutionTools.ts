@@ -1,6 +1,6 @@
 // Note: [💎]
 import _spaceTrim from 'spacetrim';
-import { templateParameters, valueToString } from '../../_packages/utils.index';
+import { valueToString } from '../../_packages/utils.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
@@ -182,7 +182,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                     Object.entries(parameters)
                         .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
                         .join('\n'),
-                        // <- Note: [🥳] This is for now the only variant how to use parameters in script
+                    // <- Note: [🥳] This is for now the only variant how to use parameters in script
                 )}
                 (()=>{ ${script} })()
             `,
