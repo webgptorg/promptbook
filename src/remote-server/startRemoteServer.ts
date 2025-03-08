@@ -278,6 +278,18 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
+    app.get(`${rootPath}/executions/last`, async (request, response) => {
+        // TODO: [🤬] Filter only for user
+
+        if (runningExecutionTasks.length === 0) {
+            response.status(404).send('No execution tasks found');
+            return;
+        }
+
+        const lastExecution = runningExecutionTasks[runningExecutionTasks.length - 1];
+        response.send(lastExecution);
+    });
+
     app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
         const { taskId } = request.params;
 
@@ -295,18 +307,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
 
         response.send(execution.currentValue);
-    });
-
-    app.get(`${rootPath}/executions/last`, async (request, response) => {
-        // TODO: [🤬] Filter only for user
-
-        if (runningExecutionTasks.length === 0) {
-            response.status(404).send('No execution tasks found');
-            return;
-        }
-
-        const lastExecution = runningExecutionTasks[runningExecutionTasks.length - 1];
-        response.send(lastExecution);
     });
 
     app.post<{
