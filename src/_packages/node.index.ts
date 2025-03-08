@@ -9,6 +9,7 @@ import { $provideLlmToolsConfigurationFromEnv } from '../llm-providers/_common/r
 import { $provideLlmToolsFromEnv } from '../llm-providers/_common/register/$provideLlmToolsFromEnv';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
+import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
 import { FileCacheStorage } from '../storage/file-cache-storage/FileCacheStorage';
 import { $execCommand } from '../utils/execCommand/$execCommand';
 import { $execCommands } from '../utils/execCommand/$execCommands';
@@ -26,6 +27,7 @@ export { $provideLlmToolsConfigurationFromEnv };
 export { $provideLlmToolsFromEnv };
 export { $provideFilesystemForNode };
 export { $provideScrapersForNode };
+export { $provideScriptingForNode };
 export { FileCacheStorage };
 export { $execCommand };
 export { $execCommands };

@@ -2,10 +2,17 @@
 
 # ✨ Promptbook
 
+
+
+
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
+
+
+
+
 
 ## 🌟 New Features
 
@@ -14,10 +21,16 @@
 -   💫 Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   🐋 **Support of [DeepSeek models](https://www.npmjs.com/package/@promptbook/deepseek)**
 
+
+
+<blockquote style="color: #ff8811">
+    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
+
 ## 📦 Package `@promptbook/types`
 
--   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
--   This package `@promptbook/types` is one part of the promptbook ecosystem.
+- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+- This package `@promptbook/types` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -56,9 +69,13 @@ const promptbook: PipelineJson = compilePipeline(
 
 _Note: `@promptbook/types` does not export brand-specific types like `OpenAiExecutionToolsOptions`, `ClaudeExecutionToolsOptions`, `LangchainExecutionToolsOptions`,... etc._
 
+
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
+
+
+
 
 ## 🤍 The Book Abstract
 
@@ -74,6 +91,8 @@ This shift is going to happen, whether we are ready for it or not. Our mission i
 
 **Join us in this journey!**
 
+
+
 ## 🚀 Get started
 
 Take a look at the simple starter kit with books integrated into the **Hello World** sample applications:
@@ -81,6 +100,9 @@ Take a look at the simple starter kit with books integrated into the **Hello Wor
 -   [Hello Book](https://github.com/webgptorg/hello-world)
 -   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
+
+
+
 
 ## 💜 The Promptbook Project
 
@@ -142,6 +164,11 @@ _/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
 -   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
+
+
+
+
+
 
 ## 💙 The Book language
 
@@ -216,6 +243,8 @@ As it is source code, it can leverage all the features of version control system
 
 But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
 
+
+
 ## 📦 Packages _(for developers)_
 
 This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -240,7 +269,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
@@ -259,6 +288,11 @@ Or you can install them separately:
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 -   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
+
+
+
+
+
 
 ## 📚 Dictionary
 
@@ -311,6 +345,8 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 
 -   Anonymous mode
 -   Application mode
+
+
 
 ## 🔌 Usage in Typescript / Javascript
 

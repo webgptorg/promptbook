@@ -66,11 +66,6 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: 🔼 Publish @promptbook/javascript
-              working-directory: ./packages/javascript
-              run: npm publish --provenance --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/fake-llm
               working-directory: ./packages/fake-llm
               run: npm publish --provenance --access public
@@ -78,6 +73,11 @@ jobs:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/google
               working-directory: ./packages/google
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/javascript
+              working-directory: ./packages/javascript
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
