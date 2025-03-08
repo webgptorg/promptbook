@@ -1,7 +1,8 @@
-import { JavascriptExecutionTools } from '../../../_packages/javascript.index';
-import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../../../config';
+import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
+import { DEFAULT_IS_AUTO_INSTALLED } from '../../../config';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { ScriptExecutionTools } from '../../../execution/ScriptExecutionTools';
+import type { ScriptExecutionTools } from '../../../execution/ScriptExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
