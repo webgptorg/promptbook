@@ -1,0 +1,106 @@
+{
+    "date": "2025-03-08T19:24:39.632Z",
+    "promptbookVersion": "0.86.31",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The project is open-source under the BUSL 1.1 license and welcomes contributions and feedback from the community."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Open-source, BUSL 1.1 license, contributions, feedback, community",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-03-08T19:24:38.501Z",
+            "complete": "2025-03-08T19:24:39.632Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000549
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 73
+                },
+                "charactersCount": {
+                    "value": 307
+                },
+                "wordsCount": {
+                    "value": 45
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 22
+                },
+                "charactersCount": {
+                    "value": 65
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The project is open-source under the BUSL 1.1 license and welcomes contributions and feedback from the community.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The project is open-source under the BUSL 1.1 license and welcomes contributions and feedback from the community."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Ya3xc6jAQE6h8uc5zT3nCv",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Open-source, BUSL 1.1 license, contributions, feedback, community"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 73,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 22
+            }
+        }
+    }
+}
