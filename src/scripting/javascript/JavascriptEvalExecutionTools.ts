@@ -165,7 +165,8 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             )
             .join('\n');
 
-        script = templateParameters(script, parameters);
+        // script = templateParameters(script, parameters);
+        // <- TODO: [🧠][🥳] Should be this is one of two variants how to use parameters in script
 
         const statementToEvaluate = _spaceTrim(
             (block) => `
@@ -181,6 +182,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                     Object.entries(parameters)
                         .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
                         .join('\n'),
+                        // <- Note: [🥳] This is for now the only variant how to use parameters in script
                 )}
                 (()=>{ ${script} })()
             `,
