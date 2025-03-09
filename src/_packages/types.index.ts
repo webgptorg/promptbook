@@ -43,6 +43,7 @@ import type { ExecutionReportString } from '../execution/execution-report/Execut
 import type { ExecutionReportStringOptions } from '../execution/execution-report/ExecutionReportStringOptions';
 import type { ExecutionTask } from '../execution/ExecutionTask';
 import type { PreparationTask } from '../execution/ExecutionTask';
+import type { task_status } from '../execution/ExecutionTask';
 import type { AbstractTask } from '../execution/ExecutionTask';
 import type { Task } from '../execution/ExecutionTask';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -327,6 +328,7 @@ export type { ExecutionReportString };
 export type { ExecutionReportStringOptions };
 export type { ExecutionTask };
 export type { PreparationTask };
+export type { task_status };
 export type { AbstractTask };
 export type { Task };
 export type { ExecutionTools };
