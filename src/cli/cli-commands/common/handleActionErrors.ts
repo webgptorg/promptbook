@@ -11,6 +11,7 @@ type actionCallbackFunction = Parameters<Program['action']>[0];
  *
  * @param action Action to be wrapped in error handling
  * @returns Wrapped action
+ * @private internal helper function for CLI commands
  */
 export function handleActionErrors(action: actionCallbackFunction): actionCallbackFunction {
     return async (...args: Array<TODO_any>) => {
