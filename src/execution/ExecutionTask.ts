@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import { BehaviorSubject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { PartialDeep } from 'type-fest';
 import type { task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
@@ -43,22 +43,41 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
         8 /* <- TODO: To global config + Use Base58 to avoid simmilar char conflicts   */,
     )}`;
 
-    const partialResultSubject = new BehaviorSubject<PartialDeep<TTaskResult>>({} as PartialDeep<TTaskResult>);
+    let status: task_status = 'RUNNING';
+    const createdAt = new Date();
+    let updatedAt = createdAt;
+    const errors: Array<Error> = [];
+    const warnings: Array<Error> = [];
+    const currentValue = {} as PartialDeep<TTaskResult>;
+    const partialResultSubject = new Subject<PartialDeep<TTaskResult>>();
+    // <- Note: Not using `BehaviorSubject` because on error we can't access the last value
 
     const finalResultPromise = /* not await */ taskProcessCallback((newOngoingResult: PartialDeep<TTaskResult>) => {
+        Object.assign(currentValue, newOngoingResult);
         partialResultSubject.next(newOngoingResult);
     });
 
     finalResultPromise
         .catch((error) => {
+            errors.push(error);
             partialResultSubject.error(error);
         })
         .then((value) => {
             if (value) {
                 try {
+                    updatedAt = new Date();
+
+                    errors.push(...value.errors);
+                    warnings.push(...value.warnings);
+                    // <- TODO: !!! Only unique errors and warnings should be added (or filtered)
+
                     assertsTaskSuccessful(value);
+                    status = 'FINISHED';
+                    Object.assign(currentValue, value);
                     partialResultSubject.next(value as really_any);
                 } catch (error) {
+                    status = 'ERROR';
+                    errors.push(error as Error);
                     partialResultSubject.error(error);
                 }
             }
@@ -81,12 +100,33 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     return {
         taskType,
         taskId,
+        get status() {
+            return status;
+            // <- Note: [1] Theese must be getters to allow changing the value in the future
+        },
+        get createdAt() {
+            return createdAt;
+            // <- Note: [1]
+        },
+        get updatedAt() {
+            return updatedAt;
+            // <- Note: [1]
+        },
         asPromise,
         asObservable() {
             return partialResultSubject.asObservable();
         },
+        get errors() {
+            return errors;
+            // <- Note: [1]
+        },
+        get warnings() {
+            return warnings;
+            // <- Note: [1]
+        },
         get currentValue() {
-            return partialResultSubject.value;
+            return currentValue;
+            // <- Note: [1]
         },
     } as TODO_remove_as<AbstractTask<TTaskResult>>;
 }
@@ -109,6 +149,14 @@ export type PreparationTask = AbstractTask<PipelineExecutorResult> & {
 };
 
 /**
+ * Status of a task
+ */
+export type task_status =
+    | 'RUNNING' /* TODO: | 'WAITING' */
+    | 'FINISHED'
+    | 'ERROR' /* TODO: | 'CANCELED' | 'SUSPENDED' */;
+
+/**
  * Base interface for all task types
  */
 export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
@@ -121,6 +169,21 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
      * Unique identifier for the task
      */
     readonly taskId: task_id;
+
+    /**
+     * Status of the task
+     */
+    readonly status: task_status;
+
+    /**
+     * Date when the task was created
+     */
+    readonly createdAt: Date;
+
+    /**
+     * Date when the task was last updated
+     */
+    readonly updatedAt: Date;
 
     /**
      * Gets a promise that resolves with the task result
@@ -136,6 +199,16 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
      * Gets just the current value which is mutated during the task processing
      */
     currentValue: PartialDeep<TTaskResult>;
+
+    /**
+     * List of errors that occurred during the task processing
+     */
+    readonly errors: Array<Error>;
+
+    /**
+     * List of warnings that occurred during the task processing
+     */
+    readonly warnings: Array<Error>;
 
     // <- TODO: asMutableObject(): PartialDeep<TTaskResult>;
 };

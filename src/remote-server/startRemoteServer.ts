@@ -5,8 +5,7 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
@@ -20,12 +19,10 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
@@ -281,6 +278,20 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
+    function exportExecutionTask(executionTask: ExecutionTask) {
+        const { taskType, taskId, status, errors, warnings, createdAt, updatedAt } = executionTask;
+        return {
+            taskId,
+            taskType,
+            status,
+            errors: errors.map(serializeError),
+            warnings: warnings.map(serializeError),
+            createdAt,
+            updatedAt,
+            ...executionTask.currentValue,
+        };
+    }
+
     app.get(`${rootPath}/executions/last`, async (request, response) => {
         // TODO: [🤬] Filter only for user
 
@@ -289,17 +300,17 @@ export function startRemoteServer<TCustomOptions = undefined>(
             return;
         }
 
-        const lastExecution = runningExecutionTasks[runningExecutionTasks.length - 1];
-        response.send(lastExecution);
+        const lastExecutionTask = runningExecutionTasks[runningExecutionTasks.length - 1];
+        response.send(exportExecutionTask(lastExecutionTask!));
     });
 
     app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
         const { taskId } = request.params;
 
         // TODO: [🤬] Filter only for user
-        const execution = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
+        const executionTask = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
 
-        if (execution === undefined) {
+        if (executionTask === undefined) {
             response
                 .status(
                     404,
@@ -309,7 +320,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             return;
         }
 
-        response.send(execution.currentValue);
+        response.send(exportExecutionTask(executionTask));
     });
 
     app.post<{
