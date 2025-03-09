@@ -3,6 +3,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
+import { handleActionErrors } from './common/handleActionErrors';
 
 /**
  * Initializes `boilerplate` command for Promptbook CLI utilities
@@ -19,14 +20,15 @@ export function $initializeBoilerplateCommand(program: Program) {
         `),
     );
 
-    boilerplateCommand.action(async () => {
-        // @@@
+    boilerplateCommand.action(
+        handleActionErrors(async () => {
+            // @@@
 
-          console.error(colors.green(`@@@`));
+            console.error(colors.green(`@@@`));
 
-
-        return process.exit(0);
-    });
+            return process.exit(0);
+        }),
+    );
 }
 
 /**

@@ -5,6 +5,7 @@ import spaceTrim from 'spacetrim';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $registeredScrapersMessage } from '../../scrapers/_common/register/$registeredScrapersMessage';
+import { handleActionErrors } from './common/handleActionErrors';
 
 /**
  * Initializes `list-scrapers` command for Promptbook CLI utilities
@@ -23,13 +24,14 @@ export function $initializeListScrapersCommand(program: Program) {
 
     listModelsCommand.alias('scrapers');
 
-    listModelsCommand.action(async () => {
-        const scrapers = await $provideScrapersForNode({});
-        const executables = await $provideExecutablesForNode();
+    listModelsCommand.action(
+        handleActionErrors(async () => {
+            const scrapers = await $provideScrapersForNode({});
+            const executables = await $provideExecutablesForNode();
 
-        console.info(
-            spaceTrim(
-                (block) => `
+            console.info(
+                spaceTrim(
+                    (block) => `
                     ${block($registeredScrapersMessage(scrapers))}
 
                     All mime-types which can be scraped:
@@ -46,10 +48,11 @@ export function $initializeListScrapersCommand(program: Program) {
                             .join('\n'),
                     )}
                 `,
-            ),
-        );
-        return process.exit(0);
-    });
+                ),
+            );
+            return process.exit(0);
+        }),
+    );
 }
 
 /**

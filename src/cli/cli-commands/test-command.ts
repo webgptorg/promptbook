@@ -6,7 +6,6 @@ import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
-import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -16,6 +15,8 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
+import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
+import { handleActionErrors } from './common/handleActionErrors';
 
 /**
  * Initializes `test` command for Promptbook CLI utilities
@@ -50,84 +51,86 @@ export function $initializeTestCommand(program: Program) {
     testCommand.option('-v, --verbose', `Is output verbose`, false);
 
     testCommand.action(
-        async (
-            filesGlob,
-            {
-                ignore: ignoreRaw = '',
-                validation: isValidated,
-                prepare: isPrepared,
-                reload: isCacheReloaded,
-                verbose: isVerbose,
-            },
-        ) => {
-            let tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers' | 'script'> | undefined = undefined;
+        handleActionErrors(
+            async (
+                filesGlob,
+                {
+                    ignore: ignoreRaw = '',
+                    validation: isValidated,
+                    prepare: isPrepared,
+                    reload: isCacheReloaded,
+                    verbose: isVerbose,
+                },
+            ) => {
+                let tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers' | 'script'> | undefined = undefined;
 
-            if (isPrepared) {
-                // TODO: DRY [◽]
-                const prepareAndScrapeOptions = {
-                    isVerbose,
-                    isCacheReloaded,
-                }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-                const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-                const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
-                const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
-                tools = {
-                    llm,
-                    fs,
-                    scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                    script: [new JavascriptExecutionTools(prepareAndScrapeOptions)],
-                } satisfies ExecutionTools;
-            }
-
-            const ignore = (ignoreRaw as string).split(',').map((pattern) => pattern.trim());
-
-            const filenames = await glob(filesGlob!, { ignore });
-            //                       <- TODO: [😶]
-
-            // console.log({ filesGlob, ignore, filenames });
-            // await forTime(1000000);
-
-            pipelines: for (const filename of filenames) {
-                try {
-                    let pipeline: PipelineJson;
-
-                    if (filename.endsWith('.book')) {
-                        const pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
-                        pipeline = await compilePipeline(pipelineMarkdown, tools);
-
-                        if (isVerbose) {
-                            console.info(colors.green(`Parsable ${filename}`));
-                        }
-                    }
-                    if (filename.endsWith('.bookc')) {
-                        pipeline = JSON.parse(await readFile(filename, 'utf-8')) as PipelineJson;
-                    } else {
-                        if (isVerbose) {
-                            console.info(colors.gray(`Skipping ${filename}`));
-                        }
-                        continue pipelines;
-                    }
-
-                    if (isValidated) {
-                        validatePipeline(pipeline);
-                        console.info(colors.green(`Validated ${filename}`));
-                    }
-                } catch (error) {
-                    if (!(error instanceof Error)) {
-                        throw error;
-                    }
-
-                    console.info(colors.red(`Pipeline is not valid ${filename}`));
-                    console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
-                    console.error(colors.red(error.stack || error.message));
-
-                    return process.exit(1);
+                if (isPrepared) {
+                    // TODO: DRY [◽]
+                    const prepareAndScrapeOptions = {
+                        isVerbose,
+                        isCacheReloaded,
+                    }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
+                    const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+                    const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
+                    const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+                    tools = {
+                        llm,
+                        fs,
+                        scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
+                        script: [new JavascriptExecutionTools(prepareAndScrapeOptions)],
+                    } satisfies ExecutionTools;
                 }
-            }
 
-            console.info(colors.green(`All pipelines are valid`));
-            return process.exit(0);
-        },
+                const ignore = (ignoreRaw as string).split(',').map((pattern) => pattern.trim());
+
+                const filenames = await glob(filesGlob!, { ignore });
+                //                       <- TODO: [😶]
+
+                // console.log({ filesGlob, ignore, filenames });
+                // await forTime(1000000);
+
+                pipelines: for (const filename of filenames) {
+                    try {
+                        let pipeline: PipelineJson;
+
+                        if (filename.endsWith('.book')) {
+                            const pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
+                            pipeline = await compilePipeline(pipelineMarkdown, tools);
+
+                            if (isVerbose) {
+                                console.info(colors.green(`Parsable ${filename}`));
+                            }
+                        }
+                        if (filename.endsWith('.bookc')) {
+                            pipeline = JSON.parse(await readFile(filename, 'utf-8')) as PipelineJson;
+                        } else {
+                            if (isVerbose) {
+                                console.info(colors.gray(`Skipping ${filename}`));
+                            }
+                            continue pipelines;
+                        }
+
+                        if (isValidated) {
+                            validatePipeline(pipeline);
+                            console.info(colors.green(`Validated ${filename}`));
+                        }
+                    } catch (error) {
+                        if (!(error instanceof Error)) {
+                            throw error;
+                        }
+
+                        console.info(colors.red(`Pipeline is not valid ${filename}`));
+                        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
+                        console.error(colors.red(error.stack || error.message));
+
+                        return process.exit(1);
+                    }
+                }
+
+                console.info(colors.green(`All pipelines are valid`));
+                return process.exit(0);
+            },
+        ),
     );
 }
 

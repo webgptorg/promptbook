@@ -8,6 +8,7 @@ import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
+import { handleActionErrors } from './common/handleActionErrors';
 
 /**
  * Initializes `prettify` command for Promptbook CLI utilities
@@ -35,46 +36,48 @@ export function $initializePrettifyCommand(program: Program) {
     prettifyCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
     prettifyCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    prettifyCommand.action(async (filesGlob, { ignore, verbose: isVerbose }) => {
-        const filenames = await glob(filesGlob!, { ignore });
-        //                       <- TODO: [😶]
+    prettifyCommand.action(
+        handleActionErrors(async (filesGlob, { ignore, verbose: isVerbose }) => {
+            const filenames = await glob(filesGlob!, { ignore });
+            //                       <- TODO: [😶]
 
-        for (const filename of filenames) {
-            if (!filename.endsWith('.book') && isVerbose) {
-                console.info(colors.gray(`Skipping ${filename}`));
-                continue;
-            }
-
-            let pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
-
-            try {
-                pipelineMarkdown = await prettifyPipelineString(pipelineMarkdown, {
-                    isGraphAdded: true,
-                    isPrettifyed: true,
-                    // <- [🕌]
-                });
-
-                await writeFile(filename, pipelineMarkdown);
-
-                if (isVerbose) {
-                    console.info(colors.green(`Prettify ${filename}`));
-                }
-            } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
+            for (const filename of filenames) {
+                if (!filename.endsWith('.book') && isVerbose) {
+                    console.info(colors.gray(`Skipping ${filename}`));
+                    continue;
                 }
 
-                console.info(colors.red(`Prettify ${error.name} ${filename}`));
-                console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
-                console.error(colors.red(error.stack || error.message));
+                let pipelineMarkdown = validatePipelineString(await readFile(filename, 'utf-8'));
 
-                return process.exit(1);
+                try {
+                    pipelineMarkdown = await prettifyPipelineString(pipelineMarkdown, {
+                        isGraphAdded: true,
+                        isPrettifyed: true,
+                        // <- [🕌]
+                    });
+
+                    await writeFile(filename, pipelineMarkdown);
+
+                    if (isVerbose) {
+                        console.info(colors.green(`Prettify ${filename}`));
+                    }
+                } catch (error) {
+                    if (!(error instanceof Error)) {
+                        throw error;
+                    }
+
+                    console.info(colors.red(`Prettify ${error.name} ${filename}`));
+                    console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
+                    console.error(colors.red(error.stack || error.message));
+
+                    return process.exit(1);
+                }
             }
-        }
 
-        console.info(colors.green(`All pipelines are prettified`));
-        return process.exit(0);
-    });
+            console.info(colors.green(`All pipelines are prettified`));
+            return process.exit(0);
+        }),
+    );
 }
 
 /**

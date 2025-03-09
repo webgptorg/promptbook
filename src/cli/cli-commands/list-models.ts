@@ -5,6 +5,7 @@ import spaceTrim from 'spacetrim';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import { $sideEffect } from '../../utils/organization/$sideEffect';
+import { handleActionErrors } from './common/handleActionErrors';
 
 /**
  * Initializes `list-models` command for Promptbook CLI utilities
@@ -24,14 +25,16 @@ export function $initializeListModelsCommand(program: Program) {
     listModelsCommand.alias('models');
     listModelsCommand.alias('llm');
 
-    listModelsCommand.action(async () => {
-        const llm = await $provideLlmToolsForWizzardOrCli({});
-        $sideEffect(llm);
-        // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
+    listModelsCommand.action(
+        handleActionErrors(async () => {
+            const llm = await $provideLlmToolsForWizzardOrCli({});
+            $sideEffect(llm);
+            // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
 
-        console.info($registeredLlmToolsMessage());
-        return process.exit(0);
-    });
+            console.info($registeredLlmToolsMessage());
+            return process.exit(0);
+        }),
+    );
 }
 
 /**

@@ -4,6 +4,7 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
+import { handleActionErrors } from './common/handleActionErrors';
 
 /**
  * Initializes testing `hello` command for Promptbook CLI utilities
@@ -25,12 +26,14 @@ export function $initializeHelloCommand(program: Program) {
     helloCommand.argument('[name]', 'Your name', 'Paul');
     helloCommand.option('-g, --greeting <greeting>', `Greeting`, 'Hello');
 
-    helloCommand.action(async (name, { greeting }) => {
-        console.info(colors.cyan(`${greeting} ${name}`));
-        await forTime(1000);
-        console.info(colors.rainbow(`Nice to meet you!`));
-        return process.exit(0);
-    });
+    helloCommand.action(
+        handleActionErrors(async (name, { greeting }) => {
+            console.info(colors.cyan(`${greeting} ${name}`));
+            await forTime(1000);
+            console.info(colors.rainbow(`Nice to meet you!`));
+            return process.exit(0);
+        }),
+    );
 }
 
 /**
