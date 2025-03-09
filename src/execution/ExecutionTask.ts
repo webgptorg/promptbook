@@ -62,19 +62,23 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             errors.push(error);
             partialResultSubject.error(error);
         })
-        .then((value) => {
-            if (value) {
+        .then((executionResult) => {
+            if (executionResult) {
                 try {
                     updatedAt = new Date();
 
-                    errors.push(...value.errors);
-                    warnings.push(...value.warnings);
+                    errors.push(...executionResult.errors);
+                    warnings.push(...executionResult.warnings);
                     // <- TODO: !!! Only unique errors and warnings should be added (or filtered)
 
-                    assertsTaskSuccessful(value);
+                    // TODO: [🧠] !!! errors, warning, isSuccessful  are redundant both in `ExecutionTask` and `ExecutionTask.currentValue`
+                    //            Also maybe move `ExecutionTask.currentValue.usage` -> `ExecutionTask.usage`
+                    //            And delete `ExecutionTask.currentValue.preparedPipeline`
+
+                    assertsTaskSuccessful(executionResult);
                     status = 'FINISHED';
-                    Object.assign(currentValue, value);
-                    partialResultSubject.next(value as really_any);
+                    Object.assign(currentValue, executionResult);
+                    partialResultSubject.next(executionResult as really_any);
                 } catch (error) {
                     status = 'ERROR';
                     errors.push(error as Error);

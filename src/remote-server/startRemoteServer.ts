@@ -270,27 +270,41 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
     });
 
+    function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
+        // <- TODO: [🧠] This should be maybe method of `ExecutionTask` itself
+        const { taskType, taskId, status, errors, warnings, createdAt, updatedAt, currentValue } = executionTask;
+
+        if (isFull) {
+            return {
+                nonce: '✨',
+                taskId,
+                taskType,
+                status,
+                errors: errors.map(serializeError),
+                warnings: warnings.map(serializeError),
+                createdAt,
+                updatedAt,
+                currentValue,
+            };
+        } else {
+            return {
+                nonce: '✨',
+                taskId,
+                taskType,
+                status,
+                createdAt,
+                updatedAt,
+            };
+        }
+    }
+
     app.get(`${rootPath}/executions`, async (request, response) => {
         response.send(
-            runningExecutionTasks,
+            runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
             // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
             // <- TODO: [🧠] Better and more information
         );
     });
-
-    function exportExecutionTask(executionTask: ExecutionTask) {
-        const { taskType, taskId, status, errors, warnings, createdAt, updatedAt } = executionTask;
-        return {
-            taskId,
-            taskType,
-            status,
-            errors: errors.map(serializeError),
-            warnings: warnings.map(serializeError),
-            createdAt,
-            updatedAt,
-            ...executionTask.currentValue,
-        };
-    }
 
     app.get(`${rootPath}/executions/last`, async (request, response) => {
         // TODO: [🤬] Filter only for user
@@ -301,7 +315,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
 
         const lastExecutionTask = runningExecutionTasks[runningExecutionTasks.length - 1];
-        response.send(exportExecutionTask(lastExecutionTask!));
+        response.send(exportExecutionTask(lastExecutionTask!, true));
     });
 
     app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
@@ -320,7 +334,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             return;
         }
 
-        response.send(exportExecutionTask(executionTask));
+        response.send(exportExecutionTask(executionTask, true));
     });
 
     app.post<{
