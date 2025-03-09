@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e" scale="1" border="0" disableSvgWarning="true">
     <diagram name="Page-1" id="zo4WBBcyATChdUDADUly">
-        <mxGraphModel dx="2760" dy="1353" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
+        <mxGraphModel dx="2760" dy="1353" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -19,7 +19,7 @@
                 <mxCell id="10" value="SQLite" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
                     <mxGeometry x="-204" y="421" width="60" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="15" value="Promptbook Engine" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="15" value="Promptbook Engine" style="swimlane;whiteSpace=wrap;html=1;fillStyle=solid;gradientColor=none;swimlaneFillColor=default;" parent="1" vertex="1">
                     <mxGeometry x="181" y="137" width="964" height="587" as="geometry"/>
                 </mxCell>
                 <mxCell id="9" value="Parser" style="rounded=0;whiteSpace=wrap;html=1;" parent="15" vertex="1">
@@ -34,7 +34,7 @@
                 <mxCell id="11" value="LLM Connector" style="rounded=0;whiteSpace=wrap;html=1;" parent="15" vertex="1">
                     <mxGeometry x="188" y="287" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="38" value="Knowledge Engine" style="swimlane;whiteSpace=wrap;html=1;" parent="15" vertex="1">
+                <mxCell id="38" value="Knowledge Engine" style="swimlane;whiteSpace=wrap;html=1;swimlaneFillColor=#E6E6E6;" parent="15" vertex="1">
                     <mxGeometry x="480" y="50" width="200" height="200" as="geometry"/>
                 </mxCell>
                 <mxCell id="35" value="Scrapers &amp;amp; Convertors" style="rounded=0;whiteSpace=wrap;html=1;" parent="38" vertex="1">
@@ -70,7 +70,7 @@
                 <mxCell id="51" value="User interactions" style="rounded=0;whiteSpace=wrap;html=1;" parent="15" vertex="1">
                     <mxGeometry x="690" y="50" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="53" value="Sandbox" style="swimlane;whiteSpace=wrap;html=1;" parent="15" vertex="1">
+                <mxCell id="53" value="Sandbox" style="swimlane;whiteSpace=wrap;html=1;swimlaneFillColor=#E6E6E6;" parent="15" vertex="1">
                     <mxGeometry x="711" y="279" width="200" height="200" as="geometry"/>
                 </mxCell>
                 <mxCell id="52" value="JavaScript / TypeScript" style="rounded=0;whiteSpace=wrap;html=1;" parent="53" vertex="1">
@@ -88,7 +88,7 @@
                 <mxCell id="82" value="Vercel LLM&lt;br&gt;Adapter" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="15" vertex="1">
                     <mxGeometry x="248" y="390" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="84" value="Expectations &amp;amp; Processing" style="swimlane;whiteSpace=wrap;html=1;" parent="15" vertex="1">
+                <mxCell id="84" value="Expectations &amp;amp; Processing" style="swimlane;whiteSpace=wrap;html=1;swimlaneFillColor=#E6E6E6;" parent="15" vertex="1">
                     <mxGeometry x="494" y="267" width="200" height="307" as="geometry"/>
                 </mxCell>
                 <mxCell id="46" value="Type engine" style="rounded=0;whiteSpace=wrap;html=1;" parent="84" vertex="1">
