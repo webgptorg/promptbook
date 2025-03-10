@@ -1,0 +1,106 @@
+{
+    "date": "2025-03-10T09:32:04.301Z",
+    "promptbookVersion": "0.88.0-8",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The Promptbook ecosystem includes a runtime engine (available as npm packages and a Docker image), a web-based editor (Promptbook.studio, currently in MVP), and community support channels (Discord, GitHub, LinkedIn, Facebook, and branded social media)."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, ecosystem, runtime engine, npm packages, Docker image, web-based editor, Promptbook.studio, MVP, community support, Discord, GitHub, LinkedIn, Facebook, social media",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-03-10T09:31:35.197Z",
+            "complete": "2025-03-10T09:32:04.301Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000957
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 99
+                },
+                "charactersCount": {
+                    "value": 446
+                },
+                "wordsCount": {
+                    "value": 64
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 44
+                },
+                "charactersCount": {
+                    "value": 177
+                },
+                "wordsCount": {
+                    "value": 24
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The Promptbook ecosystem includes a runtime engine (available as npm packages and a Docker image), a web-based editor (Promptbook.studio, currently in MVP), and community support channels (Discord, GitHub, LinkedIn, Facebook, and branded social media).",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The Promptbook ecosystem includes a runtime engine (available as npm packages and a Docker image), a web-based editor (Promptbook.studio, currently in MVP), and community support channels (Discord, GitHub, LinkedIn, Facebook, and branded social media)."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_011UaoNJkxckaQWpWi2DjpUV",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook, ecosystem, runtime engine, npm packages, Docker image, web-based editor, Promptbook.studio, MVP, community support, Discord, GitHub, LinkedIn, Facebook, social media"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 99,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 44
+            }
+        }
+    }
+}

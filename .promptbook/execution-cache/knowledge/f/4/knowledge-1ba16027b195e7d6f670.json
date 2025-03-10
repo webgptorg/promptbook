@@ -1,0 +1,156 @@
+{
+    "date": "2025-03-10T09:31:34.789Z",
+    "promptbookVersion": "0.88.0-8",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook aims to simplify the development of complex LLM-powered applications by abstracting away low-level model details. It's designed for use cases involving generating complex outputs like websites, articles, code, etc., and orchestrating multiple prompts.  It's not ideal for simple prompts, streaming applications, or tasks outside text generation (currently).  Known limitations include missing iterations and import functionality."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Promptbook: Orchestrate LLMs Easily\n",
+        "modelName": "gemini-1.5-flash",
+        "timing": {
+            "start": "2025-03-10T09:31:33.891Z",
+            "complete": "2025-03-10T09:31:34.789Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook aims to simplify the development of complex LLM-powered applications by abstracting away low-level model details. It's designed for use cases involving generating complex outputs like websites, articles, code, etc., and orchestrating multiple prompts.  It's not ideal for simple prompts, streaming applications, or tasks outside text generation (currently).  Known limitations include missing iterations and import functionality.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook aims to simplify the development of complex LLM-powered applications by abstracting away low-level model details. It's designed for use cases involving generating complex outputs like websites, articles, code, etc., and orchestrating multiple prompts.  It's not ideal for simple prompts, streaming applications, or tasks outside text generation (currently).  Known limitations include missing iterations and import functionality."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Promptbook: Orchestrate LLMs Easily\n",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 123,
+                "completionTokens": 9
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook aims to simplify the development of complex LLM-powered applications by abstracting away low-level model details. It's designed for use cases involving generating complex outputs like websites, articles, code, etc., and orchestrating multiple prompts.  It's not ideal for simple prompts, streaming applications, or tasks outside text generation (currently).  Known limitations include missing iterations and import functionality."
+                            }
+                        ]
+                    }
+                ],
+                "rawSettings": {
+                    "generationConfig": {}
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json; charset=UTF-8",
+                    "date": "Mon, 10 Mar 2025 09:31:35 GMT",
+                    "server": "scaffolding on HTTPServer2",
+                    "server-timing": "gfet4t7; dur=457",
+                    "transfer-encoding": "chunked",
+                    "vary": "Origin, X-Origin, Referer",
+                    "x-content-type-options": "nosniff",
+                    "x-frame-options": "SAMEORIGIN",
+                    "x-xss-protection": "0"
+                }
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"generationConfig\":{},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> Promptbook aims to simplify the development of complex LLM-powered applications by abstracting away low-level model details. It's designed for use cases involving generating complex outputs like websites, articles, code, etc., and orchestrating multiple prompts.  It's not ideal for simple prompts, streaming applications, or tasks outside text generation (currently).  Known limitations include missing iterations and import functionality.\"}]}]}"
+            }
+        }
+    }
+}
