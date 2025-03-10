@@ -1,4 +1,4 @@
-import { isValidJsonString } from '../../_packages/utils.index';
+import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
 
 /**
  * Recursively converts JSON strings to JSON objects
