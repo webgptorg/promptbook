@@ -694,8 +694,6 @@ Compile via remote server
 -   Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)
 -   Change admin email to `pavol@ptbk.io`
 
-## In pre-release
-
 ### `0.85.0` _(2025-02-17)_
 
 [🐚] Server queue and tasks
@@ -716,7 +714,7 @@ Compile via remote server
 -   Do not generate stats for pre-releases to speed up the build process
 -   Allow pipeline URLs on private and unsecured networks
 
-### `0.85.0` _(2025-02-18)_
+### `0.86.0` _(2025-02-18)_
 
 Use `.book` as default extension for books
 
@@ -726,7 +724,9 @@ Use `.book` as default extension for books
 -   Use [VCCode extension `Promptbook .book language support`](https://marketplace.visualstudio.com/items?itemName=promptbook.book-extension)
 -   Fix: Version published to Docker Hub does not lag behind the NPM version
 
-### `0.85.0` _(2025-03-08)_
+## In pre-release
+
+### `0.88.0` _(2025-03-08)_
 
 Scripting and execution
 
@@ -734,6 +734,8 @@ Scripting and execution
 -   Rename `extractVariablesFromScript` -> `extractVariablesFromScript` and export from `@promptbook/javascript` _(not `@promptbook/utils`)_
 -   Add route `executions/last` to remote server
 -   Add `$provideScriptingForNode`
+-   Converts JSON strings to JSON objects
+-   Add `jsonStringsToJsons` to `@promptbook/utils`
 
 ## Drafts
 
