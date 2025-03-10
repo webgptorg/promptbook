@@ -6,6 +6,7 @@ import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_S
 import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import type { really_any } from '../utils/organization/really_any';
 import { $randomToken } from '../utils/random/$randomToken';
+import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
@@ -79,7 +80,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
                     assertsTaskSuccessful(executionResult);
                     status = 'FINISHED';
 
-                    currentValue = executionResult as TODO_remove_as<PartialDeep<TTaskResult>>;
+                    currentValue = jsonStringsToJsons(executionResult) as TODO_remove_as<PartialDeep<TTaskResult>>;
                     // <- TODO: Convert JSON values in string to JSON objects
 
                     partialResultSubject.next(executionResult as really_any);
