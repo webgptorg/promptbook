@@ -81,7 +81,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
                     status = 'FINISHED';
 
                     currentValue = jsonStringsToJsons(executionResult) as TODO_remove_as<PartialDeep<TTaskResult>>;
-                    // <- TODO: Convert JSON values in string to JSON objects
+                    // <- TODO: [🧠] Is this a good idea to convert JSON strins to JSONs?
 
                     partialResultSubject.next(executionResult as really_any);
                 } catch (error) {
