@@ -48,12 +48,13 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     let updatedAt = createdAt;
     const errors: Array<Error> = [];
     const warnings: Array<Error> = [];
-    const currentValue = {} as PartialDeep<TTaskResult>;
+    let currentValue = {} as PartialDeep<TTaskResult>;
     const partialResultSubject = new Subject<PartialDeep<TTaskResult>>();
     // <- Note: Not using `BehaviorSubject` because on error we can't access the last value
 
     const finalResultPromise = /* not await */ taskProcessCallback((newOngoingResult: PartialDeep<TTaskResult>) => {
         Object.assign(currentValue, newOngoingResult);
+        // <- TODO: assign deep
         partialResultSubject.next(newOngoingResult);
     });
 
@@ -77,7 +78,10 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 
                     assertsTaskSuccessful(executionResult);
                     status = 'FINISHED';
-                    Object.assign(currentValue, executionResult);
+
+                    currentValue = executionResult as TODO_remove_as<PartialDeep<TTaskResult>>;
+                    // <- TODO: Convert JSON values in string to JSON objects
+
                     partialResultSubject.next(executionResult as really_any);
                 } catch (error) {
                     status = 'ERROR';
