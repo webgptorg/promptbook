@@ -118,8 +118,6 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
 
-
-
 It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
 
 The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
@@ -182,20 +180,15 @@ We also have a community of developers and users of **Promptbook**:
 -   [Landing page `ptbk.io`](https://ptbk.io)
 -   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 -   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536) 
+-   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
 
 And **Promptbook.studio** branded socials:
-
-
 
 -   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
 
 And **Promptujeme** sub-brand:
 
 _/Subbrand for Czech clients/_
-
-
-
 
 -   [Promptujeme.cz](https://www.promptujeme.cz/)
 -   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
@@ -213,8 +206,6 @@ _/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 
 ## 💙 The Book language
-
-
 
 Following is the documentation and blueprint of the [Book language](https://github.com/webgptorg/book).
 
@@ -264,8 +255,6 @@ Personas can have access to different knowledge, tools and actions. They can als
 **Related commands:**
 
 -   [PERSONA](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PERSONA.md)
-
-
 
 ### **How:** Knowledge, Instruments and Actions
 
@@ -342,11 +331,6 @@ Or you can install them separately:
 
 ## 📚 Dictionary
 
-
-
-
-
-
 ### 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
@@ -362,11 +346,7 @@ The following glossary is used to clarify certain concepts:
 -   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
-
-
 _Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 #### 💯 Core concepts
 
@@ -396,8 +376,6 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
 
-
-
 ### Terms specific to Promptbook TypeScript implementation
 
 -   Anonymous mode
@@ -405,10 +383,9 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 
 
 
-## 🔌 Usage in Typescript / Javascript
+## 🚂 Promptbook Engine
 
--   [Simple usage](./examples/usage/simple-script)
--   [Usage with client and remote server](./examples/usage/remote)
+![Schema of Promptbook Engine](./documents/promptbook-engine.svg)
 
 ## ➕➖ When to use Promptbook?
 
