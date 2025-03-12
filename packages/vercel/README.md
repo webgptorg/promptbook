@@ -174,6 +174,12 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </tbody>
 </table>
 
+Hello world examples:
+
+-   [Hello world](https://github.com/webgptorg/hello-world)
+-   [Hello world in Node.js](https://github.com/webgptorg/hello-world-node-js)
+-   [Hello world in Next.js](https://github.com/webgptorg/hello-world-next-js)
+
 We also have a community of developers and users of **Promptbook**:
 
 -   [Discord community](https://discord.gg/x3QWNaa89N)
@@ -331,11 +337,9 @@ Or you can install them separately:
 
 ## 📚 Dictionary
 
-### 📚 Dictionary
-
 The following glossary is used to clarify certain concepts:
 
-#### General LLM / AI terms
+### General LLM / AI terms
 
 -   **Prompt drift** is a phenomenon where the AI model starts to generate outputs that are not aligned with the original prompt. This can happen due to the model's training data, the prompt's wording, or the model's architecture.
 -   **Pipeline, workflow or chain** is a sequence of tasks that are executed in a specific order. In the context of AI, a pipeline can refer to a sequence of AI models that are used to process data.
@@ -346,9 +350,9 @@ The following glossary is used to clarify certain concepts:
 -   **Retrieval-augmented generation** is a machine learning paradigm where a model generates text by retrieving relevant information from a large database of text. This approach combines the benefits of generative models and retrieval models.
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
-_Note: Thos section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
+_Note: This section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
 
-#### 💯 Core concepts
+### 💯 Core concepts
 
 -   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
 -   [📯 Pipeline](https://github.com/webgptorg/promptbook/discussions/64)
@@ -361,7 +365,7 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   [🔣 Words not tokens](https://github.com/webgptorg/promptbook/discussions/29)
 -   [☯ Separation of concerns](https://github.com/webgptorg/promptbook/discussions/32)
 
-##### Advanced concepts
+#### Advanced concepts
 
 -   [📚 Knowledge (Retrieval-augmented generation)](https://github.com/webgptorg/promptbook/discussions/41)
 -   [🌏 Remote server](https://github.com/webgptorg/promptbook/discussions/89)
@@ -375,11 +379,6 @@ _Note: Thos section is not complete dictionary, more list of general AI / LLM te
 -   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
 -   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
 -   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
-
-### Terms specific to Promptbook TypeScript implementation
-
--   Anonymous mode
--   Application mode
 
 
 
@@ -451,13 +450,13 @@ See [TODO.md](./TODO.md)
 <div style="display: flex; align-items: center; gap: 20px;">
 
   <a href="https://promptbook.studio/">
-    <img src="./design/promptbook-studio-logo.png" alt="Partner 3" height="100">
+    <img src="./design/promptbook-studio-logo.png" alt="Partner 3" height="70">
   </a>
 
   <a href="https://technologickainkubace.org/en/about-technology-incubation/about-the-project/">
-    <img src="./other/partners/CI-Technology-Incubation.png" alt="Technology Incubation" height="100">
+    <img src="./other/partners/CI-Technology-Incubation.png" alt="Technology Incubation" height="70">
   </a>
-
+  
 </div>
 
 ## 🖋️ Contributing
