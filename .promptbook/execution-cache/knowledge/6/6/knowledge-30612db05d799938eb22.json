@@ -1,0 +1,111 @@
+{
+    "date": "2025-03-12T07:00:40.835Z",
+    "promptbookVersion": "0.88.0-9",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook is suitable for complex AI-generated content creation, separating code from text prompts, orchestrating multiple prompts, and versioning prompts. It may not be ideal for simple, single-prompt applications or when OpenAI Assistant (GPTs) is sufficient."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Promptbook: Complex AI Content Orchestration",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-03-12T07:00:40.009Z",
+            "complete": "2025-03-12T07:00:40.834Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000519
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 108
+                },
+                "charactersCount": {
+                    "value": 438
+                },
+                "wordsCount": {
+                    "value": 64
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 13
+                },
+                "charactersCount": {
+                    "value": 44
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook is suitable for complex AI-generated content creation, separating code from text prompts, orchestrating multiple prompts, and versioning prompts. It may not be ideal for simple, single-prompt applications or when OpenAI Assistant (GPTs) is sufficient.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook is suitable for complex AI-generated content creation, separating code from text prompts, orchestrating multiple prompts, and versioning prompts. It may not be ideal for simple, single-prompt applications or when OpenAI Assistant (GPTs) is sufficient."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_012tQcuGEQLPMHsNa7XkH6GX",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook: Complex AI Content Orchestration"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 108,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 13
+            }
+        }
+    }
+}
