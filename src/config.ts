@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -52,7 +50,7 @@ export const CLAIM = `It's time for a paradigm shift. The future of software in 
  *
  * @public exported from `@promptbook/core`
  */
-export const LOGO_LIGHT_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo.b21f0c70.png`;
+export const LOGO_LIGHT_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo.b21f0c70.png`; // <- TODO: !!! Auto-update or remove
 
 /**
  * Logo for the dark theme
@@ -61,7 +59,7 @@ export const LOGO_LIGHT_SRC: string_url_image = `https://promptbook.studio/_next
  *
  * @public exported from `@promptbook/core`
  */
-export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo-white.09887cbc.png`;
+export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo-white.09887cbc.png`; // <- TODO: !!! Auto-update or remove
 
 /**
  * When the title is not provided, the default title is used
