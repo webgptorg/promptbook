@@ -724,9 +724,7 @@ Use `.book` as default extension for books
 -   Use [VCCode extension `Promptbook .book language support`](https://marketplace.visualstudio.com/items?itemName=promptbook.book-extension)
 -   Fix: Version published to Docker Hub does not lag behind the NPM version
 
-## In pre-release
-
-### `0.88.0` _(2025-03-08)_
+### `0.88.0` _(2025-03-16)_
 
 Scripting and execution
 
@@ -736,6 +734,8 @@ Scripting and execution
 -   Add `$provideScriptingForNode`
 -   Converts JSON strings to JSON objects
 -   Add `jsonStringsToJsons` to `@promptbook/utils`
+
+## In pre-release
 
 ## Drafts
 
