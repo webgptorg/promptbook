@@ -1,0 +1,106 @@
+{
+    "date": "2025-03-16T15:48:44.383Z",
+    "promptbookVersion": "0.88.0-11",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Rapid Development enables the creation of AI applications in minutes instead of weeks. This approach emphasizes focusing on desired outcomes rather than low-level implementation details, significantly accelerating the development process."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Rapid Development, AI applications, desired outcomes, accelerating development process",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-03-16T15:48:43.149Z",
+            "complete": "2025-03-16T15:48:44.382Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0005070000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 84
+                },
+                "charactersCount": {
+                    "value": 432
+                },
+                "wordsCount": {
+                    "value": 57
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 17
+                },
+                "charactersCount": {
+                    "value": 86
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Rapid Development enables the creation of AI applications in minutes instead of weeks. This approach emphasizes focusing on desired outcomes rather than low-level implementation details, significantly accelerating the development process.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Rapid Development enables the creation of AI applications in minutes instead of weeks. This approach emphasizes focusing on desired outcomes rather than low-level implementation details, significantly accelerating the development process."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_013ijMEiNn3kEp81u55Wdtzm",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Rapid Development, AI applications, desired outcomes, accelerating development process"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 84,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 17
+            }
+        }
+    }
+}

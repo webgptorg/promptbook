@@ -1,0 +1,106 @@
+{
+    "date": "2025-03-16T15:48:42.378Z",
+    "promptbookVersion": "0.88.0-11",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": "The Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations."
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nNatural Language Programming allows developers to write specifications in plain English, which are then accurately translated into working code. This approach simplifies the programming process and makes it more accessible to non-technical users.\n\n---\n\nAI-Native Applications focus on human-understandable concepts such as personas, knowledge, and actions, rather than traditional programming elements like if statements, loops, variables, or tokens. This paradigm shift aims to make application development more intuitive and user-centric.\n\n---\n\nRapid Development enables the creation of AI applications in minutes instead of weeks. This approach emphasizes focusing on desired outcomes rather than low-level implementation details, significantly accelerating the development process.\n\n---\n\nEnterprise Ready solutions come with built-in features addressing security, privacy, encryption, testing, and scalability. These considerations ensure that the developed applications are production-ready and can meet the demanding requirements of enterprise environments.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-03-16T15:48:38.707Z",
+            "complete": "2025-03-16T15:48:42.376Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0035070000000000006
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 224
+                },
+                "charactersCount": {
+                    "value": 999
+                },
+                "wordsCount": {
+                    "value": 132
+                },
+                "sentencesCount": {
+                    "value": 7
+                },
+                "linesCount": {
+                    "value": 22
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 189
+                },
+                "charactersCount": {
+                    "value": 1068
+                },
+                "wordsCount": {
+                    "value": 138
+                },
+                "sentencesCount": {
+                    "value": 8
+                },
+                "linesCount": {
+                    "value": 22
+                },
+                "paragraphsCount": {
+                    "value": 8
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> The Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> The Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_011zZTQRrq8FuHRNLrNyic8H",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nNatural Language Programming allows developers to write specifications in plain English, which are then accurately translated into working code. This approach simplifies the programming process and makes it more accessible to non-technical users.\n\n---\n\nAI-Native Applications focus on human-understandable concepts such as personas, knowledge, and actions, rather than traditional programming elements like if statements, loops, variables, or tokens. This paradigm shift aims to make application development more intuitive and user-centric.\n\n---\n\nRapid Development enables the creation of AI applications in minutes instead of weeks. This approach emphasizes focusing on desired outcomes rather than low-level implementation details, significantly accelerating the development process.\n\n---\n\nEnterprise Ready solutions come with built-in features addressing security, privacy, encryption, testing, and scalability. These considerations ensure that the developed applications are production-ready and can meet the demanding requirements of enterprise environments."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 224,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 189
+            }
+        }
+    }
+}

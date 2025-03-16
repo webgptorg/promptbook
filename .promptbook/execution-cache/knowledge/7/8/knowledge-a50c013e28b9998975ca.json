@@ -1,0 +1,106 @@
+{
+    "date": "2025-03-16T15:49:12.892Z",
+    "promptbookVersion": "0.88.0-11",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "AI-Native Applications focus on human-understandable concepts such as personas, knowledge, and actions, rather than traditional programming elements like if statements, loops, variables, or tokens. This paradigm shift aims to make application development more intuitive and user-centric."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "AI-Native Applications, human-understandable concepts, personas, knowledge, actions, traditional programming, application development, intuitive, user-centric, paradigm shift",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-03-16T15:49:12.001Z",
+            "complete": "2025-03-16T15:49:12.892Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000873
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 101
+                },
+                "charactersCount": {
+                    "value": 481
+                },
+                "wordsCount": {
+                    "value": 65
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 38
+                },
+                "charactersCount": {
+                    "value": 174
+                },
+                "wordsCount": {
+                    "value": 18
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> AI-Native Applications focus on human-understandable concepts such as personas, knowledge, and actions, rather than traditional programming elements like if statements, loops, variables, or tokens. This paradigm shift aims to make application development more intuitive and user-centric.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> AI-Native Applications focus on human-understandable concepts such as personas, knowledge, and actions, rather than traditional programming elements like if statements, loops, variables, or tokens. This paradigm shift aims to make application development more intuitive and user-centric."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01SFDN1fgUdvQZ1nqRbbkZyq",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "AI-Native Applications, human-understandable concepts, personas, knowledge, actions, traditional programming, application development, intuitive, user-centric, paradigm shift"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 101,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 38
+            }
+        }
+    }
+}
