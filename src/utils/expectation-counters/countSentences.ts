@@ -17,3 +17,7 @@ export function splitIntoSentences(text: string): ReadonlyArray<string> {
 export function countSentences(text: string): ExpectationAmount {
     return splitIntoSentences(text).length;
 }
+
+/**
+ * TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+ */

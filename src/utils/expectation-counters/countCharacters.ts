@@ -16,3 +16,8 @@ export function countCharacters(text: string): ExpectationAmount {
 
     return text.length;
 }
+
+
+/**
+ * TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+ */
