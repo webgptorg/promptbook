@@ -6,12 +6,13 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'fs/promises';
+import fs, { readFile, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
+import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -67,30 +68,57 @@ async function usePackages() {
         ...(process.env.USE_THIS_PACKAGE_PATHS || '').split(','),
     ]) {
         const remotePackageJsonPath = join(remoteFolder, 'package.json');
-        const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
 
-        for (const dependenciesType of ['dependencies', 'devDependencies']) {
-            if (remotePackageJson[dependenciesType] === undefined) {
-                continue;
-            }
-            for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
-                if (!packageName.startsWith('@promptbook/') && packageName !== 'promptbook' && packageName !== 'ptbk') {
+        if (await isFileExisting(remotePackageJsonPath, fs)) {
+            console.info(
+                colors.blue(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`),
+            );
+
+            const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
+
+            for (const dependenciesType of ['dependencies', 'devDependencies']) {
+                if (remotePackageJson[dependenciesType] === undefined) {
                     continue;
                 }
+                for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
+                    if (
+                        !packageName.startsWith('@promptbook/') &&
+                        packageName !== 'promptbook' &&
+                        packageName !== 'ptbk'
+                    ) {
+                        continue;
+                    }
 
-                remotePackageJson[dependenciesType]![packageName] = currentVersion;
+                    remotePackageJson[dependenciesType]![packageName] = currentVersion;
+                }
             }
+
+            await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
+
+            await $execCommand({
+                cwd: remoteFolder,
+                crashOnError: false,
+                command: `npm i`,
+                isVerbose: true,
+            });
         }
 
-        await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
-        console.info(colors.blue(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
+        const remoteDockerfilePath = join(remoteFolder, 'Dockerfile');
 
-        await $execCommand({
-            cwd: remoteFolder,
-            crashOnError: false,
-            command: `npm i`,
-            isVerbose: true,
-        });
+        if (await isFileExisting(remoteDockerfilePath, fs)) {
+            console.info(
+                colors.blue(`Update version of @promptbook/* to ${currentVersion} in ${remoteDockerfilePath}`),
+            );
+
+            const remoteDockerfile = await readFile(remoteDockerfilePath, 'utf-8');
+
+            const updatedDockerfile = remoteDockerfile.replace(
+                /^(FROM\s+(hejny\/promptbook)):[^-]+?-[^-]+?$/gm,
+                `$1:${currentVersion}`,
+            );
+
+            await writeFile(remoteDockerfilePath, updatedDockerfile);
+        }
 
         if (!remoteFolder.startsWith('..')) {
             // Note: No need to check that folder is clean, because this script is executed only after new version which can be triggered only from clean state
