@@ -1,3 +1,4 @@
+import { task_id } from '../../types/typeAliases';
 import type { ALL_ERRORS } from '../0-index'; // <- TODO: [🤛] This should be this automatically repared to type import, but its not
 
 /**
@@ -6,6 +7,11 @@ import type { ALL_ERRORS } from '../0-index'; // <- TODO: [🤛] This should be 
  * Note: [🚉] This is fully serializable as JSON
  */
 export type ErrorJson = {
+    /**
+     * The unique identifier of the error
+     */
+    readonly id?: task_id; // <- TODO: [🐙] Change to id
+
     /**
      * The type of the error
      */
