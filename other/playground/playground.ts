@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import createClient from 'openapi-fetch';
 import { join } from 'path';
-import type { paths } from './brj-api-schema';
+import type { paths } from './brjapp-api-schema';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
