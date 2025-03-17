@@ -22,8 +22,7 @@ import { $provideFilesystemForNode } from '../../scrapers/_common/register/$prov
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../../scrapers/_common/utils/scraperFetch';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -32,6 +31,7 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $getCompiledBook } from '../../wizzard/$getCompiledBook';
 import { handleActionErrors } from './common/handleActionErrors';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
+import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 
 /**
  * Initializes `run` command for Promptbook CLI utilities
@@ -238,7 +238,7 @@ export function $initializeRunCommand(program: Program) {
                 pipeline,
                 tools,
                 isNotPreparedWarningSupressed: true,
-                maxExecutionAttempts: 3, // <- TODO: Pass via CLI argument
+                maxExecutionAttempts: DEFAULT_MAX_EXECUTION_ATTEMPTS, // <- TODO: Pass via CLI argument
                 //                          <- TODO: Why "LLM execution failed undefinedx"
                 maxParallelCount: 1, // <- TODO: Pass CLI argument
             });

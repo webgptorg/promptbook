@@ -734,6 +734,7 @@ Scripting and execution
 -   Add `$provideScriptingForNode`
 -   Converts JSON strings to JSON objects
 -   Add `jsonStringsToJsons` to `@promptbook/utils`
+-   Increase `DEFAULT_MAX_EXECUTION_ATTEMPTS` from `3` -> `10`
 
 ## In pre-release
 
