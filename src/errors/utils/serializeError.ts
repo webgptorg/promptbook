@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { TODO_any } from '../../_packages/types.index';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { ALL_ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';
 
