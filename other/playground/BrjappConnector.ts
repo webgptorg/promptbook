@@ -15,6 +15,7 @@ type BrjappOptions = {
 };
 
 /**
+ * Note: Credit = 1 Word to generate or read
  * Note: What we call here "user" is on BRJ.APP "customer"
  */
 export class BrjappConnector {
@@ -55,7 +56,7 @@ export class BrjappConnector {
         if (loginFetchResponse.data?.success === true) {
             return {
                 isSuccess: true,
-                message: 'Logged-in',
+                message: `Logged in as ${email}`,
                 token: loginFetchResponse.data.identityId,
                 isEmailVerificationRequired: false,
             };
@@ -78,8 +79,7 @@ export class BrjappConnector {
             loginFetchResponse.data.errorCode === 'E001' ||
             loginFetchResponse.data.errorCode === 'E004' ||
             loginFetchResponse.data.errorCode === 'E005' ||
-            loginFetchResponse.data.errorCode === 'E006' ||
-            loginFetchResponse.data.errorCode === 'E007'
+            loginFetchResponse.data.errorCode === 'E006'
         ) {
             return {
                 isSuccess: false,
@@ -88,6 +88,13 @@ export class BrjappConnector {
                     .join('User'),
                 token: null,
                 isEmailVerificationRequired: false,
+            };
+        } else if (loginFetchResponse.data.errorCode === 'E007') {
+            return {
+                isSuccess: false,
+                message: `You need to verify your email ${email}`,
+                token: null,
+                isEmailVerificationRequired: true,
             };
         }
 
@@ -140,8 +147,22 @@ export class BrjappConnector {
 
         // Note: User is newly registered, add him initial credits
 
+        await this.addInitailCredits(email);
+        // <- TODO: Maybe not await, do it indipendently of return below
+
+        return {
+            isSuccess: true,
+            message: `Registered as ${email}`,
+            token: null,
+            isEmailVerificationRequired: true,
+        };
+    }
+
+    private async addInitailCredits(email: string): Promise<void> {
+        console.log(`Addding initial credits ${this.options.initialCredits} to ${email}`);
+
         /*
-        TODO: !!!!!
+        TODO: Implement
         const xxxFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
             params: {
                 query: {
@@ -176,12 +197,16 @@ export class BrjappConnector {
             },
         });
         */
+    }
 
-        return {
-            isSuccess: true,
-            message: 'Registered',
-            token: null,
-            isEmailVerificationRequired: true,
-        };
+    /**
+     *
+     * @param creditsCount Number of credits to spend
+     * @returns true if credits were spent, false if not enough credits or another error
+     */
+    public async spendCredits(options: { email: string; creditsCount: number }): Promise<boolean> {
+        const { email, creditsCount } = options;
+        console.log(`Spending ${creditsCount} credits of ${email}`);
+        return false;
     }
 }
