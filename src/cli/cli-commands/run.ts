@@ -32,6 +32,7 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $getCompiledBook } from '../../wizzard/$getCompiledBook';
 import { handleActionErrors } from './common/handleActionErrors';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
+import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 
 /**
  * Initializes `run` command for Promptbook CLI utilities
@@ -238,7 +239,7 @@ export function $initializeRunCommand(program: Program) {
                 pipeline,
                 tools,
                 isNotPreparedWarningSupressed: true,
-                maxExecutionAttempts: 3, // <- TODO: Pass via CLI argument
+                maxExecutionAttempts: DEFAULT_MAX_EXECUTION_ATTEMPTS, // <- TODO: Pass via CLI argument
                 //                          <- TODO: Why "LLM execution failed undefinedx"
                 maxParallelCount: 1, // <- TODO: Pass CLI argument
             });

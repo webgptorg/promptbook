@@ -40,6 +40,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 ): AbstractTask<TTaskResult> {
     const { taskType, taskProcessCallback } = options;
 
+    // TODO: [🐙] DRY
     const taskId = `${taskType.toLowerCase().substring(0, 4)}-${$randomToken(
         8 /* <- TODO: To global config + Use Base58 to avoid simmilar char conflicts   */,
     )}`;

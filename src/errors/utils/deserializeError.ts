@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import type { really_any } from '../../utils/organization/really_any';
 import { ALL_ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';
 
@@ -8,7 +9,7 @@ import type { ErrorJson } from './ErrorJson';
  * @public exported from `@promptbook/utils`
  */
 export function deserializeError(error: ErrorJson): Error {
-    const { name, stack } = error;
+    const { name, stack, id } = error; // Added id
     let { message } = error;
     let ErrorClass = ALL_ERRORS[error.name as keyof typeof ALL_ERRORS];
 
@@ -28,5 +29,7 @@ export function deserializeError(error: ErrorJson): Error {
         );
     }
 
-    return new ErrorClass(message);
+    const deserializedError = new ErrorClass(message);
+    (deserializedError as really_any).id = id; // Assign id to the error object
+    return deserializedError;
 }

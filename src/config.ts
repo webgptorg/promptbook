@@ -195,7 +195,7 @@ export const DEFAULT_MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_MAX_EXECUTION_ATTEMPTS = 3; // <- TODO: [🤹‍♂️]
+export const DEFAULT_MAX_EXECUTION_ATTEMPTS = 10; // <- TODO: [🤹‍♂️]
 
 /**
  * @@@
