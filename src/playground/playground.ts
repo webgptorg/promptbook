@@ -42,7 +42,7 @@ async function playground() {
     });
 
     // const email = `john.snow.${Math.round(Math.random() * 1000)}@ptbk.io`;
-    const email = 'john.snow.existing1@ptbk.io';
+    const email = 'john.snow.existing@ptbk.io';
     //const email = 'john.snow.non-existing@ptbk.io';
 
     const password = 'xxxasfg12awrý';
@@ -73,6 +73,27 @@ async function playground() {
     }
 
     console.log({ isSuccess, message, token, isEmailVerificationRequired });
+
+    /**/
+
+    /**/
+    // const token = '61fMy75PRA70WiFI72s6889u1YB5lDqf';
+
+    if (token) {
+        const { isSuccess, message } = await brjappConnector.spendCredits({
+            email,
+            token,
+            creditsAmount: 666,
+            description: 'Use Promptbook from CLI',
+            customerRealIp,
+        });
+
+        if (isSuccess) {
+            console.info(colors.green(message));
+        } else {
+            console.info(colors.red(message));
+        }
+    }
 
     /**/
     // ------
@@ -223,7 +244,7 @@ async function playground() {
 
     // ------
 
-    /**/
+    /*/
     // Spending credits:
 
     const spendFetchResponse = await fetch(`https://brj.app/api/v1/customer/credit-spend?apiKey=${BRJAPP_API_KEY}`, {
@@ -238,6 +259,8 @@ async function playground() {
             customerRealIp: '84.246.166.22',
         }),
     }).then((response) => response.json());
+
+    console.log('spendFetchResponse', spendFetchResponse);
 
     /*
     TODO: [🦇] @janbarasek `/api/v1/customer/credit-spend` has wrong Open API definition
@@ -258,8 +281,6 @@ async function playground() {
     >     },
     > );
     */
-
-    console.log('spendFetchResponse', spendFetchResponse);
 
     /**/
 

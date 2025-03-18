@@ -1,4 +1,5 @@
 import createClient, { Client } from 'openapi-fetch';
+import { keepUnused } from '../utils/organization/keepUnused';
 import type { paths } from './brjapp-api-schema';
 
 type BrjappOptions = {
@@ -161,7 +162,6 @@ export class BrjappConnector {
 
     private async addInitailCredits(email: string): Promise<void> {
         console.log(`Addding initial credits ${this.options.initialCredits} to ${email}`);
-
         /*
         TODO: Implement
         const xxxFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
@@ -208,12 +208,16 @@ export class BrjappConnector {
         email: string;
         token: string;
         creditsAmount: number;
+        description: string;
         customerRealIp: string;
-    }): Promise<boolean> {
-        const { email, creditsAmount, token, customerRealIp } = options;
+    }): Promise<{ isSuccess: boolean; message: string }> {
+        const { email, token, creditsAmount, description, customerRealIp } = options;
         const { apiKey } = this;
 
-        console.log(`Spending ${creditsAmount} credits of ${email}`);
+        keepUnused(email);
+        // <- TODO: Maybe do not require email to call method `spendCredits`
+
+        // console.log(`Spending ${creditsAmount} credits of ${email}`);
 
         const spendFetchResponse = await fetch(`https://brj.app/api/v1/customer/credit-spend?apiKey=${apiKey}`, {
             method: 'POST',
@@ -223,7 +227,7 @@ export class BrjappConnector {
             body: JSON.stringify({
                 identityId: token,
                 amount: creditsAmount,
-                description: 'Use Promptbook from CLI',
+                description,
                 customerRealIp,
             }),
         }).then((response) => response.json());
@@ -248,6 +252,13 @@ export class BrjappConnector {
         > );
         */
 
-        return spendFetchResponse.success;
+        const isSuccess = spendFetchResponse.success;
+
+        return {
+            isSuccess,
+            message: isSuccess
+                ? `Spended ${creditsAmount} credits for "${description}"`
+                : `Failed to spend ${creditsAmount} credits`,
+        };
     }
 }
