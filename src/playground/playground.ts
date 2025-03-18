@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import createClient from 'openapi-fetch';
 import { join } from 'path';
+import { keepUnused } from '../utils/organization/keepUnused';
 import type { paths } from './brjapp-api-schema';
 import { BrjappConnector } from './BrjappConnector';
 
@@ -47,17 +48,17 @@ async function playground() {
     const password = 'xxxasfg12awrý';
     const customerRealIp = '84.246.166.22';
 
-    client;
-    brjappConnector;
-    email;
-    password;
-    customerRealIp;
+    keepUnused(client);
+    keepUnused(brjappConnector);
+    keepUnused(email);
+    keepUnused(password);
+    keepUnused(customerRealIp);
     // ------
     /*/
 
-  
 
-    
+
+
     const { isSuccess, message, token, isEmailVerificationRequired } = await brjappConnector.loginOrRegister({
         email,
         password,
@@ -149,7 +150,9 @@ async function playground() {
 
     // ------
 
-    /**/
+    /*/
+    // Adding (initial/payed) credits:
+
     const createOrderFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
         params: {
             query: {

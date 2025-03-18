@@ -218,8 +218,7 @@ export class BrjappConnector {
     public async spendCredits(options: { email: string; token: string; creditsCount: number }): Promise<boolean> {
         const { email, creditsCount } = options;
 
-
-        TODO verifyUser
+        // !!! TODO verifyUser
         console.log(`Spending ${creditsCount} credits of ${email}`);
 
         return false;
