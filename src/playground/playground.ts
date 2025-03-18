@@ -42,10 +42,9 @@ async function playground() {
     });
 
     // const email = `john.snow.${Math.round(Math.random() * 1000)}@ptbk.io`;
-    const email = 'john.snow.existing@ptbk.io';
-    //const email = 'john.snow.non-existing@ptbk.io';
+    const email = 'paul2@ptbk.io';
 
-    const password = 'xxxasfg12awrý';
+    const password = 'x';
     const customerRealIp = '84.246.166.22';
 
     keepUnused(client);
@@ -72,11 +71,22 @@ async function playground() {
         console.info(colors.cyan(`Visit your email ${email} and click on the link to verify your email`));
     }
 
-    console.log({ isSuccess, message, token, isEmailVerificationRequired });
+    // console.log({ isSuccess, message, token, isEmailVerificationRequired });
 
     /**/
-
     /**/
+    if (token) {
+        await brjappConnector.spendCredits({
+            email,
+            token,
+            creditsAmount: 5,
+            description: 'Use Promptbook from CLI',
+            customerRealIp,
+        });
+        await brjappConnector.buyCredits({ email, customerRealIp });
+    }
+    /**/
+    /*/
     // const token = '61fMy75PRA70WiFI72s6889u1YB5lDqf';
 
     if (token) {
@@ -170,6 +180,7 @@ async function playground() {
 
     /*/
     // Adding (initial/payed) credits:
+    // [🦮]
 
     const createOrderFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
         params: {
@@ -180,51 +191,52 @@ async function playground() {
         body: {
             customer: {
                 email,
-                name: 'Jan Barášek',
-                firstName: 'Jan',
-                lastName: 'Barášek',
-                phone: '+420 777123456',
-                companyName: 'BRJ',
-                companyRegistrationNumber: '05103118',
-                taxIdentificationNumber: 'CZ9609040727',
-                streetAddress: 'R. Novotného 1505',
-                city: 'Kladno',
-                cityPart: 'Kročehlavy',
-                stateRegion: 'Středočeský kraj',
-                postalCode: '272 01',
-                country: 'Česká republika',
-                newsletter: false,
-                primaryLocale: 'cs',
-                groups: [''],
+                // name: 'Jan Barášek',
+                // firstName: 'Jan',
+                // lastName: 'Barášek',
+                // phone: '+420 777123456',
+                // companyName: 'BRJ',
+                // companyRegistrationNumber: '05103118',
+                // taxIdentificationNumber: 'CZ9609040727',
+                // streetAddress: 'R. Novotného 1505',
+                // city: 'Kladno',
+                // cityPart: 'Kročehlavy',
+                // stateRegion: 'Středočeský kraj',
+                // postalCode: '272 01',
+                // country: 'Česká republika',
+                // newsletter: false,
+                // primaryLocale: 'cs',
+                // groups: [''],
             },
+
             // copyCustomers: ['janbarasek@gmail.com'],
             // cartId: 'b411056d304d9y6mHe2SoMFBL2Apxfnb',
             items: [
                 {
-                    label: 'Cheese burger',
-                    price: 1,
-                    vat: 1,
+                    label: 'Nabití kreditů',
+                    price: 0, // TODO
+                    vat: 21, // <- TODO: Put in the configuration
                     count: 1,
-                    sale: 10,
-                    unit: 'ks',
-                    productCode: 'burger',
-                    variantCode: 'cheese-burger',
-                    eventCode: '2WRp6X5rSqQa321EjHB2mxZz74u74H84',
-                    creditAmount: 100,
-                    specialActions: 'lifetimeSubscriptions;addCredit:15',
+                    creditAmount: 100, // TODO
                 },
             ],
-            orderGroupId: 'branch-vinohrady',
-            locale: 'cs',
-            currency: 'CZK',
-            sale: 1,
+            orderGroupId: 'credit-buy', //<- 'credit-buy' or initial-credits
+            // locale: 'cs',
+
+            // TODO: What is the purpose of these (vs `items`)?
+            // currency: 'CZK',
+            // sale: 123, // <- Absolute value in order-defined currency.
+
+            /*
             paymentMethod: 'credits',
             deliveryPrice: 1,
             paymentPrice: 1,
             expirationDate: '2024-05-01T10:00:00.000Z',
             dueDate: '2024-05-01T10:00:00.000Z',
-            internalNotice: '',
-            publicNotice: '',
+            * /
+
+            // internalNotice: '',
+            // publicNotice: '',
             // tags: {'^(.*)$': null,},
             // returnUrl: 'https://gymroom.cz/rezervace/dekujeme',
             // notificationUrl: '',

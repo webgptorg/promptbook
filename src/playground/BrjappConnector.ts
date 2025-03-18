@@ -39,6 +39,18 @@ export class BrjappConnector {
         const { email, password, customerRealIp } = options;
         const { client, apiKey } = this;
 
+        console.log(`Logging in as ${email}`);
+
+        if (password === '') {
+            // TODO: Do more password validation
+            return {
+                isSuccess: false,
+                message: `Password is required`,
+                token: null,
+                isEmailVerificationRequired: false,
+            };
+        }
+
         const loginFetchResponse = await client.POST(`/api/v1/customer/login`, {
             params: {
                 query: {
@@ -65,6 +77,7 @@ export class BrjappConnector {
         }
 
         // Note: User is not logged in, try find why
+        console.log(`User ${email} not logged in, try find why:`, loginFetchResponse.data?.errorCode);
 
         // Error codes /api/v1/customer/login
         // E001	Customer login failed.
@@ -101,6 +114,7 @@ export class BrjappConnector {
         }
 
         // Note: User is not registered, try to register
+        console.log(`User ${email} not registered, try to register`);
 
         const registerFetchResponse = await client.POST(`/api/v1/customer/register-account`, {
             params: {
@@ -136,10 +150,12 @@ export class BrjappConnector {
             },
         });
 
+        console.log('registerFetchResponse', registerFetchResponse);
+
         if (!(registerFetchResponse.data?.success || false)) {
             return {
                 isSuccess: false,
-                message: (loginFetchResponse.data?.message || 'Unknown error during registration')
+                message: (registerFetchResponse.data?.message || 'Unknown error during registration')
                     .split('Customer')
                     .join('User'),
                 token: null,
@@ -149,8 +165,8 @@ export class BrjappConnector {
 
         // Note: User is newly registered, add him initial credits
 
-        await this.addInitailCredits(email);
-        // <- TODO: Maybe not await, do it indipendently of return below
+        await this.addInitailCredits({ email, customerRealIp });
+        // <- TODO: [🧠] Maybe not await, do it indipendently of return below
 
         return {
             isSuccess: true,
@@ -160,44 +176,107 @@ export class BrjappConnector {
         };
     }
 
-    private async addInitailCredits(email: string): Promise<void> {
+    private async addInitailCredits(options: {
+        email: string;
+        customerRealIp: string;
+    }): Promise<{ isSuccess: boolean; message: string }> {
+        const { email, customerRealIp } = options;
+        const { client, apiKey } = this;
+
         console.log(`Addding initial credits ${this.options.initialCredits} to ${email}`);
-        /*
-        TODO: Implement
-        const xxxFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
+
+        // TODO: Verify if user already has initial credits
+
+        // Note: [🦮] Look for more options of `/api/v1/shop/order/create`
+        const createOrderFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
             params: {
                 query: {
                     apiKey,
                 },
-                headers: {
-                    // 'Content-Type': 'application/json',
+            },
+            body: {
+                customerRealIp,
+                customer: {
+                    email,
+                },
+                items: [
+                    {
+                        label: 'Initial words',
+                        price: 0, // TODO
+                        vat: 21, // <- TODO: Put in the configuration
+                        count: 1,
+                        creditAmount: this.options.initialCredits,
+                    },
+                ],
+                orderGroupId: 'initial-credits',
+                forceIgnoreNegativeCreditBalance: false,
+            },
+        });
+
+        if (createOrderFetchResponse.data?.orderNumber) {
+            return {
+                isSuccess: true,
+                message: 'Initial credits added',
+            };
+        } else {
+            return {
+                isSuccess: false,
+                message: 'Failed to add initial credits',
+            };
+        }
+    }
+
+    public async buyCredits(options: {
+        email: string;
+        customerRealIp: string;
+    }): Promise<{ isSuccess: boolean; message: string; payLink: string | null }> {
+        const { email, customerRealIp } = options;
+        const { client, apiKey } = this;
+
+        console.log(`Buying credits for ${email}`);
+
+        // TODO: Verify if user already has initial credits
+
+        // Note: [🦮] Look for more options of `/api/v1/shop/order/create`
+        const createOrderFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
+            params: {
+                query: {
+                    apiKey,
                 },
             },
             body: {
-                email,
-                password,
-                // returnUrl: '',
-                // name: '',
-                // firstName: '',
-                // lastName: '',
-                // phone: '',
-                // companyName: '',
-                // companyRegistrationNumber: '',
-                // taxIdentificationNumber: '',
-                // streetAddress: '',
-                // city: '',
-                // cityPart: '',
-                // stateRegion: '',
-                // postalCode: '',
-                // country: '',
-                newsletter: true,
-                primaryLocale: 'en',
-                groups: this.userGroups,
                 customerRealIp,
-                // referralId: '',
+                customer: {
+                    email,
+                },
+                items: [
+                    {
+                        label: 'Buy words',
+                        // TODO: !!!! Pricing plans
+                        price: 25,
+                        vat: 21, // <- TODO: Put in the configuration
+                        count: 1,
+                        creditAmount: this.options.initialCredits,
+                    },
+                ],
+                orderGroupId: 'credit-buy',
+                forceIgnoreNegativeCreditBalance: false,
             },
         });
-        */
+
+        if (createOrderFetchResponse.data?.orderNumber) {
+            return {
+                isSuccess: true,
+                message: `Order created, ${createOrderFetchResponse.data.links.payLink}`,
+                payLink: createOrderFetchResponse.data.links.payLink,
+            };
+        } else {
+            return {
+                isSuccess: false,
+                message: 'Failed to create order',
+                payLink: null,
+            };
+        }
     }
 
     /**
