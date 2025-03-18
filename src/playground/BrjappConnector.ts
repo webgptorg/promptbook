@@ -28,6 +28,8 @@ export class BrjappConnector {
     /**
      * Login or register user
      *
+     * TODO: [🧠] Probbably better name for this method
+     *
      * @param options
      * @returns user token or null if user needs to verify email
      */
