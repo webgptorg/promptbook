@@ -259,6 +259,7 @@ export class BrjappConnector {
                         creditAmount: this.options.initialCredits,
                     },
                 ],
+                currency: 'USD', // <- TODO: !!!! Pricing plans
                 orderGroupId: 'credit-buy',
                 forceIgnoreNegativeCreditBalance: false,
             },
