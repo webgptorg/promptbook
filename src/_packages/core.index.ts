@@ -89,7 +89,7 @@ import { $llmToolsMetadataRegister } from '../llm-providers/_common/register/$ll
 import { $llmToolsRegister } from '../llm-providers/_common/register/$llmToolsRegister';
 import { createLlmToolsFromConfiguration } from '../llm-providers/_common/register/createLlmToolsFromConfiguration';
 import { cacheLlmTools } from '../llm-providers/_common/utils/cache/cacheLlmTools';
-import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
+import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countUsage';
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
 import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic-claude/register-configuration';
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';

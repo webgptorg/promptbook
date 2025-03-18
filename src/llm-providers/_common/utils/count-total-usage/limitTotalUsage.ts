@@ -13,7 +13,7 @@ import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
-import { countUsage } from './countTotalUsage';
+import { countUsage } from './countUsage';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**

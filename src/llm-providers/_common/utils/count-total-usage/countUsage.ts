@@ -31,7 +31,7 @@ export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTo
             return llmTools.description;
         },
 
-        async checkConfiguration(): Promise<void> {
+        checkConfiguration(): Promisable<void> {
             return /* not await */ llmTools.checkConfiguration();
         },
 

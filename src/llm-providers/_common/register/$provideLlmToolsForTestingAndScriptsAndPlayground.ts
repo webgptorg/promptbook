@@ -7,7 +7,7 @@ import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$p
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
-import { countUsage } from '../utils/count-total-usage/countTotalUsage';
+import { countUsage } from '../utils/count-total-usage/countUsage';
 import { limitTotalUsage } from '../utils/count-total-usage/limitTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
