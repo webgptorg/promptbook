@@ -5,9 +5,10 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import createClient from 'openapi-fetch';
+// import createClient from 'openapi-fetch';
 import { join } from 'path';
-import type { paths } from './brjapp-api-schema';
+// import type { paths } from './brjapp-api-schema';
+import { BrjappConnector } from './BrjappConnector';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -32,17 +33,27 @@ async function playground() {
 
     const BRJAPP_API_KEY = 'PRODdh003eNKaec7PoO1AzU244tsL4WO'; // <-
 
-    const client = createClient<paths>({ baseUrl: 'https://brj.app/' });
+    // const client = createClient<paths>({ baseUrl: 'https://brj.app/' });
+
+    const brjappConnector = new BrjappConnector(BRJAPP_API_KEY, {
+        userGroups: ['cli'],
+        initialCredits: 500000,
+    });
 
     // const email = `john.snow.${Math.round(Math.random() * 1000)}@ptbk.io`;
-    // const email = 'john.snow.existing@ptbk.io';
-    const email = 'john.snow.non-existing@ptbk.io';
+    const email = 'john.snow.existing@ptbk.io';
+    //const email = 'john.snow.non-existing@ptbk.io';
 
     const password = 'xxxasfg12awrý';
     const customerRealIp = '84.246.166.22';
 
     // ------
-    /**/
+
+    const loginOrRegisterResponse = await brjappConnector.loginOrRegister({ email, password, customerRealIp });
+    console.log(loginOrRegisterResponse);
+
+    // ------
+    /*/
     const loginFetchResponse = await client.POST(`/api/v1/customer/login`, {
         params: {
             query: {
