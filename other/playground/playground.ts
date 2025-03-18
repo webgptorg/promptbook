@@ -5,9 +5,9 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-// import createClient from 'openapi-fetch';
+import createClient from 'openapi-fetch';
 import { join } from 'path';
-// import type { paths } from './brjapp-api-schema';
+import type { paths } from './brjapp-api-schema';
 import { BrjappConnector } from './BrjappConnector';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -33,7 +33,7 @@ async function playground() {
 
     const BRJAPP_API_KEY = 'PRODdh003eNKaec7PoO1AzU244tsL4WO'; // <-
 
-    // const client = createClient<paths>({ baseUrl: 'https://brj.app/' });
+    const client = createClient<paths>({ baseUrl: 'https://brj.app/' });
 
     const brjappConnector = new BrjappConnector(BRJAPP_API_KEY, {
         userGroups: ['cli'],
@@ -41,17 +41,42 @@ async function playground() {
     });
 
     // const email = `john.snow.${Math.round(Math.random() * 1000)}@ptbk.io`;
-    const email = 'john.snow.existing@ptbk.io';
+    const email = 'john.snow.existing1@ptbk.io';
     //const email = 'john.snow.non-existing@ptbk.io';
 
     const password = 'xxxasfg12awrý';
     const customerRealIp = '84.246.166.22';
 
+    client;
+    brjappConnector;
+    email;
+    password;
+    customerRealIp;
     // ------
+    /*/
 
-    const loginOrRegisterResponse = await brjappConnector.loginOrRegister({ email, password, customerRealIp });
-    console.log(loginOrRegisterResponse);
+  
 
+    
+    const { isSuccess, message, token, isEmailVerificationRequired } = await brjappConnector.loginOrRegister({
+        email,
+        password,
+        customerRealIp,
+    });
+
+    if (isSuccess) {
+        console.info(colors.green(message));
+    } else {
+        console.info(colors.red(message));
+    }
+
+    if (isEmailVerificationRequired) {
+        console.info(colors.cyan(`Visit your email ${email} and click on the link to verify your email`));
+    }
+
+    console.log({ isSuccess, message, token, isEmailVerificationRequired });
+
+/**/
     // ------
     /*/
     const loginFetchResponse = await client.POST(`/api/v1/customer/login`, {
@@ -120,6 +145,80 @@ async function playground() {
     console.log('registerFetchResponse.data', registerFetchResponse.data);
     console.log('email', email);
     console.log('isSuccess', isRegisterSuccess);
+    /**/
+
+    // ------
+
+    /**/
+    const createOrderFetchResponse = await client.POST(`/api/v1/shop/order/create`, {
+        params: {
+            query: {
+                apiKey: BRJAPP_API_KEY,
+            },
+        },
+        body: {
+            customer: {
+                email,
+                name: 'Jan Barášek',
+                firstName: 'Jan',
+                lastName: 'Barášek',
+                phone: '+420 777123456',
+                companyName: 'BRJ',
+                companyRegistrationNumber: '05103118',
+                taxIdentificationNumber: 'CZ9609040727',
+                streetAddress: 'R. Novotného 1505',
+                city: 'Kladno',
+                cityPart: 'Kročehlavy',
+                stateRegion: 'Středočeský kraj',
+                postalCode: '272 01',
+                country: 'Česká republika',
+                newsletter: false,
+                primaryLocale: 'cs',
+                groups: [''],
+            },
+            // copyCustomers: ['janbarasek@gmail.com'],
+            // cartId: 'b411056d304d9y6mHe2SoMFBL2Apxfnb',
+            items: [
+                {
+                    label: 'Cheese burger',
+                    price: 1,
+                    vat: 1,
+                    count: 1,
+                    sale: 10,
+                    unit: 'ks',
+                    productCode: 'burger',
+                    variantCode: 'cheese-burger',
+                    eventCode: '2WRp6X5rSqQa321EjHB2mxZz74u74H84',
+                    creditAmount: 100,
+                    specialActions: 'lifetimeSubscriptions;addCredit:15',
+                },
+            ],
+            orderGroupId: 'branch-vinohrady',
+            locale: 'cs',
+            currency: 'CZK',
+            sale: 1,
+            paymentMethod: 'credits',
+            deliveryPrice: 1,
+            paymentPrice: 1,
+            expirationDate: '2024-05-01T10:00:00.000Z',
+            dueDate: '2024-05-01T10:00:00.000Z',
+            internalNotice: '',
+            publicNotice: '',
+            // tags: {'^(.*)$': null,},
+            // returnUrl: 'https://gymroom.cz/rezervace/dekujeme',
+            // notificationUrl: '',
+            // formData: {
+            //     code: '',
+            //     data: {
+            //         '^(.*)$': null,
+            //     },
+            // },
+            forceIgnoreNegativeCreditBalance: false,
+        },
+    });
+
+    console.log('createOrderFetchResponse', createOrderFetchResponse);
+
     /**/
 
     //========================================/
