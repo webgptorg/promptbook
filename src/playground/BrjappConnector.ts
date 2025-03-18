@@ -1,6 +1,5 @@
 import createClient, { Client } from 'openapi-fetch';
 import type { paths } from './brjapp-api-schema';
-import { operations } from './brjapp-api-schema';
 
 type BrjappOptions = {
     /**
@@ -31,9 +30,11 @@ export class BrjappConnector {
      * @param options
      * @returns user token or null if user needs to verify email
      */
-    public async loginOrRegister(
-        options: operations['postApiV1CustomerLogin']['requestBody']['content']['application/json'],
-    ): Promise<{ isSuccess: boolean; message: string; token: string | null; isEmailVerificationRequired: boolean }> {
+    public async loginOrRegister(options: {
+        email: string;
+        password: string;
+        customerRealIp: string;
+    }): Promise<{ isSuccess: boolean; message: string; token: string | null; isEmailVerificationRequired: boolean }> {
         const { email, password, customerRealIp } = options;
         const { client, apiKey } = this;
 
@@ -215,12 +216,50 @@ export class BrjappConnector {
      *
      * @returns true if credits were spent, false if not enough credits or another error
      */
-    public async spendCredits(options: { email: string; token: string; creditsCount: number }): Promise<boolean> {
-        const { email, creditsCount } = options;
+    public async spendCredits(options: {
+        email: string;
+        token: string;
+        creditsAmount: number;
+        customerRealIp: string;
+    }): Promise<boolean> {
+        const { email, creditsAmount, token, customerRealIp } = options;
+        const { apiKey } = this;
 
-        // !!! TODO verifyUser
-        console.log(`Spending ${creditsCount} credits of ${email}`);
+        console.log(`Spending ${creditsAmount} credits of ${email}`);
 
-        return false;
+        const spendFetchResponse = await fetch(`https://brj.app/api/v1/customer/credit-spend?apiKey=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                identityId: token,
+                amount: creditsAmount,
+                description: 'Use Promptbook from CLI',
+                customerRealIp,
+            }),
+        }).then((response) => response.json());
+
+        /*
+        TODO: [🦇] @janbarasek `/api/v1/customer/credit-spend` has wrong Open API definition
+        > const spendFetchResponse = await (client as TODO_any).POST(
+        >     `/api/v1/customer/credit-spend`,
+        >     {
+        >         params: {
+        >             query: {
+        >                 apiKey,
+        >             },
+        >         },
+        >         body: {
+        >             identityId: token,
+        >             amound: 100,
+        >             description: 'Use Promptbook from CLI',
+        >             customerRealIp: '84.246.166.22',
+        >         },
+        >     },
+        > );
+        */
+
+        return spendFetchResponse.success;
     }
 }

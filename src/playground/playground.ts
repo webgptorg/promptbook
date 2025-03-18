@@ -54,10 +54,7 @@ async function playground() {
     keepUnused(password);
     keepUnused(customerRealIp);
     // ------
-    /*/
-
-
-
+    /**/
 
     const { isSuccess, message, token, isEmailVerificationRequired } = await brjappConnector.loginOrRegister({
         email,
@@ -77,7 +74,7 @@ async function playground() {
 
     console.log({ isSuccess, message, token, isEmailVerificationRequired });
 
-/**/
+    /**/
     // ------
     /*/
     const loginFetchResponse = await client.POST(`/api/v1/customer/login`, {
@@ -221,6 +218,48 @@ async function playground() {
     });
 
     console.log('createOrderFetchResponse', createOrderFetchResponse);
+
+    /**/
+
+    // ------
+
+    /**/
+    // Spending credits:
+
+    const spendFetchResponse = await fetch(`https://brj.app/api/v1/customer/credit-spend?apiKey=${BRJAPP_API_KEY}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            identityId: token,
+            amount: 100,
+            description: 'Use Promptbook from CLI',
+            customerRealIp: '84.246.166.22',
+        }),
+    }).then((response) => response.json());
+
+    /*
+    TODO: [🦇] @janbarasek `/api/v1/customer/credit-spend` has wrong Open API definition
+    > const spendFetchResponse = await (client as TODO_any).POST(
+    >     `/api/v1/customer/credit-spend`,
+    >     {
+    >         params: {
+    >             query: {
+    >                 apiKey: BRJAPP_API_KEY,
+    >             },
+    >         },
+    >         body: {
+    >             identityId: token,
+    >             amound: 100,
+    >             description: 'Use Promptbook from CLI',
+    >             customerRealIp: '84.246.166.22',
+    >         },
+    >     },
+    > );
+    */
+
+    console.log('spendFetchResponse', spendFetchResponse);
 
     /**/
 
