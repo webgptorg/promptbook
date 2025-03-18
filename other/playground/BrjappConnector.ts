@@ -201,12 +201,24 @@ export class BrjappConnector {
 
     /**
      *
-     * @param creditsCount Number of credits to spend
+     * @returns true if user token is valid
+     */
+    public async verifyUser(options: { email: string; token: number }): Promise<boolean> {
+        const { email, token } = options;
+        console.log(`Verification of ${email}`);
+        token;
+        // TODO: Implement
+        return false;
+    }
+
+    /**
+     *
      * @returns true if credits were spent, false if not enough credits or another error
      */
     public async spendCredits(options: { email: string; creditsCount: number }): Promise<boolean> {
         const { email, creditsCount } = options;
         console.log(`Spending ${creditsCount} credits of ${email}`);
+
         return false;
     }
 }

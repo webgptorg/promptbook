@@ -1,14 +1,13 @@
 import { join } from 'path';
 import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
-import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
-import { IS_COST_PREVENTED } from '../../../config';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME, IS_COST_PREVENTED } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
-import { countTotalUsage } from '../utils/count-total-usage/countTotalUsage';
+import { countUsage } from '../utils/count-total-usage/countTotalUsage';
 import { limitTotalUsage } from '../utils/count-total-usage/limitTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
@@ -41,7 +40,7 @@ export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
 
     const llmTools: LlmExecutionTools = await $provideLlmToolsFromEnv(restOptions);
     const llmToolsWithUsage = !IS_COST_PREVENTED
-        ? countTotalUsage(llmTools)
+        ? countUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]
           limitTotalUsage(llmTools);
     //          <- Note: `limitTotalUsage` will do everything as `countTotalUsage` and adds usage limit

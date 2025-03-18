@@ -6,7 +6,7 @@ import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheS
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
 import type { CacheLlmToolsOptions } from '../utils/cache/CacheLlmToolsOptions';
-import { countTotalUsage } from '../utils/count-total-usage/countTotalUsage';
+import { countUsage } from '../utils/count-total-usage/countTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 
@@ -27,7 +27,7 @@ export async function $provideLlmToolsForWizzardOrCli(
     const { isCacheReloaded } = options ?? {};
 
     return cacheLlmTools(
-        countTotalUsage(
+        countUsage(
             //        <- Note: for example here we don`t want the [🌯]
             await $provideLlmToolsFromEnv(),
         ),

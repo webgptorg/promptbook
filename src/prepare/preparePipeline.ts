@@ -1,16 +1,14 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
-import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
+import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
@@ -66,7 +64,7 @@ export async function preparePipeline(
     const _llms = arrayableToArray(tools.llm);
     const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
-    const llmToolsWithUsage = countTotalUsage(llmTools);
+    const llmToolsWithUsage = countUsage(llmTools);
     //    <- TODO: [🌯]
 
     /*
