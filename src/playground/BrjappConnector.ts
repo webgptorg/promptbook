@@ -17,6 +17,8 @@ type BrjappOptions = {
 /**
  * Note: Credit = 1 Word to generate or read
  * Note: What we call here "user" is on BRJ.APP "customer"
+ *
+ * @private - this will be moved to Promptbook studio
  */
 export class BrjappConnector {
     private readonly client: Client<paths>;
