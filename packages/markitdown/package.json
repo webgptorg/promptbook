@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/markitdown",
-    "version": "0.88.0-12",
+    "version": "0.88.0",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/markitdown.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.88.0-12"
+        "@promptbook/core": "0.88.0"
     },
     "dependencies": {
         "crypto": "^1.0.1",
