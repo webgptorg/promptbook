@@ -1,13 +1,17 @@
+import { Subject, type Observable } from 'rxjs';
 import type { Promisable } from 'type-fest';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { addUsage } from '../../../../execution/utils/addUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
-import { Subject, type Observable } from 'rxjs';
 
 /**
  * Intercepts LLM tools and counts total usage of the tools
@@ -18,7 +22,7 @@ import { Subject, type Observable } from 'rxjs';
  */
 export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
     let totalUsage: PromptResultUsage = ZERO_USAGE;
-    const spending = new Subject();
+    const spending = new Subject<PromptResultUsage>();
 
     const proxyTools: LlmExecutionToolsWithTotalUsage = {
         get title() {
@@ -39,9 +43,9 @@ export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTo
             return /* not await */ llmTools.listModels();
         },
 
-        spending(): Observable<PromptResultUsage>  {
-          return spending;
-      },
+        spending(): Observable<PromptResultUsage> {
+            return spending.asObservable();
+        },
 
         getTotalUsage() {
             // <- Note: [🥫] Not using getter `get totalUsage` but `getTotalUsage` to allow this object to be proxied

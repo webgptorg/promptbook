@@ -1,3 +1,4 @@
+import type { Observable } from 'rxjs';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 
@@ -9,6 +10,13 @@ export type LlmExecutionToolsWithTotalUsage = LlmExecutionTools & {
      * Get total cost of the execution up to this point
      */
     getTotalUsage(): PromptResultUsage;
+
+    /**
+     * Observable of total cost of the execution up to this point
+     *
+     * Note: This does report the cost of the last prompt, not the total cost of the execution up to this point
+     */
+    spending(): Observable<PromptResultUsage>;
 };
 
 /**
