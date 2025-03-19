@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/calendar/add-event": {
+    '/api/v1/calendar/add-event': {
         parameters: {
             query?: never;
             header?: never;
@@ -13,21 +13,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CalendarAdd-event"];
+        post: operations['postApiV1CalendarAdd-event'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/calendar/detail": {
+    '/api/v1/calendar/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CalendarDetail"];
+        get: operations['getApiV1CalendarDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -36,7 +36,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/calendar/event-find-conflict": {
+    '/api/v1/calendar/event-find-conflict': {
         parameters: {
             query?: never;
             header?: never;
@@ -45,21 +45,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CalendarEvent-find-conflict"];
+        post: operations['postApiV1CalendarEvent-find-conflict'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/calendar/event-list": {
+    '/api/v1/calendar/event-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CalendarEvent-list"];
+        get: operations['getApiV1CalendarEvent-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -68,14 +68,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/calendar/scheduling-assistant": {
+    '/api/v1/calendar/scheduling-assistant': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CalendarScheduling-assistant"];
+        get: operations['getApiV1CalendarScheduling-assistant'];
         put?: never;
         post?: never;
         delete?: never;
@@ -84,14 +84,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/calendar/timezones": {
+    '/api/v1/calendar/timezones': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CalendarTimezones"];
+        get: operations['getApiV1CalendarTimezones'];
         put?: never;
         post?: never;
         delete?: never;
@@ -100,14 +100,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/cart/detail": {
+    '/api/v1/cart/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CartDetail"];
+        get: operations['getApiV1CartDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -116,7 +116,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/cart/buy": {
+    '/api/v1/cart/buy': {
         parameters: {
             query?: never;
             header?: never;
@@ -125,14 +125,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CartBuy"];
+        post: operations['postApiV1CartBuy'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/cart/change-quantity": {
+    '/api/v1/cart/change-quantity': {
         parameters: {
             query?: never;
             header?: never;
@@ -141,14 +141,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CartChange-quantity"];
+        post: operations['postApiV1CartChange-quantity'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/cart/set-delivery": {
+    '/api/v1/cart/set-delivery': {
         parameters: {
             query?: never;
             header?: never;
@@ -157,14 +157,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CartSet-delivery"];
+        post: operations['postApiV1CartSet-delivery'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/cart/set-payment": {
+    '/api/v1/cart/set-payment': {
         parameters: {
             query?: never;
             header?: never;
@@ -173,14 +173,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CartSet-payment"];
+        post: operations['postApiV1CartSet-payment'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/cart/set-packeta-branch": {
+    '/api/v1/cart/set-packeta-branch': {
         parameters: {
             query?: never;
             header?: never;
@@ -189,14 +189,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CartSet-packeta-branch"];
+        post: operations['postApiV1CartSet-packeta-branch'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/create-api-key": {
+    '/api/v1/customer/create-api-key': {
         parameters: {
             query?: never;
             header?: never;
@@ -205,21 +205,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CustomerCreate-api-key"];
+        post: operations['postApiV1CustomerCreate-api-key'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/credit-log": {
+    '/api/v1/customer/credit-log': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CustomerCredit-log"];
+        get: operations['getApiV1CustomerCredit-log'];
         put?: never;
         post?: never;
         delete?: never;
@@ -228,7 +228,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/credit-spend": {
+    '/api/v1/customer/credit-spend': {
         parameters: {
             query?: never;
             header?: never;
@@ -237,14 +237,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CustomerCredit-spend"];
+        post: operations['postApiV1CustomerCredit-spend'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/customer-match-customer": {
+    '/api/v1/customer/customer-match-customer': {
         parameters: {
             query?: never;
             header?: never;
@@ -256,21 +256,21 @@ export interface paths {
         /** @description Create many-to-many relation between two customers.
          *
          *     This feature is suitable, for example, for matching clients and trainers, or for obtaining contacts on a dating site or company contact. */
-        post: operations["postApiV1CustomerCustomer-match-customer"];
+        post: operations['postApiV1CustomerCustomer-match-customer'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/detail": {
+    '/api/v1/customer/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CustomerDetail"];
+        get: operations['getApiV1CustomerDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -279,14 +279,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/get-account-info": {
+    '/api/v1/customer/get-account-info': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CustomerGet-account-info"];
+        get: operations['getApiV1CustomerGet-account-info'];
         put?: never;
         post?: never;
         delete?: never;
@@ -295,7 +295,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/login": {
+    '/api/v1/customer/login': {
         parameters: {
             query?: never;
             header?: never;
@@ -317,14 +317,14 @@ export interface paths {
          *     | E005 | Customer account has been banned. |
          *     | E006 | Too many login attempts. |
          *     | E007 | Customer mail has not been authorized. | */
-        post: operations["postApiV1CustomerLogin"];
+        post: operations['postApiV1CustomerLogin'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/logout": {
+    '/api/v1/customer/logout': {
         parameters: {
             query?: never;
             header?: never;
@@ -333,14 +333,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CustomerLogout"];
+        post: operations['postApiV1CustomerLogout'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/magic-auth": {
+    '/api/v1/customer/magic-auth': {
         parameters: {
             query?: never;
             header?: never;
@@ -362,21 +362,21 @@ export interface paths {
          *     | E005 | Customer account has been banned. |
          *     | E006 | Too many login attempts. |
          *     | E007 | Customer mail has not been authorized. | */
-        post: operations["postApiV1CustomerMagic-auth"];
+        post: operations['postApiV1CustomerMagic-auth'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/matched-customer-list": {
+    '/api/v1/customer/matched-customer-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CustomerMatched-customer-list"];
+        get: operations['getApiV1CustomerMatched-customer-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -385,14 +385,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/order-list": {
+    '/api/v1/customer/order-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1CustomerOrder-list"];
+        get: operations['getApiV1CustomerOrder-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -401,7 +401,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/register-account": {
+    '/api/v1/customer/register-account': {
         parameters: {
             query?: never;
             header?: never;
@@ -418,14 +418,14 @@ export interface paths {
          *     | E002 | Customer has been registered. |
          *     | E003 | Customer account has been banned. |
          *     | E004 | Too many registration attempts. | */
-        post: operations["postApiV1CustomerRegister-account"];
+        post: operations['postApiV1CustomerRegister-account'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/register-account-verify": {
+    '/api/v1/customer/register-account-verify': {
         parameters: {
             query?: never;
             header?: never;
@@ -434,14 +434,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1CustomerRegister-account-verify"];
+        post: operations['postApiV1CustomerRegister-account-verify'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/reset-password": {
+    '/api/v1/customer/reset-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -451,14 +451,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Create a new reset password request and send verification mail to customer automatically. */
-        post: operations["postApiV1CustomerReset-password"];
+        post: operations['postApiV1CustomerReset-password'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/customer/set-new-password": {
+    '/api/v1/customer/set-new-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -477,14 +477,14 @@ export interface paths {
          *     | E002 | You have entered a previously used password. For security reasons, please enter a new and unique password. |
          *     | E003 | Reset password request does not exist. |
          *     | E004 | Reset password request has been expired. | */
-        post: operations["postApiV1CustomerSet-new-password"];
+        post: operations['postApiV1CustomerSet-new-password'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/emailer/send": {
+    '/api/v1/emailer/send': {
         parameters: {
             query?: never;
             header?: never;
@@ -493,21 +493,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1EmailerSend"];
+        post: operations['postApiV1EmailerSend'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/form/detail": {
+    '/api/v1/form/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1FormDetail"];
+        get: operations['getApiV1FormDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -516,7 +516,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/newsletter/register-contact": {
+    '/api/v1/newsletter/register-contact': {
         parameters: {
             query?: never;
             header?: never;
@@ -525,21 +525,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1NewsletterRegister-contact"];
+        post: operations['postApiV1NewsletterRegister-contact'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/ping/": {
+    '/api/v1/ping/': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1Ping"];
+        get: operations['getApiV1Ping'];
         put?: never;
         post?: never;
         delete?: never;
@@ -548,7 +548,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/ping/error": {
+    '/api/v1/ping/error': {
         parameters: {
             query?: never;
             header?: never;
@@ -556,7 +556,7 @@ export interface paths {
             cookie?: never;
         };
         /** @description This endpoint always fail. */
-        get: operations["getApiV1PingError"];
+        get: operations['getApiV1PingError'];
         put?: never;
         post?: never;
         delete?: never;
@@ -565,14 +565,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/product/detail": {
+    '/api/v1/product/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1ProductDetail"];
+        get: operations['getApiV1ProductDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -581,7 +581,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/product/feed": {
+    '/api/v1/product/feed': {
         parameters: {
             query?: never;
             header?: never;
@@ -591,7 +591,7 @@ export interface paths {
         /** @description Load full list of products from organisation database. By default, we only return basic properties for all products. If you want to return entire products, you need to specify additional properties.
          *
          *     Default properties (contains in all returned products): `id`, `name`, `slug`, `shortDescription`, `mainImageUrl`, `mainCategory`, `price`, `priceWithoutVat`, `vat`, `position`, `active`, `soldOut`, `warehouseAllQuantity`, `warehouseLimit`, `customFields`, `event`. */
-        get: operations["getApiV1ProductFeed"];
+        get: operations['getApiV1ProductFeed'];
         put?: never;
         post?: never;
         delete?: never;
@@ -600,14 +600,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/product-category/detail": {
+    '/api/v1/product-category/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1Product-categoryDetail"];
+        get: operations['getApiV1Product-categoryDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -616,14 +616,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/product-category/list": {
+    '/api/v1/product-category/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1Product-categoryList"];
+        get: operations['getApiV1Product-categoryList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -632,14 +632,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/rate-limit-status/": {
+    '/api/v1/rate-limit-status/': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1Rate-limit-status"];
+        get: operations['getApiV1Rate-limit-status'];
         put?: never;
         post?: never;
         delete?: never;
@@ -648,14 +648,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/referral/referred-customers": {
+    '/api/v1/referral/referred-customers': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1ReferralReferred-customers"];
+        get: operations['getApiV1ReferralReferred-customers'];
         put?: never;
         post?: never;
         delete?: never;
@@ -664,14 +664,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/routing/route": {
+    '/api/v1/routing/route': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1RoutingRoute"];
+        get: operations['getApiV1RoutingRoute'];
         put?: never;
         post?: never;
         delete?: never;
@@ -680,7 +680,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/security/captcha": {
+    '/api/v1/security/captcha': {
         parameters: {
             query?: never;
             header?: never;
@@ -692,7 +692,7 @@ export interface paths {
          *     Example:
          *
          *     ![captcha](https://cdn.brj.app/images/captcha-nu3bx.webp) */
-        get: operations["getApiV1SecurityCaptcha"];
+        get: operations['getApiV1SecurityCaptcha'];
         put?: never;
         post?: never;
         delete?: never;
@@ -701,14 +701,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/security/captcha-verify": {
+    '/api/v1/security/captcha-verify': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1SecurityCaptcha-verify"];
+        get: operations['getApiV1SecurityCaptcha-verify'];
         put?: never;
         post?: never;
         delete?: never;
@@ -717,7 +717,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/service-status/": {
+    '/api/v1/service-status/': {
         parameters: {
             query?: never;
             header?: never;
@@ -729,7 +729,7 @@ export interface paths {
          *     The crawling rules are described on the page [BRJ Bot](https://brj.app/robot).
          *
          *     Domain availability scanning is not subject to robots.txt rules, and we can crawl all domains on the internet. We use multiple signals for scanning, such as downloading the homepage via HTTP request, checking DNS records, requesting HTTP headers, completely loading and rendering the page in Handles Chrome, and more.. */
-        get: operations["getApiV1Service-status"];
+        get: operations['getApiV1Service-status'];
         put?: never;
         post?: never;
         delete?: never;
@@ -738,7 +738,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/shop/order/create": {
+    '/api/v1/shop/order/create': {
         parameters: {
             query?: never;
             header?: never;
@@ -748,21 +748,21 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Create a new order. After create a order, please redirect customer to `links.orderPageLink`. */
-        post: operations["postApiV1ShopOrderCreate"];
+        post: operations['postApiV1ShopOrderCreate'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/shop/order/detail": {
+    '/api/v1/shop/order/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1ShopOrderDetail"];
+        get: operations['getApiV1ShopOrderDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -771,7 +771,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/shop/order/create-payment": {
+    '/api/v1/shop/order/create-payment': {
         parameters: {
             query?: never;
             header?: never;
@@ -780,14 +780,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1ShopOrderCreate-payment"];
+        post: operations['postApiV1ShopOrderCreate-payment'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/shop/order/check-payment-status": {
+    '/api/v1/shop/order/check-payment-status': {
         parameters: {
             query?: never;
             header?: never;
@@ -796,14 +796,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1ShopOrderCheck-payment-status"];
+        post: operations['postApiV1ShopOrderCheck-payment-status'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/shop/order/storno": {
+    '/api/v1/shop/order/storno': {
         parameters: {
             query?: never;
             header?: never;
@@ -812,21 +812,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1ShopOrderStorno"];
+        post: operations['postApiV1ShopOrderStorno'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/shop/payment/create": {
+    '/api/v1/shop/payment/create': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1ShopPaymentCreate"];
+        get: operations['getApiV1ShopPaymentCreate'];
         put?: never;
         post?: never;
         delete?: never;
@@ -835,14 +835,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/shop/payment/process-notification": {
+    '/api/v1/shop/payment/process-notification': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1ShopPaymentProcess-notification"];
+        get: operations['getApiV1ShopPaymentProcess-notification'];
         put?: never;
         post?: never;
         delete?: never;
@@ -851,7 +851,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/support/contact-form": {
+    '/api/v1/support/contact-form': {
         parameters: {
             query?: never;
             header?: never;
@@ -860,14 +860,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postApiV1SupportContact-form"];
+        post: operations['postApiV1SupportContact-form'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/tracking/email-pixel": {
+    '/api/v1/tracking/email-pixel': {
         parameters: {
             query?: never;
             header?: never;
@@ -875,7 +875,7 @@ export interface paths {
             cookie?: never;
         };
         /** @description Render and return tracking pixel inside e-mail message. */
-        get: operations["getApiV1TrackingEmail-pixel"];
+        get: operations['getApiV1TrackingEmail-pixel'];
         put?: never;
         post?: never;
         delete?: never;
@@ -884,14 +884,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/webpage/favicon": {
+    '/api/v1/webpage/favicon': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1WebpageFavicon"];
+        get: operations['getApiV1WebpageFavicon'];
         put?: never;
         post?: never;
         delete?: never;
@@ -900,14 +900,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/webpage/screenshot": {
+    '/api/v1/webpage/screenshot': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getApiV1WebpageScreenshot"];
+        get: operations['getApiV1WebpageScreenshot'];
         put?: never;
         post?: never;
         delete?: never;
@@ -916,14 +916,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/": {
+    '/bff/account/': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccount"];
+        get: operations['getBffAccount'];
         put?: never;
         post?: never;
         delete?: never;
@@ -932,14 +932,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/detail": {
+    '/bff/account/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountDetail"];
+        get: operations['getBffAccountDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -948,14 +948,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/detail-contact": {
+    '/bff/account/detail-contact': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountDetail-contact"];
+        get: operations['getBffAccountDetail-contact'];
         put?: never;
         post?: never;
         delete?: never;
@@ -964,14 +964,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/audit-login-attempts": {
+    '/bff/account/audit-login-attempts': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountAudit-login-attempts"];
+        get: operations['getBffAccountAudit-login-attempts'];
         put?: never;
         post?: never;
         delete?: never;
@@ -980,14 +980,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/find-organisation": {
+    '/bff/account/find-organisation': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountFind-organisation"];
+        get: operations['getBffAccountFind-organisation'];
         put?: never;
         post?: never;
         delete?: never;
@@ -996,7 +996,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/login-otp-auth": {
+    '/bff/account/login-otp-auth': {
         parameters: {
             query?: never;
             header?: never;
@@ -1005,14 +1005,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountLogin-otp-auth"];
+        post: operations['postBffAccountLogin-otp-auth'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/reset-password": {
+    '/bff/account/reset-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -1021,14 +1021,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountReset-password"];
+        post: operations['postBffAccountReset-password'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/restore-personal-account": {
+    '/bff/account/restore-personal-account': {
         parameters: {
             query?: never;
             header?: never;
@@ -1037,21 +1037,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountRestore-personal-account"];
+        post: operations['postBffAccountRestore-personal-account'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/set-activity-status": {
+    '/bff/account/set-activity-status': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountSet-activity-status"];
+        get: operations['getBffAccountSet-activity-status'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1060,7 +1060,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/set-name": {
+    '/bff/account/set-name': {
         parameters: {
             query?: never;
             header?: never;
@@ -1069,14 +1069,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountSet-name"];
+        post: operations['postBffAccountSet-name'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/setup-otp-generate-secret": {
+    '/bff/account/setup-otp-generate-secret': {
         parameters: {
             query?: never;
             header?: never;
@@ -1085,14 +1085,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountSetup-otp-generate-secret"];
+        post: operations['postBffAccountSetup-otp-generate-secret'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/setup-otp-save": {
+    '/bff/account/setup-otp-save': {
         parameters: {
             query?: never;
             header?: never;
@@ -1101,21 +1101,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountSetup-otp-save"];
+        post: operations['postBffAccountSetup-otp-save'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/switch-organisation": {
+    '/bff/account/switch-organisation': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountSwitch-organisation"];
+        get: operations['getBffAccountSwitch-organisation'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1124,14 +1124,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/sync-status": {
+    '/bff/account/sync-status': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountSync-status"];
+        get: operations['getBffAccountSync-status'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1140,14 +1140,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/verify-email": {
+    '/bff/account/verify-email': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAccountVerify-email"];
+        get: operations['getBffAccountVerify-email'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1156,7 +1156,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/account/create-login-attempt": {
+    '/bff/account/create-login-attempt': {
         parameters: {
             query?: never;
             header?: never;
@@ -1165,14 +1165,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountCreate-login-attempt"];
+        post: operations['postBffAccountCreate-login-attempt'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/login": {
+    '/bff/account/login': {
         parameters: {
             query?: never;
             header?: never;
@@ -1181,14 +1181,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountLogin"];
+        post: operations['postBffAccountLogin'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/logout": {
+    '/bff/account/logout': {
         parameters: {
             query?: never;
             header?: never;
@@ -1197,14 +1197,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountLogout"];
+        post: operations['postBffAccountLogout'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/account/create-account": {
+    '/bff/account/create-account': {
         parameters: {
             query?: never;
             header?: never;
@@ -1213,14 +1213,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAccountCreate-account"];
+        post: operations['postBffAccountCreate-account'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/ai/question": {
+    '/bff/ai/question': {
         parameters: {
             query?: never;
             header?: never;
@@ -1229,21 +1229,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffAiQuestion"];
+        post: operations['postBffAiQuestion'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/ai/test": {
+    '/bff/ai/test': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffAiTest"];
+        get: operations['getBffAiTest'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1252,14 +1252,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/api-key/list": {
+    '/bff/api-key/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffApi-keyList"];
+        get: operations['getBffApi-keyList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1268,14 +1268,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/api-key/detail": {
+    '/bff/api-key/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffApi-keyDetail"];
+        get: operations['getBffApi-keyDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1284,7 +1284,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/api-key/generate-key": {
+    '/bff/api-key/generate-key': {
         parameters: {
             query?: never;
             header?: never;
@@ -1293,14 +1293,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffApi-keyGenerate-key"];
+        post: operations['postBffApi-keyGenerate-key'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/blob/upload": {
+    '/bff/blob/upload': {
         parameters: {
             query?: never;
             header?: never;
@@ -1309,14 +1309,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffBlobUpload"];
+        post: operations['postBffBlobUpload'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/blob/upload-user-avatar": {
+    '/bff/blob/upload-user-avatar': {
         parameters: {
             query?: never;
             header?: never;
@@ -1325,21 +1325,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffBlobUpload-user-avatar"];
+        post: operations['postBffBlobUpload-user-avatar'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/calendar-list": {
+    '/bff/calendar/calendar-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarCalendar-list"];
+        get: operations['getBffCalendarCalendar-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1348,14 +1348,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/calendar-detail": {
+    '/bff/calendar/calendar-detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarCalendar-detail"];
+        get: operations['getBffCalendarCalendar-detail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1364,14 +1364,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/calendar-settings": {
+    '/bff/calendar/calendar-settings': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarCalendar-settings"];
+        get: operations['getBffCalendarCalendar-settings'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1380,14 +1380,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/calendar-analytics": {
+    '/bff/calendar/calendar-analytics': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarCalendar-analytics"];
+        get: operations['getBffCalendarCalendar-analytics'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1396,7 +1396,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/calendar-add": {
+    '/bff/calendar/calendar-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -1405,21 +1405,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCalendarCalendar-add"];
+        post: operations['postBffCalendarCalendar-add'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/detail-reservations": {
+    '/bff/calendar/detail-reservations': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarDetail-reservations"];
+        get: operations['getBffCalendarDetail-reservations'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1428,14 +1428,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/event-detail": {
+    '/bff/calendar/event-detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarEvent-detail"];
+        get: operations['getBffCalendarEvent-detail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1444,14 +1444,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/event-find-conflict": {
+    '/bff/calendar/event-find-conflict': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarEvent-find-conflict"];
+        get: operations['getBffCalendarEvent-find-conflict'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1460,7 +1460,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/event-add": {
+    '/bff/calendar/event-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -1469,21 +1469,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCalendarEvent-add"];
+        post: operations['postBffCalendarEvent-add'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/calendar/event-type-list": {
+    '/bff/calendar/event-type-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCalendarEvent-type-list"];
+        get: operations['getBffCalendarEvent-type-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1492,14 +1492,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/cms/menu": {
+    '/bff/cms/menu': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCmsMenu"];
+        get: operations['getBffCmsMenu'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1508,14 +1508,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/comgate/status": {
+    '/bff/comgate/status': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffComgateStatus"];
+        get: operations['getBffComgateStatus'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1524,7 +1524,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/comgate/test-connection": {
+    '/bff/comgate/test-connection': {
         parameters: {
             query?: never;
             header?: never;
@@ -1533,21 +1533,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffComgateTest-connection"];
+        post: operations['postBffComgateTest-connection'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/list": {
+    '/bff/customer/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerList"];
+        get: operations['getBffCustomerList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1556,14 +1556,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/detail": {
+    '/bff/customer/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerDetail"];
+        get: operations['getBffCustomerDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1572,7 +1572,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/detail-edit": {
+    '/bff/customer/detail-edit': {
         parameters: {
             query?: never;
             header?: never;
@@ -1581,21 +1581,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerDetail-edit"];
+        post: operations['postBffCustomerDetail-edit'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/detail-credit": {
+    '/bff/customer/detail-credit': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerDetail-credit"];
+        get: operations['getBffCustomerDetail-credit'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1604,14 +1604,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/detail-sessions": {
+    '/bff/customer/detail-sessions': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerDetail-sessions"];
+        get: operations['getBffCustomerDetail-sessions'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1620,14 +1620,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/detail-password-log": {
+    '/bff/customer/detail-password-log': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerDetail-password-log"];
+        get: operations['getBffCustomerDetail-password-log'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1636,14 +1636,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/detail-security-info": {
+    '/bff/customer/detail-security-info': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerDetail-security-info"];
+        get: operations['getBffCustomerDetail-security-info'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1652,14 +1652,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/detail-address": {
+    '/bff/customer/detail-address': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerDetail-address"];
+        get: operations['getBffCustomerDetail-address'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1668,14 +1668,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/group-list": {
+    '/bff/customer/group-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerGroup-list"];
+        get: operations['getBffCustomerGroup-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1684,7 +1684,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/set-password": {
+    '/bff/customer/set-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -1693,14 +1693,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerSet-password"];
+        post: operations['postBffCustomerSet-password'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/merge-customers": {
+    '/bff/customer/merge-customers': {
         parameters: {
             query?: never;
             header?: never;
@@ -1709,14 +1709,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerMerge-customers"];
+        post: operations['postBffCustomerMerge-customers'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/invalidate-sessions": {
+    '/bff/customer/invalidate-sessions': {
         parameters: {
             query?: never;
             header?: never;
@@ -1725,14 +1725,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerInvalidate-sessions"];
+        post: operations['postBffCustomerInvalidate-sessions'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/process-register-request": {
+    '/bff/customer/process-register-request': {
         parameters: {
             query?: never;
             header?: never;
@@ -1741,14 +1741,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerProcess-register-request"];
+        post: operations['postBffCustomerProcess-register-request'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/reset-password": {
+    '/bff/customer/reset-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -1758,14 +1758,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Create a new reset password request and send verification mail to customer automatically. */
-        post: operations["postBffCustomerReset-password"];
+        post: operations['postBffCustomerReset-password'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/process-set-password": {
+    '/bff/customer/process-set-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -1774,14 +1774,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerProcess-set-password"];
+        post: operations['postBffCustomerProcess-set-password'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/add-credit-record": {
+    '/bff/customer/add-credit-record': {
         parameters: {
             query?: never;
             header?: never;
@@ -1790,14 +1790,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerAdd-credit-record"];
+        post: operations['postBffCustomerAdd-credit-record'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/generate-api-key": {
+    '/bff/customer/generate-api-key': {
         parameters: {
             query?: never;
             header?: never;
@@ -1806,21 +1806,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerGenerate-api-key"];
+        post: operations['postBffCustomerGenerate-api-key'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/workspace-list": {
+    '/bff/customer/workspace-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffCustomerWorkspace-list"];
+        get: operations['getBffCustomerWorkspace-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1829,23 +1829,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/add-workspace": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postBffCustomerAdd-workspace"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/customer/block-customer": {
+    '/bff/customer/add-workspace': {
         parameters: {
             query?: never;
             header?: never;
@@ -1854,14 +1838,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerBlock-customer"];
+        post: operations['postBffCustomerAdd-workspace'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/customer/bulk-import": {
+    '/bff/customer/block-customer': {
         parameters: {
             query?: never;
             header?: never;
@@ -1870,78 +1854,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffCustomerBulk-import"];
+        post: operations['postBffCustomerBlock-customer'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/dev/translate-dictionaries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffDevTranslate-dictionaries"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/domain/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffDomainList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/domain/show-verify-token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffDomainShow-verify-token"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/domain/check-verify-token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffDomainCheck-verify-token"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/domain/add": {
+    '/bff/customer/bulk-import': {
         parameters: {
             query?: never;
             header?: never;
@@ -1950,21 +1870,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffDomainAdd"];
+        post: operations['postBffCustomerBulk-import'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/drive/list": {
+    '/bff/dev/translate-dictionaries': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffDriveList"];
+        get: operations['getBffDevTranslate-dictionaries'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1973,14 +1893,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/ecommerce/address/resolve-address-by-ico": {
+    '/bff/domain/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffEcommerceAddressResolve-address-by-ico"];
+        get: operations['getBffDomainList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1989,14 +1909,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/ecommerce/company/detail": {
+    '/bff/domain/show-verify-token': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffEcommerceCompanyDetail"];
+        get: operations['getBffDomainShow-verify-token'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2005,14 +1925,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/emailer/list": {
+    '/bff/domain/check-verify-token': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffEmailerList"];
+        get: operations['getBffDomainCheck-verify-token'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2021,103 +1941,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/emailer/detail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffEmailerDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/emailer/detail-log-explain": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffEmailerDetail-log-explain"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/emailer/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffEmailerStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/emailer/send-now": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffEmailerSend-now"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/emailer/send-again": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffEmailerSend-again"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/emailer/smtp-info": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffEmailerSmtp-info"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/emailer/setup-smtp": {
+    '/bff/domain/add': {
         parameters: {
             query?: never;
             header?: never;
@@ -2126,21 +1950,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffEmailerSetup-smtp"];
+        post: operations['postBffDomainAdd'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/emailer/statistics": {
+    '/bff/drive/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffEmailerStatistics"];
+        get: operations['getBffDriveList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2149,30 +1973,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/emailer/compose": {
+    '/bff/ecommerce/address/resolve-address-by-ico': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["postBffEmailerCompose"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/form/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffFormList"];
+        get: operations['getBffEcommerceAddressResolve-address-by-ico'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2181,14 +1989,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/form/table": {
+    '/bff/ecommerce/company/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffFormTable"];
+        get: operations['getBffEcommerceCompanyDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2197,14 +2005,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/form/structure": {
+    '/bff/emailer/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffFormStructure"];
+        get: operations['getBffEmailerList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2213,110 +2021,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/form/add": {
+    '/bff/emailer/detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["postBffFormAdd"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/form/update-structure": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postBffFormUpdate-structure"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/form/add-field": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postBffFormAdd-field"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/form/duplicate-field": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postBffFormDuplicate-field"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/form/remove-field": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postBffFormRemove-field"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/form/copy-form": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["postBffFormCopy-form"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/gopay/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffGopayStatus"];
+        get: operations['getBffEmailerDetail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2325,7 +2037,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/gopay/test-connection": {
+    '/bff/emailer/detail-log-explain': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffEmailerDetail-log-explain'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/emailer/status': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffEmailerStatus'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/emailer/send-now': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffEmailerSend-now'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/emailer/send-again': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffEmailerSend-again'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/emailer/smtp-info': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffEmailerSmtp-info'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/emailer/setup-smtp': {
         parameters: {
             query?: never;
             header?: never;
@@ -2334,21 +2126,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffGopayTest-connection"];
+        post: operations['postBffEmailerSetup-smtp'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/invoice/list": {
+    '/bff/emailer/statistics': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffInvoiceList"];
+        get: operations['getBffEmailerStatistics'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2357,103 +2149,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/iot/lock/lock-list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffIotLockLock-list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/iot/lock/lock-detail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffIotLockLock-detail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/iot/lock/lock-detail-refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffIotLockLock-detail-refresh"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/iot/lock/lock-electric-quantity-list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffIotLockLock-electric-quantity-list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/iot/lock/unlock-now": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffIotLockUnlock-now"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/iot/lock/unlock-record-list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffIotLockUnlock-record-list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/iot/lock/lock-add": {
+    '/bff/emailer/compose': {
         parameters: {
             query?: never;
             header?: never;
@@ -2462,21 +2158,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffIotLockLock-add"];
+        post: operations['postBffEmailerCompose'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/iot/lock/password-list": {
+    '/bff/form/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffIotLockPassword-list"];
+        get: operations['getBffFormList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2485,7 +2181,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/iot/lock/password-add": {
+    '/bff/form/table': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffFormTable'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/form/structure': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffFormStructure'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/form/add': {
         parameters: {
             query?: never;
             header?: never;
@@ -2494,46 +2222,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffIotLockPassword-add"];
+        post: operations['postBffFormAdd'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/iot/lock/password-delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffIotLockPassword-delete"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/member/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffMemberList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/member/create": {
+    '/bff/form/update-structure': {
         parameters: {
             query?: never;
             header?: never;
@@ -2542,14 +2238,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffMemberCreate"];
+        post: operations['postBffFormUpdate-structure'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/member/add-existing-user": {
+    '/bff/form/add-field': {
         parameters: {
             query?: never;
             header?: never;
@@ -2558,14 +2254,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffMemberAdd-existing-user"];
+        post: operations['postBffFormAdd-field'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/member/confirm-registration": {
+    '/bff/form/duplicate-field': {
         parameters: {
             query?: never;
             header?: never;
@@ -2574,14 +2270,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffMemberConfirm-registration"];
+        post: operations['postBffFormDuplicate-field'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/member/block": {
+    '/bff/form/remove-field': {
         parameters: {
             query?: never;
             header?: never;
@@ -2590,158 +2286,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffMemberBlock"];
+        post: operations['postBffFormRemove-field'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/network/refetch-dns": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNetworkRefetch-dns"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/network/dns-search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNetworkDns-search"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/network/robots-txt": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNetworkRobots-txt"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/network/ssl-certificate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNetworkSsl-certificate"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/network/subdomains": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNetworkSubdomains"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/newsletter/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNewsletterList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/newsletter/job-list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNewsletterJob-list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/newsletter/job-contact-list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNewsletterJob-contact-list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/newsletter/job-statistics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffNewsletterJob-statistics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/newsletter/bulk-import": {
+    '/bff/form/copy-form': {
         parameters: {
             query?: never;
             header?: never;
@@ -2750,21 +2302,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffNewsletterBulk-import"];
+        post: operations['postBffFormCopy-form'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/ip-info/detail": {
+    '/bff/gopay/status': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffIp-infoDetail"];
+        get: operations['getBffGopayStatus'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2773,71 +2325,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/locale/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffLocaleList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/log/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffLogList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/log/detail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffLogDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/log/detail-log-explain": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffLogDetail-log-explain"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/order/create": {
+    '/bff/gopay/test-connection': {
         parameters: {
             query?: never;
             header?: never;
@@ -2846,21 +2334,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderCreate"];
+        post: operations['postBffGopayTest-connection'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/detail": {
+    '/bff/invoice/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffOrderDetail"];
+        get: operations['getBffInvoiceList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2869,14 +2357,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/order/detail-recurrence": {
+    '/bff/iot/lock/lock-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffOrderDetail-recurrence"];
+        get: operations['getBffIotLockLock-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2885,14 +2373,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/order/detail-file": {
+    '/bff/iot/lock/lock-detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffOrderDetail-file"];
+        get: operations['getBffIotLockLock-detail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2901,14 +2389,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/order/detail-log": {
+    '/bff/iot/lock/lock-detail-refresh': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffOrderDetail-log"];
+        get: operations['getBffIotLockLock-detail-refresh'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2917,14 +2405,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/order/detail-log-explain": {
+    '/bff/iot/lock/lock-electric-quantity-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffOrderDetail-log-explain"];
+        get: operations['getBffIotLockLock-electric-quantity-list'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2933,7 +2421,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/order/mark-as-paid": {
+    '/bff/iot/lock/unlock-now': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffIotLockUnlock-now'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/iot/lock/unlock-record-list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffIotLockUnlock-record-list'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/iot/lock/lock-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -2942,14 +2462,30 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderMark-as-paid"];
+        post: operations['postBffIotLockLock-add'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/mark-as-non-paid": {
+    '/bff/iot/lock/password-list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffIotLockPassword-list'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/iot/lock/password-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -2958,14 +2494,46 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderMark-as-non-paid"];
+        post: operations['postBffIotLockPassword-add'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/set-item-storno": {
+    '/bff/iot/lock/password-delete': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffIotLockPassword-delete'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/member/list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffMemberList'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/member/create': {
         parameters: {
             query?: never;
             header?: never;
@@ -2974,14 +2542,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderSet-item-storno"];
+        post: operations['postBffMemberCreate'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/remove-item": {
+    '/bff/member/add-existing-user': {
         parameters: {
             query?: never;
             header?: never;
@@ -2990,30 +2558,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderRemove-item"];
+        post: operations['postBffMemberAdd-existing-user'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/online-payment-grid": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffOrderOnline-payment-grid"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/order/create-payment": {
+    '/bff/member/confirm-registration': {
         parameters: {
             query?: never;
             header?: never;
@@ -3022,14 +2574,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderCreate-payment"];
+        post: operations['postBffMemberConfirm-registration'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/resend-notification": {
+    '/bff/member/block': {
         parameters: {
             query?: never;
             header?: never;
@@ -3038,14 +2590,158 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderResend-notification"];
+        post: operations['postBffMemberBlock'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/update-notice": {
+    '/bff/network/refetch-dns': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNetworkRefetch-dns'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/network/dns-search': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNetworkDns-search'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/network/robots-txt': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNetworkRobots-txt'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/network/ssl-certificate': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNetworkSsl-certificate'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/network/subdomains': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNetworkSubdomains'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/newsletter/list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNewsletterList'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/newsletter/job-list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNewsletterJob-list'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/newsletter/job-contact-list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNewsletterJob-contact-list'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/newsletter/job-statistics': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffNewsletterJob-statistics'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/newsletter/bulk-import': {
         parameters: {
             query?: never;
             header?: never;
@@ -3054,14 +2750,94 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderUpdate-notice"];
+        post: operations['postBffNewsletterBulk-import'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/add-product": {
+    '/bff/ip-info/detail': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffIp-infoDetail'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/locale/list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffLocaleList'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/log/list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffLogList'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/log/detail': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffLogDetail'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/log/detail-log-explain': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffLogDetail-log-explain'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/order/create': {
         parameters: {
             query?: never;
             header?: never;
@@ -3070,14 +2846,94 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderAdd-product"];
+        post: operations['postBffOrderCreate'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/add-virtual-product": {
+    '/bff/order/detail': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffOrderDetail'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/order/detail-recurrence': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffOrderDetail-recurrence'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/order/detail-file': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffOrderDetail-file'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/order/detail-log': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffOrderDetail-log'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/order/detail-log-explain': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffOrderDetail-log-explain'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/order/mark-as-paid': {
         parameters: {
             query?: never;
             header?: never;
@@ -3086,14 +2942,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderAdd-virtual-product"];
+        post: operations['postBffOrderMark-as-paid'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/add-credit": {
+    '/bff/order/mark-as-non-paid': {
         parameters: {
             query?: never;
             header?: never;
@@ -3102,14 +2958,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderAdd-credit"];
+        post: operations['postBffOrderMark-as-non-paid'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/add-event": {
+    '/bff/order/set-item-storno': {
         parameters: {
             query?: never;
             header?: never;
@@ -3118,14 +2974,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderAdd-event"];
+        post: operations['postBffOrderSet-item-storno'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/detail-recurrence-delete": {
+    '/bff/order/remove-item': {
         parameters: {
             query?: never;
             header?: never;
@@ -3134,21 +2990,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrderDetail-recurrence-delete"];
+        post: operations['postBffOrderRemove-item'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/order/create-invoice": {
+    '/bff/order/online-payment-grid': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffOrderCreate-invoice"];
+        get: operations['getBffOrderOnline-payment-grid'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3157,7 +3013,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/organisation/register": {
+    '/bff/order/create-payment': {
         parameters: {
             query?: never;
             header?: never;
@@ -3166,158 +3022,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffOrganisationRegister"];
+        post: operations['postBffOrderCreate-payment'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/organisation/storage-usage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffOrganisationStorage-usage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/packeta/sync-branches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffPacketaSync-branches"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/person/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffPersonSearch"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/post/static-page": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffPostStatic-page"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/product-detail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductProduct-detail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/price-history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductPrice-history"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/search-related-products": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductSearch-related-products"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/product-detail-related": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductProduct-detail-related"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/connect-related-product": {
+    '/bff/order/resend-notification': {
         parameters: {
             query?: never;
             header?: never;
@@ -3326,14 +3038,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffProductConnect-related-product"];
+        post: operations['postBffOrderResend-notification'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/product/disconnect-related-product": {
+    '/bff/order/update-notice': {
         parameters: {
             query?: never;
             header?: never;
@@ -3342,46 +3054,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffProductDisconnect-related-product"];
+        post: operations['postBffOrderUpdate-notice'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/product/search-product-list-autocomplete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductSearch-product-list-autocomplete"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/search-product-variant-list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductSearch-product-variant-list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/connect-event": {
+    '/bff/order/add-product': {
         parameters: {
             query?: never;
             header?: never;
@@ -3390,14 +3070,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffProductConnect-event"];
+        post: operations['postBffOrderAdd-product'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/product/disconnect-event": {
+    '/bff/order/add-virtual-product': {
         parameters: {
             query?: never;
             header?: never;
@@ -3406,30 +3086,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffProductDisconnect-event"];
+        post: operations['postBffOrderAdd-virtual-product'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/product/product-variant-list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProductProduct-variant-list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product/update-variant": {
+    '/bff/order/add-credit': {
         parameters: {
             query?: never;
             header?: never;
@@ -3438,62 +3102,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffProductUpdate-variant"];
+        post: operations['postBffOrderAdd-credit'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/product-category/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProduct-categoryList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product-category/list-selectbox": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProduct-categoryList-selectbox"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product-category/category-detail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffProduct-categoryCategory-detail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/product-category/category-create": {
+    '/bff/order/add-event': {
         parameters: {
             query?: never;
             header?: never;
@@ -3502,14 +3118,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffProduct-categoryCategory-create"];
+        post: operations['postBffOrderAdd-event'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/product-category/category-update": {
+    '/bff/order/detail-recurrence-delete': {
         parameters: {
             query?: never;
             header?: never;
@@ -3518,21 +3134,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffProduct-categoryCategory-update"];
+        post: operations['postBffOrderDetail-recurrence-delete'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/search/": {
+    '/bff/order/create-invoice': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffSearch"];
+        get: operations['getBffOrderCreate-invoice'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3541,87 +3157,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/search/user": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffSearchUser"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/settings/link-blob": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffSettingsLink-blob"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/settings/vat-rates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffSettingsVat-rates"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/settings/env-variables": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffSettingsEnv-variables"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/settings/env-variable-value": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBffSettingsEnv-variable-value"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bff/settings/env-change-variable-value": {
+    '/bff/organisation/register': {
         parameters: {
             query?: never;
             header?: never;
@@ -3630,21 +3166,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffSettingsEnv-change-variable-value"];
+        post: operations['postBffOrganisationRegister'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/test/ping": {
+    '/bff/organisation/storage-usage': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTestPing"];
+        get: operations['getBffOrganisationStorage-usage'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3653,14 +3189,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/test/pdf": {
+    '/bff/packeta/sync-branches': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTestPdf"];
+        get: operations['getBffPacketaSync-branches'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3669,14 +3205,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/test/product-import-feed": {
+    '/bff/person/search': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTestProduct-import-feed"];
+        get: operations['getBffPersonSearch'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3685,14 +3221,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/test/connect-import-feed": {
+    '/bff/post/static-page': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTestConnect-import-feed"];
+        get: operations['getBffPostStatic-page'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3701,14 +3237,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/test/nova": {
+    '/bff/product/list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTestNova"];
+        get: operations['getBffProductList'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3717,14 +3253,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/test/maps": {
+    '/bff/product/product-detail': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTestMaps"];
+        get: operations['getBffProductProduct-detail'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3733,14 +3269,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/transaction/account-info": {
+    '/bff/product/price-history': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTransactionAccount-info"];
+        get: operations['getBffProductPrice-history'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3749,14 +3285,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/transaction/list": {
+    '/bff/product/search-related-products': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTransactionList"];
+        get: operations['getBffProductSearch-related-products'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3765,14 +3301,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/transaction/sync-all": {
+    '/bff/product/product-detail-related': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffTransactionSync-all"];
+        get: operations['getBffProductProduct-detail-related'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3781,7 +3317,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/transaction/add-api-token": {
+    '/bff/product/connect-related-product': {
         parameters: {
             query?: never;
             header?: never;
@@ -3790,21 +3326,37 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffTransactionAdd-api-token"];
+        post: operations['postBffProductConnect-related-product'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/workflow/status": {
+    '/bff/product/disconnect-related-product': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getBffWorkflowStatus"];
+        get?: never;
+        put?: never;
+        post: operations['postBffProductDisconnect-related-product'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product/search-product-list-autocomplete': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffProductSearch-product-list-autocomplete'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3813,23 +3365,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/bff/workflow/add-status": {
+    '/bff/product/search-product-variant-list': {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations['getBffProductSearch-product-variant-list'];
         put?: never;
-        post: operations["postBffWorkflowAdd-status"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/workflow/update": {
+    '/bff/product/connect-event': {
         parameters: {
             query?: never;
             header?: never;
@@ -3838,14 +3390,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffWorkflowUpdate"];
+        post: operations['postBffProductConnect-event'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/bff/workflow/set-status-position": {
+    '/bff/product/disconnect-event': {
         parameters: {
             query?: never;
             header?: never;
@@ -3854,7 +3406,455 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["postBffWorkflowSet-status-position"];
+        post: operations['postBffProductDisconnect-event'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product/product-variant-list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffProductProduct-variant-list'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product/update-variant': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffProductUpdate-variant'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product-category/list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffProduct-categoryList'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product-category/list-selectbox': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffProduct-categoryList-selectbox'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product-category/category-detail': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffProduct-categoryCategory-detail'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product-category/category-create': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffProduct-categoryCategory-create'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/product-category/category-update': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffProduct-categoryCategory-update'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/search/': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffSearch'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/search/user': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffSearchUser'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/settings/link-blob': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffSettingsLink-blob'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/settings/vat-rates': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffSettingsVat-rates'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/settings/env-variables': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffSettingsEnv-variables'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/settings/env-variable-value': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffSettingsEnv-variable-value'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/settings/env-change-variable-value': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffSettingsEnv-change-variable-value'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/test/ping': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTestPing'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/test/pdf': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTestPdf'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/test/product-import-feed': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTestProduct-import-feed'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/test/connect-import-feed': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTestConnect-import-feed'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/test/nova': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTestNova'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/test/maps': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTestMaps'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/transaction/account-info': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTransactionAccount-info'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/transaction/list': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTransactionList'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/transaction/sync-all': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffTransactionSync-all'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/transaction/add-api-token': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffTransactionAdd-api-token'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/workflow/status': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations['getBffWorkflowStatus'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/workflow/add-status': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffWorkflowAdd-status'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/workflow/update': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffWorkflowUpdate'];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/bff/workflow/set-status-position': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations['postBffWorkflowSet-status-position'];
         delete?: never;
         options?: never;
         head?: never;
@@ -3873,7 +3873,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    "postApiV1CalendarAdd-event": {
+    'postApiV1CalendarAdd-event': {
         parameters: {
             query: {
                 apiKey: string;
@@ -3884,7 +3884,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     event: {
                         calendarId: string;
                         /** Format: date-time */
@@ -3927,7 +3927,7 @@ export interface operations {
                         type?: string;
                     };
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     event: {
                         calendarId: string;
                         /** Format: date-time */
@@ -3970,7 +3970,7 @@ export interface operations {
                         type?: string;
                     };
                 };
-                "text/plain": {
+                'text/plain': {
                     event: {
                         calendarId: string;
                         /** Format: date-time */
@@ -4021,13 +4021,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         eventId: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         eventId: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         eventId: string;
                     };
                 };
@@ -4051,7 +4051,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         name: string;
                         color: string;
                         timezone: string;
@@ -4064,7 +4064,7 @@ export interface operations {
                             timeSlotInterval: string;
                         };
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         name: string;
                         color: string;
                         timezone: string;
@@ -4077,7 +4077,7 @@ export interface operations {
                             timeSlotInterval: string;
                         };
                     };
-                    "text/plain": {
+                    'text/plain': {
                         name: string;
                         color: string;
                         timezone: string;
@@ -4094,7 +4094,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CalendarEvent-find-conflict": {
+    'postApiV1CalendarEvent-find-conflict': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4113,7 +4113,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1CalendarEvent-list": {
+    'getApiV1CalendarEvent-list': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4134,7 +4134,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1CalendarScheduling-assistant": {
+    'getApiV1CalendarScheduling-assistant': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4170,7 +4170,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         clientTimezone: string;
                         items: {
                             id: string;
@@ -4179,7 +4179,7 @@ export interface operations {
                             label: string;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         clientTimezone: string;
                         items: {
                             id: string;
@@ -4188,7 +4188,7 @@ export interface operations {
                             label: string;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         clientTimezone: string;
                         items: {
                             id: string;
@@ -4218,7 +4218,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         id: string;
                         customerId?: string;
                         customerName?: string;
@@ -4271,7 +4271,7 @@ export interface operations {
                             quantity: number;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         id: string;
                         customerId?: string;
                         customerName?: string;
@@ -4324,7 +4324,7 @@ export interface operations {
                             quantity: number;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         id: string;
                         customerId?: string;
                         customerName?: string;
@@ -4392,7 +4392,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     cartId: string;
                     /** @description Use customer identity cookies value when is logged in. */
                     identityId?: string;
@@ -4400,7 +4400,7 @@ export interface operations {
                     productCode: string;
                     productVariantCode?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     cartId: string;
                     /** @description Use customer identity cookies value when is logged in. */
                     identityId?: string;
@@ -4408,7 +4408,7 @@ export interface operations {
                     productCode: string;
                     productVariantCode?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     cartId: string;
                     /** @description Use customer identity cookies value when is logged in. */
                     identityId?: string;
@@ -4424,15 +4424,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -4440,7 +4440,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CartChange-quantity": {
+    'postApiV1CartChange-quantity': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4451,19 +4451,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     cartId: string;
                     itemId: string;
                     /** @description Set product quantity. Use `0` to remove item from cart. */
                     quantity: number;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     cartId: string;
                     itemId: string;
                     /** @description Set product quantity. Use `0` to remove item from cart. */
                     quantity: number;
                 };
-                "text/plain": {
+                'text/plain': {
                     cartId: string;
                     itemId: string;
                     /** @description Set product quantity. Use `0` to remove item from cart. */
@@ -4477,15 +4477,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -4493,7 +4493,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CartSet-delivery": {
+    'postApiV1CartSet-delivery': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4504,15 +4504,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     cartId: string;
                     deliveryCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     cartId: string;
                     deliveryCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     cartId: string;
                     deliveryCode: string;
                 };
@@ -4524,15 +4524,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -4540,7 +4540,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CartSet-payment": {
+    'postApiV1CartSet-payment': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4551,15 +4551,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     cartId: string;
                     paymentCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     cartId: string;
                     paymentCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     cartId: string;
                     paymentCode: string;
                 };
@@ -4571,15 +4571,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -4587,7 +4587,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CartSet-packeta-branch": {
+    'postApiV1CartSet-packeta-branch': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4598,15 +4598,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     cartId: string;
                     packetaBranchId: number;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     cartId: string;
                     packetaBranchId: number;
                 };
-                "text/plain": {
+                'text/plain': {
                     cartId: string;
                     packetaBranchId: number;
                 };
@@ -4618,15 +4618,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -4634,7 +4634,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CustomerCreate-api-key": {
+    'postApiV1CustomerCreate-api-key': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4645,21 +4645,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     description?: string;
                     workspaceCode?: string;
                     customerRealIp?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     description?: string;
                     workspaceCode?: string;
                     customerRealIp?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     description?: string;
@@ -4674,19 +4674,19 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                         apiKey: string;
                         expirationDate: Record<string, never> | string | number;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                         apiKey: string;
                         expirationDate: Record<string, never> | string | number;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                         apiKey: string;
@@ -4696,7 +4696,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1CustomerCredit-log": {
+    'getApiV1CustomerCredit-log': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4714,7 +4714,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         creditBalance: number;
                         items: {
                             id: string;
@@ -4730,7 +4730,7 @@ export interface operations {
                             insertedDate: Record<string, never> | string | number;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         creditBalance: number;
                         items: {
                             id: string;
@@ -4746,7 +4746,7 @@ export interface operations {
                             insertedDate: Record<string, never> | string | number;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         creditBalance: number;
                         items: {
                             id: string;
@@ -4766,7 +4766,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CustomerCredit-spend": {
+    'postApiV1CustomerCredit-spend': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4777,7 +4777,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     amount: number;
@@ -4785,7 +4785,7 @@ export interface operations {
                     description?: string;
                     customerRealIp?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     amount: number;
@@ -4793,7 +4793,7 @@ export interface operations {
                     description?: string;
                     customerRealIp?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     amount: number;
@@ -4809,7 +4809,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                         /** @description Unique transaction id (for example `HxanU4a1n4El61zx`). In case of `amount = 0` transactionId is `xxxxxxxxxxxxxxxx`. */
@@ -4817,7 +4817,7 @@ export interface operations {
                         oldCreditBalance: number;
                         newCreditBalance: number;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                         /** @description Unique transaction id (for example `HxanU4a1n4El61zx`). In case of `amount = 0` transactionId is `xxxxxxxxxxxxxxxx`. */
@@ -4825,7 +4825,7 @@ export interface operations {
                         oldCreditBalance: number;
                         newCreditBalance: number;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                         /** @description Unique transaction id (for example `HxanU4a1n4El61zx`). In case of `amount = 0` transactionId is `xxxxxxxxxxxxxxxx`. */
@@ -4837,7 +4837,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CustomerCustomer-match-customer": {
+    'postApiV1CustomerCustomer-match-customer': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4848,7 +4848,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @description Owner of relation. */
                     managerCuRefNo: string;
                     /** @description Customer of relation. */
@@ -4857,7 +4857,7 @@ export interface operations {
                     /** @description A public note for this connection. The note will be visible to both customers. For example, a trainer can write information about a new client here. */
                     notice?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** @description Owner of relation. */
                     managerCuRefNo: string;
                     /** @description Customer of relation. */
@@ -4866,7 +4866,7 @@ export interface operations {
                     /** @description A public note for this connection. The note will be visible to both customers. For example, a trainer can write information about a new client here. */
                     notice?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     /** @description Owner of relation. */
                     managerCuRefNo: string;
                     /** @description Customer of relation. */
@@ -4883,15 +4883,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -4922,7 +4922,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1CustomerGet-account-info": {
+    'getApiV1CustomerGet-account-info': {
         parameters: {
             query: {
                 apiKey: string;
@@ -4955,17 +4955,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     email: string;
                     password: string;
                     customerRealIp?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     email: string;
                     password: string;
                     customerRealIp?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     email: string;
                     password: string;
                     customerRealIp?: string;
@@ -4978,36 +4978,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                        identityId: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                        identityId: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                        identityId: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identityId: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identityId: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identityId: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
                 };
             };
         };
@@ -5023,17 +5029,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     customerRealIp?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     customerRealIp?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     /** @description Logged user identity (from your frontend cookies). */
                     identityId: string;
                     customerRealIp?: string;
@@ -5046,15 +5052,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -5062,7 +5068,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CustomerMagic-auth": {
+    'postApiV1CustomerMagic-auth': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5073,21 +5079,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     email: string;
                     firstName?: string;
                     lastName?: string;
                     customerRealIp?: string;
                     referralId?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     email: string;
                     firstName?: string;
                     lastName?: string;
                     customerRealIp?: string;
                     referralId?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     email: string;
                     firstName?: string;
                     lastName?: string;
@@ -5102,44 +5108,50 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                        /** @description New created user identity, please store it to your frontend cookies. */
-                        identityId: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                        /** @description New created user identity, please store it to your frontend cookies. */
-                        identityId: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                        /** @description New created user identity, please store it to your frontend cookies. */
-                        identityId: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                              /** @description New created user identity, please store it to your frontend cookies. */
+                              identityId: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                              /** @description New created user identity, please store it to your frontend cookies. */
+                              identityId: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                              /** @description New created user identity, please store it to your frontend cookies. */
+                              identityId: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
                 };
             };
         };
     };
-    "getApiV1CustomerMatched-customer-list": {
+    'getApiV1CustomerMatched-customer-list': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5161,7 +5173,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1CustomerOrder-list": {
+    'getApiV1CustomerOrder-list': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5180,7 +5192,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         items: {
                             id: string;
                             orderNumber: string;
@@ -5223,7 +5235,7 @@ export interface operations {
                             }[];
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         items: {
                             id: string;
                             orderNumber: string;
@@ -5266,7 +5278,7 @@ export interface operations {
                             }[];
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         items: {
                             id: string;
                             orderNumber: string;
@@ -5313,7 +5325,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CustomerRegister-account": {
+    'postApiV1CustomerRegister-account': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5324,7 +5336,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     password: string;
                     returnUrl?: string;
                     email: string;
@@ -5347,7 +5359,7 @@ export interface operations {
                     customerRealIp?: string;
                     referralId?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     password: string;
                     returnUrl?: string;
                     email: string;
@@ -5370,7 +5382,7 @@ export interface operations {
                     customerRealIp?: string;
                     referralId?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     password: string;
                     returnUrl?: string;
                     email: string;
@@ -5401,38 +5413,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
                 };
             };
         };
     };
-    "postApiV1CustomerRegister-account-verify": {
+    'postApiV1CustomerRegister-account-verify': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5443,13 +5461,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     token: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     token: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     token: string;
                 };
             };
@@ -5460,17 +5478,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         success: boolean;
                         email: string;
                         returnUrl?: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         success: boolean;
                         email: string;
                         returnUrl?: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         success: boolean;
                         email: string;
                         returnUrl?: string;
@@ -5479,7 +5497,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CustomerReset-password": {
+    'postApiV1CustomerReset-password': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5490,17 +5508,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     email: string;
                     expirationTime?: string;
                     customerRealIp?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     email: string;
                     expirationTime?: string;
                     customerRealIp?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     email: string;
                     expirationTime?: string;
                     customerRealIp?: string;
@@ -5513,15 +5531,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -5529,7 +5547,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1CustomerSet-new-password": {
+    'postApiV1CustomerSet-new-password': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5540,19 +5558,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @description System one time token given from user verification e-mail. */
                     token: string;
                     password: string;
                     customerRealIp?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** @description System one time token given from user verification e-mail. */
                     token: string;
                     password: string;
                     customerRealIp?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     /** @description System one time token given from user verification e-mail. */
                     token: string;
                     password: string;
@@ -5566,33 +5584,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
                 };
             };
         };
@@ -5608,7 +5632,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     subject: string;
                     from: string;
                     to: string;
@@ -5621,7 +5645,7 @@ export interface operations {
                     tag?: string;
                     forceSendNow?: boolean;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     subject: string;
                     from: string;
                     to: string;
@@ -5634,7 +5658,7 @@ export interface operations {
                     tag?: string;
                     forceSendNow?: boolean;
                 };
-                "text/plain": {
+                'text/plain': {
                     subject: string;
                     from: string;
                     to: string;
@@ -5655,15 +5679,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -5688,7 +5712,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         id: string;
                         name: string;
                         description?: string;
@@ -5702,7 +5726,7 @@ export interface operations {
                             options?: Record<string, never>;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         id: string;
                         name: string;
                         description?: string;
@@ -5716,7 +5740,7 @@ export interface operations {
                             options?: Record<string, never>;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         id: string;
                         name: string;
                         description?: string;
@@ -5734,7 +5758,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1NewsletterRegister-contact": {
+    'postApiV1NewsletterRegister-contact': {
         parameters: {
             query: {
                 apiKey: string;
@@ -5745,17 +5769,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     email: string;
                     source?: string;
                     groups?: string[];
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     email: string;
                     source?: string;
                     groups?: string[];
                 };
-                "text/plain": {
+                'text/plain': {
                     email: string;
                     source?: string;
                     groups?: string[];
@@ -5768,15 +5792,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -5882,7 +5906,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         count: number;
                         items: {
                             id: number;
@@ -5937,7 +5961,7 @@ export interface operations {
                             galleryItemsCount?: number;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         count: number;
                         items: {
                             id: number;
@@ -5992,7 +6016,7 @@ export interface operations {
                             galleryItemsCount?: number;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         count: number;
                         items: {
                             id: number;
@@ -6051,7 +6075,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1Product-categoryDetail": {
+    'getApiV1Product-categoryDetail': {
         parameters: {
             query: {
                 apiKey: string;
@@ -6071,7 +6095,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1Product-categoryList": {
+    'getApiV1Product-categoryList': {
         parameters: {
             query: {
                 apiKey: string;
@@ -6091,7 +6115,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1Rate-limit-status": {
+    'getApiV1Rate-limit-status': {
         parameters: {
             query?: never;
             header?: never;
@@ -6108,7 +6132,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1ReferralReferred-customers": {
+    'getApiV1ReferralReferred-customers': {
         parameters: {
             query: {
                 /** @description Main customer. */
@@ -6125,7 +6149,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         items: {
                             /** @description Main customer. */
                             cuRefNo: string;
@@ -6136,7 +6160,7 @@ export interface operations {
                             lastActivityDate: Record<string, never> | string | number;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         items: {
                             /** @description Main customer. */
                             cuRefNo: string;
@@ -6147,7 +6171,7 @@ export interface operations {
                             lastActivityDate: Record<string, never> | string | number;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         items: {
                             /** @description Main customer. */
                             cuRefNo: string;
@@ -6196,15 +6220,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         token: string;
                         imageBase64: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         token: string;
                         imageBase64: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         token: string;
                         imageBase64: string;
                     };
@@ -6212,7 +6236,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1SecurityCaptcha-verify": {
+    'getApiV1SecurityCaptcha-verify': {
         parameters: {
             query: {
                 token: string;
@@ -6229,17 +6253,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         token: string;
                         code: string;
                         status: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         token: string;
                         code: string;
                         status: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         token: string;
                         code: string;
                         status: string;
@@ -6248,7 +6272,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1Service-status": {
+    'getApiV1Service-status': {
         parameters: {
             query: {
                 domain: string;
@@ -6265,30 +6289,30 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         host: string;
                         domain: string;
-                        status: "ok" | "error";
+                        status: 'ok' | 'error';
                         message: string;
                         color: string;
                         httpCode?: number;
                         lastCheckDate?: Record<string, never> | string | number;
                         statusPageUrl: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         host: string;
                         domain: string;
-                        status: "ok" | "error";
+                        status: 'ok' | 'error';
                         message: string;
                         color: string;
                         httpCode?: number;
                         lastCheckDate?: Record<string, never> | string | number;
                         statusPageUrl: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         host: string;
                         domain: string;
-                        status: "ok" | "error";
+                        status: 'ok' | 'error';
                         message: string;
                         color: string;
                         httpCode?: number;
@@ -6310,7 +6334,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @description Link order to customer account. When account does not exist, system will create new automatically. */
                     customer: {
                         email: string;
@@ -6369,7 +6393,7 @@ export interface operations {
                     currency?: string;
                     /** @description Absolute value in order-defined currency. */
                     sale?: number;
-                    paymentMethod?: "credits" | "money";
+                    paymentMethod?: 'credits' | 'money';
                     /** @description Absolute value in order-defined currency. */
                     deliveryPrice?: number;
                     /** @description Absolute value in order-defined currency. */
@@ -6395,7 +6419,7 @@ export interface operations {
                      */
                     forceIgnoreNegativeCreditBalance?: boolean;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** @description Link order to customer account. When account does not exist, system will create new automatically. */
                     customer: {
                         email: string;
@@ -6454,7 +6478,7 @@ export interface operations {
                     currency?: string;
                     /** @description Absolute value in order-defined currency. */
                     sale?: number;
-                    paymentMethod?: "credits" | "money";
+                    paymentMethod?: 'credits' | 'money';
                     /** @description Absolute value in order-defined currency. */
                     deliveryPrice?: number;
                     /** @description Absolute value in order-defined currency. */
@@ -6480,7 +6504,7 @@ export interface operations {
                      */
                     forceIgnoreNegativeCreditBalance?: boolean;
                 };
-                "text/plain": {
+                'text/plain': {
                     /** @description Link order to customer account. When account does not exist, system will create new automatically. */
                     customer: {
                         email: string;
@@ -6539,7 +6563,7 @@ export interface operations {
                     currency?: string;
                     /** @description Absolute value in order-defined currency. */
                     sale?: number;
-                    paymentMethod?: "credits" | "money";
+                    paymentMethod?: 'credits' | 'money';
                     /** @description Absolute value in order-defined currency. */
                     deliveryPrice?: number;
                     /** @description Absolute value in order-defined currency. */
@@ -6573,7 +6597,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         orderNumber: string;
                         hash: string;
                         links: {
@@ -6581,7 +6605,7 @@ export interface operations {
                             payLink: string;
                         };
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         orderNumber: string;
                         hash: string;
                         links: {
@@ -6589,7 +6613,7 @@ export interface operations {
                             payLink: string;
                         };
                     };
-                    "text/plain": {
+                    'text/plain': {
                         orderNumber: string;
                         hash: string;
                         links: {
@@ -6617,389 +6641,395 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /**
-                         * @description Indicator of whether the order exists.
-                         * @constant
-                         */
-                        exist: true;
-                        /** @description Order number for system identification. */
-                        id: string;
-                        /** @description Unique hash of the order. */
-                        hash: string;
-                        locale: string;
-                        /** @description Date and time of order payment. */
-                        payDate?: Record<string, never> | string | number;
-                        status: {
-                            /** @description Public status label defined by the organization and order group. */
-                            label: string;
-                            color: string;
-                            onlinePaymentStatus?: string;
-                            onlinePaymentStatusLabel?: string;
-                            /** @description Indicator of whether online payment checking is in progress. */
-                            onlinePaymentChecking: boolean;
-                        };
-                        /** @description Public note for the order. */
-                        publicNotice?: string;
-                        /** @description Date and time the order was created. */
-                        insertedDate: Record<string, never> | string | number;
-                        /** @description Date and time the order was last updated. */
-                        updatedDate: Record<string, never> | string | number;
-                        /** @description Date and time of order expiration. If this time is reached and the order is not paid, it will be automatically canceled. */
-                        expirationDate?: Record<string, never> | string | number;
-                        price: {
-                            /** @description Cena s DPH. */
-                            priceWithVat: number;
-                            /** @description Měna ceny. */
-                            currency: string;
-                            /** @description Cena bez DPH. */
-                            priceWithoutVat: number;
-                            /** @description Výše DPH v procentech. */
-                            vat: number;
-                            /** @description Místní označení měny. */
-                            currencyLocale: string;
-                        };
-                        sale: {
-                            /** @description Cena s DPH. */
-                            priceWithVat: number;
-                            /** @description Měna ceny. */
-                            currency: string;
-                            /** @description Cena bez DPH. */
-                            priceWithoutVat: number;
-                            /** @description Výše DPH v procentech. */
-                            vat: number;
-                            /** @description Místní označení měny. */
-                            currencyLocale: string;
-                        };
-                        customer?: {
-                            /** @description Customer email. */
-                            email: string;
-                            /** @description Customer phone number. */
-                            phone?: string;
-                            /** @description Customer first name. */
-                            firstName?: string;
-                            /** @description Customer last name. */
-                            lastName?: string;
-                            /** @description Name of the customer's company. */
-                            companyName?: string;
-                            /** @description Indicator of whether the customer is premium. */
-                            premium: boolean;
-                        };
-                        items: {
-                            /** @description Order item ID. */
-                            id: string;
-                            /** @description Indicator of whether the item is canceled. */
-                            isStorno: boolean;
-                            /** @description Order item description as HTML. */
-                            label: string;
-                            /** @description Number of items. */
-                            count: number;
-                            price: {
-                                /** @description Cena s DPH. */
-                                priceWithVat: number;
-                                /** @description Měna ceny. */
-                                currency: string;
-                                /** @description Cena bez DPH. */
-                                priceWithoutVat: number;
-                                /** @description Výše DPH v procentech. */
-                                vat: number;
-                                /** @description Místní označení měny. */
-                                currencyLocale: string;
-                            };
-                            sale: {
-                                /** @description Cena s DPH. */
-                                priceWithVat: number;
-                                /** @description Měna ceny. */
-                                currency: string;
-                                /** @description Cena bez DPH. */
-                                priceWithoutVat: number;
-                                /** @description Výše DPH v procentech. */
-                                vat: number;
-                                /** @description Místní označení měny. */
-                                currencyLocale: string;
-                            };
-                            /** @description Item units. */
-                            unit: number;
-                            vat?: number;
-                            /** @description Credit value of the item. */
-                            creditAmount: number;
-                            productCode?: string;
-                            productName?: string;
-                            productMainImageUrl?: string;
-                            variantCode?: string;
-                            variantName?: string;
-                            eventCalendarCode?: string;
-                            eventCode?: string;
-                            eventTitle?: string;
-                        }[];
-                        tags: Record<string, never>;
-                        links: {
-                            /** @description Link for online payment of the order. */
-                            onlinePaymentLink?: string;
-                            /** @description URL to which the customer is redirected after successful payment. */
-                            returnUrl?: string;
-                        };
-                    } | {
-                        /** @constant */
-                        exist: false;
-                    };
-                    "multipart/form-data": {
-                        /**
-                         * @description Indicator of whether the order exists.
-                         * @constant
-                         */
-                        exist: true;
-                        /** @description Order number for system identification. */
-                        id: string;
-                        /** @description Unique hash of the order. */
-                        hash: string;
-                        locale: string;
-                        /** @description Date and time of order payment. */
-                        payDate?: Record<string, never> | string | number;
-                        status: {
-                            /** @description Public status label defined by the organization and order group. */
-                            label: string;
-                            color: string;
-                            onlinePaymentStatus?: string;
-                            onlinePaymentStatusLabel?: string;
-                            /** @description Indicator of whether online payment checking is in progress. */
-                            onlinePaymentChecking: boolean;
-                        };
-                        /** @description Public note for the order. */
-                        publicNotice?: string;
-                        /** @description Date and time the order was created. */
-                        insertedDate: Record<string, never> | string | number;
-                        /** @description Date and time the order was last updated. */
-                        updatedDate: Record<string, never> | string | number;
-                        /** @description Date and time of order expiration. If this time is reached and the order is not paid, it will be automatically canceled. */
-                        expirationDate?: Record<string, never> | string | number;
-                        price: {
-                            /** @description Cena s DPH. */
-                            priceWithVat: number;
-                            /** @description Měna ceny. */
-                            currency: string;
-                            /** @description Cena bez DPH. */
-                            priceWithoutVat: number;
-                            /** @description Výše DPH v procentech. */
-                            vat: number;
-                            /** @description Místní označení měny. */
-                            currencyLocale: string;
-                        };
-                        sale: {
-                            /** @description Cena s DPH. */
-                            priceWithVat: number;
-                            /** @description Měna ceny. */
-                            currency: string;
-                            /** @description Cena bez DPH. */
-                            priceWithoutVat: number;
-                            /** @description Výše DPH v procentech. */
-                            vat: number;
-                            /** @description Místní označení měny. */
-                            currencyLocale: string;
-                        };
-                        customer?: {
-                            /** @description Customer email. */
-                            email: string;
-                            /** @description Customer phone number. */
-                            phone?: string;
-                            /** @description Customer first name. */
-                            firstName?: string;
-                            /** @description Customer last name. */
-                            lastName?: string;
-                            /** @description Name of the customer's company. */
-                            companyName?: string;
-                            /** @description Indicator of whether the customer is premium. */
-                            premium: boolean;
-                        };
-                        items: {
-                            /** @description Order item ID. */
-                            id: string;
-                            /** @description Indicator of whether the item is canceled. */
-                            isStorno: boolean;
-                            /** @description Order item description as HTML. */
-                            label: string;
-                            /** @description Number of items. */
-                            count: number;
-                            price: {
-                                /** @description Cena s DPH. */
-                                priceWithVat: number;
-                                /** @description Měna ceny. */
-                                currency: string;
-                                /** @description Cena bez DPH. */
-                                priceWithoutVat: number;
-                                /** @description Výše DPH v procentech. */
-                                vat: number;
-                                /** @description Místní označení měny. */
-                                currencyLocale: string;
-                            };
-                            sale: {
-                                /** @description Cena s DPH. */
-                                priceWithVat: number;
-                                /** @description Měna ceny. */
-                                currency: string;
-                                /** @description Cena bez DPH. */
-                                priceWithoutVat: number;
-                                /** @description Výše DPH v procentech. */
-                                vat: number;
-                                /** @description Místní označení měny. */
-                                currencyLocale: string;
-                            };
-                            /** @description Item units. */
-                            unit: number;
-                            vat?: number;
-                            /** @description Credit value of the item. */
-                            creditAmount: number;
-                            productCode?: string;
-                            productName?: string;
-                            productMainImageUrl?: string;
-                            variantCode?: string;
-                            variantName?: string;
-                            eventCalendarCode?: string;
-                            eventCode?: string;
-                            eventTitle?: string;
-                        }[];
-                        tags: Record<string, never>;
-                        links: {
-                            /** @description Link for online payment of the order. */
-                            onlinePaymentLink?: string;
-                            /** @description URL to which the customer is redirected after successful payment. */
-                            returnUrl?: string;
-                        };
-                    } | {
-                        /** @constant */
-                        exist: false;
-                    };
-                    "text/plain": {
-                        /**
-                         * @description Indicator of whether the order exists.
-                         * @constant
-                         */
-                        exist: true;
-                        /** @description Order number for system identification. */
-                        id: string;
-                        /** @description Unique hash of the order. */
-                        hash: string;
-                        locale: string;
-                        /** @description Date and time of order payment. */
-                        payDate?: Record<string, never> | string | number;
-                        status: {
-                            /** @description Public status label defined by the organization and order group. */
-                            label: string;
-                            color: string;
-                            onlinePaymentStatus?: string;
-                            onlinePaymentStatusLabel?: string;
-                            /** @description Indicator of whether online payment checking is in progress. */
-                            onlinePaymentChecking: boolean;
-                        };
-                        /** @description Public note for the order. */
-                        publicNotice?: string;
-                        /** @description Date and time the order was created. */
-                        insertedDate: Record<string, never> | string | number;
-                        /** @description Date and time the order was last updated. */
-                        updatedDate: Record<string, never> | string | number;
-                        /** @description Date and time of order expiration. If this time is reached and the order is not paid, it will be automatically canceled. */
-                        expirationDate?: Record<string, never> | string | number;
-                        price: {
-                            /** @description Cena s DPH. */
-                            priceWithVat: number;
-                            /** @description Měna ceny. */
-                            currency: string;
-                            /** @description Cena bez DPH. */
-                            priceWithoutVat: number;
-                            /** @description Výše DPH v procentech. */
-                            vat: number;
-                            /** @description Místní označení měny. */
-                            currencyLocale: string;
-                        };
-                        sale: {
-                            /** @description Cena s DPH. */
-                            priceWithVat: number;
-                            /** @description Měna ceny. */
-                            currency: string;
-                            /** @description Cena bez DPH. */
-                            priceWithoutVat: number;
-                            /** @description Výše DPH v procentech. */
-                            vat: number;
-                            /** @description Místní označení měny. */
-                            currencyLocale: string;
-                        };
-                        customer?: {
-                            /** @description Customer email. */
-                            email: string;
-                            /** @description Customer phone number. */
-                            phone?: string;
-                            /** @description Customer first name. */
-                            firstName?: string;
-                            /** @description Customer last name. */
-                            lastName?: string;
-                            /** @description Name of the customer's company. */
-                            companyName?: string;
-                            /** @description Indicator of whether the customer is premium. */
-                            premium: boolean;
-                        };
-                        items: {
-                            /** @description Order item ID. */
-                            id: string;
-                            /** @description Indicator of whether the item is canceled. */
-                            isStorno: boolean;
-                            /** @description Order item description as HTML. */
-                            label: string;
-                            /** @description Number of items. */
-                            count: number;
-                            price: {
-                                /** @description Cena s DPH. */
-                                priceWithVat: number;
-                                /** @description Měna ceny. */
-                                currency: string;
-                                /** @description Cena bez DPH. */
-                                priceWithoutVat: number;
-                                /** @description Výše DPH v procentech. */
-                                vat: number;
-                                /** @description Místní označení měny. */
-                                currencyLocale: string;
-                            };
-                            sale: {
-                                /** @description Cena s DPH. */
-                                priceWithVat: number;
-                                /** @description Měna ceny. */
-                                currency: string;
-                                /** @description Cena bez DPH. */
-                                priceWithoutVat: number;
-                                /** @description Výše DPH v procentech. */
-                                vat: number;
-                                /** @description Místní označení měny. */
-                                currencyLocale: string;
-                            };
-                            /** @description Item units. */
-                            unit: number;
-                            vat?: number;
-                            /** @description Credit value of the item. */
-                            creditAmount: number;
-                            productCode?: string;
-                            productName?: string;
-                            productMainImageUrl?: string;
-                            variantCode?: string;
-                            variantName?: string;
-                            eventCalendarCode?: string;
-                            eventCode?: string;
-                            eventTitle?: string;
-                        }[];
-                        tags: Record<string, never>;
-                        links: {
-                            /** @description Link for online payment of the order. */
-                            onlinePaymentLink?: string;
-                            /** @description URL to which the customer is redirected after successful payment. */
-                            returnUrl?: string;
-                        };
-                    } | {
-                        /** @constant */
-                        exist: false;
-                    };
+                    'application/json':
+                        | {
+                              /**
+                               * @description Indicator of whether the order exists.
+                               * @constant
+                               */
+                              exist: true;
+                              /** @description Order number for system identification. */
+                              id: string;
+                              /** @description Unique hash of the order. */
+                              hash: string;
+                              locale: string;
+                              /** @description Date and time of order payment. */
+                              payDate?: Record<string, never> | string | number;
+                              status: {
+                                  /** @description Public status label defined by the organization and order group. */
+                                  label: string;
+                                  color: string;
+                                  onlinePaymentStatus?: string;
+                                  onlinePaymentStatusLabel?: string;
+                                  /** @description Indicator of whether online payment checking is in progress. */
+                                  onlinePaymentChecking: boolean;
+                              };
+                              /** @description Public note for the order. */
+                              publicNotice?: string;
+                              /** @description Date and time the order was created. */
+                              insertedDate: Record<string, never> | string | number;
+                              /** @description Date and time the order was last updated. */
+                              updatedDate: Record<string, never> | string | number;
+                              /** @description Date and time of order expiration. If this time is reached and the order is not paid, it will be automatically canceled. */
+                              expirationDate?: Record<string, never> | string | number;
+                              price: {
+                                  /** @description Cena s DPH. */
+                                  priceWithVat: number;
+                                  /** @description Měna ceny. */
+                                  currency: string;
+                                  /** @description Cena bez DPH. */
+                                  priceWithoutVat: number;
+                                  /** @description Výše DPH v procentech. */
+                                  vat: number;
+                                  /** @description Místní označení měny. */
+                                  currencyLocale: string;
+                              };
+                              sale: {
+                                  /** @description Cena s DPH. */
+                                  priceWithVat: number;
+                                  /** @description Měna ceny. */
+                                  currency: string;
+                                  /** @description Cena bez DPH. */
+                                  priceWithoutVat: number;
+                                  /** @description Výše DPH v procentech. */
+                                  vat: number;
+                                  /** @description Místní označení měny. */
+                                  currencyLocale: string;
+                              };
+                              customer?: {
+                                  /** @description Customer email. */
+                                  email: string;
+                                  /** @description Customer phone number. */
+                                  phone?: string;
+                                  /** @description Customer first name. */
+                                  firstName?: string;
+                                  /** @description Customer last name. */
+                                  lastName?: string;
+                                  /** @description Name of the customer's company. */
+                                  companyName?: string;
+                                  /** @description Indicator of whether the customer is premium. */
+                                  premium: boolean;
+                              };
+                              items: {
+                                  /** @description Order item ID. */
+                                  id: string;
+                                  /** @description Indicator of whether the item is canceled. */
+                                  isStorno: boolean;
+                                  /** @description Order item description as HTML. */
+                                  label: string;
+                                  /** @description Number of items. */
+                                  count: number;
+                                  price: {
+                                      /** @description Cena s DPH. */
+                                      priceWithVat: number;
+                                      /** @description Měna ceny. */
+                                      currency: string;
+                                      /** @description Cena bez DPH. */
+                                      priceWithoutVat: number;
+                                      /** @description Výše DPH v procentech. */
+                                      vat: number;
+                                      /** @description Místní označení měny. */
+                                      currencyLocale: string;
+                                  };
+                                  sale: {
+                                      /** @description Cena s DPH. */
+                                      priceWithVat: number;
+                                      /** @description Měna ceny. */
+                                      currency: string;
+                                      /** @description Cena bez DPH. */
+                                      priceWithoutVat: number;
+                                      /** @description Výše DPH v procentech. */
+                                      vat: number;
+                                      /** @description Místní označení měny. */
+                                      currencyLocale: string;
+                                  };
+                                  /** @description Item units. */
+                                  unit: number;
+                                  vat?: number;
+                                  /** @description Credit value of the item. */
+                                  creditAmount: number;
+                                  productCode?: string;
+                                  productName?: string;
+                                  productMainImageUrl?: string;
+                                  variantCode?: string;
+                                  variantName?: string;
+                                  eventCalendarCode?: string;
+                                  eventCode?: string;
+                                  eventTitle?: string;
+                              }[];
+                              tags: Record<string, never>;
+                              links: {
+                                  /** @description Link for online payment of the order. */
+                                  onlinePaymentLink?: string;
+                                  /** @description URL to which the customer is redirected after successful payment. */
+                                  returnUrl?: string;
+                              };
+                          }
+                        | {
+                              /** @constant */
+                              exist: false;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /**
+                               * @description Indicator of whether the order exists.
+                               * @constant
+                               */
+                              exist: true;
+                              /** @description Order number for system identification. */
+                              id: string;
+                              /** @description Unique hash of the order. */
+                              hash: string;
+                              locale: string;
+                              /** @description Date and time of order payment. */
+                              payDate?: Record<string, never> | string | number;
+                              status: {
+                                  /** @description Public status label defined by the organization and order group. */
+                                  label: string;
+                                  color: string;
+                                  onlinePaymentStatus?: string;
+                                  onlinePaymentStatusLabel?: string;
+                                  /** @description Indicator of whether online payment checking is in progress. */
+                                  onlinePaymentChecking: boolean;
+                              };
+                              /** @description Public note for the order. */
+                              publicNotice?: string;
+                              /** @description Date and time the order was created. */
+                              insertedDate: Record<string, never> | string | number;
+                              /** @description Date and time the order was last updated. */
+                              updatedDate: Record<string, never> | string | number;
+                              /** @description Date and time of order expiration. If this time is reached and the order is not paid, it will be automatically canceled. */
+                              expirationDate?: Record<string, never> | string | number;
+                              price: {
+                                  /** @description Cena s DPH. */
+                                  priceWithVat: number;
+                                  /** @description Měna ceny. */
+                                  currency: string;
+                                  /** @description Cena bez DPH. */
+                                  priceWithoutVat: number;
+                                  /** @description Výše DPH v procentech. */
+                                  vat: number;
+                                  /** @description Místní označení měny. */
+                                  currencyLocale: string;
+                              };
+                              sale: {
+                                  /** @description Cena s DPH. */
+                                  priceWithVat: number;
+                                  /** @description Měna ceny. */
+                                  currency: string;
+                                  /** @description Cena bez DPH. */
+                                  priceWithoutVat: number;
+                                  /** @description Výše DPH v procentech. */
+                                  vat: number;
+                                  /** @description Místní označení měny. */
+                                  currencyLocale: string;
+                              };
+                              customer?: {
+                                  /** @description Customer email. */
+                                  email: string;
+                                  /** @description Customer phone number. */
+                                  phone?: string;
+                                  /** @description Customer first name. */
+                                  firstName?: string;
+                                  /** @description Customer last name. */
+                                  lastName?: string;
+                                  /** @description Name of the customer's company. */
+                                  companyName?: string;
+                                  /** @description Indicator of whether the customer is premium. */
+                                  premium: boolean;
+                              };
+                              items: {
+                                  /** @description Order item ID. */
+                                  id: string;
+                                  /** @description Indicator of whether the item is canceled. */
+                                  isStorno: boolean;
+                                  /** @description Order item description as HTML. */
+                                  label: string;
+                                  /** @description Number of items. */
+                                  count: number;
+                                  price: {
+                                      /** @description Cena s DPH. */
+                                      priceWithVat: number;
+                                      /** @description Měna ceny. */
+                                      currency: string;
+                                      /** @description Cena bez DPH. */
+                                      priceWithoutVat: number;
+                                      /** @description Výše DPH v procentech. */
+                                      vat: number;
+                                      /** @description Místní označení měny. */
+                                      currencyLocale: string;
+                                  };
+                                  sale: {
+                                      /** @description Cena s DPH. */
+                                      priceWithVat: number;
+                                      /** @description Měna ceny. */
+                                      currency: string;
+                                      /** @description Cena bez DPH. */
+                                      priceWithoutVat: number;
+                                      /** @description Výše DPH v procentech. */
+                                      vat: number;
+                                      /** @description Místní označení měny. */
+                                      currencyLocale: string;
+                                  };
+                                  /** @description Item units. */
+                                  unit: number;
+                                  vat?: number;
+                                  /** @description Credit value of the item. */
+                                  creditAmount: number;
+                                  productCode?: string;
+                                  productName?: string;
+                                  productMainImageUrl?: string;
+                                  variantCode?: string;
+                                  variantName?: string;
+                                  eventCalendarCode?: string;
+                                  eventCode?: string;
+                                  eventTitle?: string;
+                              }[];
+                              tags: Record<string, never>;
+                              links: {
+                                  /** @description Link for online payment of the order. */
+                                  onlinePaymentLink?: string;
+                                  /** @description URL to which the customer is redirected after successful payment. */
+                                  returnUrl?: string;
+                              };
+                          }
+                        | {
+                              /** @constant */
+                              exist: false;
+                          };
+                    'text/plain':
+                        | {
+                              /**
+                               * @description Indicator of whether the order exists.
+                               * @constant
+                               */
+                              exist: true;
+                              /** @description Order number for system identification. */
+                              id: string;
+                              /** @description Unique hash of the order. */
+                              hash: string;
+                              locale: string;
+                              /** @description Date and time of order payment. */
+                              payDate?: Record<string, never> | string | number;
+                              status: {
+                                  /** @description Public status label defined by the organization and order group. */
+                                  label: string;
+                                  color: string;
+                                  onlinePaymentStatus?: string;
+                                  onlinePaymentStatusLabel?: string;
+                                  /** @description Indicator of whether online payment checking is in progress. */
+                                  onlinePaymentChecking: boolean;
+                              };
+                              /** @description Public note for the order. */
+                              publicNotice?: string;
+                              /** @description Date and time the order was created. */
+                              insertedDate: Record<string, never> | string | number;
+                              /** @description Date and time the order was last updated. */
+                              updatedDate: Record<string, never> | string | number;
+                              /** @description Date and time of order expiration. If this time is reached and the order is not paid, it will be automatically canceled. */
+                              expirationDate?: Record<string, never> | string | number;
+                              price: {
+                                  /** @description Cena s DPH. */
+                                  priceWithVat: number;
+                                  /** @description Měna ceny. */
+                                  currency: string;
+                                  /** @description Cena bez DPH. */
+                                  priceWithoutVat: number;
+                                  /** @description Výše DPH v procentech. */
+                                  vat: number;
+                                  /** @description Místní označení měny. */
+                                  currencyLocale: string;
+                              };
+                              sale: {
+                                  /** @description Cena s DPH. */
+                                  priceWithVat: number;
+                                  /** @description Měna ceny. */
+                                  currency: string;
+                                  /** @description Cena bez DPH. */
+                                  priceWithoutVat: number;
+                                  /** @description Výše DPH v procentech. */
+                                  vat: number;
+                                  /** @description Místní označení měny. */
+                                  currencyLocale: string;
+                              };
+                              customer?: {
+                                  /** @description Customer email. */
+                                  email: string;
+                                  /** @description Customer phone number. */
+                                  phone?: string;
+                                  /** @description Customer first name. */
+                                  firstName?: string;
+                                  /** @description Customer last name. */
+                                  lastName?: string;
+                                  /** @description Name of the customer's company. */
+                                  companyName?: string;
+                                  /** @description Indicator of whether the customer is premium. */
+                                  premium: boolean;
+                              };
+                              items: {
+                                  /** @description Order item ID. */
+                                  id: string;
+                                  /** @description Indicator of whether the item is canceled. */
+                                  isStorno: boolean;
+                                  /** @description Order item description as HTML. */
+                                  label: string;
+                                  /** @description Number of items. */
+                                  count: number;
+                                  price: {
+                                      /** @description Cena s DPH. */
+                                      priceWithVat: number;
+                                      /** @description Měna ceny. */
+                                      currency: string;
+                                      /** @description Cena bez DPH. */
+                                      priceWithoutVat: number;
+                                      /** @description Výše DPH v procentech. */
+                                      vat: number;
+                                      /** @description Místní označení měny. */
+                                      currencyLocale: string;
+                                  };
+                                  sale: {
+                                      /** @description Cena s DPH. */
+                                      priceWithVat: number;
+                                      /** @description Měna ceny. */
+                                      currency: string;
+                                      /** @description Cena bez DPH. */
+                                      priceWithoutVat: number;
+                                      /** @description Výše DPH v procentech. */
+                                      vat: number;
+                                      /** @description Místní označení měny. */
+                                      currencyLocale: string;
+                                  };
+                                  /** @description Item units. */
+                                  unit: number;
+                                  vat?: number;
+                                  /** @description Credit value of the item. */
+                                  creditAmount: number;
+                                  productCode?: string;
+                                  productName?: string;
+                                  productMainImageUrl?: string;
+                                  variantCode?: string;
+                                  variantName?: string;
+                                  eventCalendarCode?: string;
+                                  eventCode?: string;
+                                  eventTitle?: string;
+                              }[];
+                              tags: Record<string, never>;
+                              links: {
+                                  /** @description Link for online payment of the order. */
+                                  onlinePaymentLink?: string;
+                                  /** @description URL to which the customer is redirected after successful payment. */
+                                  returnUrl?: string;
+                              };
+                          }
+                        | {
+                              /** @constant */
+                              exist: false;
+                          };
                 };
             };
         };
     };
-    "postApiV1ShopOrderCreate-payment": {
+    'postApiV1ShopOrderCreate-payment': {
         parameters: {
             query?: never;
             header?: never;
@@ -7008,13 +7038,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     hash: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     hash: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     hash: string;
                 };
             };
@@ -7025,20 +7055,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         redirectUrl: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         redirectUrl: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         redirectUrl: string;
                     };
                 };
             };
         };
     };
-    "postApiV1ShopOrderCheck-payment-status": {
+    'postApiV1ShopOrderCheck-payment-status': {
         parameters: {
             query?: never;
             header?: never;
@@ -7047,13 +7077,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     hash: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     hash: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     hash: string;
                 };
             };
@@ -7064,13 +7094,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         redirectUrl?: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         redirectUrl?: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         redirectUrl?: string;
                     };
                 };
@@ -7088,15 +7118,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderId: string;
                     orderItemId?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderId: string;
                     orderItemId?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderId: string;
                     orderItemId?: string;
                 };
@@ -7108,30 +7138,36 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        message: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        message: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        message: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              message: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              message: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              message: string;
+                          };
                 };
             };
         };
@@ -7156,7 +7192,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1ShopPaymentProcess-notification": {
+    'getApiV1ShopPaymentProcess-notification': {
         parameters: {
             query: {
                 apiKey: string;
@@ -7177,7 +7213,7 @@ export interface operations {
             };
         };
     };
-    "postApiV1SupportContact-form": {
+    'postApiV1SupportContact-form': {
         parameters: {
             query: {
                 apiKey: string;
@@ -7188,7 +7224,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     message: string;
                     subject?: string;
                     notice?: string;
@@ -7197,7 +7233,7 @@ export interface operations {
                     customerEmail?: string;
                     customerPhone?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     message: string;
                     subject?: string;
                     notice?: string;
@@ -7206,7 +7242,7 @@ export interface operations {
                     customerEmail?: string;
                     customerPhone?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     message: string;
                     subject?: string;
                     notice?: string;
@@ -7223,15 +7259,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -7239,7 +7275,7 @@ export interface operations {
             };
         };
     };
-    "getApiV1TrackingEmail-pixel": {
+    'getApiV1TrackingEmail-pixel': {
         parameters: {
             query: {
                 /** @description External generated message ID, for example `v2.mail::p0xvq-1736628881328-n92ql8.gymroom`.
@@ -7261,9 +7297,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
-                    "multipart/form-data": Record<string, never>;
-                    "text/plain": Record<string, never>;
+                    'application/json': Record<string, never>;
+                    'multipart/form-data': Record<string, never>;
+                    'text/plain': Record<string, never>;
                 };
             };
         };
@@ -7320,13 +7356,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         isLoggedIn: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         isLoggedIn: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         isLoggedIn: boolean;
                     };
                 };
@@ -7350,7 +7386,7 @@ export interface operations {
             };
         };
     };
-    "getBffAccountDetail-contact": {
+    'getBffAccountDetail-contact': {
         parameters: {
             query?: never;
             header?: never;
@@ -7367,7 +7403,7 @@ export interface operations {
             };
         };
     };
-    "getBffAccountAudit-login-attempts": {
+    'getBffAccountAudit-login-attempts': {
         parameters: {
             query?: never;
             header?: never;
@@ -7381,7 +7417,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         currentIp: string;
                         currentLocation: string;
                         itemCount: number;
@@ -7394,7 +7430,7 @@ export interface operations {
                             location: string;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         currentIp: string;
                         currentLocation: string;
                         itemCount: number;
@@ -7407,7 +7443,7 @@ export interface operations {
                             location: string;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         currentIp: string;
                         currentLocation: string;
                         itemCount: number;
@@ -7424,7 +7460,7 @@ export interface operations {
             };
         };
     };
-    "getBffAccountFind-organisation": {
+    'getBffAccountFind-organisation': {
         parameters: {
             query: {
                 workEmail: string;
@@ -7444,7 +7480,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountLogin-otp-auth": {
+    'postBffAccountLogin-otp-auth': {
         parameters: {
             query?: never;
             header?: never;
@@ -7453,13 +7489,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     otpCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     otpCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     otpCode: string;
                 };
             };
@@ -7473,7 +7509,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountReset-password": {
+    'postBffAccountReset-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -7482,17 +7518,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     token: string;
                     passwordInput: string;
                     passwordAgain: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     token: string;
                     passwordInput: string;
                     passwordAgain: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     token: string;
                     passwordInput: string;
                     passwordAgain: string;
@@ -7508,7 +7544,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountRestore-personal-account": {
+    'postBffAccountRestore-personal-account': {
         parameters: {
             query?: never;
             header?: never;
@@ -7517,17 +7553,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     emailInput: string;
                     captchaToken: string;
                     captchaCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     emailInput: string;
                     captchaToken: string;
                     captchaCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     emailInput: string;
                     captchaToken: string;
                     captchaCode: string;
@@ -7543,7 +7579,7 @@ export interface operations {
             };
         };
     };
-    "getBffAccountSet-activity-status": {
+    'getBffAccountSet-activity-status': {
         parameters: {
             query: {
                 status: string;
@@ -7562,7 +7598,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountSet-name": {
+    'postBffAccountSet-name': {
         parameters: {
             query?: never;
             header?: never;
@@ -7571,19 +7607,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     firstName: string;
                     lastName: string;
                     middleName?: string;
                     nick?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     firstName: string;
                     lastName: string;
                     middleName?: string;
                     nick?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     firstName: string;
                     lastName: string;
                     middleName?: string;
@@ -7600,7 +7636,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountSetup-otp-generate-secret": {
+    'postBffAccountSetup-otp-generate-secret': {
         parameters: {
             query?: never;
             header?: never;
@@ -7617,7 +7653,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountSetup-otp-save": {
+    'postBffAccountSetup-otp-save': {
         parameters: {
             query?: never;
             header?: never;
@@ -7626,15 +7662,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     secret: string;
                     otpCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     secret: string;
                     otpCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     secret: string;
                     otpCode: string;
                 };
@@ -7649,7 +7685,7 @@ export interface operations {
             };
         };
     };
-    "getBffAccountSwitch-organisation": {
+    'getBffAccountSwitch-organisation': {
         parameters: {
             query: {
                 organisation: string;
@@ -7668,7 +7704,7 @@ export interface operations {
             };
         };
     };
-    "getBffAccountSync-status": {
+    'getBffAccountSync-status': {
         parameters: {
             query?: never;
             header?: never;
@@ -7685,7 +7721,7 @@ export interface operations {
             };
         };
     };
-    "getBffAccountVerify-email": {
+    'getBffAccountVerify-email': {
         parameters: {
             query: {
                 token: string;
@@ -7704,7 +7740,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountCreate-login-attempt": {
+    'postBffAccountCreate-login-attempt': {
         parameters: {
             query?: never;
             header?: never;
@@ -7713,13 +7749,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     username: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     username: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     username: string;
                 };
             };
@@ -7730,33 +7766,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                        identifier: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        error: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                        identifier: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        error: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                        identifier: string;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        error: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identifier: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              error: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identifier: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              error: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identifier: string;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              error: string;
+                          };
                 };
             };
         };
@@ -7770,17 +7812,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     username: string;
                     password: string;
                     attempt: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     username: string;
                     password: string;
                     attempt: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     username: string;
                     password: string;
                     attempt: string;
@@ -7793,36 +7835,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                        identity: string;
-                        needOtp: boolean;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        error: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                        identity: string;
-                        needOtp: boolean;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        error: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                        identity: string;
-                        needOtp: boolean;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        error: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identity: string;
+                              needOtp: boolean;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              error: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identity: string;
+                              needOtp: boolean;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              error: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                              identity: string;
+                              needOtp: boolean;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              error: string;
+                          };
                 };
             };
         };
@@ -7836,15 +7884,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     identityId?: string;
                     logoutAllOther?: boolean;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     identityId?: string;
                     logoutAllOther?: boolean;
                 };
-                "text/plain": {
+                'text/plain': {
                     identityId?: string;
                     logoutAllOther?: boolean;
                 };
@@ -7856,15 +7904,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -7872,7 +7920,7 @@ export interface operations {
             };
         };
     };
-    "postBffAccountCreate-account": {
+    'postBffAccountCreate-account': {
         parameters: {
             query?: never;
             header?: never;
@@ -7881,7 +7929,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     locale: string;
                     emailInput: string;
                     firstName: string;
@@ -7894,7 +7942,7 @@ export interface operations {
                     /** @default true */
                     checkboxMarketing?: boolean;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     locale: string;
                     emailInput: string;
                     firstName: string;
@@ -7907,7 +7955,7 @@ export interface operations {
                     /** @default true */
                     checkboxMarketing?: boolean;
                 };
-                "text/plain": {
+                'text/plain': {
                     locale: string;
                     emailInput: string;
                     firstName: string;
@@ -7940,13 +7988,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     question: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     question: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     question: string;
                 };
             };
@@ -7977,7 +8025,7 @@ export interface operations {
             };
         };
     };
-    "getBffApi-keyList": {
+    'getBffApi-keyList': {
         parameters: {
             query?: never;
             header?: never;
@@ -7994,7 +8042,7 @@ export interface operations {
             };
         };
     };
-    "getBffApi-keyDetail": {
+    'getBffApi-keyDetail': {
         parameters: {
             query: {
                 id: string;
@@ -8013,7 +8061,7 @@ export interface operations {
             };
         };
     };
-    "postBffApi-keyGenerate-key": {
+    'postBffApi-keyGenerate-key': {
         parameters: {
             query?: never;
             header?: never;
@@ -8022,19 +8070,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     environment: string;
                     relatedToMember?: boolean;
                     description?: string;
                     expirationDate?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     environment: string;
                     relatedToMember?: boolean;
                     description?: string;
                     expirationDate?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     environment: string;
                     relatedToMember?: boolean;
                     description?: string;
@@ -8068,7 +8116,7 @@ export interface operations {
             };
         };
     };
-    "postBffBlobUpload-user-avatar": {
+    'postBffBlobUpload-user-avatar': {
         parameters: {
             query?: never;
             header?: never;
@@ -8082,15 +8130,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -8098,7 +8146,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarCalendar-list": {
+    'getBffCalendarCalendar-list': {
         parameters: {
             query?: never;
             header?: never;
@@ -8115,7 +8163,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarCalendar-detail": {
+    'getBffCalendarCalendar-detail': {
         parameters: {
             query: {
                 code: string;
@@ -8136,7 +8184,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarCalendar-settings": {
+    'getBffCalendarCalendar-settings': {
         parameters: {
             query: {
                 code: string;
@@ -8155,7 +8203,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarCalendar-analytics": {
+    'getBffCalendarCalendar-analytics': {
         parameters: {
             query: {
                 code: string;
@@ -8174,7 +8222,7 @@ export interface operations {
             };
         };
     };
-    "postBffCalendarCalendar-add": {
+    'postBffCalendarCalendar-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -8191,7 +8239,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarDetail-reservations": {
+    'getBffCalendarDetail-reservations': {
         parameters: {
             query?: {
                 customerId?: string;
@@ -8213,7 +8261,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarEvent-detail": {
+    'getBffCalendarEvent-detail': {
         parameters: {
             query: {
                 eventId: string;
@@ -8232,7 +8280,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarEvent-find-conflict": {
+    'getBffCalendarEvent-find-conflict': {
         parameters: {
             query: {
                 calendarId: string;
@@ -8255,7 +8303,7 @@ export interface operations {
             };
         };
     };
-    "postBffCalendarEvent-add": {
+    'postBffCalendarEvent-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -8272,7 +8320,7 @@ export interface operations {
             };
         };
     };
-    "getBffCalendarEvent-type-list": {
+    'getBffCalendarEvent-type-list': {
         parameters: {
             query?: never;
             header?: never;
@@ -8286,21 +8334,21 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         items: {
                             label: string;
                             code: string;
                             color: string;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         items: {
                             label: string;
                             code: string;
                             color: string;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         items: {
                             label: string;
                             code: string;
@@ -8342,44 +8390,50 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: true;
-                        merchantId: string;
-                        secret: string;
-                    } | {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: false;
-                    };
-                    "multipart/form-data": {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: true;
-                        merchantId: string;
-                        secret: string;
-                    } | {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: false;
-                    };
-                    "text/plain": {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: true;
-                        merchantId: string;
-                        secret: string;
-                    } | {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: false;
-                    };
+                    'application/json':
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: true;
+                              merchantId: string;
+                              secret: string;
+                          }
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: false;
+                          };
+                    'multipart/form-data':
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: true;
+                              merchantId: string;
+                              secret: string;
+                          }
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: false;
+                          };
+                    'text/plain':
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: true;
+                              merchantId: string;
+                              secret: string;
+                          }
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: false;
+                          };
                 };
             };
         };
     };
-    "postBffComgateTest-connection": {
+    'postBffComgateTest-connection': {
         parameters: {
             query?: never;
             header?: never;
@@ -8388,15 +8442,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     merchantId: string;
                     secret: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     merchantId: string;
                     secret: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     merchantId: string;
                     secret: string;
                 };
@@ -8408,15 +8462,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         success: boolean;
                         errorMessage?: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         success: boolean;
                         errorMessage?: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         success: boolean;
                         errorMessage?: string;
                     };
@@ -8464,7 +8518,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerDetail-edit": {
+    'postBffCustomerDetail-edit': {
         parameters: {
             query?: never;
             header?: never;
@@ -8478,15 +8532,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -8494,7 +8548,7 @@ export interface operations {
             };
         };
     };
-    "getBffCustomerDetail-credit": {
+    'getBffCustomerDetail-credit': {
         parameters: {
             query: {
                 customerId: string;
@@ -8513,7 +8567,7 @@ export interface operations {
             };
         };
     };
-    "getBffCustomerDetail-sessions": {
+    'getBffCustomerDetail-sessions': {
         parameters: {
             query: {
                 customerId: string;
@@ -8532,7 +8586,7 @@ export interface operations {
             };
         };
     };
-    "getBffCustomerDetail-password-log": {
+    'getBffCustomerDetail-password-log': {
         parameters: {
             query: {
                 customerId: string;
@@ -8551,7 +8605,7 @@ export interface operations {
             };
         };
     };
-    "getBffCustomerDetail-security-info": {
+    'getBffCustomerDetail-security-info': {
         parameters: {
             query: {
                 customerId: string;
@@ -8570,7 +8624,7 @@ export interface operations {
             };
         };
     };
-    "getBffCustomerDetail-address": {
+    'getBffCustomerDetail-address': {
         parameters: {
             query: {
                 customerId: string;
@@ -8589,7 +8643,7 @@ export interface operations {
             };
         };
     };
-    "getBffCustomerGroup-list": {
+    'getBffCustomerGroup-list': {
         parameters: {
             query?: never;
             header?: never;
@@ -8606,7 +8660,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerSet-password": {
+    'postBffCustomerSet-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -8615,15 +8669,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     customerId: string;
                     newPassword: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     customerId: string;
                     newPassword: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     customerId: string;
                     newPassword: string;
                 };
@@ -8638,7 +8692,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerMerge-customers": {
+    'postBffCustomerMerge-customers': {
         parameters: {
             query?: never;
             header?: never;
@@ -8647,15 +8701,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     finalCustomerId: string;
                     legacyCustomerId: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     finalCustomerId: string;
                     legacyCustomerId: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     finalCustomerId: string;
                     legacyCustomerId: string;
                 };
@@ -8667,15 +8721,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -8683,7 +8737,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerInvalidate-sessions": {
+    'postBffCustomerInvalidate-sessions': {
         parameters: {
             query?: never;
             header?: never;
@@ -8692,13 +8746,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     id: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     id: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     id: string;
                 };
             };
@@ -8709,15 +8763,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -8725,7 +8779,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerProcess-register-request": {
+    'postBffCustomerProcess-register-request': {
         parameters: {
             query?: never;
             header?: never;
@@ -8734,13 +8788,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     token: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     token: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     token: string;
                 };
             };
@@ -8754,7 +8808,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerReset-password": {
+    'postBffCustomerReset-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -8763,13 +8817,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     email: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     email: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     email: string;
                 };
             };
@@ -8780,15 +8834,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @constant */
                         success: true;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @constant */
                         success: true;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @constant */
                         success: true;
                     };
@@ -8796,7 +8850,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerProcess-set-password": {
+    'postBffCustomerProcess-set-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -8805,15 +8859,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     token: string;
                     password: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     token: string;
                     password: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     token: string;
                     password: string;
                 };
@@ -8825,38 +8879,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "multipart/form-data": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
-                    "text/plain": {
-                        /** @constant */
-                        success: true;
-                    } | {
-                        /** @constant */
-                        success: false;
-                        errorCode: string;
-                        message: string;
-                    };
+                    'application/json':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'multipart/form-data':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
+                    'text/plain':
+                        | {
+                              /** @constant */
+                              success: true;
+                          }
+                        | {
+                              /** @constant */
+                              success: false;
+                              errorCode: string;
+                              message: string;
+                          };
                 };
             };
         };
     };
-    "postBffCustomerAdd-credit-record": {
+    'postBffCustomerAdd-credit-record': {
         parameters: {
             query?: never;
             header?: never;
@@ -8865,21 +8925,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     customerId: string;
                     amount: number;
                     description?: string;
                     useExpiration: boolean;
                     expirationDate?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     customerId: string;
                     amount: number;
                     description?: string;
                     useExpiration: boolean;
                     expirationDate?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     customerId: string;
                     amount: number;
                     description?: string;
@@ -8894,15 +8954,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -8910,7 +8970,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerGenerate-api-key": {
+    'postBffCustomerGenerate-api-key': {
         parameters: {
             query?: never;
             header?: never;
@@ -8919,17 +8979,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     id: string;
                     name: string;
                     workspace: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     id: string;
                     name: string;
                     workspace: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     id: string;
                     name: string;
                     workspace: string;
@@ -8942,17 +9002,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                         apiKey: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                         apiKey: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                         apiKey: string;
@@ -8961,7 +9021,7 @@ export interface operations {
             };
         };
     };
-    "getBffCustomerWorkspace-list": {
+    'getBffCustomerWorkspace-list': {
         parameters: {
             query: {
                 customerId: string;
@@ -8980,7 +9040,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerAdd-workspace": {
+    'postBffCustomerAdd-workspace': {
         parameters: {
             query?: never;
             header?: never;
@@ -8989,17 +9049,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     id: string;
                     name: string;
                     color: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     id: string;
                     name: string;
                     color: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     id: string;
                     name: string;
                     color: string;
@@ -9012,15 +9072,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9028,7 +9088,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerBlock-customer": {
+    'postBffCustomerBlock-customer': {
         parameters: {
             query?: never;
             header?: never;
@@ -9037,15 +9097,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     id: string;
                     reason?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     id: string;
                     reason?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     id: string;
                     reason?: string;
                 };
@@ -9057,15 +9117,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9073,7 +9133,7 @@ export interface operations {
             };
         };
     };
-    "postBffCustomerBulk-import": {
+    'postBffCustomerBulk-import': {
         parameters: {
             query?: never;
             header?: never;
@@ -9082,21 +9142,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     contactList: {
                         email: string;
                         name: string;
                     }[];
                     internalNote: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     contactList: {
                         email: string;
                         name: string;
                     }[];
                     internalNote: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     contactList: {
                         email: string;
                         name: string;
@@ -9111,15 +9171,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9127,7 +9187,7 @@ export interface operations {
             };
         };
     };
-    "getBffDevTranslate-dictionaries": {
+    'getBffDevTranslate-dictionaries': {
         parameters: {
             query?: never;
             header?: never;
@@ -9161,7 +9221,7 @@ export interface operations {
             };
         };
     };
-    "getBffDomainShow-verify-token": {
+    'getBffDomainShow-verify-token': {
         parameters: {
             query: {
                 domain: string;
@@ -9177,15 +9237,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         verifyToken: string;
                         dnsHeader: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         verifyToken: string;
                         dnsHeader: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         verifyToken: string;
                         dnsHeader: string;
                     };
@@ -9193,7 +9253,7 @@ export interface operations {
             };
         };
     };
-    "getBffDomainCheck-verify-token": {
+    'getBffDomainCheck-verify-token': {
         parameters: {
             query: {
                 domain: string;
@@ -9209,13 +9269,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         success: boolean;
                     };
                 };
@@ -9231,13 +9291,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     domain: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     domain: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     domain: string;
                 };
             };
@@ -9248,13 +9308,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         success: boolean;
                     };
                 };
@@ -9280,7 +9340,7 @@ export interface operations {
             };
         };
     };
-    "getBffEcommerceAddressResolve-address-by-ico": {
+    'getBffEcommerceAddressResolve-address-by-ico': {
         parameters: {
             query: {
                 ico: string;
@@ -9296,13 +9356,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         address: unknown;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         address: unknown;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         address: unknown;
                     };
                 };
@@ -9325,15 +9385,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         ico: string;
                         ares: unknown;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         ico: string;
                         ares: unknown;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         ico: string;
                         ares: unknown;
                     };
@@ -9377,7 +9437,7 @@ export interface operations {
             };
         };
     };
-    "getBffEmailerDetail-log-explain": {
+    'getBffEmailerDetail-log-explain': {
         parameters: {
             query: {
                 emailId: string;
@@ -9414,7 +9474,7 @@ export interface operations {
             };
         };
     };
-    "getBffEmailerSend-now": {
+    'getBffEmailerSend-now': {
         parameters: {
             query: {
                 emailId: string;
@@ -9430,15 +9490,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9446,7 +9506,7 @@ export interface operations {
             };
         };
     };
-    "getBffEmailerSend-again": {
+    'getBffEmailerSend-again': {
         parameters: {
             query: {
                 emailId: string;
@@ -9462,15 +9522,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9478,7 +9538,7 @@ export interface operations {
             };
         };
     };
-    "getBffEmailerSmtp-info": {
+    'getBffEmailerSmtp-info': {
         parameters: {
             query?: never;
             header?: never;
@@ -9495,7 +9555,7 @@ export interface operations {
             };
         };
     };
-    "postBffEmailerSetup-smtp": {
+    'postBffEmailerSetup-smtp': {
         parameters: {
             query?: never;
             header?: never;
@@ -9504,21 +9564,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     testAddress: string;
                     host: string;
                     port: string;
                     authUser: string;
                     authPassword: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     testAddress: string;
                     host: string;
                     port: string;
                     authUser: string;
                     authPassword: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     testAddress: string;
                     host: string;
                     port: string;
@@ -9533,15 +9593,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9575,19 +9635,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     variant: string;
                     contactList?: string;
                     subject: string;
                     message: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     variant: string;
                     contactList?: string;
                     subject: string;
                     message: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     variant: string;
                     contactList?: string;
                     subject: string;
@@ -9666,17 +9726,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name: string;
                     code?: string;
                     description?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     name: string;
                     code?: string;
                     description?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     name: string;
                     code?: string;
                     description?: string;
@@ -9692,7 +9752,7 @@ export interface operations {
             };
         };
     };
-    "postBffFormUpdate-structure": {
+    'postBffFormUpdate-structure': {
         parameters: {
             query?: never;
             header?: never;
@@ -9701,7 +9761,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     code: string;
                     info: {
                         name: string;
@@ -9719,7 +9779,7 @@ export interface operations {
                         options: Record<string, never>;
                     }[];
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     code: string;
                     info: {
                         name: string;
@@ -9737,7 +9797,7 @@ export interface operations {
                         options: Record<string, never>;
                     }[];
                 };
-                "text/plain": {
+                'text/plain': {
                     code: string;
                     info: {
                         name: string;
@@ -9763,15 +9823,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9779,7 +9839,7 @@ export interface operations {
             };
         };
     };
-    "postBffFormAdd-field": {
+    'postBffFormAdd-field': {
         parameters: {
             query?: never;
             header?: never;
@@ -9788,13 +9848,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     formCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     formCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     formCode: string;
                 };
             };
@@ -9805,15 +9865,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9821,7 +9881,7 @@ export interface operations {
             };
         };
     };
-    "postBffFormDuplicate-field": {
+    'postBffFormDuplicate-field': {
         parameters: {
             query?: never;
             header?: never;
@@ -9830,60 +9890,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     formCode: string;
                     fieldCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     formCode: string;
                     fieldCode: string;
                 };
-                "text/plain": {
-                    formCode: string;
-                    fieldCode: string;
-                };
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @default true */
-                        success: boolean;
-                    };
-                    "multipart/form-data": {
-                        /** @default true */
-                        success: boolean;
-                    };
-                    "text/plain": {
-                        /** @default true */
-                        success: boolean;
-                    };
-                };
-            };
-        };
-    };
-    "postBffFormRemove-field": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    formCode: string;
-                    fieldCode: string;
-                };
-                "multipart/form-data": {
-                    formCode: string;
-                    fieldCode: string;
-                };
-                "text/plain": {
+                'text/plain': {
                     formCode: string;
                     fieldCode: string;
                 };
@@ -9895,15 +9910,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -9911,7 +9926,7 @@ export interface operations {
             };
         };
     };
-    "postBffFormCopy-form": {
+    'postBffFormRemove-field': {
         parameters: {
             query?: never;
             header?: never;
@@ -9920,15 +9935,60 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
+                    formCode: string;
+                    fieldCode: string;
+                };
+                'multipart/form-data': {
+                    formCode: string;
+                    fieldCode: string;
+                };
+                'text/plain': {
+                    formCode: string;
+                    fieldCode: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        /** @default true */
+                        success: boolean;
+                    };
+                    'multipart/form-data': {
+                        /** @default true */
+                        success: boolean;
+                    };
+                    'text/plain': {
+                        /** @default true */
+                        success: boolean;
+                    };
+                };
+            };
+        };
+    };
+    'postBffFormCopy-form': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                'application/json': {
                     formCode: string;
                     name?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     formCode: string;
                     name?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     formCode: string;
                     name?: string;
                 };
@@ -9940,17 +10000,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                         newCode: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                         newCode: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                         newCode: string;
@@ -9973,50 +10033,56 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: true;
-                        environment: string;
-                        goId: string;
-                        clientId: string;
-                        clientSecret: string;
-                    } | {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: false;
-                    };
-                    "multipart/form-data": {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: true;
-                        environment: string;
-                        goId: string;
-                        clientId: string;
-                        clientSecret: string;
-                    } | {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: false;
-                    };
-                    "text/plain": {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: true;
-                        environment: string;
-                        goId: string;
-                        clientId: string;
-                        clientSecret: string;
-                    } | {
-                        configured: boolean;
-                        /** @constant */
-                        connectionWorks: false;
-                    };
+                    'application/json':
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: true;
+                              environment: string;
+                              goId: string;
+                              clientId: string;
+                              clientSecret: string;
+                          }
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: false;
+                          };
+                    'multipart/form-data':
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: true;
+                              environment: string;
+                              goId: string;
+                              clientId: string;
+                              clientSecret: string;
+                          }
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: false;
+                          };
+                    'text/plain':
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: true;
+                              environment: string;
+                              goId: string;
+                              clientId: string;
+                              clientSecret: string;
+                          }
+                        | {
+                              configured: boolean;
+                              /** @constant */
+                              connectionWorks: false;
+                          };
                 };
             };
         };
     };
-    "postBffGopayTest-connection": {
+    'postBffGopayTest-connection': {
         parameters: {
             query?: never;
             header?: never;
@@ -10025,19 +10091,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     environment: string;
                     clientId: string;
                     clientSecret: string;
                     goId: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     environment: string;
                     clientId: string;
                     clientSecret: string;
                     goId: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     environment: string;
                     clientId: string;
                     clientSecret: string;
@@ -10051,15 +10117,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         success: boolean;
                         errorMessage?: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         success: boolean;
                         errorMessage?: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         success: boolean;
                         errorMessage?: string;
                     };
@@ -10084,7 +10150,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockLock-list": {
+    'getBffIotLockLock-list': {
         parameters: {
             query?: never;
             header?: never;
@@ -10101,7 +10167,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockLock-detail": {
+    'getBffIotLockLock-detail': {
         parameters: {
             query: {
                 id: string;
@@ -10120,7 +10186,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockLock-detail-refresh": {
+    'getBffIotLockLock-detail-refresh': {
         parameters: {
             query: {
                 lockId: string;
@@ -10139,7 +10205,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockLock-electric-quantity-list": {
+    'getBffIotLockLock-electric-quantity-list': {
         parameters: {
             query: {
                 id: string;
@@ -10158,7 +10224,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockUnlock-now": {
+    'getBffIotLockUnlock-now': {
         parameters: {
             query: {
                 lockId: string;
@@ -10177,7 +10243,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockUnlock-record-list": {
+    'getBffIotLockUnlock-record-list': {
         parameters: {
             query: {
                 id: string;
@@ -10197,7 +10263,7 @@ export interface operations {
             };
         };
     };
-    "postBffIotLockLock-add": {
+    'postBffIotLockLock-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -10206,13 +10272,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     lockId: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     lockId: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     lockId: string;
                 };
             };
@@ -10226,7 +10292,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockPassword-list": {
+    'getBffIotLockPassword-list': {
         parameters: {
             query: {
                 id: string;
@@ -10245,7 +10311,7 @@ export interface operations {
             };
         };
     };
-    "postBffIotLockPassword-add": {
+    'postBffIotLockPassword-add': {
         parameters: {
             query?: never;
             header?: never;
@@ -10254,7 +10320,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     lockId: number;
                     password?: string;
                     passwordName?: string;
@@ -10263,7 +10329,7 @@ export interface operations {
                     /** Format: date-time */
                     endDate?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     lockId: number;
                     password?: string;
                     passwordName?: string;
@@ -10272,7 +10338,7 @@ export interface operations {
                     /** Format: date-time */
                     endDate?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     lockId: number;
                     password?: string;
                     passwordName?: string;
@@ -10292,7 +10358,7 @@ export interface operations {
             };
         };
     };
-    "getBffIotLockPassword-delete": {
+    'getBffIotLockPassword-delete': {
         parameters: {
             query: {
                 keyboardPwdId: string;
@@ -10339,7 +10405,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     parentMemberId?: number;
                     username: string;
                     firstName: string;
@@ -10348,7 +10414,7 @@ export interface operations {
                     personalNumber?: string;
                     description?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     parentMemberId?: number;
                     username: string;
                     firstName: string;
@@ -10357,7 +10423,7 @@ export interface operations {
                     personalNumber?: string;
                     description?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     parentMemberId?: number;
                     username: string;
                     firstName: string;
@@ -10374,15 +10440,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -10390,7 +10456,7 @@ export interface operations {
             };
         };
     };
-    "postBffMemberAdd-existing-user": {
+    'postBffMemberAdd-existing-user': {
         parameters: {
             query?: never;
             header?: never;
@@ -10399,19 +10465,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     parentMemberId?: number;
                     username: string;
                     personalNumber?: string;
                     description?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     parentMemberId?: number;
                     username: string;
                     personalNumber?: string;
                     description?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     parentMemberId?: number;
                     username: string;
                     personalNumber?: string;
@@ -10425,15 +10491,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -10441,7 +10507,7 @@ export interface operations {
             };
         };
     };
-    "postBffMemberConfirm-registration": {
+    'postBffMemberConfirm-registration': {
         parameters: {
             query?: never;
             header?: never;
@@ -10455,15 +10521,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -10485,15 +10551,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -10501,7 +10567,7 @@ export interface operations {
             };
         };
     };
-    "getBffNetworkRefetch-dns": {
+    'getBffNetworkRefetch-dns': {
         parameters: {
             query: {
                 domain: string;
@@ -10520,7 +10586,7 @@ export interface operations {
             };
         };
     };
-    "getBffNetworkDns-search": {
+    'getBffNetworkDns-search': {
         parameters: {
             query: {
                 query: string;
@@ -10539,7 +10605,7 @@ export interface operations {
             };
         };
     };
-    "getBffNetworkRobots-txt": {
+    'getBffNetworkRobots-txt': {
         parameters: {
             query: {
                 domain: string;
@@ -10558,7 +10624,7 @@ export interface operations {
             };
         };
     };
-    "getBffNetworkSsl-certificate": {
+    'getBffNetworkSsl-certificate': {
         parameters: {
             query: {
                 domain: string;
@@ -10613,7 +10679,7 @@ export interface operations {
             };
         };
     };
-    "getBffNewsletterJob-list": {
+    'getBffNewsletterJob-list': {
         parameters: {
             query?: never;
             header?: never;
@@ -10630,7 +10696,7 @@ export interface operations {
             };
         };
     };
-    "getBffNewsletterJob-contact-list": {
+    'getBffNewsletterJob-contact-list': {
         parameters: {
             query?: never;
             header?: never;
@@ -10647,7 +10713,7 @@ export interface operations {
             };
         };
     };
-    "getBffNewsletterJob-statistics": {
+    'getBffNewsletterJob-statistics': {
         parameters: {
             query?: never;
             header?: never;
@@ -10664,7 +10730,7 @@ export interface operations {
             };
         };
     };
-    "postBffNewsletterBulk-import": {
+    'postBffNewsletterBulk-import': {
         parameters: {
             query?: never;
             header?: never;
@@ -10673,15 +10739,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     contactList: string[];
                     source?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     contactList: string[];
                     source?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     contactList: string[];
                     source?: string;
                 };
@@ -10693,15 +10759,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -10709,7 +10775,7 @@ export interface operations {
             };
         };
     };
-    "getBffIp-infoDetail": {
+    'getBffIp-infoDetail': {
         parameters: {
             query?: never;
             header?: never;
@@ -10742,7 +10808,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         items: {
                             id: number;
                             locale: string;
@@ -10750,7 +10816,7 @@ export interface operations {
                         }[];
                         itemCount: number;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         items: {
                             id: number;
                             locale: string;
@@ -10758,7 +10824,7 @@ export interface operations {
                         }[];
                         itemCount: number;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         items: {
                             id: number;
                             locale: string;
@@ -10806,7 +10872,7 @@ export interface operations {
             };
         };
     };
-    "getBffLogDetail-log-explain": {
+    'getBffLogDetail-log-explain': {
         parameters: {
             query: {
                 id: string;
@@ -10835,15 +10901,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderGroupId?: string;
                     customerEmail?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderGroupId?: string;
                     customerEmail?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderGroupId?: string;
                     customerEmail?: string;
                 };
@@ -10877,7 +10943,7 @@ export interface operations {
             };
         };
     };
-    "getBffOrderDetail-recurrence": {
+    'getBffOrderDetail-recurrence': {
         parameters: {
             query: {
                 hash: string;
@@ -10896,7 +10962,7 @@ export interface operations {
             };
         };
     };
-    "getBffOrderDetail-file": {
+    'getBffOrderDetail-file': {
         parameters: {
             query: {
                 hash: string;
@@ -10915,7 +10981,7 @@ export interface operations {
             };
         };
     };
-    "getBffOrderDetail-log": {
+    'getBffOrderDetail-log': {
         parameters: {
             query: {
                 hash: string;
@@ -10933,7 +10999,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         items: {
                             id: number;
                             message: string;
@@ -10942,7 +11008,7 @@ export interface operations {
                         }[];
                         itemCount: number;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         items: {
                             id: number;
                             message: string;
@@ -10951,7 +11017,7 @@ export interface operations {
                         }[];
                         itemCount: number;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         items: {
                             id: number;
                             message: string;
@@ -10964,7 +11030,7 @@ export interface operations {
             };
         };
     };
-    "getBffOrderDetail-log-explain": {
+    'getBffOrderDetail-log-explain': {
         parameters: {
             query: {
                 hash: string;
@@ -10984,7 +11050,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderMark-as-paid": {
+    'postBffOrderMark-as-paid': {
         parameters: {
             query?: never;
             header?: never;
@@ -10993,13 +11059,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     hash: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     hash: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     hash: string;
                 };
             };
@@ -11010,15 +11076,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11026,7 +11092,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderMark-as-non-paid": {
+    'postBffOrderMark-as-non-paid': {
         parameters: {
             query?: never;
             header?: never;
@@ -11035,13 +11101,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     hash: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     hash: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     hash: string;
                 };
             };
@@ -11052,15 +11118,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11068,7 +11134,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderSet-item-storno": {
+    'postBffOrderSet-item-storno': {
         parameters: {
             query?: never;
             header?: never;
@@ -11077,60 +11143,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     itemId: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     itemId: string;
                 };
-                "text/plain": {
-                    orderHash: string;
-                    itemId: string;
-                };
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @default true */
-                        success: boolean;
-                    };
-                    "multipart/form-data": {
-                        /** @default true */
-                        success: boolean;
-                    };
-                    "text/plain": {
-                        /** @default true */
-                        success: boolean;
-                    };
-                };
-            };
-        };
-    };
-    "postBffOrderRemove-item": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    orderHash: string;
-                    itemId: string;
-                };
-                "multipart/form-data": {
-                    orderHash: string;
-                    itemId: string;
-                };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     itemId: string;
                 };
@@ -11142,15 +11163,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11158,7 +11179,52 @@ export interface operations {
             };
         };
     };
-    "getBffOrderOnline-payment-grid": {
+    'postBffOrderRemove-item': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                'application/json': {
+                    orderHash: string;
+                    itemId: string;
+                };
+                'multipart/form-data': {
+                    orderHash: string;
+                    itemId: string;
+                };
+                'text/plain': {
+                    orderHash: string;
+                    itemId: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        /** @default true */
+                        success: boolean;
+                    };
+                    'multipart/form-data': {
+                        /** @default true */
+                        success: boolean;
+                    };
+                    'text/plain': {
+                        /** @default true */
+                        success: boolean;
+                    };
+                };
+            };
+        };
+    };
+    'getBffOrderOnline-payment-grid': {
         parameters: {
             query: {
                 orderHash: string;
@@ -11177,7 +11243,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderCreate-payment": {
+    'postBffOrderCreate-payment': {
         parameters: {
             query?: never;
             header?: never;
@@ -11186,15 +11252,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     provider: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     provider: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     provider: string;
                 };
@@ -11206,17 +11272,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                         redirectUrl?: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                         redirectUrl?: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                         redirectUrl?: string;
@@ -11225,7 +11291,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderResend-notification": {
+    'postBffOrderResend-notification': {
         parameters: {
             query?: never;
             header?: never;
@@ -11234,15 +11300,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     statusCode?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     statusCode?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     statusCode?: string;
                 };
@@ -11254,15 +11320,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11270,7 +11336,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderUpdate-notice": {
+    'postBffOrderUpdate-notice': {
         parameters: {
             query?: never;
             header?: never;
@@ -11279,17 +11345,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     internalNotice: string;
                     publicNotice: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     internalNotice: string;
                     publicNotice: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     internalNotice: string;
                     publicNotice: string;
@@ -11302,15 +11368,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11318,7 +11384,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderAdd-product": {
+    'postBffOrderAdd-product': {
         parameters: {
             query?: never;
             header?: never;
@@ -11327,7 +11393,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     productCode: string;
                     productVariantCode?: string;
@@ -11336,7 +11402,7 @@ export interface operations {
                     vat: number;
                     count: number;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     productCode: string;
                     productVariantCode?: string;
@@ -11345,7 +11411,7 @@ export interface operations {
                     vat: number;
                     count: number;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     productCode: string;
                     productVariantCode?: string;
@@ -11362,15 +11428,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11378,7 +11444,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderAdd-virtual-product": {
+    'postBffOrderAdd-virtual-product': {
         parameters: {
             query?: never;
             header?: never;
@@ -11387,21 +11453,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     label: string;
                     price: number;
                     vat: number;
                     count: number;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     label: string;
                     price: number;
                     vat: number;
                     count: number;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     label: string;
                     price: number;
@@ -11416,15 +11482,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11432,7 +11498,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderAdd-credit": {
+    'postBffOrderAdd-credit': {
         parameters: {
             query?: never;
             header?: never;
@@ -11441,21 +11507,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     label: string;
                     price: number;
                     credit: number;
                     vat: number;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     label: string;
                     price: number;
                     credit: number;
                     vat: number;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     label: string;
                     price: number;
@@ -11470,15 +11536,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11486,7 +11552,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderAdd-event": {
+    'postBffOrderAdd-event': {
         parameters: {
             query?: never;
             header?: never;
@@ -11495,15 +11561,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     eventCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     eventCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     eventCode: string;
                 };
@@ -11515,15 +11581,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11531,7 +11597,7 @@ export interface operations {
             };
         };
     };
-    "postBffOrderDetail-recurrence-delete": {
+    'postBffOrderDetail-recurrence-delete': {
         parameters: {
             query?: never;
             header?: never;
@@ -11540,15 +11606,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     orderHash: string;
                     paymentId: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     orderHash: string;
                     paymentId: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     orderHash: string;
                     paymentId: string;
                 };
@@ -11560,15 +11626,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11576,7 +11642,7 @@ export interface operations {
             };
         };
     };
-    "getBffOrderCreate-invoice": {
+    'getBffOrderCreate-invoice': {
         parameters: {
             query: {
                 hash: string;
@@ -11592,15 +11658,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11617,7 +11683,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name: string;
                     email: string;
                     firstName: string;
@@ -11633,7 +11699,7 @@ export interface operations {
                     locale?: string;
                     partnerOrganisationSlug?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     name: string;
                     email: string;
                     firstName: string;
@@ -11649,7 +11715,7 @@ export interface operations {
                     locale?: string;
                     partnerOrganisationSlug?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     name: string;
                     email: string;
                     firstName: string;
@@ -11676,7 +11742,7 @@ export interface operations {
             };
         };
     };
-    "getBffOrganisationStorage-usage": {
+    'getBffOrganisationStorage-usage': {
         parameters: {
             query?: never;
             header?: never;
@@ -11693,7 +11759,7 @@ export interface operations {
             };
         };
     };
-    "getBffPacketaSync-branches": {
+    'getBffPacketaSync-branches': {
         parameters: {
             query?: never;
             header?: never;
@@ -11707,15 +11773,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -11739,7 +11805,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         items: {
                             name: string;
                             memberId?: number;
@@ -11757,7 +11823,7 @@ export interface operations {
                             };
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         items: {
                             name: string;
                             memberId?: number;
@@ -11775,7 +11841,7 @@ export interface operations {
                             };
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         items: {
                             name: string;
                             memberId?: number;
@@ -11797,7 +11863,7 @@ export interface operations {
             };
         };
     };
-    "getBffPostStatic-page": {
+    'getBffPostStatic-page': {
         parameters: {
             query: {
                 slug: string;
@@ -11835,7 +11901,7 @@ export interface operations {
             };
         };
     };
-    "getBffProductProduct-detail": {
+    'getBffProductProduct-detail': {
         parameters: {
             query: {
                 productCode: string;
@@ -11854,7 +11920,7 @@ export interface operations {
             };
         };
     };
-    "getBffProductPrice-history": {
+    'getBffProductPrice-history': {
         parameters: {
             query: {
                 productCode: string;
@@ -11873,7 +11939,7 @@ export interface operations {
             };
         };
     };
-    "getBffProductSearch-related-products": {
+    'getBffProductSearch-related-products': {
         parameters: {
             query: {
                 productCode: string;
@@ -11893,7 +11959,7 @@ export interface operations {
             };
         };
     };
-    "getBffProductProduct-detail-related": {
+    'getBffProductProduct-detail-related': {
         parameters: {
             query: {
                 productCode: string;
@@ -11912,7 +11978,7 @@ export interface operations {
             };
         };
     };
-    "postBffProductConnect-related-product": {
+    'postBffProductConnect-related-product': {
         parameters: {
             query?: never;
             header?: never;
@@ -11921,15 +11987,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     productCode: string;
                     relatedCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     productCode: string;
                     relatedCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     productCode: string;
                     relatedCode: string;
                 };
@@ -11944,7 +12010,7 @@ export interface operations {
             };
         };
     };
-    "postBffProductDisconnect-related-product": {
+    'postBffProductDisconnect-related-product': {
         parameters: {
             query?: never;
             header?: never;
@@ -11953,15 +12019,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     productCode: string;
                     relatedCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     productCode: string;
                     relatedCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     productCode: string;
                     relatedCode: string;
                 };
@@ -11976,7 +12042,7 @@ export interface operations {
             };
         };
     };
-    "getBffProductSearch-product-list-autocomplete": {
+    'getBffProductSearch-product-list-autocomplete': {
         parameters: {
             query: {
                 searchQuery: string;
@@ -11995,7 +12061,7 @@ export interface operations {
             };
         };
     };
-    "getBffProductSearch-product-variant-list": {
+    'getBffProductSearch-product-variant-list': {
         parameters: {
             query: {
                 productCode: string;
@@ -12014,7 +12080,7 @@ export interface operations {
             };
         };
     };
-    "postBffProductConnect-event": {
+    'postBffProductConnect-event': {
         parameters: {
             query?: never;
             header?: never;
@@ -12023,15 +12089,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     productCode: string;
                     eventCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     productCode: string;
                     eventCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     productCode: string;
                     eventCode: string;
                 };
@@ -12046,7 +12112,7 @@ export interface operations {
             };
         };
     };
-    "postBffProductDisconnect-event": {
+    'postBffProductDisconnect-event': {
         parameters: {
             query?: never;
             header?: never;
@@ -12055,13 +12121,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     productCode: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     productCode: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     productCode: string;
                 };
             };
@@ -12075,7 +12141,7 @@ export interface operations {
             };
         };
     };
-    "getBffProductProduct-variant-list": {
+    'getBffProductProduct-variant-list': {
         parameters: {
             query: {
                 productCode: string;
@@ -12094,7 +12160,7 @@ export interface operations {
             };
         };
     };
-    "postBffProductUpdate-variant": {
+    'postBffProductUpdate-variant': {
         parameters: {
             query?: never;
             header?: never;
@@ -12103,19 +12169,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     id: string;
                     code: string;
                     haystack: string | number | boolean;
                     property: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     id: string;
                     code: string;
                     haystack: string | number | boolean;
                     property: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     id: string;
                     code: string;
                     haystack: string | number | boolean;
@@ -12132,7 +12198,7 @@ export interface operations {
             };
         };
     };
-    "getBffProduct-categoryList": {
+    'getBffProduct-categoryList': {
         parameters: {
             query?: never;
             header?: never;
@@ -12149,7 +12215,7 @@ export interface operations {
             };
         };
     };
-    "getBffProduct-categoryList-selectbox": {
+    'getBffProduct-categoryList-selectbox': {
         parameters: {
             query?: never;
             header?: never;
@@ -12166,7 +12232,7 @@ export interface operations {
             };
         };
     };
-    "getBffProduct-categoryCategory-detail": {
+    'getBffProduct-categoryCategory-detail': {
         parameters: {
             query: {
                 code: string;
@@ -12185,7 +12251,7 @@ export interface operations {
             };
         };
     };
-    "postBffProduct-categoryCategory-create": {
+    'postBffProduct-categoryCategory-create': {
         parameters: {
             query?: never;
             header?: never;
@@ -12194,19 +12260,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name: string;
                     code: string;
                     slug?: string;
                     parentCode?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     name: string;
                     code: string;
                     slug?: string;
                     parentCode?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     name: string;
                     code: string;
                     slug?: string;
@@ -12223,7 +12289,7 @@ export interface operations {
             };
         };
     };
-    "postBffProduct-categoryCategory-update": {
+    'postBffProduct-categoryCategory-update': {
         parameters: {
             query?: never;
             header?: never;
@@ -12232,7 +12298,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name: string;
                     code: string;
                     slug?: string;
@@ -12241,7 +12307,7 @@ export interface operations {
                     internal?: boolean;
                     b2b?: boolean;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     name: string;
                     code: string;
                     slug?: string;
@@ -12250,7 +12316,7 @@ export interface operations {
                     internal?: boolean;
                     b2b?: boolean;
                 };
-                "text/plain": {
+                'text/plain': {
                     name: string;
                     code: string;
                     slug?: string;
@@ -12288,7 +12354,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         query: string;
                         items: {
                             type: string;
@@ -12298,7 +12364,7 @@ export interface operations {
                             score: number;
                         }[];
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         query: string;
                         items: {
                             type: string;
@@ -12308,7 +12374,7 @@ export interface operations {
                             score: number;
                         }[];
                     };
-                    "text/plain": {
+                    'text/plain': {
                         query: string;
                         items: {
                             type: string;
@@ -12341,7 +12407,7 @@ export interface operations {
             };
         };
     };
-    "getBffSettingsLink-blob": {
+    'getBffSettingsLink-blob': {
         parameters: {
             query: {
                 blobToken: string;
@@ -12357,15 +12423,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -12373,7 +12439,7 @@ export interface operations {
             };
         };
     };
-    "getBffSettingsVat-rates": {
+    'getBffSettingsVat-rates': {
         parameters: {
             query?: never;
             header?: never;
@@ -12390,7 +12456,7 @@ export interface operations {
             };
         };
     };
-    "getBffSettingsEnv-variables": {
+    'getBffSettingsEnv-variables': {
         parameters: {
             query?: never;
             header?: never;
@@ -12407,7 +12473,7 @@ export interface operations {
             };
         };
     };
-    "getBffSettingsEnv-variable-value": {
+    'getBffSettingsEnv-variable-value': {
         parameters: {
             query: {
                 key: string;
@@ -12423,20 +12489,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         value: string;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         value: string;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         value: string;
                     };
                 };
             };
         };
     };
-    "postBffSettingsEnv-change-variable-value": {
+    'postBffSettingsEnv-change-variable-value': {
         parameters: {
             query?: never;
             header?: never;
@@ -12445,17 +12511,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     key: string;
                     oldValue: string;
                     newValue: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     key: string;
                     oldValue: string;
                     newValue: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     key: string;
                     oldValue: string;
                     newValue: string;
@@ -12468,15 +12534,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -12518,7 +12584,7 @@ export interface operations {
             };
         };
     };
-    "getBffTestProduct-import-feed": {
+    'getBffTestProduct-import-feed': {
         parameters: {
             query?: never;
             header?: never;
@@ -12535,7 +12601,7 @@ export interface operations {
             };
         };
     };
-    "getBffTestConnect-import-feed": {
+    'getBffTestConnect-import-feed': {
         parameters: {
             query?: never;
             header?: never;
@@ -12586,7 +12652,7 @@ export interface operations {
             };
         };
     };
-    "getBffTransactionAccount-info": {
+    'getBffTransactionAccount-info': {
         parameters: {
             query?: never;
             header?: never;
@@ -12623,7 +12689,7 @@ export interface operations {
             };
         };
     };
-    "getBffTransactionSync-all": {
+    'getBffTransactionSync-all': {
         parameters: {
             query?: never;
             header?: never;
@@ -12637,15 +12703,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -12653,7 +12719,7 @@ export interface operations {
             };
         };
     };
-    "postBffTransactionAdd-api-token": {
+    'postBffTransactionAdd-api-token': {
         parameters: {
             query?: never;
             header?: never;
@@ -12662,13 +12728,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     apiToken: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     apiToken: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     apiToken: string;
                 };
             };
@@ -12679,15 +12745,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -12712,7 +12778,7 @@ export interface operations {
             };
         };
     };
-    "postBffWorkflowAdd-status": {
+    'postBffWorkflowAdd-status': {
         parameters: {
             query?: never;
             header?: never;
@@ -12721,19 +12787,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     label: string;
                     code: string;
                     color: string;
                     type: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     label: string;
                     code: string;
                     color: string;
                     type: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     label: string;
                     code: string;
                     color: string;
@@ -12747,15 +12813,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -12772,7 +12838,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     label: string;
                     code: string;
                     internalName?: string;
@@ -12783,7 +12849,7 @@ export interface operations {
                     redirectToCode?: string;
                     redirectTimeout?: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     label: string;
                     code: string;
                     internalName?: string;
@@ -12794,7 +12860,7 @@ export interface operations {
                     redirectToCode?: string;
                     redirectTimeout?: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     label: string;
                     code: string;
                     internalName?: string;
@@ -12813,15 +12879,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -12829,7 +12895,7 @@ export interface operations {
             };
         };
     };
-    "postBffWorkflowSet-status-position": {
+    'postBffWorkflowSet-status-position': {
         parameters: {
             query?: never;
             header?: never;
@@ -12838,15 +12904,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     code: string;
                     direction: string;
                 };
-                "multipart/form-data": {
+                'multipart/form-data': {
                     code: string;
                     direction: string;
                 };
-                "text/plain": {
+                'text/plain': {
                     code: string;
                     direction: string;
                 };
@@ -12858,15 +12924,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @default true */
                         success: boolean;
                     };
-                    "multipart/form-data": {
+                    'multipart/form-data': {
                         /** @default true */
                         success: boolean;
                     };
-                    "text/plain": {
+                    'text/plain': {
                         /** @default true */
                         success: boolean;
                     };
@@ -12875,3 +12941,7 @@ export interface operations {
         };
     };
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
