@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Hexagonal Grid Drawing App</title>
+        <style>
+            /* Basic reset and full screen canvas */
+            body,
+            html {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                height: 100%;
+                background-color: #f0f0f0;
+            }
+            canvas {
+                display: block;
+                background-color: #e5e5e5;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script>
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Moved hexagon dimensions and grid declaration above resizeCanvas.
+            const hexRadius = 30;
+            const hexHeight = Math.sqrt(3) * hexRadius;
+            const hexWidth = 2 * hexRadius;
+            const hexHorizDist = 0.75 * hexWidth;
+            // The grid array will hold cell objects with center coordinates and current fill color.
+            let grid = [];
+
+            // Set canvas size to window dimensions
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                createHexGrid();
+                drawGrid();
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // Create the grid based on canvas size
+            function createHexGrid() {
+                grid = [];
+                // Calculate approximate number of rows and columns needed.
+                const rows = Math.ceil(canvas.height / (hexHeight / 2)) + 1;
+                const cols = Math.ceil(canvas.width / hexHorizDist) + 1;
+
+                for (let row = 0; row < rows; row++) {
+                    let gridRow = [];
+                    for (let col = 0; col < cols; col++) {
+                        let x = col * hexHorizDist;
+                        // Offset every other row for a staggered effect
+                        if (row % 2 === 1) {
+                            x += hexHorizDist / 2;
+                        }
+                        let y = row * (hexHeight / 2);
+                        gridRow.push({ x: x, y: y, color: '#fff' });
+                    }
+                    grid.push(gridRow);
+                }
+            }
+
+            // Draw a hexagon given its center (x, y), radius, and fill color.
+            function drawHexagon(x, y, radius, fillColor) {
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    let angle = (Math.PI / 3) * i;
+                    let vx = x + radius * Math.cos(angle);
+                    let vy = y + radius * Math.sin(angle);
+                    i === 0 ? ctx.moveTo(vx, vy) : ctx.lineTo(vx, vy);
+                }
+                ctx.closePath();
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.stroke();
+            }
+
+            // Redraw the entire grid
+            function drawGrid() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                grid.forEach((row) => {
+                    row.forEach((cell) => {
+                        drawHexagon(cell.x, cell.y, hexRadius, cell.color);
+                    });
+                });
+            }
+
+            // Determine if a point is inside a polygon (ray-casting algorithm)
+            function pointInPolygon(point, vertices) {
+                let inside = false;
+                for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+                    let xi = vertices[i].x,
+                        yi = vertices[i].y;
+                    let xj = vertices[j].x,
+                        yj = vertices[j].y;
+                    let intersect =
+                        yi > point.y !== yj > point.y && point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
+                    if (intersect) inside = !inside;
+                }
+                return inside;
+            }
+
+            // Given a click point, find the hexagon that contains the point.
+            function getHexAtPoint(x, y) {
+                for (let row of grid) {
+                    for (let cell of row) {
+                        // Calculate vertices of this hexagon.
+                        let vertices = [];
+                        for (let i = 0; i < 6; i++) {
+                            let angle = (Math.PI / 3) * i;
+                            vertices.push({
+                                x: cell.x + hexRadius * Math.cos(angle),
+                                y: cell.y + hexRadius * Math.sin(angle),
+                            });
+                        }
+                        if (pointInPolygon({ x: x, y: y }, vertices)) {
+                            return cell;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // Handle click events: toggle hexagon color
+            canvas.addEventListener('click', function (event) {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = event.clientX - rect.left;
+                const clickY = event.clientY - rect.top;
+                const cell = getHexAtPoint(clickX, clickY);
+                if (cell) {
+                    // Toggle between white and a chosen color (e.g., tomato)
+                    cell.color = cell.color === '#fff' ? '#ff6347' : '#fff';
+                    drawGrid();
+                }
+            });
+
+            // Initialize the grid and render it
+            createHexGrid();
+            drawGrid();
+        </script>
+    </body>
+</html>
