@@ -302,6 +302,13 @@ export type string_domain = string;
 /**
  * Semantic helper
  *
+ * For example `"https://*.pavolhejny.com/*"`
+ */
+export type string_origin = string;
+
+/**
+ * Semantic helper
+ *
  * For example `"com"`
  */
 export type string_tdl = string;
