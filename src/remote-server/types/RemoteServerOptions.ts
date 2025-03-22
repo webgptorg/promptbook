@@ -80,17 +80,30 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
 
 export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
     /**
-     * @@@
+     * Identifier of the application
+     *
+     * Note: This is usefull when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
+     * Note: This can be some id or some semantic name like "email-agent"
      */
     readonly appId: string_app_id | null;
 
     /**
-     * @@@
+     * Identifier of the end user
+     *
+     * Note: This can be either some id or email or any other identifier
+     * Note: This is also passed to the certain model providers to identify misuse
      */
     readonly userId?: string_user_id;
 
     /**
-     * @@@
+     * Token of the user to verify its identity
+     *
+     * Note: This is passed for example to `createLlmExecutionTools`
+     */
+    readonly userToken?: string_user_id;
+
+    /**
+     * Additional arbitrary options to identify the client or to pass custom metadata
      */
     readonly customOptions?: TCustomOptions;
 };

@@ -1,3 +1,4 @@
+import { Subject, type Observable } from 'rxjs';
 import type { Promisable } from 'type-fest';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
@@ -19,8 +20,9 @@ import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTot
  * @returns LLM tools with same functionality with added total cost counting
  * @public exported from `@promptbook/core`
  */
-export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
+export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
     let totalUsage: PromptResultUsage = ZERO_USAGE;
+    const spending = new Subject<PromptResultUsage>();
 
     const proxyTools: LlmExecutionToolsWithTotalUsage = {
         get title() {
@@ -33,12 +35,16 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
             return llmTools.description;
         },
 
-        async checkConfiguration(): Promise<void> {
+        checkConfiguration(): Promisable<void> {
             return /* not await */ llmTools.checkConfiguration();
         },
 
         listModels(): Promisable<ReadonlyArray<AvailableModel>> {
             return /* not await */ llmTools.listModels();
+        },
+
+        spending(): Observable<PromptResultUsage> {
+            return spending.asObservable();
         },
 
         getTotalUsage() {
@@ -52,6 +58,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
             // console.info('[🚕] callChatModel through countTotalUsage');
             const promptResult = await llmTools.callChatModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
+            spending.next(promptResult.usage);
             return promptResult;
         };
     }
@@ -61,6 +68,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
             // console.info('[🚕] callCompletionModel through countTotalUsage');
             const promptResult = await llmTools.callCompletionModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
+            spending.next(promptResult.usage);
             return promptResult;
         };
     }
@@ -70,6 +78,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
             // console.info('[🚕] callEmbeddingModel through countTotalUsage');
             const promptResult = await llmTools.callEmbeddingModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
+            spending.next(promptResult.usage);
             return promptResult;
         };
     }

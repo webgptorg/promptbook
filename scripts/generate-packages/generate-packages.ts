@@ -649,7 +649,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     // 9️⃣ Commit the changes
 
     if (isCommited) {
-        await commit(['src/_packages', 'packages', '.github'], `📦 Generating packages`);
+        await commit(['src/_packages', 'packages', '.github'], `📦 Generating packages \`${mainPackageJson.version}\``);
     }
 }
 

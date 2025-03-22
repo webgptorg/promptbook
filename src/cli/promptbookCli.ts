@@ -14,6 +14,7 @@ import { $initializePrettifyCommand } from './cli-commands/prettify';
 import { $initializeRunCommand } from './cli-commands/run';
 import { $initializeStartServerCommand } from './cli-commands/start-server';
 import { $initializeTestCommand } from './cli-commands/test-command';
+import { $initializeLoginCommand } from './cli-commands/login';
 
 /**
  * Runs CLI utilities of Promptbook package
@@ -49,6 +50,7 @@ export async function promptbookCli(): Promise<void> {
 
     $initializeAboutCommand(program);
     $initializeRunCommand(program);
+    $initializeLoginCommand(program);
     $initializeHelloCommand(program);
     $initializeMakeCommand(program);
     $initializePrettifyCommand(program);
