@@ -11,6 +11,8 @@ import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { createExecutionToolsFromVercelProvider } from '../createExecutionToolsFromVercelProvider';
+import { PromptResultUsage } from '../../../execution/PromptResultUsage';
+import { countUsage } from '../../../llm-providers/_common/utils/count-total-usage/countUsage';
 
 playground()
     .catch((error) => {
@@ -45,6 +47,16 @@ async function playground() {
         ],
     });
 
+
+    const toolsWithUsage = countUsage(openaiPromptbookExecutionTools);
+
+    toolsWithUsage.spending().subscribe((usage: PromptResultUsage) => {
+        const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
+        console.log(`[💸] Spending ${wordCount} words`);
+    });
+
+
+    keepUnused(toolsWithUsage);
     keepUnused(openaiPromptbookExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
@@ -66,7 +78,7 @@ async function playground() {
             temperature: 1.5,
         },
     } as const satisfies Prompt;
-    const chatPromptResult = await openaiPromptbookExecutionTools.callChatModel!(chatPrompt);
+    const chatPromptResult = await toolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));

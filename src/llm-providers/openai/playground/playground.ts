@@ -9,7 +9,9 @@ import { embeddingVectorToString } from '../../../execution/embeddingVectorToStr
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
-import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
+// import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
+import { PromptResultUsage } from '../../../execution/PromptResultUsage';
+import { countUsage } from '../../../llm-providers/_common/utils/count-total-usage/countUsage';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
@@ -37,6 +39,14 @@ async function playground() {
         },
     );
 
+    const openAiExecutionToolsWithUsage = countUsage(openAiExecutionTools);
+
+    openAiExecutionToolsWithUsage.spending().subscribe((usage: PromptResultUsage) => {
+        const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
+        console.log(`[💸] Spending ${wordCount} words`);
+    });
+
+    /*/
     const openAiAssistantExecutionTools = new OpenAiAssistantExecutionTools(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
         {
@@ -47,9 +57,10 @@ async function playground() {
             //            <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
         },
     );
+    /**/
 
     keepUnused(openAiExecutionTools);
-    keepUnused(openAiAssistantExecutionTools);
+    // keepUnused(openAiAssistantExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
@@ -74,7 +85,7 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+    /**/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
@@ -85,7 +96,7 @@ async function playground() {
             temperature: 1.5,
         },
     } as const satisfies Prompt;
-    const chatPromptResult = await openAiExecutionTools.callChatModel(chatPrompt);
+    const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
@@ -113,7 +124,7 @@ async function playground() {
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/
 
-    /**/
+    /*/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
@@ -129,7 +140,7 @@ async function playground() {
         replyingTo: {
 
         }
-        */
+        * /
     } as const satisfies Prompt;
     const chatPromptResult = await openAiAssistantExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });

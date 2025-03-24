@@ -5,7 +5,9 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { PromptResultUsage } from '../../../execution/PromptResultUsage';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
+import { countUsage } from '../../../llm-providers/_common/utils/count-total-usage/countUsage';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { createAnthropicClaudeExecutionTools } from '../createAnthropicClaudeExecutionTools';
@@ -34,6 +36,14 @@ async function playground() {
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
     });
 
+    const toolsWithUsage = countUsage(anthropicClaudeExecutionTools);
+
+    toolsWithUsage.spending().subscribe((usage: PromptResultUsage) => {
+        const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
+        console.log(`[💸] Spending ${wordCount} words`);
+    });
+
+    keepUnused(toolsWithUsage);
     keepUnused(anthropicClaudeExecutionTools);
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
@@ -55,7 +65,7 @@ async function playground() {
         },
         format: 'JSON',
     } as const satisfies Prompt;
-    const chatPromptResult = await anthropicClaudeExecutionTools.callChatModel(chatPrompt);
+    const chatPromptResult = await toolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
