@@ -1,8 +1,8 @@
 import type OpenAI from 'openai';
 import type { PartialDeep } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import type { UncertainNumber } from '../../execution/UncertainNumber';
+import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -29,7 +29,7 @@ export function computeOpenAiUsage(
             'model' | 'usage'
         >
     >,
-): PromptResultUsage {
+): Usage {
     if (rawResponse.usage === undefined) {
         throw new PipelineExecutionError('The usage is not defined in the response from OpenAI');
     }

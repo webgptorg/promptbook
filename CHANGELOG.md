@@ -748,6 +748,7 @@ User system and spending of credits
 -   Add login to application mode on remote server<!-- <- TODO: !!!!!! Implement -->
 -   Add User token to application mode on remote server
 -   Rename `countTotalUsage` -> `countUsage` and add `spending()`
+-   Rename `PromptResultUsage` -> `Usage`
 
 ## Drafts
 

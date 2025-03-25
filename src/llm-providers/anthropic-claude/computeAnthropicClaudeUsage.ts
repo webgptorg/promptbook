@@ -1,8 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { PartialDeep } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import type { UncertainNumber } from '../../execution/UncertainNumber';
+import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -21,7 +21,7 @@ export function computeAnthropicClaudeUsage(
     promptContent: Prompt['content'], // <- Note: Intentionally using [] to access type properties to bring jsdoc from Prompt/PromptResult to consumer
     resultContent: string,
     rawResponse: PartialDeep<Pick<Anthropic.Messages.Message, 'model' | 'usage'>>,
-): PromptResultUsage {
+): Usage {
     if (rawResponse.usage === undefined) {
         throw new PipelineExecutionError('The usage is not defined in the response from Anthropic Claude');
     }

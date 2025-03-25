@@ -10,7 +10,7 @@ import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 // import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
-import { PromptResultUsage } from '../../../execution/PromptResultUsage';
+import { Usage } from '../../../execution/Usage';
 import { countUsage } from '../../../llm-providers/_common/utils/count-total-usage/countUsage';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
@@ -41,7 +41,7 @@ async function playground() {
 
     const openAiExecutionToolsWithUsage = countUsage(openAiExecutionTools);
 
-    openAiExecutionToolsWithUsage.spending().subscribe((usage: PromptResultUsage) => {
+    openAiExecutionToolsWithUsage.spending().subscribe((usage: Usage) => {
         const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
         console.log(`[💸] Spending ${wordCount} words`);
     });

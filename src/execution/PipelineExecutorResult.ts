@@ -3,7 +3,7 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { Parameters } from '../types/typeAliases';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { ExecutionReportJson } from './execution-report/ExecutionReportJson';
-import type { PromptResultUsage } from './PromptResultUsage';
+import type { Usage } from './Usage';
 
 /**
  * @@@
@@ -21,7 +21,7 @@ export type PipelineExecutorResult = AbstractTaskResult & {
     /**
      * Added usage of whole execution, detailed usage is available in `executionReport`
      */
-    readonly usage: ReadonlyDeep<PromptResultUsage>;
+    readonly usage: ReadonlyDeep<Usage>;
 
     /**
      * The report of the execution with all details

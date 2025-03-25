@@ -4,17 +4,17 @@ import { countPages } from '../../utils/expectation-counters/countPages';
 import { countParagraphs } from '../../utils/expectation-counters/countParagraphs';
 import { countSentences } from '../../utils/expectation-counters/countSentences';
 import { countWords } from '../../utils/expectation-counters/countWords';
-import type { PromptResultUsageCounts } from '../PromptResultUsage';
+import type { UsageCounts } from '../Usage';
 
 /**
  * Helper of usage compute
  *
  * @param content the content of prompt or response
- * @returns part of PromptResultUsageCounts
+ * @returns part of UsageCounts
  *
  * @private internal utility of LlmExecutionTools
  */
-export function computeUsageCounts(content: string): Omit<PromptResultUsageCounts, 'tokensCount'> {
+export function computeUsageCounts(content: string): Omit<UsageCounts, 'tokensCount'> {
     return {
         charactersCount: { value: countCharacters(content) },
         wordsCount: { value: countWords(content) },

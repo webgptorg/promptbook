@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { PromptResultUsage } from '../../../execution/PromptResultUsage';
+import { Usage } from '../../../execution/Usage';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { countUsage } from '../../../llm-providers/_common/utils/count-total-usage/countUsage';
 import type { Prompt } from '../../../types/Prompt';
@@ -38,7 +38,7 @@ async function playground() {
 
     const toolsWithUsage = countUsage(anthropicClaudeExecutionTools);
 
-    toolsWithUsage.spending().subscribe((usage: PromptResultUsage) => {
+    toolsWithUsage.spending().subscribe((usage: Usage) => {
         const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
         console.log(`[💸] Spending ${wordCount} words`);
     });

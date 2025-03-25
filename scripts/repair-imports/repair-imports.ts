@@ -108,7 +108,7 @@ async function repairImports({
         for (const match of matches) {
             if (
                 file.path.includes('AzureOpenAiExecutionTools.ts') &&
-                match.groups!.importedEntities.includes('PromptResultUsage')
+                match.groups!.importedEntities.includes('Usage')
             ) {
                 console.log({ match });
             }

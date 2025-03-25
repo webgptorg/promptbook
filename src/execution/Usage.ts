@@ -3,11 +3,11 @@ import type { ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
 import type { UncertainNumber } from './UncertainNumber';
 
 /**
- * Usage statistics for one or many prompt results
+ * Usage statistics for one or more prompt results
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PromptResultUsage = {
+export type Usage = {
     /**
      * Cost of the execution in USD
      *
@@ -18,12 +18,12 @@ export type PromptResultUsage = {
     /**
      * Number of whatever used in the input aka. `prompt_tokens`
      */
-    readonly input: PromptResultUsageCounts;
+    readonly input: UsageCounts;
 
     /**
      * Number of tokens used in the output aka. `completion_tokens`
      */
-    readonly output: PromptResultUsageCounts;
+    readonly output: UsageCounts;
 };
 
 /**
@@ -31,7 +31,7 @@ export type PromptResultUsage = {
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PromptResultUsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
+export type UsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
 
 /**
  * TODO: [🍙] Make some standard order of json properties

@@ -1,4 +1,4 @@
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
+import type { Usage } from '../../execution/Usage';
 import type { number_id } from '../../types/typeAliases';
 import type { string_promptbook_version } from '../../version';
 
@@ -24,7 +24,7 @@ export type PreparationJson = {
     /**
      * Usage of the prompt execution
      */
-    readonly usage: PromptResultUsage;
+    readonly usage: Usage;
 };
 
 /**

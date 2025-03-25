@@ -1,5 +1,5 @@
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import type { PromptResultUsage } from '../PromptResultUsage';
+import type { Usage } from '../Usage';
 
 /**
  * Represents the usage with no resources consumed
@@ -26,7 +26,7 @@ export const ZERO_USAGE = $deepFreeze({
         paragraphsCount: { value: 0 },
         pagesCount: { value: 0 },
     },
-} as const satisfies PromptResultUsage);
+} as const satisfies Usage);
 
 /**
  * Represents the usage with unknown resources consumed
@@ -53,7 +53,7 @@ export const UNCERTAIN_USAGE = $deepFreeze({
         paragraphsCount: { value: 0, isUncertain: true },
         pagesCount: { value: 0, isUncertain: true },
     },
-} as const satisfies PromptResultUsage);
+} as const satisfies Usage);
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,6 +1,6 @@
 import type { WritableDeep } from 'type-fest';
 import { deepClone } from '../../utils/serialization/deepClone';
-import type { PromptResultUsage } from '../PromptResultUsage';
+import type { Usage } from '../Usage';
 import { ZERO_USAGE } from './usage-constants';
 
 /**
@@ -10,8 +10,8 @@ import { ZERO_USAGE } from './usage-constants';
  *
  * @public exported from `@promptbook/core`
  */
-export function addUsage(...usageItems: ReadonlyArray<PromptResultUsage>): PromptResultUsage {
-    return usageItems.reduce<PromptResultUsage>((acc: WritableDeep<PromptResultUsage>, item) => {
+export function addUsage(...usageItems: ReadonlyArray<Usage>): Usage {
+    return usageItems.reduce<Usage>((acc: WritableDeep<Usage>, item) => {
         acc.price.value += item.price?.value || 0;
 
         for (const key of Object.keys(acc.input)) {

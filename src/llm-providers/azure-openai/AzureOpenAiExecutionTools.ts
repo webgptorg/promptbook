@@ -5,17 +5,18 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
+import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -23,7 +24,7 @@ import { exportJson } from '../../utils/serialization/exportJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
-keepTypeImported<PromptResultUsage>();
+keepTypeImported<Usage>();
 
 /**
  * Execution Tools for calling Azure OpenAI API.
@@ -181,7 +182,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage; /* <- Note: [🤛] */
+            } satisfies Usage; /* <- Note: [🤛] */
 
             return exportJson({
                 name: 'promptResult',
@@ -289,7 +290,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage; /* <- Note: [🤛] */
+            } satisfies Usage; /* <- Note: [🤛] */
 
             return exportJson({
                 name: 'promptResult',

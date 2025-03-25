@@ -2,15 +2,15 @@ import { Subject, type Observable } from 'rxjs';
 import type { Promisable } from 'type-fest';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
-import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
+import type { Usage } from '../../../../execution/Usage';
 import { addUsage } from '../../../../execution/utils/addUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import type { ChatPrompt } from '../../../../types/Prompt';
-import type { CompletionPrompt } from '../../../../types/Prompt';
-import type { EmbeddingPrompt } from '../../../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
@@ -21,8 +21,8 @@ import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTot
  * @public exported from `@promptbook/core`
  */
 export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
-    let totalUsage: PromptResultUsage = ZERO_USAGE;
-    const spending = new Subject<PromptResultUsage>();
+    let totalUsage: Usage = ZERO_USAGE;
+    const spending = new Subject<Usage>();
 
     const proxyTools: LlmExecutionToolsWithTotalUsage = {
         get title() {
@@ -43,7 +43,7 @@ export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTo
             return /* not await */ llmTools.listModels();
         },
 
-        spending(): Observable<PromptResultUsage> {
+        spending(): Observable<Usage> {
             return spending.asObservable();
         },
 

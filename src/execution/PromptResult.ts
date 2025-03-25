@@ -1,9 +1,7 @@
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
-import type { PromptResultUsage } from './PromptResultUsage';
+import type { Usage } from './Usage';
 
 /**
  * Prompt result is the simplest concept of execution.
@@ -88,7 +86,7 @@ export type CommonPromptResult = {
     /**
      * Usage of the prompt execution
      */
-    readonly usage: PromptResultUsage;
+    readonly usage: Usage;
 
     /**
      * Exact text of the prompt (with all replacements)

@@ -1,10 +1,12 @@
 import { LimitReachedError } from '../../../../errors/LimitReachedError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
-import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
+import type { Usage } from '../../../../execution/Usage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
@@ -25,7 +27,7 @@ type LimitTotalUsageOptions = {
      *
      * @default ZERO_USAGE
      */
-    maxTotalUsage: PromptResultUsage;
+    maxTotalUsage: Usage;
 
     /**
      * @@@

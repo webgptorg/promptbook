@@ -7,12 +7,12 @@ dotenv.config({ path: '.env' });
 import { createOpenAI } from '@ai-sdk/openai';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import { Usage } from '../../../execution/Usage';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
+import { countUsage } from '../../../llm-providers/_common/utils/count-total-usage/countUsage';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { createExecutionToolsFromVercelProvider } from '../createExecutionToolsFromVercelProvider';
-import { PromptResultUsage } from '../../../execution/PromptResultUsage';
-import { countUsage } from '../../../llm-providers/_common/utils/count-total-usage/countUsage';
 
 playground()
     .catch((error) => {
@@ -47,14 +47,12 @@ async function playground() {
         ],
     });
 
-
     const toolsWithUsage = countUsage(openaiPromptbookExecutionTools);
 
-    toolsWithUsage.spending().subscribe((usage: PromptResultUsage) => {
+    toolsWithUsage.spending().subscribe((usage: Usage) => {
         const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
         console.log(`[💸] Spending ${wordCount} words`);
     });
-
 
     keepUnused(toolsWithUsage);
     keepUnused(openaiPromptbookExecutionTools);
