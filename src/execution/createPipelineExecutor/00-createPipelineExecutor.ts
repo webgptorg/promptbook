@@ -1,12 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS } from '../../config';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_AUTO_INSTALLED } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import {
+    DEFAULT_CSV_SETTINGS,
+    DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+    DEFAULT_IS_AUTO_INSTALLED,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_EXECUTION_ATTEMPTS,
+    DEFAULT_MAX_PARALLEL_COUNT,
+    DEFAULT_SCRAPE_CACHE_DIRNAME,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
@@ -78,6 +80,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 `,
             ),
         );
+        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
     }
 
     let runCount = 0;

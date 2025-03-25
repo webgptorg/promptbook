@@ -57,7 +57,7 @@ export function extractParameterNamesFromTask(
             if (parameterNames.has(subparameterName)) {
                 parameterNames.delete(subparameterName);
                 parameterNames.add(foreach.parameterName);
-                // <- TODO: [🚎] Warn/logic error when `subparameterName` not used
+                // <- TODO: [🏮] Warn/logic error when `subparameterName` not used
             }
         }
     }

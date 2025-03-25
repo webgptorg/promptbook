@@ -45,6 +45,7 @@ export function $execCommand(options: ExecCommandOptions): Promise<string> {
                     console.warn(
                         `Command "${humanReadableCommand}" exceeded time limit of ${timeout}ms but continues running`,
                     );
+                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                     resolve('Command exceeded time limit');
                 }
             });
@@ -76,6 +77,7 @@ export function $execCommand(options: ExecCommandOptions): Promise<string> {
                 output.push(stderr.toString());
                 if (isVerbose && stderr.toString().trim()) {
                     console.warn(stderr.toString());
+                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                 }
             });
 
@@ -91,6 +93,7 @@ export function $execCommand(options: ExecCommandOptions): Promise<string> {
                     } else {
                         if (isVerbose) {
                             console.warn(`Command "${humanReadableCommand}" exited with code ${code}`);
+                            // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                         }
                         resolve(spaceTrim(output.join('\n')));
                     }
@@ -111,6 +114,7 @@ export function $execCommand(options: ExecCommandOptions): Promise<string> {
                 } else {
                     if (isVerbose) {
                         console.warn(error);
+                        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                     }
                     resolve(spaceTrim(output.join('\n')));
                 }

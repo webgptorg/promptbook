@@ -30,6 +30,7 @@ export function joinLlmExecutionTools(
 
         // TODO: [🟥] Detect browser / node and make it colorfull
         console.warn(warningMessage);
+        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
 
         /*
         return {

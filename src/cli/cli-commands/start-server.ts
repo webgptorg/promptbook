@@ -91,6 +91,7 @@ export function $initializeStartServerCommand(program: Program) {
                             `Port in --url is different from --port which the server will listen on, this is ok only if you proxy from one port to another, for exaple via nginx or docker`,
                         ),
                     );
+                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                 }
 
                 let rootUrl: string_url | undefined = undefined;

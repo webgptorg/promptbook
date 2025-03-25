@@ -6,10 +6,12 @@ import type { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -135,7 +137,8 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if ($pipelineJson.defaultModelRequirements[command.key] !== undefined) {
             if ($pipelineJson.defaultModelRequirements[command.key] === command.value) {
                 console.warn(`Multiple commands \`MODEL ${command.key} ${command.value}\` in the pipeline head`);
-                // <- TODO: [🚎][💩] Some better way how to get warnings from pipeline parsing / logic
+                // <- TODO: [🏮] Some better way how to get warnings from pipeline parsing / logic
+                // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
             } else {
                 throw new ParseError(
                     spaceTrim(`
@@ -178,6 +181,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
                         )[command.key]
                     } ${command.value}\` in the task "${$taskJson.title || $taskJson.name}"`,
                 );
+                // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
             } else {
                 throw new ParseError(
                     spaceTrim(`

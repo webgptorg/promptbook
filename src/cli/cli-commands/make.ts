@@ -226,6 +226,7 @@ export function $initializeMakeCommand(program: Program) {
 
                     if (!output.endsWith(`.${extension}`)) {
                         console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
+                        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                     }
 
                     await mkdir(dirname(filename), { recursive: true });
@@ -351,6 +352,7 @@ export function $initializeMakeCommand(program: Program) {
 
                 if (formats.length > 0) {
                     console.warn(colors.yellow(`Format ${formats.join(' and ')} is not supported`));
+                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                 }
 
                 console.info(colors.green(`Collection builded successfully`));

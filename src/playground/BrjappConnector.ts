@@ -2,6 +2,10 @@ import createClient, { Client } from 'openapi-fetch';
 import { keepUnused } from '../utils/organization/keepUnused';
 import type { paths } from './brjapp-api-schema';
 
+/**
+ * TODO: !!!!!! Implement Promptbook remote server login and move to Promptbook.studio
+ */
+
 type BrjappOptions = {
     /**
      * Add user to these groups
