@@ -69,6 +69,8 @@ import type { ExecutionReportStringOptions } from '../execution/execution-report
 import { ExecutionReportStringOptionsDefaults } from '../execution/execution-report/ExecutionReportStringOptions';
 import { addUsage } from '../execution/utils/addUsage';
 import { isPassingExpectations } from '../execution/utils/checkExpectations';
+import { ZERO_VALUE } from '../execution/utils/usage-constants';
+import { UNCERTAIN_ZERO_VALUE } from '../execution/utils/usage-constants';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
 import { UNCERTAIN_USAGE } from '../execution/utils/usage-constants';
 import { usageToHuman } from '../execution/utils/usageToHuman';
@@ -205,6 +207,8 @@ export type { ExecutionReportStringOptions };
 export { ExecutionReportStringOptionsDefaults };
 export { addUsage };
 export { isPassingExpectations };
+export { ZERO_VALUE };
+export { UNCERTAIN_ZERO_VALUE };
 export { ZERO_USAGE };
 export { UNCERTAIN_USAGE };
 export { usageToHuman };
