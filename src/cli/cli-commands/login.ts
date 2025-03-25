@@ -5,7 +5,7 @@ import type {
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { isValidEmail } from '../../_packages/utils.index';
+import { isValidEmail } from '../../utils/validators/email/isValidEmail';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { handleActionErrors } from './common/handleActionErrors';
 
