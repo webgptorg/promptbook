@@ -47,7 +47,10 @@ export function computeAnthropicClaudeUsage(
         price,
         input: {
             tokensCount: uncertainNumber(rawResponse.usage.input_tokens),
-            ...computeUsageCounts(promptContent),
+            ...computeUsageCounts(
+                promptContent,
+                // <- TODO: [🕘][🙀] What about system message
+            ),
         },
         output: {
             tokensCount: uncertainNumber(outputTokens),

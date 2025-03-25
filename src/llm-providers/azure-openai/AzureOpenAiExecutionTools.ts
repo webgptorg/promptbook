@@ -5,17 +5,18 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -175,7 +176,11 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
                 input: {
                     tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
-                    ...computeUsageCounts(prompt.content),
+                    ...computeUsageCounts(
+                        prompt.content,
+
+                        // <- TODO: [🕘][🙀] What about system message
+                    ),
                 },
                 output: {
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
@@ -283,7 +288,10 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
                 input: {
                     tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
-                    ...computeUsageCounts(prompt.content),
+                    ...computeUsageCounts(
+                        prompt.content,
+                        // <- TODO: [🕘][🙀] What about system message
+                    ),
                 },
                 output: {
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),

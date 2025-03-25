@@ -96,7 +96,7 @@ async function playground() {
             temperature: 1.5,
         },
     } as const satisfies Prompt;
-    const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel(chatPrompt);
+    const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));

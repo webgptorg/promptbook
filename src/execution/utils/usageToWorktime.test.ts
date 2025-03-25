@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
-import { ZERO_USAGE } from './usage-constants';
+import { UNCERTAIN_ZERO_VALUE, ZERO_USAGE, ZERO_VALUE } from './usage-constants';
 import { usageToWorktime } from './usageToWorktime';
 
 describe('how usageToWorktime works', () => {
-    it('no usage should return no time', () => expect(usageToWorktime(ZERO_USAGE)).toEqual({ value: 0 }));
+    it('no usage should return no time', () => expect(usageToWorktime(ZERO_USAGE)).toEqual(ZERO_VALUE));
 
     it('should count worktime', () =>
         expect(
             usageToWorktime({
                 // price: { value: 1 },
                 input: {
-                    tokensCount: { value: 0 },
+                    tokensCount: ZERO_VALUE,
                     charactersCount: { value: 1 },
                     wordsCount: { value: 20 },
                     sentencesCount: { value: 3 },
@@ -35,7 +35,7 @@ describe('how usageToWorktime works', () => {
             usageToWorktime({
                 // price: { value: 1, isUncertain: true },
                 input: {
-                    tokensCount: { value: 0, isUncertain: true },
+                    tokensCount: UNCERTAIN_ZERO_VALUE,
                     charactersCount: { value: 1, isUncertain: true },
                     wordsCount: { value: 3000, isUncertain: true },
                     sentencesCount: { value: 3, isUncertain: true },

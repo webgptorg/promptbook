@@ -55,7 +55,11 @@ export function computeOpenAiUsage(
         price,
         input: {
             tokensCount: uncertainNumber(rawResponse.usage.prompt_tokens),
-            ...computeUsageCounts(promptContent),
+            ...computeUsageCounts(
+                promptContent,
+
+                // <- TODO: [🕘][🙀] What about system message
+            ),
         },
         output: {
             tokensCount: uncertainNumber(outputTokens),

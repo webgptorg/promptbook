@@ -20,7 +20,7 @@ describe('how usageToHuman works', () => {
             usageToHuman({
                 price: { value: 1 },
                 input: {
-                    tokensCount: { value: 0 },
+                    tokensCount: ZERO_VALUE,
                     charactersCount: { value: 1 },
                     wordsCount: { value: 20 },
                     sentencesCount: { value: 3 },
@@ -51,7 +51,7 @@ describe('how usageToHuman works', () => {
             usageToHuman({
                 price: { value: 1, isUncertain: true },
                 input: {
-                    tokensCount: { value: 0, isUncertain: true },
+                    tokensCount: UNCERTAIN_ZERO_VALUE,
                     charactersCount: { value: 1, isUncertain: true },
                     wordsCount: { value: 3000, isUncertain: true },
                     sentencesCount: { value: 3, isUncertain: true },

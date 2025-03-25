@@ -5,24 +5,24 @@ import { ZERO_USAGE } from './usage-constants';
 describe('how addUsage works', () => {
     it('should create void usage with 0 items', () =>
         expect(addUsage()).toEqual({
-            price: { value: 0 },
+            price: ZERO_VALUE,
             input: {
-                tokensCount: { value: 0 },
-                charactersCount: { value: 0 },
-                wordsCount: { value: 0 },
-                sentencesCount: { value: 0 },
-                linesCount: { value: 0 },
-                paragraphsCount: { value: 0 },
-                pagesCount: { value: 0 },
+                tokensCount: ZERO_VALUE,
+                charactersCount: ZERO_VALUE,
+                wordsCount: ZERO_VALUE,
+                sentencesCount: ZERO_VALUE,
+                linesCount: ZERO_VALUE,
+                paragraphsCount: ZERO_VALUE,
+                pagesCount: ZERO_VALUE,
             },
             output: {
-                tokensCount: { value: 0 },
-                charactersCount: { value: 0 },
-                wordsCount: { value: 0 },
-                sentencesCount: { value: 0 },
-                linesCount: { value: 0 },
-                paragraphsCount: { value: 0 },
-                pagesCount: { value: 0 },
+                tokensCount: ZERO_VALUE,
+                charactersCount: ZERO_VALUE,
+                wordsCount: ZERO_VALUE,
+                sentencesCount: ZERO_VALUE,
+                linesCount: ZERO_VALUE,
+                paragraphsCount: ZERO_VALUE,
+                pagesCount: ZERO_VALUE,
             },
         }));
 
@@ -92,7 +92,7 @@ describe('how addUsage works', () => {
                         sentencesCount: { value: 3 },
                         linesCount: { value: 2 },
                         paragraphsCount: { value: 1 },
-                        pagesCount: { value: 0 },
+                        pagesCount: ZERO_VALUE,
                     },
                     output: {
                         tokensCount: { value: 10 },
@@ -101,7 +101,7 @@ describe('how addUsage works', () => {
                         sentencesCount: { value: 3 },
                         linesCount: { value: 2 },
                         paragraphsCount: { value: 1 },
-                        pagesCount: { value: 0 },
+                        pagesCount: ZERO_VALUE,
                     },
                 },
                 {
@@ -160,7 +160,7 @@ describe('how addUsage works', () => {
                         sentencesCount: { value: 3 },
                         linesCount: { value: 2 },
                         paragraphsCount: { value: 1 },
-                        pagesCount: { value: 0 },
+                        pagesCount: ZERO_VALUE,
                     },
                     output: {
                         tokensCount: { value: 10 },
@@ -169,7 +169,7 @@ describe('how addUsage works', () => {
                         sentencesCount: { value: 3 },
                         linesCount: { value: 2 },
                         paragraphsCount: { value: 1 },
-                        pagesCount: { value: 0 },
+                        pagesCount: ZERO_VALUE,
                     },
                 },
                 {
@@ -201,8 +201,8 @@ describe('how addUsage works', () => {
                         wordsCount: { value: 3 },
                         sentencesCount: { value: 1 },
                         linesCount: { value: 1 },
-                        paragraphsCount: { value: 0 },
-                        pagesCount: { value: 0 },
+                        paragraphsCount: ZERO_VALUE,
+                        pagesCount: ZERO_VALUE,
                     },
                     output: {
                         tokensCount: { value: 5 },
@@ -210,8 +210,8 @@ describe('how addUsage works', () => {
                         wordsCount: { value: 3 },
                         sentencesCount: { value: 1 },
                         linesCount: { value: 1 },
-                        paragraphsCount: { value: 0 },
-                        pagesCount: { value: 0 },
+                        paragraphsCount: ZERO_VALUE,
+                        pagesCount: ZERO_VALUE,
                     },
                 },
             ),

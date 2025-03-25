@@ -3,7 +3,10 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
+import { Usage } from '../../execution/Usage';
+import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
+import { uncertainNumber } from '../../execution/utils/uncertainNumber';
+import { UNCERTAIN_ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
@@ -132,11 +135,20 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
 
             const complete: string_date_iso8601 = $getCurrentDate();
 
-            /*
-            TODO: [🕘] Usage count
-            const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
-            */
-            const usage = UNCERTAIN_USAGE;
+            const usage: Usage = {
+                price: UNCERTAIN_ZERO_VALUE, //  <- TODO: [🕘] Price count
+                input: {
+                    tokensCount: uncertainNumber(rawResponse.usage.promptTokens),
+                    ...computeUsageCounts(
+                        rawPromptContent,
+                        // <- TODO: [🕘][🙀] What about system message
+                    ),
+                },
+                output: {
+                    tokensCount: uncertainNumber(rawResponse.usage.completionTokens),
+                    ...computeUsageCounts(rawResponse.text),
+                },
+            };
 
             return exportJson({
                 name: 'promptResult',
