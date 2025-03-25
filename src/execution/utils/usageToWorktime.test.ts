@@ -1,5 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { UNCERTAIN_ZERO_VALUE, ZERO_USAGE, ZERO_VALUE } from './usage-constants';
+import { UNCERTAIN_ZERO_VALUE } from './usage-constants';
+import { ZERO_USAGE } from './usage-constants';
+import { ZERO_VALUE } from './usage-constants';
 import { usageToWorktime } from './usageToWorktime';
 
 describe('how usageToWorktime works', () => {
