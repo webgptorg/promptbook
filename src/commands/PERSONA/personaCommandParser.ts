@@ -161,15 +161,16 @@ function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, 
     console.warn(
         spaceTrim(`
 
-         Persona "${personaName}" is defined multiple times with different description:
+            Persona "${personaName}" is defined multiple times with different description:
 
-         First definition:
-         ${persona.description}
+            First definition:
+            ${persona.description}
 
-         Second definition:
-         ${personaDescription}
+            Second definition:
+            ${personaDescription}
 
-     `),
+        `),
+        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
         // <- TODO: [🚞]
         // <- TODO: [🧠] What is the propper way of theese `compilePipeline` warnings
     );

@@ -1,16 +1,16 @@
 import spaceTrim from 'spacetrim';
 import type { string_markdown } from '../../types/typeAliases';
-import type { PromptResultUsage } from '../PromptResultUsage';
 import type { UncertainNumber } from '../UncertainNumber';
+import type { Usage } from '../Usage';
 import { usageToWorktime } from './usageToWorktime';
 
 /**
  * Minimal usage information required to calculate worktime
  */
-type PartialPromptResultUsage = Partial<PromptResultUsage> & {
+type PartialUsage = Partial<Usage> & {
     price: UncertainNumber;
-    input: Pick<PromptResultUsage['input'], 'wordsCount'>;
-    output: Pick<PromptResultUsage['output'], 'wordsCount' | 'charactersCount'>;
+    input: Pick<Usage['input'], 'wordsCount'>;
+    output: Pick<Usage['output'], 'wordsCount' | 'charactersCount'>;
 };
 
 /**
@@ -18,7 +18,7 @@ type PartialPromptResultUsage = Partial<PromptResultUsage> & {
  *
  * @public exported from `@promptbook/core`
  */
-export function usageToHuman(usage: PartialPromptResultUsage): string_markdown {
+export function usageToHuman(usage: PartialUsage): string_markdown {
     const reportItems: Array<string> = [];
 
     const uncertainNumberToHuman = ({ value, isUncertain }: UncertainNumber) =>

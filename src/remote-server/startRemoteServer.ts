@@ -1,10 +1,10 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import type { IDestroyable } from 'destroyable';
 import express from 'express';
 import http from 'http';
-import { Server, Socket } from 'socket.io';
+import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
+import type { TODO_any } from '../utils/organization/TODO_any';
 import { CLAIM } from '../config';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -24,8 +24,10 @@ import type { InputParameters } from '../types/typeAliases';
 import type { string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
+import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 import { BOOK_LANGUAGE_VERSION } from '../version';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
@@ -51,10 +53,9 @@ keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
  */
 export function startRemoteServer<TCustomOptions = undefined>(
     options: RemoteServerOptions<TCustomOptions>,
-): IDestroyable {
+): RemoteServer {
     const {
         port,
-
         collection,
         createLlmExecutionTools,
         isAnonymousModeAllowed,
@@ -219,6 +220,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
             // <- TODO: [🗽] Unite branding and make single place for it
         );
     });
+
+    // TODO: !!!!!! Add login route
 
     app.get(`${rootPath}/books`, async (request, response) => {
         if (collection === null) {
@@ -578,6 +581,23 @@ export function startRemoteServer<TCustomOptions = undefined>(
     let isDestroyed = false;
 
     return {
+        get httpServer(): http.Server<TODO_any> {
+            return httpServer;
+        },
+
+        get expressApp(): express.Express {
+            return app;
+        },
+
+        get socketIoServer(): Server<
+            TODO_narrow<DefaultEventsMap>,
+            TODO_narrow<DefaultEventsMap>,
+            TODO_narrow<DefaultEventsMap>,
+            TODO_any
+        > {
+            return server;
+        },
+
         get isDestroyed() {
             return isDestroyed;
         },

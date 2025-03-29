@@ -7,7 +7,7 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
+import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -23,7 +23,7 @@ import { exportJson } from '../../utils/serialization/exportJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
-keepTypeImported<PromptResultUsage>();
+keepTypeImported<Usage>();
 
 /**
  * Execution Tools for calling Azure OpenAI API.
@@ -175,13 +175,17 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
                 input: {
                     tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
-                    ...computeUsageCounts(prompt.content),
+                    ...computeUsageCounts(
+                        prompt.content,
+
+                        // <- TODO: [🕘][🙀] What about system message
+                    ),
                 },
                 output: {
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage; /* <- Note: [🤛] */
+            } satisfies Usage; /* <- Note: [🤛] */
 
             return exportJson({
                 name: 'promptResult',
@@ -283,13 +287,16 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
                 input: {
                     tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
-                    ...computeUsageCounts(prompt.content),
+                    ...computeUsageCounts(
+                        prompt.content,
+                        // <- TODO: [🕘][🙀] What about system message
+                    ),
                 },
                 output: {
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage; /* <- Note: [🤛] */
+            } satisfies Usage; /* <- Note: [🤛] */
 
             return exportJson({
                 name: 'promptResult',

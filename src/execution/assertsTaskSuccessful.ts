@@ -19,6 +19,7 @@ export function assertsTaskSuccessful(
 
     for (const warning of warnings) {
         console.warn(warning.message);
+        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
     }
 
     if (isSuccessful === true) {

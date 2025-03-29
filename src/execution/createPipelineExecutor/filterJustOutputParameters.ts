@@ -24,6 +24,7 @@ type FilterJustOutputParametersOptions = {
      * @@@
      */
     readonly $warnings: PipelineExecutionError[];
+    // <- [🏮]
 
     /**
      * @@@

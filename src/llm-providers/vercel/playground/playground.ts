@@ -7,7 +7,9 @@ dotenv.config({ path: '.env' });
 import { createOpenAI } from '@ai-sdk/openai';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import type { Usage } from '../../../execution/Usage';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
+import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { createExecutionToolsFromVercelProvider } from '../createExecutionToolsFromVercelProvider';
@@ -45,6 +47,14 @@ async function playground() {
         ],
     });
 
+    const toolsWithUsage = countUsage(openaiPromptbookExecutionTools);
+
+    toolsWithUsage.spending().subscribe((usage: Usage) => {
+        const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
+        console.log(`[💸] Spending ${wordCount} words`);
+    });
+
+    keepUnused(toolsWithUsage);
     keepUnused(openaiPromptbookExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
@@ -66,7 +76,7 @@ async function playground() {
             temperature: 1.5,
         },
     } as const satisfies Prompt;
-    const chatPromptResult = await openaiPromptbookExecutionTools.callChatModel!(chatPrompt);
+    const chatPromptResult = await toolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));

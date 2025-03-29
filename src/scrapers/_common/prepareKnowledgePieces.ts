@@ -30,86 +30,96 @@ export async function prepareKnowledgePieces(
     );
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource, index) => {
-        let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
-        const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, tools, { rootDirname, isVerbose });
-        const scrapers = arrayableToArray(tools.scrapers);
+        try {
+            let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
+            const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, tools, { rootDirname, isVerbose });
+            const scrapers = arrayableToArray(tools.scrapers);
 
-        for (const scraper of scrapers) {
-            if (
-                !scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
-                // <- TODO: [🦔] Implement mime-type wildcards
-            ) {
-                continue;
+            for (const scraper of scrapers) {
+                if (
+                    !scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
+                    // <- TODO: [🦔] Implement mime-type wildcards
+                ) {
+                    continue;
+                }
+
+                const partialPiecesUnchecked = await scraper.scrape(sourceHandler);
+
+                if (partialPiecesUnchecked !== null) {
+                    partialPieces = [...partialPiecesUnchecked];
+                    // <- TODO: [🪓] Here should be no need for spreading new array, just `partialPieces = partialPiecesUnchecked`
+
+                    break;
+                }
+
+                console.warn(
+                    spaceTrim(
+                        (block) => `
+                            Cannot scrape knowledge from source despite the scraper \`${
+                                scraper.metadata.className
+                            }\` supports the mime type "${sourceHandler.mimeType}".
+
+                            The source:
+                            ${block(
+                                knowledgeSource.knowledgeSourceContent
+                                    .split('\n')
+                                    .map((line) => `> ${line}`)
+                                    .join('\n'),
+                            )}
+
+                            ${block($registeredScrapersMessage(scrapers))}
+
+
+                        `,
+                    ),
+                );
+                // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
             }
 
-            const partialPiecesUnchecked = await scraper.scrape(sourceHandler);
+            if (partialPieces === null) {
+                throw new KnowledgeScrapeError(
+                    spaceTrim(
+                        (block) => `
+                            Cannot scrape knowledge
 
-            if (partialPiecesUnchecked !== null) {
-                partialPieces = [...partialPiecesUnchecked];
-                // <- TODO: [🪓] Here should be no need for spreading new array, just `partialPieces = partialPiecesUnchecked`
+                            The source:
+                            > ${block(
+                                knowledgeSource.knowledgeSourceContent
+                                    .split('\n')
+                                    .map((line) => `> ${line}`)
+                                    .join('\n'),
+                            )}
 
-                break;
+                            No scraper found for the mime type "${sourceHandler.mimeType}"
+
+                            ${block($registeredScrapersMessage(scrapers))}
+
+
+                        `,
+                    ),
+                );
             }
 
-            console.warn(
-                spaceTrim(
-                    (block) => `
-                        Cannot scrape knowledge from source despite the scraper \`${
-                            scraper.metadata.className
-                        }\` supports the mime type "${sourceHandler.mimeType}".
+            const pieces = partialPieces.map((partialPiece) => ({
+                ...partialPiece,
+                sources: [
+                    {
+                        name: knowledgeSource.name,
+                        // line, column <- TODO: [☀]
+                        // <- TODO: [❎]
+                    },
+                ],
+            }));
 
-                        The source:
-                        ${block(
-                            knowledgeSource.knowledgeSourceContent
-                                .split('\n')
-                                .map((line) => `> ${line}`)
-                                .join('\n'),
-                        )}
+            knowledgePreparedUnflatten[index] = pieces;
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
 
-                        ${block($registeredScrapersMessage(scrapers))}
-
-
-                    `,
-                ),
-            );
+            console.warn(error);
+            // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
         }
-
-        if (partialPieces === null) {
-            throw new KnowledgeScrapeError(
-                spaceTrim(
-                    (block) => `
-                        Cannot scrape knowledge
-
-                        The source:
-                        > ${block(
-                            knowledgeSource.knowledgeSourceContent
-                                .split('\n')
-                                .map((line) => `> ${line}`)
-                                .join('\n'),
-                        )}
-
-                        No scraper found for the mime type "${sourceHandler.mimeType}"
-
-                        ${block($registeredScrapersMessage(scrapers))}
-
-
-                    `,
-                ),
-            );
-        }
-
-        const pieces = partialPieces.map((partialPiece) => ({
-            ...partialPiece,
-            sources: [
-                {
-                    name: knowledgeSource.name,
-                    // line, column <- TODO: [☀]
-                    // <- TODO: [❎]
-                },
-            ],
-        }));
-
-        knowledgePreparedUnflatten[index] = pieces;
     });
 
     const knowledgePrepared: ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> =

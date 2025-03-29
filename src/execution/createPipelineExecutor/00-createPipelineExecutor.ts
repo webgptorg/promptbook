@@ -78,6 +78,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 `,
             ),
         );
+        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
     }
 
     let runCount = 0;

@@ -44,7 +44,8 @@ export type PromptbookServer_AnonymousIdentification = {
     /**
      * Identifier of the end user
      *
-     * Note: this is passed to the certain model providers to identify misuse
+     * Note: This can be either some id or email or any other identifier
+     * Note: In anonymous mode, this is passed to the certain model providers to identify misuse
      * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in application mode)
      */
     readonly userId?: string_user_id;

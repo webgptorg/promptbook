@@ -4,16 +4,16 @@ import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools'
 import type { ChatPromptResult } from '../../../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
-import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
+import type { Usage } from '../../../../execution/Usage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
+import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { ChatPrompt } from '../../../../types/Prompt';
 import type { CompletionPrompt } from '../../../../types/Prompt';
 import type { EmbeddingPrompt } from '../../../../types/Prompt';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
-import { countTotalUsage } from './countTotalUsage';
+import { countUsage } from './countUsage';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
@@ -25,7 +25,7 @@ type LimitTotalUsageOptions = {
      *
      * @default ZERO_USAGE
      */
-    maxTotalUsage: PromptResultUsage;
+    maxTotalUsage: Usage;
 
     /**
      * @@@
@@ -48,7 +48,7 @@ export function limitTotalUsage(
 
     TODO_USE(storage);
 
-    const proxyTools = countTotalUsage(llmTools);
+    const proxyTools = countUsage(llmTools);
 
     if (maxTotalUsage.price.value !== 0) {
         throw new NotYetImplementedError('`limitTotalUsage` is not yet implemented for non-zero price');

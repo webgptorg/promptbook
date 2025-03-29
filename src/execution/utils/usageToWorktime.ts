@@ -1,13 +1,13 @@
 import type { Writable } from 'type-fest';
-import type { PromptResultUsage } from '../PromptResultUsage';
 import type { UncertainNumber } from '../UncertainNumber';
+import type { Usage } from '../Usage';
 
 /**
  * Minimal usage information required to calculate worktime
  */
-type PartialPromptResultUsage = Pick<PromptResultUsage, 'input' | 'output'> & {
-    input: Pick<PromptResultUsage['input'], 'wordsCount'>;
-    output: Pick<PromptResultUsage['output'], 'wordsCount'>;
+type PartialUsage = Pick<Usage, 'input' | 'output'> & {
+    input: Pick<Usage['input'], 'wordsCount'>;
+    output: Pick<Usage['output'], 'wordsCount'>;
 };
 
 /**
@@ -19,7 +19,7 @@ type PartialPromptResultUsage = Pick<PromptResultUsage, 'input' | 'output'> & {
  *
  * @public exported from `@promptbook/core`
  */
-export function usageToWorktime(usage: PartialPromptResultUsage): UncertainNumber {
+export function usageToWorktime(usage: PartialUsage): UncertainNumber {
     const value =
         usage.input.wordsCount.value / (200 /* words per minute */ * 60) +
         usage.output.wordsCount.value / (40 /* words per minute */ * 60);

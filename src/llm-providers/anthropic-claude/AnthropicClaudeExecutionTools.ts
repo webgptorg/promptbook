@@ -234,7 +234,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = $getCurrentDate();
-        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } satisfies PromptResultUsage;
+        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } satisfies Usage;
 
 
 

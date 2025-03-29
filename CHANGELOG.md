@@ -724,7 +724,7 @@ Use `.book` as default extension for books
 -   Use [VCCode extension `Promptbook .book language support`](https://marketplace.visualstudio.com/items?itemName=promptbook.book-extension)
 -   Fix: Version published to Docker Hub does not lag behind the NPM version
 
-### `0.88.0` _(2025-03-16)_
+### `0.88.0` _(2025-03-19)_
 
 Scripting and execution
 
@@ -738,6 +738,19 @@ Scripting and execution
 -   Add a unique ID to the error, this error needs to be serialised and deserialised.
 
 ## In pre-release
+
+### `0.89.0` _(2025-03-)_
+
+User system and spending of credits
+
+-   CLI can be connected to Promptbook remote server <!-- <- TODO: !!!!!! Implement -->
+-   CLI can login to Promptbook remote server via username + password and store the token <!-- <- TODO: !!!!!! Implement -->
+-   Add login to application mode on remote server<!-- <- TODO: !!!!!! Implement -->
+-   Add User token to application mode on remote server
+-   Rename `countTotalUsage` -> `countUsage` and add `spending()`
+-   Rename `PromptResultUsage` -> `Usage`
+-   Delete `OpenAiExecutionTools.createAssistantSubtools`
+-   `RemoteServer` exposes `httpServer`, `expressApp` and `socketIoServer` - you can add custom routes and middlewares
 
 ## Drafts
 

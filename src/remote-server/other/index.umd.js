@@ -3048,24 +3048,24 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    * @public exported from `@promptbook/core`
    */
   var ZERO_USAGE = $deepFreeze({
-      price: { value: 0 },
+      price: ZERO_VALUE,
       input: {
-          tokensCount: { value: 0 },
-          charactersCount: { value: 0 },
-          wordsCount: { value: 0 },
-          sentencesCount: { value: 0 },
-          linesCount: { value: 0 },
-          paragraphsCount: { value: 0 },
-          pagesCount: { value: 0 },
+          tokensCount: ZERO_VALUE,
+          charactersCount: ZERO_VALUE,
+          wordsCount: ZERO_VALUE,
+          sentencesCount: ZERO_VALUE,
+          linesCount: ZERO_VALUE,
+          paragraphsCount: ZERO_VALUE,
+          pagesCount: ZERO_VALUE,
       },
       output: {
-          tokensCount: { value: 0 },
-          charactersCount: { value: 0 },
-          wordsCount: { value: 0 },
-          sentencesCount: { value: 0 },
-          linesCount: { value: 0 },
-          paragraphsCount: { value: 0 },
-          pagesCount: { value: 0 },
+          tokensCount: ZERO_VALUE,
+          charactersCount: ZERO_VALUE,
+          wordsCount: ZERO_VALUE,
+          sentencesCount: ZERO_VALUE,
+          linesCount: ZERO_VALUE,
+          paragraphsCount: ZERO_VALUE,
+          pagesCount: ZERO_VALUE,
       },
   });
   /**
@@ -3074,24 +3074,24 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    * @public exported from `@promptbook/core`
    */
   $deepFreeze({
-      price: { value: 0, isUncertain: true },
+      price: UNCERTAIN_ZERO_VALUE,
       input: {
-          tokensCount: { value: 0, isUncertain: true },
-          charactersCount: { value: 0, isUncertain: true },
-          wordsCount: { value: 0, isUncertain: true },
-          sentencesCount: { value: 0, isUncertain: true },
-          linesCount: { value: 0, isUncertain: true },
-          paragraphsCount: { value: 0, isUncertain: true },
-          pagesCount: { value: 0, isUncertain: true },
+          tokensCount: UNCERTAIN_ZERO_VALUE,
+          charactersCount: UNCERTAIN_ZERO_VALUE,
+          wordsCount: UNCERTAIN_ZERO_VALUE,
+          sentencesCount: UNCERTAIN_ZERO_VALUE,
+          linesCount: UNCERTAIN_ZERO_VALUE,
+          paragraphsCount: UNCERTAIN_ZERO_VALUE,
+          pagesCount: UNCERTAIN_ZERO_VALUE,
       },
       output: {
-          tokensCount: { value: 0, isUncertain: true },
-          charactersCount: { value: 0, isUncertain: true },
-          wordsCount: { value: 0, isUncertain: true },
-          sentencesCount: { value: 0, isUncertain: true },
-          linesCount: { value: 0, isUncertain: true },
-          paragraphsCount: { value: 0, isUncertain: true },
-          pagesCount: { value: 0, isUncertain: true },
+          tokensCount: UNCERTAIN_ZERO_VALUE,
+          charactersCount: UNCERTAIN_ZERO_VALUE,
+          wordsCount: UNCERTAIN_ZERO_VALUE,
+          sentencesCount: UNCERTAIN_ZERO_VALUE,
+          linesCount: UNCERTAIN_ZERO_VALUE,
+          paragraphsCount: UNCERTAIN_ZERO_VALUE,
+          pagesCount: UNCERTAIN_ZERO_VALUE,
       },
   });
   /**

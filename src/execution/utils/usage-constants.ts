@@ -1,5 +1,19 @@
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import type { PromptResultUsage } from '../PromptResultUsage';
+import type { Usage } from '../Usage';
+
+/**
+ * Represents the uncertain value
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const ZERO_VALUE = $deepFreeze({ value: 0 } as const);
+
+/**
+ * Represents the uncertain value
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const UNCERTAIN_ZERO_VALUE = $deepFreeze({ value: 0, isUncertain: true } as const);
 
 /**
  * Represents the usage with no resources consumed
@@ -7,26 +21,26 @@ import type { PromptResultUsage } from '../PromptResultUsage';
  * @public exported from `@promptbook/core`
  */
 export const ZERO_USAGE = $deepFreeze({
-    price: { value: 0 },
+    price: ZERO_VALUE,
     input: {
-        tokensCount: { value: 0 },
-        charactersCount: { value: 0 },
-        wordsCount: { value: 0 },
-        sentencesCount: { value: 0 },
-        linesCount: { value: 0 },
-        paragraphsCount: { value: 0 },
-        pagesCount: { value: 0 },
+        tokensCount: ZERO_VALUE,
+        charactersCount: ZERO_VALUE,
+        wordsCount: ZERO_VALUE,
+        sentencesCount: ZERO_VALUE,
+        linesCount: ZERO_VALUE,
+        paragraphsCount: ZERO_VALUE,
+        pagesCount: ZERO_VALUE,
     },
     output: {
-        tokensCount: { value: 0 },
-        charactersCount: { value: 0 },
-        wordsCount: { value: 0 },
-        sentencesCount: { value: 0 },
-        linesCount: { value: 0 },
-        paragraphsCount: { value: 0 },
-        pagesCount: { value: 0 },
+        tokensCount: ZERO_VALUE,
+        charactersCount: ZERO_VALUE,
+        wordsCount: ZERO_VALUE,
+        sentencesCount: ZERO_VALUE,
+        linesCount: ZERO_VALUE,
+        paragraphsCount: ZERO_VALUE,
+        pagesCount: ZERO_VALUE,
     },
-} as const satisfies PromptResultUsage);
+} as const satisfies Usage);
 
 /**
  * Represents the usage with unknown resources consumed
@@ -34,26 +48,26 @@ export const ZERO_USAGE = $deepFreeze({
  * @public exported from `@promptbook/core`
  */
 export const UNCERTAIN_USAGE = $deepFreeze({
-    price: { value: 0, isUncertain: true },
+    price: UNCERTAIN_ZERO_VALUE,
     input: {
-        tokensCount: { value: 0, isUncertain: true },
-        charactersCount: { value: 0, isUncertain: true },
-        wordsCount: { value: 0, isUncertain: true },
-        sentencesCount: { value: 0, isUncertain: true },
-        linesCount: { value: 0, isUncertain: true },
-        paragraphsCount: { value: 0, isUncertain: true },
-        pagesCount: { value: 0, isUncertain: true },
+        tokensCount: UNCERTAIN_ZERO_VALUE,
+        charactersCount: UNCERTAIN_ZERO_VALUE,
+        wordsCount: UNCERTAIN_ZERO_VALUE,
+        sentencesCount: UNCERTAIN_ZERO_VALUE,
+        linesCount: UNCERTAIN_ZERO_VALUE,
+        paragraphsCount: UNCERTAIN_ZERO_VALUE,
+        pagesCount: UNCERTAIN_ZERO_VALUE,
     },
     output: {
-        tokensCount: { value: 0, isUncertain: true },
-        charactersCount: { value: 0, isUncertain: true },
-        wordsCount: { value: 0, isUncertain: true },
-        sentencesCount: { value: 0, isUncertain: true },
-        linesCount: { value: 0, isUncertain: true },
-        paragraphsCount: { value: 0, isUncertain: true },
-        pagesCount: { value: 0, isUncertain: true },
+        tokensCount: UNCERTAIN_ZERO_VALUE,
+        charactersCount: UNCERTAIN_ZERO_VALUE,
+        wordsCount: UNCERTAIN_ZERO_VALUE,
+        sentencesCount: UNCERTAIN_ZERO_VALUE,
+        linesCount: UNCERTAIN_ZERO_VALUE,
+        paragraphsCount: UNCERTAIN_ZERO_VALUE,
+        pagesCount: UNCERTAIN_ZERO_VALUE,
     },
-} as const satisfies PromptResultUsage);
+} as const satisfies Usage);
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -74,7 +74,7 @@ export class $Register<TRegistered extends Registered> {
 
         if (!existingRegistration) {
             if (DEFAULT_IS_VERBOSE) {
-                console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.registerName}\``);
+                console.info(`[📦] Registering \`${packageName}.${className}\` to \`${this.registerName}\``);
             }
             this.storage.push(registered);
         } else {

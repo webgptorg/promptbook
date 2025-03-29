@@ -10,7 +10,7 @@ import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-c
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
-import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
+import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countUsage';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
@@ -66,7 +66,7 @@ export async function preparePipeline(
     const _llms = arrayableToArray(tools.llm);
     const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
-    const llmToolsWithUsage = countTotalUsage(llmTools);
+    const llmToolsWithUsage = countUsage(llmTools);
     //    <- TODO: [🌯]
 
     /*

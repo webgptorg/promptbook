@@ -354,7 +354,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         const outputParameters = filterJustOutputParameters({
             preparedPipeline,
             parametersToPass,
-            $warnings: warnings,
+            $warnings: warnings, // <- [🏮]
             pipelineIdentification,
         });
 
@@ -388,7 +388,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     const outputParameters = filterJustOutputParameters({
         preparedPipeline,
         parametersToPass,
-        $warnings: warnings,
+        $warnings: warnings, // <- [🏮]
         pipelineIdentification,
     });
 

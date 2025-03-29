@@ -302,6 +302,13 @@ export type string_domain = string;
 /**
  * Semantic helper
  *
+ * For example `"https://*.pavolhejny.com/*"`
+ */
+export type string_origin = string;
+
+/**
+ * Semantic helper
+ *
  * For example `"com"`
  */
 export type string_tdl = string;
@@ -516,14 +523,14 @@ export type string_uuid = string & {
  *
  * @@@
  */
-export type string_app_id = id;
+export type string_app_id = id | 'app';
 
 /**
  * End user identifier
  *
  * @@@
  */
-export type string_user_id = id;
+export type string_user_id = id | string_email;
 
 /**
  * Semantic helper
