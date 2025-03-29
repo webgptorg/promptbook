@@ -2,8 +2,8 @@ import type { IDestroyable } from 'destroyable';
 import express from 'express';
 import http from 'http';
 import { DefaultEventsMap, Server } from 'socket.io';
-import { TODO_any } from '../_packages/types.index';
-import { TODO_narrow } from '../utils/organization/TODO_narrow';
+import type { TODO_any } from '../utils/organization/TODO_any';
+import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 
 export type RemoteServer = IDestroyable & {
     /**
