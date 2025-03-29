@@ -1,12 +1,11 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import type { IDestroyable } from 'destroyable';
 import express from 'express';
 import http from 'http';
-import { Server, Socket } from 'socket.io';
+import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { TODO_any } from '../_packages/types.index';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
@@ -20,12 +19,12 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { TODO_narrow } from '../utils/organization/TODO_narrow';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
@@ -51,10 +50,9 @@ keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
  */
 export function startRemoteServer<TCustomOptions = undefined>(
     options: RemoteServerOptions<TCustomOptions>,
-): IDestroyable {
+): RemoteServer {
     const {
         port,
-
         collection,
         createLlmExecutionTools,
         isAnonymousModeAllowed,
@@ -580,6 +578,23 @@ export function startRemoteServer<TCustomOptions = undefined>(
     let isDestroyed = false;
 
     return {
+        get httpServer(): http.Server<TODO_any> {
+            return httpServer;
+        },
+
+        get expressApp(): express.Express {
+            return app;
+        },
+
+        get socketIoServer(): Server<
+            TODO_narrow<DefaultEventsMap>,
+            TODO_narrow<DefaultEventsMap>,
+            TODO_narrow<DefaultEventsMap>,
+            TODO_any
+        > {
+            return server;
+        },
+
         get isDestroyed() {
             return isDestroyed;
         },

@@ -750,6 +750,7 @@ User system and spending of credits
 -   Rename `countTotalUsage` -> `countUsage` and add `spending()`
 -   Rename `PromptResultUsage` -> `Usage`
 -   Delete `OpenAiExecutionTools.createAssistantSubtools`
+-   `RemoteServer` exposes `httpServer`, `expressApp` and `socketIoServer` - you can add custom routes and middlewares
 
 ## Drafts
 
