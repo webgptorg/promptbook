@@ -751,6 +751,8 @@ User system and spending of credits
 -   Rename `PromptResultUsage` -> `Usage`
 -   Delete `OpenAiExecutionTools.createAssistantSubtools`
 -   `RemoteServer` exposes `httpServer`, `expressApp` and `socketIoServer` - you can add custom routes and middlewares
+-   Adding Swagger to remote server
+-   `@types/*` imports are moved to `devDependencies`
 
 ## Drafts
 
