@@ -757,6 +757,7 @@ User system and spending of credits
 -   Rename `remoteUrl` -> `remoteServerUrl`
 -   Rename `DEFAULT_REMOTE_URL` -> `DEFAULT_REMOTE_SERVER_URL`
 -   Remove `DEFAULT_REMOTE_URL_PATH` _(it will be always `socket.io`)_
+-   `rootPath` is not required anymore
 
 ## Drafts
 

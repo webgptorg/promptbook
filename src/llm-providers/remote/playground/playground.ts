@@ -9,6 +9,7 @@ import { forEver, forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
 import { PLAYGROUND_APP_ID } from '../../../config';
 import { startRemoteServer } from '../../../remote-server/startRemoteServer';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
 import '../../openai/register-constructor';
@@ -32,14 +33,15 @@ async function playground() {
 
     console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Starting remote server`));
     startRemoteServer({
-        rootPath: '/promptbook',
         port: 4460,
         isVerbose: true,
         isAnonymousModeAllowed: true,
         isApplicationModeAllowed: true,
         collection: await createCollectionFromDirectory(
             './examples/pipelines/',
-            {},
+            {
+                fs: $provideFilesystemForNode(),
+            },
             {
                 isRecursive: false,
             },
@@ -76,7 +78,6 @@ async function playground() {
         console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Creating RemoteLlmExecutionTools (${mode} mode) `));
 
         const remoteServerUrl = 'http://localhost:4460';
-        const path = '/promptbook';
 
         const tools = new RemoteLlmExecutionTools(
             mode === 'anonymous'

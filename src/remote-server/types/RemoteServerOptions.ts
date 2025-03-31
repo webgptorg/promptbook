@@ -32,7 +32,7 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
      * @default '/'
      * @example '/api/promptbook/'
      */
-    readonly rootPath: string_uri;
+    readonly rootPath?: string_uri;
 } & (
         | AnonymousRemoteServerOptions
         | ApplicationRemoteServerOptions<TCustomOptions>
