@@ -26,7 +26,11 @@ type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'
  */
 export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
     const {
-        cliOptions: { /* TODO: Use verbose: isVerbose, */ interactive: isInteractive, provider, remoteServerUrl },
+        cliOptions: {
+            /* TODO: Use verbose: isVerbose, */ interactive: isInteractive,
+            provider,
+            remoteServerUrl: remoteServerUrlRaw,
+        },
     } = options;
 
     let strategy: 'BRING_YOUR_OWN_KEYS' | 'REMOTE_SERVER';
@@ -43,10 +47,12 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
     if (strategy === 'BRING_YOUR_OWN_KEYS') {
         return /* not await */ $provideLlmToolsForWizzardOrCli({ strategy, ...options });
     } else if (strategy === 'REMOTE_SERVER') {
-        if (!isValidUrl(remoteServerUrl)) {
-            console.log(colors.red(`Invalid URL of remote server: "${remoteServerUrl}"`));
+        if (!isValidUrl(remoteServerUrlRaw)) {
+            console.log(colors.red(`Invalid URL of remote server: "${remoteServerUrlRaw}"`));
             process.exit(1);
         }
+
+        const remoteServerUrl = remoteServerUrlRaw.endsWith('/') ? remoteServerUrlRaw.slice(0, -1) : remoteServerUrlRaw;
 
         return /* not await */ $provideLlmToolsForWizzardOrCli({
             strategy,
@@ -77,12 +83,25 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                     },
                 ]);
 
-                const response = await fetch(`${remoteServerUrl}/login`, {
+                const loginUrl = `${remoteServerUrl}/login`;
+                const response = await fetch(loginUrl, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
+                        appId: CLI_APP_ID,
                         username,
                         password,
                     }),
+                });
+
+                console.log('!!!', {
+                    loginUrl,
+                    username,
+                    password,
+                    // type: response.type,
+                    // text: await response.text(),
                 });
 
                 const body = (await response.json()) as

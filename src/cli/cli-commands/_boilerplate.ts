@@ -3,6 +3,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
@@ -21,8 +22,9 @@ export function $initializeBoilerplateCommand(program: Program) {
     );
 
     boilerplateCommand.action(
-        handleActionErrors(async () => {
+        handleActionErrors(async (cliOptions) => {
             // @@@
+            TODO_USE(cliOptions);
 
             console.error(colors.green(`@@@`));
 

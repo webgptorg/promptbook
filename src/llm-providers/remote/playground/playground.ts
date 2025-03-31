@@ -7,7 +7,8 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { forEver, forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
-import { PLAYGROUND_APP_ID } from '../../../config';
+import { CLI_APP_ID, PLAYGROUND_APP_ID } from '../../../config';
+import { AuthenticationError } from '../../../errors/AuthenticationError';
 import { startRemoteServer } from '../../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { keepUnused } from '../../../utils/organization/keepUnused';
@@ -33,6 +34,7 @@ async function playground() {
 
     console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Starting remote server`));
     startRemoteServer({
+        // TODO: !!!!! Test here remoteServerUrl to have some path
         port: 4460,
         isVerbose: true,
         isAnonymousModeAllowed: true,
@@ -47,14 +49,24 @@ async function playground() {
             },
         ),
         async login(credentials) {
-            const { username, password } = credentials;
+            const { appId, username, password } = credentials;
+
+            console.log('!!! login', { appId, username, password });
+
+            const allowedApps = [PLAYGROUND_APP_ID, CLI_APP_ID];
+
+            if (!allowedApps.includes(appId || '')) {
+                throw new AuthenticationError(
+                    `\`appId\` must be ${allowedApps.map((appId) => `"${appId}"`).join(' or ')} but got "${appId}"`,
+                );
+            }
 
             keepUnused(password);
 
             return {
                 isAnonymous: false,
-                appId: PLAYGROUND_APP_ID,
-                userId: username,
+                appId,
+                userId: 'user-' + username,
                 userToken: 'some-secret-token',
             };
         },
@@ -102,7 +114,7 @@ async function playground() {
                       remoteServerUrl,
                       identification: {
                           isAnonymous: false,
-                          appId: 'playground',
+                          appId: PLAYGROUND_APP_ID,
                           userId: 'playground',
                       },
                   },

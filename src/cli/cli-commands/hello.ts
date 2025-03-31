@@ -27,7 +27,9 @@ export function $initializeHelloCommand(program: Program) {
     helloCommand.option('-g, --greeting <greeting>', `Greeting`, 'Hello');
 
     helloCommand.action(
-        handleActionErrors(async (name, { greeting }) => {
+        handleActionErrors(async (name, cliOptions) => {
+            const { greeting } = cliOptions;
+
             console.info(colors.cyan(`${greeting} ${name}`));
             await forTime(1000);
             console.info(colors.rainbow(`Nice to meet you!`));

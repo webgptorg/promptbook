@@ -50,14 +50,14 @@ export function $initializeTestCommand(program: Program) {
     testCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache `, false);
 
     testCommand.action(
-        handleActionErrors(async (filesGlob, options) => {
+        handleActionErrors(async (filesGlob, cliOptions) => {
             const {
                 ignore: ignoreRaw = '',
                 validation: isValidated,
                 prepare: isPrepared,
                 reload: isCacheReloaded,
                 verbose: isVerbose,
-            } = options;
+            } = cliOptions;
 
             let tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers' | 'script'> | undefined = undefined;
 
@@ -68,7 +68,7 @@ export function $initializeTestCommand(program: Program) {
                     isCacheReloaded,
                 }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
                 const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-                const llm = await $provideLlmToolsForCli({ ...options, ...prepareAndScrapeOptions });
+                const llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
                 const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
                 tools = {
                     llm,

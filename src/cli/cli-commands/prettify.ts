@@ -36,7 +36,8 @@ export function $initializePrettifyCommand(program: Program) {
     prettifyCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
 
     prettifyCommand.action(
-        handleActionErrors(async (filesGlob, { ignore, verbose: isVerbose }) => {
+        handleActionErrors(async (filesGlob, cliOptions) => {
+            const { ignore, verbose: isVerbose } = cliOptions;
             const filenames = await glob(filesGlob!, { ignore });
             //                       <- TODO: [😶]
 

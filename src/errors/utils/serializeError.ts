@@ -20,6 +20,10 @@ export function serializeError(error: Error): ErrorJson {
 
                     Cannot serialize error with name "${name}"
 
+                    Authors of Promptbook probably forgot to add this error into the list of errors:
+                    https://github.com/webgptorg/promptbook/blob/main/src/errors/0-index.ts
+
+
                     ${block(stack || message)}
 
                 `,

@@ -1,5 +1,6 @@
 import { CsvFormatError } from '../formats/csv/CsvFormatError';
 import { AbstractFormatError } from './AbstractFormatError';
+import { AuthenticationError } from './AuthenticationError';
 import { CollectionError } from './CollectionError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
 import { ExpectError } from './ExpectError';
@@ -52,6 +53,7 @@ export const COMMON_JAVASCRIPT_ERRORS = {
     TypeError,
     URIError,
     AggregateError,
+    AuthenticationError,
     /*
   Note: Not widely supported
   > InternalError,

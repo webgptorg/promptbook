@@ -102,7 +102,7 @@ export function $initializeMakeCommand(program: Program) {
     );
 
     makeCommand.action(
-        handleActionErrors(async (path, options) => {
+        handleActionErrors(async (path, cliOptions) => {
             const {
                 projectName,
                 rootUrl,
@@ -112,7 +112,7 @@ export function $initializeMakeCommand(program: Program) {
                 reload: isCacheReloaded,
                 verbose: isVerbose,
                 output,
-            } = options;
+            } = cliOptions;
 
             if (!isValidJavascriptName(functionName)) {
                 console.error(colors.red(`Function name "${functionName}" is not valid javascript name`));
@@ -148,7 +148,7 @@ export function $initializeMakeCommand(program: Program) {
             }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
             const llm = await $provideLlmToolsForCli({
-                ...options,
+                cliOptions,
                 ...prepareAndScrapeOptions,
             });
             const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);

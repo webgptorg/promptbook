@@ -300,7 +300,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             const password = request.body.password;
             const appId = request.body.appId;
 
-            const identification = login({ username, password, appId });
+            const identification = await login({ username, password, appId });
             response.status(201).send({ identification });
             return;
         } catch (error) {

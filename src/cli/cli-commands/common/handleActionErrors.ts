@@ -25,6 +25,7 @@ export function handleActionErrors(action: actionCallbackFunction): actionCallba
 
             // console.error(colors.bgRed(error.name));
             console.error(colors.red(/* error.stack || */ error.message));
+
             return process.exit(1);
         }
     };

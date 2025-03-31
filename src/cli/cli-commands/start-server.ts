@@ -60,14 +60,14 @@ export function $initializeStartServerCommand(program: Program) {
     startServerCommand.alias('server');
 
     startServerCommand.action(
-        handleActionErrors(async (path, options) => {
+        handleActionErrors(async (path, cliOptions) => {
             const {
                 port: portRaw,
                 url: rawUrl,
                 allowAnonymous: isAnonymousModeAllowed,
                 reload: isCacheReloaded,
                 verbose: isVerbose,
-            } = options;
+            } = cliOptions;
 
             if (rawUrl && !isValidUrl(rawUrl)) {
                 console.error(colors.red(`Invalid URL: ${rawUrl}`));
@@ -109,7 +109,7 @@ export function $initializeStartServerCommand(program: Program) {
                 isCacheReloaded,
             }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-            const llm = await $provideLlmToolsForCli({ ...options, ...prepareAndScrapeOptions });
+            const llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
             const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
             const tools = {
                 llm,

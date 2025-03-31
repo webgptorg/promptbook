@@ -26,8 +26,11 @@ export function $initializeListModelsCommand(program: Program) {
     listModelsCommand.alias('llm');
 
     listModelsCommand.action(
-        handleActionErrors(async (options) => {
-            const llm = await $provideLlmToolsForCli({ ...options });
+        handleActionErrors(async (cliOptions) => {
+            console.log('!!!', cliOptions);
+
+            // TODO: !!!!!! Not relevant for remote server
+            const llm = await $provideLlmToolsForCli({ cliOptions });
             $sideEffect(llm);
             // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
 

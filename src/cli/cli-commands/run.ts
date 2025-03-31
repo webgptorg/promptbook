@@ -65,7 +65,9 @@ export function $initializeRunCommand(program: Program) {
     runCommand.option('-s, --save-report <path>', `Save report to file`);
 
     runCommand.action(
-        handleActionErrors(async (pipelineSource, options) => {
+        handleActionErrors(async (pipelineSource, cliOptions) => {
+            console.log('!!!', cliOptions);
+
             const {
                 reload: isCacheReloaded,
                 interactive: isInteractive,
@@ -73,7 +75,7 @@ export function $initializeRunCommand(program: Program) {
                 json,
                 verbose: isVerbose,
                 saveReport,
-            } = options;
+            } = cliOptions;
 
             if (pipelineSource.includes('-') && normalizeToKebabCase(pipelineSource) === pipelineSource) {
                 console.error(colors.red(`""${pipelineSource}" is not a valid command or book. See 'ptbk --help'.`));
@@ -107,7 +109,7 @@ export function $initializeRunCommand(program: Program) {
             let llm: LlmExecutionTools;
 
             try {
-                llm = await $provideLlmToolsForCli({ ...options, ...prepareAndScrapeOptions });
+                llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
@@ -189,7 +191,7 @@ export function $initializeRunCommand(program: Program) {
                 fs,
                 fetch: scraperFetch,
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                script: [new JavascriptExecutionTools(options)],
+                script: [new JavascriptExecutionTools(cliOptions)],
             } satisfies ExecutionTools;
 
             if (isVerbose) {
