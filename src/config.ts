@@ -1,9 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -273,7 +270,7 @@ TODO: [🌃]
  *
  * @public exported from `@promptbook/core`
  * /
-export const WIZZARD_APP_ID: string_app_id = 'wizzard';
+ex-port const WIZZARD_APP_ID: string_app_id = 'wizzard';
 */
 
 /**
