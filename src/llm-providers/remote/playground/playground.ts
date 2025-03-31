@@ -81,7 +81,6 @@ async function playground() {
             mode === 'anonymous'
                 ? {
                       remoteServerUrl,
-                      path,
                       identification: {
                           isAnonymous: true,
                           userId: 'playground',
@@ -99,7 +98,6 @@ async function playground() {
                   }
                 : {
                       remoteServerUrl,
-                      path,
                       identification: {
                           isAnonymous: false,
                           appId: 'playground',

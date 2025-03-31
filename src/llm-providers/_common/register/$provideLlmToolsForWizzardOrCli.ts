@@ -84,8 +84,6 @@ export async function $provideLlmToolsForWizzardOrCli(
 
         const { userId, userToken, username } = await loginPrompt();
 
-        const { userId, userToken, username } = await loginPrompt();
-
         // TODO: !!!!!! Save userToken and username to the .promptbook folder
         TODO_USE(username);
 

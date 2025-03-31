@@ -1,4 +1,4 @@
-import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
@@ -27,8 +27,7 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
             options: {
                 apiKey: 'sk-ant-api03-',
                 isProxied: true,
-                remoteServerUrl: DEFAULT_REMOTE_URL,
-                path: DEFAULT_REMOTE_URL_PATH,
+                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL,
             },
         };
     },
