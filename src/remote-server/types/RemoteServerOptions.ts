@@ -2,11 +2,7 @@ import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_email } from '../../types/typeAliases';
-import type { string_password } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_app_id, string_email, string_password, string_uri, string_user_id } from '../../types/typeAliases';
 import type { PromptbookServer_Identification } from '../socket-types/_subtypes/PromptbookServer_Identification';
 
 /**
@@ -38,19 +34,10 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
      */
     readonly rootPath?: string_uri;
 } & (
-        | AnonymousRemoteServerOptions
-        | ApplicationRemoteServerOptions<TCustomOptions>
+        | (AnonymousRemoteServerOptions & { readonly isApplicationModeAllowed?: false })
+        | ({ readonly isAnonymousModeAllowed?: false } & ApplicationRemoteServerOptions<TCustomOptions>)
         | (AnonymousRemoteServerOptions & ApplicationRemoteServerOptions<TCustomOptions>)
     );
-//           <- TODO: [🐛] Typescript bug in this discriminated union
-//                    This should throw typescript error but it doesn't
-//
-//                    > startRemoteServer({
-//                    >     path: '/promptbook',
-//                    >     port: 4460,
-//                    >     isAnonymousModeAllowed: true,
-//                    >     isApplicationModeAllowed: true,
-//                    > });
 
 export type AnonymousRemoteServerOptions = {
     /**
