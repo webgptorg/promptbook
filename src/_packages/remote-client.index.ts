@@ -9,7 +9,6 @@ import type { PromptbookServer_Identification } from '../remote-server/socket-ty
 import type { PromptbookServer_ApplicationIdentification } from '../remote-server/socket-types/_subtypes/PromptbookServer_Identification';
 import type { PromptbookServer_AnonymousIdentification } from '../remote-server/socket-types/_subtypes/PromptbookServer_Identification';
 import type { RemoteClientOptions } from '../remote-server/types/RemoteClientOptions';
-import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
 
 
 // Note: Exporting version from each package
@@ -24,4 +23,3 @@ export type { PromptbookServer_Identification };
 export type { PromptbookServer_ApplicationIdentification };
 export type { PromptbookServer_AnonymousIdentification };
 export type { RemoteClientOptions };
-export type { RemoteServerOptions };
