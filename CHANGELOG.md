@@ -744,6 +744,7 @@ Scripting and execution
 User system and spending of credits
 
 -   CLI can be connected to Promptbook remote server <!-- <- TODO: !!!!!! Implement -->
+    -   Allow to specify `BRING_YOUR_OWN_KEYS` / `REMOTE_SERVER` in cli commands `ptbk run`, `ptbk make`, `ptbk list-models` and `ptbk start-server`
 -   CLI can login to Promptbook remote server via username + password and store the token <!-- <- TODO: !!!!!! Implement -->
 -   Add login to application mode on remote server<!-- <- TODO: !!!!!! Implement -->
 -   Add User token to application mode on remote server

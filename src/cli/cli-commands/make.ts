@@ -7,17 +7,18 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { saveArchive } from '../../conversion/archive/saveArchive';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
-import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
@@ -27,6 +28,7 @@ import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipel
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 
 keepTypeImported<ExecutionTools>();
@@ -77,7 +79,6 @@ export function $initializeMakeCommand(program: Program) {
     );
 
     makeCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
-    makeCommand.option('-v, --verbose', `Is output verbose`, false);
     makeCommand.option(
         '-o, --output <path>',
         spaceTrim(`
@@ -101,163 +102,162 @@ export function $initializeMakeCommand(program: Program) {
     );
 
     makeCommand.action(
-        handleActionErrors(
-            async (
-                path,
-                {
-                    projectName,
-                    rootUrl,
-                    format,
-                    functionName,
-                    validation,
-                    reload: isCacheReloaded,
-                    verbose: isVerbose,
-                    output,
-                },
-            ) => {
-                if (!isValidJavascriptName(functionName)) {
-                    console.error(colors.red(`Function name "${functionName}" is not valid javascript name`));
-                    return process.exit(1);
-                }
+        handleActionErrors(async (path, options) => {
+            const {
+                projectName,
+                rootUrl,
+                format,
+                functionName,
+                validation,
+                reload: isCacheReloaded,
+                verbose: isVerbose,
+                output,
+            } = options;
 
-                if (
-                    rootUrl !== undefined &&
-                    !isValidUrl(
-                        rootUrl,
-                    ) /* <- Note: Not using `isValidPipelineUrl` because this is root url not book url */
-                ) {
-                    console.error(colors.red(`Root URL ${rootUrl} is not valid URL`));
-                    return process.exit(1);
-                }
+            if (!isValidJavascriptName(functionName)) {
+                console.error(colors.red(`Function name "${functionName}" is not valid javascript name`));
+                return process.exit(1);
+            }
 
-                let formats = ((format as string | false) || '')
-                    .split(',')
-                    .map((_) => _.trim())
-                    .filter((_) => _ !== '');
-                const validations = ((validation as string | false) || '')
-                    .split(',')
-                    .map((_) => _.trim())
-                    .filter((_) => _ !== '');
+            if (
+                rootUrl !== undefined &&
+                !isValidUrl(rootUrl) /* <- Note: Not using `isValidPipelineUrl` because this is root url not book url */
+            ) {
+                console.error(colors.red(`Root URL ${rootUrl} is not valid URL`));
+                return process.exit(1);
+            }
 
-                if (output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
-                    console.error(colors.red(`You can only use one format if you specify --out-file`));
-                    return process.exit(1);
-                }
+            let formats = ((format as string | false) || '')
+                .split(',')
+                .map((_) => _.trim())
+                .filter((_) => _ !== '');
+            const validations = ((validation as string | false) || '')
+                .split(',')
+                .map((_) => _.trim())
+                .filter((_) => _ !== '');
 
-                // TODO: DRY [◽]
-                const prepareAndScrapeOptions = {
-                    isVerbose,
-                    isCacheReloaded,
-                }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-                const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-                const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
-                const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
-                const tools = {
-                    llm,
-                    fs,
+            if (output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
+                console.error(colors.red(`You can only use one format if you specify --out-file`));
+                return process.exit(1);
+            }
 
-                    scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                    script: await $provideScriptingForNode({}),
-                } satisfies ExecutionTools;
+            // TODO: DRY [◽]
+            const prepareAndScrapeOptions = {
+                isVerbose,
+                isCacheReloaded,
+            }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
+            const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+            const llm = await $provideLlmToolsForCli({
+                ...options,
+                ...prepareAndScrapeOptions,
+            });
+            const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+            const tools = {
+                llm,
+                fs,
 
-                // TODO: [🧟‍♂️][◽] DRY:
-                const collection = await createCollectionFromDirectory(path, tools, {
-                    isVerbose,
-                    rootUrl,
-                    isRecursive: true,
-                    isLazyLoaded: false,
-                    isCrashedOnError: true,
-                    // <- TODO: [🍖] Add `intermediateFilesStrategy`
-                });
+                scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
+                script: await $provideScriptingForNode({}),
+            } satisfies ExecutionTools;
 
-                const pipelinesUrls = await collection.listPipelines();
+            // TODO: [🧟‍♂️][◽] DRY:
+            const collection = await createCollectionFromDirectory(path, tools, {
+                isVerbose,
+                rootUrl,
+                isRecursive: true,
+                isLazyLoaded: false,
+                isCrashedOnError: true,
+                // <- TODO: [🍖] Add `intermediateFilesStrategy`
+            });
 
-                if (pipelinesUrls.length === 0) {
-                    console.error(colors.red(`No books found in "${path}"`));
-                    return process.exit(1);
-                }
+            const pipelinesUrls = await collection.listPipelines();
 
-                for (const validation of validations) {
-                    for (const pipelineUrl of pipelinesUrls) {
-                        const pipeline = await collection.getPipelineByUrl(pipelineUrl);
+            if (pipelinesUrls.length === 0) {
+                console.error(colors.red(`No books found in "${path}"`));
+                return process.exit(1);
+            }
 
-                        if (validation === 'logic') {
-                            validatePipeline(pipeline);
+            for (const validation of validations) {
+                for (const pipelineUrl of pipelinesUrls) {
+                    const pipeline = await collection.getPipelineByUrl(pipelineUrl);
 
-                            if (isVerbose) {
-                                console.info(colors.cyan(`Validated logic of ${pipeline.pipelineUrl}`));
-                            }
+                    if (validation === 'logic') {
+                        validatePipeline(pipeline);
+
+                        if (isVerbose) {
+                            console.info(colors.cyan(`Validated logic of ${pipeline.pipelineUrl}`));
                         }
-
-                        // TODO: Imports validation
                     }
+
+                    // TODO: Imports validation
+                }
+            }
+
+            const collectionJson = await collectionToJson(collection);
+
+            const collectionJsonString = stringifyPipelineJson(collectionJson).trim();
+            const collectionJsonItems = (() => {
+                const firstChar = collectionJsonString.charAt(0);
+
+                if (firstChar !== '[') {
+                    throw new UnexpectedError(
+                        `First character of serialized collection should be "[" not "${firstChar}"`,
+                    );
                 }
 
-                const collectionJson = await collectionToJson(collection);
-
-                const collectionJsonString = stringifyPipelineJson(collectionJson).trim();
-                const collectionJsonItems = (() => {
-                    const firstChar = collectionJsonString.charAt(0);
-
-                    if (firstChar !== '[') {
-                        throw new UnexpectedError(
-                            `First character of serialized collection should be "[" not "${firstChar}"`,
-                        );
-                    }
-
-                    const lastChar = collectionJsonString.charAt(collectionJsonString.length - 1);
-                    if (lastChar !== ']') {
-                        throw new UnexpectedError(
-                            `Last character of serialized collection should be "]" not "${lastChar}"`,
-                        );
-                    }
-
-                    return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
-                })();
-
-                const saveFile = async (
-                    extension: string_file_extension,
-                    content: string | ReadonlyArray<PipelineJson>,
-                ) => {
-                    const filename =
-                        output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
-                            ? output
-                            : join(path, `${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
-
-                    if (!output.endsWith(`.${extension}`)) {
-                        console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
-                        // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
-                    }
-
-                    await mkdir(dirname(filename), { recursive: true });
-
-                    if (typeof content === 'string') {
-                        await writeFile(filename, content, 'utf-8');
-                    } else {
-                        await saveArchive(filename, content, fs);
-                    }
-
-                    // Note: Log despite of verbose mode
-                    console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
-                };
-
-                if (formats.includes('bookc')) {
-                    formats = formats.filter((format) => format !== 'bookc');
-                    await saveFile('bookc', collectionJson);
+                const lastChar = collectionJsonString.charAt(collectionJsonString.length - 1);
+                if (lastChar !== ']') {
+                    throw new UnexpectedError(
+                        `Last character of serialized collection should be "]" not "${lastChar}"`,
+                    );
                 }
 
-                if (formats.includes('json')) {
-                    formats = formats.filter((format) => format !== 'json');
-                    await saveFile('json', collectionJsonString);
-                    //                            <- TODO: Add GENERATOR_WARNING_BY_PROMPTBOOK_CLI to package.json
+                return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
+            })();
+
+            const saveFile = async (
+                extension: string_file_extension,
+                content: string | ReadonlyArray<PipelineJson>,
+            ) => {
+                const filename =
+                    output !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
+                        ? output
+                        : join(path, `${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
+
+                if (!output.endsWith(`.${extension}`)) {
+                    console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
+                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
                 }
 
-                if (formats.includes('javascript') || formats.includes('js')) {
-                    formats = formats.filter((format) => format !== 'javascript' && format !== 'js');
-                    (await saveFile(
-                        'js',
-                        spaceTrim(
-                            (block) => `
+                await mkdir(dirname(filename), { recursive: true });
+
+                if (typeof content === 'string') {
+                    await writeFile(filename, content, 'utf-8');
+                } else {
+                    await saveArchive(filename, content, fs);
+                }
+
+                // Note: Log despite of verbose mode
+                console.info(colors.green(`Made ${filename.split('\\').join('/')}`));
+            };
+
+            if (formats.includes('bookc')) {
+                formats = formats.filter((format) => format !== 'bookc');
+                await saveFile('bookc', collectionJson);
+            }
+
+            if (formats.includes('json')) {
+                formats = formats.filter((format) => format !== 'json');
+                await saveFile('json', collectionJsonString);
+                //                            <- TODO: Add GENERATOR_WARNING_BY_PROMPTBOOK_CLI to package.json
+            }
+
+            if (formats.includes('javascript') || formats.includes('js')) {
+                formats = formats.filter((format) => format !== 'javascript' && format !== 'js');
+                (await saveFile(
+                    'js',
+                    spaceTrim(
+                        (block) => `
                             // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
 
                             import { createCollectionFromJson } from '@promptbook/core';
@@ -291,20 +291,20 @@ export function $initializeMakeCommand(program: Program) {
                                 return pipelineCollection;
                             }
                         `,
-                        ),
-                        // <- TODO: [0] DRY Javascript and typescript
-                        // <- TODO: Prettify
-                        // <- TODO: Convert inlined \n to spaceTrim
-                        // <- Note: [🍡]
-                    )) + '\n';
-                }
+                    ),
+                    // <- TODO: [0] DRY Javascript and typescript
+                    // <- TODO: Prettify
+                    // <- TODO: Convert inlined \n to spaceTrim
+                    // <- Note: [🍡]
+                )) + '\n';
+            }
 
-                if (formats.includes('typescript') || formats.includes('ts')) {
-                    formats = formats.filter((format) => format !== 'typescript' && format !== 'ts');
-                    await saveFile(
-                        'ts',
-                        spaceTrim(
-                            (block) => `
+            if (formats.includes('typescript') || formats.includes('ts')) {
+                formats = formats.filter((format) => format !== 'typescript' && format !== 'ts');
+                await saveFile(
+                    'ts',
+                    spaceTrim(
+                        (block) => `
                             // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
 
                             import { createCollectionFromJson } from '@promptbook/core';
@@ -342,27 +342,26 @@ export function $initializeMakeCommand(program: Program) {
                                 return pipelineCollection;
                             }
                         `,
-                        ) + '\n',
-                        // <- TODO: [0] DRY Javascript and typescript
-                        // <- TODO: Prettify
-                        // <- TODO: Convert inlined \n to spaceTrim
-                        // <- Note: [🍡]
-                    );
-                }
+                    ) + '\n',
+                    // <- TODO: [0] DRY Javascript and typescript
+                    // <- TODO: Prettify
+                    // <- TODO: Convert inlined \n to spaceTrim
+                    // <- Note: [🍡]
+                );
+            }
 
-                if (formats.length > 0) {
-                    console.warn(colors.yellow(`Format ${formats.join(' and ')} is not supported`));
-                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
-                }
+            if (formats.length > 0) {
+                console.warn(colors.yellow(`Format ${formats.join(' and ')} is not supported`));
+                // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
+            }
 
-                console.info(colors.green(`Collection builded successfully`));
-                if (isVerbose) {
-                    console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
-                }
+            console.info(colors.green(`Collection builded successfully`));
+            if (isVerbose) {
+                console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
+            }
 
-                return process.exit(0);
-            },
-        ),
+            return process.exit(0);
+        }),
     );
 }
 

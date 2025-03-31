@@ -1,4 +1,3 @@
-import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
 import { VALUE_STRINGS } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
@@ -11,10 +10,13 @@ import type { PipelineString } from '../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../scrapers/_common/utils/scraperFetch';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
+import type {
+    InputParameters,
+    string_filename,
+    string_parameter_value,
+    string_pipeline_url,
+} from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
@@ -99,7 +101,11 @@ class Wizzard {
             isCacheReloaded: false, // <- TODO: Allow to pass
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-        const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
+        const llm = await $provideLlmToolsForWizzardOrCli({
+            // TODO: [🌃] Allow to use Promptbook.studio token in wizzard> strategy: 'REMOTE_SERVER'
+            strategy: 'BRING_YOUR_OWN_KEYS',
+            ...prepareAndScrapeOptions,
+        });
         const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,

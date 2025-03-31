@@ -2,9 +2,9 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
-import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import { $sideEffect } from '../../utils/organization/$sideEffect';
+import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
@@ -26,8 +26,8 @@ export function $initializeListModelsCommand(program: Program) {
     listModelsCommand.alias('llm');
 
     listModelsCommand.action(
-        handleActionErrors(async () => {
-            const llm = await $provideLlmToolsForWizzardOrCli({});
+        handleActionErrors(async (options) => {
+            const llm = await $provideLlmToolsForCli({ ...options });
             $sideEffect(llm);
             // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
 

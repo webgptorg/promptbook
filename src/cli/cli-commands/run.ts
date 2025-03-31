@@ -6,6 +6,7 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
+import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -15,24 +16,22 @@ import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $llmToolsMetadataRegister } from '../../llm-providers/_common/register/$llmToolsMetadataRegister';
-import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { scraperFetch } from '../../scrapers/_common/utils/scraperFetch';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $getCompiledBook } from '../../wizzard/$getCompiledBook';
+import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
-import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 
 /**
  * Initializes `run` command for Promptbook CLI utilities
@@ -55,11 +54,6 @@ export function $initializeRunCommand(program: Program) {
 
     runCommand.argument('[pipelineSource]', 'Path to book file OR URL to book file, if not provided it will be asked');
     runCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
-    runCommand.option('-v, --verbose', `Is output verbose`, false);
-    runCommand.option(
-        '--no-interactive',
-        `Input is not interactive, if true you need to pass all the input parameters through --json`,
-    );
     runCommand.option(
         '--no-formfactor',
         `When set, behavior of the interactive mode is not changed by the formfactor of the pipeline`,
@@ -113,7 +107,7 @@ export function $initializeRunCommand(program: Program) {
             let llm: LlmExecutionTools;
 
             try {
-                llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
+                llm = await $provideLlmToolsForCli({ ...options, ...prepareAndScrapeOptions });
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;

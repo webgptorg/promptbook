@@ -34,7 +34,6 @@ export function $initializePrettifyCommand(program: Program) {
         'Pipelines to prettify as glob pattern',
     );
     prettifyCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
-    prettifyCommand.option('-v, --verbose', `Is output verbose`, false);
 
     prettifyCommand.action(
         handleActionErrors(async (filesGlob, { ignore, verbose: isVerbose }) => {

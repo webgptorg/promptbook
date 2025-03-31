@@ -1,7 +1,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
-import { CLAIM } from '../config';
+import { CLAIM, DEFAULT_REMOTE_SERVER_URL } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
@@ -9,12 +9,12 @@ import { $initializeAboutCommand } from './cli-commands/about';
 import { $initializeHelloCommand } from './cli-commands/hello';
 import { $initializeListModelsCommand } from './cli-commands/list-models';
 import { $initializeListScrapersCommand } from './cli-commands/list-scrapers';
+import { $initializeLoginCommand } from './cli-commands/login';
 import { $initializeMakeCommand } from './cli-commands/make';
 import { $initializePrettifyCommand } from './cli-commands/prettify';
 import { $initializeRunCommand } from './cli-commands/run';
 import { $initializeStartServerCommand } from './cli-commands/start-server';
 import { $initializeTestCommand } from './cli-commands/test-command';
-import { $initializeLoginCommand } from './cli-commands/login';
 
 /**
  * Runs CLI utilities of Promptbook package
@@ -47,6 +47,15 @@ export async function promptbookCli(): Promise<void> {
 
     program.version(PROMPTBOOK_ENGINE_VERSION);
     program.description(CLAIM);
+
+    // Note: Theese options are valid for all commands
+    program.option('-v, --verbose', `Log more details`, false);
+    program.option(
+        '--no-interactive',
+        `Input is not interactive, if true, no CLI input is prompted if required, so either defaults are used or the command fails with exit code 1`,
+    );
+    program.option('-p, --provider', `Which LLM provider to use: "BYOK" / "BRING_YOUR_OWN_KEYS" or "REMOTE_SERVER" / "RS"`, 'RS');
+    program.option('--remote-server-url', `URL of remote server to use when `, DEFAULT_REMOTE_SERVER_URL);
 
     $initializeAboutCommand(program);
     $initializeRunCommand(program);

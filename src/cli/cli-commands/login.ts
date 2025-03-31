@@ -37,6 +37,7 @@ export function $initializeLoginCommand(program: Program) {
                 ),
             );
 
+            // !!!!!!!!!
             const { email, password } = await prompts([
                 {
                     type: 'text',

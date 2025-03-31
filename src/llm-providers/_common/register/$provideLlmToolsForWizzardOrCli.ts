@@ -1,10 +1,12 @@
 import { join } from 'path';
+import { Promisable } from 'type-fest';
+import { PromptbookServer_Identification, really_any } from '../../../_packages/types.index';
 import { DEFAULT_EXECUTION_CACHE_DIRNAME, DEFAULT_REMOTE_SERVER_URL } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
-import { string_app_id, string_token, string_url, string_user_id } from '../../../types/typeAliases';
+import { string_app_id, string_url } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
@@ -46,22 +48,7 @@ type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCache
               /**
                *
                */
-              loginPrompt(): {
-                  /**
-                   * User id to be stored in the `.promptbook` folder and used for authentication
-                   */
-                  readonly userId: string_user_id;
-
-                  /**
-                   * Token to be stored in the `.promptbook` folder and used for authentication
-                   */
-                  readonly userToken: string_token;
-
-                  /**
-                   * Used as additional information about the user
-                   */
-                  readonly username?: string;
-              };
+              loginPrompt(): Promisable<PromptbookServer_Identification<really_any>>;
           }
     );
 
@@ -87,17 +74,12 @@ export async function $provideLlmToolsForWizzardOrCli(
     if (strategy === 'REMOTE_SERVER') {
         const { remoteServerUrl = DEFAULT_REMOTE_SERVER_URL, appId = 'promptbook-wizzard', loginPrompt } = options;
 
-
         const credentials = await store.getItem(`${remoteServerUrl}-${appId}-credentials`);
 
+        if (credentials === null) {
+            const { userId, userToken, username } = await loginPrompt();
 
-        if(credentials===null){
-          const { userId, userToken, username } = await loginPrompt();
-
-          
-
-
-          await  store.setItem(`${remoteServerUrl}-${appId}-credentials`, { userId, userToken, username });
+            await store.setItem(`${remoteServerUrl}-${appId}-credentials`, { userId, userToken, username });
         }
 
         const { userId, userToken, username } = await loginPrompt();

@@ -9,7 +9,6 @@ import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
@@ -19,6 +18,7 @@ import { suffixUrl } from '../../utils/normalization/suffixUrl';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
@@ -50,7 +50,6 @@ export function $initializeStartServerCommand(program: Program) {
     );
     startServerCommand.option('--allow-anonymous', `Is anonymous mode allowed`, false);
     startServerCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
-    startServerCommand.option('-v, --verbose', `Is output verbose`, false);
 
     startServerCommand.description(
         spaceTrim(`
@@ -61,105 +60,102 @@ export function $initializeStartServerCommand(program: Program) {
     startServerCommand.alias('server');
 
     startServerCommand.action(
-        handleActionErrors(
-            async (
-                path,
-                {
-                    port: portRaw,
-                    url: rawUrl,
-                    allowAnonymous: isAnonymousModeAllowed,
-                    reload: isCacheReloaded,
-                    verbose: isVerbose,
-                },
-            ) => {
-                if (rawUrl && !isValidUrl(rawUrl)) {
-                    console.error(colors.red(`Invalid URL: ${rawUrl}`));
-                    return process.exit(1);
-                }
+        handleActionErrors(async (path, options) => {
+            const {
+                port: portRaw,
+                url: rawUrl,
+                allowAnonymous: isAnonymousModeAllowed,
+                reload: isCacheReloaded,
+                verbose: isVerbose,
+            } = options;
 
-                const port: number_port = parseInt(portRaw, 10);
-                if (isNaN(port) || port <= 0 || port > 65535) {
-                    console.error(colors.red(`Invalid port number: ${portRaw}`));
-                    return process.exit(1);
-                }
+            if (rawUrl && !isValidUrl(rawUrl)) {
+                console.error(colors.red(`Invalid URL: ${rawUrl}`));
+                return process.exit(1);
+            }
 
-                const url = !rawUrl ? null : new URL(rawUrl);
+            const port: number_port = parseInt(portRaw, 10);
+            if (isNaN(port) || port <= 0 || port > 65535) {
+                console.error(colors.red(`Invalid port number: ${portRaw}`));
+                return process.exit(1);
+            }
 
-                if (url !== null && url.port !== port.toString()) {
-                    console.warn(
-                        colors.yellow(
-                            `Port in --url is different from --port which the server will listen on, this is ok only if you proxy from one port to another, for exaple via nginx or docker`,
-                        ),
+            const url = !rawUrl ? null : new URL(rawUrl);
+
+            if (url !== null && url.port !== port.toString()) {
+                console.warn(
+                    colors.yellow(
+                        `Port in --url is different from --port which the server will listen on, this is ok only if you proxy from one port to another, for exaple via nginx or docker`,
+                    ),
+                );
+                // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
+            }
+
+            let rootUrl: string_url | undefined = undefined;
+
+            if (url !== null) {
+                rootUrl = suffixUrl(url, '/books');
+            }
+
+            let rootPath = '/';
+
+            if (url !== null) {
+                rootPath = url.pathname;
+            }
+
+            // TODO: DRY [◽]
+            const prepareAndScrapeOptions = {
+                isVerbose,
+                isCacheReloaded,
+            }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
+            const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
+            const llm = await $provideLlmToolsForCli({ ...options, ...prepareAndScrapeOptions });
+            const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+            const tools = {
+                llm,
+                fs,
+
+                scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
+                script: await $provideScriptingForNode(prepareAndScrapeOptions),
+            } satisfies ExecutionTools;
+
+            // TODO: [🧟‍♂️][◽] DRY:
+            const collection = await createCollectionFromDirectory(path, tools, {
+                isVerbose,
+                rootUrl,
+                isRecursive: true,
+                isLazyLoaded: false,
+                isCrashedOnError: true,
+                // <- TODO: [🍖] Add `intermediateFilesStrategy`
+            });
+
+            // console.log(path, await collection.listPipelines());
+
+            const server = startRemoteServer({
+                rootPath,
+                port,
+                isAnonymousModeAllowed,
+                isApplicationModeAllowed: true,
+                collection,
+                async login() {
+                    throw new AuthenticationError(
+                        'You can not login to the server started by `ptbk start-server` in cli, use `startRemoteServer` function instead.',
                     );
-                    // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
-                }
+                },
+                createLlmExecutionTools(options) {
+                    const { appId, userId } = options;
+                    TODO_USE({ appId, userId });
+                    return llm;
+                },
+            });
 
-                let rootUrl: string_url | undefined = undefined;
+            keepUnused(server);
 
-                if (url !== null) {
-                    rootUrl = suffixUrl(url, '/books');
-                }
+            // Note: Already logged by `startRemoteServer`
+            // console.error(colors.green(`Server started on port ${port}`));
 
-                let rootPath = '/';
-
-                if (url !== null) {
-                    rootPath = url.pathname;
-                }
-
-                // TODO: DRY [◽]
-                const prepareAndScrapeOptions = {
-                    isVerbose,
-                    isCacheReloaded,
-                }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-                const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-                const llm = await $provideLlmToolsForWizzardOrCli(prepareAndScrapeOptions);
-                const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
-                const tools = {
-                    llm,
-                    fs,
-
-                    scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                    script: await $provideScriptingForNode(prepareAndScrapeOptions),
-                } satisfies ExecutionTools;
-
-                // TODO: [🧟‍♂️][◽] DRY:
-                const collection = await createCollectionFromDirectory(path, tools, {
-                    isVerbose,
-                    rootUrl,
-                    isRecursive: true,
-                    isLazyLoaded: false,
-                    isCrashedOnError: true,
-                    // <- TODO: [🍖] Add `intermediateFilesStrategy`
-                });
-
-                // console.log(path, await collection.listPipelines());
-
-                const server = startRemoteServer({
-                    rootPath,
-                    port,
-                    isAnonymousModeAllowed,
-                    isApplicationModeAllowed: true,
-                    collection,
-                    async login() {
-                        throw new AuthenticationError(
-                            'You can not login to the server started by `ptbk start-server` in cli, use `startRemoteServer` function instead.',
-                        );
-                    },
-                    createLlmExecutionTools(options) {
-                        const { appId, userId } = options;
-                        TODO_USE({ appId, userId });
-                        return llm;
-                    },
-                });
-
-                keepUnused(server);
-
-                // Note: Already logged by `startRemoteServer`
-                // console.error(colors.green(`Server started on port ${port}`));
-
-                return await forEver();
-            },
-        ),
+            return await forEver();
+        }),
     );
 }
 

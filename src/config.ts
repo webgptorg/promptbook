@@ -1,6 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email, string_name, string_url_image } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -220,6 +220,8 @@ export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 export const DEFAULT_BOOKS_DIRNAME = './books';
 // <- TODO: [🕝] Make also `BOOKS_DIRNAME_ALTERNATIVES`
 
+// TODO: !!!!!! Just .promptbook dir, hardocode others
+
 /**
  * Where to store the temporary downloads
  *
@@ -246,6 +248,23 @@ export const DEFAULT_EXECUTION_CACHE_DIRNAME = './.promptbook/execution-cache';
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
+
+/**
+ * Id of application for the CLI when using remote server
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const CLI_APP_ID: string_app_id = 'cli';
+
+/*
+TODO: [🌃]
+/**
+ * Id of application for the wizzard when using remote server
+ *
+ * @public exported from `@promptbook/core`
+ * /
+export const WIZZARD_APP_ID: string_app_id = 'wizzard';
+*/
 
 /**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
