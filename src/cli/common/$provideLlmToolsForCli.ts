@@ -1,16 +1,15 @@
 import colors from 'colors';
 import prompts from 'prompts';
-import {
-    CacheLlmToolsOptions,
-    ErrorJson,
-    PromptbookServer_Identification,
-    string_url,
-} from '../../_packages/types.index';
-import { isValidEmail, isValidUrl } from '../../_packages/utils.index';
+import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
+import type { ErrorJson } from '../../errors/utils/ErrorJson';
+import type { PromptbookServer_Identification } from '../../remote-server/socket-types/_subtypes/PromptbookServer_Identification';
+import type { string_url } from '../../types/typeAliases';
+import { isValidEmail } from '../../utils/validators/email/isValidEmail';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
-import { really_unknown } from '../../utils/organization/really_unknown';
+import type { really_unknown } from '../../utils/organization/really_unknown';
 
 type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'> & {
     cliOptions: {
