@@ -229,9 +229,12 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     ## Paths
 
                     ${block(
-                        app._router.stack
-                            .map(({ route }: really_any) => route?.path || null)
-                            .filter((path: string) => path !== null)
+                        [
+                            ...app._router.stack
+                                .map(({ route }: really_any) => route?.path || null)
+                                .filter((path: string) => path !== null),
+                            '/api-docs',
+                        ]
                             .map((path: string) => `- ${path}`)
                             .join('\n'),
                     )}
@@ -254,8 +257,37 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
-    // TODO: !!!!!! Add login route swagger / how swagger works from just comments?!
-
+    /**
+     * @swagger
+     *
+     * /login:
+     *  post:
+     *   summary: Login to the server
+     *   description: Login to the server and get identification.
+     *   requestBody:
+     *    required: true
+     *    content:
+     *     application/json:
+     *      schema:
+     *       type: object
+     *       properties:
+     *        username:
+     *         type: string
+     *        password:
+     *         type: string
+     *        appId:
+     *         type: string
+     *   responses:
+     *    200:
+     *     description: Successful login
+     *     content:
+     *      application/json:
+     *       schema:
+     *        type: object
+     *        properties:
+     *         identification:
+     *          type: object
+     */
     app.post([`/login`, `${rootPath}/login`], async (request, response) => {
         if (!isApplicationModeAllowed || login === null) {
             response.status(400).send('Application mode is not allowed');
