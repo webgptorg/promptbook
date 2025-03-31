@@ -105,11 +105,12 @@ async function makePipelineCollection({
     // Note: [🌼] Look here how it should look like
 
     const filePath = `./src/other/templates/getTemplatesPipelineCollection.ts`;
-    await $execCommand(
-        `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --root-url https://github.com/webgptorg/book/blob/main/books/templates/ --format typescript --output ${filePath} --function-name getTemplatesPipelineCollection ${
+    await $execCommand({
+        command: `npx ts-node ./src/cli/test/ptbk.ts make ./book/books --provider BRING_YOUR_OWN_KEYS --root-url https://github.com/webgptorg/book/blob/main/books/templates/ --format typescript --output ${filePath} --function-name getTemplatesPipelineCollection ${
             !isVerbose ? '' : '--verbose'
         }`,
-    );
+        isVerbose,
+    });
 
     let content = await readFile(filePath, 'utf-8');
     content = content.split(`@promptbook/core`).join(`../../collection/constructors/createCollectionFromJson`);
