@@ -6,6 +6,7 @@ import spaceTrim from 'spacetrim';
 import { forEver } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
+import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
@@ -13,8 +14,7 @@ import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
-import type { number_port } from '../../types/typeAliases';
-import type { string_url } from '../../types/typeAliases';
+import type { number_port, string_url } from '../../types/typeAliases';
 import { suffixUrl } from '../../utils/normalization/suffixUrl';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -140,6 +140,11 @@ export function $initializeStartServerCommand(program: Program) {
                     isAnonymousModeAllowed,
                     isApplicationModeAllowed: true,
                     collection,
+                    async login() {
+                        throw new AuthenticationError(
+                            'You can not login to the server started by `ptbk start-server` in cli, use `startRemoteServer` function instead.',
+                        );
+                    },
                     createLlmExecutionTools(options) {
                         const { appId, userId } = options;
                         TODO_USE({ appId, userId });

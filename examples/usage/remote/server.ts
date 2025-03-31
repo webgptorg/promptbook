@@ -11,6 +11,7 @@ import { forEver } from 'waitasecond';
 import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
 import { OpenAiExecutionTools } from '../../../src/_packages/openai.index';
 import { startRemoteServer } from '../../../src/_packages/remote-server.index';
+import { AuthenticationError } from '../../../src/errors/AuthenticationError';
 
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
@@ -43,11 +44,14 @@ async function main() {
 
     // [⚖]
     startRemoteServer({
-        path: '/promptbook',
         port: 4460,
+        rootPath: '/',
         collection,
         isAnonymousModeAllowed: true,
         isApplicationModeAllowed: true,
+        async login() {
+            throw new AuthenticationError('Not implemented');
+        },
         createLlmExecutionTools(options) {
             const { userId } = options;
             return new OpenAiExecutionTools(

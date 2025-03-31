@@ -1,5 +1,4 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
@@ -28,7 +27,7 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
             options: {
                 apiKey: 'sk-ant-api03-',
                 isProxied: true,
-                remoteUrl: DEFAULT_REMOTE_URL,
+                remoteServerUrl: DEFAULT_REMOTE_URL,
                 path: DEFAULT_REMOTE_URL_PATH,
             },
         };
@@ -50,7 +49,6 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
         return null;
     },
 });
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

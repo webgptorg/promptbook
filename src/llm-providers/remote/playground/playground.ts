@@ -8,6 +8,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import { forEver, forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
 import { startRemoteServer } from '../../../remote-server/startRemoteServer';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
 import '../../openai/register-constructor';
 import { RemoteLlmExecutionTools } from '../RemoteLlmExecutionTools';
@@ -42,6 +43,18 @@ async function playground() {
                 isRecursive: false,
             },
         ),
+        async login(credentials) {
+            const { username, password } = credentials;
+
+            keepUnused(password);
+
+            return {
+                isAnonymous: false,
+                appId: 'playground',
+                userId: username,
+                userToken: 'some-secret-token',
+            };
+        },
         createLlmExecutionTools(options) {
             const { appId, userId, customOptions } = options;
 
@@ -61,13 +74,13 @@ async function playground() {
         await forTime(500);
         console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Creating RemoteLlmExecutionTools (${mode} mode) `));
 
-        const remoteUrl = 'http://localhost:4460';
+        const remoteServerUrl = 'http://localhost:4460';
         const path = '/promptbook';
 
         const tools = new RemoteLlmExecutionTools(
             mode === 'anonymous'
                 ? {
-                      remoteUrl,
+                      remoteServerUrl,
                       path,
                       identification: {
                           isAnonymous: true,
@@ -85,7 +98,7 @@ async function playground() {
                       },
                   }
                 : {
-                      remoteUrl,
+                      remoteServerUrl,
                       path,
                       identification: {
                           isAnonymous: false,

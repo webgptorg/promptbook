@@ -2,9 +2,8 @@ import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_app_id, string_uri, string_user_id } from '../../types/typeAliases';
+import { PromptbookServer_Identification } from '../socket-types/_subtypes/PromptbookServer_Identification';
 
 /**
  * @@@
@@ -17,7 +16,6 @@ import type { string_user_id } from '../../types/typeAliases';
  *
  * You can enable both modes at the same time.
  *
- * @public exported from `@promptbook/remote-client`
  * @public exported from `@promptbook/remote-server`
  */
 export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
@@ -69,6 +67,21 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
      * This is used to check validity of the prompt to prevent misuse
      */
     readonly collection: PipelineCollection;
+
+    /**
+     * User tries to login to the server, this function will be called verify the user and return the identification or throw an error
+     *
+     *
+     * Note: In most cases, you will return `PromptbookServer_ApplicationIdentification`
+     *       `PromptbookServer_AnonymousIdentification` is useful only in scenarios when user stores its own api keys on the application server and
+     *       server acts only as a api key provider
+     *
+     * @throws `AuthenticationError` if the user is not allowed to login for example because of invalid credentials
+     */
+    login(credentials: {
+        username: string;
+        password: string;
+    }): Promise<PromptbookServer_Identification<TCustomOptions>>;
 
     /**
      * Creates llm execution tools for each client

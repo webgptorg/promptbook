@@ -437,7 +437,7 @@ Was accidentally released skipped
 -   Rename keys inside prepared knowledge
 -   Use `MultipleLlmExecutionTools` more
 -   LLM tools providers have constructor functions, for example `OpenAiExecutionTools` -> `createOpenAiExecutionTools`
--   `remoteUrl` is `string_base_url`
+-   `remoteServerUrl` is `string_base_url`
 
 ### `0.66.0` _(2024-08-19)_
 
@@ -753,6 +753,9 @@ User system and spending of credits
 -   `RemoteServer` exposes `httpServer`, `expressApp` and `socketIoServer` - you can add custom routes and middlewares
 -   Adding Swagger to remote server
 -   `@types/*` imports are moved to `devDependencies`
+-   Rename `remoteUrl` -> `remoteServerUrl`
+-   Rename `DEFAULT_REMOTE_URL` -> `DEFAULT_REMOTE_SERVER_URL`
+-   Remove `DEFAULT_REMOTE_URL_PATH` _(it will be always `socket.io`)_
 
 ## Drafts
 

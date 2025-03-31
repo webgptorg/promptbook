@@ -1,8 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_email, string_name, string_url_image } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -271,14 +269,7 @@ export const MOMENT_ARG_THRESHOLDS = {
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_REMOTE_URL = 'https://api.pavolhejny.com/';
-
-/**
- * @@@
- *
- * @public exported from `@promptbook/core`
- */
-export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
+export const DEFAULT_REMOTE_SERVER_URL = 'https://api.pavolhejny.com/promptbook';
 
 // <- TODO: [🧜‍♂️]
 
@@ -370,5 +361,5 @@ export const IS_COST_PREVENTED: boolean = just(
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
- * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
+ * TODO: [🧠][🧜‍♂️] Maybe join remoteServerUrl and path into single value
  */

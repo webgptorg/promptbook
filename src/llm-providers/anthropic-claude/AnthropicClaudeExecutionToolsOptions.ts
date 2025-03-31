@@ -32,7 +32,7 @@ export type AnthropicClaudeExecutionToolsDirectOptions = CommonToolsOptions &
 export type AnthropicClaudeExecutionToolsProxiedOptions = CommonToolsOptions &
     ClientOptions & {
         isProxied: true;
-    } & Pick<RemoteClientOptions<undefined>, 'remoteUrl' | 'path'>;
+    } & Pick<RemoteClientOptions<undefined>, 'remoteServerUrl' | 'path'>;
 
 /**
  * TODO: [🧠][🤺] Pass `userId`

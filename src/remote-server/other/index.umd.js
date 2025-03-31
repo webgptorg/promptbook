@@ -296,7 +296,7 @@
   true);
   /**
    * Note: [💞] Ignore a discrepancy between file name and entity name
-   * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
+   * TODO: [🧠][🧜‍♂️] Maybe join remoteServerUrl and path into single value
    */
 
   /**
