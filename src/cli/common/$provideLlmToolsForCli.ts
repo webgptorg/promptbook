@@ -98,6 +98,6 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
             },
         });
     } else {
-        throw new UnexpectedError(`$provideLlmToolsForCli wrong strategy "${strategy}"`);
+        throw new UnexpectedError(`\`$provideLlmToolsForCli\` wrong strategy "${strategy}"`);
     }
 }

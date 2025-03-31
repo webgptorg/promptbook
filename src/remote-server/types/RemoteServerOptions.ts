@@ -2,7 +2,7 @@ import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id, string_uri, string_user_id } from '../../types/typeAliases';
+import type { string_app_id, string_email, string_password, string_uri, string_user_id } from '../../types/typeAliases';
 import { PromptbookServer_Identification } from '../socket-types/_subtypes/PromptbookServer_Identification';
 
 /**
@@ -79,8 +79,22 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
      * @throws `AuthenticationError` if the user is not allowed to login for example because of invalid credentials
      */
     login(credentials: {
-        username: string;
-        password: string;
+        /**
+         * Identifier of the application you are using
+         *
+         * Note: This is usefull when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
+         */
+        readonly appId: string_app_id | null;
+
+        /**
+         * Username (for example email) of the user
+         */
+        readonly username: string_email | string;
+
+        /**
+         * Password of the user
+         */
+        readonly password: string_password;
     }): Promise<PromptbookServer_Identification<TCustomOptions>>;
 
     /**

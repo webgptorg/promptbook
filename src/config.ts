@@ -256,6 +256,13 @@ export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
  */
 export const CLI_APP_ID: string_app_id = 'cli';
 
+/**
+ * Id of application for the playground
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PLAYGROUND_APP_ID: string_app_id = 'playground';
+
 /*
 TODO: [🌃]
 /**

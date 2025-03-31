@@ -171,7 +171,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-    app.use(`${rootPath}/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.use([`/api-docs`, `${rootPath}/api-docs`], swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
     // <- TODO: [🤬] Identify the users
@@ -256,7 +256,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     // TODO: !!!!!! Add login route swagger / how swagger works from just comments?!
 
-    app.post(`${rootPath}/login`, async (request, response) => {
+    app.post([`/login`, `${rootPath}/login`], async (request, response) => {
         if (!isApplicationModeAllowed || login === null) {
             response.status(400).send('Application mode is not allowed');
             return;
@@ -265,8 +265,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
         try {
             const username = request.body.username;
             const password = request.body.password;
+            const appId = request.body.appId;
 
-            const identification = login({ username, password });
+            const identification = login({ username, password, appId });
             response.status(201).send({ identification });
             return;
         } catch (error) {
@@ -302,7 +303,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *               items:
      *                 type: string
      */
-    app.get(`${rootPath}/books`, async (request, response) => {
+    app.get([`/books`, `${rootPath}/books`], async (request, response) => {
         if (collection === null) {
             response.status(500).send('No collection available');
             return;
@@ -339,7 +340,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *       404:
      *         description: Book not found.
      */
-    app.get(`${rootPath}/books/*`, async (request, response) => {
+    app.get([`/books/*`, `${rootPath}/books/*`], async (request, response) => {
         try {
             if (collection === null) {
                 response.status(500).send('No collection nor books available');
@@ -423,7 +424,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *               items:
      *                 type: object
      */
-    app.get(`${rootPath}/executions`, async (request, response) => {
+    app.get([`/executions`, `${rootPath}/executions`], async (request, response) => {
         response.send(
             runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
             // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
@@ -431,7 +432,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
-    app.get(`${rootPath}/executions/last`, async (request, response) => {
+    app.get([`/executions/last`, `${rootPath}/executions/last`], async (request, response) => {
         // TODO: [🤬] Filter only for user
 
         if (runningExecutionTasks.length === 0) {
@@ -443,7 +444,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         response.send(exportExecutionTask(lastExecutionTask!, true));
     });
 
-    app.get(`${rootPath}/executions/:taskId`, async (request, response) => {
+    app.get([`/executions/:taskId`, `${rootPath}/executions/:taskId`], async (request, response) => {
         const { taskId } = request.params;
 
         // TODO: [🤬] Filter only for user
@@ -495,7 +496,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
         identification: PromptbookServer_Identification<TCustomOptions>;
-    }>(`${rootPath}/executions/new`, async (request, response) => {
+    }>([`/executions/new`, `${rootPath}/executions/new`], async (request, response) => {
         try {
             const { inputParameters, identification /* <- [🤬] */ } = request.body;
             const pipelineUrl = request.body.pipelineUrl || request.body.book;

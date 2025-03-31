@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { forEver, forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
+import { PLAYGROUND_APP_ID } from '../../../config';
 import { startRemoteServer } from '../../../remote-server/startRemoteServer';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
@@ -50,7 +51,7 @@ async function playground() {
 
             return {
                 isAnonymous: false,
-                appId: 'playground',
+                appId: PLAYGROUND_APP_ID,
                 userId: username,
                 userToken: 'some-secret-token',
             };

@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { Promisable } from 'type-fest';
+import { MemoryStorage, UnexpectedError } from '../../../_packages/core.index';
 import { PromptbookServer_Identification, really_any } from '../../../_packages/types.index';
 import { DEFAULT_EXECUTION_CACHE_DIRNAME, DEFAULT_REMOTE_SERVER_URL } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
@@ -8,7 +9,6 @@ import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$p
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { string_app_id, string_url } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
 import type { CacheLlmToolsOptions } from '../utils/cache/CacheLlmToolsOptions';
@@ -41,7 +41,6 @@ type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCache
                * Identifier of the application which will be passed to the remote server identification
                *
                * Note: This can be some id or some semantic name like "email-agent"
-               * @default 'promptbook-wizzard'
                */
               readonly appId: string_app_id;
 
@@ -72,32 +71,26 @@ export async function $provideLlmToolsForWizzardOrCli(
     let llmExecutionTools: LlmExecutionTools;
 
     if (strategy === 'REMOTE_SERVER') {
-        const { remoteServerUrl = DEFAULT_REMOTE_SERVER_URL, appId = 'promptbook-wizzard', loginPrompt } = options;
+        const { remoteServerUrl = DEFAULT_REMOTE_SERVER_URL, loginPrompt } = options;
 
-        const credentials = await store.getItem(`${remoteServerUrl}-${appId}-credentials`);
+        const storage = new MemoryStorage<PromptbookServer_Identification<null>>(); // <- TODO: !!!!!! Save to `.promptbook` folder
 
-        if (credentials === null) {
-            const { userId, userToken, username } = await loginPrompt();
+        const key = `${remoteServerUrl}-identification`;
+        let identification = await storage.getItem(key);
 
-            await store.setItem(`${remoteServerUrl}-${appId}-credentials`, { userId, userToken, username });
+        if (identification === null) {
+            identification = await loginPrompt();
+            await storage.setItem(key, identification);
         }
 
-        const { userId, userToken, username } = await loginPrompt();
-
-        // TODO: !!!!!! Save userToken and username to the .promptbook folder
-        TODO_USE(username);
-
-        new RemoteLlmExecutionTools({
+        llmExecutionTools = new RemoteLlmExecutionTools({
             remoteServerUrl,
-            identification: {
-                isAnonymous: false,
-                appId,
-                userId,
-                userToken,
-            },
+            identification,
         });
     } else if (strategy === 'BRING_YOUR_OWN_KEYS') {
         llmExecutionTools = await $provideLlmToolsFromEnv();
+    } else {
+        throw new UnexpectedError(`\`$provideLlmToolsForWizzardOrCli\` wrong strategy "${strategy}"`);
     }
 
     return cacheLlmTools(
