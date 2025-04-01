@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
+import type { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { string_app_id, string_email, string_password, string_uri, string_user_id } from '../../types/typeAliases';
@@ -62,13 +63,14 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
 
     /**
      * User tries to login to the server, this function will be called verify the user and return the identification or throw an error
-     *
+     * This can be also doubled as a function to register the user
      *
      * Note: In most cases, you will return `PromptbookServer_ApplicationIdentification`
      *       `PromptbookServer_AnonymousIdentification` is useful only in scenarios when user stores its own api keys on the application server and
      *       server acts only as a api key provider
      *
-     * @throws `AuthenticationError` if the user is not allowed to login for example because of invalid credentials
+     * Note: In most cases DO NOT THROW `AuthenticationError` but return `isSuccess: false` with message
+     * @throws `AuthenticationError`  if the user is not allowed to login for example because of invalid credentials
      */
     login(credentials: {
         /**
@@ -99,7 +101,7 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
          * Note: It is not recommended to use this object to send body of the response because it can confuse the client
          */
         readonly rawResponse: Response;
-    }): Promise<PromptbookServer_Identification<TCustomOptions>>;
+    }): Promise<ApplicationRemoteServerOptionsLoginResponse<TCustomOptions>>;
 
     /**
      * Creates llm execution tools for each client
@@ -137,6 +139,20 @@ export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
      * Additional arbitrary options to identify the client or to pass custom metadata
      */
     readonly customOptions?: TCustomOptions;
+};
+
+export type ApplicationRemoteServerOptionsLoginResponse<TCustomOptions> = {
+    /**
+     * Was the login successful
+     */
+    readonly isSuccess: boolean;
+
+    /**
+     *
+     */
+    readonly message?: string;
+    readonly error?: AuthenticationError;
+    readonly identification?: PromptbookServer_Identification<TCustomOptions>;
 };
 
 /**

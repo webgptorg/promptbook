@@ -1,15 +1,15 @@
 import colors from 'colors';
 import prompts from 'prompts';
-import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
-import type { ErrorJson } from '../../errors/utils/ErrorJson';
-import type { PromptbookServer_Identification } from '../../remote-server/socket-types/_subtypes/PromptbookServer_Identification';
-import type { string_url } from '../../types/typeAliases';
-import { isValidEmail } from '../../utils/validators/email/isValidEmail';
-import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
-import type { really_unknown } from '../../utils/organization/really_unknown';
+import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
+import { ApplicationRemoteServerOptionsLoginResponse } from '../../remote-server/types/RemoteServerOptions';
+import type { string_url } from '../../types/typeAliases';
+import { really_unknown } from '../../utils/organization/really_unknown';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
+import { isValidEmail } from '../../utils/validators/email/isValidEmail';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 
 type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'> & {
     cliOptions: {
@@ -103,16 +103,31 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                     // text: await response.text(),
                 });
 
-                const body = (await response.json()) as
-                    | { error: ErrorJson }
-                    | { identification: PromptbookServer_Identification<really_unknown> };
+                const { isSuccess, message, error, identification } =
+                    (await response.json()) as ApplicationRemoteServerOptionsLoginResponse<really_unknown>;
 
-                if ('error' in body) {
-                    console.log(colors.red(body.error.message));
+                TODO_USE(error);
+
+                if (message) {
+                    if (isSuccess) {
+                        console.log(colors.green(message));
+                    } else {
+                        console.log(colors.red(message));
+                    }
+                }
+
+                if (!isSuccess) {
+                    // Note: Login failed
                     process.exit(1);
                 }
 
-                return body.identification;
+                if (!identification) {
+                    // Note: Do not get identification here, but server signalizes the success so exiting but with code 0
+                    //       This can mean for example that user needs to verify email
+                    process.exit(0);
+                }
+
+                return identification;
             },
         });
     } else {

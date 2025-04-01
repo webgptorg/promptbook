@@ -36,7 +36,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { ApplicationRemoteServerOptionsLoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -300,14 +300,19 @@ export function startRemoteServer<TCustomOptions = undefined>(
             const password = request.body.password;
             const appId = request.body.appId;
 
-            const identification = await login({
+            const { isSuccess, error, message, identification } = await login({
                 username,
                 password,
                 appId,
                 rawRequest: request,
                 rawResponse: response,
             });
-            response.status(201).send({ identification });
+            response.status(201).send({
+                isSuccess,
+                message,
+                error: error ? (serializeError(error) as TODO_any) : undefined,
+                identification,
+            } satisfies ApplicationRemoteServerOptionsLoginResponse<really_any>);
             return;
         } catch (error) {
             if (!(error instanceof Error)) {
@@ -315,7 +320,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
             }
 
             if (error instanceof AuthenticationError) {
-                response.status(401).send({ error: serializeError(error) });
+                response.status(401).send({
+                    isSuccess: false,
+                    message: error.message,
+                    error: serializeError(error) as TODO_any,
+                } satisfies ApplicationRemoteServerOptionsLoginResponse<really_any>);
             }
 
             console.warn(`Login function thrown different error than AuthenticationError`, {
