@@ -3,14 +3,14 @@ import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchErr
 import type { string_name } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
-import { $provideEnvFilepath } from './$provideEnvFilepath';
+import { $provideEnvFilename } from './$provideEnvFilename';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
  * @@@
  *
  * @@@ .env
- * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access `.env` file
  *
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`
@@ -25,7 +25,7 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
         throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
     }
 
-    const envFilepath = await $provideEnvFilepath();
+    const envFilepath = await $provideEnvFilename();
 
     if (envFilepath !== null) {
         dotenv.config({ path: envFilepath });

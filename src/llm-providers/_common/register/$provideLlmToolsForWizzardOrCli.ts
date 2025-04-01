@@ -1,16 +1,14 @@
 import { join } from 'path';
 import { Promisable } from 'type-fest';
-import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_REMOTE_SERVER_URL } from '../../../config';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME, DEFAULT_REMOTE_SERVER_URL } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { Identification } from '../../../remote-server/socket-types/_subtypes/Identification';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
+import { $EnvStorage } from '../../../storage/env-storage/$EnvStorage';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
-import { MemoryStorage } from '../../../storage/memory/MemoryStorage';
-import type { string_app_id } from '../../../types/typeAliases';
-import type { string_url } from '../../../types/typeAliases';
+import type { string_app_id, string_url } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { really_any } from '../../../utils/organization/really_any';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
@@ -58,7 +56,7 @@ type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCache
 /**
  * Returns LLM tools for CLI
  *
- * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file and also writes this .env file
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access `.env` file and also writes this .env file
  *
  * @private within the repository - for CLI utils
  */
@@ -79,11 +77,9 @@ export async function $provideLlmToolsForWizzardOrCli(
     if (strategy === 'REMOTE_SERVER') {
         const { remoteServerUrl = DEFAULT_REMOTE_SERVER_URL, loginPrompt } = options;
 
-        // TODO: !!!
-        // const envFilepath = await $provideEnvFilepath();
-        const storage = new MemoryStorage<Identification<null>>(); // <- TODO: !!!!!! Save to `.promptbook` folder
+        const storage = new $EnvStorage<Identification<null>>(); // <- TODO: !!!!!! Save to `.promptbook` folder
 
-        const key = `${remoteServerUrl}-identification`;
+        const key = `${remoteServerUrl}-identification`; // <- TODO: !!! Maybe just PROMPTBOOK_TOKEN
         let identification = await storage.getItem(key);
 
         if (identification === null) {

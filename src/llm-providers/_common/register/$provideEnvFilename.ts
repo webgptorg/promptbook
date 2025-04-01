@@ -11,13 +11,13 @@ import { $setUsedEnvFilename } from './$registeredLlmToolsMessage';
 /**
  * Provides the path to the `.env` file
  *
- * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access `.env` file
  *
  * @private within the repository - for CLI utils
  */
-export async function $provideEnvFilepath(): Promise<string_filename | null> {
+export async function $provideEnvFilename(): Promise<string_filename | null> {
     if (!$isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `$provideEnvFilepath` works only in Node.js environment');
+        throw new EnvironmentMismatchError('Function `$provideEnvFilename` works only in Node.js environment');
     }
 
     const envFilePatterns = [
