@@ -2,7 +2,7 @@ import { join } from 'path';
 import { LOOP_LIMIT } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
-import { string_filename } from '../../../types/typeAliases';
+import type { string_filename } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { isRootPath } from '../../../utils/validators/filePath/isRootPath';
