@@ -49,8 +49,8 @@ async function playground() {
                 isRecursive: false,
             },
         ),
-        async login(credentials) {
-            const { appId, username, password } = credentials;
+        async login(loginRequest) {
+            const { appId, username, password } = loginRequest;
 
             console.log('!!! login', { appId, username, password });
 

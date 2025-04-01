@@ -4,11 +4,7 @@ import type { PipelineCollection } from '../../collection/PipelineCollection';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_email } from '../../types/typeAliases';
-import type { string_password } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_app_id, string_email, string_password, string_uri, string_user_id } from '../../types/typeAliases';
 import type { PromptbookServer_Identification } from '../socket-types/_subtypes/PromptbookServer_Identification';
 
 /**
@@ -76,36 +72,9 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
      * Note: In most cases DO NOT THROW `AuthenticationError` but return `isSuccess: false` with message
      * @throws `AuthenticationError`  if the user is not allowed to login for example because of invalid credentials
      */
-    login(credentials: {
-        /**
-         * Identifier of the application you are using
-         *
-         * Note: This is usefull when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
-         */
-        readonly appId: string_app_id | null;
-
-        /**
-         * Username (for example email) of the user
-         */
-        readonly username: string_email | string;
-
-        /**
-         * Password of the user
-         */
-        readonly password: string_password;
-
-        /**
-         * Request object from express if you want to access some request data for example headers, IP address, etc.
-         */
-        readonly rawRequest: Request;
-
-        /**
-         * Response object from express if you want to add some custom headers.
-         *
-         * Note: It is not recommended to use this object to send body of the response because it can confuse the client
-         */
-        readonly rawResponse: Response;
-    }): Promise<ApplicationRemoteServerOptionsLoginResponse<TCustomOptions>>;
+    login(
+        loginRequest: ApplicationRemoteServerOptionsLoginRequest,
+    ): Promise<ApplicationRemoteServerOptionsLoginResponse<TCustomOptions>>;
 
     /**
      * Creates llm execution tools for each client
@@ -145,6 +114,43 @@ export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
     readonly customOptions?: TCustomOptions;
 };
 
+/**
+ * Login request for the application mode
+ */
+export type ApplicationRemoteServerOptionsLoginRequest = {
+    /**
+     * Identifier of the application you are using
+     *
+     * Note: This is usefull when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
+     */
+    readonly appId: string_app_id | null;
+
+    /**
+     * Username (for example email) of the user
+     */
+    readonly username: string_email | string;
+
+    /**
+     * Password of the user
+     */
+    readonly password: string_password;
+
+    /**
+     * Request object from express if you want to access some request data for example headers, IP address, etc.
+     */
+    readonly rawRequest: Request;
+
+    /**
+     * Response object from express if you want to add some custom headers.
+     *
+     * Note: It is not recommended to use this object to send body of the response because it can confuse the client
+     */
+    readonly rawResponse: Response;
+};
+
+/**
+ * Login response for the application mode
+ */
 export type ApplicationRemoteServerOptionsLoginResponse<TCustomOptions> = {
     /**
      * Was the login successful
@@ -152,10 +158,18 @@ export type ApplicationRemoteServerOptionsLoginResponse<TCustomOptions> = {
     readonly isSuccess: boolean;
 
     /**
-     *
+     * Message to display to the user, this message is always displayed
      */
     readonly message?: string;
+
+    /**
+     * Optional error if the login was not successful
+     */
     readonly error?: AuthenticationError;
+
+    /**
+     * Identification of the user to be used in the future requests
+     */
     readonly identification?: PromptbookServer_Identification<TCustomOptions>;
 };
 
