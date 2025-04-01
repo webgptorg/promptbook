@@ -6,8 +6,7 @@ import { spaceTrim } from 'spacetrim';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -22,14 +21,12 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
@@ -303,7 +300,13 @@ export function startRemoteServer<TCustomOptions = undefined>(
             const password = request.body.password;
             const appId = request.body.appId;
 
-            const identification = await login({ username, password, appId });
+            const identification = await login({
+                username,
+                password,
+                appId,
+                rawRequest: request,
+                rawResponse: response,
+            });
             response.status(201).send({ identification });
             return;
         } catch (error) {

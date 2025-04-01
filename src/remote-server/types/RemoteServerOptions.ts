@@ -1,3 +1,4 @@
+import type { Request, Response } from 'express';
 import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
@@ -86,6 +87,18 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
          * Password of the user
          */
         readonly password: string_password;
+
+        /**
+         * Request object from express if you want to access some request data for example headers, IP address, etc.
+         */
+        readonly rawRequest: Request;
+
+        /**
+         * Response object from express if you want to add some custom headers.
+         *
+         * Note: It is not recommended to use this object to send body of the response because it can confuse the client
+         */
+        readonly rawResponse: Response;
     }): Promise<PromptbookServer_Identification<TCustomOptions>>;
 
     /**
