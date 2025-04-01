@@ -1,10 +1,11 @@
 import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { $provideEnvFilename } from '../../llm-providers/_common/register/$provideEnvFilename';
 import type { string_filename } from '../../types/typeAliases';
+import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
@@ -80,7 +81,15 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
         const envFilename = await this.$provideOrCreateEnvFile();
         const envContent = await readFile(envFilename, 'utf-8');
 
-        const newEnvContent = `${envContent}\n\n\n${this.transformKey(key)}=${JSON.stringify(value)}\n`;
+        const newEnvContent = spaceTrim(
+            (block) => `
+                ${block(envContent)}
+
+                # Note: Added by Promptbook
+                ${this.transformKey(key)}=${JSON.stringify(value)}
+
+            `,
+        );
         // <- TODO: !!! Add note and use spacetrim
         writeFile(envFilename, newEnvContent, 'utf-8');
     }
