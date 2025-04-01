@@ -32,7 +32,9 @@ async function playground() {
     // const url= 'https://google.com';
     // const url = 'https://pavolhejny.com';
     // const url = 'https://www.pavolhejny.com';
-    const url = 'https://foo.pavolhejny.com';
+    // const url = 'https://foo.pavolhejny.com';
+
+    const url = 'https://www.stanislavvavrik.cz';
 
     const response = await scraperFetch(url);
     const text = await response.text();
