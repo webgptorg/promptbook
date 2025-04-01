@@ -289,7 +289,6 @@ import type { string_promptbook_version } from '../version';
 
 // Note: Entities of the `@promptbook/types`
 export type {
-    $defs,
     AbstractFormfactorDefinition,
     AbstractTask,
     AbstractTaskResult,
@@ -323,7 +322,7 @@ export type {
     CompletionModelRequirements,
     CompletionPrompt,
     CompletionPromptResult,
-    components,
+
     Converter,
     CreatePipelineExecutorOptions,
     CsvSettings,
@@ -413,13 +412,11 @@ export type {
     number_years,
     OpenAiAssistantExecutionToolsOptions,
     OpenAiExecutionToolsOptions,
-    operations,
     OrderJsonOptions,
     OutputParameterJson,
     ParameterCommand,
     ParameterJson,
     Parameters,
-    paths,
     PersonaCommand,
     PersonaJson,
     PersonaPreparedJson,
@@ -579,5 +576,4 @@ export type {
     UserInterfaceToolsPromptDialogOptions,
     VercelExecutionToolsOptions,
     VercelProvider,
-    webhooks,
 };
