@@ -106,7 +106,6 @@ import type { ScriptTaskJson } from '../pipeline/PipelineJson/ScriptTaskJson';
 import type { SimpleTaskJson } from '../pipeline/PipelineJson/SimpleTaskJson';
 import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import type { PipelineString } from '../pipeline/PipelineString';
-import type { $defs, components, operations, paths, webhooks } from '../playground/brjapp-api-schema';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { RemoteServer } from '../remote-server/RemoteServer';
 import type {

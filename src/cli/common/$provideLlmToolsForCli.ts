@@ -5,6 +5,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
+import { scraperFetch } from '../../scrapers/_common/utils/scraperFetch';
 import type { string_url } from '../../types/typeAliases';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -83,7 +84,11 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                 ]);
 
                 const loginUrl = `${remoteServerUrl}/login`;
-                const response = await fetch(loginUrl, {
+
+                console.log('!!!', { loginUrl });
+
+                // TODO: [🧠] Should we use normal `fetch` or `scraperFetch`
+                const response = await scraperFetch(loginUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -107,6 +112,13 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                     (await response.json()) as LoginResponse<really_unknown>;
 
                 TODO_USE(error);
+
+                console.log('!!!', {
+                    isSuccess,
+                    message,
+                    error,
+                    identification,
+                });
 
                 if (message) {
                     if (isSuccess) {
