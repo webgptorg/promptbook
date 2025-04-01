@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { normalizeTo_SCREAMING_CASE } from '../../_packages/utils.index';
+import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { $provideEnvFilename } from '../../llm-providers/_common/register/$provideEnvFilename';
 import type { string_filename } from '../../types/typeAliases';
