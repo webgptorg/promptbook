@@ -56,7 +56,7 @@ type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCache
 /**
  * Returns LLM tools for CLI
  *
- * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file and also writes this .env file
  *
  * @private within the repository - for CLI utils
  */
@@ -77,6 +77,8 @@ export async function $provideLlmToolsForWizzardOrCli(
     if (strategy === 'REMOTE_SERVER') {
         const { remoteServerUrl = DEFAULT_REMOTE_SERVER_URL, loginPrompt } = options;
 
+        // TODO: !!!
+        // const envFilepath = await $provideEnvFilepath();
         const storage = new MemoryStorage<Identification<null>>(); // <- TODO: !!!!!! Save to `.promptbook` folder
 
         const key = `${remoteServerUrl}-identification`;
