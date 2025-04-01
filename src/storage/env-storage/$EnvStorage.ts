@@ -13,7 +13,7 @@ import type { PromptbookStorage } from '../_common/PromptbookStorage';
  *
  * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access `.env` file and also writes to `process.env`
  *
- * @public exported from `@promptbook/core`
+ * @private within the repository - for CLI utils
  */
 export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
     private envFilename: string_filename | null = null;
