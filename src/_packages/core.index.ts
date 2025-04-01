@@ -131,6 +131,7 @@ import { _MarkitdownScraperMetadataRegistration } from '../scrapers/markitdown/r
 import { _PdfScraperMetadataRegistration } from '../scrapers/pdf/register-metadata';
 import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/register-metadata';
 import { BlackholeStorage } from '../storage/blackhole/BlackholeStorage';
+import { $EnvStorage } from '../storage/env-storage/$EnvStorage';
 import { MemoryStorage } from '../storage/memory/MemoryStorage';
 import { PrefixStorage } from '../storage/utils/PrefixStorage';
 import { MODEL_VARIANTS } from '../types/ModelVariant';
@@ -273,6 +274,7 @@ export { _MarkitdownScraperMetadataRegistration };
 export { _PdfScraperMetadataRegistration };
 export { _WebsiteScraperMetadataRegistration };
 export { BlackholeStorage };
+export { $EnvStorage };
 export { MemoryStorage };
 export { PrefixStorage };
 export { MODEL_VARIANTS };
