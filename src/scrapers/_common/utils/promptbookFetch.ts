@@ -19,10 +19,18 @@ export const promptbookFetch: PromptbookFetch = async (
             throw error;
         }
 
+        let url: string | undefined;
+
+        if (typeof urlOrRequest === 'string') {
+            url = urlOrRequest;
+        } else if (urlOrRequest instanceof Request) {
+            url = urlOrRequest.url;
+        }
+
         throw new PromptbookFetchError(
             spaceTrim(
                 (block) => `
-                    Can not fetch "${urlOrRequest.toString()}"
+                    Can not fetch "${url}"
 
                     Fetch error:
                     ${block((error as Error).message)}
