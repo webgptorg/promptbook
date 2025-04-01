@@ -6,8 +6,7 @@ import { spaceTrim } from 'spacetrim';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -22,25 +21,22 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
-import type { PromptbookServer_Identification } from './socket-types/_subtypes/PromptbookServer_Identification';
+import type { Identification } from './socket-types/_subtypes/Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './socket-types/listModels/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_PreparePipeline_Request } from './socket-types/prepare/PromptbookServer_PreparePipeline_Request';
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { ApplicationRemoteServerOptionsLoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -97,7 +93,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     const startupDate = new Date();
 
     async function getExecutionToolsFromIdentification(
-        identification: PromptbookServer_Identification<TCustomOptions>,
+        identification: Identification<TCustomOptions>,
     ): Promise<ExecutionTools & { llm: LlmExecutionTools }> {
         if (identification === null || identification === undefined) {
             throw new Error(`Identification is not provided`);
@@ -316,7 +312,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 message,
                 error: error ? (serializeError(error) as TODO_any) : undefined,
                 identification,
-            } satisfies ApplicationRemoteServerOptionsLoginResponse<really_any>);
+            } satisfies LoginResponse<really_any>);
             return;
         } catch (error) {
             if (!(error instanceof Error)) {
@@ -328,7 +324,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     isSuccess: false,
                     message: error.message,
                     error: serializeError(error) as TODO_any,
-                } satisfies ApplicationRemoteServerOptionsLoginResponse<really_any>);
+                } satisfies LoginResponse<really_any>);
             }
 
             console.warn(`Login function thrown different error than AuthenticationError`, {
@@ -547,7 +543,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     app.post<{
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
-        identification: PromptbookServer_Identification<TCustomOptions>;
+        identification: Identification<TCustomOptions>;
     }>([`/executions/new`, `${rootPath}/executions/new`], async (request, response) => {
         try {
             const { inputParameters, identification /* <- [🤬] */ } = request.body;

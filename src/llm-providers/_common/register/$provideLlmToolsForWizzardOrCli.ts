@@ -1,18 +1,16 @@
 import { join } from 'path';
 import { Promisable } from 'type-fest';
-import { MemoryStorage } from '../../../storage/memory/MemoryStorage';
-import { UnexpectedError } from '../../../errors/UnexpectedError';
-import type { PromptbookServer_Identification } from '../../../remote-server/socket-types/_subtypes/PromptbookServer_Identification';
-import type { really_any } from '../../../utils/organization/really_any';
-import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_REMOTE_SERVER_URL } from '../../../config';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME, DEFAULT_REMOTE_SERVER_URL } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { Identification } from '../../../remote-server/socket-types/_subtypes/Identification';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
-import type { string_app_id } from '../../../types/typeAliases';
-import type { string_url } from '../../../types/typeAliases';
+import { MemoryStorage } from '../../../storage/memory/MemoryStorage';
+import type { string_app_id, string_url } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import type { really_any } from '../../../utils/organization/really_any';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
 import type { CacheLlmToolsOptions } from '../utils/cache/CacheLlmToolsOptions';
@@ -51,7 +49,7 @@ type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCache
               /**
                *
                */
-              loginPrompt(): Promisable<PromptbookServer_Identification<really_any>>;
+              loginPrompt(): Promisable<Identification<really_any>>;
           }
     );
 
@@ -77,7 +75,7 @@ export async function $provideLlmToolsForWizzardOrCli(
     if (strategy === 'REMOTE_SERVER') {
         const { remoteServerUrl = DEFAULT_REMOTE_SERVER_URL, loginPrompt } = options;
 
-        const storage = new MemoryStorage<PromptbookServer_Identification<null>>(); // <- TODO: !!!!!! Save to `.promptbook` folder
+        const storage = new MemoryStorage<Identification<null>>(); // <- TODO: !!!!!! Save to `.promptbook` folder
 
         const key = `${remoteServerUrl}-identification`;
         let identification = await storage.getItem(key);

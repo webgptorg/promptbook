@@ -8,9 +8,9 @@ import type { ApplicationRemoteServerClientOptions } from '../../types/RemoteSer
  * @public exported from `@promptbook/remote-server`
  * @public exported from `@promptbook/remote-client`
  */
-export type PromptbookServer_Identification<TCustomOptions> =
-    | PromptbookServer_ApplicationIdentification<TCustomOptions>
-    | PromptbookServer_AnonymousIdentification;
+export type Identification<TCustomOptions> =
+    | ApplicationModeIdentification<TCustomOptions>
+    | AnonymousModeIdentification;
 
 /**
  * Application mode is situation when you run known and well-defined books with your own api keys
@@ -18,13 +18,12 @@ export type PromptbookServer_Identification<TCustomOptions> =
  * @public exported from `@promptbook/remote-server`
  * @public exported from `@promptbook/remote-client`
  */
-export type PromptbookServer_ApplicationIdentification<TCustomOptions> =
-    ApplicationRemoteServerClientOptions<TCustomOptions> & {
-        /**
-         * Application mode
-         */
-        readonly isAnonymous: false;
-    };
+export type ApplicationModeIdentification<TCustomOptions> = ApplicationRemoteServerClientOptions<TCustomOptions> & {
+    /**
+     * Application mode
+     */
+    readonly isAnonymous: false;
+};
 
 /**
  * Anonymous mode is when you run arbitrary user books without api keys from user
@@ -35,7 +34,7 @@ export type PromptbookServer_ApplicationIdentification<TCustomOptions> =
  * @public exported from `@promptbook/remote-server`
  * @public exported from `@promptbook/remote-client`
  */
-export type PromptbookServer_AnonymousIdentification = {
+export type AnonymousModeIdentification = {
     /**
      * Anonymous mode
      */

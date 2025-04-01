@@ -1,4 +1,4 @@
-import type { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
+import type { Identification } from '../_subtypes/Identification';
 
 /**
  * List models available in the server
@@ -11,7 +11,7 @@ export type PromptbookServer_ListModels_Request<TCustomOptions> = {
     /**
      * Identifier of the end user or application
      */
-    readonly identification: PromptbookServer_Identification<TCustomOptions>;
+    readonly identification: Identification<TCustomOptions>;
 };
 
 /**

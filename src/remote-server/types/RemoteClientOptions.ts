@@ -1,6 +1,6 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { string_base_url } from '../../types/typeAliases';
-import type { PromptbookServer_Identification } from '../socket-types/_subtypes/PromptbookServer_Identification';
+import type { Identification } from '../socket-types/_subtypes/Identification';
 
 /**
  * Options for `RemoteLlmExecutionTools`
@@ -17,7 +17,7 @@ export type RemoteClientOptions<TCustomOptions> = CommonToolsOptions & {
     /**
      * Identification of client for Socket.io remote server
      */
-    readonly identification: PromptbookServer_Identification<TCustomOptions>;
+    readonly identification: Identification<TCustomOptions>;
 };
 
 /**

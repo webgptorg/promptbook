@@ -1,5 +1,5 @@
 import type { Prompt } from '../../../types/Prompt';
-import type { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
+import type { Identification } from '../_subtypes/Identification';
 
 /**
  * This is a request from client to server to execute a prompt
@@ -10,7 +10,7 @@ export type PromptbookServer_Prompt_Request<TCustomOptions> = {
     /**
      * Identifier of the end user or application
      */
-    readonly identification: PromptbookServer_Identification<TCustomOptions>;
+    readonly identification: Identification<TCustomOptions>;
 
     /**
      * The Prompt to execute

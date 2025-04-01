@@ -1,5 +1,5 @@
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
-import type { PromptbookServer_Identification } from '../_subtypes/PromptbookServer_Identification';
+import type { Identification } from '../_subtypes/Identification';
 
 /**
  * This is a request from client to server to prepare a pipeline
@@ -10,7 +10,7 @@ export type PromptbookServer_PreparePipeline_Request<TCustomOptions> = {
     /**
      * Identifier of the end user or application
      */
-    readonly identification: PromptbookServer_Identification<TCustomOptions>;
+    readonly identification: Identification<TCustomOptions>;
 
     /**
      * The Pipeline to prepare

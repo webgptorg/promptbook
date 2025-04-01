@@ -5,7 +5,7 @@ import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { string_app_id, string_email, string_password, string_uri, string_user_id } from '../../types/typeAliases';
-import type { PromptbookServer_Identification } from '../socket-types/_subtypes/PromptbookServer_Identification';
+import type { Identification } from '../socket-types/_subtypes/Identification';
 
 /**
  * @@@
@@ -72,9 +72,7 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
      * Note: In most cases DO NOT THROW `AuthenticationError` but return `isSuccess: false` with message
      * @throws `AuthenticationError`  if the user is not allowed to login for example because of invalid credentials
      */
-    login(
-        loginRequest: ApplicationRemoteServerOptionsLoginRequest,
-    ): Promise<ApplicationRemoteServerOptionsLoginResponse<TCustomOptions>>;
+    login(loginRequest: LoginRequest): Promise<LoginResponse<TCustomOptions>>;
 
     /**
      * Creates llm execution tools for each client
@@ -117,7 +115,7 @@ export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
 /**
  * Login request for the application mode
  */
-export type ApplicationRemoteServerOptionsLoginRequest = {
+export type LoginRequest = {
     /**
      * Identifier of the application you are using
      *
@@ -151,7 +149,7 @@ export type ApplicationRemoteServerOptionsLoginRequest = {
 /**
  * Login response for the application mode
  */
-export type ApplicationRemoteServerOptionsLoginResponse<TCustomOptions> = {
+export type LoginResponse<TCustomOptions> = {
     /**
      * Was the login successful
      */
@@ -170,7 +168,7 @@ export type ApplicationRemoteServerOptionsLoginResponse<TCustomOptions> = {
     /**
      * Identification of the user to be used in the future requests
      */
-    readonly identification?: PromptbookServer_Identification<TCustomOptions>;
+    readonly identification?: Identification<TCustomOptions>;
 };
 
 /**
