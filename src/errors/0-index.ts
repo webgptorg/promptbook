@@ -13,6 +13,7 @@ import { ParseError } from './ParseError';
 import { PipelineExecutionError } from './PipelineExecutionError';
 import { PipelineLogicError } from './PipelineLogicError';
 import { PipelineUrlError } from './PipelineUrlError';
+import { PromptbookFetchError } from './PromptbookFetchError';
 import { UnexpectedError } from './UnexpectedError';
 
 /**
@@ -54,6 +55,7 @@ export const COMMON_JAVASCRIPT_ERRORS = {
     URIError,
     AggregateError,
     AuthenticationError,
+    PromptbookFetchError,
     /*
   Note: Not widely supported
   > InternalError,

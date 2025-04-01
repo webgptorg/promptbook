@@ -759,6 +759,7 @@ User system and spending of credits
 -   Remove `DEFAULT_REMOTE_URL_PATH` _(it will be always `socket.io`)_
 -   `rootPath` is not required anymore
 -   Rename types `PromptbookServer_Identification` -> `Identification`
+-   Change `scraperFetch` -> `promptbookFetch` and add `PromptbookFetchError`
 
 ## Drafts
 

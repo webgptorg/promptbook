@@ -1,25 +1,28 @@
 import spaceTrim from 'spacetrim';
-import { KnowledgeScrapeError } from '../../../errors/KnowledgeScrapeError';
+import { PromptbookFetchError } from '../../../errors/PromptbookFetchError';
 import type { PromptbookFetch } from '../../../execution/PromptbookFetch';
 import type { string_url } from '../../../types/typeAliases';
 
 /**
  * The built-in `fetch' function with a lightweight error handling wrapper as default fetch function used in Promptbook scrapers
  *
- * @private as default `fetch` function used in Promptbook scrapers
+ * @public exported from `@promptbook/core`
  */
-export const scraperFetch: PromptbookFetch = async (url: string_url, init?: RequestInit): Promise<Response> => {
+export const promptbookFetch: PromptbookFetch = async (
+    urlOrRequest: string_url | Request,
+    init?: RequestInit,
+): Promise<Response> => {
     try {
-        return await fetch(url, init);
+        return await fetch(urlOrRequest, init);
     } catch (error) {
         if (!(error instanceof Error)) {
             throw error;
         }
 
-        throw new KnowledgeScrapeError(
+        throw new PromptbookFetchError(
             spaceTrim(
                 (block) => `
-                    Can not fetch "${url}"
+                    Can not fetch "${urlOrRequest.toString()}"
 
                     Fetch error:
                     ${block((error as Error).message)}

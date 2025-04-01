@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { join } from 'path';
-import { scraperFetch } from '../scrapers/_common/utils/scraperFetch';
+import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -36,7 +36,7 @@ async function playground() {
 
     const url = 'https://www.stanislavvavrik.cz';
 
-    const response = await scraperFetch(url);
+    const response = await promptbookFetch(url);
     const text = await response.text();
     console.log(text);
 
