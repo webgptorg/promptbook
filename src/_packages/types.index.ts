@@ -124,6 +124,7 @@ import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOpt
 import type { AnonymousRemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
 import type { ApplicationRemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
 import type { ApplicationRemoteServerClientOptions } from '../remote-server/types/RemoteServerOptions';
+import type { ApplicationRemoteServerOptionsLoginResponse } from '../remote-server/types/RemoteServerOptions';
 import type { Converter } from '../scrapers/_common/Converter';
 import type { ScraperAndConverterMetadata } from '../scrapers/_common/register/ScraperAndConverterMetadata';
 import type { ScraperConstructor } from '../scrapers/_common/register/ScraperConstructor';
@@ -416,6 +417,7 @@ export type { RemoteServerOptions };
 export type { AnonymousRemoteServerOptions };
 export type { ApplicationRemoteServerOptions };
 export type { ApplicationRemoteServerClientOptions };
+export type { ApplicationRemoteServerOptionsLoginResponse };
 export type { Converter };
 export type { ScraperAndConverterMetadata };
 export type { ScraperConstructor };
