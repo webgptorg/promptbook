@@ -56,6 +56,8 @@ type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCache
 /**
  * Returns LLM tools for CLI
  *
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file
+ *
  * @private within the repository - for CLI utils
  */
 export async function $provideLlmToolsForWizzardOrCli(

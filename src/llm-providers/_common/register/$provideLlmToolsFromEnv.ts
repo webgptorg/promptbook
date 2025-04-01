@@ -15,6 +15,7 @@ import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfigurati
  * Note: This function is not cached, every call creates new instance of `MultipleLlmExecutionTools`
  *
  * @@@ .env
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file
  *
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`

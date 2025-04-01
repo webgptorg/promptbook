@@ -15,6 +15,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @@@
  *
  * @@@ .env
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file
  *
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`

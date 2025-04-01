@@ -26,6 +26,8 @@ type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromCon
 /**
  * Returns LLM tools for testing purposes
  *
+ * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access .env file
+ *
  * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
 export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
