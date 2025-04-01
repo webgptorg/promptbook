@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-server",
-    "version": "0.89.0-8",
+    "version": "0.89.0-9",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-server.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.89.0-8"
+        "@promptbook/core": "0.89.0-9"
     },
     "dependencies": {
         "colors": "1.4.0",
