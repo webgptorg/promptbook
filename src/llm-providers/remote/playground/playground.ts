@@ -7,8 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { forEver, forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
-import { CLI_APP_ID } from '../../../config';
-import { PLAYGROUND_APP_ID } from '../../../config';
+import { CLI_APP_ID, PLAYGROUND_APP_ID } from '../../../config';
 import { AuthenticationError } from '../../../errors/AuthenticationError';
 import { startRemoteServer } from '../../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
@@ -34,7 +33,7 @@ async function playground() {
     //========================================>
 
     console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Starting remote server`));
-    startRemoteServer({
+    await startRemoteServer({
         // TODO: !!!!! Test here remoteServerUrl to have some path
         port: 4460,
         isVerbose: true,

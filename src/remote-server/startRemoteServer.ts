@@ -1,6 +1,4 @@
-import { swagger } from '@elysiajs/swagger'; // <- TODO: [⭐] Cleanup other swagger packages that are not used anymore
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { Elysia } from 'elysia';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
@@ -49,9 +47,9 @@ keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
  * @see https://github.com/webgptorg/promptbook#remote-server
  * @public exported from `@promptbook/remote-server`
  */
-export function startRemoteServer<TCustomOptions = undefined>(
+export async function startRemoteServer<TCustomOptions = undefined>(
     options: RemoteServerOptions<TCustomOptions>,
-): RemoteServer {
+): Promise<RemoteServer> /* <- TODO: [🧠] Should be this function async or not */ {
     const {
         port,
         collection,
@@ -70,6 +68,13 @@ export function startRemoteServer<TCustomOptions = undefined>(
     };
     // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
     let { rootPath = '/' } = options;
+
+    // Note: Importing from `elysia` and `@elysiajs/swagger` !!!!!!
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { swagger } = require('@elysiajs/swagger');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Elysia } = require('elysia');
+    // <- TODO: [⭐] Cleanup other swagger packages that are not used anymore
 
     if (!rootPath.startsWith('/')) {
         rootPath = `/${rootPath}`;
@@ -162,12 +167,12 @@ export function startRemoteServer<TCustomOptions = undefined>(
         )
         .decorate('startupDate', startupDate)
         .decorate('runningExecutionTasks', [] as Array<ExecutionTask>)
-        .derive(({ request }) => ({
+        .derive(({ request }: TODO_any /* <- TODO: !!! */) => ({
             fullUrl: request.url,
         }));
 
     // Add headers middleware
-    app.derive({ as: 'global' }, ({ set }) => {
+    app.derive({ as: 'global' }, ({ set }: TODO_any /* <- TODO: !!! */) => {
         set.headers['X-Powered-By'] = 'Promptbook engine';
         return {};
     });
@@ -256,7 +261,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     ${block(
                         app.routes
-                            .map((route) => `- ${route.path}`)
+                            .map((route: TODO_any /* <- TODO: !!! */) => `- ${route.path}`)
                             .concat('/api-docs')
                             .join('\n'),
                     )}
@@ -606,7 +611,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         },
         */
 
-        get elisiaApp(): Elysia {
+        get elisiaApp() /* : typeof Elysia */ {
             return app as TODO_any;
         },
 

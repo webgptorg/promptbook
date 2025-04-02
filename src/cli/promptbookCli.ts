@@ -13,9 +13,9 @@ import { $initializeLoginCommand } from './cli-commands/login';
 import { $initializeMakeCommand } from './cli-commands/make';
 import { $initializePrettifyCommand } from './cli-commands/prettify';
 import { $initializeRunCommand } from './cli-commands/run';
-import { $initializeStartServerCommand } from './cli-commands/start-server';
 import { $initializeTestCommand } from './cli-commands/test-command';
 import { $addGlobalOptionsToCommand } from './common/$addGlobalOptionsToCommand';
+import { $initializeStartServerCommand } from './cli-commands/start-server';
 
 /**
  * Runs CLI utilities of Promptbook package

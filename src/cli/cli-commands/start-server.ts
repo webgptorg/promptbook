@@ -132,7 +132,7 @@ export function $initializeStartServerCommand(program: Program) {
 
             // console.log(path, await collection.listPipelines());
 
-            const server = startRemoteServer({
+            const server = await startRemoteServer({
                 rootPath,
                 port,
                 isAnonymousModeAllowed,
