@@ -31,7 +31,7 @@ dotenv.config({ path: '.env' });
 
 main()
     .catch((error) => {
-       assertsError(error);
+        assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
