@@ -1,7 +1,6 @@
 import { swagger } from '@elysiajs/swagger'; // <- TODO: [⭐] Cleanup other swagger packages that are not used anymore
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { Elysia } from 'elysia';
-import http from 'http';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
@@ -173,6 +172,22 @@ export function startRemoteServer<TCustomOptions = undefined>(
         return {};
     });
 
+    /**
+     * Helper function to register routes with and without rootPath prefix
+     */
+    function registerDualRoute(method: 'get' | 'post', path: string, handler: (context: TODO_any) => TODO_any) {
+        // Register the route without prefix
+        app[method](path, handler);
+
+        // Register the route with prefix, but avoid duplicating if path is '/' and rootPath is ''
+        if (!(path === '/' && rootPath === '')) {
+            const prefixedPath = path === '/' ? rootPath : `${rootPath}${path}`;
+            app[method](prefixedPath, handler);
+        }
+
+        return app;
+    }
+
     const runningExecutionTasks: Array<ExecutionTask> = [];
 
     function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
@@ -203,7 +218,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     }
 
     // Root endpoint
-    app.get(['/', rootPath], async ({ startupDate }) => {
+    registerDualRoute('get', '/', async ({ startupDate }) => {
         return new Response(
             await spaceTrim(
                 async (block) => `
@@ -269,7 +284,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Login endpoint
-    app.post([`/login`, `${rootPath}/login`], async ({ body, request, set }) => {
+    registerDualRoute('post', '/login', async ({ body, request, set }) => {
         if (!isApplicationModeAllowed || login === null) {
             set.status = 400;
             return 'Application mode is not allowed';
@@ -322,7 +337,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Books listing endpoint
-    app.get([`/books`, `${rootPath}/books`], async ({ set }) => {
+    registerDualRoute('get', '/books', async ({ set }) => {
         if (collection === null) {
             set.status = 500;
             return 'No collection available';
@@ -333,7 +348,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Get book content endpoint
-    app.get([`/books/*`, `${rootPath}/books/*`], async ({ request, fullUrl, set }) => {
+    registerDualRoute('get', '/books/*', async ({ request, fullUrl, set }) => {
         try {
             if (collection === null) {
                 set.status = 500;
@@ -367,12 +382,12 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Executions listing endpoint
-    app.get([`/executions`, `${rootPath}/executions`], () => {
+    registerDualRoute('get', '/executions', () => {
         return runningExecutionTasks.map((task) => exportExecutionTask(task, false));
     });
 
     // Last execution endpoint
-    app.get([`/executions/last`, `${rootPath}/executions/last`], ({ set }) => {
+    registerDualRoute('get', '/executions/last', ({ set }) => {
         if (runningExecutionTasks.length === 0) {
             set.status = 404;
             return 'No execution tasks found';
@@ -383,7 +398,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Get execution by ID endpoint
-    app.get([`/executions/:taskId`, `${rootPath}/executions/:taskId`], ({ params, set }) => {
+    registerDualRoute('get', '/executions/:taskId', ({ params, set }) => {
         const { taskId } = params;
         const executionTask = runningExecutionTasks.find((task) => task.taskId === taskId);
 
@@ -396,7 +411,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Start new execution endpoint
-    app.post([`/executions/new`, `${rootPath}/executions/new`], async ({ body, set }) => {
+    registerDualRoute('post', '/executions/new', async ({ body, set }) => {
         try {
             const { inputParameters, identification } = body as {
                 inputParameters: InputParameters;
@@ -433,7 +448,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Create HTTP server from Elysia
-    const httpServer = app.serve({ port });
+    const httpServer = app.listen({ port });
 
     // Setup Socket.io on the HTTP server
     const server: Server = new Server(httpServer, {
@@ -583,12 +598,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
     let isDestroyed = false;
 
     return {
+        /*
+        TODO: [🧠][🚟] Should be this exposed
+        import http from 'http';
         get httpServer(): http.Server<TODO_any> {
             return httpServer;
         },
+        */
 
-        get app(): Elysia {
-            return app;
+        get elisiaApp(): Elysia {
+            return app as TODO_any;
         },
 
         get socketIoServer(): Server<
@@ -608,10 +627,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 return;
             }
             isDestroyed = true;
-            httpServer.close();
             server.close();
+            app.stop();
         },
-    };
+    } satisfies RemoteServer;
 }
 
 /**

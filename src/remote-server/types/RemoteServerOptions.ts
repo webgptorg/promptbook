@@ -134,12 +134,12 @@ export type LoginRequest = {
     readonly password: string_password;
 
     /**
-     * Request object from express if you want to access some request data for example headers, IP address, etc.
+     * Request object to access some request data for example headers, IP address, etc.
      */
     readonly rawRequest: Request;
 
     /**
-     * Response object from express if you want to add some custom headers.
+     * Response object to add some custom headers
      *
      * Note: It is not recommended to use this object to send body of the response because it can confuse the client
      */

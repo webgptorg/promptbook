@@ -1,22 +1,23 @@
 import type { IDestroyable } from 'destroyable';
-import express from 'express';
-import http from 'http';
+import { Elysia } from 'elysia';
 import { DefaultEventsMap, Server } from 'socket.io';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 
 export type RemoteServer = IDestroyable & {
-    /**
-     * HTTP server instance
-     */
+    /*
+    TODO: [🧠][🚟] Should be this exposed
+    /* HTTP server instance
+    import http from 'http';
     readonly httpServer: http.Server<TODO_any>;
+    */
 
     /**
-     * Express application instance
+     * Elysia application instance
      *
      * Note: This is useful for adding custom routes
      */
-    readonly expressApp: express.Express;
+    readonly elisiaApp: Elysia<TODO_any>;
 
     /**
      * Socket.io server instance
