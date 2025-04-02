@@ -743,6 +743,7 @@ Scripting and execution
 
 User system and spending of credits
 
+-   Update `typescript` to `5.8.2`
 -   CLI can be connected to Promptbook remote server <!-- <- TODO: !!!!!! Implement -->
     -   Allow to specify `BRING_YOUR_OWN_KEYS` / `REMOTE_SERVER` in cli commands `ptbk run`, `ptbk make`, `ptbk list-models` and `ptbk start-server`
 -   CLI can login to Promptbook remote server via username + password and store the token <!-- <- TODO: !!!!!! Implement -->
