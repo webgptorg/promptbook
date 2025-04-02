@@ -1,13 +1,11 @@
+import { swagger } from '@elysiajs/swagger'; // <- TODO: Cleanup other swagger packages that are not used anymore
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import express from 'express';
+import { Elysia } from 'elysia';
 import http from 'http';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import swaggerJsdoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -22,14 +20,12 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { Identification } from './socket-types/_subtypes/Identification';
@@ -39,8 +35,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -148,57 +143,68 @@ export function startRemoteServer<TCustomOptions = undefined>(
         return tools;
     }
 
-    const app = express();
+    const app = new Elysia()
+        .use(
+            swagger({
+                documentation: {
+                    info: {
+                        title: 'Promptbook Remote Server API',
+                        version: '1.0.0',
+                        description: 'API documentation for the Promptbook Remote Server',
+                    },
+                    servers: [
+                        {
+                            url: `http://localhost:${port}${rootPath}`,
+                            // <- TODO: !!!!! Probbably: Pass `remoteServerUrl` instead of `port` and `rootPath`
+                        },
+                    ],
+                },
+            }),
+        )
+        .decorate('startupDate', startupDate)
+        .decorate('runningExecutionTasks', [] as Array<ExecutionTask>)
+        .derive(({ request }) => ({
+            fullUrl: request.url,
+        }));
 
-    app.use(express.json());
-    app.use(function (request, response, next) {
-        response.setHeader('X-Powered-By', 'Promptbook engine');
-        next();
+    // Add headers middleware
+    app.derive({ as: 'global' }, ({ set }) => {
+        set.headers['X-Powered-By'] = 'Promptbook engine';
+        return {};
     });
 
-    const swaggerOptions = {
-        definition: {
-            openapi: '3.0.0',
-            info: {
-                title: 'Promptbook Remote Server API',
-                version: '1.0.0',
-                description: 'API documentation for the Promptbook Remote Server',
-            },
-            servers: [
-                {
-                    url: `http://localhost:${port}${rootPath}`,
-                    // <- TODO: !!!!! Probbably: Pass `remoteServerUrl` instead of `port` and `rootPath`
-                },
-            ],
-        },
-        apis: ['./src/remote-server/**/*.ts'], // Adjust path as needed
-    };
-
-    const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-    app.use([`/api-docs`, `${rootPath}/api-docs`], swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
     const runningExecutionTasks: Array<ExecutionTask> = [];
-    // <- TODO: [🤬] Identify the users
 
-    // TODO: [🧠] Do here some garbage collection of finished tasks
+    function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
+        const { taskType, taskId, status, errors, warnings, createdAt, updatedAt, currentValue } = executionTask;
 
-    /**
-     * @swagger
-     * /:
-     *   get:
-     *     summary: Get server details
-     *     description: Returns details about the Promptbook server.
-     *     responses:
-     *       200:
-     *         description: Server details in markdown format.
-     */
-    app.get(['/', rootPath], async (request, response) => {
-        if (request.url?.includes('socket.io')) {
-            return;
+        if (isFull) {
+            return {
+                nonce: '✨',
+                taskId,
+                taskType,
+                status,
+                errors: errors.map(serializeError),
+                warnings: warnings.map(serializeError),
+                createdAt,
+                updatedAt,
+                currentValue,
+            };
+        } else {
+            return {
+                nonce: '✨',
+                taskId,
+                taskType,
+                status,
+                createdAt,
+                updatedAt,
+            };
         }
+    }
 
-        response.type('text/markdown').send(
+    // Root endpoint
+    app.get(['/', rootPath], async ({ startupDate }) => {
+        return new Response(
             await spaceTrim(
                 async (block) => `
                     # Promptbook
@@ -234,13 +240,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     ## Paths
 
                     ${block(
-                        [
-                            ...app._router.stack
-                                .map(({ route }: really_any) => route?.path || null)
-                                .filter((path: string) => path !== null),
-                            '/api-docs',
-                        ]
-                            .map((path: string) => `- ${path}`)
+                        app.routes
+                            .map((route) => `- ${route.path}`)
+                            .concat('/api-docs')
                             .join('\n'),
                     )}
 
@@ -258,353 +260,182 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     https://github.com/webgptorg/promptbook
                 `,
             ),
-            // <- TODO: [🗽] Unite branding and make single place for it
+            {
+                headers: {
+                    'Content-Type': 'text/markdown',
+                },
+            },
         );
     });
 
-    /**
-     * @swagger
-     *
-     * /login:
-     *  post:
-     *   summary: Login to the server
-     *   description: Login to the server and get identification.
-     *   requestBody:
-     *    required: true
-     *    content:
-     *     application/json:
-     *      schema:
-     *       type: object
-     *       properties:
-     *        username:
-     *         type: string
-     *        password:
-     *         type: string
-     *        appId:
-     *         type: string
-     *   responses:
-     *    200:
-     *     description: Successful login
-     *     content:
-     *      application/json:
-     *       schema:
-     *        type: object
-     *        properties:
-     *         identification:
-     *          type: object
-     */
-    app.post([`/login`, `${rootPath}/login`], async (request, response) => {
+    // Login endpoint
+    app.post([`/login`, `${rootPath}/login`], async ({ body, request, set }) => {
         if (!isApplicationModeAllowed || login === null) {
-            response.status(400).send('Application mode is not allowed');
-            return;
+            set.status = 400;
+            return 'Application mode is not allowed';
         }
 
         try {
-            const username = request.body.username;
-            const password = request.body.password;
-            const appId = request.body.appId;
+            const { username, password, appId } = body as {
+                username: string;
+                password: string;
+                appId: string;
+            };
 
             const { isSuccess, error, message, identification } = await login({
                 username,
                 password,
                 appId,
                 rawRequest: request,
-                rawResponse: response,
+                rawResponse: set,
             });
-            response.status(201).send({
+
+            set.status = 201;
+            return {
                 isSuccess,
                 message,
                 error: error ? (serializeError(error) as TODO_any) : undefined,
                 identification,
-            } satisfies LoginResponse<really_any>);
-            return;
+            } satisfies LoginResponse<really_any>;
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
             }
 
             if (error instanceof AuthenticationError) {
-                response.status(401).send({
+                set.status = 401;
+                return {
                     isSuccess: false,
                     message: error.message,
                     error: serializeError(error) as TODO_any,
-                } satisfies LoginResponse<really_any>);
+                } satisfies LoginResponse<really_any>;
             }
 
             console.warn(`Login function thrown different error than AuthenticationError`, {
                 error,
                 serializedError: serializeError(error),
             });
-            response.status(400).send({ error: serializeError(error) });
+
+            set.status = 400;
+            return { error: serializeError(error) };
         }
     });
 
-    /**
-     * @swagger
-     * /books:
-     *   get:
-     *     summary: List all books
-     *     description: Returns a list of all available books in the collection.
-     *     responses:
-     *       200:
-     *         description: A list of books.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: string
-     */
-    app.get([`/books`, `${rootPath}/books`], async (request, response) => {
+    // Books listing endpoint
+    app.get([`/books`, `${rootPath}/books`], async ({ set }) => {
         if (collection === null) {
-            response.status(500).send('No collection available');
-            return;
+            set.status = 500;
+            return 'No collection available';
         }
 
         const pipelines = await collection.listPipelines();
-        // <- TODO: [🧠][👩🏾‍🤝‍🧑🏿] List `inputParameters` required for the execution
-
-        response.send(pipelines);
+        return pipelines;
     });
 
-    // TODO: [🧠] Is it secure / good idea to expose source codes of hosted books
-
-    /**
-     * @swagger
-     * /books/{bookId}:
-     *   get:
-     *     summary: Get book content
-     *     description: Returns the content of a specific book.
-     *     parameters:
-     *       - in: path
-     *         name: bookId
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: The ID of the book to retrieve.
-     *     responses:
-     *       200:
-     *         description: The content of the book.
-     *         content:
-     *           text/markdown:
-     *             schema:
-     *               type: string
-     *       404:
-     *         description: Book not found.
-     */
-    app.get([`/books/*`, `${rootPath}/books/*`], async (request, response) => {
+    // Get book content endpoint
+    app.get([`/books/*`, `${rootPath}/books/*`], async ({ request, fullUrl, set }) => {
         try {
             if (collection === null) {
-                response.status(500).send('No collection nor books available');
-                return;
+                set.status = 500;
+                return 'No collection nor books available';
             }
 
             const pipelines = await collection.listPipelines();
-
-            const fullUrl = request.protocol + '://' + request.get('host') + request.originalUrl;
-            const pipelineUrl = pipelines.find((pipelineUrl) => pipelineUrl.endsWith(request.originalUrl)) || fullUrl;
+            const path = new URL(request.url).pathname;
+            const pipelineUrl = pipelines.find((url) => url.endsWith(path)) || fullUrl;
 
             const pipeline = await collection.getPipelineByUrl(pipelineUrl);
-
             const source = pipeline.sources[0];
 
             if (source === undefined || source.type !== 'BOOK') {
                 throw new Error('Pipeline source is not a book');
             }
 
-            response
-                .type(
-                    'text/markdown',
-                    // <- TODO: [🧠] Make custom mime-type for books
-                )
-                .send(source.content);
+            return new Response(source.content, {
+                headers: {
+                    'Content-Type': 'text/markdown',
+                },
+            });
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
             }
 
-            response
-                .status(
-                    404,
-                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
-                )
-                .send({ error: serializeError(error) });
+            set.status = 404;
+            return { error: serializeError(error) };
         }
     });
 
-    function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
-        // <- TODO: [🧠] This should be maybe method of `ExecutionTask` itself
-        const { taskType, taskId, status, errors, warnings, createdAt, updatedAt, currentValue } = executionTask;
-
-        if (isFull) {
-            return {
-                nonce: '✨',
-                taskId,
-                taskType,
-                status,
-                errors: errors.map(serializeError),
-                warnings: warnings.map(serializeError),
-                createdAt,
-                updatedAt,
-                currentValue,
-            };
-        } else {
-            return {
-                nonce: '✨',
-                taskId,
-                taskType,
-                status,
-                createdAt,
-                updatedAt,
-            };
-        }
-    }
-
-    /**
-     * @swagger
-     * /executions:
-     *   get:
-     *     summary: List all executions
-     *     description: Returns a list of all running execution tasks.
-     *     responses:
-     *       200:
-     *         description: A list of execution tasks.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: object
-     */
-    app.get([`/executions`, `${rootPath}/executions`], async (request, response) => {
-        response.send(
-            runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
-            // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
-            // <- TODO: [🧠] Better and more information
-        );
+    // Executions listing endpoint
+    app.get([`/executions`, `${rootPath}/executions`], () => {
+        return runningExecutionTasks.map((task) => exportExecutionTask(task, false));
     });
 
-    app.get([`/executions/last`, `${rootPath}/executions/last`], async (request, response) => {
-        // TODO: [🤬] Filter only for user
-
+    // Last execution endpoint
+    app.get([`/executions/last`, `${rootPath}/executions/last`], ({ set }) => {
         if (runningExecutionTasks.length === 0) {
-            response.status(404).send('No execution tasks found');
-            return;
+            set.status = 404;
+            return 'No execution tasks found';
         }
 
         const lastExecutionTask = runningExecutionTasks[runningExecutionTasks.length - 1];
-        response.send(exportExecutionTask(lastExecutionTask!, true));
+        return exportExecutionTask(lastExecutionTask!, true);
     });
 
-    app.get([`/executions/:taskId`, `${rootPath}/executions/:taskId`], async (request, response) => {
-        const { taskId } = request.params;
-
-        // TODO: [🤬] Filter only for user
-        const executionTask = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
+    // Get execution by ID endpoint
+    app.get([`/executions/:taskId`, `${rootPath}/executions/:taskId`], ({ params, set }) => {
+        const { taskId } = params;
+        const executionTask = runningExecutionTasks.find((task) => task.taskId === taskId);
 
         if (executionTask === undefined) {
-            response
-                .status(
-                    404,
-                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
-                )
-                .send(`Execution "${taskId}" not found`);
-            return;
+            set.status = 404;
+            return `Execution "${taskId}" not found`;
         }
 
-        response.send(exportExecutionTask(executionTask, true));
+        return exportExecutionTask(executionTask, true);
     });
 
-    /**
-     * @swagger
-     * /executions/new:
-     *   post:
-     *     summary: Start a new execution
-     *     description: Starts a new execution task for a given pipeline.
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               pipelineUrl:
-     *                 type: string
-     *               inputParameters:
-     *                 type: object
-     *               identification:
-     *                 type: object
-     *     responses:
-     *       200:
-     *         description: The newly created execution task.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *       400:
-     *         description: Invalid input.
-     */
-    app.post<{
-        pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
-        inputParameters: InputParameters;
-        identification: Identification<TCustomOptions>;
-    }>([`/executions/new`, `${rootPath}/executions/new`], async (request, response) => {
+    // Start new execution endpoint
+    app.post([`/executions/new`, `${rootPath}/executions/new`], async ({ body, set }) => {
         try {
-            const { inputParameters, identification /* <- [🤬] */ } = request.body;
-            const pipelineUrl = request.body.pipelineUrl || request.body.book;
-
-            // TODO: [🧠] Check `pipelineUrl` and `inputParameters` here or it should be responsibility of `collection.getPipelineByUrl` and `pipelineExecutor`
+            const { inputParameters, identification } = body as {
+                inputParameters: InputParameters;
+                identification: Identification<TCustomOptions>;
+                pipelineUrl?: string_pipeline_url;
+                book?: string_pipeline_url;
+            };
+            const pipelineUrl = body.pipelineUrl || body.book;
 
             const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
 
             if (pipeline === undefined) {
-                response.status(404).send(`Pipeline "${pipelineUrl}" not found`);
-                return;
+                set.status = 404;
+                return `Pipeline "${pipelineUrl}" not found`;
             }
 
             const tools = await getExecutionToolsFromIdentification(identification);
-
             const pipelineExecutor = createPipelineExecutor({ pipeline, tools, ...options });
-
             const executionTask = pipelineExecutor(inputParameters);
 
             runningExecutionTasks.push(executionTask);
 
             await forTime(10);
-            // <- Note: Wait for a while to wait for quick responses or sudden but asynchronous errors
-            // <- TODO: Put this into configuration
 
-            response.send(executionTask);
-
-            /*/
-            executionTask.asObservable().subscribe({
-                next(partialResult) {
-                    console.info(executionTask.taskId, 'next', partialResult);
-                },
-                error(error) {
-                    console.info(executionTask.taskId, 'error', error);
-                },
-                complete() {
-                    console.info(executionTask.taskId, 'complete');
-                },
-            });
-            /**/
-
-            /*
-            await fetch(request.body.callbackUrl);
-            // <- TODO: [🧠] Should be here transferred data as POST / PUT
-            */
+            return executionTask;
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
             }
 
-            response.status(400).send({ error: serializeError(error) });
+            set.status = 400;
+            return { error: serializeError(error) };
         }
     });
 
-    const httpServer = http.createServer(app);
+    // Create HTTP server from Elysia
+    const httpServer = app.serve({ port });
 
+    // Setup Socket.io on the HTTP server
     const server: Server = new Server(httpServer, {
         path: socketioPath,
         transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
@@ -618,8 +449,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         if (isVerbose) {
             console.info(colors.gray(`Client connected`), socket.id);
         }
-
-        // -----------
 
         socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request<TCustomOptions>) => {
             const { identification, prompt } = request;
@@ -644,7 +473,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
                         if (llm.callChatModel === undefined) {
-                            // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Chat model is not available`);
                         }
                         promptResult = await llm.callChatModel(prompt);
@@ -652,7 +480,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     case 'COMPLETION':
                         if (llm.callCompletionModel === undefined) {
-                            // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Completion model is not available`);
                         }
                         promptResult = await llm.callCompletionModel(prompt);
@@ -660,13 +487,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     case 'EMBEDDING':
                         if (llm.callEmbeddingModel === undefined) {
-                            // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Embedding model is not available`);
                         }
                         promptResult = await llm.callEmbeddingModel(prompt);
                         break;
-
-                    // <- case [🤖]:
 
                     default:
                         throw new PipelineExecutionError(
@@ -678,25 +502,18 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     console.info(colors.bgGreen(`PromptResult:`), colors.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit(
-                    'prompt-response',
-                    { promptResult } satisfies PromptbookServer_Prompt_Response /* <- Note: [🤛] */,
-                );
+                socket.emit('prompt-response', { promptResult } satisfies PromptbookServer_Prompt_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- Note: [🤛] */);
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
-                // TODO: [🍚]> executionTools.destroy();
             }
         });
 
-        // -----------
-
-        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         socket.on('listModels-request', async (request: PromptbookServer_ListModels_Request<TCustomOptions>) => {
             const { identification } = request;
 
@@ -710,10 +527,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                 const models = await llm.listModels();
 
-                socket.emit(
-                    'listModels-response',
-                    { models } satisfies PromptbookServer_ListModels_Response /* <- Note: [🤛] */,
-                );
+                socket.emit('listModels-response', { models } satisfies PromptbookServer_ListModels_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
@@ -722,13 +536,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
-                // TODO: [🍚]> executionTools.destroy();
             }
         });
 
-        // -----------
-
-        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         socket.on(
             'preparePipeline-request',
             async (request: PromptbookServer_PreparePipeline_Request<TCustomOptions>) => {
@@ -743,37 +553,28 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     const preparedPipeline = await preparePipeline(pipeline, tools, options);
 
-                    socket.emit(
-                        'preparePipeline-response',
-                        { preparedPipeline } satisfies PromptbookServer_PreparePipeline_Response /* <- Note: [🤛] */,
-                    );
+                    socket.emit('preparePipeline-response', {
+                        preparedPipeline,
+                    } satisfies PromptbookServer_PreparePipeline_Response);
                 } catch (error) {
                     if (!(error instanceof Error)) {
                         throw error;
                     }
 
                     socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
-                    // <- TODO: [🚋] There is a problem with the remote server handling errors and sending them back to the client
                 } finally {
                     socket.disconnect();
-                    // TODO: [🍚]> executionTools.destroy();
                 }
             },
         );
 
-        // -----------
-
         socket.on('disconnect', () => {
-            // TODO: Destroy here executionToolsForClient
             if (isVerbose) {
                 console.info(colors.gray(`Client disconnected`), socket.id);
             }
         });
     });
 
-    httpServer.listen(port);
-
-    // Note: We want to log this also in non-verbose mode
     console.info(colors.bgGreen(`PROMPTBOOK server listening on port ${port}`));
     if (isVerbose) {
         console.info(colors.gray(`Verbose mode is enabled`));
@@ -786,7 +587,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             return httpServer;
         },
 
-        get expressApp(): express.Express {
+        get app(): Elysia {
             return app;
         },
 
@@ -814,7 +615,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODO: !! Add CORS and security - probbably via `helmet`
+ * TODO: !! Add CORS and security - probbably via `helmet` or Elysia's built-in security plugins
  * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
