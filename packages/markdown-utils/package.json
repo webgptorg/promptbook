@@ -43,15 +43,19 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://ptbk.io/",
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0"
+    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/markdown-utils.index.d.ts",
     "dependencies": {
-        "crypto": "^1.0.1",
+        "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
-        "rxjs": "^7.8.1",
+        "rxjs": "7.8.1",
         "spacetrim": "0.11.59",
         "waitasecond": "1.11.83"
     }

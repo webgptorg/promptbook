@@ -43,6 +43,10 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://ptbk.io/",
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0"
+    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/editable.index.d.ts",

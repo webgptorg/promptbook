@@ -43,6 +43,10 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://ptbk.io/",
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0"
+    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/google.index.d.ts",
@@ -52,7 +56,7 @@
     "dependencies": {
         "@ai-sdk/google": "1.0.5",
         "colors": "1.4.0",
-        "crypto": "^1.0.1",
+        "crypto": "1.0.1",
         "spacetrim": "0.11.59"
     }
 }

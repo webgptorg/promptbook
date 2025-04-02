@@ -43,6 +43,10 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://ptbk.io/",
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0"
+    },
     "peerDependencies": {
         "@promptbook/core": "0.89.0-14"
     },

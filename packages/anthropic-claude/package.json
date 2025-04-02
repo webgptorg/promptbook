@@ -43,6 +43,10 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://ptbk.io/",
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0"
+    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/anthropic-claude.index.d.ts",
@@ -52,7 +56,7 @@
     "dependencies": {
         "@anthropic-ai/sdk": "0.26.1",
         "colors": "1.4.0",
-        "crypto": "^1.0.1",
+        "crypto": "1.0.1",
         "socket.io-client": "4.7.2",
         "spacetrim": "0.11.59"
     }

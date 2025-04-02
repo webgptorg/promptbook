@@ -43,6 +43,10 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://ptbk.io/",
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0"
+    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/deepseek.index.d.ts",
@@ -50,9 +54,9 @@
         "@promptbook/core": "0.89.0-14"
     },
     "dependencies": {
-        "@ai-sdk/deepseek": "^0.1.6",
+        "@ai-sdk/deepseek": "0.1.6",
         "colors": "1.4.0",
-        "crypto": "^1.0.1",
+        "crypto": "1.0.1",
         "spacetrim": "0.11.59"
     }
 }
