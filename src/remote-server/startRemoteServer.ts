@@ -6,8 +6,8 @@ import { spaceTrim } from 'spacetrim';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { promptbookFetch } from '../_packages/core.index';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -22,14 +22,12 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { Identification } from './socket-types/_subtypes/Identification';
@@ -39,8 +37,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -62,6 +59,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         port,
         collection,
         createLlmExecutionTools,
+        createExecutionTools,
         isAnonymousModeAllowed,
         isApplicationModeAllowed,
         isVerbose = DEFAULT_IS_VERBOSE,
@@ -126,6 +124,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             // Note: Application mode
             const { appId, userId, customOptions } = identification;
             llm = await createLlmExecutionTools!({
+                isAnonymous: false,
                 appId,
                 userId,
                 customOptions,
@@ -136,13 +135,22 @@ export function startRemoteServer<TCustomOptions = undefined>(
             );
         }
 
-        const fs = $provideFilesystemForNode();
-        const executables = await $provideExecutablesForNode();
+        const customExecutionTools = createExecutionTools ? await createExecutionTools(identification) : {};
+
+        const fs = customExecutionTools.fs || $provideFilesystemForNode();
+        const executables = customExecutionTools.executables || (await $provideExecutablesForNode());
+        const scrapers = customExecutionTools.scrapers || (await $provideScrapersForNode({ fs, llm, executables }));
+        const script = customExecutionTools.script || (await $provideScriptingForNode({}));
+        const fetch = customExecutionTools.fetch || promptbookFetch;
+        const userInterface = customExecutionTools.userInterface || undefined;
+
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-            script: await $provideScriptingForNode({}),
+            scrapers,
+            script,
+            fetch,
+            userInterface,
         } satisfies ExecutionTools;
 
         return tools;
@@ -815,7 +823,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
 /**
  * TODO: !! Add CORS and security - probbably via `helmet`
- * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
