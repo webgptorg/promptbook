@@ -1,3 +1,4 @@
+import { assertsError } from '../errors/assertsError';
 import type { PipelineString } from './PipelineString';
 import { validatePipelineString } from './validatePipelineString';
 
@@ -14,9 +15,7 @@ export function isValidPipelineString(pipelineString: string): pipelineString is
         validatePipelineString(pipelineString);
         return true;
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         return false;
     }

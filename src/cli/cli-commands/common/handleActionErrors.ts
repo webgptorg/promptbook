@@ -2,6 +2,7 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
+import { assertsError } from '../../../errors/assertsError';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 type actionCallbackFunction = Parameters<Program['action']>[0];
@@ -19,9 +20,7 @@ export function handleActionErrors(action: actionCallbackFunction): actionCallba
             await action(...args);
             return process.exit(0);
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             // console.error(colors.bgRed(error.name));
             console.error(colors.red(/* error.stack || */ error.message));

@@ -4,9 +4,9 @@
 import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { basename } from 'path';
+import { basename, join } from 'path';
 import spaceTrim from 'spacetrim';
+import { assertsError } from '../../src/errors/assertsError';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -22,7 +22,8 @@ program.parse(process.argv);
  * This script will find all files where the file name is different from the name of the entity
  */
 findNameDiscrepancies()
-    .catch((error: Error) => {
+    .catch((error) => {
+        assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);

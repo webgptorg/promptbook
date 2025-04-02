@@ -18,6 +18,7 @@ import { removeMarkdownComments } from '../../src/utils/markdown/removeMarkdownC
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { getPackagesMetadata } from './getPackagesMetadata';
+import { assertsError } from '../../src/errors/assertsError';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -32,7 +33,8 @@ program.parse(process.argv);
 const { commit: isCommited, skipBundler: isBundlerSkipped } = program.opts();
 
 generatePackages({ isCommited, isBundlerSkipped })
-    .catch((error: Error) => {
+    .catch((error) => {
+        assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);

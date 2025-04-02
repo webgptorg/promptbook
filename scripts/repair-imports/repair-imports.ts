@@ -5,6 +5,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { basename, dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
+import { assertsError } from '../../src/errors/assertsError';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
@@ -36,7 +37,8 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
  * This script fixes that
  */
 repairImports({ isOrganized, isOrganizedAll, isCommited })
-    .catch((error: Error) => {
+    .catch((error) => {
+        assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
@@ -179,9 +181,7 @@ async function repairImports({
                 ),
             });
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             if (error.message.includes('No files specified')) {
                 console.info(colors.red(`No files to be organized`));

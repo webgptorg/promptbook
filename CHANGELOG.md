@@ -762,6 +762,8 @@ User system and spending of credits
 -   `rootPath` is not required anymore
 -   Rename types `PromptbookServer_Identification` -> `Identification`
 -   Change `scraperFetch` -> `promptbookFetch` and add `PromptbookFetchError`
+-   Better error handling in entire Promptbook engine
+-   Catch non-error throws and wrap + rethrow them as `WrappedError`
 
 ## Drafts
 

@@ -1,5 +1,6 @@
-import { $execCommand } from '../../utils/execCommand/$execCommand';
+import { assertsError } from '../../errors/assertsError';
 import type { string_executable_path } from '../../types/typeAliases';
+import { $execCommand } from '../../utils/execCommand/$execCommand';
 import type { LocateAppOptions } from '../locateApp';
 
 /**
@@ -15,9 +16,7 @@ export async function locateAppOnLinux({
 
         return result.trim();
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         return null;
     }

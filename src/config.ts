@@ -137,6 +137,7 @@ export const VALUE_STRINGS = {
     negativeInfinity: '(negative infinity; -∞)',
 
     unserializable: '(unserializable value)',
+    circular: '(circular JSON)',
 } as const;
 
 /**

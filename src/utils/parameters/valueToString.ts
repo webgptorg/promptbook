@@ -1,4 +1,5 @@
 import { VALUE_STRINGS } from '../../config';
+import { assertsError } from '../../errors/assertsError';
 import type { string_parameter_value } from '../../types/typeAliases';
 import type { really_unknown } from '../organization/really_unknown';
 import { numberToString } from './numberToString';
@@ -32,12 +33,18 @@ export function valueToString(value: really_unknown): string_parameter_value {
         } else if (value instanceof Date) {
             return value.toISOString();
         } else {
-            return JSON.stringify(value);
+            try {
+                return JSON.stringify(value);
+            } catch (error) {
+                if (error instanceof TypeError && error.message.includes('circular structure')) {
+                    return VALUE_STRINGS.circular;
+                }
+
+                throw error;
+            }
         }
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         console.error(error);
         return VALUE_STRINGS.unserializable;
