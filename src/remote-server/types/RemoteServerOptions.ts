@@ -3,13 +3,10 @@ import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_email } from '../../types/typeAliases';
-import type { string_password } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
-import type { Identification } from '../socket-types/_subtypes/Identification';
+import type { string_app_id, string_email, string_password, string_uri, string_user_id } from '../../types/typeAliases';
+import type { ApplicationModeIdentification, Identification } from '../socket-types/_subtypes/Identification';
 
 /**
  * @@@
@@ -39,6 +36,22 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
      * @example '/api/promptbook/'
      */
     readonly rootPath?: string_uri;
+
+    /**
+     * Creates execution tools the client
+     *
+     * This is relevant also in anonymous mode in oposition to `createLlmExecutionTools`
+     *
+     * Note: You can provide only some tools and leave the rest to the default ones also llm tools are created by `createLlmExecutionTools`
+     * Note: This is useful when you want to provide some custom restrictions for example:
+     * - Limit access to certain websites for some users
+     * - Bind user-interface tools to email agent
+     * - Allow / block script execution
+     * - And many more
+     */
+    createExecutionTools?(
+        options: Identification<TCustomOptions>,
+    ): Promisable<Partial<Omit<ExecutionTools, 'llm'>>> /* <- TODO: [🍚] &({}|IDestroyable) */;
 } & (
         | (AnonymousRemoteServerOptions & { readonly isApplicationModeAllowed?: false })
         | ({ readonly isAnonymousModeAllowed?: false } & ApplicationRemoteServerOptions<TCustomOptions>)
@@ -82,7 +95,7 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
      * Creates llm execution tools for each client
      */
     createLlmExecutionTools(
-        options: ApplicationRemoteServerClientOptions<TCustomOptions>,
+        options: ApplicationModeIdentification<TCustomOptions>,
     ): Promisable<LlmExecutionTools> /* <- TODO: [🍚] &({}|IDestroyable) */;
 };
 
