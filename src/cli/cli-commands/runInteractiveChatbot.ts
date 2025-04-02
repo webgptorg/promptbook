@@ -2,6 +2,7 @@ import colors from 'colors';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
+import { assertsError } from '../../errors/assertsError';
 import type { PipelineExecutor } from '../../execution/PipelineExecutor';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { just } from '../../utils/organization/just';
@@ -147,9 +148,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
 
             ongoingParameters = result.outputParameters as typeof ongoingParameters;
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             // TODO: Allow to ressurect the chatbot after an error - prompt the user to continue
             console.error(colors.red(error.stack || error.message));

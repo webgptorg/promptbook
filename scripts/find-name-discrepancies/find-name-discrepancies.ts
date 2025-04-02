@@ -22,7 +22,7 @@ program.parse(process.argv);
  * This script will find all files where the file name is different from the name of the entity
  */
 findNameDiscrepancies()
-    .catch((error: Error) => {
+    .catch((error) => { assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);

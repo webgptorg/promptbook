@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import prettier from 'prettier';
 import { spaceTrim } from 'spacetrim';
+import { assertsError } from '../../src/errors/assertsError';
 import { TODO_any } from '../../src/utils/organization/TODO_any';
 
 /**
@@ -18,9 +19,7 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
             ...(JSON.parse(await readFile(join(process.cwd(), '.prettierrc'), 'utf-8')) as TODO_any),
         });
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         console.error(error);
         return spaceTrim(
@@ -29,10 +28,10 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
             ${block(spaceTrim(fileContents))}
 
             /*
-                TODO: ${'!'}${'!'}${'!'} ${(error as Error).name} occurred during prettify:
+                TODO: ${'!'}${'!'}${'!'} ${error.name} occurred during prettify:
 
 
-                ${block((error as Error).message)}
+                ${block(error.message)}
 
 
             */

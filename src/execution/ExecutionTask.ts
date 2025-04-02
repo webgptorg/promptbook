@@ -10,6 +10,7 @@ import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
+import { assertsError } from '../errors/assertsError';
 
 /**
  * Options for creating a new task
@@ -86,8 +87,9 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 
                     partialResultSubject.next(executionResult as really_any);
                 } catch (error) {
+                    assertsError(error);
                     status = 'ERROR';
-                    errors.push(error as Error);
+                    errors.push(error);
                     partialResultSubject.error(error);
                 }
             }

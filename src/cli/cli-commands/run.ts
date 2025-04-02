@@ -8,6 +8,7 @@ import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { assertsError } from '../../errors/assertsError';
 import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -22,8 +23,7 @@ import { $provideFilesystemForNode } from '../../scrapers/_common/register/$prov
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -112,9 +112,8 @@ export function $initializeRunCommand(program: Program) {
             try {
                 llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
+
                 if (!error.message.includes('No LLM tools')) {
                     throw error;
                 }

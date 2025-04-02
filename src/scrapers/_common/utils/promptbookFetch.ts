@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { PromptbookFetchError } from '../../../errors/PromptbookFetchError';
+import { assertsError } from '../../../errors/assertsError';
 import type { PromptbookFetch } from '../../../execution/PromptbookFetch';
 import type { string_url } from '../../../types/typeAliases';
 
@@ -15,9 +16,7 @@ export const promptbookFetch: PromptbookFetch = async (
     try {
         return await fetch(urlOrRequest, init);
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         let url: string | undefined;
 

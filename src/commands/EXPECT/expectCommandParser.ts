@@ -1,17 +1,18 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
+import { assertsError } from '../../errors/assertsError';
 import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
+import { WrappedError } from '../../errors/WrappedError';
+import { assertsError } from '../../errors/assertsError';
  * Parses the expect command
  *
  * @see `documentationUrl` for more details
@@ -112,9 +113,7 @@ export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
                 amount,
             } satisfies ExpectCommand;
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             throw new ParseError(
                 spaceTrim(
