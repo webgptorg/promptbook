@@ -12,7 +12,6 @@ import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
-import { WrappedError } from '../errors/WrappedError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTask } from '../execution/ExecutionTask';
@@ -331,7 +330,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         } catch (error) {
             assertsError(error);
 
-
             if (error instanceof AuthenticationError) {
                 response.status(401).send({
                     isSuccess: false,
@@ -429,7 +427,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 .send(source.content);
         } catch (error) {
             assertsError(error);
-
 
             response
                 .status(
@@ -605,7 +602,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         } catch (error) {
             assertsError(error);
 
-
             response.status(400).send({ error: serializeError(error) });
         }
     });
@@ -692,8 +688,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
             } catch (error) {
                 assertsError(error);
 
-
-
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- Note: [🤛] */);
             } finally {
                 socket.disconnect();
@@ -723,7 +717,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 );
             } catch (error) {
                 assertsError(error);
-
 
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
@@ -755,8 +748,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     );
                 } catch (error) {
                     assertsError(error);
-
-        
 
                     socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
                     // <- TODO: [🚋] There is a problem with the remote server handling errors and sending them back to the client
