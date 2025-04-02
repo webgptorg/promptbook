@@ -6,7 +6,7 @@ import commander from 'commander';
 import { readFile } from 'fs/promises';
 import { basename, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { assertsError } from '../../../src/errors/assertsError';
+import { assertsError } from '../../src/errors/assertsError';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
 
 if (process.cwd() !== join(__dirname, '../..')) {
