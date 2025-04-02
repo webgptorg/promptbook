@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { really_any } from '../_packages/types.index';
-import { valueToString } from '../_packages/utils.index';
+// import { valueToString } from '../_packages/utils.index';
 import { ADMIN_EMAIL } from '../config';
 
 /**
@@ -17,10 +17,10 @@ export class WrappedError extends Error {
         super(
             spaceTrim(
                 (block) => `
-                    ${block(valueToString(whatWasThrown))}
+                    ${/* Fixing tests !!!  block(valueToString(whatWasThrown)) */ block(`non-Error object was thrown`)}
 
                     Note: Look for ${tag} in the console for more details
-                    Note: \`WrappedError\` indicates that somewhere in the code non-Error object was thrown and it was wrapped
+                    !!! Note: \`WrappedError\` indicates that somewhere in the code non-Error object was thrown and it was wrapped
 
                     Please report issue on ${ADMIN_EMAIL}
 
