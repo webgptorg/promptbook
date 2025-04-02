@@ -1,14 +1,10 @@
-import type { Request, Response } from 'express';
+// import type { Request, Response } from 'express'; // <- TODO: [⭐] Probbably remove express dependency as Elisia is used instead
 import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_email } from '../../types/typeAliases';
-import type { string_password } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_app_id, string_email, string_password, string_uri, string_user_id } from '../../types/typeAliases';
 import type { Identification } from '../socket-types/_subtypes/Identification';
 
 /**

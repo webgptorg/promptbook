@@ -1,4 +1,4 @@
-import { swagger } from '@elysiajs/swagger'; // <- TODO: Cleanup other swagger packages that are not used anymore
+import { swagger } from '@elysiajs/swagger'; // <- TODO: [⭐] Cleanup other swagger packages that are not used anymore
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { Elysia } from 'elysia';
 import http from 'http';
