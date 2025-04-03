@@ -1,6 +1,7 @@
 import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
 import { PartialDeep } from 'type-fest';
+import { assertsError } from '../errors/assertsError';
 import type { task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
@@ -10,7 +11,6 @@ import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
-import { assertsError } from '../errors/assertsError';
 
 /**
  * Options for creating a new task
@@ -73,9 +73,9 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 
                     errors.push(...executionResult.errors);
                     warnings.push(...executionResult.warnings);
-                    // <- TODO: !!! Only unique errors and warnings should be added (or filtered)
+                    // <- TODO: [🌂] Only unique errors and warnings should be added (or filtered)
 
-                    // TODO: [🧠] !!! errors, warning, isSuccessful  are redundant both in `ExecutionTask` and `ExecutionTask.currentValue`
+                    // TODO: [🧠] !! errors, warning, isSuccessful  are redundant both in `ExecutionTask` and `ExecutionTask.currentValue`
                     //            Also maybe move `ExecutionTask.currentValue.usage` -> `ExecutionTask.usage`
                     //            And delete `ExecutionTask.currentValue.preparedPipeline`
 

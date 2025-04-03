@@ -52,8 +52,6 @@ async function playground() {
         async login(loginRequest) {
             const { appId, username, password } = loginRequest;
 
-            console.log('!!! login', { appId, username, password });
-
             const allowedApps = [PLAYGROUND_APP_ID, CLI_APP_ID];
 
             if (!allowedApps.includes(appId || '')) {

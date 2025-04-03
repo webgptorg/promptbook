@@ -27,9 +27,10 @@ export function $initializeListModelsCommand(program: Program) {
 
     listModelsCommand.action(
         handleActionErrors(async (cliOptions) => {
-            console.log('!!!', cliOptions);
 
-            // TODO: !!!!!! Not relevant for remote server and also for `about` command
+            // TODO: !!!!!! Do not allow on REMOTE_SERVER strategy
+     
+           
             const llm = await $provideLlmToolsForCli({ cliOptions });
             $sideEffect(llm);
             // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message

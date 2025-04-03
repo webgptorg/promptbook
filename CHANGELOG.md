@@ -745,10 +745,10 @@ User system and spending of credits
 
 -   Update `typescript` to `5.2.2`
 -   Allow to pass custom execution tools to promptbook server
--   CLI can be connected to Promptbook remote server <!-- <- TODO: !!!!!! Implement -->
+-   CLI can be connected to Promptbook remote server
     -   Allow to specify `BRING_YOUR_OWN_KEYS` / `REMOTE_SERVER` in cli commands `ptbk run`, `ptbk make`, `ptbk list-models` and `ptbk start-server`
--   CLI can login to Promptbook remote server via username + password and store the token <!-- <- TODO: !!!!!! Implement -->
--   Add login to application mode on remote server<!-- <- TODO: !!!!!! Implement -->
+-   CLI can login to Promptbook remote server via username + password and store the token
+-   Add login to application mode on remote server
 -   Add User token to application mode on remote server
 -   Rename `countTotalUsage` -> `countUsage` and add `spending()`
 -   Rename `PromptResultUsage` -> `Usage`

@@ -1,9 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_url_image } from './types/typeAliases';
+import type { string_app_id, string_email, string_name } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -45,24 +42,6 @@ export const ADMIN_GITHUB_NAME: string_name = 'hejny';
  */
 export const CLAIM = `It's time for a paradigm shift. The future of software in plain English, French or Latin`;
 //            <- TODO: [🐊] Pick the best claim
-
-/**
- * Logo for the light theme
- *
- * TODO: [🗽] Unite branding and make single place for it
- *
- * @public exported from `@promptbook/core`
- */
-export const LOGO_LIGHT_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo.b21f0c70.png`; // <- TODO: !!! Auto-update or remove
-
-/**
- * Logo for the dark theme
- *
- * TODO: [🗽] Unite branding and make single place for it
- *
- * @public exported from `@promptbook/core`
- */
-export const LOGO_DARK_SRC: string_url_image = `https://promptbook.studio/_next/static/media/promptbook-logo-white.09887cbc.png`; // <- TODO: !!! Auto-update or remove
 
 /**
  * When the title is not provided, the default title is used
@@ -224,7 +203,7 @@ export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 export const DEFAULT_BOOKS_DIRNAME = './books';
 // <- TODO: [🕝] Make also `BOOKS_DIRNAME_ALTERNATIVES`
 
-// TODO: !!!!!! Just .promptbook dir, hardocode others
+// TODO: Just `.promptbook` in config, hardcode subfolders like `download-cache` or `execution-cache`
 
 /**
  * Where to store the temporary downloads

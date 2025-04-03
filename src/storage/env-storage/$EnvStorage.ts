@@ -6,12 +6,11 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { $provideEnvFilename } from '../../llm-providers/_common/register/$provideEnvFilename';
 import type { string_filename } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
-import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
- * Stores data in .env variables (Remove !!! nonce 1)
+ * Stores data in .env variables
  *
  * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access `.env` file and also writes to `process.env`
  *
@@ -21,8 +20,6 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
     private envFilename: string_filename | null = null;
 
     private async $provideOrCreateEnvFile(): Promise<string_filename> {
-        keepUnused(`Remove !!! nonce 1`);
-
         if (this.envFilename !== null) {
             return this.envFilename;
         }
@@ -93,7 +90,6 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
 
             `,
         );
-        // <- TODO: !!! Add note and use spacetrim
         writeFile(envFilename, newEnvContent, 'utf-8');
     }
 

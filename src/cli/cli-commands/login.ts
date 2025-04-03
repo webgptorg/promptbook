@@ -37,7 +37,7 @@ export function $initializeLoginCommand(program: Program) {
                 ),
             );
 
-            // !!!!!!!!! Remove from here and use $provideLlmToolsForCli
+            // !!!! Remove from here and use $provideLlmToolsForCli
             const { email, password } = await prompts([
                 {
                     type: 'text',

@@ -11,6 +11,7 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { COMMANDS } from '../../src/commands/index';
 import { GENERATOR_WARNING } from '../../src/config';
+import { assertsError } from '../../src/errors/assertsError';
 import { FORMFACTOR_DEFINITIONS } from '../../src/formfactors/index';
 import { NonTaskSectionTypes, SectionTypes } from '../../src/types/SectionType';
 import { TaskTypes } from '../../src/types/TaskType';
@@ -18,7 +19,6 @@ import { TODO_USE } from '../../src/utils/organization/TODO_USE';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { prettify } from '../utils/prettify';
-import { assertsError } from '../../src/errors/assertsError';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -116,7 +116,7 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
         );
 
         await writeFile(`documents/commands/${name}.md`, await prettify(commandContent, 'markdown'), 'utf-8');
-        // <- TODO: !!!!!! Add generator warnings
+        // <- TODO: !!! Add generator warnings
     }
 
     // ==============================
@@ -139,7 +139,7 @@ interface GitHubDiscussion {
 }
 
 async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
-    // TODO: !!!!!! Paginate through all discussions
+    // TODO: !!! Paginate through all discussions (Maybe @JorgeSquared)
     const query = `
         query {
             repository(owner: "webgptorg", name: "promptbook") {

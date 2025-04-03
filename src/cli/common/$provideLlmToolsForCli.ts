@@ -85,8 +85,6 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
 
                 const loginUrl = `${remoteServerUrl}/login`;
 
-                console.log('!!!', { loginUrl });
-
                 // TODO: [🧠] Should we use normal `fetch` or `scraperFetch`
                 const response = await promptbookFetch(loginUrl, {
                     method: 'POST',
@@ -100,25 +98,10 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                     }),
                 });
 
-                console.log('!!!', {
-                    loginUrl,
-                    username,
-                    password,
-                    // type: response.type,
-                    // text: await response.text(),
-                });
-
                 const { isSuccess, message, error, identification } =
                     (await response.json()) as LoginResponse<really_unknown>;
 
                 TODO_USE(error);
-
-                console.log('!!!', {
-                    isSuccess,
-                    message,
-                    error,
-                    identification,
-                });
 
                 if (message) {
                     if (isSuccess) {
