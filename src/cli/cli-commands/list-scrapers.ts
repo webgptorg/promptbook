@@ -26,7 +26,7 @@ export function $initializeListScrapersCommand(program: Program) {
 
     listModelsCommand.action(
         handleActionErrors(async () => {
-            // TODO: !!!!!! Do not allow on REMOTE_SERVER strategy
+            // TODO: [🌞] Do not allow on REMOTE_SERVER strategy
 
             const scrapers = await $provideScrapersForNode({});
             const executables = await $provideExecutablesForNode();

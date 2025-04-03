@@ -109,7 +109,7 @@ export function $initializeRunCommand(program: Program) {
             let llm: LlmExecutionTools;
 
             try {
-                llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
+              llm = (await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions })).llm;
             } catch (error) {
                 assertsError(error);
 

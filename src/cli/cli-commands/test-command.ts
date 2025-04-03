@@ -69,7 +69,7 @@ export function $initializeTestCommand(program: Program) {
                     isCacheReloaded,
                 }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
                 const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-                const llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
+                const {  llm } = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
                 const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
                 tools = {
                     llm,

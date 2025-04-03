@@ -1,5 +1,6 @@
 import colors from 'colors';
 import prompts from 'prompts';
+import { LlmExecutionToolsWithTotalUsage } from '../../_packages/types.index';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
@@ -24,7 +25,12 @@ type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'
 /**
  * @private utility of CLI
  */
-export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
+export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions): Promise<{
+    strategy: 'BRING_YOUR_OWN_KEYS' | 'REMOTE_SERVER';
+    llm: LlmExecutionToolsWithTotalUsage;
+
+    // <- TODO: [🧠][🌞] Maybe provide other tools from here
+}> {
     const {
         cliOptions: {
             /* TODO: Use verbose: isVerbose, */ interactive: isInteractive,
@@ -45,7 +51,8 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
     }
 
     if (strategy === 'BRING_YOUR_OWN_KEYS') {
-        return /* not await */ $provideLlmToolsForWizzardOrCli({ strategy, ...options });
+        const llm = await $provideLlmToolsForWizzardOrCli({ strategy, ...options });
+        return { strategy, llm };
     } else if (strategy === 'REMOTE_SERVER') {
         if (!isValidUrl(remoteServerUrlRaw)) {
             console.log(colors.red(`Invalid URL of remote server: "${remoteServerUrlRaw}"`));
@@ -54,7 +61,7 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
 
         const remoteServerUrl = remoteServerUrlRaw.endsWith('/') ? remoteServerUrlRaw.slice(0, -1) : remoteServerUrlRaw;
 
-        return /* not await */ $provideLlmToolsForWizzardOrCli({
+        const llm = await $provideLlmToolsForWizzardOrCli({
             strategy,
             appId: CLI_APP_ID,
             remoteServerUrl,
@@ -125,6 +132,8 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                 return identification;
             },
         });
+
+        return { strategy, llm };
     } else {
         throw new UnexpectedError(`\`$provideLlmToolsForCli\` wrong strategy "${strategy}"`);
     }
