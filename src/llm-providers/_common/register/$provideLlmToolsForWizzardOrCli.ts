@@ -5,10 +5,12 @@ import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchErr
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { Identification } from '../../../remote-server/socket-types/_subtypes/Identification';
+import { identificationToPromptbookToken } from '../../../remote-server/socket-types/_subtypes/identificationToPromptbookToken';
+import { promptbookTokenToIdentification } from '../../../remote-server/socket-types/_subtypes/promptbookTokenToIdentification';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { $EnvStorage } from '../../../storage/env-storage/$EnvStorage';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
-import type { string_app_id, string_url } from '../../../types/typeAliases';
+import type { string_app_id, string_promptbook_token, string_url } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { really_any } from '../../../utils/organization/really_any';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
@@ -86,7 +88,7 @@ export async function $provideLlmToolsForWizzardOrCli(
     if (strategy === 'REMOTE_SERVER') {
         const { remoteServerUrl = DEFAULT_REMOTE_SERVER_URL, loginPrompt } = options;
 
-        const storage = new $EnvStorage<Identification<null>>();
+        const storage = new $EnvStorage<string_promptbook_token>();
 
         let key = `PROMPTBOOK_TOKEN`;
 
@@ -94,16 +96,20 @@ export async function $provideLlmToolsForWizzardOrCli(
             key = `${key}_${remoteServerUrl.replace(/^https?:\/\//i, '')}`;
         }
 
-        let identification = await storage.getItem(key);
+        let identification: Identification<really_any> | null = null;
+        let promptbookToken = await storage.getItem(key);
 
-        if (identification === null || isLoginloaded) {
+        if (promptbookToken === null || isLoginloaded) {
             identification = await loginPrompt();
 
             // Note: When login prompt fails, `process.exit(1)` is called so no need to check for null
-            await storage.setItem(key, identification);
-            // TODO: !!!!!! identificationToPromptbookToken
 
-            // <- TODO: !!!!!! What about multiple logins - implement setting same key twice in `$EnvStorage`
+            if (identification.isAnonymous === false) {
+                promptbookToken = identificationToPromptbookToken(identification);
+                await storage.setItem(key, promptbookToken);
+            }
+        } else {
+            identification = promptbookTokenToIdentification(promptbookToken);
         }
 
         llmExecutionTools = new RemoteLlmExecutionTools({

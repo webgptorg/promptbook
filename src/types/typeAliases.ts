@@ -679,6 +679,14 @@ export type string_postprocessing_function_name = string;
 export type id = string | number;
 export type task_id = string;
 export type string_token = string;
+
+/**
+ * Semantic helper
+ *
+ * Made by `identificationToPromptbookToken` exported from `@promptbook/core`
+ */
+export type string_promptbook_token = string_token;
+
 export type string_license_token = string_token;
 export type string_password = string;
 export type string_ssh_key = string;
