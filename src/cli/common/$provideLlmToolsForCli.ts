@@ -1,7 +1,7 @@
 import colors from 'colors';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import { LlmExecutionToolsWithTotalUsage } from '../../_packages/types.index';
+import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';

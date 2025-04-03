@@ -1,5 +1,5 @@
-import { string_promptbook_token } from '../../../types/typeAliases';
-import { ApplicationModeIdentification } from './Identification';
+import type { string_promptbook_token } from '../../../types/typeAliases';
+import type { ApplicationModeIdentification } from './Identification';
 
 /**
  * Convert Promptbook token to identification

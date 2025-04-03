@@ -1,6 +1,6 @@
-import { string_promptbook_token } from '../../../types/typeAliases';
-import { really_unknown } from '../../../utils/organization/really_unknown';
-import { ApplicationModeIdentification } from './Identification';
+import type { string_promptbook_token } from '../../../types/typeAliases';
+import type { really_unknown } from '../../../utils/organization/really_unknown';
+import type { ApplicationModeIdentification } from './Identification';
 
 /**
  * Convert identification to Promptbook token

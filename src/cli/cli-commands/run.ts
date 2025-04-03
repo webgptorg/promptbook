@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -23,7 +23,8 @@ import { $provideFilesystemForNode } from '../../scrapers/_common/register/$prov
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -67,7 +68,6 @@ export function $initializeRunCommand(program: Program) {
 
     runCommand.action(
         handleActionErrors(async (pipelineSource, cliOptions) => {
-   
             const {
                 reload: isCacheReloaded,
                 interactive: isInteractive,
@@ -109,7 +109,7 @@ export function $initializeRunCommand(program: Program) {
             let llm: LlmExecutionTools;
 
             try {
-              llm = (await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions })).llm;
+                llm = (await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions })).llm;
             } catch (error) {
                 assertsError(error);
 
