@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import { GENERATOR_WARNING_IN_ENV } from '../../config';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { $provideEnvFilename } from '../../llm-providers/_common/register/$provideEnvFilename';
 import type { string_filename } from '../../types/typeAliases';
@@ -84,6 +85,7 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
         const transformedKey = this.transformKey(key);
         const updatedEnvContent = envContent
             .split('\n')
+            .filter((line) => !line.startsWith(`# ${GENERATOR_WARNING_IN_ENV}`)) // Remove GENERATOR_WARNING_IN_ENV
             .filter((line) => !line.startsWith(`${transformedKey}=`)) // Remove existing key if present
             .join('\n');
 
@@ -91,7 +93,7 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
             (block) => `
                 ${block(updatedEnvContent)}
 
-                # Note: Added by Promptbook
+                # ${GENERATOR_WARNING_IN_ENV}
                 ${transformedKey}=${JSON.stringify(value)}
             `,
         );
@@ -107,7 +109,6 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
         throw new NotYetImplementedError('Method `$EnvStorage.removeItem` not implemented.');
     }
 }
-
 
 /**
  * TODO: Write file more securely - ensure that there can be no accidental overwriting of existing variables and other content
