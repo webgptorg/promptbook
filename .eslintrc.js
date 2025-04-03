@@ -1,5 +1,5 @@
 module.exports = {
-    // Note: Look more at ./PROGRAMMING.md for more details
+    // Note: Look more at ./CONTRIBUTING.md for more details
     env: {
         browser: true,
         es2021: true,

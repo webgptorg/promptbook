@@ -42,21 +42,28 @@ Hello world examples:
 -   [Hello world in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello world in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
+
+
 We also have a community of developers and users of **Promptbook**:
 
 -   [Discord community](https://discord.gg/x3QWNaa89N)
 -   [Landing page `ptbk.io`](https://ptbk.io)
 -   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 -   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
+-   [Facebook `Promptbook`](https://www.facebook.com/61560776453536) 
 
 And **Promptbook.studio** branded socials:
+
+
 
 -   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
 
 And **Promptujeme** sub-brand:
 
 _/Subbrand for Czech clients/_
+
+
+
 
 -   [Promptujeme.cz](https://www.promptujeme.cz/)
 -   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)

@@ -1,27 +1,27 @@
 # 🤾‍♂️ Code of Conduct
 
-## Our Pledge
+## Our Promise
 
-We pledge to make participation in our project a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
+Hey there! We're all about creating a fun, friendly, and safe space for everyone to collaborate—no matter your age, background, or how you identify. Everyone's welcome here!
 
-## Our Standards
+## What We Expect
 
-Examples of behavior that contributes to a positive environment:
+Here's how you can help keep things awesome:
 
--   Using welcoming and inclusive language
--   Being respectful of differing viewpoints
--   Gracefully accepting constructive criticism
+-   Use kind and inclusive language.
+-   Respect different opinions and ideas.
+-   Be cool when receiving feedback—constructive criticism helps us all grow.
 
-Examples of unacceptable behavior:
+And here's what _not_ to do:
 
--   Harassment or discriminatory comments
--   Trolling or insulting remarks
--   Publishing private information without consent
+-   No bullying, harassment, or discriminatory comments.
+-   No trolling or being a jerk.
+-   Don't share private info without permission—seriously, that's not cool.
 
-## Enforcement
+## What Happens If Things Go South
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting [support](mailto:jirka@ptbk.io). All complaints will be reviewed and investigated.
+If someone’s being a buzzkill or crossing the line, let us know at [support](mailto:jirka@ptbk.io). We'll check it out and handle it.
 
-## Attribution
+## Shoutout
 
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/).
+This Code of Conduct is inspired by the awesome [Contributor Covenant](https://www.contributor-covenant.org/).
