@@ -90,7 +90,8 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
 
             `,
         );
-        writeFile(envFilename, newEnvContent, 'utf-8');
+
+        await writeFile(envFilename, newEnvContent, 'utf-8');
     }
 
     /**
