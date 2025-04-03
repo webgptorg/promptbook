@@ -395,6 +395,13 @@ export type string_url = string;
 /**
  * Semantic helper
  *
+ * For example `"https://s1.ptbk.io/promptbook"`
+ */
+export type string_promptbook_server_url = string;
+
+/**
+ * Semantic helper
+ *
  * For example `"https://collboard.com"`
  */
 export type string_base_url = string;

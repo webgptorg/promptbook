@@ -1,6 +1,6 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id, string_email, string_name } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -281,13 +281,22 @@ export const MOMENT_ARG_THRESHOLDS = {
 } as const;
 
 /**
- * @@@
+ * Available remote servers for the Promptbook
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_REMOTE_SERVER_URL = 'https://api.pavolhejny.com/promptbook';
+export const REMOTE_SERVER_URLS: Array<string_promptbook_server_url> = [
+    'https://s1.ptbk.io/promptbook',
+    'https://api.pavolhejny.com/promptbook',
+];
 
-// <- TODO: !!!! Multiple servers
+/**
+ * Default remote server URL for the Promptbook
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_REMOTE_SERVER_URL: string_promptbook_server_url = REMOTE_SERVER_URLS[0]!;
+
 // <- TODO: [🧜‍♂️]
 
 /**
