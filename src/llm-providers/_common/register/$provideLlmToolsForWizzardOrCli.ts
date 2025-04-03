@@ -18,7 +18,14 @@ import { countUsage } from '../utils/count-total-usage/countUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 
-type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'> &
+type ProvideLlmToolsForWizzardOrCliOptions = {
+    /**
+     * If true, user will be always prompted for login
+     *
+     * Note: This is used in `ptbk login` command
+     */
+    isLoginloaded?: true;
+} & Pick<CacheLlmToolsOptions, 'isCacheReloaded'> &
     (
         | {
               /**
@@ -48,6 +55,8 @@ type ProvideLlmToolsForWizzardOrCliOptions = Pick<CacheLlmToolsOptions, 'isCache
 
               /**
                *
+               *
+               * Note: When login prompt fails, `process.exit(1)` is called
                */
               loginPrompt(): Promisable<Identification<really_any>>;
           }
@@ -70,7 +79,7 @@ export async function $provideLlmToolsForWizzardOrCli(
     }
 
     options = options ?? { strategy: 'BRING_YOUR_OWN_KEYS' };
-    const { strategy, isCacheReloaded } = options;
+    const { isLoginloaded, strategy, isCacheReloaded } = options;
 
     let llmExecutionTools: LlmExecutionTools;
 
@@ -87,9 +96,14 @@ export async function $provideLlmToolsForWizzardOrCli(
 
         let identification = await storage.getItem(key);
 
-        if (identification === null) {
+        if (identification === null || isLoginloaded) {
             identification = await loginPrompt();
+
+            // Note: When login prompt fails, `process.exit(1)` is called so no need to check for null
             await storage.setItem(key, identification);
+            // TODO: !!!!!! identificationToPromptbookToken
+
+            // <- TODO: !!!!!! What about multiple logins - implement setting same key twice in `$EnvStorage`
         }
 
         llmExecutionTools = new RemoteLlmExecutionTools({
