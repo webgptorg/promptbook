@@ -8,7 +8,7 @@ import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/reg
 import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
-import type { string_promptbook_server_url, string_url } from '../../types/typeAliases';
+import type { string_promptbook_server_url } from '../../types/typeAliases';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidEmail } from '../../utils/validators/email/isValidEmail';

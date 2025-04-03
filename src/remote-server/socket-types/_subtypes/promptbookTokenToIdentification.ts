@@ -1,5 +1,4 @@
 import { string_promptbook_token } from '../../../types/typeAliases';
-import { really_unknown } from '../../../utils/organization/really_unknown';
 import { ApplicationModeIdentification } from './Identification';
 
 /**
@@ -26,4 +25,3 @@ export function promptbookTokenToIdentification(
     };
     return identification;
 }
-
