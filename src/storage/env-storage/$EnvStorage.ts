@@ -81,13 +81,18 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
         const envFilename = await this.$provideOrCreateEnvFile();
         const envContent = await readFile(envFilename, 'utf-8');
 
+        const transformedKey = this.transformKey(key);
+        const updatedEnvContent = envContent
+            .split('\n')
+            .filter((line) => !line.startsWith(`${transformedKey}=`)) // Remove existing key if present
+            .join('\n');
+
         const newEnvContent = spaceTrim(
             (block) => `
-                ${block(envContent)}
+                ${block(updatedEnvContent)}
 
                 # Note: Added by Promptbook
-                ${this.transformKey(key)}=${JSON.stringify(value)}
-
+                ${transformedKey}=${JSON.stringify(value)}
             `,
         );
 
