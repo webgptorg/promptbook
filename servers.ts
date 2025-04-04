@@ -59,3 +59,7 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
         urls: ['https://api.pavolhejny.com/promptbook'],
     },
 ];
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
