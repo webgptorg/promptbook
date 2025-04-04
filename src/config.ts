@@ -1,3 +1,4 @@
+import { REMOTE_SERVER_URLS } from './_packages/core.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
@@ -279,17 +280,6 @@ export const DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 export const MOMENT_ARG_THRESHOLDS = {
     ss: 3, // <- least number of seconds to be counted in seconds, minus 1. Must be set after setting the `s` unit or without setting the `s` unit.
 } as const;
-
-/**
- * Available remote servers for the Promptbook
- *
- * @public exported from `@promptbook/core`
- */
-export const REMOTE_SERVER_URLS: Array<string_promptbook_server_url> = [
-    'https://s2.ptbk.io/promptbook',
-    'https://s1.ptbk.io/promptbook',
-    'https://api.pavolhejny.com/promptbook',
-];
 
 /**
  * Default remote server URL for the Promptbook
