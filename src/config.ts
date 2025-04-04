@@ -1,4 +1,4 @@
-import { REMOTE_SERVER_URLS } from './_packages/core.index';
+import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
@@ -286,7 +286,7 @@ export const MOMENT_ARG_THRESHOLDS = {
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_REMOTE_SERVER_URL: string_promptbook_server_url = REMOTE_SERVER_URLS[0]!;
+export const DEFAULT_REMOTE_SERVER_URL: string_promptbook_server_url = REMOTE_SERVER_URLS[0]!.urls[0]!;
 
 // <- TODO: [🧜‍♂️]
 

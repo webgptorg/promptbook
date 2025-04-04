@@ -630,6 +630,14 @@ export type string_person_profile = string;
 export type string_license = string;
 
 /**
+ * Semantic helper
+ *
+ * For example `"Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)"`
+ * For example `"AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)"`
+ */
+export type string_legal_entity = string | string_person_profile | string_title;
+
+/**
  * Semantic helper for attributes
  *
  * - case insensitive
