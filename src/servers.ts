@@ -1,4 +1,4 @@
-import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
+import type { string_legal_entity, string_promptbook_server_url, string_title } from './types/typeAliases';
 
 /**
  * Open Promptbook server usable for public
