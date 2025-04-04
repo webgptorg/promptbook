@@ -1,4 +1,4 @@
-import { REMOTE_SERVER_URLS } from './servers';
+import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
