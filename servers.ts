@@ -35,7 +35,7 @@ type ServerConfiguration = {
 /**
  * Available remote servers for the Promptbook
  *
- * @public exported from `@promptbook/core` <- TODO: !!!! Test that this is really exported
+ * @public exported from `@promptbook/core`
  */
 export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
     {
