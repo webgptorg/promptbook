@@ -1,6 +1,4 @@
-import type { string_legal_entity } from './src/types/typeAliases';
-import type { string_promptbook_server_url } from './src/types/typeAliases';
-import type { string_title } from './src/types/typeAliases';
+import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
 
 /**
  * Open Promptbook server usable for public
@@ -46,10 +44,8 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
         owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
         isAnonymousModeAllowed: true,
         urls: [
-            'https://s4.ptbk.io/promptbook',
-            'https://s3.ptbk.io/promptbook',
-            'https://s2.ptbk.io/promptbook',
-            'https://s1.ptbk.io/promptbook',
+            'https://s5.ptbk.io/promptbook',
+            // Note: Servers 1-4 are not running
         ],
     },
 
