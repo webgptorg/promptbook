@@ -5,6 +5,7 @@
 /secrets.md
 
 .env
+.env.backup
 .tmp
 
 bash.exe.stackdump

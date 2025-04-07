@@ -305,6 +305,12 @@
             "focus": true
         },
         {
+            "name": "🔼🆚 Use current version of Promptbook in all Projects",
+            "command": "npm run use-packages",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼🚀 Release minor version (💸)",
             "command": "npm version minor",
             "onlySingle": true,
