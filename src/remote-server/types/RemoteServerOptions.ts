@@ -144,13 +144,6 @@ export type LoginRequest = {
      * Request object to access some request data for example headers, IP address, etc.
      */
     readonly rawRequest: Request;
-
-    /**
-     * Response object to add some custom headers
-     *
-     * Note: It is not recommended to use this object to send body of the response because it can confuse the client
-     */
-    readonly rawResponse: Response;
 };
 
 /**

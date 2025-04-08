@@ -145,12 +145,15 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                         version: '1.0.0',
                         description: 'API documentation for the Promptbook Remote Server',
                     },
+                    /*
+                    TODO:
                     servers: [
                         {
                             url: `http://localhost:${port}${rootPath}`,
-                            // <- TODO: !!!!! Probbably: Pass `remoteServerUrl` instead of `port` and `rootPath`
+                            // <- TODO: Pass some public URLs here
                         },
                     ],
+                    */
                 },
             }),
         )
@@ -213,7 +216,6 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                     ## Details
 
                     **Server port:** ${port}
-                    **Server root path:** ${rootPath}
                     **Startup date:** ${startupDate.toISOString()}
                     **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
@@ -261,7 +263,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Login endpoint
-    app.post('/login', async ({ body, request, set }) => {
+    app.post('/login', async ({ body, request ,set}) => {
         if (!isApplicationModeAllowed || login === null) {
             set.status = 400;
             return 'Application mode is not allowed';
@@ -278,8 +280,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                 username,
                 password,
                 appId,
-                rawRequest: request,
-                rawResponse: set,
+                rawRequest: request
             });
 
             set.status = 201;
@@ -392,7 +393,10 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                 pipelineUrl?: string_pipeline_url;
                 book?: string_pipeline_url;
             };
-            const pipelineUrl = body.pipelineUrl || body.book;
+
+            const pipelineUrl = (body as TODO_any).pipelineUrl || (body as TODO_any).book;
+
+            console.log('!!! Test that pipelineUrl is defined after migration to Elysia', { pipelineUrl, body });
 
             const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
 
