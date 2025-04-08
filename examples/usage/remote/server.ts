@@ -45,7 +45,7 @@ async function main() {
     const collection = await createCollectionFromDirectory('./examples/pipelines/', tools);
 
     // [⚖]
-    startRemoteServer({
+    await startRemoteServer({
         port: 4460,
         rootPath: '/',
         collection,

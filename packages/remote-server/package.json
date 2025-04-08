@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-server",
-    "version": "0.89.0-21",
+    "version": "0.89.0-23",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -51,20 +51,19 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-server.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.89.0-21"
+        "@promptbook/core": "0.89.0-23"
     },
     "dependencies": {
+        "@elysiajs/swagger": "1.2.2",
         "colors": "1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
-        "express": "4.21.2",
+        "elysia": "1.2.25",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
         "rxjs": "7.8.1",
         "socket.io": "4.8.1",
         "spacetrim": "0.11.59",
-        "swagger-jsdoc": "6.2.8",
-        "swagger-ui-express": "5.0.1",
         "userhome": "1.0.1",
         "waitasecond": "1.11.83"
     }

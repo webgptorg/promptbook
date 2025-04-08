@@ -1,6 +1,6 @@
 {
     "name": "promptbook-engine",
-    "version": "0.89.0-21",
+    "version": "0.89.0-23",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -109,6 +109,7 @@
         "@ai-sdk/openai": "1.0.7",
         "@anthropic-ai/sdk": "0.26.1",
         "@azure/openai": "1.0.0-beta.12",
+        "@elysiajs/swagger": "1.2.2",
         "@mozilla/readability": "0.6.0",
         "colors": "1.4.0",
         "commander": "12.0.0",
@@ -117,6 +118,7 @@
         "crypto-js": "4.2.0",
         "destroyable": "0.12.62",
         "dotenv": "16.3.1",
+        "elysia": "1.2.25",
         "express": "4.21.2",
         "glob-promise": "6.0.5",
         "jsdom": "25.0.1",

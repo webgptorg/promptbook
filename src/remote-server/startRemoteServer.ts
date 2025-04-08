@@ -1,13 +1,9 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import express from 'express';
-import http from 'http';
+import Elysia from 'elysia'; // <- TODO: !!! Cleanup unused dependencies like express
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import swaggerJsdoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -24,14 +20,12 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { Identification } from './socket-types/_subtypes/Identification';
@@ -41,8 +35,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -57,9 +50,9 @@ keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
  * @see https://github.com/webgptorg/promptbook#remote-server
  * @public exported from `@promptbook/remote-server`
  */
-export function startRemoteServer<TCustomOptions = undefined>(
+export async function startRemoteServer<TCustomOptions = undefined>(
     options: RemoteServerOptions<TCustomOptions>,
-): RemoteServer {
+): Promise<RemoteServer> /* <- TODO: [🧠] Should be this function async or not */ {
     const {
         port,
         collection,
@@ -142,292 +135,79 @@ export function startRemoteServer<TCustomOptions = undefined>(
         return tools;
     }
 
-    const app = express();
+    // Note: Can not use `import from`
+    // Note: Can not use `require`
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    //[7]> const { swagger } = await import('@elysiajs/swagger');
 
-    app.use(express.json());
-    app.use(function (request, response, next) {
-        response.setHeader('X-Powered-By', 'Promptbook engine');
-        next();
-    });
+    /*
+    TODO: [7] !!!!!! `@elysiajs/swagger` cannot be imported
 
-    const swaggerOptions = {
-        definition: {
-            openapi: '3.0.0',
-            info: {
-                title: 'Promptbook Remote Server API',
-                version: '1.0.0',
-                description: 'API documentation for the Promptbook Remote Server',
-            },
-            /*
-            TODO:
-            servers: [
-                {
-                    url: `http://localhost:${port}${rootPath}`,
-                    // <- TODO: Pass some public URLs here
+    When using await import or require:
+
+    ```
+    $ npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS
+
+
+    require() of ES Module C:\Users\me\work\ai\promptbook\node_modules\@scalar\types\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs not supported.    ost:4460 --provider BRING_YOUR_OWN_KEYS
+    Instead change the require of index.js in C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dilternative instead.st\index.cjs to a dynamic import() which is available in all CommonJS modules.
+                                                                                                          ex.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes
+
+    ```
+
+    When using import from:
+    ```
+    me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (feature/elysia+swagger+openapi-2)
+    $ npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhst\index.cjs to a dynamic import() which is available in all CommonJSost:4460 --provider BRING_YOUR_OWN_KEYS
+    C:\Users\me\work\ai\promptbook\node_modules\ts-node\dist\index.js:851
+                return old(m, filename);
+                      ^                                                                                   ost:4460 --provider BRING_YOUR_OWN_KEYS
+    Error [ERR_REQUIRE_ESM]: require() of ES Module C:\Users\me\work\ai\promptbook\node_modules\@scalar\types\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs not supported.
+    Instead change the require of index.js in C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dies\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\nost\index.cjs to a dynamic import() which is available in all CommonJS modules.
+        at require.extensions.<computed> [as .js] (C:\Users\me\work\ai\promptbook\node_modules\ts-node\distst\index.cjs to a dynamic import() which is available in all CommonJS\index.js:851:20)
+        at TracingChannel.traceSync (node:diagnostics_channel:315:14)                                      \index.js:851:20)
+        at Module.<anonymous> (C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs:1:599) {                                                                                                 599) {
+      code: 'ERR_REQUIRE_ESM'
+    }
+    ```
+    */
+
+    const app = new Elysia()
+        /* [7] .use(
+            swagger({
+                documentation: {
+                    info: {
+                        title: 'Promptbook Remote Server API',
+                        version: '1.0.0',
+                        description: 'API documentation for the Promptbook Remote Server',
+                    },
+                    /*
+                    TODO:
+                    servers: [
+                        {
+                            url: `http://localhost:${port}${rootPath}`,
+                            // <- TODO: Pass some public URLs here
+                        },
+                    ],
+                    * /
                 },
-            ],
-            */
-        },
-        apis: ['./src/remote-server/**/*.ts'], // Adjust path as needed
-    };
+            }),
+        )*/
+        .decorate('startupDate', startupDate)
+        .decorate('runningExecutionTasks', [] as Array<ExecutionTask>)
+        .derive(({ request }: TODO_any /* <- TODO: !!! */) => ({
+            fullUrl: request.url,
+        }));
 
-    const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-    const rootPath = ''; // <- TODO: !!!! Remove after merging into feature/elysia+openai+swagger-2
-
-    app.use([`/api-docs`, `${rootPath}/api-docs`], swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    // Add headers middleware
+    app.derive({ as: 'global' }, ({ set }: TODO_any /* <- TODO: !!! */) => {
+        set.headers['X-Powered-By'] = 'Promptbook engine';
+        return {};
+    });
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
-    // <- TODO: [🤬] Identify the users
-
-    // TODO: [🧠] Do here some garbage collection of finished tasks
-
-    /**
-     * @swagger
-     * /:
-     *   get:
-     *     summary: Get server details
-     *     description: Returns details about the Promptbook server.
-     *     responses:
-     *       200:
-     *         description: Server details in markdown format.
-     */
-    app.get(['/', rootPath], async (request, response) => {
-        if (request.url?.includes('socket.io')) {
-            return;
-        }
-
-        response.type('text/markdown').send(
-            await spaceTrim(
-                async (block) => `
-                    # Promptbook
-
-                    > ${block(CLAIM)}
-
-                    **Book language version:** ${BOOK_LANGUAGE_VERSION}
-                    **Promptbook engine version:** ${PROMPTBOOK_ENGINE_VERSION}
-                    **Node.js version:** ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
-
-                    ---
-
-                    ## Details
-
-                    **Server port:** ${port}
-                    **Server root path:** ${rootPath}
-                    **Startup date:** ${startupDate.toISOString()}
-                    **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
-                    **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
-                    ${block(
-                        !isApplicationModeAllowed || collection === null
-                            ? ''
-                            : '**Pipelines in collection:**\n' +
-                                  (await collection.listPipelines())
-                                      .map((pipelineUrl) => `- ${pipelineUrl}`)
-                                      .join('\n'),
-                    )}
-                    **Running executions:** ${runningExecutionTasks.length}
-
-                    ---
-
-                    ## Paths
-
-                    ${block(
-                        [
-                            ...app._router.stack
-                                .map(({ route }: really_any) => route?.path || null)
-                                .filter((path: string) => path !== null),
-                            '/api-docs',
-                        ]
-                            .map((path: string) => `- ${path}`)
-                            .join('\n'),
-                    )}
-
-                    ---
-
-                    ## Instructions
-
-                    To connect to this server use:
-
-                    1) The client https://www.npmjs.com/package/@promptbook/remote-client
-                    2) OpenAI compatible client *(Not wotking yet)*
-                    3) REST API
-
-                    For more information look at:
-                    https://github.com/webgptorg/promptbook
-                `,
-            ),
-            // <- TODO: [🗽] Unite branding and make single place for it
-        );
-    });
-
-    /**
-     * @swagger
-     *
-     * /login:
-     *  post:
-     *   summary: Login to the server
-     *   description: Login to the server and get identification.
-     *   requestBody:
-     *    required: true
-     *    content:
-     *     application/json:
-     *      schema:
-     *       type: object
-     *       properties:
-     *        username:
-     *         type: string
-     *        password:
-     *         type: string
-     *        appId:
-     *         type: string
-     *   responses:
-     *    200:
-     *     description: Successful login
-     *     content:
-     *      application/json:
-     *       schema:
-     *        type: object
-     *        properties:
-     *         identification:
-     *          type: object
-     */
-    app.post([`/login`, `${rootPath}/login`], async (request, response) => {
-        if (!isApplicationModeAllowed || login === null) {
-            response.status(400).send('Application mode is not allowed');
-            return;
-        }
-
-        try {
-            const username = request.body.username;
-            const password = request.body.password;
-            const appId = request.body.appId;
-
-            const { isSuccess, error, message, identification } = await login({
-                username,
-                password,
-                appId,
-                rawRequest: request,
-                rawResponse: response,
-            });
-            response.status(201).send({
-                isSuccess,
-                message,
-                error: error ? (serializeError(error) as TODO_any) : undefined,
-                identification,
-            } satisfies LoginResponse<really_any>);
-            return;
-        } catch (error) {
-            assertsError(error);
-
-            if (error instanceof AuthenticationError) {
-                response.status(401).send({
-                    isSuccess: false,
-                    message: error.message,
-                    error: serializeError(error) as TODO_any,
-                } satisfies LoginResponse<really_any>);
-            }
-
-            console.warn(`Login function thrown different error than AuthenticationError`, {
-                error,
-                serializedError: serializeError(error),
-            });
-            response.status(400).send({ error: serializeError(error) });
-        }
-    });
-
-    /**
-     * @swagger
-     * /books:
-     *   get:
-     *     summary: List all books
-     *     description: Returns a list of all available books in the collection.
-     *     responses:
-     *       200:
-     *         description: A list of books.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: string
-     */
-    app.get([`/books`, `${rootPath}/books`], async (request, response) => {
-        if (collection === null) {
-            response.status(500).send('No collection available');
-            return;
-        }
-
-        const pipelines = await collection.listPipelines();
-        // <- TODO: [🧠][👩🏾‍🤝‍🧑🏿] List `inputParameters` required for the execution
-
-        response.send(pipelines);
-    });
-
-    // TODO: [🧠] Is it secure / good idea to expose source codes of hosted books
-
-    /**
-     * @swagger
-     * /books/{bookId}:
-     *   get:
-     *     summary: Get book content
-     *     description: Returns the content of a specific book.
-     *     parameters:
-     *       - in: path
-     *         name: bookId
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: The ID of the book to retrieve.
-     *     responses:
-     *       200:
-     *         description: The content of the book.
-     *         content:
-     *           text/markdown:
-     *             schema:
-     *               type: string
-     *       404:
-     *         description: Book not found.
-     */
-    app.get([`/books/*`, `${rootPath}/books/*`], async (request, response) => {
-        try {
-            if (collection === null) {
-                response.status(500).send('No collection nor books available');
-                return;
-            }
-
-            const pipelines = await collection.listPipelines();
-
-            const fullUrl = request.protocol + '://' + request.get('host') + request.originalUrl;
-            const pipelineUrl = pipelines.find((pipelineUrl) => pipelineUrl.endsWith(request.originalUrl)) || fullUrl;
-
-            const pipeline = await collection.getPipelineByUrl(pipelineUrl);
-
-            const source = pipeline.sources[0];
-
-            if (source === undefined || source.type !== 'BOOK') {
-                throw new Error('Pipeline source is not a book');
-            }
-
-            response
-                .type(
-                    'text/markdown',
-                    // <- TODO: [🧠] Make custom mime-type for books
-                )
-                .send(source.content);
-        } catch (error) {
-            assertsError(error);
-
-            response
-                .status(
-                    404,
-                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
-                )
-                .send({ error: serializeError(error) });
-        }
-    });
 
     function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
-        // <- TODO: [🧠] This should be maybe method of `ExecutionTask` itself
         const { taskType, taskId, status, errors, warnings, createdAt, updatedAt, currentValue } = executionTask;
 
         if (isFull) {
@@ -454,156 +234,234 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
     }
 
-    /**
-     * @swagger
-     * /executions:
-     *   get:
-     *     summary: List all executions
-     *     description: Returns a list of all running execution tasks.
-     *     responses:
-     *       200:
-     *         description: A list of execution tasks.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: object
-     */
-    app.get([`/executions`, `${rootPath}/executions`], async (request, response) => {
-        response.send(
-            runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
-            // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
-            // <- TODO: [🧠] Better and more information
+    // Root endpoint
+    app.get('/', async ({ startupDate }) => {
+        return new Response(
+            await spaceTrim(
+                async (block) => `
+                    # Promptbook
+
+                    > ${block(CLAIM)}
+
+                    **Book language version:** ${BOOK_LANGUAGE_VERSION}
+                    **Promptbook engine version:** ${PROMPTBOOK_ENGINE_VERSION}
+                    **Node.js version:** ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
+
+                    ---
+
+                    ## Details
+
+                    **Server port:** ${port}
+                    **Startup date:** ${startupDate.toISOString()}
+                    **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
+                    **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
+                    ${block(
+                        !isApplicationModeAllowed || collection === null
+                            ? ''
+                            : '**Pipelines in collection:**\n' +
+                                  (await collection.listPipelines())
+                                      .map((pipelineUrl) => `- ${pipelineUrl}`)
+                                      .join('\n'),
+                    )}
+                    **Running executions:** ${runningExecutionTasks.length}
+
+                    ---
+
+                    ## Paths
+
+                    ${block(
+                        app.routes
+                            .map((route: TODO_any /* <- TODO: !!! */) => `- ${route.path}`)
+                            .concat('/api-docs')
+                            .join('\n'),
+                    )}
+
+                    ---
+
+                    ## Instructions
+
+                    To connect to this server use:
+
+                    1) The client https://www.npmjs.com/package/@promptbook/remote-client
+                    2) OpenAI compatible client *(Not wotking yet)*
+                    3) REST API
+
+                    For more information look at:
+                    https://github.com/webgptorg/promptbook
+                `,
+            ),
+            {
+                headers: {
+                    'Content-Type': 'text/markdown',
+                },
+            },
         );
     });
 
-    app.get([`/executions/last`, `${rootPath}/executions/last`], async (request, response) => {
-        // TODO: [🤬] Filter only for user
+    // Login endpoint
+    app.post('/login', async ({ body, request, set }) => {
+        if (!isApplicationModeAllowed || login === null) {
+            set.status = 400;
+            return 'Application mode is not allowed';
+        }
 
+        try {
+            const { username, password, appId } = body as {
+                username: string;
+                password: string;
+                appId: string;
+            };
+
+            const { isSuccess, error, message, identification } = await login({
+                username,
+                password,
+                appId,
+                rawRequest: request,
+            });
+
+            set.status = 201;
+            return {
+                isSuccess,
+                message,
+                error: error ? (serializeError(error) as TODO_any) : undefined,
+                identification,
+            } satisfies LoginResponse<really_any>;
+        } catch (error) {
+            assertsError(error);
+
+            if (error instanceof AuthenticationError) {
+                set.status = 401;
+                return {
+                    isSuccess: false,
+                    message: error.message,
+                    error: serializeError(error) as TODO_any,
+                } satisfies LoginResponse<really_any>;
+            }
+
+            console.warn(`Login function thrown different error than AuthenticationError`, {
+                error,
+                serializedError: serializeError(error),
+            });
+
+            set.status = 400;
+            return { error: serializeError(error) };
+        }
+    });
+
+    // Books listing endpoint
+    app.get('/books', async ({ set }) => {
+        if (collection === null) {
+            set.status = 500;
+            return 'No collection available';
+        }
+
+        const pipelines = await collection.listPipelines();
+        return pipelines;
+    });
+
+    // Get book content endpoint
+    app.get('/books/*', async ({ request, fullUrl, set }) => {
+        try {
+            if (collection === null) {
+                set.status = 500;
+                return 'No collection nor books available';
+            }
+
+            const pipelines = await collection.listPipelines();
+            const path = new URL(request.url).pathname;
+            const pipelineUrl = pipelines.find((url) => url.endsWith(path)) || fullUrl;
+
+            const pipeline = await collection.getPipelineByUrl(pipelineUrl);
+            const source = pipeline.sources[0];
+
+            if (source === undefined || source.type !== 'BOOK') {
+                throw new Error('Pipeline source is not a book');
+            }
+
+            return new Response(source.content, {
+                headers: {
+                    'Content-Type': 'text/markdown',
+                },
+            });
+        } catch (error) {
+            assertsError(error);
+
+            set.status = 404;
+            return { error: serializeError(error) };
+        }
+    });
+
+    // Executions listing endpoint
+    app.get('/executions', () => {
+        return runningExecutionTasks.map((task) => exportExecutionTask(task, false));
+    });
+
+    // Last execution endpoint
+    app.get('/executions/last', ({ set }) => {
         if (runningExecutionTasks.length === 0) {
-            response.status(404).send('No execution tasks found');
-            return;
+            set.status = 404;
+            return 'No execution tasks found';
         }
 
         const lastExecutionTask = runningExecutionTasks[runningExecutionTasks.length - 1];
-        response.send(exportExecutionTask(lastExecutionTask!, true));
+        return exportExecutionTask(lastExecutionTask!, true);
     });
 
-    app.get([`/executions/:taskId`, `${rootPath}/executions/:taskId`], async (request, response) => {
-        const { taskId } = request.params;
-
-        // TODO: [🤬] Filter only for user
-        const executionTask = runningExecutionTasks.find((executionTask) => executionTask.taskId === taskId);
+    // Get execution by ID endpoint
+    app.get('/executions/:taskId', ({ params, set }) => {
+        const { taskId } = params;
+        const executionTask = runningExecutionTasks.find((task) => task.taskId === taskId);
 
         if (executionTask === undefined) {
-            response
-                .status(
-                    404,
-                    // <- TODO: [👨🏼‍🤝‍👨🏻] Implement and use `errorToHttpStatus`
-                )
-                .send(`Execution "${taskId}" not found`);
-            return;
+            set.status = 404;
+            return `Execution "${taskId}" not found`;
         }
 
-        response.send(exportExecutionTask(executionTask, true));
+        return exportExecutionTask(executionTask, true);
     });
 
-    /**
-     * @swagger
-     * /executions/new:
-     *   post:
-     *     summary: Start a new execution
-     *     description: Starts a new execution task for a given pipeline.
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               pipelineUrl:
-     *                 type: string
-     *               inputParameters:
-     *                 type: object
-     *               identification:
-     *                 type: object
-     *     responses:
-     *       200:
-     *         description: The newly created execution task.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *       400:
-     *         description: Invalid input.
-     */
-    app.post<{
-        pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
-        inputParameters: InputParameters;
-        identification: Identification<TCustomOptions>;
-    }>([`/executions/new`, `${rootPath}/executions/new`], async (request, response) => {
+    // Start new execution endpoint
+    app.post('/executions/new', async ({ body, set }) => {
         try {
-            const { inputParameters, identification /* <- [🤬] */ } = request.body;
-            const pipelineUrl = request.body.pipelineUrl || request.body.book;
+            const { inputParameters, identification } = body as {
+                inputParameters: InputParameters;
+                identification: Identification<TCustomOptions>;
+                pipelineUrl?: string_pipeline_url;
+                book?: string_pipeline_url;
+            };
 
-            // TODO: [🧠] Check `pipelineUrl` and `inputParameters` here or it should be responsibility of `collection.getPipelineByUrl` and `pipelineExecutor`
+            const pipelineUrl = (body as TODO_any).pipelineUrl || (body as TODO_any).book;
+
+            console.log('!!! Test that pipelineUrl is defined after migration to Elysia', { pipelineUrl, body });
 
             const pipeline = await collection?.getPipelineByUrl(pipelineUrl);
 
             if (pipeline === undefined) {
-                response.status(404).send(`Pipeline "${pipelineUrl}" not found`);
-                return;
+                set.status = 404;
+                return `Pipeline "${pipelineUrl}" not found`;
             }
 
             const tools = await getExecutionToolsFromIdentification(identification);
-
             const pipelineExecutor = createPipelineExecutor({ pipeline, tools, ...options });
-
             const executionTask = pipelineExecutor(inputParameters);
 
             runningExecutionTasks.push(executionTask);
 
             await forTime(10);
-            // <- Note: Wait for a while to wait for quick responses or sudden but asynchronous errors
-            // <- TODO: Put this into configuration
 
-            response.send(executionTask);
-
-            /*/
-            executionTask.asObservable().subscribe({
-                next(partialResult) {
-                    console.info(executionTask.taskId, 'next', partialResult);
-                },
-                error(error) {
-                    console.info(executionTask.taskId, 'error', error);
-                },
-                complete() {
-                    console.info(executionTask.taskId, 'complete');
-                },
-            });
-            /**/
-
-            /*
-            await fetch(request.body.callbackUrl);
-            // <- TODO: [🧠] Should be here transferred data as POST / PUT
-            */
+            return executionTask;
         } catch (error) {
             assertsError(error);
 
-            response.status(400).send({ error: serializeError(error) });
+            set.status = 400;
+            return { error: serializeError(error) };
         }
     });
 
-    /**
-     * Catch-all handler for unmatched routes
-     */
-    app.use((request, response) => {
-        response.status(404).send(`URL "${request.originalUrl}" was not found on Promptbook server.`);
-    });
+    // Create HTTP server from Elysia
+    const httpServer = app.listen({ port });
 
-    const httpServer = http.createServer(app);
-
+    // Setup Socket.io on the HTTP server
     const server: Server = new Server(httpServer, {
         path: '/socket.io',
         transports: ['polling', 'websocket' /*, <- TODO: [🌬] Allow to pass `transports`, add 'webtransport' */],
@@ -618,8 +476,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         if (isVerbose) {
             console.info(colors.gray(`Client connected`), socket.id);
         }
-
-        // -----------
 
         socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request<TCustomOptions>) => {
             const { identification, prompt } = request;
@@ -644,7 +500,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
                         if (llm.callChatModel === undefined) {
-                            // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Chat model is not available`);
                         }
                         promptResult = await llm.callChatModel(prompt);
@@ -652,7 +507,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     case 'COMPLETION':
                         if (llm.callCompletionModel === undefined) {
-                            // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Completion model is not available`);
                         }
                         promptResult = await llm.callCompletionModel(prompt);
@@ -660,13 +514,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     case 'EMBEDDING':
                         if (llm.callEmbeddingModel === undefined) {
-                            // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Embedding model is not available`);
                         }
                         promptResult = await llm.callEmbeddingModel(prompt);
                         break;
-
-                    // <- case [🤖]:
 
                     default:
                         throw new PipelineExecutionError(
@@ -678,23 +529,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     console.info(colors.bgGreen(`PromptResult:`), colors.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit(
-                    'prompt-response',
-                    { promptResult } satisfies PromptbookServer_Prompt_Response /* <- Note: [🤛] */,
-                );
+                socket.emit('prompt-response', { promptResult } satisfies PromptbookServer_Prompt_Response);
             } catch (error) {
                 assertsError(error);
 
-                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- Note: [🤛] */);
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
-                // TODO: [🍚]> executionTools.destroy();
             }
         });
 
-        // -----------
-
-        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         socket.on('listModels-request', async (request: PromptbookServer_ListModels_Request<TCustomOptions>) => {
             const { identification } = request;
 
@@ -708,23 +552,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                 const models = await llm.listModels();
 
-                socket.emit(
-                    'listModels-response',
-                    { models } satisfies PromptbookServer_ListModels_Response /* <- Note: [🤛] */,
-                );
+                socket.emit('listModels-response', { models } satisfies PromptbookServer_ListModels_Response);
             } catch (error) {
                 assertsError(error);
 
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
-                // TODO: [🍚]> executionTools.destroy();
             }
         });
 
-        // -----------
-
-        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         socket.on(
             'preparePipeline-request',
             async (request: PromptbookServer_PreparePipeline_Request<TCustomOptions>) => {
@@ -739,35 +576,26 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     const preparedPipeline = await preparePipeline(pipeline, tools, options);
 
-                    socket.emit(
-                        'preparePipeline-response',
-                        { preparedPipeline } satisfies PromptbookServer_PreparePipeline_Response /* <- Note: [🤛] */,
-                    );
+                    socket.emit('preparePipeline-response', {
+                        preparedPipeline,
+                    } satisfies PromptbookServer_PreparePipeline_Response);
                 } catch (error) {
                     assertsError(error);
 
                     socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
-                    // <- TODO: [🚋] There is a problem with the remote server handling errors and sending them back to the client
                 } finally {
                     socket.disconnect();
-                    // TODO: [🍚]> executionTools.destroy();
                 }
             },
         );
 
-        // -----------
-
         socket.on('disconnect', () => {
-            // TODO: Destroy here executionToolsForClient
             if (isVerbose) {
                 console.info(colors.gray(`Client disconnected`), socket.id);
             }
         });
     });
 
-    httpServer.listen(port);
-
-    // Note: We want to log this also in non-verbose mode
     console.info(colors.bgGreen(`PROMPTBOOK server listening on port ${port}`));
     if (isVerbose) {
         console.info(colors.gray(`Verbose mode is enabled`));
@@ -776,12 +604,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
     let isDestroyed = false;
 
     return {
+        /*
+        TODO: [🧠][🚟] Should be this exposed
+        import http from 'http';
         get httpServer(): http.Server<TODO_any> {
             return httpServer;
         },
+        */
 
-        get expressApp(): express.Express {
-            return app;
+        get elisiaApp() /* : typeof Elysia */ {
+            return app as TODO_any;
         },
 
         get socketIoServer(): Server<
@@ -801,14 +633,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 return;
             }
             isDestroyed = true;
-            httpServer.close();
             server.close();
+            app.stop();
         },
-    };
+    } satisfies RemoteServer;
 }
 
 /**
- * TODO: [🌡] Add CORS and security - probbably via `helmet`
+ * TODO: !!!! Should be this async or not
+ * TODO: [🌡] Add CORS and security - probbably via `helmet` or Elysia's built-in security plugins
+ * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`

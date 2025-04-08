@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+// import type { Request, Response } from 'express'; // <- TODO: [⭐] Probbably remove express dependency as Elisia is used instead
 import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../collection/PipelineCollection';
 import { AuthenticationError } from '../../errors/AuthenticationError';
@@ -145,16 +145,9 @@ export type LoginRequest = {
     readonly password: string_password;
 
     /**
-     * Request object from express if you want to access some request data for example headers, IP address, etc.
+     * Request object to access some request data for example headers, IP address, etc.
      */
     readonly rawRequest: Request;
-
-    /**
-     * Response object from express if you want to add some custom headers.
-     *
-     * Note: It is not recommended to use this object to send body of the response because it can confuse the client
-     */
-    readonly rawResponse: Response;
 };
 
 /**
