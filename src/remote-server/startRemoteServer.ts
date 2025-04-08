@@ -3,8 +3,6 @@ import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -20,10 +18,8 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
-import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
@@ -168,7 +164,6 @@ export async function startRemoteServer<TCustomOptions = undefined>(
         return {};
     });
 
-
     const runningExecutionTasks: Array<ExecutionTask> = [];
 
     function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
@@ -264,7 +259,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Login endpoint
-    app.post(( '/login', async ({ body, request, set }) => {
+    app.post('/login', async ({ body, request, set }) => {
         if (!isApplicationModeAllowed || login === null) {
             set.status = 400;
             return 'Application mode is not allowed';
@@ -315,7 +310,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Books listing endpoint
-    app.get( '/books', async ({ set }) => {
+    app.get('/books', async ({ set }) => {
         if (collection === null) {
             set.status = 500;
             return 'No collection available';
@@ -326,7 +321,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Get book content endpoint
-    app.get( '/books/*', async ({ request, fullUrl, set }) => {
+    app.get('/books/*', async ({ request, fullUrl, set }) => {
         try {
             if (collection === null) {
                 set.status = 500;
@@ -358,7 +353,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Executions listing endpoint
-    app.get( '/executions', () => {
+    app.get('/executions', () => {
         return runningExecutionTasks.map((task) => exportExecutionTask(task, false));
     });
 
@@ -374,7 +369,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Get execution by ID endpoint
-    app.get( '/executions/:taskId', ({ params, set }) => {
+    app.get('/executions/:taskId', ({ params, set }) => {
         const { taskId } = params;
         const executionTask = runningExecutionTasks.find((task) => task.taskId === taskId);
 
@@ -387,7 +382,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Start new execution endpoint
-    app.post( '/executions/new', async ({ body, set }) => {
+    app.post('/executions/new', async ({ body, set }) => {
         try {
             const { inputParameters, identification } = body as {
                 inputParameters: InputParameters;
