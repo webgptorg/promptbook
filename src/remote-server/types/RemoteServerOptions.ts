@@ -5,13 +5,8 @@ import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_email } from '../../types/typeAliases';
-import type { string_password } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
-import type { ApplicationModeIdentification } from '../socket-types/_subtypes/Identification';
-import type { Identification } from '../socket-types/_subtypes/Identification';
+import type { string_app_id, string_email, string_password, string_user_id } from '../../types/typeAliases';
+import type { ApplicationModeIdentification, Identification } from '../socket-types/_subtypes/Identification';
 
 /**
  * @@@
@@ -31,16 +26,6 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
      * Port on which the server will listen
      */
     readonly port: number;
-
-    /**
-     * Root path of the server
-     *
-     * Note: This is useful when you reverse proxy the server without changing the path
-     *
-     * @default '/'
-     * @example '/api/promptbook/'
-     */
-    readonly rootPath?: string_uri;
 
     /**
      * Creates execution tools the client

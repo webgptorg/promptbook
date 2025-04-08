@@ -1,7 +1,6 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import { CONNECTION_RETRIES_LIMIT } from '../config';
-import { CONNECTION_TIMEOUT_MS } from '../config';
+import { CONNECTION_RETRIES_LIMIT, CONNECTION_TIMEOUT_MS } from '../config';
 import type { RemoteClientOptions } from './types/RemoteClientOptions';
 
 /**
@@ -16,18 +15,17 @@ export async function createRemoteClient<TCustomOptions = undefined>(
 ): Promise<Socket> {
     const { remoteServerUrl } = options;
 
-    let path = new URL(remoteServerUrl).pathname;
-    if (path.endsWith('/')) {
-        path = path.slice(0, -1);
-    }
-
-    path = `${path}/socket.io`;
+    console.log('!!! Connecting to socket.io server', remoteServerUrl, {
+        retries: CONNECTION_RETRIES_LIMIT,
+        timeout: CONNECTION_TIMEOUT_MS,
+        path: '/socket.io',
+    });
 
     return new Promise((resolve, reject) => {
         const socket = io(remoteServerUrl, {
             retries: CONNECTION_RETRIES_LIMIT,
             timeout: CONNECTION_TIMEOUT_MS,
-            path,
+            path: '/socket.io',
             transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
         });
 
