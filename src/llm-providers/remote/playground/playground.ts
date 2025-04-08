@@ -33,8 +33,7 @@ async function playground() {
     //========================================>
 
     console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Starting remote server`));
-    await startRemoteServer({
-        // TODO: !!!!! Test here remoteServerUrl to have some path
+    startRemoteServer({
         port: 4460,
         isVerbose: true,
         isAnonymousModeAllowed: true,
@@ -50,8 +49,6 @@ async function playground() {
         ),
         async login(loginRequest) {
             const { appId, username, password } = loginRequest;
-
-            console.log('!!! login', { appId, username, password });
 
             const allowedApps = [PLAYGROUND_APP_ID, CLI_APP_ID];
 

@@ -1,2 +1,0 @@
-TODO: !!!! Move user system api to "Promptbook remote server" or "Promptbook.studio"
-    > npx openapi-typescript https://brj.app/swagger/json -o ./other/playground/brj-api-schema.ts

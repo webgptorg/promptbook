@@ -3,6 +3,9 @@ import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -18,6 +21,9 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
 import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
+import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
+import type { InputParameters } from '../types/typeAliases';
+import type { string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
@@ -54,6 +60,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
         port,
         collection,
         createLlmExecutionTools,
+        createExecutionTools,
         isAnonymousModeAllowed,
         isApplicationModeAllowed,
         isVerbose = DEFAULT_IS_VERBOSE,
@@ -66,32 +73,6 @@ export async function startRemoteServer<TCustomOptions = undefined>(
         login: null,
         ...options,
     };
-    // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
-    let { rootPath = '/' } = options;
-
-    // Note: Importing from `elysia` and `@elysiajs/swagger` !!!!!!
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { swagger } = require('@elysiajs/swagger');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Elysia } = require('elysia');
-    // <- TODO: [⭐] Cleanup other swagger packages that are not used anymore
-
-    if (!rootPath.startsWith('/')) {
-        rootPath = `/${rootPath}`;
-    } /* not else */
-    if (rootPath.endsWith('/')) {
-        rootPath = rootPath.slice(0, -1);
-    } /* not else */
-    if (rootPath === '/') {
-        rootPath = '';
-    }
-
-    const socketioPath =
-        '/' +
-        `${rootPath}/socket.io`
-            .split('/')
-            .filter((part) => part !== '')
-            .join('/');
 
     const startupDate = new Date();
 
@@ -125,6 +106,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
             // Note: Application mode
             const { appId, userId, customOptions } = identification;
             llm = await createLlmExecutionTools!({
+                isAnonymous: false,
                 appId,
                 userId,
                 customOptions,
@@ -135,13 +117,22 @@ export async function startRemoteServer<TCustomOptions = undefined>(
             );
         }
 
-        const fs = $provideFilesystemForNode();
-        const executables = await $provideExecutablesForNode();
+        const customExecutionTools = createExecutionTools ? await createExecutionTools(identification) : {};
+
+        const fs = customExecutionTools.fs || $provideFilesystemForNode();
+        const executables = customExecutionTools.executables || (await $provideExecutablesForNode());
+        const scrapers = customExecutionTools.scrapers || (await $provideScrapersForNode({ fs, llm, executables }));
+        const script = customExecutionTools.script || (await $provideScriptingForNode({}));
+        const fetch = customExecutionTools.fetch || promptbookFetch;
+        const userInterface = customExecutionTools.userInterface || undefined;
+
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-            script: await $provideScriptingForNode({}),
+            scrapers,
+            script,
+            fetch,
+            userInterface,
         } satisfies ExecutionTools;
 
         return tools;
@@ -177,21 +168,6 @@ export async function startRemoteServer<TCustomOptions = undefined>(
         return {};
     });
 
-    /**
-     * Helper function to register routes with and without rootPath prefix
-     */
-    function registerDualRoute(method: 'get' | 'post', path: string, handler: (context: TODO_any) => TODO_any) {
-        // Register the route without prefix
-        app[method](path, handler);
-
-        // Register the route with prefix, but avoid duplicating if path is '/' and rootPath is ''
-        if (!(path === '/' && rootPath === '')) {
-            const prefixedPath = path === '/' ? rootPath : `${rootPath}${path}`;
-            app[method](prefixedPath, handler);
-        }
-
-        return app;
-    }
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
 
@@ -223,7 +199,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     }
 
     // Root endpoint
-    registerDualRoute('get', '/', async ({ startupDate }) => {
+    app.get('/', async ({ startupDate }) => {
         return new Response(
             await spaceTrim(
                 async (block) => `
@@ -241,7 +217,6 @@ export async function startRemoteServer<TCustomOptions = undefined>(
 
                     **Server port:** ${port}
                     **Server root path:** ${rootPath}
-                    **Socket.io path:** ${socketioPath}
                     **Startup date:** ${startupDate.toISOString()}
                     **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
@@ -289,7 +264,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Login endpoint
-    registerDualRoute('post', '/login', async ({ body, request, set }) => {
+    app.post(( '/login', async ({ body, request, set }) => {
         if (!isApplicationModeAllowed || login === null) {
             set.status = 400;
             return 'Application mode is not allowed';
@@ -318,9 +293,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                 identification,
             } satisfies LoginResponse<really_any>;
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             if (error instanceof AuthenticationError) {
                 set.status = 401;
@@ -342,7 +315,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Books listing endpoint
-    registerDualRoute('get', '/books', async ({ set }) => {
+    app.get( '/books', async ({ set }) => {
         if (collection === null) {
             set.status = 500;
             return 'No collection available';
@@ -353,7 +326,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Get book content endpoint
-    registerDualRoute('get', '/books/*', async ({ request, fullUrl, set }) => {
+    app.get( '/books/*', async ({ request, fullUrl, set }) => {
         try {
             if (collection === null) {
                 set.status = 500;
@@ -377,9 +350,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                 },
             });
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             set.status = 404;
             return { error: serializeError(error) };
@@ -387,12 +358,12 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Executions listing endpoint
-    registerDualRoute('get', '/executions', () => {
+    app.get( '/executions', () => {
         return runningExecutionTasks.map((task) => exportExecutionTask(task, false));
     });
 
     // Last execution endpoint
-    registerDualRoute('get', '/executions/last', ({ set }) => {
+    app.get('/executions/last', ({ set }) => {
         if (runningExecutionTasks.length === 0) {
             set.status = 404;
             return 'No execution tasks found';
@@ -403,7 +374,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Get execution by ID endpoint
-    registerDualRoute('get', '/executions/:taskId', ({ params, set }) => {
+    app.get( '/executions/:taskId', ({ params, set }) => {
         const { taskId } = params;
         const executionTask = runningExecutionTasks.find((task) => task.taskId === taskId);
 
@@ -416,7 +387,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Start new execution endpoint
-    registerDualRoute('post', '/executions/new', async ({ body, set }) => {
+    app.post( '/executions/new', async ({ body, set }) => {
         try {
             const { inputParameters, identification } = body as {
                 inputParameters: InputParameters;
@@ -443,9 +414,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
 
             return executionTask;
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             set.status = 400;
             return { error: serializeError(error) };
@@ -457,11 +426,12 @@ export async function startRemoteServer<TCustomOptions = undefined>(
 
     // Setup Socket.io on the HTTP server
     const server: Server = new Server(httpServer, {
-        path: socketioPath,
-        transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+        path: '/socket.io',
+        transports: ['polling', 'websocket' /*, <- TODO: [🌬] Allow to pass `transports`, add 'webtransport' */],
         cors: {
             origin: '*',
             methods: ['GET', 'POST'],
+            // <- TODO: [🌡] Allow to pass
         },
     });
 
@@ -524,9 +494,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
 
                 socket.emit('prompt-response', { promptResult } satisfies PromptbookServer_Prompt_Response);
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
@@ -549,9 +517,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
 
                 socket.emit('listModels-response', { models } satisfies PromptbookServer_ListModels_Response);
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
@@ -577,9 +543,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                         preparedPipeline,
                     } satisfies PromptbookServer_PreparePipeline_Response);
                 } catch (error) {
-                    if (!(error instanceof Error)) {
-                        throw error;
-                    }
+                    assertsError(error);
 
                     socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
                 } finally {
@@ -639,7 +603,8 @@ export async function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODO: !! Add CORS and security - probbably via `helmet` or Elysia's built-in security plugins
+ * TODO: !!!! Should be this async or not
+ * TODO: [🌡] Add CORS and security - probbably via `helmet` or Elysia's built-in security plugins
  * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`

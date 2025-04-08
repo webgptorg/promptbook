@@ -1,3 +1,4 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -27,12 +28,17 @@ export function $initializeListModelsCommand(program: Program) {
 
     listModelsCommand.action(
         handleActionErrors(async (cliOptions) => {
-            console.log('!!!', cliOptions);
-
-            // TODO: !!!!!! Not relevant for remote server and also for `about` command
-            const llm = await $provideLlmToolsForCli({ cliOptions });
+            const { strategy, llm } = await $provideLlmToolsForCli({ cliOptions });
             $sideEffect(llm);
             // <- Note: Providing LLM tools will make a side effect of registering all available LLM tools to show the message
+
+            if (strategy !== 'BRING_YOUR_OWN_KEYS') {
+                console.warn(
+                    colors.yellow(
+                        `You are using --strategy ${strategy} but models listed below are relevant for --strategy BRING_YOUR_OWN_KEYS`,
+                    ),
+                );
+            }
 
             console.info($registeredLlmToolsMessage());
             return process.exit(0);

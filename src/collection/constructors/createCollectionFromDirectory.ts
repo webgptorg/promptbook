@@ -11,6 +11,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
+import { assertsError } from '../../errors/assertsError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
@@ -190,9 +191,7 @@ export async function createCollectionFromDirectory(
 
                 // ---
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 // TODO: [7] DRY
                 const wrappedErrorMessage =
@@ -311,9 +310,7 @@ export async function createCollectionFromDirectory(
                     }
                 }
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 // TODO: [7] DRY
                 const wrappedErrorMessage =

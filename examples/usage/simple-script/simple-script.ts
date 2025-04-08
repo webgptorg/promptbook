@@ -20,6 +20,7 @@ import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '..
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
+import { assertsError } from '../../../src/errors/assertsError';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -29,7 +30,8 @@ if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
 dotenv.config({ path: '.env' });
 
 main()
-    .catch((error: Error) => {
+    .catch((error) => {
+        assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);

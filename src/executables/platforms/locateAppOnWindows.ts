@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { assertsError } from '../../errors/assertsError';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';
@@ -31,9 +32,7 @@ export async function locateAppOnWindows({
 
         throw new Error(`Can not locate app ${appName} on Windows.`);
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         return null;
     }

@@ -11,6 +11,7 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { COMMANDS } from '../../src/commands/index';
 import { GENERATOR_WARNING } from '../../src/config';
+import { assertsError } from '../../src/errors/assertsError';
 import { FORMFACTOR_DEFINITIONS } from '../../src/formfactors/index';
 import { NonTaskSectionTypes, SectionTypes } from '../../src/types/SectionType';
 import { TaskTypes } from '../../src/types/TaskType';
@@ -32,7 +33,8 @@ program.parse(process.argv);
 const { commit: isCommited } = program.opts();
 
 generateDocumentation({ isCommited })
-    .catch((error: Error) => {
+    .catch((error) => {
+        assertsError(error);
         console.error(colors.bgRed(error.name));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);
@@ -114,7 +116,7 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
         );
 
         await writeFile(`documents/commands/${name}.md`, await prettify(commandContent, 'markdown'), 'utf-8');
-        // <- TODO: !!!!!! Add generator warnings
+        // <- TODO: !!! Add generator warnings
     }
 
     // ==============================
@@ -137,7 +139,7 @@ interface GitHubDiscussion {
 }
 
 async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
-    // TODO: !!!!!! Paginate through all discussions
+    // TODO: !!! Paginate through all discussions (Maybe @JorgeSquared)
     const query = `
         query {
             repository(owner: "webgptorg", name: "promptbook") {

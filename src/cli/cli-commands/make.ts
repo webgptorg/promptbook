@@ -145,7 +145,7 @@ export function $initializeMakeCommand(program: Program) {
                 isCacheReloaded,
             }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-            const llm = await $provideLlmToolsForCli({
+            const { llm } = await $provideLlmToolsForCli({
                 cliOptions,
                 ...prepareAndScrapeOptions,
             });

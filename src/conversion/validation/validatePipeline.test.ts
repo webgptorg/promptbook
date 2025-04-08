@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import { assertsError } from '../../errors/assertsError';
 import { compilePipeline } from '../compilePipeline';
 import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
@@ -23,9 +24,7 @@ describe('validatePipeline with valid examples', () => {
                         const pipelineJson = await compilePipeline(pipelineString);
                         validatePipeline(pipelineJson);
                     } catch (error) {
-                        if (!(error instanceof Error)) {
-                            throw error;
-                        }
+                        assertsError(error);
 
                         throw new Error(
                             spaceTrim(

@@ -1,31 +1,49 @@
 import colors from 'colors';
 import prompts from 'prompts';
+import spaceTrim from 'spacetrim';
+import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
-import type { string_url } from '../../types/typeAliases';
+import type { string_promptbook_server_url } from '../../types/typeAliases';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidEmail } from '../../utils/validators/email/isValidEmail';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 
 type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'> & {
+    /**
+     * If true, user will be always prompted for login
+     *
+     * Note: This is used in `ptbk login` command
+     */
+    isLoginloaded?: true;
+
+    /**
+     * CLI options
+     */
     cliOptions: {
         verbose: boolean;
         interactive: boolean;
         provider: 'BYOK' | 'BRING_YOUR_OWN_KEYS' | 'REMOTE_SERVER' | 'RS' | string;
-        remoteServerUrl: string_url;
+        remoteServerUrl: string_promptbook_server_url;
     };
 };
 
 /**
  * @private utility of CLI
  */
-export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
+export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions): Promise<{
+    strategy: 'BRING_YOUR_OWN_KEYS' | 'REMOTE_SERVER';
+    llm: LlmExecutionToolsWithTotalUsage;
+
+    // <- TODO: [🧠][🌞] Maybe provide other tools from here
+}> {
     const {
+        isLoginloaded,
         cliOptions: {
             /* TODO: Use verbose: isVerbose, */ interactive: isInteractive,
             provider,
@@ -45,7 +63,14 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
     }
 
     if (strategy === 'BRING_YOUR_OWN_KEYS') {
-        return /* not await */ $provideLlmToolsForWizzardOrCli({ strategy, ...options });
+        if (isLoginloaded) {
+            throw new UnexpectedError(
+                `\`$provideLlmToolsForCli\` isLoginloaded is not supported for strategy "BRING_YOUR_OWN_KEYS"`,
+            );
+        }
+
+        const llm = await $provideLlmToolsForWizzardOrCli({ strategy, ...options });
+        return { strategy, llm };
     } else if (strategy === 'REMOTE_SERVER') {
         if (!isValidUrl(remoteServerUrlRaw)) {
             console.log(colors.red(`Invalid URL of remote server: "${remoteServerUrlRaw}"`));
@@ -54,7 +79,8 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
 
         const remoteServerUrl = remoteServerUrlRaw.endsWith('/') ? remoteServerUrlRaw.slice(0, -1) : remoteServerUrlRaw;
 
-        return /* not await */ $provideLlmToolsForWizzardOrCli({
+        const llm = await $provideLlmToolsForWizzardOrCli({
+            isLoginloaded,
             strategy,
             appId: CLI_APP_ID,
             remoteServerUrl,
@@ -64,6 +90,15 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                     console.log(colors.red(`You can not login to remote server in non-interactive mode`));
                     process.exit(1);
                 }
+
+                console.info(
+                    colors.cyan(
+                        spaceTrim(`
+                          You will be logged in to ${remoteServerUrl}
+                          If you don't have an account, it will be created automatically.
+                      `),
+                    ),
+                );
 
                 const { username, password } = await prompts([
                     {
@@ -85,8 +120,6 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
 
                 const loginUrl = `${remoteServerUrl}/login`;
 
-                console.log('!!!', { loginUrl });
-
                 // TODO: [🧠] Should we use normal `fetch` or `scraperFetch`
                 const response = await promptbookFetch(loginUrl, {
                     method: 'POST',
@@ -100,25 +133,10 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                     }),
                 });
 
-                console.log('!!!', {
-                    loginUrl,
-                    username,
-                    password,
-                    // type: response.type,
-                    // text: await response.text(),
-                });
-
                 const { isSuccess, message, error, identification } =
                     (await response.json()) as LoginResponse<really_unknown>;
 
                 TODO_USE(error);
-
-                console.log('!!!', {
-                    isSuccess,
-                    message,
-                    error,
-                    identification,
-                });
 
                 if (message) {
                     if (isSuccess) {
@@ -142,6 +160,8 @@ export function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions) {
                 return identification;
             },
         });
+
+        return { strategy, llm };
     } else {
         throw new UnexpectedError(`\`$provideLlmToolsForCli\` wrong strategy "${strategy}"`);
     }

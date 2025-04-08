@@ -8,6 +8,7 @@ import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { assertsError } from '../../errors/assertsError';
 import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -67,8 +68,6 @@ export function $initializeRunCommand(program: Program) {
 
     runCommand.action(
         handleActionErrors(async (pipelineSource, cliOptions) => {
-            console.log('!!!', cliOptions);
-
             const {
                 reload: isCacheReloaded,
                 interactive: isInteractive,
@@ -110,11 +109,10 @@ export function $initializeRunCommand(program: Program) {
             let llm: LlmExecutionTools;
 
             try {
-                llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
+                llm = (await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions })).llm;
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
+
                 if (!error.message.includes('No LLM tools')) {
                     throw error;
                 }

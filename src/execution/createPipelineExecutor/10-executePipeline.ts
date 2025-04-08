@@ -4,6 +4,7 @@ import { forTime } from 'waitasecond';
 import { IMMEDIATE_TIME } from '../../config';
 import { LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
+import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -340,9 +341,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
         await Promise.all(resolving);
     } catch (error /* <- Note: [3] */) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         // Note: No need to rethrow UnexpectedError
         // if (error instanceof UnexpectedError) {

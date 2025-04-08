@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../../config';
 import { ParseError } from '../../../errors/ParseError';
+import { assertsError } from '../../../errors/assertsError';
 import type { string_javascript } from '../../../types/typeAliases';
 import type { string_javascript_name } from '../../../types/typeAliases';
 /**
@@ -57,9 +58,7 @@ export function extractVariablesFromJavascript(script: string_javascript): Set<s
                 }
             }
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         throw new ParseError(
             spaceTrim(
