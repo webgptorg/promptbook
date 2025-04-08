@@ -1,4 +1,6 @@
+import swagger from '@elysiajs/swagger';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import Elysia from 'elysia';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
