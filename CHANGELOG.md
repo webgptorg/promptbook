@@ -744,7 +744,7 @@ Scripting and execution
 User system and spending of credits
 
 -   Update `typescript` to `5.2.2`
--   Do not pass `rootPath` into `RemoteServerOptions`, if you want path prefix, configure it in the reverse proxy
+-   Remote server requires root url `/`, if you want to run multiple services on the same server, use 3rd or 4th degree subdomain
 -   [🌬] Make websocket transport work
 -   Allow to pass custom execution tools to promptbook server
 -   CLI can be connected to Promptbook remote server

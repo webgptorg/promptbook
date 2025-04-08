@@ -1,6 +1,4 @@
-import type { string_legal_entity } from './src/types/typeAliases';
-import type { string_promptbook_server_url } from './src/types/typeAliases';
-import type { string_title } from './src/types/typeAliases';
+import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
 
 /**
  * Open Promptbook server usable for public
@@ -28,7 +26,7 @@ type ServerConfiguration = {
 
     /**
      * URL of the server
-     * 
+     *
      Note: lising more for loadbalancing
      */
     urls: Array<string_promptbook_server_url>;
@@ -46,11 +44,12 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
         owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
         isAnonymousModeAllowed: true,
         urls: [
-            'https://s5.ptbk.io/promptbook',
+            'https://promptbook.s5.ptbk.io/',
             // Note: Servers 1-4 are not running
         ],
     },
-
+    /*
+    Note: Working on older version of Promptbook and not supported anymore
     {
         title: 'Pavol Promptbook Server',
         description: `Personal server of Pavol Hejný with simple testing server, DO NOT USE IT FOR PRODUCTION`,
@@ -58,6 +57,7 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
         isAnonymousModeAllowed: true,
         urls: ['https://api.pavolhejny.com/promptbook'],
     },
+    */
 ];
 
 /**
