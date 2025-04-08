@@ -1,6 +1,7 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import { CONNECTION_RETRIES_LIMIT, CONNECTION_TIMEOUT_MS } from '../config';
+import { CONNECTION_RETRIES_LIMIT } from '../config';
+import { CONNECTION_TIMEOUT_MS } from '../config';
 import type { RemoteClientOptions } from './types/RemoteClientOptions';
 
 /**
