@@ -1,0 +1,142 @@
+{
+    "date": "2025-04-08T17:31:58.931Z",
+    "promptbookVersion": "0.89.0-21",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "It allows users to write code in plain English, eliminating the need for traditional programming syntax like loops and variables."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Code in Plain English\n",
+        "modelName": "gemini-1.5-flash",
+        "timing": {
+            "start": "2025-04-08T17:31:58.091Z",
+            "complete": "2025-04-08T17:31:58.930Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 64
+                },
+                "charactersCount": {
+                    "value": 305
+                },
+                "wordsCount": {
+                    "value": 46
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 5
+                },
+                "charactersCount": {
+                    "value": 22
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> It allows users to write code in plain English, eliminating the need for traditional programming syntax like loops and variables.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> It allows users to write code in plain English, eliminating the need for traditional programming syntax like loops and variables."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Code in Plain English\n",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 64,
+                "completionTokens": 5
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> It allows users to write code in plain English, eliminating the need for traditional programming syntax like loops and variables."
+                            }
+                        ]
+                    }
+                ],
+                "rawSettings": {
+                    "generationConfig": {}
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json; charset=UTF-8",
+                    "date": "Tue, 08 Apr 2025 17:31:58 GMT",
+                    "server": "scaffolding on HTTPServer2",
+                    "server-timing": "gfet4t7; dur=432",
+                    "transfer-encoding": "chunked",
+                    "vary": "Origin, X-Origin, Referer",
+                    "x-content-type-options": "nosniff",
+                    "x-frame-options": "SAMEORIGIN",
+                    "x-xss-protection": "0"
+                }
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"generationConfig\":{},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> It allows users to write code in plain English, eliminating the need for traditional programming syntax like loops and variables.\"}]}]}"
+            }
+        }
+    }
+}
