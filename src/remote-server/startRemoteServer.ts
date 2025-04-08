@@ -1,4 +1,3 @@
-import swagger from '@elysiajs/swagger';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import Elysia from 'elysia';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
@@ -136,6 +135,10 @@ export async function startRemoteServer<TCustomOptions = undefined>(
         return tools;
     }
 
+    // Note: !!!!
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const swagger = require('@elysiajs/swagger');
+
     const app = new Elysia()
         .use(
             swagger({
@@ -263,7 +266,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     });
 
     // Login endpoint
-    app.post('/login', async ({ body, request ,set}) => {
+    app.post('/login', async ({ body, request, set }) => {
         if (!isApplicationModeAllowed || login === null) {
             set.status = 400;
             return 'Application mode is not allowed';
@@ -280,7 +283,7 @@ export async function startRemoteServer<TCustomOptions = undefined>(
                 username,
                 password,
                 appId,
-                rawRequest: request
+                rawRequest: request,
             });
 
             set.status = 201;
