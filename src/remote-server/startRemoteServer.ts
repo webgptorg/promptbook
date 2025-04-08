@@ -210,7 +210,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     **Server port:** ${port}
                     **Server root path:** ${rootPath}
-                    **Socket.io path:** ${socketioPath}
                     **Startup date:** ${startupDate.toISOString()}
                     **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}

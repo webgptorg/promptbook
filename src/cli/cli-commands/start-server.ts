@@ -97,8 +97,6 @@ export function $initializeStartServerCommand(program: Program) {
                 rootUrl = suffixUrl(url, '/books');
             }
 
-            const rootPath = '/';
-
             if (url !== null && url.pathname !== '/' && url.pathname !== '') {
                 console.error(colors.red(`URL of the server can not have path, but got "${url.pathname}"`));
                 process.exit(1);
@@ -133,7 +131,6 @@ export function $initializeStartServerCommand(program: Program) {
             // console.log(path, await collection.listPipelines());
 
             const server = startRemoteServer({
-                rootPath,
                 port,
                 isAnonymousModeAllowed,
                 isApplicationModeAllowed: true,
