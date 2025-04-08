@@ -743,7 +743,7 @@ Scripting and execution
 
 User system and spending of credits
 
--   Migrate from Express.js to Elisia.js
+-   Migrate from `Express.js` to `Elisia.js`
 -   Update `typescript` to `5.2.2`
 -   Remote server requires root url `/`, if you want to run multiple services on the same server, use 3rd or 4th degree subdomain
 -   [🌬] Make websocket transport work
