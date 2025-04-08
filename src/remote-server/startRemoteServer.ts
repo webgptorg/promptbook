@@ -138,45 +138,42 @@ export async function startRemoteServer<TCustomOptions = undefined>(
     // Note: Can not use `import from`
     // Note: Can not use `require`
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { swagger } = await import('@elysiajs/swagger');
+    //[7]> const { swagger } = await import('@elysiajs/swagger');
 
     /*
-TODO: !!!!!! `@elysiajs/swagger` cannot be imported
+    TODO: [7] !!!!!! `@elysiajs/swagger` cannot be imported
 
-When using await import or require:
+    When using await import or require:
 
-```
-$ npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS
-
-
-require() of ES Module C:\Users\me\work\ai\promptbook\node_modules\@scalar\types\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs not supported.    ost:4460 --provider BRING_YOUR_OWN_KEYS
-Instead change the require of index.js in C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dilternative instead.st\index.cjs to a dynamic import() which is available in all CommonJS modules.
-                                                                                                       ex.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes
-
-```
-
-When using import from:
-```
-me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (feature/elysia+swagger+openapi-2)
-$ npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhst\index.cjs to a dynamic import() which is available in all CommonJSost:4460 --provider BRING_YOUR_OWN_KEYS
-C:\Users\me\work\ai\promptbook\node_modules\ts-node\dist\index.js:851
-            return old(m, filename);
-                   ^                                                                                   ost:4460 --provider BRING_YOUR_OWN_KEYS
-Error [ERR_REQUIRE_ESM]: require() of ES Module C:\Users\me\work\ai\promptbook\node_modules\@scalar\types\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs not supported.
-Instead change the require of index.js in C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dies\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\nost\index.cjs to a dynamic import() which is available in all CommonJS modules.
-    at require.extensions.<computed> [as .js] (C:\Users\me\work\ai\promptbook\node_modules\ts-node\distst\index.cjs to a dynamic import() which is available in all CommonJS\index.js:851:20)
-    at TracingChannel.traceSync (node:diagnostics_channel:315:14)                                      \index.js:851:20)
-    at Module.<anonymous> (C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs:1:599) {                                                                                                 599) {
-  code: 'ERR_REQUIRE_ESM'
-}
-```
+    ```
+    $ npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS
 
 
+    require() of ES Module C:\Users\me\work\ai\promptbook\node_modules\@scalar\types\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs not supported.    ost:4460 --provider BRING_YOUR_OWN_KEYS
+    Instead change the require of index.js in C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dilternative instead.st\index.cjs to a dynamic import() which is available in all CommonJS modules.
+                                                                                                          ex.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes
 
-*/
+    ```
+
+    When using import from:
+    ```
+    me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (feature/elysia+swagger+openapi-2)
+    $ npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhst\index.cjs to a dynamic import() which is available in all CommonJSost:4460 --provider BRING_YOUR_OWN_KEYS
+    C:\Users\me\work\ai\promptbook\node_modules\ts-node\dist\index.js:851
+                return old(m, filename);
+                      ^                                                                                   ost:4460 --provider BRING_YOUR_OWN_KEYS
+    Error [ERR_REQUIRE_ESM]: require() of ES Module C:\Users\me\work\ai\promptbook\node_modules\@scalar\types\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs not supported.
+    Instead change the require of index.js in C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dies\dist\api-reference\index.js from C:\Users\me\work\ai\promptbook\nost\index.cjs to a dynamic import() which is available in all CommonJS modules.
+        at require.extensions.<computed> [as .js] (C:\Users\me\work\ai\promptbook\node_modules\ts-node\distst\index.cjs to a dynamic import() which is available in all CommonJS\index.js:851:20)
+        at TracingChannel.traceSync (node:diagnostics_channel:315:14)                                      \index.js:851:20)
+        at Module.<anonymous> (C:\Users\me\work\ai\promptbook\node_modules\@scalar\themes\dist\index.cjs:1:599) {                                                                                                 599) {
+      code: 'ERR_REQUIRE_ESM'
+    }
+    ```
+    */
 
     const app = new Elysia()
-        .use(
+        /* [7] .use(
             swagger({
                 documentation: {
                     info: {
@@ -192,10 +189,10 @@ Instead change the require of index.js in C:\Users\me\work\ai\promptbook\node_mo
                             // <- TODO: Pass some public URLs here
                         },
                     ],
-                    */
+                    * /
                 },
             }),
-        )
+        )*/
         .decorate('startupDate', startupDate)
         .decorate('runningExecutionTasks', [] as Array<ExecutionTask>)
         .derive(({ request }: TODO_any /* <- TODO: !!! */) => ({
