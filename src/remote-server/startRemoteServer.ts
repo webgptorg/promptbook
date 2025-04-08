@@ -6,8 +6,7 @@ import { spaceTrim } from 'spacetrim';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -24,14 +23,12 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters, string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { Identification } from './socket-types/_subtypes/Identification';
@@ -41,8 +38,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -173,9 +169,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-    const rootPath = ''; // <- TODO: !!!! Remove after merging into feature/elysia+openai+swagger-2
-
-    app.use([`/api-docs`, `${rootPath}/api-docs`], swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.use(`/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
     // <- TODO: [🤬] Identify the users
@@ -192,7 +186,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *       200:
      *         description: Server details in markdown format.
      */
-    app.get(['/', rootPath], async (request, response) => {
+    app.get('/', async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
         }
@@ -213,7 +207,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     ## Details
 
                     **Server port:** ${port}
-                    **Server root path:** ${rootPath}
                     **Startup date:** ${startupDate.toISOString()}
                     **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
@@ -291,7 +284,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *         identification:
      *          type: object
      */
-    app.post([`/login`, `${rootPath}/login`], async (request, response) => {
+    app.post(`/login`, async (request, response) => {
         if (!isApplicationModeAllowed || login === null) {
             response.status(400).send('Application mode is not allowed');
             return;
@@ -351,7 +344,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *               items:
      *                 type: string
      */
-    app.get([`/books`, `${rootPath}/books`], async (request, response) => {
+    app.get(`/books`, async (request, response) => {
         if (collection === null) {
             response.status(500).send('No collection available');
             return;
@@ -388,7 +381,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *       404:
      *         description: Book not found.
      */
-    app.get([`/books/*`, `${rootPath}/books/*`], async (request, response) => {
+    app.get(`/books/*`, async (request, response) => {
         try {
             if (collection === null) {
                 response.status(500).send('No collection nor books available');
@@ -470,7 +463,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *               items:
      *                 type: object
      */
-    app.get([`/executions`, `${rootPath}/executions`], async (request, response) => {
+    app.get(`/executions`, async (request, response) => {
         response.send(
             runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
             // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
@@ -478,7 +471,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
-    app.get([`/executions/last`, `${rootPath}/executions/last`], async (request, response) => {
+    app.get(`/executions/last`, async (request, response) => {
         // TODO: [🤬] Filter only for user
 
         if (runningExecutionTasks.length === 0) {
@@ -490,7 +483,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         response.send(exportExecutionTask(lastExecutionTask!, true));
     });
 
-    app.get([`/executions/:taskId`, `${rootPath}/executions/:taskId`], async (request, response) => {
+    app.get(`/executions/:taskId`, async (request, response) => {
         const { taskId } = request.params;
 
         // TODO: [🤬] Filter only for user
@@ -542,7 +535,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
         identification: Identification<TCustomOptions>;
-    }>([`/executions/new`, `${rootPath}/executions/new`], async (request, response) => {
+    }>(`/executions/new`, async (request, response) => {
         try {
             const { inputParameters, identification /* <- [🤬] */ } = request.body;
             const pipelineUrl = request.body.pipelineUrl || request.body.book;
