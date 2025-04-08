@@ -26,7 +26,7 @@ export async function createRemoteClient<TCustomOptions = undefined>(
             retries: CONNECTION_RETRIES_LIMIT,
             timeout: CONNECTION_TIMEOUT_MS,
             path: '/socket.io',
-            transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+            transports: ['polling', 'websocket' /*, <- TODO: [🌬] Allow to pass `transports`, add 'webtransport' */],
         });
 
         // console.log('Connecting to', this.options.remoteServerUrl.href, { socket });

@@ -603,7 +603,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     const server: Server = new Server(httpServer, {
         path: '/socket.io',
-        transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+        transports: ['polling', 'websocket' /*, <- TODO: [🌬] Allow to pass `transports`, add 'webtransport' */],
         cors: {
             origin: '*',
             methods: ['GET', 'POST'],

@@ -745,6 +745,7 @@ User system and spending of credits
 
 -   Update `typescript` to `5.2.2`
 -   Do not pass `rootPath` into `RemoteServerOptions`, if you want path prefix, configure it in the reverse proxy
+-   [🌬] Make websocket transport work
 -   Allow to pass custom execution tools to promptbook server
 -   CLI can be connected to Promptbook remote server
     -   Allow to specify `BRING_YOUR_OWN_KEYS` / `REMOTE_SERVER` in cli commands `ptbk run`, `ptbk make`, `ptbk list-models` and `ptbk start-server`
