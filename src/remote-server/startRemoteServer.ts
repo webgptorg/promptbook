@@ -1,5 +1,5 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import Elysia from 'elysia';
+import Elysia from 'elysia'; // <- TODO: !!! Cleanup unused dependencies like express
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
