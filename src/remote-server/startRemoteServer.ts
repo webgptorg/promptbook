@@ -30,7 +30,7 @@ import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
-import openapiJson from './openapi.json';
+import { openapiJson } from './openapi';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { Identification } from './socket-types/_subtypes/Identification';
@@ -153,8 +153,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
     app.use(
         OpenApiValidator.middleware({
             apiSpec: openapiJson as TODO_any,
-            validateRequests: true, // (default)
-            validateResponses: true, // false by default
+
+            // TODO: !!! Adjust
+            ignorePaths(...args: TODO_any) {
+                console.warn(`!!! Ignoring paths`, ...args);
+                return true;
+            },
+
+            // TODO: !!! Validate both
+            validateRequests: false, // (default)
+            validateResponses: false, // false by default
         }),
     );
 
@@ -169,6 +177,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
     );
 
     app.get(`/openapi`, (request, response) => {
+        response.json(openapiJson);
+    });
+
+    // TODO: !!! Remove:
+    app.get(`/xxx`, (request, response) => {
         response.json(openapiJson);
     });
 
