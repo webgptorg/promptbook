@@ -46,6 +46,12 @@ async function findNameDiscrepancies() {
 
     for (const file of filesWithDiscrepancies) {
         const { filename } = file;
+
+        // Note: Exclude some files from the check:
+        if (filename.endsWith('openapi-types.ts')) {
+            continue;
+        }
+
         const content = await readFile(filename, 'utf-8');
 
         const isIgnored = content.includes('[💞]');
