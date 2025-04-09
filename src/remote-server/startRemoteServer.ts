@@ -3,7 +3,8 @@ import express from 'express';
 import http from 'http';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import swaggerJsdoc from 'swagger-jsdoc';
+// !!! Remove import swaggerJsdoc from 'swagger-jsdoc';
+import * as OpenApiValidator from 'express-openapi-validator';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
 import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
@@ -29,6 +30,7 @@ import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import openapiJson from './openapi.json';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { Identification } from './socket-types/_subtypes/Identification';
@@ -146,33 +148,28 @@ export function startRemoteServer<TCustomOptions = undefined>(
         next();
     });
 
-    const swaggerOptions = {
-        definition: {
-            openapi: '3.0.0',
-            info: {
-                title: 'Promptbook Remote Server API',
-                version: '1.0.0',
-                description: 'API documentation for the Promptbook Remote Server',
-            },
-            /*
-            TODO:
-            servers: [
-                {
-                    url: `http://localhost:${port}${rootPath}`,
-                    // <- TODO: Pass some public URLs here
-                },
-            ],
-            */
-        },
-        apis: ['./src/remote-server/**/*.ts'], // Adjust path as needed
-    };
+    // TODO: !!! Expose openapiJson to consumer and also allow to add new routes
 
-    const swaggerSpec = swaggerJsdoc(swaggerOptions);
+    app.use(
+        OpenApiValidator.middleware({
+            apiSpec: openapiJson as TODO_any,
+            validateRequests: true, // (default)
+            validateResponses: true, // false by default
+        }),
+    );
 
-    app.use(`/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.use(
+        [`/api-docs`, `/swagger`],
+        swaggerUi.serve,
+        swaggerUi.setup(openapiJson, {
+            // customCss: '.swagger-ui .topbar { display: none }',
+            // customSiteTitle: 'BRJ API',
+            // customfavIcon: 'https://brj.app/favicon.ico',
+        }),
+    );
 
     app.get(`/openapi`, (request, response) => {
-        response.json(swaggerSpec);
+        response.json(openapiJson);
     });
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
@@ -180,16 +177,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     // TODO: [🧠] Do here some garbage collection of finished tasks
 
-    /**
-     * @swagger
-     * /:
-     *   get:
-     *     summary: Get server details
-     *     description: Returns details about the Promptbook server.
-     *     responses:
-     *       200:
-     *         description: Server details in markdown format.
-     */
     app.get('/', async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
@@ -257,37 +244,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
-    /**
-     * @swagger
-     *
-     * /login:
-     *  post:
-     *   summary: Login to the server
-     *   description: Login to the server and get identification.
-     *   requestBody:
-     *    required: true
-     *    content:
-     *     application/json:
-     *      schema:
-     *       type: object
-     *       properties:
-     *        username:
-     *         type: string
-     *        password:
-     *         type: string
-     *        appId:
-     *         type: string
-     *   responses:
-     *    200:
-     *     description: Successful login
-     *     content:
-     *      application/json:
-     *       schema:
-     *        type: object
-     *        properties:
-     *         identification:
-     *          type: object
-     */
     app.post(`/login`, async (request, response) => {
         if (!isApplicationModeAllowed || login === null) {
             response.status(400).send('Application mode is not allowed');
@@ -332,22 +288,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
     });
 
-    /**
-     * @swagger
-     * /books:
-     *   get:
-     *     summary: List all books
-     *     description: Returns a list of all available books in the collection.
-     *     responses:
-     *       200:
-     *         description: A list of books.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: string
-     */
     app.get(`/books`, async (request, response) => {
         if (collection === null) {
             response.status(500).send('No collection available');
@@ -362,29 +302,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     // TODO: [🧠] Is it secure / good idea to expose source codes of hosted books
 
-    /**
-     * @swagger
-     * /books/{bookId}:
-     *   get:
-     *     summary: Get book content
-     *     description: Returns the content of a specific book.
-     *     parameters:
-     *       - in: path
-     *         name: bookId
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: The ID of the book to retrieve.
-     *     responses:
-     *       200:
-     *         description: The content of the book.
-     *         content:
-     *           text/markdown:
-     *             schema:
-     *               type: string
-     *       404:
-     *         description: Book not found.
-     */
     app.get(`/books/*`, async (request, response) => {
         try {
             if (collection === null) {
@@ -451,22 +368,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
     }
 
-    /**
-     * @swagger
-     * /executions:
-     *   get:
-     *     summary: List all executions
-     *     description: Returns a list of all running execution tasks.
-     *     responses:
-     *       200:
-     *         description: A list of execution tasks.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: object
-     */
     app.get(`/executions`, async (request, response) => {
         response.send(
             runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
@@ -506,35 +407,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         response.send(exportExecutionTask(executionTask, true));
     });
 
-    /**
-     * @swagger
-     * /executions/new:
-     *   post:
-     *     summary: Start a new execution
-     *     description: Starts a new execution task for a given pipeline.
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               pipelineUrl:
-     *                 type: string
-     *               inputParameters:
-     *                 type: object
-     *               identification:
-     *                 type: object
-     *     responses:
-     *       200:
-     *         description: The newly created execution task.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *       400:
-     *         description: Invalid input.
-     */
     app.post<{
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
