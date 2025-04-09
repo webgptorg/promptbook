@@ -1,5 +1,9 @@
 // TODO: !!! List running services from REMOTE_SERVER_URLS
 // TODO: !!! Import directly from YML
+
+/**
+ * @private !!!! Decide how to expose this
+ */
 export const openapiJson = {
     openapi: '3.0.0',
     info: {
