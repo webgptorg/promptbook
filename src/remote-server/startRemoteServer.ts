@@ -154,15 +154,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
         OpenApiValidator.middleware({
             apiSpec: openapiJson as TODO_any,
 
-            // TODO: !!! Adjust
-            ignorePaths(...args: TODO_any) {
-                console.warn(`!!! Ignoring paths`, ...args);
-                return true;
+            ignorePaths(path: string) {
+                return path.startsWith('/api-docs') || path.startsWith('/swagger') || path.startsWith('/openapi');
             },
-
-            // TODO: !!! Validate both
-            validateRequests: false, // (default)
-            validateResponses: false, // false by default
+            validateRequests: true,
+            validateResponses: true,
         }),
     );
 
@@ -177,11 +173,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
     );
 
     app.get(`/openapi`, (request, response) => {
-        response.json(openapiJson);
-    });
-
-    // TODO: !!! Remove:
-    app.get(`/xxx`, (request, response) => {
         response.json(openapiJson);
     });
 
