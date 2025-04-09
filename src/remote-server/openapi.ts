@@ -183,3 +183,7 @@ export const openapiJson = {
     components: {},
     tags: [],
 };
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
