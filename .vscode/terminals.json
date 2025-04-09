@@ -86,14 +86,14 @@
         },
         {
             "name": "🏭💉 Import markdowns",
-            "commands": ["./book/scripts/import-markdown/import-markdown.ts"],
+            "command": "npm run import-markdowns",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🏭📦 Generate packages",
-            "commands": ["npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler"],
+            "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
             "execute": false,
             "onlySingle": true,
             "focus": false
@@ -101,6 +101,13 @@
         {
             "name": "🏭📚 Generate documentation",
             "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
+            "name": "🏭📚 Generate server types from Open API",
+            "commands": ["npm run generate-openapi-types"],
             "execute": false,
             "onlySingle": true,
             "focus": false

@@ -7,8 +7,7 @@ import { spaceTrim } from 'spacetrim';
 import * as OpenApiValidator from 'express-openapi-validator';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -25,15 +24,13 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
+import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
 import type { Identification } from './socket-types/_subtypes/Identification';
@@ -43,8 +40,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -314,7 +310,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         const pipelines = await collection.listPipelines();
         // <- TODO: [🧠][👩🏾‍🤝‍🧑🏿] List `inputParameters` required for the execution
 
-        response.send(pipelines);
+        response.send(pipelines satisfies paths['/books']['get']['responses']['200']['content']['application/json']);
     });
 
     // TODO: [🧠] Is it secure / good idea to expose source codes of hosted books
@@ -344,7 +340,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     'text/markdown',
                     // <- TODO: [🧠] Make custom mime-type for books
                 )
-                .send(source.content);
+                .send(
+                    source.content as paths[`/books/${string}`]['get']['responses']['200']['content']['text/markdown'],
+                );
         } catch (error) {
             assertsError(error);
 
@@ -387,7 +385,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     app.get(`/executions`, async (request, response) => {
         response.send(
-            runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
+            runningExecutionTasks.map((runningExecutionTask) =>
+                exportExecutionTask(runningExecutionTask, false),
+            ) /* <- TODO: satisfies paths['/executions']['get']['responses']['200']['content']['application/json'] */,
             // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
             // <- TODO: [🧠] Better and more information
         );
@@ -424,14 +424,13 @@ export function startRemoteServer<TCustomOptions = undefined>(
         response.send(exportExecutionTask(executionTask, true));
     });
 
-    app.post<{
-        pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
-        inputParameters: InputParameters;
-        identification: Identification<TCustomOptions>;
-    }>(`/executions/new`, async (request, response) => {
+    app.post(`/executions/new`, async (request, response) => {
         try {
             const { inputParameters, identification /* <- [🤬] */ } = request.body;
-            const pipelineUrl = request.body.pipelineUrl || request.body.book;
+            const pipelineUrl =
+                request.body
+                    .pipelineUrl /* <- TODO: as paths['/executions/new']['post']['requestBody']['content']['application/json'] */ ||
+                request.body.book;
 
             // TODO: [🧠] Check `pipelineUrl` and `inputParameters` here or it should be responsibility of `collection.getPipelineByUrl` and `pipelineExecutor`
 
@@ -454,7 +453,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
             // <- Note: Wait for a while to wait for quick responses or sudden but asynchronous errors
             // <- TODO: Put this into configuration
 
-            response.send(executionTask);
+            response.send(
+                executionTask /* <- TODO: satisfies paths['/executions/new']['post']['responses']['200']['content']['application/json'] */,
+            );
 
             /*/
             executionTask.asObservable().subscribe({
