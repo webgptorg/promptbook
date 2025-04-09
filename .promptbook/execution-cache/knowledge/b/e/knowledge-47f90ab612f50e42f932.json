@@ -1,0 +1,122 @@
+{
+    "date": "2025-04-09T17:13:45.446Z",
+    "promptbookVersion": "0.89.0-29",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "It translates plain English specifications into working code, enabling rapid development of AI applications in minutes."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "English specifications, working code, rapid development, AI applications.",
+        "modelName": "gpt-4o-2024-08-06",
+        "timing": {
+            "start": "2025-04-09T17:13:42.860Z",
+            "complete": "2025-04-09T17:13:45.445Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 62
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 13
+                },
+                "charactersCount": {
+                    "value": 73
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> It translates plain English specifications into working code, enabling rapid development of AI applications in minutes.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> It translates plain English specifications into working code, enabling rapid development of AI applications in minutes."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BKTHZfYd2oCXUpTg1JvEHf9yxBnx0",
+            "object": "chat.completion",
+            "created": 1744218821,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "English specifications, working code, rapid development, AI applications.",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 62,
+                "completion_tokens": 13,
+                "total_tokens": 75,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_898ac29719"
+        }
+    }
+}

@@ -1,0 +1,137 @@
+{
+    "date": "2025-04-09T17:13:42.647Z",
+    "promptbookVersion": "0.89.0-29",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook allows programming using natural language, bridging the gap between technology and people, making programming a creative process accessible to everyone."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, natural language programming, accessible programming, creative programming\n",
+        "modelName": "gemini-1.5-flash",
+        "timing": {
+            "start": "2025-04-09T17:13:41.557Z",
+            "complete": "2025-04-09T17:13:42.647Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 64
+                },
+                "charactersCount": {
+                    "value": 357
+                },
+                "wordsCount": {
+                    "value": 47
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 13
+                },
+                "charactersCount": {
+                    "value": 87
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook allows programming using natural language, bridging the gap between technology and people, making programming a creative process accessible to everyone.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook allows programming using natural language, bridging the gap between technology and people, making programming a creative process accessible to everyone."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Promptbook, natural language programming, accessible programming, creative programming\n",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 64,
+                "completionTokens": 13
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook allows programming using natural language, bridging the gap between technology and people, making programming a creative process accessible to everyone."
+                            }
+                        ]
+                    }
+                ],
+                "rawSettings": {
+                    "generationConfig": {}
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json; charset=UTF-8",
+                    "date": "Wed, 09 Apr 2025 17:13:40 GMT",
+                    "server": "scaffolding on HTTPServer2",
+                    "server-timing": "gfet4t7; dur=400",
+                    "transfer-encoding": "chunked",
+                    "vary": "Origin, X-Origin, Referer",
+                    "x-content-type-options": "nosniff",
+                    "x-frame-options": "SAMEORIGIN",
+                    "x-xss-protection": "0"
+                }
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"generationConfig\":{},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Promptbook allows programming using natural language, bridging the gap between technology and people, making programming a creative process accessible to everyone.\"}]}]}"
+            }
+        }
+    }
+}

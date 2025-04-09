@@ -1,0 +1,137 @@
+{
+    "date": "2025-04-09T17:13:43.178Z",
+    "promptbookVersion": "0.89.0-29",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook uses human-understandable concepts (personas, knowledge, actions) instead of traditional programming elements (ifs, loops, variables)."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, personas, knowledge, actions, programming, ifs, loops, variables\n",
+        "modelName": "gemini-1.5-flash",
+        "timing": {
+            "start": "2025-04-09T17:13:42.022Z",
+            "complete": "2025-04-09T17:13:43.178Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 66
+                },
+                "charactersCount": {
+                    "value": 339
+                },
+                "wordsCount": {
+                    "value": 42
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 17
+                },
+                "charactersCount": {
+                    "value": 77
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook uses human-understandable concepts (personas, knowledge, actions) instead of traditional programming elements (ifs, loops, variables).",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook uses human-understandable concepts (personas, knowledge, actions) instead of traditional programming elements (ifs, loops, variables)."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Promptbook, personas, knowledge, actions, programming, ifs, loops, variables\n",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 66,
+                "completionTokens": 17
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook uses human-understandable concepts (personas, knowledge, actions) instead of traditional programming elements (ifs, loops, variables)."
+                            }
+                        ]
+                    }
+                ],
+                "rawSettings": {
+                    "generationConfig": {}
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json; charset=UTF-8",
+                    "date": "Wed, 09 Apr 2025 17:13:41 GMT",
+                    "server": "scaffolding on HTTPServer2",
+                    "server-timing": "gfet4t7; dur=450",
+                    "transfer-encoding": "chunked",
+                    "vary": "Origin, X-Origin, Referer",
+                    "x-content-type-options": "nosniff",
+                    "x-frame-options": "SAMEORIGIN",
+                    "x-xss-protection": "0"
+                }
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"generationConfig\":{},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Promptbook uses human-understandable concepts (personas, knowledge, actions) instead of traditional programming elements (ifs, loops, variables).\"}]}]}"
+            }
+        }
+    }
+}
