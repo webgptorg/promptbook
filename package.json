@@ -64,7 +64,7 @@
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "generate-documentation": "ts-node ./scripts/generate-documentation/generate-documentation.ts --commit",
         "generate-examples-jsons": "ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --commit",
-        "import-markdowns": "deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git add . && git commit --allow-empty --message \"📄 Import markdowns\" && git push && cd .. && git add . && git commit --allow-empty --message \"📄 Import markdowns\"",
+        "import-markdowns": "npx deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git add . && git commit --allow-empty --message \"📄 Import markdowns\" && git push && cd .. && git add . && git commit --allow-empty --message \"📄 Import markdowns\"",
         "find-name-discrepancies": "ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts",
         "test-package-generation": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler  --commit",
         "make-promptbook-collection": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit",
