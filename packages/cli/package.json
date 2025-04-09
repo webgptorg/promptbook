@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.89.0-27",
+    "version": "0.89.0-28",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -59,6 +59,7 @@
         "crypto-js": "4.2.0",
         "dotenv": "16.3.1",
         "express": "4.21.2",
+        "express-openapi-validator": "^5.4.9",
         "glob-promise": "6.0.5",
         "jsdom": "25.0.1",
         "jszip": "3.10.1",
@@ -73,7 +74,6 @@
         "socket.io": "4.8.1",
         "socket.io-client": "4.7.2",
         "spacetrim": "0.11.59",
-        "swagger-jsdoc": "6.2.8",
         "swagger-ui-express": "5.0.1",
         "type-fest": "4.5.0",
         "userhome": "1.0.1",
