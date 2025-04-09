@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/types",
-    "version": "0.89.0-29",
+    "version": "0.89.0-30",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -49,6 +49,6 @@
     },
     "typings": "./esm/typings/src/_packages/types.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.89.0-29"
+        "@promptbook/core": "0.89.0-30"
     }
 }
