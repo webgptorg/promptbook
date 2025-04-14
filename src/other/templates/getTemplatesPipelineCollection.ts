@@ -126,8 +126,8 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "description": "a developer of the Promptbook Project",
                         "modelRequirements": {
                             "modelVariant": "CHAT",
-                            "modelName": "gpt-4-turbo-preview",
-                            "systemMessage": "You are an experienced AI engineer and developer of the Promptbook Project. Your role is to assist users with questions related to AI development, prompt engineering, and the Promptbook Project specifically. Provide detailed, technical responses when appropriate, and always aim to offer practical, implementable advice.",
+                            "modelName": "gpt-4-turbo-2024-04-09",
+                            "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. Your role is to assist users with questions about prompt engineering, AI model interactions, and the Promptbook framework. Provide detailed, technical answers when appropriate, and offer practical advice for implementing prompts and working with various AI models.",
                             "temperature": 0.7
                         },
                         "preparationIds": [
@@ -138,26 +138,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
-                                "value": 0.004449
+                                "value": 0.005202
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 968
+                                    "value": 1054
                                 },
                                 "charactersCount": {
-                                    "value": 2927
+                                    "value": 3096
                                 },
                                 "wordsCount": {
-                                    "value": 506
+                                    "value": 543
                                 },
                                 "sentencesCount": {
-                                    "value": 46
+                                    "value": 50
                                 },
                                 "linesCount": {
-                                    "value": 66
+                                    "value": 69
                                 },
                                 "paragraphsCount": {
                                     "value": 20
@@ -168,22 +168,22 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 103
+                                    "value": 136
                                 },
                                 "charactersCount": {
-                                    "value": 417
+                                    "value": 553
                                 },
                                 "wordsCount": {
-                                    "value": 57
+                                    "value": 84
                                 },
                                 "sentencesCount": {
                                     "value": 5
                                 },
                                 "linesCount": {
-                                    "value": 12
+                                    "value": 14
                                 },
                                 "paragraphsCount": {
-                                    "value": 1
+                                    "value": 2
                                 },
                                 "pagesCount": {
                                     "value": 1
@@ -572,8 +572,8 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "description": "a developer of the Promptbook Project",
                         "modelRequirements": {
                             "modelVariant": "CHAT",
-                            "modelName": "gpt-4-turbo-preview",
-                            "systemMessage": "You are an experienced AI engineer and developer of the Promptbook Project. Your role is to assist users with questions related to AI development, prompt engineering, and the Promptbook Project specifically. Provide detailed, technical responses when appropriate, and always aim to offer practical, implementable advice.",
+                            "modelName": "gpt-4-turbo-2024-04-09",
+                            "systemMessage": "You are an experienced AI engineer and a developer of the Promptbook Project. Your role is to assist users with questions about prompt engineering, AI model interactions, and the Promptbook framework. Provide detailed, technical answers when appropriate, and offer practical advice for implementing prompts and working with various AI models.",
                             "temperature": 0.7
                         },
                         "preparationIds": [
@@ -584,26 +584,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
-                                "value": 0.004449
+                                "value": 0.005202
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 968
+                                    "value": 1054
                                 },
                                 "charactersCount": {
-                                    "value": 2927
+                                    "value": 3096
                                 },
                                 "wordsCount": {
-                                    "value": 506
+                                    "value": 543
                                 },
                                 "sentencesCount": {
-                                    "value": 46
+                                    "value": 50
                                 },
                                 "linesCount": {
-                                    "value": 66
+                                    "value": 69
                                 },
                                 "paragraphsCount": {
                                     "value": 20
@@ -614,22 +614,22 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 103
+                                    "value": 136
                                 },
                                 "charactersCount": {
-                                    "value": 417
+                                    "value": 553
                                 },
                                 "wordsCount": {
-                                    "value": 57
+                                    "value": 84
                                 },
                                 "sentencesCount": {
                                     "value": 5
                                 },
                                 "linesCount": {
-                                    "value": 12
+                                    "value": 14
                                 },
                                 "paragraphsCount": {
-                                    "value": 1
+                                    "value": 2
                                 },
                                 "pagesCount": {
                                     "value": 1
@@ -1121,7 +1121,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelRequirements": {
                             "modelVariant": "CHAT",
                             "modelName": "gpt-4-turbo-2024-04-09",
-                            "systemMessage": "You are a highly skilled linguist and meticulous corrector. Your expertise spans multiple languages, grammar rules, and linguistic nuances. Your primary role is to assist users with language-related queries, provide accurate corrections, and offer detailed explanations for grammatical and stylistic improvements. Always strive for precision in language use and clarity in communication.",
+                            "systemMessage": "You are an experienced linguist and meticulous corrector. Your role is to assist users with language-related queries, provide grammatical corrections, and offer insights into various aspects of linguistics. Please provide accurate and detailed explanations, and always strive for linguistic precision in your responses.",
                             "temperature": 0.3
                         },
                         "preparationIds": [
@@ -1132,26 +1132,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
-                                "value": 0.0050609999999999995
+                                "value": 0.005124
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 967
+                                    "value": 1053
                                 },
                                 "charactersCount": {
-                                    "value": 2914
+                                    "value": 3083
                                 },
                                 "wordsCount": {
-                                    "value": 504
+                                    "value": 541
                                 },
                                 "sentencesCount": {
-                                    "value": 46
+                                    "value": 50
                                 },
                                 "linesCount": {
-                                    "value": 66
+                                    "value": 69
                                 },
                                 "paragraphsCount": {
                                     "value": 20
@@ -1162,19 +1162,19 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 144
+                                    "value": 131
                                 },
                                 "charactersCount": {
-                                    "value": 587
+                                    "value": 519
                                 },
                                 "wordsCount": {
-                                    "value": 85
+                                    "value": 76
                                 },
                                 "sentencesCount": {
-                                    "value": 6
+                                    "value": 5
                                 },
                                 "linesCount": {
-                                    "value": 15
+                                    "value": 14
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -1244,7 +1244,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelRequirements": {
                             "modelVariant": "CHAT",
                             "modelName": "gpt-4-turbo-2024-04-09",
-                            "systemMessage": "You are a skilled copywriter specializing in e-commerce. Your expertise lies in crafting compelling product descriptions, catchy headlines, and persuasive marketing copy for online stores. Provide creative, engaging, and conversion-oriented writing that highlights product features and benefits. Adapt your tone to suit various product categories and target audiences while maintaining a professional and trustworthy voice.",
+                            "systemMessage": "You are a skilled copywriter specializing in e-commerce. Your expertise lies in crafting compelling product descriptions, catchy headlines, and persuasive marketing copy for online stores. You have a deep understanding of consumer psychology, SEO best practices, and the latest trends in digital marketing. Your writing is engaging, concise, and tailored to drive conversions while maintaining brand voice consistency. Assist users with creating effective copy for their e-shop products and marketing materials.",
                             "temperature": 0.7
                         },
                         "preparationIds": [
@@ -1255,26 +1255,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
-                                "value": 0.0051660000000000005
+                                "value": 0.005724
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 967
+                                    "value": 1053
                                 },
                                 "charactersCount": {
-                                    "value": 2918
+                                    "value": 3087
                                 },
                                 "wordsCount": {
-                                    "value": 504
+                                    "value": 541
                                 },
                                 "sentencesCount": {
-                                    "value": 46
+                                    "value": 50
                                 },
                                 "linesCount": {
-                                    "value": 66
+                                    "value": 69
                                 },
                                 "paragraphsCount": {
                                     "value": 20
@@ -1285,19 +1285,19 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 151
+                                    "value": 171
                                 },
                                 "charactersCount": {
-                                    "value": 631
+                                    "value": 719
                                 },
                                 "wordsCount": {
-                                    "value": 92
+                                    "value": 108
                                 },
                                 "sentencesCount": {
-                                    "value": 6
+                                    "value": 7
                                 },
                                 "linesCount": {
-                                    "value": 16
+                                    "value": 17
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -1352,7 +1352,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -1459,7 +1459,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelRequirements": {
                             "modelVariant": "CHAT",
                             "modelName": "gpt-4-turbo-2024-04-09",
-                            "systemMessage": "You are an experienced marketing specialist and business consultant. Provide expert advice on marketing strategies, business development, and market analysis. Offer clear, actionable insights and creative solutions to help clients achieve their business goals.",
+                            "systemMessage": "You are an experienced marketing specialist and business consultant. Provide expert advice on marketing strategies, business development, and market analysis. Offer data-driven insights and creative solutions to help clients achieve their business goals.",
                             "temperature": 0.7
                         },
                         "preparationIds": [
@@ -1470,26 +1470,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
-                                "value": 0.004533
+                                "value": 0.004761
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 966
+                                    "value": 1052
                                 },
                                 "charactersCount": {
-                                    "value": 2946
+                                    "value": 3115
                                 },
                                 "wordsCount": {
-                                    "value": 506
+                                    "value": 543
                                 },
                                 "sentencesCount": {
-                                    "value": 46
+                                    "value": 50
                                 },
                                 "linesCount": {
-                                    "value": 66
+                                    "value": 69
                                 },
                                 "paragraphsCount": {
                                     "value": 20
@@ -1500,13 +1500,13 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 109
+                                    "value": 107
                                 },
                                 "charactersCount": {
-                                    "value": 448
+                                    "value": 430
                                 },
                                 "wordsCount": {
-                                    "value": 63
+                                    "value": 62
                                 },
                                 "sentencesCount": {
                                     "value": 5
@@ -1590,7 +1590,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelRequirements": {
                             "modelVariant": "CHAT",
                             "modelName": "gpt-4-turbo-2024-04-09",
-                            "systemMessage": "You are a customer service representative and skilled copywriter for an e-commerce shop. Provide friendly, helpful assistance to customers, answer product-related questions, and craft engaging product descriptions when needed. Your goal is to enhance the customer's shopping experience and drive sales through excellent service and persuasive writing.",
+                            "systemMessage": "You are a customer service representative and skilled copywriter for an e-commerce shop. Your role is to assist customers with inquiries, provide product information, and create engaging product descriptions. Be friendly, professional, and knowledgeable about e-commerce best practices.",
                             "temperature": 0.7
                         },
                         "preparationIds": [
@@ -1601,26 +1601,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
-                                "value": 0.0048330000000000005
+                                "value": 0.004986
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 971
+                                    "value": 1057
                                 },
                                 "charactersCount": {
-                                    "value": 2954
+                                    "value": 3123
                                 },
                                 "wordsCount": {
-                                    "value": 508
+                                    "value": 545
                                 },
                                 "sentencesCount": {
-                                    "value": 46
+                                    "value": 50
                                 },
                                 "linesCount": {
-                                    "value": 67
+                                    "value": 70
                                 },
                                 "paragraphsCount": {
                                     "value": 20
@@ -1631,19 +1631,19 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 128
+                                    "value": 121
                                 },
                                 "charactersCount": {
-                                    "value": 539
+                                    "value": 481
                                 },
                                 "wordsCount": {
-                                    "value": 79
+                                    "value": 70
                                 },
                                 "sentencesCount": {
                                     "value": 5
                                 },
                                 "linesCount": {
-                                    "value": 14
+                                    "value": 13
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -1901,7 +1901,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelRequirements": {
                             "modelVariant": "CHAT",
                             "modelName": "gpt-4-turbo-2024-04-09",
-                            "systemMessage": "You are a highly knowledgeable linguist and experienced Esperantist. Your expertise covers various aspects of linguistics, including phonology, morphology, syntax, and semantics. You have a deep understanding of Esperanto, its history, grammar, and cultural significance. Assist users with language-related queries, Esperanto translations, and discussions about linguistic topics. Be friendly, patient, and eager to share your knowledge about languages and Esperanto in particular.",
+                            "systemMessage": "You are an expert linguist and passionate Esperantist. Your knowledge spans various languages, linguistic theories, and the history and structure of Esperanto. Assist users with language-related queries, Esperanto translations, and discussions about linguistics and constructed languages. Be enthusiastic about promoting Esperanto and its benefits for international communication.",
                             "temperature": 0.7
                         },
                         "preparationIds": [
@@ -1912,26 +1912,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.89.0-30",
+                        "promptbookVersion": "0.89.0-31",
                         "usage": {
                             "price": {
-                                "value": 0.005451
+                                "value": 0.005289
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 967
+                                    "value": 1053
                                 },
                                 "charactersCount": {
-                                    "value": 2914
+                                    "value": 3083
                                 },
                                 "wordsCount": {
-                                    "value": 503
+                                    "value": 540
                                 },
                                 "sentencesCount": {
-                                    "value": 46
+                                    "value": 50
                                 },
                                 "linesCount": {
-                                    "value": 66
+                                    "value": 69
                                 },
                                 "paragraphsCount": {
                                     "value": 20
@@ -1942,19 +1942,19 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 170
+                                    "value": 142
                                 },
                                 "charactersCount": {
-                                    "value": 681
+                                    "value": 580
                                 },
                                 "wordsCount": {
-                                    "value": 95
+                                    "value": 80
                                 },
                                 "sentencesCount": {
-                                    "value": 7
+                                    "value": 6
                                 },
                                 "linesCount": {
-                                    "value": 16
+                                    "value": 15
                                 },
                                 "paragraphsCount": {
                                     "value": 2
