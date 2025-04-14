@@ -223,15 +223,7 @@ export type string_knowledge_source_link = string_url | string_filename;
  */
 export type string_html = string;
 
-/**
- * Semantic helper
- *
- * For example `"<foo>bar</foo>"`
- *
- *
- * TODO: [🎞️] Probbably use some object-based method for working with XMLs
- */
-export type string_xml = string;
+
 
 /**
  * Semantic helper

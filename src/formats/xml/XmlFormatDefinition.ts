@@ -4,12 +4,19 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
 import { isValidXmlString } from './utils/isValidXmlString';
 
 /**
+ * Semantic helper
+ *
+ * For example `"<foo>bar</foo>"`
+ */
+export type string_xml = string;
+
+/**
  * Definition for XML format
  *
  * @private still in development [🏢]
  */
 export const XmlFormatDefinition: FormatDefinition<
-    string /* <- [0] */,
+    string_xml /* <- [0] */,
     string /* <- [👨‍⚖️] */,
     TODO_any /* <- [1] */,
     TODO_any /* <- [1] */
@@ -18,7 +25,7 @@ export const XmlFormatDefinition: FormatDefinition<
 
     mimeType: 'application/xml',
 
-    isValid(value, settings, schema): value is string /* <- [0] */ {
+    isValid(value, settings, schema): value is string_xml /* <- [0] */ {
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
