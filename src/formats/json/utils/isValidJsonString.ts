@@ -3,6 +3,9 @@ import { assertsError } from '../../../errors/assertsError';
 /**
  * Function isValidJsonString will tell you if the string is valid JSON or not
  *
+ * @param value The string to check
+ * @returns True if the string is a valid JSON string, false otherwise
+ *
  * @public exported from `@promptbook/utils`
  */
 export function isValidJsonString(value: string /* <- [👨‍⚖️] */): boolean {

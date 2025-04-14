@@ -1,6 +1,7 @@
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
+import { isValidXmlString } from './utils/isValidXmlString';
 
 /**
  * Definition for XML format
@@ -21,7 +22,7 @@ export const XmlFormatDefinition: FormatDefinition<
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
-        return true;
+        return isValidXmlString(value);
     },
 
     canBeValid(partialValue, settings, schema): partialValue is string /* <- [0] */ {

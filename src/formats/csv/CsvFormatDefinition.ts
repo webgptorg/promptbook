@@ -7,6 +7,7 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
 import { CsvFormatError } from './CsvFormatError';
 import type { CsvSettings } from './CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from './CsvSettings';
+import { isValidCsvString } from './utils/isValidCsvString';
 
 /**
  * Definition for CSV spreadsheet
@@ -26,10 +27,9 @@ export const CsvFormatDefinition: FormatDefinition<
 
     isValid(value, settings, schema): value is string /* <- [0] */ {
         // TODO: Implement CSV validation
-        TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
-        return true;
+        return isValidCsvString(value);
     },
 
     canBeValid(partialValue, settings, schema): partialValue is string /* <- [0] */ {

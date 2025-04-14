@@ -767,6 +767,7 @@ User system and spending of credits
 -   Better error handling in entire Promptbook engine
 -   Catch non-error throws and wrap + rethrow them as `WrappedError`
 -   [Creating a default community health file](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file)
+-   Functions `isValidCsvString` and `isValidXmlString`
 
 ## Drafts
 
