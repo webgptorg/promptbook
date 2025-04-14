@@ -46,6 +46,7 @@ export const createGoogleExecutionTools = Object.assign(
                 'gemini-1.5-pro-002',
                 'gemini-1.5-pro-exp-0827',
                 'gemini-1.0-pro',
+                // <- [🕕]
             ].map((modelName) => ({ modelName, modelVariant: 'CHAT' })),
             ...options,
         });

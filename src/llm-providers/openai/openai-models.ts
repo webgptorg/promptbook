@@ -457,6 +457,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             },
         },
         /**/
+
+        // <- [🕕]
     ],
 });
 
