@@ -499,6 +499,14 @@ export type string_protocol = 'http:' | 'https:';
 /**
  * Semantic helper
  *
+ * For example `"192.168.1.1"` (IPv4)
+ * For example `"2001:0db8:85a3:0000:0000:8a2e:0370:7334"` (IPv6)
+ */
+export type string_ip_address = string;
+
+/**
+ * Semantic helper
+ *
  * For example `"pavol@hejny.org"`
  */
 export type string_email = string;
