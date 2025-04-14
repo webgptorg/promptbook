@@ -84,6 +84,24 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
                 output: computeUsage(`$2.40 / 1M tokens`),
             },
         },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 3.7 Sonnet',
+            modelName: 'claude-3-7-sonnet-20250219',
+            pricing: {
+                prompt: computeUsage(`$3.00 / 1M tokens`),
+                output: computeUsage(`$15.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 3.5 Haiku',
+            modelName: 'claude-3-5-haiku-20241022',
+            pricing: {
+                prompt: computeUsage(`$0.25 / 1M tokens`),
+                output: computeUsage(`$1.25 / 1M tokens`),
+            },
+        },
 
         // <- [🕕]
     ],
