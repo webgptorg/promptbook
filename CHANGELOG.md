@@ -737,9 +737,7 @@ Scripting and execution
 -   Increase `DEFAULT_MAX_EXECUTION_ATTEMPTS` from `3` -> `10`
 -   Add a unique ID to the error, this error needs to be serialised and deserialised.
 
-## In pre-release
-
-### `0.89.0` _(2025-03-)_
+### `0.89.0` _(2025-04-15)_
 
 User system and spending of credits
 
@@ -768,6 +766,8 @@ User system and spending of credits
 -   Catch non-error throws and wrap + rethrow them as `WrappedError`
 -   [Creating a default community health file](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file)
 -   Functions `isValidCsvString` and `isValidXmlString`
+
+## In pre-release
 
 ## Drafts
 
