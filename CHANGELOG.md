@@ -423,9 +423,7 @@ Better system for imports, exports and dependencies
 -   Consiese README - move things to discussions
 -   Make Partial<ModelRequirements> and optional
 
-### `0.64.0`
-
-Was accidentally released skipped
+> `0.64.0` was skipped
 
 ### `0.65.0` _(2024-08-15-)_
 
@@ -767,9 +765,11 @@ User system and spending of credits
 -   [Creating a default community health file](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file)
 -   Functions `isValidCsvString` and `isValidXmlString`
 
+> `0.90.0` and `0.91.0` were skipped
+
 ## In pre-release
 
-### `0.90.0` _(2025-04-)_
+### `0.92.0` _(2025-04-)_
 
 Models
 
