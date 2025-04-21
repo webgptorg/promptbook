@@ -2,14 +2,10 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -48,11 +44,15 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
                 modelTitle: 'Fake chat',
                 modelName: 'mocked-echo',
                 modelVariant: 'CHAT',
+                modelDescription:
+                    'Mocked chat model that returns fake responses for testing purposes. Does not call any real LLM service.',
             },
             {
                 modelTitle: 'Fake completion',
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
+                modelDescription:
+                    'Mocked completion model that returns fake responses for testing purposes. Does not call any real LLM service.',
             },
             // <- Note: [🤖]
         ];
