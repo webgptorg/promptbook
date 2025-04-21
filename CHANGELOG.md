@@ -769,6 +769,22 @@ User system and spending of credits
 
 ## In pre-release
 
+### `0.90.0` _(2025-04-)_
+
+Models
+
+
+-   All models contain description <!-- <- TODO: !!! [models] Implement or remove -->
+-   Models are picked by description<!-- <- TODO: !!! [models] Implement or remove -->
+-   During preparation of the pipeline, not single model picked but all models which are relevant for task are sorted by relevance<!-- <- TODO: !!! [models] Implement or remove -->
+-   Remove "(boilerplate)" from model names<!-- <- TODO: !!! [models] Implement or remove -->
+-   Sort model providers by relevance<!-- <- TODO: !!! [models] Implement or remove -->
+-   Export utility function `filterModels` from `@promptbook/core`
+-   List OpenAI models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
+-   List Anthropic models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
+-   List DeepSeek models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
+-   List Google models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
+
 ## Drafts
 
 ### `0..0` _(2024--)_
