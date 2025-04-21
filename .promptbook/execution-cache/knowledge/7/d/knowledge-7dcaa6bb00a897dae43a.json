@@ -1,0 +1,111 @@
+{
+    "date": "2025-04-21T17:27:02.465Z",
+    "promptbookVersion": "0.89.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook is designed to be accessible to non-programmers and non-technical people while leveraging features of version control systems like git."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Promptbook: Simple Version Control Guide",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-04-21T17:26:37.620Z",
+            "complete": "2025-04-21T17:27:02.465Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000402
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 79
+                },
+                "charactersCount": {
+                    "value": 322
+                },
+                "wordsCount": {
+                    "value": 48
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 11
+                },
+                "charactersCount": {
+                    "value": 40
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook is designed to be accessible to non-programmers and non-technical people while leveraging features of version control systems like git.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook is designed to be accessible to non-programmers and non-technical people while leveraging features of version control systems like git."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01HiTucyjG2anxJq3Cbtg4tq",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook: Simple Version Control Guide"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 79,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 11
+            }
+        }
+    }
+}
