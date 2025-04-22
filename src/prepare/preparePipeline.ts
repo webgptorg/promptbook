@@ -1,9 +1,7 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -128,7 +126,7 @@ export async function preparePipeline(
         personas,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (persona, index) => {
-            const modelRequirements = await preparePersona(
+            const { modelsRequirements } = await preparePersona(
                 persona.description,
                 { ...tools, llm: llmToolsWithUsage },
                 {
@@ -140,7 +138,7 @@ export async function preparePipeline(
 
             const preparedPersona: PersonaPreparedJson = {
                 ...persona,
-                modelRequirements,
+                modelsRequirements,
                 preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
                 // <- TODO: [🍙] Make some standard order of json properties
             };

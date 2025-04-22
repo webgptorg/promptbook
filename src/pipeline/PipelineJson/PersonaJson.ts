@@ -1,7 +1,5 @@
 import type { ChatModelRequirements } from '../../types/ModelRequirements';
-import type { number_id } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_persona_description } from '../../types/typeAliases';
+import type { number_id, string_name, string_persona_description } from '../../types/typeAliases';
 
 /**
  * Defines a persona in the pipeline
@@ -33,11 +31,13 @@ export type PersonaJson = {
  */
 export type PersonaPreparedJson = PersonaJson & {
     /**
-     * Model requirements for the persona
+     * Models requirements for the persona
+     *
+     * Sorted by relevance, best-fitting models is first
      *
      * Note: The model must be CHAT variant to be usable through persona
      */
-    readonly modelRequirements: ChatModelRequirements;
+    readonly modelsRequirements: Array<ChatModelRequirements>;
 
     /**
      * List of preparation ids that were used to prepare this persona

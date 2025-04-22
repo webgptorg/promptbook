@@ -774,14 +774,15 @@ User system and spending of credits
 Models
 
 -   Models are picked by description<!-- <- TODO: !!! [models] Implement or remove -->
--   During preparation of the pipeline, not single model picked but all models which are relevant for task are sorted by relevance<!-- <- TODO: !!! [models] Implement or remove -->
+-   During preparation of the pipeline, not single model picked but all models which are relevant for task are sorted by relevance
+-   Make real RAG of knowledge<!-- <- TODO: !!! [models] Implement or remove -->
 -   Remove "(boilerplate)" from model names<!-- <- TODO: !!! [models] Implement or remove -->
 -   Sort model providers by relevance<!-- <- TODO: !!! [models] Implement or remove -->
 -   Export utility function `filterModels` from `@promptbook/core`
--   All OpenAI models contain description <!-- <- TODO: !!! [models] Implement or remove -->
--   All Anthropic models contain description <!-- <- TODO: !!! [models] Implement or remove -->
--   All DeepSeek models contain description <!-- <- TODO: !!! [models] Implement or remove -->
--   All Google models contain description <!-- <- TODO: !!! [models] Implement or remove -->
+-   All OpenAI models contain description
+-   All Anthropic models contain description
+-   All DeepSeek models contain description
+-   All Google models contain description
 -   List OpenAI models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
 -   List Anthropic models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
 -   List DeepSeek models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
