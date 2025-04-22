@@ -89,7 +89,7 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
         },
         {
             modelVariant: 'CHAT',
-            modelTitle: '	Claude Instant 1.2',
+            modelTitle: 'Claude Instant 1.2',
             modelName: 'claude-instant-1.2',
             modelDescription:
                 'Older, faster Claude model optimized for high throughput applications. Lower cost but less capable than newer models. 100K context window.',

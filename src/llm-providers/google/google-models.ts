@@ -1,5 +1,7 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
+import type { number_usd } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
+import { computeUsage } from '../openai/computeUsage';
 
 /**
  * List of available Google models with descriptions
@@ -12,6 +14,10 @@ import { exportJson } from '../../utils/serialization/exportJson';
 export const GOOGLE_MODELS: ReadonlyArray<
     AvailableModel & {
         modelDescription?: string;
+        pricing?: {
+            readonly prompt: number_usd;
+            readonly output: number_usd;
+        };
     }
 > = exportJson({
     name: 'GOOGLE_MODELS',
@@ -22,6 +28,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-2.5-pro-preview-03-25',
             modelDescription:
                 'Latest advanced multimodal model with exceptional reasoning, tool use, and instruction following. 1M token context window with improved vision capabilities for complex visual tasks.',
+            pricing: {
+                prompt: computeUsage(`$7.00 / 1M tokens`),
+                output: computeUsage(`$21.00 / 1M tokens`),
+            },
         },
         {
             modelVariant: 'CHAT',
@@ -29,6 +39,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-2.0-flash',
             modelDescription:
                 'Fast, efficient model optimized for rapid response times. Good balance between performance and cost, with strong capabilities across text, code, and reasoning tasks. 128K context window.',
+            pricing: {
+                prompt: computeUsage(`$0.35 / 1M tokens`),
+                output: computeUsage(`$1.05 / 1M tokens`),
+            },
         },
         {
             modelVariant: 'CHAT',
@@ -36,6 +50,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-2.0-flash-lite',
             modelDescription:
                 'Streamlined version of Gemini 2.0 Flash, designed for extremely low-latency applications and edge deployments. Optimized for efficiency while maintaining core capabilities.',
+            pricing: {
+                prompt: computeUsage(`$0.20 / 1M tokens`),
+                output: computeUsage(`$0.60 / 1M tokens`),
+            },
         },
         {
             modelVariant: 'CHAT',
@@ -43,6 +61,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-2.0-flash-thinking-exp-01-21',
             modelDescription:
                 'Experimental model focused on enhanced reasoning with explicit chain-of-thought processes. Designed for tasks requiring structured thinking and problem-solving approaches.',
+            pricing: {
+                prompt: computeUsage(`$0.35 / 1M tokens`),
+                output: computeUsage(`$1.05 / 1M tokens`),
+            },
         },
         {
             modelVariant: 'CHAT',
@@ -50,6 +72,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-1.5-flash',
             modelDescription:
                 'Efficient model balancing speed and quality for general-purpose applications. 1M token context window with good multimodal capabilities and quick response times.',
+            pricing: {
+                prompt: computeUsage(`$0.35 / 1M tokens`),
+                output: computeUsage(`$1.05 / 1M tokens`),
+            },
         },
         {
             modelVariant: 'CHAT',
@@ -113,6 +139,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-1.5-pro-latest',
             modelDescription:
                 'Points to the most recent version of the flagship Gemini 1.5 Pro model, ensuring access to the latest capabilities and improvements.',
+            pricing: {
+                prompt: computeUsage(`$7.00 / 1M tokens`),
+                output: computeUsage(`$21.00 / 1M tokens`),
+            },
         },
         {
             modelVariant: 'CHAT',
@@ -120,6 +150,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-1.5-pro',
             modelDescription:
                 'Flagship multimodal model with strong performance across text, code, vision, and audio tasks. 1M token context window with excellent reasoning capabilities.',
+            pricing: {
+                prompt: computeUsage(`$7.00 / 1M tokens`),
+                output: computeUsage(`$21.00 / 1M tokens`),
+            },
         },
         {
             modelVariant: 'CHAT',
@@ -148,6 +182,10 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelName: 'gemini-1.0-pro',
             modelDescription:
                 'Original Gemini series foundation model with solid multimodal capabilities. 32K context window with good performance on text, code, and basic vision tasks.',
+            pricing: {
+                prompt: computeUsage(`$0.35 / 1M tokens`),
+                output: computeUsage(`$1.05 / 1M tokens`),
+            },
         },
         // <- [🕕]
     ],
@@ -156,5 +194,6 @@ export const GOOGLE_MODELS: ReadonlyArray<
 /**
  * TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
  * TODO: [🎰] Some mechanism to auto-update available models
+ * TODO: [🧠] Verify pricing information is current with Google's official documentation
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

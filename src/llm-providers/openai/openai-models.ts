@@ -44,8 +44,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'Legacy completion model with strong performance on text generation tasks. Optimized for complex instructions and longer outputs.',
             pricing: {
-                prompt: computeUsage(`$2.00 / 1M tokens`), // <- not sure
-                output: computeUsage(`$2.00 / 1M tokens`), // <- not sure
+                prompt: computeUsage(`$2.00 / 1M tokens`),
+                output: computeUsage(`$2.00 / 1M tokens`),
             },
         },
         /**/
@@ -210,8 +210,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest version of GPT-3.5 Turbo with improved performance and instruction following capabilities. Default 4K context window with options for 16K.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`), // <- Not sure, refer to gpt-3.5-turbo in Fine-tuning models
-                output: computeUsage(`$6.00 / 1M tokens`), // <- Not sure, refer to gpt-3.5-turbo in Fine-tuning models
+                prompt: computeUsage(`$0.50 / 1M tokens`),
+                output: computeUsage(`$1.50 / 1M tokens`),
             },
         },
         /**/
@@ -238,8 +238,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'Efficient legacy completion model with a good balance of performance and speed. Suitable for straightforward text generation tasks.',
             pricing: {
-                prompt: computeUsage(`$0.40 / 1M tokens`), // <- Not sure
-                output: computeUsage(`$0.40 / 1M tokens`), // <- Not sure
+                prompt: computeUsage(`$0.40 / 1M tokens`),
+                output: computeUsage(`$0.40 / 1M tokens`),
             },
         },
         /**/
@@ -301,8 +301,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'Preview version of GPT-4 Turbo that points to the latest model version. Features improved instruction following, 128K token context window and lower latency.',
             pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`), // <- Not sure, just for gpt-4-turbo
-                output: computeUsage(`$30.00 / 1M tokens`), // <- Not sure, just for gpt-4-turbo
+                prompt: computeUsage(`$10.00 / 1M tokens`),
+                output: computeUsage(`$30.00 / 1M tokens`),
             },
         },
         /**/
@@ -479,9 +479,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 "OpenAI's advanced reasoning model focused on logic and problem-solving. Designed for complex analytical tasks with rigorous step-by-step reasoning. 128K context window.",
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
-                // <- TODO: !! Unsure, check the pricing
+                prompt: computeUsage(`$15.00 / 1M tokens`),
+                output: computeUsage(`$60.00 / 1M tokens`),
             },
         },
         /**/
