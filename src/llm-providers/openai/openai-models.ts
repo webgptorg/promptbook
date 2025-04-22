@@ -476,6 +476,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelVariant: 'CHAT',
             modelTitle: 'o1',
             modelName: 'o1',
+            modelDescription:
+                "OpenAI's advanced reasoning model focused on logic and problem-solving. Designed for complex analytical tasks with rigorous step-by-step reasoning. 128K context window.",
             pricing: {
                 prompt: computeUsage(`$3.00 / 1M tokens`),
                 output: computeUsage(`$12.00 / 1M tokens`),
@@ -490,7 +492,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelTitle: 'o3-mini',
             modelName: 'o3-mini',
             modelDescription:
-                'Compact and efficient reasoning model specializing in problem-solving with a focus on research and analysis tasks.',
+                'Cost-effective reasoning model optimized for academic and scientific problem-solving. Efficient performance on STEM tasks with deep mathematical and scientific knowledge. 128K context window.',
             pricing: {
                 prompt: computeUsage(`$3.00 / 1M tokens`),
                 output: computeUsage(`$12.00 / 1M tokens`),
