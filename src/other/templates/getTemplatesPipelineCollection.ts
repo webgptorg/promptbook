@@ -164,7 +164,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0.01695
@@ -636,7 +636,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0.01695
@@ -1225,7 +1225,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0.016332
@@ -1374,7 +1374,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0.016377
@@ -1471,7 +1471,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -1615,7 +1615,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0.016524
@@ -1778,7 +1778,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0.017784
@@ -2115,7 +2115,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.92.0-3",
+                        "promptbookVersion": "0.92.0-4",
                         "usage": {
                             "price": {
                                 "value": 0.018192
