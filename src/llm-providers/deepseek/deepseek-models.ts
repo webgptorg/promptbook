@@ -44,6 +44,7 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
             modelDescription:
                 'Research-focused model optimized for scientific problem-solving and analytical tasks. Excellent performance on tasks requiring domain-specific expertise and critical thinking.',
         },
+        // <- [🕕]
     ],
 });
 

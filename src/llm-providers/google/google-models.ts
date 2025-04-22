@@ -149,6 +149,7 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Original Gemini series foundation model with solid multimodal capabilities. 32K context window with good performance on text, code, and basic vision tasks.',
         },
+        // <- [🕕]
     ],
 });
 
