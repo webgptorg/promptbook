@@ -12,7 +12,7 @@ import { exportJson } from '../utils/serialization/exportJson';
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
     let { personas, knowledgeSources, tasks } = pipeline;
 
-    personas = personas.map((persona) => ({ ...persona, modelRequirements: undefined, preparationIds: undefined }));
+    personas = personas.map((persona) => ({ ...persona, modelsRequirements: undefined, preparationIds: undefined }));
     knowledgeSources = knowledgeSources.map((knowledgeSource) => ({ ...knowledgeSource, preparationIds: undefined }));
     tasks = tasks.map((task) => {
         let { dependentParameterNames } = task;
