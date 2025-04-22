@@ -156,4 +156,5 @@ export const GOOGLE_MODELS: ReadonlyArray<
 /**
  * TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
  * TODO: [🎰] Some mechanism to auto-update available models
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */
