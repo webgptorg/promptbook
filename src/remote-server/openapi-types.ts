@@ -29,7 +29,9 @@ export type paths = {
                     headers: {
                         readonly [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        readonly "text/markdown": string;
+                    };
                 };
             };
         };
@@ -72,13 +74,41 @@ export type paths = {
             };
             readonly responses: {
                 /** @description Successful login */
-                readonly 200: {
+                readonly 201: {
                     headers: {
                         readonly [name: string]: unknown;
                     };
                     content: {
                         readonly "application/json": {
+                            readonly isSuccess?: boolean;
+                            readonly message?: string;
+                            readonly error?: Record<string, never>;
                             readonly identification?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Bad request or login failed */
+                readonly 400: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "application/json": {
+                            readonly error?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Authentication error */
+                readonly 401: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "application/json": {
+                            /** @enum {boolean} */
+                            readonly isSuccess?: false;
+                            readonly message?: string;
+                            readonly error?: Record<string, never>;
                         };
                     };
                 };
@@ -117,6 +147,15 @@ export type paths = {
                     };
                     content: {
                         readonly "application/json": readonly string[];
+                    };
+                };
+                /** @description No collection available */
+                readonly 500: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "text/plain": string;
                     };
                 };
             };
@@ -166,7 +205,20 @@ export type paths = {
                     headers: {
                         readonly [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        readonly "application/json": {
+                            readonly error?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description No collection available */
+                readonly 500: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "text/plain": string;
+                    };
                 };
             };
         };
@@ -204,7 +256,139 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": readonly Record<string, never>[];
+                        readonly "application/json": readonly {
+                            readonly nonce?: string;
+                            readonly taskId?: string;
+                            readonly taskType?: string;
+                            readonly status?: string;
+                            /** Format: date-time */
+                            readonly createdAt?: string;
+                            /** Format: date-time */
+                            readonly updatedAt?: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/executions/last": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Get the last execution
+         * @description Returns details of the last execution task.
+         */
+        readonly get: {
+            readonly parameters: {
+                readonly query?: never;
+                readonly header?: never;
+                readonly path?: never;
+                readonly cookie?: never;
+            };
+            readonly requestBody?: never;
+            readonly responses: {
+                /** @description The last execution task with full details. */
+                readonly 200: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "application/json": {
+                            readonly nonce?: string;
+                            readonly taskId?: string;
+                            readonly taskType?: string;
+                            readonly status?: string;
+                            readonly errors?: readonly Record<string, never>[];
+                            readonly warnings?: readonly Record<string, never>[];
+                            /** Format: date-time */
+                            readonly createdAt?: string;
+                            /** Format: date-time */
+                            readonly updatedAt?: string;
+                            readonly currentValue?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description No execution tasks found. */
+                readonly 404: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "text/plain": string;
+                    };
+                };
+            };
+        };
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly [path: `/executions/${string}`]: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Get specific execution
+         * @description Returns details of a specific execution task.
+         */
+        readonly get: {
+            readonly parameters: {
+                readonly query?: never;
+                readonly header?: never;
+                readonly path: {
+                    /** @description The ID of the execution task to retrieve. */
+                    readonly taskId: string;
+                };
+                readonly cookie?: never;
+            };
+            readonly requestBody?: never;
+            readonly responses: {
+                /** @description The execution task with full details. */
+                readonly 200: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "application/json": {
+                            readonly nonce?: string;
+                            readonly taskId?: string;
+                            readonly taskType?: string;
+                            readonly status?: string;
+                            readonly errors?: readonly Record<string, never>[];
+                            readonly warnings?: readonly Record<string, never>[];
+                            /** Format: date-time */
+                            readonly createdAt?: string;
+                            /** Format: date-time */
+                            readonly updatedAt?: string;
+                            readonly currentValue?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Execution task not found. */
+                readonly 404: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "text/plain": string;
                     };
                 };
             };
@@ -240,8 +424,13 @@ export type paths = {
             readonly requestBody: {
                 readonly content: {
                     readonly "application/json": {
+                        /** @description URL of the pipeline to execute */
                         readonly pipelineUrl?: string;
+                        /** @description Alternative field for pipelineUrl */
+                        readonly book?: string;
+                        /** @description Parameters for pipeline execution */
                         readonly inputParameters?: Record<string, never>;
+                        /** @description User identification data */
                         readonly identification?: Record<string, never>;
                     };
                 };
@@ -261,7 +450,20 @@ export type paths = {
                     headers: {
                         readonly [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        readonly "application/json": {
+                            readonly error?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Pipeline not found. */
+                readonly 404: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "text/plain": string;
+                    };
                 };
             };
         };
@@ -271,10 +473,150 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api-docs": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * API documentation UI
+         * @description Swagger UI for API documentation
+         */
+        readonly get: {
+            readonly parameters: {
+                readonly query?: never;
+                readonly header?: never;
+                readonly path?: never;
+                readonly cookie?: never;
+            };
+            readonly requestBody?: never;
+            readonly responses: {
+                /** @description HTML Swagger UI */
+                readonly 200: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/swagger": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * API documentation UI (alternative path)
+         * @description Swagger UI for API documentation
+         */
+        readonly get: {
+            readonly parameters: {
+                readonly query?: never;
+                readonly header?: never;
+                readonly path?: never;
+                readonly cookie?: never;
+            };
+            readonly requestBody?: never;
+            readonly responses: {
+                /** @description HTML Swagger UI */
+                readonly 200: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/openapi": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * OpenAPI specification
+         * @description Returns the OpenAPI JSON specification
+         */
+        readonly get: {
+            readonly parameters: {
+                readonly query?: never;
+                readonly header?: never;
+                readonly path?: never;
+                readonly cookie?: never;
+            };
+            readonly requestBody?: never;
+            readonly responses: {
+                /** @description OpenAPI specification */
+                readonly 200: {
+                    headers: {
+                        readonly [name: string]: unknown;
+                    };
+                    content: {
+                        readonly "application/json": Record<string, never>;
+                    };
+                };
+            };
+        };
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
 };
 export type webhooks = Record<string, never>;
 export type components = {
-    schemas: never;
+    schemas: {
+        readonly Error: {
+            readonly error?: Record<string, never>;
+        };
+        readonly ExecutionTaskSummary: {
+            readonly nonce?: string;
+            readonly taskId?: string;
+            readonly taskType?: string;
+            readonly status?: string;
+            /** Format: date-time */
+            readonly createdAt?: string;
+            /** Format: date-time */
+            readonly updatedAt?: string;
+        };
+        readonly ExecutionTaskFull: {
+            readonly nonce?: string;
+            readonly taskId?: string;
+            readonly taskType?: string;
+            readonly status?: string;
+            readonly errors?: readonly Record<string, never>[];
+            readonly warnings?: readonly Record<string, never>[];
+            /** Format: date-time */
+            readonly createdAt?: string;
+            /** Format: date-time */
+            readonly updatedAt?: string;
+            readonly currentValue?: Record<string, never>;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
