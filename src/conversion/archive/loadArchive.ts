@@ -1,8 +1,9 @@
 import JSZip from 'jszip';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_filename } from '../../types/typeAliases';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { string_filename } from '../../types/typeAliases';
 import { validatePipeline } from '../validation/validatePipeline';
 
 /**
@@ -14,7 +15,10 @@ import { validatePipeline } from '../validation/validatePipeline';
  *
  * @private utility of Prompbook
  */
-export async function loadArchive(filePath: string_filename, fs: FilesystemTools): Promise<Array<PipelineJson>> {
+export async function loadArchive(
+    filePath: string_filename,
+    fs: FilesystemTools,
+): Promise<ReadonlyArray<PipelineJson>> {
     if (!filePath.endsWith('.bookc')) {
         throw new UnexpectedError(`Archive file must have '.bookc' extension`);
     }
@@ -28,7 +32,7 @@ export async function loadArchive(filePath: string_filename, fs: FilesystemTools
         throw new UnexpectedError(`Archive does not contain 'index.book.json' file`);
     }
 
-    const collectionJson = JSON.parse(await indexFile.async('text'));
+    const collectionJson = jsonParse<ReadonlyArray<PipelineJson>>(await indexFile.async('text'));
 
     for (const pipeline of collectionJson) {
         validatePipeline(pipeline);

@@ -1,4 +1,5 @@
 import { UnexpectedError } from '../../../errors/UnexpectedError';
+import { jsonParse } from '../../../formats/json/utils/jsonParse';
 import { stringifyPipelineJson } from '../../../utils/editable/utils/stringifyPipelineJson';
 import { isSerializableAsJson } from '../../../utils/serialization/isSerializableAsJson';
 import type { PromptbookStorage } from '../../_common/PromptbookStorage';
@@ -17,7 +18,7 @@ export function makePromptbookStorageFromWebStorage<TValue>(webStorage: Storage)
                 return null;
             }
 
-            const value = JSON.parse(stringValue) as TValue;
+            const value = jsonParse(stringValue) as TValue;
 
             // TODO: [🌗]
 

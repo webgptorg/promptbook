@@ -16,6 +16,7 @@ import { executionReportJsonToString } from '../../execution/execution-report/ex
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 import { $llmToolsMetadataRegister } from '../../llm-providers/_common/register/$llmToolsMetadataRegister';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
@@ -23,8 +24,7 @@ import { $provideFilesystemForNode } from '../../scrapers/_common/register/$prov
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -90,7 +90,7 @@ export function $initializeRunCommand(program: Program) {
             let inputParameters: Record<string_parameter_name, string_parameter_value> = {};
 
             if (json) {
-                inputParameters = JSON.parse(json);
+                inputParameters = jsonParse(json);
                 //                <- TODO: Maybe check shape of passed JSON and if its valid parameters Record
             }
 

@@ -789,6 +789,7 @@ Models
 -   List Google models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
 -   Fix remote server `POST` `/login`
 -   Update and fix all status codes and responses in `openapi`
+-   Migrate `JSON.parse` -> `jsonParse` *(preparation for formats)*
 
 ## Drafts
 

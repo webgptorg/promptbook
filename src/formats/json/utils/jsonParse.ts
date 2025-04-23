@@ -3,7 +3,7 @@ import spaceTrim from 'spacetrim';
 /**
  * Converts a JavaScript Object Notation (JSON) string into an object.
  *
- * Note: This is wrapper around JSON.parse() with better error and type handling
+ * Note: This is wrapper around `JSON.parse()` with better error and type handling
  *
  * @public exported from `@promptbook/utils`
  */
@@ -45,6 +45,5 @@ export function jsonParse<T>(value: string) {
 }
 
 /**
- * TODO: !!!! Use this ACRY instead of `JSON.parse`
  * TODO: !!!! Use in Promptbook.studio
  */

@@ -13,6 +13,7 @@ import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions
 import type { string_persona_description } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO_any } from '../utils/organization/TODO_any';
+import { jsonParse } from '../formats/json/utils/jsonParse';
 
 /**
  * Prepares the persona for the pipeline
@@ -58,7 +59,7 @@ export async function preparePersona(
     const { outputParameters } = result;
     const { modelsRequirements: modelsRequirementsJson } = outputParameters;
 
-    const modelsRequirementsUnchecked = JSON.parse(modelsRequirementsJson!);
+    const modelsRequirementsUnchecked = jsonParse(modelsRequirementsJson!);
 
     if (isVerbose) {
         console.info(`PERSONA ${personaDescription}`, modelsRequirementsUnchecked);

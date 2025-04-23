@@ -11,6 +11,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { assertsError } from '../../errors/assertsError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
@@ -69,7 +70,7 @@ export function $initializeTestCommand(program: Program) {
                     isCacheReloaded,
                 }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
                 const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-                const {  llm } = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
+                const { llm } = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
                 const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
                 tools = {
                     llm,
@@ -100,7 +101,7 @@ export function $initializeTestCommand(program: Program) {
                         }
                     }
                     if (filename.endsWith('.bookc')) {
-                        pipeline = JSON.parse(await readFile(filename, 'utf-8')) as PipelineJson;
+                        pipeline = jsonParse(await readFile(filename, 'utf-8')) as PipelineJson;
                     } else {
                         if (isVerbose) {
                             console.info(colors.gray(`Skipping ${filename}`));
