@@ -1,0 +1,106 @@
+{
+    "date": "2025-04-23T13:18:01.371Z",
+    "promptbookVersion": "0.92.0-6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nUranium Glass Garden Gnomes are a new product available in the eshop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique properties."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Uranium Glass, Garden Gnomes, eshop, decorative items, fluorescent, uranium oxide",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-04-23T13:17:59.555Z",
+            "complete": "2025-04-23T13:18:01.371Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000645
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 90
+                },
+                "charactersCount": {
+                    "value": 387
+                },
+                "wordsCount": {
+                    "value": 54
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 25
+                },
+                "charactersCount": {
+                    "value": 81
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Uranium Glass Garden Gnomes are a new product available in the eshop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique properties.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Uranium Glass Garden Gnomes are a new product available in the eshop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique properties."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01KouD1CN6QhXgZp7i9jNY5F",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Uranium Glass, Garden Gnomes, eshop, decorative items, fluorescent, uranium oxide"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 90,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 25
+            }
+        }
+    }
+}

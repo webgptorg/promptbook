@@ -1,0 +1,106 @@
+{
+    "date": "2025-04-23T13:16:20.730Z",
+    "promptbookVersion": "0.92.0-6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nThe book proposes a paradigm shift in software development, suggesting that the future of programming lies in using plain human languages like English, French, or Latin."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Software development, paradigm shift, programming, plain human languages, English, French, Latin",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-04-23T13:16:19.924Z",
+            "complete": "2025-04-23T13:16:20.729Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000567
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 84
+                },
+                "charactersCount": {
+                    "value": 372
+                },
+                "wordsCount": {
+                    "value": 52
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 21
+                },
+                "charactersCount": {
+                    "value": 96
+                },
+                "wordsCount": {
+                    "value": 11
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> The book proposes a paradigm shift in software development, suggesting that the future of programming lies in using plain human languages like English, French, or Latin.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> The book proposes a paradigm shift in software development, suggesting that the future of programming lies in using plain human languages like English, French, or Latin."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_018ePcjyGhvQcv3g9J4mcib7",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Software development, paradigm shift, programming, plain human languages, English, French, Latin"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 84,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 21
+            }
+        }
+    }
+}
