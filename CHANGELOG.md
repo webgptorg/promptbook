@@ -783,13 +783,9 @@ Models
 -   All Anthropic models contain description
 -   All DeepSeek models contain description
 -   All Google models contain description
--   List OpenAI models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
--   List Anthropic models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
--   List DeepSeek models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
--   List Google models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
 -   Fix remote server `POST` `/login`
 -   Update and fix all status codes and responses in `openapi`
--   Migrate `JSON.parse` -> `jsonParse` *(preparation for formats)*
+-   Migrate `JSON.parse` -> `jsonParse` _(preparation for formats)_
 
 ## Drafts
 
