@@ -1,10 +1,12 @@
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
-import type { number_id } from '../../types/typeAliases';
-import type { number_linecol_number } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type {
+    number_id,
+    number_linecol_number,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../../types/typeAliases';
 import type { string_keyword } from '../../utils/normalization/IKeywords';
 
 /**
@@ -61,6 +63,8 @@ export type KnowledgePiecePreparedJson = {
      * List of models embeddings that are associated with the knowledge piece
      */
     readonly index: ReadonlyArray<{
+        //    <- TODO: [🧠] Maybe rename `index` -> `embeddings`
+
         /**
          * Model name which generated the embedding
          */
