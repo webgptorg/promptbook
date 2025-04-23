@@ -1,8 +1,29 @@
-import type { string_name } from '../../../types/typeAliases';
-import type { string_title } from '../../../types/typeAliases';
+import type { string_name, string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+
+/**
+ * How is the model provider important?
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const MODEL_ORDER = {
+    /**
+     * Top-tier models, e.g. OpenAI, Anthropic,...
+     */
+    TOP_TIER: 333,
+
+    /**
+     * Mid-tier models, e.g. Llama, Mistral, etc.
+     */
+    NORMAL: 100,
+
+    /**
+     * Low-tier models, e.g. Phi, Tiny, etc.
+     */
+    LOW_TIER: 0,
+} as const satisfies Record<string_name, number>;
 
 /**
  * @@@
@@ -14,6 +35,11 @@ export type LlmToolsMetadata = Registered & {
      * @@@
      */
     readonly title: string_title;
+
+    /**
+     * How is the model provider important and should be sorted in the list of available providers?
+     */
+    readonly order: typeof MODEL_ORDER[keyof typeof MODEL_ORDER] | number;
 
     /**
      * List of environment variables that can be used to configure the provider

@@ -3,6 +3,7 @@ import type { Registration } from '../../utils/$Register';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
 
 /**
  * Registration of LLM provider metadata
@@ -18,6 +19,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
     packageName: '@promptbook/google',
     className: 'GoogleExecutionTools',
     envVariables: ['GOOGLE_GENERATIVE_AI_API_KEY'],
+    order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] Maybe `TOP_TIER`?
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {

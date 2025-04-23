@@ -2,6 +2,7 @@ import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
 
 /**
  * Registration of LLM provider metadata
@@ -17,6 +18,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
     packageName: '@promptbook/azure-openai',
     className: 'AzureOpenAiExecutionTools',
     envVariables: ['AZUREOPENAI_RESOURCE_NAME', 'AZUREOPENAI_DEPLOYMENT_NAME', 'AZUREOPENAI_API_KEY'],
+    order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] What is the right tier for Azure Open AI
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
