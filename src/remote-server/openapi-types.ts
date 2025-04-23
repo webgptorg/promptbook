@@ -4,7 +4,7 @@
  */
 
 export type paths = {
-    readonly "/": {
+    readonly '/': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -30,7 +30,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "text/markdown": string;
+                        readonly 'text/markdown': string;
                     };
                 };
             };
@@ -43,7 +43,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/login": {
+    readonly '/login': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -65,7 +65,7 @@ export type paths = {
             };
             readonly requestBody: {
                 readonly content: {
-                    readonly "application/json": {
+                    readonly 'application/json': {
                         readonly username?: string;
                         readonly password?: string;
                         readonly appId?: string;
@@ -79,11 +79,11 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": {
+                        readonly 'application/json': {
                             readonly isSuccess?: boolean;
                             readonly message?: string;
-                            readonly error?: Record<string, never>;
-                            readonly identification?: Record<string, never>;
+                            readonly error?: Record<string, unknown>;
+                            readonly identification?: Record<string, unknown>;
                         };
                     };
                 };
@@ -93,8 +93,8 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": {
-                            readonly error?: Record<string, never>;
+                        readonly 'application/json': {
+                            readonly error?: Record<string, unknown>;
                         };
                     };
                 };
@@ -104,11 +104,11 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": {
+                        readonly 'application/json': {
                             /** @enum {boolean} */
                             readonly isSuccess?: false;
                             readonly message?: string;
-                            readonly error?: Record<string, never>;
+                            readonly error?: Record<string, unknown>;
                         };
                     };
                 };
@@ -120,7 +120,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/books": {
+    readonly '/books': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -146,7 +146,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": readonly string[];
+                        readonly 'application/json': readonly string[];
                     };
                 };
                 /** @description No collection available */
@@ -155,7 +155,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "text/plain": string;
+                        readonly 'text/plain': string;
                     };
                 };
             };
@@ -197,7 +197,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "text/markdown": string;
+                        readonly 'text/markdown': string;
                     };
                 };
                 /** @description Book not found. */
@@ -206,8 +206,8 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": {
-                            readonly error?: Record<string, never>;
+                        readonly 'application/json': {
+                            readonly error?: Record<string, unknown>;
                         };
                     };
                 };
@@ -217,7 +217,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "text/plain": string;
+                        readonly 'text/plain': string;
                     };
                 };
             };
@@ -230,7 +230,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/executions": {
+    readonly '/executions': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -256,7 +256,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": readonly {
+                        readonly 'application/json': readonly {
                             readonly nonce?: string;
                             readonly taskId?: string;
                             readonly taskType?: string;
@@ -278,7 +278,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/executions/last": {
+    readonly '/executions/last': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -304,18 +304,18 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": {
+                        readonly 'application/json': {
                             readonly nonce?: string;
                             readonly taskId?: string;
                             readonly taskType?: string;
                             readonly status?: string;
-                            readonly errors?: readonly Record<string, never>[];
-                            readonly warnings?: readonly Record<string, never>[];
+                            readonly errors?: readonly Record<string, unknown>[];
+                            readonly warnings?: readonly Record<string, unknown>[];
                             /** Format: date-time */
                             readonly createdAt?: string;
                             /** Format: date-time */
                             readonly updatedAt?: string;
-                            readonly currentValue?: Record<string, never>;
+                            readonly currentValue?: Record<string, unknown>;
                         };
                     };
                 };
@@ -325,7 +325,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "text/plain": string;
+                        readonly 'text/plain': string;
                     };
                 };
             };
@@ -367,18 +367,18 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": {
+                        readonly 'application/json': {
                             readonly nonce?: string;
                             readonly taskId?: string;
                             readonly taskType?: string;
                             readonly status?: string;
-                            readonly errors?: readonly Record<string, never>[];
-                            readonly warnings?: readonly Record<string, never>[];
+                            readonly errors?: readonly Record<string, unknown>[];
+                            readonly warnings?: readonly Record<string, unknown>[];
                             /** Format: date-time */
                             readonly createdAt?: string;
                             /** Format: date-time */
                             readonly updatedAt?: string;
-                            readonly currentValue?: Record<string, never>;
+                            readonly currentValue?: Record<string, unknown>;
                         };
                     };
                 };
@@ -388,7 +388,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "text/plain": string;
+                        readonly 'text/plain': string;
                     };
                 };
             };
@@ -401,7 +401,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/executions/new": {
+    readonly '/executions/new': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -423,15 +423,15 @@ export type paths = {
             };
             readonly requestBody: {
                 readonly content: {
-                    readonly "application/json": {
+                    readonly 'application/json': {
                         /** @description URL of the pipeline to execute */
                         readonly pipelineUrl?: string;
                         /** @description Alternative field for pipelineUrl */
                         readonly book?: string;
                         /** @description Parameters for pipeline execution */
-                        readonly inputParameters?: Record<string, never>;
+                        readonly inputParameters?: Record<string, unknown>;
                         /** @description User identification data */
-                        readonly identification?: Record<string, never>;
+                        readonly identification?: Record<string, unknown>;
                     };
                 };
             };
@@ -442,7 +442,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": Record<string, never>;
+                        readonly 'application/json': Record<string, unknown>;
                     };
                 };
                 /** @description Invalid input. */
@@ -451,8 +451,8 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": {
-                            readonly error?: Record<string, never>;
+                        readonly 'application/json': {
+                            readonly error?: Record<string, unknown>;
                         };
                     };
                 };
@@ -462,7 +462,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "text/plain": string;
+                        readonly 'text/plain': string;
                     };
                 };
             };
@@ -473,7 +473,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api-docs": {
+    readonly '/api-docs': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -510,7 +510,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/swagger": {
+    readonly '/swagger': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -547,7 +547,7 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/openapi": {
+    readonly '/openapi': {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -573,7 +573,7 @@ export type paths = {
                         readonly [name: string]: unknown;
                     };
                     content: {
-                        readonly "application/json": Record<string, never>;
+                        readonly 'application/json': Record<string, unknown>;
                     };
                 };
             };
@@ -591,7 +591,7 @@ export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
         readonly Error: {
-            readonly error?: Record<string, never>;
+            readonly error?: Record<string, unknown>;
         };
         readonly ExecutionTaskSummary: {
             readonly nonce?: string;
@@ -608,13 +608,13 @@ export type components = {
             readonly taskId?: string;
             readonly taskType?: string;
             readonly status?: string;
-            readonly errors?: readonly Record<string, never>[];
-            readonly warnings?: readonly Record<string, never>[];
+            readonly errors?: readonly Record<string, unknown>[];
+            readonly warnings?: readonly Record<string, unknown>[];
             /** Format: date-time */
             readonly createdAt?: string;
             /** Format: date-time */
             readonly updatedAt?: string;
-            readonly currentValue?: Record<string, never>;
+            readonly currentValue?: Record<string, unknown>;
         };
     };
     responses: never;
