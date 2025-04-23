@@ -19,6 +19,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
     packageName: '@promptbook/google',
     className: 'GoogleExecutionTools',
     envVariables: ['GOOGLE_GENERATIVE_AI_API_KEY'],
+    trustLevel: 'CLOSED',
     order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] Maybe `TOP_TIER`?
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {

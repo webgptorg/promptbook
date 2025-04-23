@@ -18,6 +18,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
     packageName: '@promptbook/azure-openai',
     className: 'AzureOpenAiExecutionTools',
     envVariables: ['AZUREOPENAI_RESOURCE_NAME', 'AZUREOPENAI_DEPLOYMENT_NAME', 'AZUREOPENAI_API_KEY'],
+    trustLevel: 'CLOSED_BUSINESS',
     order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] What is the right tier for Azure Open AI
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {

@@ -19,6 +19,7 @@ export const _DeepseekMetadataRegistration: Registration = $llmToolsMetadataRegi
     packageName: '@promptbook/deepseek',
     className: 'DeepseekExecutionTools',
     envVariables: ['DEEPSEEK_GENERATIVE_AI_API_KEY'],
+    trustLevel: 'UNTRUSTED',
     order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] Maybe `TOP_TIER`?
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {

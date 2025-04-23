@@ -19,6 +19,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
     packageName: '@promptbook/openai',
     className: 'OpenAiExecutionTools',
     envVariables: ['OPENAI_API_KEY'],
+    trustLevel: 'CLOSED',
     order: MODEL_ORDER.TOP_TIER,
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
@@ -64,6 +65,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
     className: 'OpenAiAssistantExecutionTools',
     envVariables: null,
     //            <- TODO: ['OPENAI_API_KEY', 'OPENAI_ASSISTANT_ID']
+    trustLevel: 'CLOSED',
     order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] What is the right tier for Open AI Assistant
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
