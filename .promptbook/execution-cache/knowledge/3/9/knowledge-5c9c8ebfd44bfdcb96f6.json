@@ -1,0 +1,123 @@
+{
+    "date": "2025-04-23T13:13:24.641Z",
+    "promptbookVersion": "0.92.0-6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "He created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which have been used by tens of thousands of children."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Czech virtual whiteboard, Collboard, electronic textbooks, H-edu, children",
+        "modelName": "gpt-4o-2024-08-06",
+        "timing": {
+            "start": "2025-04-23T13:13:21.506Z",
+            "complete": "2025-04-23T13:13:23.227Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 75
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 18
+                },
+                "charactersCount": {
+                    "value": 74
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> He created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which have been used by tens of thousands of children.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> He created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which have been used by tens of thousands of children."
+                }
+            ],
+            "user": "d33976cd7af0751f6e4c3b7d78d7f8081fb1a8bf386fa236840257d1d139feeb"
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BPUCfMtN0f5UFsK48k7pdnZP6nWlU",
+            "object": "chat.completion",
+            "created": 1745414001,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Czech virtual whiteboard, Collboard, electronic textbooks, H-edu, children",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 75,
+                "completion_tokens": 18,
+                "total_tokens": 93,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_d8864f8b6b"
+        }
+    }
+}

@@ -1,11 +1,10 @@
-import spaceTrim from 'spacetrim';
 import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
-import { UnexpectedError } from '../errors/UnexpectedError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import { jsonParse } from '../formats/json/utils/jsonParse';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
@@ -13,7 +12,6 @@ import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions
 import type { string_persona_description } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO_any } from '../utils/organization/TODO_any';
-import { jsonParse } from '../formats/json/utils/jsonParse';
 
 /**
  * Prepares the persona for the pipeline
@@ -59,13 +57,17 @@ export async function preparePersona(
     const { outputParameters } = result;
     const { modelsRequirements: modelsRequirementsJson } = outputParameters;
 
-    const modelsRequirementsUnchecked = jsonParse(modelsRequirementsJson!);
+    let modelsRequirementsUnchecked: Array<TODO_any> = jsonParse(modelsRequirementsJson!);
 
     if (isVerbose) {
         console.info(`PERSONA ${personaDescription}`, modelsRequirementsUnchecked);
     }
 
     if (!Array.isArray(modelsRequirementsUnchecked)) {
+        // <- TODO: Book should have syntax and system to enforce shape of JSON
+
+        modelsRequirementsUnchecked = [modelsRequirementsUnchecked];
+        /*
         throw new UnexpectedError(
             spaceTrim(
                 (block) => `
@@ -77,6 +79,7 @@ export async function preparePersona(
                 `,
             ),
         );
+        */
     }
 
     const modelsRequirements: PersonaPreparedJson['modelsRequirements'] = modelsRequirementsUnchecked.map(
