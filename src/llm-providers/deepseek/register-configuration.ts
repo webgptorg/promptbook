@@ -21,7 +21,7 @@ export const _DeepseekMetadataRegistration: Registration = $llmToolsMetadataRegi
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Deepseek (boilerplate)',
+            title: 'Deepseek',
             packageName: '@promptbook/deepseek',
             className: 'DeepseekExecutionTools',
             options: {

@@ -20,7 +20,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Azure Open AI (boilerplate)',
+            title: 'Azure Open AI',
             packageName: '@promptbook/azure-openai',
             className: 'AzureOpenAiExecutionTools',
             options: {

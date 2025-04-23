@@ -13,7 +13,7 @@ describe('how createLlmToolsFromConfiguration works', () => {
         expect(() =>
             createLlmToolsFromConfiguration([
                 {
-                    title: 'Open AI (boilerplate)',
+                    title: 'Open AI',
                     packageName: '@promptbook/openai',
                     className: 'OpenAiExecutionTools',
                     options: {
@@ -22,7 +22,7 @@ describe('how createLlmToolsFromConfiguration works', () => {
                 },
                 /*
                 {
-                    title: 'Google Gemini (boilerplate)',
+                    title: 'Google Gemini',
                     packageName: '@promptbook/google',
                     className: 'GoogleExecutionTools',
                     options: { apiKey: 'AIxxxxxxfakekeys' },

@@ -21,7 +21,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Open AI (boilerplate)',
+            title: 'Open AI',
             packageName: '@promptbook/openai',
             className: 'OpenAiExecutionTools',
             options: {
@@ -65,7 +65,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Open AI Assistant (boilerplate)',
+            title: 'Open AI Assistant',
             packageName: '@promptbook/openai',
             className: 'OpenAiAssistantExecutionTools',
             options: {

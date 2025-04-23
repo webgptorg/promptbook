@@ -21,7 +21,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Google Gemini (boilerplate)',
+            title: 'Google Gemini',
             packageName: '@promptbook/google',
             className: 'GoogleExecutionTools',
             options: {
