@@ -7,7 +7,7 @@
 export const openapiJson = {
     openapi: '3.0.0',
     info: {
-        title: 'Promptbook Remote Server API (!!!! From TS)',
+        title: 'Promptbook Remote Server API (!!!! From YML)',
         version: '1.0.0',
         description: 'API documentation for the Promptbook Remote Server',
     },
@@ -19,6 +19,13 @@ export const openapiJson = {
                 responses: {
                     '200': {
                         description: 'Server details in markdown format.',
+                        content: {
+                            'text/markdown': {
+                                schema: {
+                                    type: 'string',
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -49,14 +56,60 @@ export const openapiJson = {
                     },
                 },
                 responses: {
-                    '200': {
+                    '201': {
                         description: 'Successful login',
                         content: {
                             'application/json': {
                                 schema: {
                                     type: 'object',
                                     properties: {
+                                        isSuccess: {
+                                            type: 'boolean',
+                                        },
+                                        message: {
+                                            type: 'string',
+                                        },
+                                        error: {
+                                            type: 'object',
+                                        },
                                         identification: {
+                                            type: 'object',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Bad request or login failed',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        error: {
+                                            type: 'object',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Authentication error',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        isSuccess: {
+                                            type: 'boolean',
+                                            enum: [false],
+                                        },
+                                        message: {
+                                            type: 'string',
+                                        },
+                                        error: {
                                             type: 'object',
                                         },
                                     },
@@ -81,6 +134,16 @@ export const openapiJson = {
                                     items: {
                                         type: 'string',
                                     },
+                                },
+                            },
+                        },
+                    },
+                    '500': {
+                        description: 'No collection available',
+                        content: {
+                            'text/plain': {
+                                schema: {
+                                    type: 'string',
                                 },
                             },
                         },
@@ -116,6 +179,28 @@ export const openapiJson = {
                     },
                     '404': {
                         description: 'Book not found.',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        error: {
+                                            type: 'object',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '500': {
+                        description: 'No collection available',
+                        content: {
+                            'text/plain': {
+                                schema: {
+                                    type: 'string',
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -133,7 +218,170 @@ export const openapiJson = {
                                     type: 'array',
                                     items: {
                                         type: 'object',
+                                        properties: {
+                                            nonce: {
+                                                type: 'string',
+                                            },
+                                            taskId: {
+                                                type: 'string',
+                                            },
+                                            taskType: {
+                                                type: 'string',
+                                            },
+                                            status: {
+                                                type: 'string',
+                                            },
+                                            createdAt: {
+                                                type: 'string',
+                                                format: 'date-time',
+                                            },
+                                            updatedAt: {
+                                                type: 'string',
+                                                format: 'date-time',
+                                            },
+                                        },
                                     },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/executions/last': {
+            get: {
+                summary: 'Get the last execution',
+                description: 'Returns details of the last execution task.',
+                responses: {
+                    '200': {
+                        description: 'The last execution task with full details.',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        nonce: {
+                                            type: 'string',
+                                        },
+                                        taskId: {
+                                            type: 'string',
+                                        },
+                                        taskType: {
+                                            type: 'string',
+                                        },
+                                        status: {
+                                            type: 'string',
+                                        },
+                                        errors: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
+                                            },
+                                        },
+                                        warnings: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
+                                            },
+                                        },
+                                        createdAt: {
+                                            type: 'string',
+                                            format: 'date-time',
+                                        },
+                                        updatedAt: {
+                                            type: 'string',
+                                            format: 'date-time',
+                                        },
+                                        currentValue: {
+                                            type: 'object',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'No execution tasks found.',
+                        content: {
+                            'text/plain': {
+                                schema: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/executions/{taskId}': {
+            get: {
+                summary: 'Get specific execution',
+                description: 'Returns details of a specific execution task.',
+                parameters: [
+                    {
+                        in: 'path',
+                        name: 'taskId',
+                        required: true,
+                        schema: {
+                            type: 'string',
+                        },
+                        description: 'The ID of the execution task to retrieve.',
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'The execution task with full details.',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        nonce: {
+                                            type: 'string',
+                                        },
+                                        taskId: {
+                                            type: 'string',
+                                        },
+                                        taskType: {
+                                            type: 'string',
+                                        },
+                                        status: {
+                                            type: 'string',
+                                        },
+                                        errors: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
+                                            },
+                                        },
+                                        warnings: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
+                                            },
+                                        },
+                                        createdAt: {
+                                            type: 'string',
+                                            format: 'date-time',
+                                        },
+                                        updatedAt: {
+                                            type: 'string',
+                                            format: 'date-time',
+                                        },
+                                        currentValue: {
+                                            type: 'object',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'Execution task not found.',
+                        content: {
+                            'text/plain': {
+                                schema: {
+                                    type: 'string',
                                 },
                             },
                         },
@@ -154,12 +402,19 @@ export const openapiJson = {
                                 properties: {
                                     pipelineUrl: {
                                         type: 'string',
+                                        description: 'URL of the pipeline to execute',
+                                    },
+                                    book: {
+                                        type: 'string',
+                                        description: 'Alternative field for pipelineUrl',
                                     },
                                     inputParameters: {
                                         type: 'object',
+                                        description: 'Parameters for pipeline execution',
                                     },
                                     identification: {
                                         type: 'object',
+                                        description: 'User identification data',
                                     },
                                 },
                             },
@@ -179,13 +434,164 @@ export const openapiJson = {
                     },
                     '400': {
                         description: 'Invalid input.',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        error: {
+                                            type: 'object',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'Pipeline not found.',
+                        content: {
+                            'text/plain': {
+                                schema: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api-docs': {
+            get: {
+                summary: 'API documentation UI',
+                description: 'Swagger UI for API documentation',
+                responses: {
+                    '200': {
+                        description: 'HTML Swagger UI',
+                    },
+                },
+            },
+        },
+        '/swagger': {
+            get: {
+                summary: 'API documentation UI (alternative path)',
+                description: 'Swagger UI for API documentation',
+                responses: {
+                    '200': {
+                        description: 'HTML Swagger UI',
+                    },
+                },
+            },
+        },
+        '/openapi': {
+            get: {
+                summary: 'OpenAPI specification',
+                description: 'Returns the OpenAPI JSON specification',
+                responses: {
+                    '200': {
+                        description: 'OpenAPI specification',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                },
+                            },
+                        },
                     },
                 },
             },
         },
     },
-    components: {},
-    tags: [],
+    components: {
+        schemas: {
+            Error: {
+                type: 'object',
+                properties: {
+                    error: {
+                        type: 'object',
+                    },
+                },
+            },
+            ExecutionTaskSummary: {
+                type: 'object',
+                properties: {
+                    nonce: {
+                        type: 'string',
+                    },
+                    taskId: {
+                        type: 'string',
+                    },
+                    taskType: {
+                        type: 'string',
+                    },
+                    status: {
+                        type: 'string',
+                    },
+                    createdAt: {
+                        type: 'string',
+                        format: 'date-time',
+                    },
+                    updatedAt: {
+                        type: 'string',
+                        format: 'date-time',
+                    },
+                },
+            },
+            ExecutionTaskFull: {
+                type: 'object',
+                properties: {
+                    nonce: {
+                        type: 'string',
+                    },
+                    taskId: {
+                        type: 'string',
+                    },
+                    taskType: {
+                        type: 'string',
+                    },
+                    status: {
+                        type: 'string',
+                    },
+                    errors: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                        },
+                    },
+                    warnings: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                        },
+                    },
+                    createdAt: {
+                        type: 'string',
+                        format: 'date-time',
+                    },
+                    updatedAt: {
+                        type: 'string',
+                        format: 'date-time',
+                    },
+                    currentValue: {
+                        type: 'object',
+                    },
+                },
+            },
+        },
+    },
+    tags: [
+        {
+            name: 'Books',
+            description: 'Operations related to books and pipelines',
+        },
+        {
+            name: 'Executions',
+            description: 'Operations related to execution tasks',
+        },
+        {
+            name: 'Authentication',
+            description: 'Authentication operations',
+        },
+    ],
 };
 
 /**

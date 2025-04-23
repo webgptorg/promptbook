@@ -787,6 +787,8 @@ Models
 -   List Anthropic models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
 -   List DeepSeek models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
 -   List Google models dynamically<!-- <- TODO: !!! [models] Implement or remove -->
+-   Fix remote server `POST` `/login`
+-   Update and fix all status codes and responses in `openapi`
 
 ## Drafts
 
