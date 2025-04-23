@@ -1,12 +1,13 @@
 import type { ReadonlyDeep } from 'type-fest';
-import { joinLlmExecutionTools } from '../../_packages/core.index';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import { Prompt } from '../../types/Prompt';
-import type { string_markdown, string_parameter_value } from '../../types/typeAliases';
+import type { Prompt } from '../../types/Prompt';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
-import { EmbeddingVector } from '../EmbeddingVector';
-import { ExecutionTools } from '../ExecutionTools';
+import type { EmbeddingVector } from '../EmbeddingVector';
+import type { ExecutionTools } from '../ExecutionTools';
 
 /**
  * @@@
