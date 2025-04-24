@@ -1,7 +1,5 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { string_name } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_name, string_token, string_user_id } from '../../types/typeAliases';
 
 /**
  * Options for `AzureOpenAiExecutionTools`

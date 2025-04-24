@@ -1,3 +1,4 @@
+import Bottleneck from 'bottleneck'; // <- TODO: !!!! Use waitasecond, uninstall
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
@@ -7,15 +8,15 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -23,6 +24,10 @@ import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+
+// Default rate limits (requests per minute) - adjust as needed based on OpenAI tier
+const DEFAULT_RPM = 60;
+// <- TODO: !!! Put in some better place
 
 /**
  * Execution Tools for calling OpenAI API
@@ -36,11 +41,21 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
     private client: OpenAI | null = null;
 
     /**
+     * Rate limiter instance
+     */
+    private limiter: Bottleneck;
+
+    /**
      * Creates OpenAI Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(protected readonly options: OpenAiExecutionToolsOptions) {}
+    public constructor(protected readonly options: OpenAiExecutionToolsOptions) {
+        // TODO: Allow configuring rate limits via options
+        this.limiter = new Bottleneck({
+            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_RPM),
+        });
+    }
 
     public get title(): string_title & string_markdown_text {
         return 'OpenAI';
@@ -163,14 +178,16 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.chat.completions.create(rawRequest).catch((error) => {
-            assertsError(error);
+        const rawResponse = await this.limiter
+            .schedule(() => client.chat.completions.create(rawRequest))
+            .catch((error) => {
+                assertsError(error);
 
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -256,14 +273,16 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.completions.create(rawRequest).catch((error) => {
-            assertsError(error);
+        const rawResponse = await this.limiter
+            .schedule(() => client.completions.create(rawRequest))
+            .catch((error) => {
+                assertsError(error);
 
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -337,14 +356,16 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
 
-        const rawResponse = await client.embeddings.create(rawRequest).catch((error) => {
-            assertsError(error);
+        const rawResponse = await this.limiter
+            .schedule(() => client.embeddings.create(rawRequest))
+            .catch((error) => {
+                assertsError(error);
 
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
