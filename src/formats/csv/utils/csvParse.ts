@@ -1,9 +1,10 @@
 import type { ParseResult } from 'papaparse';
 import { parse } from 'papaparse';
-import { TODO_any } from '../../../_packages/types.index';
-import { Parameters } from '../../../types/typeAliases';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
+import type { Parameters } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { CsvSettings, MANDATORY_CSV_SETTINGS } from '../CsvSettings';
+import type { CsvSettings } from '../CsvSettings';
+import { MANDATORY_CSV_SETTINGS } from '../CsvSettings';
 
 /**
  * Converts a CSV string into an object
