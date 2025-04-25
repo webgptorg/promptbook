@@ -7,7 +7,7 @@ import { CsvFormatError } from './CsvFormatError';
 import type { CsvSettings } from './CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from './CsvSettings';
 import { isValidCsvString } from './utils/isValidCsvString';
-import { csvParse } from './utils/parseCsv';
+import { csvParse } from './utils/csvParse';
 
 /**
  * Definition for CSV spreadsheet
