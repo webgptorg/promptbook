@@ -18,6 +18,18 @@ export function csvParse(
     schema?: TODO_any /* <- TODO: Make CSV Schemas */,
 ): ParseResult<Parameters> {
     TODO_USE(schema /* <- TODO: Use schema here */);
-    const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
+
+    settings = { ...settings, ...MANDATORY_CSV_SETTINGS };
+
+    // Note: Autoheal invalid '\n' characters
+    if (settings.newline && !settings.newline.includes('\r') && value.includes('\r')) {
+        console.warn(
+            'CSV string contains carriage return characters, but in the CSV settings the `newline` setting does not include them. Autohealing the CSV string.',
+        );
+
+        value = value.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    }
+
+    const csv = parse<Parameters>(value, settings);
     return csv;
 }
