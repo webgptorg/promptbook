@@ -1,5 +1,5 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
-import Bottleneck from 'bottleneck'; // <- TODO: !!!! Use waitasecond
+import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { CONNECTION_TIMEOUT_MS } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';

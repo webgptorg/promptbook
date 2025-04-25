@@ -3,10 +3,8 @@ import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecu
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_markdown, string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
-import type { EmbeddingVector } from '../EmbeddingVector';
 import type { ExecutionTools } from '../ExecutionTools';
 
 /**
@@ -109,19 +107,6 @@ export async function getKnowledgeForTask(
 
     return knowledgePiecesLimited.map(({ content }) => `- ${content}`).join('\n');
     //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
-}
-
-// TODO: !!!!!! Annotate + to new file
-function computeCosineSimilarity(embeddingVector1: EmbeddingVector, embeddingVector2: EmbeddingVector): number {
-    if (embeddingVector1.length !== embeddingVector2.length) {
-        throw new TypeError('Embedding vectors must have the same length');
-    }
-
-    const dotProduct = embeddingVector1.reduce((sum, value, index) => sum + value * embeddingVector2[index]!, 0);
-    const magnitude1 = Math.sqrt(embeddingVector1.reduce((sum, value) => sum + value * value, 0));
-    const magnitude2 = Math.sqrt(embeddingVector2.reduce((sum, value) => sum + value * value, 0));
-
-    return 1 - dotProduct / (magnitude1 * magnitude2);
 }
 
 /**
