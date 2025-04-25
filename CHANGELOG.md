@@ -786,6 +786,9 @@ Models
 -   Fix remote server `POST` `/login`
 -   Update and fix all status codes and responses in `openapi`
 -   Migrate `JSON.parse` -> `jsonParse` _(preparation for formats)_
+-   Rename `FormatDefinition` -> `FormatParser`
+-   Limit rate of requests to models
+-   Autoheal `\r` in `CsvFormatParser` ~~`CsvFormatDefinition`~~
 
 ## Drafts
 

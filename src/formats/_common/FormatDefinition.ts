@@ -4,6 +4,8 @@ import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeT
 import type { empty_object } from '../../utils/organization/empty_object';
 import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
 
+// !!!! Rename `FormatDefinition` -> `FormatParser`
+
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
  *
