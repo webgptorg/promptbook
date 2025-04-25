@@ -1,6 +1,5 @@
-import { parse, unparse } from 'papaparse';
+import { unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
-import type { Parameters } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
@@ -8,6 +7,7 @@ import { CsvFormatError } from './CsvFormatError';
 import type { CsvSettings } from './CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from './CsvSettings';
 import { isValidCsvString } from './utils/isValidCsvString';
+import { csvParse } from './utils/parseCsv';
 
 /**
  * Definition for CSV spreadsheet
@@ -50,8 +50,7 @@ export const CsvFormatDefinition: FormatDefinition<
         {
             subvalueName: 'ROW',
             async mapValues(value, outputParameterName, settings, mapCallback) {
-                // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
-                const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
+                const csv = csvParse(value, settings);
 
                 if (csv.errors.length !== 0) {
                     throw new CsvFormatError(
@@ -93,8 +92,7 @@ export const CsvFormatDefinition: FormatDefinition<
         {
             subvalueName: 'CELL',
             async mapValues(value, outputParameterName, settings, mapCallback) {
-                // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
-                const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
+                const csv = csvParse(value, settings);
 
                 if (csv.errors.length !== 0) {
                     throw new CsvFormatError(
