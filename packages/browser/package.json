@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/browser",
-    "version": "0.92.0-13",
+    "version": "0.92.0-14",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -51,7 +51,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/browser.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.92.0-13"
+        "@promptbook/core": "0.92.0-14"
     },
     "dependencies": {
         "crypto": "1.0.1",
