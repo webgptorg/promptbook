@@ -3,6 +3,7 @@ import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionT
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { DeepseekExecutionToolsOptions } from './DeepseekExecutionToolsOptions';
+import { DEEPSEEK_MODELS } from './deepseek-models';
 
 /**
  * Execution Tools for calling Deepseek API.
@@ -29,13 +30,7 @@ export const createDeepseekExecutionTools = Object.assign(
             title: 'Deepseek',
             description: 'Implementation of Deepseek models',
             vercelProvider: deepseekVercelProvider,
-            availableModels: [
-                // TODO: [🕘] Maybe list models in same way as in other providers - in separate file with metadata
-                'deepseek-chat',
-                'deepseek-reasoner',
-                // <- [🕕]
-                // <- TODO: How picking of the default model looks like in `createExecutionToolsFromVercelProvider`
-            ].map((modelName) => ({ modelName, modelVariant: 'CHAT' })),
+            availableModels: DEEPSEEK_MODELS,
             ...options,
         });
     },

@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:23:43.407Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:15:16.167Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nPavol Hejný is a software engineer who developed Promptbook.\n\n---",
+        "content": "---\n\nPavol Hejný is a software engineer who developed Promptbook, a tool related to prompt engineering or AI interactions.\n\n---",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:23:42.508Z",
-            "complete": "2025-02-26T15:23:43.407Z"
+            "start": "2025-04-23T13:15:14.377Z",
+            "complete": "2025-04-23T13:15:16.166Z"
         },
         "usage": {
             "price": {
-                "value": 0.000738
+                "value": 0.0008880000000000001
             },
             "input": {
                 "tokensCount": {
@@ -49,19 +49,19 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 24
+                    "value": 34
                 },
                 "charactersCount": {
-                    "value": 70
+                    "value": 127
                 },
                 "wordsCount": {
-                    "value": 9
+                    "value": 18
                 },
                 "sentencesCount": {
                     "value": 2
                 },
                 "linesCount": {
-                    "value": 3
+                    "value": 4
                 },
                 "paragraphsCount": {
                     "value": 3
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01NFsUJmP83uBYXyEUFSyz33",
+            "id": "msg_01XkTEcsJqL1ppfcRkdqbbxK",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nPavol Hejný is a software engineer who developed Promptbook.\n\n---"
+                    "text": "---\n\nPavol Hejný is a software engineer who developed Promptbook, a tool related to prompt engineering or AI interactions.\n\n---"
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 126,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 24
+                "output_tokens": 34
             }
         }
     }

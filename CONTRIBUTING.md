@@ -36,6 +36,7 @@ See [TODO.md](./TODO.md)
 -   `[number]` Connects multiple places that are related to each other across the file
 -   `[🧠]` Marks a place where there is something to decide and think about.
 -   `[🕕]` List of models *(that should be progresively updated)*
+      - Prompt: Update available models and their prices, search online
 -   `[🔼]` Marks an entity (function, class, type,...) in other project (like Promptbook.studio) which should be moved to this repository
 -   `[🚉]` Marks an types / interfaces / structures fully serializable as JSON, not marking `string_` and `number_` prefixed aliases
 -   `[🧹]` Need to implement garbage collection

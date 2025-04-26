@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:22:50.818Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:17:58.919Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nUranium Glass Garden Gnomes are a new product available in the eshop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique properties.\n\n---\n\nThe gnomes are equipped with UV LED lights, which activate their glow-in-the-dark feature. This characteristic makes them visually striking, especially in low-light conditions or at night.\n\n---\n\nThese garden ornaments are marketed as having a practical purpose beyond decoration. They are claimed to be effective in deterring birds and snakes from gardens.",
+        "content": "---\n\nUranium Glass Garden Gnomes are a new product available in the eshop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique properties.\n\n---\n\nThe gnomes are equipped with UV LED lights, which cause them to glow in the dark. This feature enhances their visual appeal and functionality in low-light conditions.\n\n---\n\nThese garden gnomes serve a practical purpose beyond decoration, as they are designed to deter birds and snakes from entering the garden area.",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:22:47.712Z",
-            "complete": "2025-02-26T15:22:50.818Z"
+            "start": "2025-04-23T13:17:55.935Z",
+            "complete": "2025-04-23T13:17:58.919Z"
         },
         "usage": {
             "price": {
-                "value": 0.002319
+                "value": 0.002199
             },
             "input": {
                 "tokensCount": {
@@ -49,16 +49,16 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 120
+                    "value": 112
                 },
                 "charactersCount": {
-                    "value": 552
+                    "value": 511
                 },
                 "wordsCount": {
-                    "value": 83
+                    "value": 79
                 },
                 "sentencesCount": {
-                    "value": 6
+                    "value": 5
                 },
                 "linesCount": {
                     "value": 12
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_013EHQt463RnEDkAHbZ2wQCu",
+            "id": "msg_01TJvmrpwfMJ38CNxWEwKNFj",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nUranium Glass Garden Gnomes are a new product available in the eshop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique properties.\n\n---\n\nThe gnomes are equipped with UV LED lights, which activate their glow-in-the-dark feature. This characteristic makes them visually striking, especially in low-light conditions or at night.\n\n---\n\nThese garden ornaments are marketed as having a practical purpose beyond decoration. They are claimed to be effective in deterring birds and snakes from gardens."
+                    "text": "---\n\nUranium Glass Garden Gnomes are a new product available in the eshop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique properties.\n\n---\n\nThe gnomes are equipped with UV LED lights, which cause them to glow in the dark. This feature enhances their visual appeal and functionality in low-light conditions.\n\n---\n\nThese garden gnomes serve a practical purpose beyond decoration, as they are designed to deter birds and snakes from entering the garden area."
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 173,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 120
+                "output_tokens": 112
             }
         }
     }

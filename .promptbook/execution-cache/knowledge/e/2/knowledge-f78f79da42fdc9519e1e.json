@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:23:14.751Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:17:59.530Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
@@ -22,8 +22,8 @@
         "content": "Glowing Uranium Glass Garden Gnomes",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:22:50.847Z",
-            "complete": "2025-02-26T15:23:14.751Z"
+            "start": "2025-04-23T13:17:58.939Z",
+            "complete": "2025-04-23T13:17:59.530Z"
         },
         "usage": {
             "price": {
@@ -88,7 +88,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_015vDAWq6AS5npYKFfZdBGWy",
+            "id": "msg_01GVxTJmWx9vgYQhM5VVmJwm",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

@@ -18,6 +18,13 @@ export type CommonToolsOptions = {
      * If true, the internal executions will be logged
      */
     readonly isVerbose?: boolean;
+
+
+     /**
+     * Maximum number of requests per minute
+     */
+     readonly maxRequestsPerMinute?: number;
+     // <- TODO: !!!! Use in all places using CommonToolsOptions OR Omit this from there
 };
 
 /**

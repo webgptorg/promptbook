@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:22:51.349Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:17:59.372Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Coolstore, e-commerce, hobby, home, garden, products, garden gnomes, kitchen gadgets",
+        "content": "E-commerce, hobby, home, garden products, garden gnomes, kitchen gadgets",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:22:50.482Z",
-            "complete": "2025-02-26T15:22:51.349Z"
+            "start": "2025-04-23T13:17:58.663Z",
+            "complete": "2025-04-23T13:17:59.372Z"
         },
         "usage": {
             "price": {
-                "value": 0.000651
+                "value": 0.000576
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 26
+                    "value": 21
                 },
                 "charactersCount": {
-                    "value": 84
+                    "value": 72
                 },
                 "wordsCount": {
-                    "value": 11
+                    "value": 10
                 },
                 "sentencesCount": {
                     "value": 1
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01EwfpEZfvG6wjZf11uFdrRF",
+            "id": "msg_01Xd3oQWyJaQSKsbYnkhRtGt",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Coolstore, e-commerce, hobby, home, garden, products, garden gnomes, kitchen gadgets"
+                    "text": "E-commerce, hobby, home, garden products, garden gnomes, kitchen gadgets"
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 87,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 26
+                "output_tokens": 21
             }
         }
     }

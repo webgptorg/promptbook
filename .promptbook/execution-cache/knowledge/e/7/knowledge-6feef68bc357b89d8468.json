@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T16:06:49.835Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:21:36.973Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
@@ -22,8 +22,8 @@
         "content": "Springfield: Illinois' Sangamon County Seat",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T16:06:48.346Z",
-            "complete": "2025-02-26T16:06:49.834Z"
+            "start": "2025-04-23T13:21:36.131Z",
+            "complete": "2025-04-23T13:21:36.972Z"
         },
         "usage": {
             "price": {
@@ -88,7 +88,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01Eo56rjckNSK3LvKU4xryrc",
+            "id": "msg_01QDbYR8KhiERDQDjnrzEuxG",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

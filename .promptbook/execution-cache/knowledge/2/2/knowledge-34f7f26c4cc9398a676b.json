@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:20:53.122Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:44:11.887Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
@@ -19,15 +19,15 @@
         }
     },
     "promptResult": {
-        "content": "Open Source Enthusiast's GitHub Showcase",
+        "content": "Open Source Enthusiast's GitHub Journey",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:20:52.426Z",
-            "complete": "2025-02-26T15:20:53.121Z"
+            "start": "2025-04-23T20:44:11.182Z",
+            "complete": "2025-04-23T20:44:11.887Z"
         },
         "usage": {
             "price": {
-                "value": 0.00038100000000000005
+                "value": 0.000366
             },
             "input": {
                 "tokensCount": {
@@ -37,7 +37,7 @@
                     "value": 256
                 },
                 "wordsCount": {
-                    "value": 40
+                    "value": 41
                 },
                 "sentencesCount": {
                     "value": 2
@@ -54,13 +54,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 12
+                    "value": 11
                 },
                 "charactersCount": {
-                    "value": 40
+                    "value": 39
                 },
                 "wordsCount": {
-                    "value": 6
+                    "value": 7
                 },
                 "sentencesCount": {
                     "value": 1
@@ -88,14 +88,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01CYQ1Kw9vF4DfwjTLSGpaqD",
+            "id": "msg_018FsGkstKSCYcvhGshCZvJM",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Open Source Enthusiast's GitHub Showcase"
+                    "text": "Open Source Enthusiast's GitHub Journey"
                 }
             ],
             "stop_reason": "end_turn",
@@ -104,7 +104,7 @@
                 "input_tokens": 67,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 12
+                "output_tokens": 11
             }
         }
     }

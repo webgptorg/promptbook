@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:20:54.190Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:44:12.543Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -17,8 +17,8 @@
         "content": "Pavol, open source, projects, GitHub",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:20:53.150Z",
-            "complete": "2025-02-26T15:20:54.190Z"
+            "start": "2025-04-23T20:44:11.909Z",
+            "complete": "2025-04-23T20:44:12.542Z"
         },
         "usage": {
             "price": {
@@ -32,7 +32,7 @@
                     "value": 274
                 },
                 "wordsCount": {
-                    "value": 40
+                    "value": 41
                 },
                 "sentencesCount": {
                     "value": 2
@@ -55,7 +55,7 @@
                     "value": 36
                 },
                 "wordsCount": {
-                    "value": 5
+                    "value": 6
                 },
                 "sentencesCount": {
                     "value": 1
@@ -83,7 +83,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01Dvb8C1cxsLza2XJXoH2Qph",
+            "id": "msg_01MHXgpgVrdorhcKWRVfntW4",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

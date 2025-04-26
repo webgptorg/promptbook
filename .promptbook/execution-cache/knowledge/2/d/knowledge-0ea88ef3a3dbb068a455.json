@@ -1,6 +1,6 @@
 {
-    "date": "2025-04-10T14:10:16.296Z",
-    "promptbookVersion": "0.89.0-30",
+    "date": "2025-04-23T13:15:20.450Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,20 +14,19 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Promptbook allows programming in plain English, bridging the gap between technology and people, making programming a creative process accessible to everyone.\n\n---\n\nIt translates English specifications into working code, enabling the creation of AI applications using human-understandable concepts like personas, knowledge, or actions instead of traditional coding elements.\n\n---\n\nPromptbook facilitates rapid development, allowing for the building of AI applications in minutes.  It's an enterprise-ready solution with built-in security, privacy, encryption, testing, and scalability.\n",
-        "modelName": "gemini-1.5-flash",
+        "content": "---\n\nPromptbook is a tool that enables programming in plain English, making software development accessible to non-technical users.\n\n---\n\nThe platform offers various applications including a chatbot, corrector, and spreadsheet processing tool.\n\n---\n\nPromptbook's approach involves natural language programming, where users write specifications in plain English which are then translated into working code.\n\n---\n\nThe system emphasizes AI-native applications, using human-understandable concepts like personas, knowledge, and actions instead of traditional programming elements.\n\n---\n\nPromptbook claims to enable rapid development, allowing users to build AI applications quickly while focusing on desired outcomes rather than technical details.\n\n---\n\nThe platform is described as enterprise-ready, with built-in considerations for security, privacy, encryption, testing, and scalability.\n\n---\n\nPavol Hejný is mentioned as the CTO and Co-founder, described as an AI engineer and developer.",
+        "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-04-10T14:10:14.002Z",
-            "complete": "2025-04-10T14:10:16.295Z"
+            "start": "2025-04-23T13:15:15.563Z",
+            "complete": "2025-04-23T13:15:20.449Z"
         },
         "usage": {
             "price": {
-                "value": 0,
-                "isUncertain": true
+                "value": 0.004122
             },
             "input": {
                 "tokensCount": {
-                    "value": 307
+                    "value": 384
                 },
                 "charactersCount": {
                     "value": 1603
@@ -50,22 +49,22 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 105
+                    "value": 198
                 },
                 "charactersCount": {
-                    "value": 585
+                    "value": 987
                 },
                 "wordsCount": {
-                    "value": 76
+                    "value": 129
                 },
                 "sentencesCount": {
-                    "value": 4
+                    "value": 7
                 },
                 "linesCount": {
-                    "value": 13
+                    "value": 25
                 },
                 "paragraphsCount": {
-                    "value": 5
+                    "value": 14
                 },
                 "pagesCount": {
                     "value": 1
@@ -74,63 +73,33 @@
         },
         "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Write Books not codeWe believe that the future of software is in plain English.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\"\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs...",
         "rawRequest": {
-            "inputFormat": "messages",
-            "mode": {
-                "type": "regular",
-                "tools": []
-            },
-            "prompt": [
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
                 {
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Write Books not codeWe believe that the future of software is in plain English.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\"\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs..."
-                        }
-                    ]
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Write Books not codeWe believe that the future of software is in plain English.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\"\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs..."
                 }
             ]
         },
         "rawResponse": {
-            "text": "Promptbook allows programming in plain English, bridging the gap between technology and people, making programming a creative process accessible to everyone.\n\n---\n\nIt translates English specifications into working code, enabling the creation of AI applications using human-understandable concepts like personas, knowledge, or actions instead of traditional coding elements.\n\n---\n\nPromptbook facilitates rapid development, allowing for the building of AI applications in minutes.  It's an enterprise-ready solution with built-in security, privacy, encryption, testing, and scalability.\n",
-            "finishReason": "stop",
+            "id": "msg_01ErBoHBK6TSp4ywruwmBQnX",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nPromptbook is a tool that enables programming in plain English, making software development accessible to non-technical users.\n\n---\n\nThe platform offers various applications including a chatbot, corrector, and spreadsheet processing tool.\n\n---\n\nPromptbook's approach involves natural language programming, where users write specifications in plain English which are then translated into working code.\n\n---\n\nThe system emphasizes AI-native applications, using human-understandable concepts like personas, knowledge, and actions instead of traditional programming elements.\n\n---\n\nPromptbook claims to enable rapid development, allowing users to build AI applications quickly while focusing on desired outcomes rather than technical details.\n\n---\n\nThe platform is described as enterprise-ready, with built-in considerations for security, privacy, encryption, testing, and scalability.\n\n---\n\nPavol Hejný is mentioned as the CTO and Co-founder, described as an AI engineer and developer."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
             "usage": {
-                "promptTokens": 307,
-                "completionTokens": 105
-            },
-            "rawCall": {
-                "rawPrompt": [
-                    {
-                        "role": "user",
-                        "parts": [
-                            {
-                                "text": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Write Books not codeWe believe that the future of software is in plain English.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\"\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs..."
-                            }
-                        ]
-                    }
-                ],
-                "rawSettings": {
-                    "generationConfig": {}
-                }
-            },
-            "rawResponse": {
-                "headers": {
-                    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
-                    "content-encoding": "gzip",
-                    "content-type": "application/json; charset=UTF-8",
-                    "date": "Thu, 10 Apr 2025 14:10:14 GMT",
-                    "server": "scaffolding on HTTPServer2",
-                    "server-timing": "gfet4t7; dur=1243",
-                    "transfer-encoding": "chunked",
-                    "vary": "Origin, X-Origin, Referer",
-                    "x-content-type-options": "nosniff",
-                    "x-frame-options": "SAMEORIGIN",
-                    "x-xss-protection": "0"
-                }
-            },
-            "warnings": [],
-            "request": {
-                "body": "{\"generationConfig\":{},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"You are experienced data researcher, extract the important knowledge from the document.\\n\\n# Rules\\n\\n-   Make pieces of information concise, clear, and easy to understand\\n-   One piece of information should be approximately 1 paragraph\\n-   Divide the paragraphs by markdown horizontal lines ---\\n-   Omit irrelevant information\\n-   Group redundant information\\n-   Write just extracted information, nothing else\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Write Books not codeWe believe that the future of software is in plain English.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\\\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\\\"\\\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\\\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs...\"}]}]}"
+                "input_tokens": 384,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 198
             }
         }
     }

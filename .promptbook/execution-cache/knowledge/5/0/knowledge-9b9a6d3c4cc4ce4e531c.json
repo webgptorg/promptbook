@@ -1,6 +1,6 @@
 {
-    "date": "2025-04-02T17:59:33.688Z",
-    "promptbookVersion": "0.89.0-12",
+    "date": "2025-04-23T20:45:54.700Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nProdejna nabízí možnost pronájmu VIP prostoru pro kreativní prodejce. Prodejci si mohou pronajmout jednu nebo více poliček k nabízení a prodeji svého zboží formou komisního prodeje.\n\n---\n\nPro dlouhodobější pronájmy poliček je k dispozici sleva z ceny nájmu.\n\n---\n\nV případě dotazů lze kontaktovat prodejnu na telefonním čísle 722 941 618 nebo e-mailem na adrese prodejna@koralkykatlas.cz.\n\n---",
+        "content": "---\n\nKreativní prodejci mají možnost pronajmout si VIP prostor v prodejně, kde mohou nabízet a prodávat své zboží prostřednictvím komisního prodeje. Tento prostor je organizován formou poliček, které si lze adoptovat.\n\n---\n\nPro dlouhodobější pronájmy poliček je nabízena sleva z ceny nájmu. Bližší informace o procesu adopce poličky a podmínkách pronájmu lze získat na uvedeném telefonním čísle 722 941 618 nebo emailu prodejna@koralkykatlas.cz.\n\n---",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-04-02T17:59:28.556Z",
-            "complete": "2025-04-02T17:59:33.688Z"
+            "start": "2025-04-23T20:45:51.582Z",
+            "complete": "2025-04-23T20:45:54.700Z"
         },
         "usage": {
             "price": {
-                "value": 0.0032040000000000003
+                "value": 0.0033840000000000003
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 148
+                    "value": 160
                 },
                 "charactersCount": {
-                    "value": 398
+                    "value": 450
                 },
                 "wordsCount": {
-                    "value": 57
+                    "value": 63
                 },
                 "sentencesCount": {
                     "value": 6
@@ -64,7 +64,7 @@
                     "value": 11
                 },
                 "paragraphsCount": {
-                    "value": 7
+                    "value": 5
                 },
                 "pagesCount": {
                     "value": 1
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_013bWGUxai3VcaQRansPD1vo",
+            "id": "msg_01H4TwMEeoQKJbHJTLLJbycD",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nProdejna nabízí možnost pronájmu VIP prostoru pro kreativní prodejce. Prodejci si mohou pronajmout jednu nebo více poliček k nabízení a prodeji svého zboží formou komisního prodeje.\n\n---\n\nPro dlouhodobější pronájmy poliček je k dispozici sleva z ceny nájmu.\n\n---\n\nV případě dotazů lze kontaktovat prodejnu na telefonním čísle 722 941 618 nebo e-mailem na adrese prodejna@koralkykatlas.cz.\n\n---"
+                    "text": "---\n\nKreativní prodejci mají možnost pronajmout si VIP prostor v prodejně, kde mohou nabízet a prodávat své zboží prostřednictvím komisního prodeje. Tento prostor je organizován formou poliček, které si lze adoptovat.\n\n---\n\nPro dlouhodobější pronájmy poliček je nabízena sleva z ceny nájmu. Bližší informace o procesu adopce poličky a podmínkách pronájmu lze získat na uvedeném telefonním čísle 722 941 618 nebo emailu prodejna@koralkykatlas.cz.\n\n---"
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 328,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 148
+                "output_tokens": 160
             }
         }
     }

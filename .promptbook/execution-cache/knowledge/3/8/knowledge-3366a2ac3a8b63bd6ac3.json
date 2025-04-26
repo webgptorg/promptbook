@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:20:53.066Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:43:59.319Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
@@ -19,15 +19,15 @@
         }
     },
     "promptResult": {
-        "content": "AI-Driven Application Development Specialist",
+        "content": "AI Developer: Crafting Intelligent Applications",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:20:52.416Z",
-            "complete": "2025-02-26T15:20:53.066Z"
+            "start": "2025-04-23T20:43:58.575Z",
+            "complete": "2025-04-23T20:43:59.319Z"
         },
         "usage": {
             "price": {
-                "value": 0.00045
+                "value": 0.000465
             },
             "input": {
                 "tokensCount": {
@@ -54,10 +54,10 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 11
+                    "value": 12
                 },
                 "charactersCount": {
-                    "value": 44
+                    "value": 47
                 },
                 "wordsCount": {
                     "value": 5
@@ -88,14 +88,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01FPdgvTfx3XDwZ1J8syy4t6",
+            "id": "msg_01KgcxN7hfcbDdghzaxGMS9n",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "AI-Driven Application Development Specialist"
+                    "text": "AI Developer: Crafting Intelligent Applications"
                 }
             ],
             "stop_reason": "end_turn",
@@ -104,7 +104,7 @@
                 "input_tokens": 95,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 11
+                "output_tokens": 12
             }
         }
     }

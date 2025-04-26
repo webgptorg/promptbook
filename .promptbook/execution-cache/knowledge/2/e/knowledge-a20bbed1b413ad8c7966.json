@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:19:53.443Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:13:17.506Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,31 +14,32 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\nPavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI globally. Pavol is also developing the WebGPT web page generation service.\n\n---\nPrior to the rise of generative AI, Pavol created the first Czech virtual whiteboard called Collboard and electronic textbooks named H-edu, which were used by tens of thousands of children. He has also worked on scientific projects for the Czech Ornithological Society.\n\n---\nPavol is actively involved in the tech community. He regularly gives lectures at conferences, serves as a jury member, and mentors in various Czech and international competitions. He is passionate about open source, and many of his projects can be found on his GitHub profile.",
-        "modelName": "claude-3-5-sonnet-20240620",
+        "content": "---\n\nPavol is a developer specializing in creating user applications with the latest artificial intelligence models.\n\n---\n\nHe is a member of the Ainautes consulting group, which focuses on the deployment of generative AI globally.\n\n---\n\nPavol develops the WebGPT web page generation service.\n\n---\n\nHe created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which have been used by tens of thousands of children.\n\n---\n\nPavol has worked on scientific projects for the Czech Ornithological Society.\n\n---\n\nHe regularly gives lectures at conferences, serves on juries, and mentors in various Czech and international competitions.\n\n---\n\nPavol has a strong interest in open source, with many of his projects available on his GitHub.\n",
+        "modelName": "gpt-4o-2024-08-06",
         "timing": {
-            "start": "2025-02-26T15:19:50.136Z",
-            "complete": "2025-02-26T15:19:53.443Z"
+            "start": "2025-04-23T13:13:13.771Z",
+            "complete": "2025-04-23T13:13:16.103Z"
         },
         "usage": {
             "price": {
-                "value": 0.003651
+                "value": 0,
+                "isUncertain": true
             },
             "input": {
                 "tokensCount": {
-                    "value": 317
+                    "value": 285
                 },
                 "charactersCount": {
-                    "value": 1353
+                    "value": 482
                 },
                 "wordsCount": {
-                    "value": 199
+                    "value": 60
                 },
                 "sentencesCount": {
-                    "value": 9
+                    "value": 2
                 },
                 "linesCount": {
-                    "value": 35
+                    "value": 14
                 },
                 "paragraphsCount": {
                     "value": 6
@@ -49,22 +50,22 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 180
+                    "value": 151
                 },
                 "charactersCount": {
-                    "value": 822
+                    "value": 758
                 },
                 "wordsCount": {
-                    "value": 129
+                    "value": 111
                 },
                 "sentencesCount": {
-                    "value": 8
+                    "value": 7
                 },
                 "linesCount": {
-                    "value": 18
+                    "value": 21
                 },
                 "paragraphsCount": {
-                    "value": 3
+                    "value": 14
                 },
                 "pagesCount": {
                     "value": 1
@@ -73,34 +74,50 @@
         },
         "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> I'm Pavol, a developer who is passionate about using new tools and technologies.\n> \n> I specialise in creating fully functional user applications using the latest artificial intelligence models.\n> \n> I am a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world.\n> \n> I develop the WebGPT web page generation service.\n> \n> Before the massive emergence of generative AI, I have created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n> \n> I have also worked on many scientific projects for the Czech Ornithological Society.\n> I regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions.\n> I have a special heart for this, and I love open source – you can find many of my things on my GitHub.",
         "rawRequest": {
-            "model": "claude-3-5-sonnet-20240620",
-            "max_tokens": 4096,
+            "model": "gpt-4o",
             "messages": [
                 {
                     "role": "user",
                     "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> I'm Pavol, a developer who is passionate about using new tools and technologies.\n> \n> I specialise in creating fully functional user applications using the latest artificial intelligence models.\n> \n> I am a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world.\n> \n> I develop the WebGPT web page generation service.\n> \n> Before the massive emergence of generative AI, I have created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n> \n> I have also worked on many scientific projects for the Czech Ornithological Society.\n> I regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions.\n> I have a special heart for this, and I love open source – you can find many of my things on my GitHub."
                 }
-            ]
+            ],
+            "user": "d33976cd7af0751f6e4c3b7d78d7f8081fb1a8bf386fa236840257d1d139feeb"
         },
         "rawResponse": {
-            "id": "msg_01DfTzYd1HuTSEn7sBqfduAA",
-            "type": "message",
-            "role": "assistant",
-            "model": "claude-3-5-sonnet-20240620",
-            "content": [
+            "id": "chatcmpl-BPUCXQE3RYz7DmoUNqLYCplnQGPpD",
+            "object": "chat.completion",
+            "created": 1745413993,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
                 {
-                    "type": "text",
-                    "text": "---\nPavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI globally. Pavol is also developing the WebGPT web page generation service.\n\n---\nPrior to the rise of generative AI, Pavol created the first Czech virtual whiteboard called Collboard and electronic textbooks named H-edu, which were used by tens of thousands of children. He has also worked on scientific projects for the Czech Ornithological Society.\n\n---\nPavol is actively involved in the tech community. He regularly gives lectures at conferences, serves as a jury member, and mentors in various Czech and international competitions. He is passionate about open source, and many of his projects can be found on his GitHub profile."
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "---\n\nPavol is a developer specializing in creating user applications with the latest artificial intelligence models.\n\n---\n\nHe is a member of the Ainautes consulting group, which focuses on the deployment of generative AI globally.\n\n---\n\nPavol develops the WebGPT web page generation service.\n\n---\n\nHe created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which have been used by tens of thousands of children.\n\n---\n\nPavol has worked on scientific projects for the Czech Ornithological Society.\n\n---\n\nHe regularly gives lectures at conferences, serves on juries, and mentors in various Czech and international competitions.\n\n---\n\nPavol has a strong interest in open source, with many of his projects available on his GitHub.\n",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
                 }
             ],
-            "stop_reason": "end_turn",
-            "stop_sequence": null,
             "usage": {
-                "input_tokens": 317,
-                "cache_creation_input_tokens": 0,
-                "cache_read_input_tokens": 0,
-                "output_tokens": 180
-            }
+                "prompt_tokens": 285,
+                "completion_tokens": 151,
+                "total_tokens": 436,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_d8864f8b6b"
         }
     }
 }

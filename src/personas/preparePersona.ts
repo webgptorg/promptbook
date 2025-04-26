@@ -4,6 +4,7 @@ import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import { jsonParse } from '../formats/json/utils/jsonParse';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
@@ -22,7 +23,7 @@ export async function preparePersona(
     personaDescription: string_persona_description,
     tools: Pick<ExecutionTools, 'llm'>,
     options: PrepareAndScrapeOptions,
-): Promise<PersonaPreparedJson['modelRequirements']> {
+): Promise<Pick<PersonaPreparedJson, 'modelsRequirements'>> {
     const { isVerbose = DEFAULT_IS_VERBOSE } = options;
 
     if (tools === undefined || tools.llm === undefined) {
@@ -37,34 +38,59 @@ export async function preparePersona(
         tools,
     });
 
-    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
     const _llms = arrayableToArray(tools.llm);
     const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
-    const availableModels = await llmTools.listModels();
-    const availableModelNames = availableModels
+    const availableModels = (await llmTools.listModels())
         .filter(({ modelVariant }) => modelVariant === 'CHAT')
-        .map(({ modelName }) => modelName)
-        .join(',');
+        .map(({ modelName, modelDescription }) => ({
+            modelName,
+            modelDescription,
+            // <- Note: `modelTitle` and `modelVariant` is not relevant for this task
+        }));
 
-    const result = await preparePersonaExecutor({ availableModelNames, personaDescription }).asPromise();
+    const result = await preparePersonaExecutor({
+        availableModels /* <- Note: Passing as JSON */,
+        personaDescription,
+    }).asPromise();
 
     const { outputParameters } = result;
-    const { modelRequirements: modelRequirementsRaw } = outputParameters;
+    const { modelsRequirements: modelsRequirementsJson } = outputParameters;
 
-    const modelRequirements = JSON.parse(modelRequirementsRaw!);
+    let modelsRequirementsUnchecked: Array<TODO_any> = jsonParse(modelsRequirementsJson!);
 
     if (isVerbose) {
-        console.info(`PERSONA ${personaDescription}`, modelRequirements);
+        console.info(`PERSONA ${personaDescription}`, modelsRequirementsUnchecked);
     }
 
-    const { modelName, systemMessage, temperature } = modelRequirements;
+    if (!Array.isArray(modelsRequirementsUnchecked)) {
+        // <- TODO: Book should have syntax and system to enforce shape of JSON
+
+        modelsRequirementsUnchecked = [modelsRequirementsUnchecked];
+        /*
+        throw new UnexpectedError(
+            spaceTrim(
+                (block) => `
+                    Invalid \`modelsRequirements\`:
+
+                    \`\`\`json
+                    ${block(JSON.stringify(modelsRequirementsUnchecked, null, 4))}
+                    \`\`\`
+                `,
+            ),
+        );
+        */
+    }
+
+    const modelsRequirements: PersonaPreparedJson['modelsRequirements'] = modelsRequirementsUnchecked.map(
+        (modelRequirements) => ({
+            modelVariant: 'CHAT',
+            ...modelRequirements,
+        }),
+    );
 
     return {
-        modelVariant: 'CHAT',
-        modelName,
-        systemMessage,
-        temperature,
+        modelsRequirements,
     };
 }
 

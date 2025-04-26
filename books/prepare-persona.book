@@ -1,42 +1,52 @@
 # Prepare Persona
 
 -   PIPELINE URL `https://promptbook.studio/promptbook/prepare-persona.book`
--   INPUT PARAMETER `{availableModelNames}` List of available model names separated by comma (,)
+-   INPUT PARAMETER `{availableModels}` List of available model names together with their descriptions as JSON
 -   INPUT PARAMETER `{personaDescription}` Description of the persona
--   OUTPUT PARAMETER `{modelRequirements}` Specific requirements for the model
+-   OUTPUT PARAMETER `{modelsRequirements}` Specific requirements for the model
 
 ## Make modelRequirements
 
 -   FORMAT JSON
 
 ```markdown
-You are experienced AI engineer, you need to create virtual assistant.
-Write
+You are an experienced AI engineer, you need to find the best models for virtual assistants:
 
 ## Example
 
 \`\`\`json
-{
-"modelName": "gpt-4o",
-"systemMessage": "You are experienced AI engineer and helpfull assistant.",
-"temperature": 0.7
-}
+[
+  {
+  "modelName": "gpt-4o",
+  "systemMessage": "You are experienced AI engineer and helpfull assistant.",
+  "temperature": 0.7
+  },
+  {
+    "modelName": "claude-3-5-sonnet",
+    "systemMessage": "You are a friendly and knowledgeable chatbot.",
+    "temperature": 0.5
+  }
+]
 \`\`\`
 
 ## Instructions
 
--   Your output format is JSON object
--   Write just the JSON object, no other text should be present
--   It contains the following keys:
+-   Your output format is JSON array
+-   Sort best-fitting models first
+-   Omit any models that are not suitable
+-   Write just the JSON, no other text should be present
+-   Array contain items with following keys:
     -   `modelName`: The name of the model to use
     -   `systemMessage`: The system message to provide context to the model
     -   `temperature`: The sampling temperature to use
 
 ### Key `modelName`
 
-Pick from the following models:
+Here are the available models:
 
--   {availableModelNames}
+\`\`\`json
+{availableModels}
+\`\`\`
 
 ### Key `systemMessage`
 
@@ -67,4 +77,4 @@ Take this description of the persona:
 > {personaDescription}
 ```
 
-`-> {modelRequirements}`
+`-> {modelsRequirements}`

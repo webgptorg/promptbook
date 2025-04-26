@@ -69,7 +69,7 @@ describe('executionReportJsonToString.test', () => {
         it(`should generate report for ${name}`, () => {
             expect(
                 executionReportJsonToString(
-                    JSON.parse(
+                    jsonParse(
                         readFileSync(join(__dirname, examplesDir, name), 'utf-8'),
                         //          <- Note: In production it is not good practice to use synchronous functions
                         //                   But this is only a test before the build, so it is okay

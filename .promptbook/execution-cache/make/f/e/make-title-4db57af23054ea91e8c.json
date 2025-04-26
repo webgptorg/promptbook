@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:22:40.130Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:45:28.627Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Make title",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-title.book#make-title",
@@ -26,8 +26,8 @@
         "content": "🔄 Empty Workflow",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:22:38.934Z",
-            "complete": "2025-02-26T15:22:40.130Z"
+            "start": "2025-04-23T20:45:27.768Z",
+            "complete": "2025-04-23T20:45:28.627Z"
         },
         "usage": {
             "price": {
@@ -41,7 +41,7 @@
                     "value": 1086
                 },
                 "wordsCount": {
-                    "value": 148
+                    "value": 151
                 },
                 "sentencesCount": {
                     "value": 7
@@ -92,7 +92,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01DwGyy9seTiHusPczWHX7LJ",
+            "id": "msg_01Nzt4BLYaWhXPPeNNp9bXUi",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

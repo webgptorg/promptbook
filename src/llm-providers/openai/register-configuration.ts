@@ -3,6 +3,7 @@ import type { Registration } from '../../utils/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
 
 /**
  * Registration of LLM provider metadata
@@ -18,10 +19,12 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
     packageName: '@promptbook/openai',
     className: 'OpenAiExecutionTools',
     envVariables: ['OPENAI_API_KEY'],
+    trustLevel: 'CLOSED',
+    order: MODEL_ORDER.TOP_TIER,
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Open AI (boilerplate)',
+            title: 'Open AI',
             packageName: '@promptbook/openai',
             className: 'OpenAiExecutionTools',
             options: {
@@ -62,10 +65,12 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
     className: 'OpenAiAssistantExecutionTools',
     envVariables: null,
     //            <- TODO: ['OPENAI_API_KEY', 'OPENAI_ASSISTANT_ID']
+    trustLevel: 'CLOSED',
+    order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] What is the right tier for Open AI Assistant
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Open AI Assistant (boilerplate)',
+            title: 'Open AI Assistant',
             packageName: '@promptbook/openai',
             className: 'OpenAiAssistantExecutionTools',
             options: {

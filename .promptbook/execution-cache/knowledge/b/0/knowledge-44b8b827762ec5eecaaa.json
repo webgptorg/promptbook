@@ -1,6 +1,6 @@
 {
-    "date": "2025-04-02T17:59:33.309Z",
-    "promptbookVersion": "0.89.0-12",
+    "date": "2025-04-23T20:45:56.471Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nV současné ekonomické krizi se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie, jelikož lidé více šetří. Zákazníci hlásí rostoucí počet problémů a podvodů s bižuterií v České republice i v zahraničí.\n\n---\n\nKorálky Katlas připravili přehled důležitých bodů, na které je třeba dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace vycházejí ze zkráceného záznamu online setkání.\n\n---",
+        "content": "---\n\nV době ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie, jelikož lidé hledají levnější alternativy. Zákazníci stále častěji hlásí problémy a podvody s bižuterií, se kterými se setkali v ČR i v zahraničí.\n\n---\n\nKorálky Katlas připravili souhrn doporučení, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů. Tento souhrn vychází z online setkání, kde byly diskutovány nejdůležitější aspekty bezpečného nákupu bižuterie.\n\n---",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-04-02T17:59:30.290Z",
-            "complete": "2025-04-02T17:59:33.307Z"
+            "start": "2025-04-23T20:45:51.159Z",
+            "complete": "2025-04-23T20:45:56.471Z"
         },
         "usage": {
             "price": {
-                "value": 0.0033120000000000003
+                "value": 0.0037020000000000004
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 163
+                    "value": 189
                 },
                 "charactersCount": {
-                    "value": 427
+                    "value": 482
                 },
                 "wordsCount": {
-                    "value": 60
+                    "value": 68
                 },
                 "sentencesCount": {
                     "value": 5
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_019rmqWrckfNWmYZd34aXPYP",
+            "id": "msg_018iTa6FZhmAoYMUjhoEG2b5",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nV současné ekonomické krizi se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie, jelikož lidé více šetří. Zákazníci hlásí rostoucí počet problémů a podvodů s bižuterií v České republice i v zahraničí.\n\n---\n\nKorálky Katlas připravili přehled důležitých bodů, na které je třeba dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace vycházejí ze zkráceného záznamu online setkání.\n\n---"
+                    "text": "---\n\nV době ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie, jelikož lidé hledají levnější alternativy. Zákazníci stále častěji hlásí problémy a podvody s bižuterií, se kterými se setkali v ČR i v zahraničí.\n\n---\n\nKorálky Katlas připravili souhrn doporučení, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů. Tento souhrn vychází z online setkání, kde byly diskutovány nejdůležitější aspekty bezpečného nákupu bižuterie.\n\n---"
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 289,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 163
+                "output_tokens": 189
             }
         }
     }

@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T16:06:50.237Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:21:37.915Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield, Illinois, population, sixth most populous city, 10,566, 2019",
+        "content": "Springfield, Illinois, population, sixth most populous, 10,566, 2019",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T16:06:49.272Z",
-            "complete": "2025-02-26T16:06:50.237Z"
+            "start": "2025-04-23T13:21:37.062Z",
+            "complete": "2025-04-23T13:21:37.914Z"
         },
         "usage": {
             "price": {
-                "value": 0.000561
+                "value": 0.000546
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 22
+                    "value": 21
                 },
                 "charactersCount": {
-                    "value": 73
+                    "value": 68
                 },
                 "wordsCount": {
-                    "value": 10
+                    "value": 9
                 },
                 "sentencesCount": {
                     "value": 1
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_012mSNknhACTLEZveqZXL1YK",
+            "id": "msg_017gZHXBBXCEZpdYzbRiGhCR",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield, Illinois, population, sixth most populous city, 10,566, 2019"
+                    "text": "Springfield, Illinois, population, sixth most populous, 10,566, 2019"
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 77,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 22
+                "output_tokens": 21
             }
         }
     }

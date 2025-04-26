@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:22:49.756Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:17:57.953Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,11 +14,11 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products, offering a diverse range of items from garden gnomes to kitchen gadgets.\n\n---\n\nThe company operates 3 physical stores in the UK and maintains a substantial online presence serving customers in the UK, EU, and Switzerland.\n\n---\n\nCoolstore's key competitive advantages are fast delivery and exceptional customer service with a personalized approach.",
+        "content": "---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products, offering a diverse range of items from garden gnomes to kitchen gadgets.\n\n---\n\nThe company operates three physical stores in the UK and maintains a significant online presence serving customers in the UK, EU, and Switzerland.\n\n---\n\nCoolstore's key competitive advantages are its fast delivery service and exceptional customer service with a personalized approach.",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:22:47.710Z",
-            "complete": "2025-02-26T15:22:49.755Z"
+            "start": "2025-04-23T13:17:55.934Z",
+            "complete": "2025-04-23T13:17:57.953Z"
         },
         "usage": {
             "price": {
@@ -52,16 +52,16 @@
                     "value": 94
                 },
                 "charactersCount": {
-                    "value": 438
+                    "value": 454
                 },
                 "wordsCount": {
-                    "value": 64
+                    "value": 66
                 },
                 "sentencesCount": {
                     "value": 3
                 },
                 "linesCount": {
-                    "value": 11
+                    "value": 12
                 },
                 "paragraphsCount": {
                     "value": 6
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_017tZe6hmDUFVcysDfpitQeE",
+            "id": "msg_01XFH99SWpgpvQSAHWdxHbGw",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products, offering a diverse range of items from garden gnomes to kitchen gadgets.\n\n---\n\nThe company operates 3 physical stores in the UK and maintains a substantial online presence serving customers in the UK, EU, and Switzerland.\n\n---\n\nCoolstore's key competitive advantages are fast delivery and exceptional customer service with a personalized approach."
+                    "text": "---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products, offering a diverse range of items from garden gnomes to kitchen gadgets.\n\n---\n\nThe company operates three physical stores in the UK and maintains a significant online presence serving customers in the UK, EU, and Switzerland.\n\n---\n\nCoolstore's key competitive advantages are its fast delivery service and exceptional customer service with a personalized approach."
                 }
             ],
             "stop_reason": "end_turn",

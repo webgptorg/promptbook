@@ -16,6 +16,7 @@ import { executionReportJsonToString } from '../../execution/execution-report/ex
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 import { $llmToolsMetadataRegister } from '../../llm-providers/_common/register/$llmToolsMetadataRegister';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
@@ -90,7 +91,7 @@ export function $initializeRunCommand(program: Program) {
             let inputParameters: Record<string_parameter_name, string_parameter_value> = {};
 
             if (json) {
-                inputParameters = JSON.parse(json);
+                inputParameters = jsonParse(json);
                 //                <- TODO: Maybe check shape of passed JSON and if its valid parameters Record
             }
 

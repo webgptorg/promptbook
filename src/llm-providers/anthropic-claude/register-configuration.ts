@@ -3,6 +3,7 @@ import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
 
 /**
  * Registration of LLM provider metadata
@@ -18,10 +19,12 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
     envVariables: ['ANTHROPIC_CLAUDE_API_KEY'],
+    trustLevel: 'CLOSED',
+    order: MODEL_ORDER.TOP_TIER,
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Anthropic Claude (boilerplate)',
+            title: 'Anthropic Claude',
             packageName: '@promptbook/anthropic-claude',
             className: 'AnthropicClaudeExecutionTools',
             options: {

@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T16:06:51.617Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:21:37.785Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -17,8 +17,8 @@
         "content": "Springfield, county seat, Sangamon County, Illinois, U.S. state",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T16:06:49.875Z",
-            "complete": "2025-02-26T16:06:51.616Z"
+            "start": "2025-04-23T13:21:37.012Z",
+            "complete": "2025-04-23T13:21:37.784Z"
         },
         "usage": {
             "price": {
@@ -83,7 +83,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_016MgzaF9HoWunf88e3gMjMF",
+            "id": "msg_01FCGPisdan36Rex9VJsmyuV",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

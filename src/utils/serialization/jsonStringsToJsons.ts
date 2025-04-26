@@ -1,4 +1,5 @@
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 
 /**
  * Recursively converts JSON strings to JSON objects
@@ -22,7 +23,7 @@ export function jsonStringsToJsons<T>(object: T): T {
 
     for (const [key, value] of Object.entries(object)) {
         if (typeof value === 'string' && isValidJsonString(value)) {
-            newObject[key] = JSON.parse(value);
+            newObject[key] = jsonParse(value);
         } else {
             newObject[key] = jsonStringsToJsons(value);
         }

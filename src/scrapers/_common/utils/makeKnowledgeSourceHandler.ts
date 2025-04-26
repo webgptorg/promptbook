@@ -26,6 +26,7 @@ import { isValidFilePath } from '../../../utils/validators/filePath/isValidFileP
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceHandler } from '../Scraper';
 import { promptbookFetch } from './promptbookFetch';
+import { jsonParse } from '../../../formats/json/utils/jsonParse';
 
 /**
  * @@@
@@ -173,7 +174,7 @@ export async function makeKnowledgeSourceHandler(
                 > },
             */
             async asJson() {
-                return JSON.parse(await tools.fs!.readFile(filename, 'utf-8'));
+                return jsonParse(await tools.fs!.readFile(filename, 'utf-8'));
             },
             async asText() {
                 return await tools.fs!.readFile(filename, 'utf-8');

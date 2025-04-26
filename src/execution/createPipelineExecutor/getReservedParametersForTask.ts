@@ -10,6 +10,7 @@ import type { ReservedParameters } from '../../types/typeAliases';
 import { getContextForTask } from './getContextForTask';
 import { getExamplesForTask } from './getExamplesForTask';
 import { getKnowledgeForTask } from './getKnowledgeForTask';
+import type { ExecutionTools } from '../ExecutionTools';
 
 /**
  * @@@
@@ -17,6 +18,11 @@ import { getKnowledgeForTask } from './getKnowledgeForTask';
  * @private internal type of `getReservedParametersForTask`
  */
 type GetReservedParametersForTaskOptions = {
+    /**
+     * The execution tools to be used during the execution of the pipeline
+     */
+    readonly tools: ExecutionTools;
+
     /**
      * @@@
      */
@@ -41,10 +47,10 @@ type GetReservedParametersForTaskOptions = {
 export async function getReservedParametersForTask(
     options: GetReservedParametersForTaskOptions,
 ): Promise<Readonly<ReservedParameters>> {
-    const { preparedPipeline, task, pipelineIdentification } = options;
+    const { tools, preparedPipeline, task, pipelineIdentification } = options;
 
     const context = await getContextForTask(task); // <- [🏍]
-    const knowledge = await getKnowledgeForTask({ preparedPipeline, task });
+    const knowledge = await getKnowledgeForTask({ tools, preparedPipeline, task });
     const examples = await getExamplesForTask(task);
     const currentDate = new Date().toISOString(); // <- TODO: [🧠][💩] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;

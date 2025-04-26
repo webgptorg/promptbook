@@ -423,9 +423,7 @@ Better system for imports, exports and dependencies
 -   Consiese README - move things to discussions
 -   Make Partial<ModelRequirements> and optional
 
-### `0.64.0`
-
-Was accidentally released skipped
+> `0.64.0` was skipped
 
 ### `0.65.0` _(2024-08-15-)_
 
@@ -737,9 +735,7 @@ Scripting and execution
 -   Increase `DEFAULT_MAX_EXECUTION_ATTEMPTS` from `3` -> `10`
 -   Add a unique ID to the error, this error needs to be serialised and deserialised.
 
-## In pre-release
-
-### `0.89.0` _(2025-03-)_
+### `0.89.0` _(2025-04-15)_
 
 User system and spending of credits
 
@@ -768,6 +764,32 @@ User system and spending of credits
 -   Catch non-error throws and wrap + rethrow them as `WrappedError`
 -   [Creating a default community health file](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file)
 -   Functions `isValidCsvString` and `isValidXmlString`
+
+> `0.90.0` and `0.91.0` were skipped
+
+## In pre-release
+
+### `0.92.0` _(2025-04-)_
+
+Models
+
+-   Models are picked by description<!-- <- TODO: !!! [models] Implement or remove -->
+-   During preparation of the pipeline, not single model picked but all models which are relevant for task are sorted by relevance
+-   Make real RAG of knowledge<!-- <- TODO: !!! [models] Implement or remove -->
+-   Remove "(boilerplate)" from model names
+-   Sort model providers by relevance<!-- <- TODO: !!! [models] Implement or remove -->
+-   Export utility function `filterModels` from `@promptbook/core`
+-   All OpenAI models contain description
+-   All Anthropic models contain description
+-   All DeepSeek models contain description
+-   All Google models contain description
+-   Fix remote server `POST` `/login`
+-   Update and fix all status codes and responses in `openapi`
+-   Migrate `JSON.parse` -> `jsonParse` _(preparation for formats)_
+-   Migrate `papaparse.parse` -> `csvParse` _(preparation for formats)_
+-   Rename `FormatDefinition` -> `FormatParser`
+-   Limit rate of requests to models
+-   Autoheal `\r` in `CsvFormatParser` ~~`CsvFormatDefinition`~~
 
 ## Drafts
 

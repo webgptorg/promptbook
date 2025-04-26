@@ -1,11 +1,12 @@
 import colors from 'colors';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
 import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
+import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import type { string_promptbook_server_url } from '../../types/typeAliases';
@@ -133,8 +134,9 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
                     }),
                 });
 
-                const { isSuccess, message, error, identification } =
-                    (await response.json()) as LoginResponse<really_unknown>;
+                const { isSuccess, message, error, identification } = jsonParse<LoginResponse<really_unknown>>(
+                    await response.text(),
+                );
 
                 TODO_USE(error);
 

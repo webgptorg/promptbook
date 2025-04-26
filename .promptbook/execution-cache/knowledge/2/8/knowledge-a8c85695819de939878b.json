@@ -1,11 +1,11 @@
 {
-    "date": "2025-03-08T19:25:01.992Z",
-    "promptbookVersion": "0.86.31",
+    "date": "2025-04-23T13:17:14.866Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Promptbook Studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage."
+            "knowledgePieceContent": "Promptbook Studio is a web-based editor and runner for book applications, currently in the experimental MVP stage."
         },
         "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -22,8 +22,8 @@
         "content": "Promptbook Studio: Web-Based Book Editor",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-03-08T19:24:37.250Z",
-            "complete": "2025-03-08T19:25:01.992Z"
+            "start": "2025-04-23T13:16:25.814Z",
+            "complete": "2025-04-23T13:17:14.865Z"
         },
         "usage": {
             "price": {
@@ -76,19 +76,19 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook Studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage.",
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook Studio is a web-based editor and runner for book applications, currently in the experimental MVP stage.",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook Studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage."
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook Studio is a web-based editor and runner for book applications, currently in the experimental MVP stage."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_018D2XCYhnzuWNEYSxByFCWp",
+            "id": "msg_01AzdRbzBQ5kXW1KjhV8mHdv",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

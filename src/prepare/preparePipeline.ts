@@ -128,7 +128,7 @@ export async function preparePipeline(
         personas,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (persona, index) => {
-            const modelRequirements = await preparePersona(
+            const { modelsRequirements } = await preparePersona(
                 persona.description,
                 { ...tools, llm: llmToolsWithUsage },
                 {
@@ -140,7 +140,7 @@ export async function preparePipeline(
 
             const preparedPersona: PersonaPreparedJson = {
                 ...persona,
-                modelRequirements,
+                modelsRequirements,
                 preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
                 // <- TODO: [🍙] Make some standard order of json properties
             };

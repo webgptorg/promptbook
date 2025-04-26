@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:22:07.508Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:44:47.519Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
@@ -19,11 +19,11 @@
         }
     },
     "promptResult": {
-        "content": "Innovator Revolutionizing Digital Education Tools",
+        "content": "Innovator Revolutionizing Web and Education",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:22:06.689Z",
-            "complete": "2025-02-26T15:22:07.508Z"
+            "start": "2025-04-23T20:44:46.769Z",
+            "complete": "2025-04-23T20:44:47.519Z"
         },
         "usage": {
             "price": {
@@ -37,7 +37,7 @@
                     "value": 373
                 },
                 "wordsCount": {
-                    "value": 56
+                    "value": 57
                 },
                 "sentencesCount": {
                     "value": 3
@@ -57,7 +57,7 @@
                     "value": 13
                 },
                 "charactersCount": {
-                    "value": 49
+                    "value": 43
                 },
                 "wordsCount": {
                     "value": 5
@@ -88,14 +88,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01SpejP4gVH7a7nzinKMsjBE",
+            "id": "msg_01PHPwQfoMSZXbi1vCDJntzA",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Innovator Revolutionizing Digital Education Tools"
+                    "text": "Innovator Revolutionizing Web and Education"
                 }
             ],
             "stop_reason": "end_turn",

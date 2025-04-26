@@ -18,7 +18,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
         return false;
     }
 
-    if (!pipeline.personas.every((persona) => (persona as PersonaPreparedJson).modelRequirements !== undefined)) {
+    if (!pipeline.personas.every((persona) => (persona as PersonaPreparedJson).modelsRequirements !== undefined)) {
         return false;
     }
 

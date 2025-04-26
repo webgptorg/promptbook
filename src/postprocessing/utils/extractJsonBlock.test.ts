@@ -1,11 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 import { extractJsonBlock } from './extractJsonBlock';
 
 describe('how `extractJsonBlock` works', () => {
     it('return one JSON block', () =>
         expect(
-            JSON.parse(
+            jsonParse(
                 extractJsonBlock(
                     spaceTrim(`
                         Here is your JSON block:
@@ -20,7 +21,7 @@ describe('how `extractJsonBlock` works', () => {
 
     it('does not matter on declared type, just the validity of the block', () =>
         expect(
-            JSON.parse(
+            jsonParse(
                 extractJsonBlock(
                     spaceTrim(`
                         Here is your JSON block:
@@ -35,7 +36,7 @@ describe('how `extractJsonBlock` works', () => {
 
     it('if given string is a valid JSON as it is, it just returns it', () =>
         expect(
-            JSON.parse(
+            jsonParse(
                 extractJsonBlock(
                     spaceTrim(`
                       {"foo": "bar"}
@@ -46,7 +47,7 @@ describe('how `extractJsonBlock` works', () => {
 
     it('does not matter on formatting', () =>
         expect(
-            JSON.parse(
+            jsonParse(
                 extractJsonBlock(`
                   { "foo"
 

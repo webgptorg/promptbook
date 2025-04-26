@@ -1,5 +1,4 @@
-import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
-import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
+import type { ExpectationAmount, ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { countCharacters } from './countCharacters';
 import { countLines } from './countLines';
 import { countPages } from './countPages';
@@ -22,6 +21,6 @@ export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAm
 };
 
 /**
- * TODO: [🧠][🤠] This should be probbably as part of `TextFormatDefinition`
+ * TODO: [🧠][🤠] This should be probbably as part of `TextFormatParser`
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

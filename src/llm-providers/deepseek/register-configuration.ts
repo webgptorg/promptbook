@@ -3,6 +3,7 @@ import type { Registration } from '../../utils/$Register';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
 
 /**
  * Registration of LLM provider metadata
@@ -18,10 +19,12 @@ export const _DeepseekMetadataRegistration: Registration = $llmToolsMetadataRegi
     packageName: '@promptbook/deepseek',
     className: 'DeepseekExecutionTools',
     envVariables: ['DEEPSEEK_GENERATIVE_AI_API_KEY'],
+    trustLevel: 'UNTRUSTED',
+    order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] Maybe `TOP_TIER`?
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
-            title: 'Deepseek (boilerplate)',
+            title: 'Deepseek',
             packageName: '@promptbook/deepseek',
             className: 'DeepseekExecutionTools',
             options: {

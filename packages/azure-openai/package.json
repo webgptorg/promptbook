@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/azure-openai",
-    "version": "0.89.0-31",
+    "version": "0.92.0-11",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -51,10 +51,11 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/azure-openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.89.0-31"
+        "@promptbook/core": "0.92.0-11"
     },
     "dependencies": {
         "@azure/openai": "1.0.0-beta.12",
+        "bottleneck": "^2.19.5",
         "colors": "1.4.0",
         "crypto": "1.0.1",
         "spacetrim": "0.11.59"

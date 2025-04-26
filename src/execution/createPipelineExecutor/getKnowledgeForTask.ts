@@ -1,9 +1,12 @@
 import type { ReadonlyDeep } from 'type-fest';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
+import type { Prompt } from '../../types/Prompt';
+import type { string_markdown, string_parameter_value } from '../../types/typeAliases';
+import { arrayableToArray } from '../../utils/arrayableToArray';
+import type { ExecutionTools } from '../ExecutionTools';
+import { computeCosineSimilarity } from './computeCosineSimilarity';
 
 /**
  * @@@
@@ -11,6 +14,11 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
  * @private internal type of `getKnowledgeFoTask`
  */
 type GetKnowledgeForTaskOptions = {
+    /**
+     * The execution tools to be used during the execution of the pipeline
+     */
+    readonly tools: ExecutionTools;
+
     /**
      * @@@
      */
@@ -25,16 +33,85 @@ type GetKnowledgeForTaskOptions = {
 /**
  * @@@
  *
+ * Here is the place where RAG (retrieval-augmented generation) happens
+ *
  * @private internal utility of `createPipelineExecutor`
  */
 export async function getKnowledgeForTask(
     options: GetKnowledgeForTaskOptions,
 ): Promise<string_parameter_value & string_markdown> {
-    const { preparedPipeline, task } = options;
+    const { tools, preparedPipeline, task } = options;
 
-    // TODO: [♨][💩] Implement Better - use real index and keyword search from `task` and {examples}
+    const firstKnowlegePiece = preparedPipeline.knowledgePieces[0];
+    const firstKnowlegeIndex = firstKnowlegePiece?.index[0];
+    // <- TODO: Do not use just first knowledge piece and first index to determine embedding model, use also keyword search
 
-    TODO_USE(task);
-    return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
+    if (firstKnowlegePiece === undefined || firstKnowlegeIndex === undefined) {
+        return 'No knowledge pieces found';
+    }
+
+    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+    const _llms = arrayableToArray(tools.llm);
+    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+
+    const taskEmbeddingPrompt = {
+        title: 'Knowledge Search',
+        modelRequirements: {
+            modelVariant: 'EMBEDDING',
+            modelName: firstKnowlegeIndex.modelName,
+        },
+        content: task.content,
+        parameters: {
+            /* !!!! */
+        },
+    } as const satisfies Prompt;
+    const taskEmbeddingResult = await llmTools.callEmbeddingModel!(taskEmbeddingPrompt);
+
+    const knowledgePiecesWithRelevance = preparedPipeline.knowledgePieces.map((knowledgePiece) => {
+        const { index } = knowledgePiece;
+
+        const knowledgePieceIndex = index.find((i) => i.modelName === firstKnowlegeIndex.modelName);
+        // <- TODO: Do not use just first knowledge piece and first index to determine embedding model
+
+        if (knowledgePieceIndex === undefined) {
+            return {
+                content: knowledgePiece.content,
+                relevance: 0,
+            };
+        }
+
+        const relevance = computeCosineSimilarity(knowledgePieceIndex.position, taskEmbeddingResult.content);
+
+        return {
+            content: knowledgePiece.content,
+            relevance,
+        };
+    });
+
+    const knowledgePiecesSorted = knowledgePiecesWithRelevance.sort((a, b) => a.relevance - b.relevance);
+    const knowledgePiecesLimited = knowledgePiecesSorted.slice(
+        0,
+        5,
+        // <- TODO: Number of knowledge pieces to return determined by the task and used model
+    );
+
+    console.log('!!! Embedding', {
+        task,
+        taskEmbeddingPrompt,
+        taskEmbeddingResult,
+        firstKnowlegePiece,
+        firstKnowlegeIndex,
+        knowledgePiecesWithRelevance,
+        knowledgePiecesSorted,
+        knowledgePiecesLimited,
+    });
+
+    return knowledgePiecesLimited.map(({ content }) => `- ${content}`).join('\n');
     //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
 }
+
+/**
+ * TODO: !!!! Verify if this is working
+ * TODO: [♨] Implement Better - use keyword search
+ * TODO: [♨] Examples of values
+ */

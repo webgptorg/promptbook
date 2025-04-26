@@ -109,13 +109,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             llm = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
         } else if (isAnonymous === false && createLlmExecutionTools !== null) {
             // Note: Application mode
-            const { appId, userId, customOptions } = identification;
-            llm = await createLlmExecutionTools!({
-                isAnonymous: false,
-                appId,
-                userId,
-                customOptions,
-            });
+            llm = await createLlmExecutionTools!(identification);
         } else {
             throw new PipelineExecutionError(
                 `You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured`,
@@ -335,7 +329,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     // <- TODO: [🧠] Make custom mime-type for books
                 )
                 .send(
-                    source.content as paths[`/books/${string}`]['get']['responses']['200']['content']['text/markdown'],
+                    source.content as paths[`/books/{bookId}`]['get']['responses']['200']['content']['text/markdown'],
                 );
         } catch (error) {
             assertsError(error);

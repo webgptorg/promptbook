@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:20:53.999Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:44:00.241Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -17,8 +17,8 @@
         "content": "Pavol, developer, functional user applications, AI models, Ainautes, consulting group, generative AI, deployment",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:20:53.090Z",
-            "complete": "2025-02-26T15:20:53.998Z"
+            "start": "2025-04-23T20:43:59.359Z",
+            "complete": "2025-04-23T20:44:00.241Z"
         },
         "usage": {
             "price": {
@@ -83,7 +83,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_014qnC4zz5HWHNU9XPq5NzC9",
+            "id": "msg_01X1yTHVihYk71gHeFSG1h9S",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

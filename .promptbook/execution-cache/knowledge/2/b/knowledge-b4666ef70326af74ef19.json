@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:21:18.290Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:43:59.385Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
@@ -19,15 +19,15 @@
         }
     },
     "promptResult": {
-        "content": "Innovator Revolutionizing Digital Education Tools",
+        "content": "Innovator Creates Educational Web Solutions",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:20:52.418Z",
-            "complete": "2025-02-26T15:21:18.290Z"
+            "start": "2025-04-23T20:43:58.575Z",
+            "complete": "2025-04-23T20:43:59.385Z"
         },
         "usage": {
             "price": {
-                "value": 0.00048300000000000003
+                "value": 0.000438
             },
             "input": {
                 "tokensCount": {
@@ -37,7 +37,7 @@
                     "value": 367
                 },
                 "wordsCount": {
-                    "value": 56
+                    "value": 57
                 },
                 "sentencesCount": {
                     "value": 3
@@ -54,10 +54,10 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 13
+                    "value": 10
                 },
                 "charactersCount": {
-                    "value": 49
+                    "value": 43
                 },
                 "wordsCount": {
                     "value": 5
@@ -88,14 +88,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01WCHMtNPxmyDvwsdjuh94BX",
+            "id": "msg_011PkiRUWUY3qLn9QQqWVsC7",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Innovator Revolutionizing Digital Education Tools"
+                    "text": "Innovator Creates Educational Web Solutions"
                 }
             ],
             "stop_reason": "end_turn",
@@ -104,7 +104,7 @@
                 "input_tokens": 96,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 13
+                "output_tokens": 10
             }
         }
     }

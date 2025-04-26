@@ -118,6 +118,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
 
     const definedParameters: Parameters = Object.freeze({
         ...(await getReservedParametersForTask({
+            tools,
             preparedPipeline,
             task: currentTask,
             pipelineIdentification,

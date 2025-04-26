@@ -48,11 +48,15 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
                 modelTitle: 'Fake chat',
                 modelName: 'mocked-echo',
                 modelVariant: 'CHAT',
+                modelDescription:
+                    'Mocked chat model that returns fake responses for testing purposes. Does not call any real LLM service.',
             },
             {
                 modelTitle: 'Fake completion',
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
+                modelDescription:
+                    'Mocked completion model that returns fake responses for testing purposes. Does not call any real LLM service.',
             },
             // <- Note: [🤖]
         ];

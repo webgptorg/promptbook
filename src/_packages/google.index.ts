@@ -3,6 +3,7 @@
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { createGoogleExecutionTools } from '../llm-providers/google/createGoogleExecutionTools';
+import { GOOGLE_MODELS } from '../llm-providers/google/google-models';
 import type { GoogleExecutionToolsOptions } from '../llm-providers/google/GoogleExecutionToolsOptions';
 import { _GoogleRegistration } from '../llm-providers/google/register-constructor';
 import type { VercelExecutionToolsOptions } from '../llm-providers/vercel/VercelExecutionToolsOptions';
@@ -14,6 +15,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 // Note: Entities of the `@promptbook/google`
 export { createGoogleExecutionTools };
+export { GOOGLE_MODELS };
 export type { GoogleExecutionToolsOptions };
 export { _GoogleRegistration };
 export type { VercelExecutionToolsOptions };

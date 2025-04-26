@@ -43,11 +43,15 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
                 modelTitle: 'Echo chat',
                 modelName: 'mocked-echo',
                 modelVariant: 'CHAT',
+                modelDescription:
+                    'Mocked chat model that echoes back the input prompt for testing purposes. Simply returns what was sent to it.',
             },
             {
                 modelTitle: 'Echo completion',
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
+                modelDescription:
+                    'Mocked completion model that echoes back the input prompt for testing purposes. Returns the input with minor additions.',
             },
             // <- Note: [🤖]
         ];

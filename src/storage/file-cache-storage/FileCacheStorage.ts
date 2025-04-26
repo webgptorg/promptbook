@@ -15,6 +15,7 @@ import { isSerializableAsJson } from '../../utils/serialization/isSerializableAs
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from './FileCacheStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 
 /**
  * @@@
@@ -60,7 +61,7 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
         }
 
         const fileContent = await readFile(filename, 'utf-8');
-        const value = JSON.parse(fileContent) as TItem;
+        const value = jsonParse(fileContent) as TItem;
 
         // TODO: [🌗]
 

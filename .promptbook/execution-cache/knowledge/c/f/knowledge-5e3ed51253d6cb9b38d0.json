@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:21:19.263Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:44:00.205Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -17,8 +17,8 @@
         "content": "WebGPT, web page generation, Collboard, virtual whiteboard, H-edu, electronic textbooks",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:21:18.309Z",
-            "complete": "2025-02-26T15:21:19.262Z"
+            "start": "2025-04-23T20:43:59.402Z",
+            "complete": "2025-04-23T20:44:00.205Z"
         },
         "usage": {
             "price": {
@@ -32,7 +32,7 @@
                     "value": 385
                 },
                 "wordsCount": {
-                    "value": 56
+                    "value": 57
                 },
                 "sentencesCount": {
                     "value": 3
@@ -55,7 +55,7 @@
                     "value": 87
                 },
                 "wordsCount": {
-                    "value": 11
+                    "value": 12
                 },
                 "sentencesCount": {
                     "value": 1
@@ -83,7 +83,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_019r2QyCfsaMvJzhynwu5i5S",
+            "id": "msg_01RCCMKg7uhimbJpHSjkabX7",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

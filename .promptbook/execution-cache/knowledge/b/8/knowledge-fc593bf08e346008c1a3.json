@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:23:15.698Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:18:01.371Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -17,8 +17,8 @@
         "content": "Uranium Glass, Garden Gnomes, eshop, decorative items, fluorescent, uranium oxide",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:23:14.798Z",
-            "complete": "2025-02-26T15:23:15.698Z"
+            "start": "2025-04-23T13:17:59.555Z",
+            "complete": "2025-04-23T13:18:01.371Z"
         },
         "usage": {
             "price": {
@@ -83,7 +83,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01UdB3WKQgDVhJXa1ssNA1FY",
+            "id": "msg_01KouD1CN6QhXgZp7i9jNY5F",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

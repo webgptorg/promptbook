@@ -33,11 +33,13 @@ export type PersonaJson = {
  */
 export type PersonaPreparedJson = PersonaJson & {
     /**
-     * Model requirements for the persona
+     * Models requirements for the persona
+     *
+     * Sorted by relevance, best-fitting models is first
      *
      * Note: The model must be CHAT variant to be usable through persona
      */
-    readonly modelRequirements: ChatModelRequirements;
+    readonly modelsRequirements: Array<ChatModelRequirements>;
 
     /**
      * List of preparation ids that were used to prepare this persona

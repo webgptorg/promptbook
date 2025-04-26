@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T16:07:13.420Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:22:00.677Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
@@ -19,15 +19,15 @@
         }
     },
     "promptResult": {
-        "content": "Springfield: Illinois' Sixth Largest City",
+        "content": "Springfield: Illinois' Sixth Most Populous City",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T16:06:48.341Z",
-            "complete": "2025-02-26T16:07:13.419Z"
+            "start": "2025-04-23T13:21:36.128Z",
+            "complete": "2025-04-23T13:22:00.676Z"
         },
         "usage": {
             "price": {
-                "value": 0.000423
+                "value": 0.000438
             },
             "input": {
                 "tokensCount": {
@@ -54,13 +54,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 12
+                    "value": 13
                 },
                 "charactersCount": {
-                    "value": 41
+                    "value": 47
                 },
                 "wordsCount": {
-                    "value": 5
+                    "value": 6
                 },
                 "sentencesCount": {
                     "value": 1
@@ -88,14 +88,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01QDNkKKo4vcP4MMfXnPQzYf",
+            "id": "msg_01Ujbf6n9ePwpdLYL5PxPFut",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield: Illinois' Sixth Largest City"
+                    "text": "Springfield: Illinois' Sixth Most Populous City"
                 }
             ],
             "stop_reason": "end_turn",
@@ -104,7 +104,7 @@
                 "input_tokens": 81,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 12
+                "output_tokens": 13
             }
         }
     }

@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:37:21.779Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:17:38.765Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Make title",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-title.book#make-title",
@@ -26,8 +26,8 @@
         "content": "😂 Joke Generator",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:37:21.155Z",
-            "complete": "2025-02-26T15:37:21.779Z"
+            "start": "2025-04-23T13:17:37.969Z",
+            "complete": "2025-04-23T13:17:38.765Z"
         },
         "usage": {
             "price": {
@@ -92,7 +92,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_019CU9rR7ZqAMxXb9re6xsq9",
+            "id": "msg_01MLXTy5gMdEySQUHjh66X9Y",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

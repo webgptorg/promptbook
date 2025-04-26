@@ -1,3 +1,4 @@
+import Bottleneck from 'bottleneck'; // <- TODO: !!!! Use waitasecond, uninstall
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
@@ -24,6 +25,10 @@ import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
+// Default rate limits (requests per minute) - adjust as needed based on OpenAI tier
+const DEFAULT_RPM = 60;
+// <- TODO: !!! Put in some better place
+
 /**
  * Execution Tools for calling OpenAI API
  *
@@ -36,11 +41,21 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
     private client: OpenAI | null = null;
 
     /**
+     * Rate limiter instance
+     */
+    private limiter: Bottleneck;
+
+    /**
      * Creates OpenAI Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(protected readonly options: OpenAiExecutionToolsOptions) {}
+    public constructor(protected readonly options: OpenAiExecutionToolsOptions) {
+        // TODO: Allow configuring rate limits via options
+        this.limiter = new Bottleneck({
+            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_RPM),
+        });
+    }
 
     public get title(): string_title & string_markdown_text {
         return 'OpenAI';
@@ -163,14 +178,16 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.chat.completions.create(rawRequest).catch((error) => {
-            assertsError(error);
+        const rawResponse = await this.limiter
+            .schedule(() => client.chat.completions.create(rawRequest))
+            .catch((error) => {
+                assertsError(error);
 
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -256,14 +273,16 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.completions.create(rawRequest).catch((error) => {
-            assertsError(error);
+        const rawResponse = await this.limiter
+            .schedule(() => client.completions.create(rawRequest))
+            .catch((error) => {
+                assertsError(error);
 
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -337,14 +356,16 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
 
-        const rawResponse = await client.embeddings.create(rawRequest).catch((error) => {
-            assertsError(error);
+        const rawResponse = await this.limiter
+            .schedule(() => client.embeddings.create(rawRequest))
+            .catch((error) => {
+                assertsError(error);
 
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));

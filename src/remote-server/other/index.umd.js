@@ -3414,7 +3414,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * @public exported from `@promptbook/core`
    *                          <- TODO: [🏢] Export from package `@promptbook/csv`
    */
-  var CsvFormatDefinition = {
+  var CsvFormatParser = {
       formatName: 'CSV',
       aliases: ['SPREADSHEET', 'TABLE'],
       isValid: function (value, settings, schema) {
@@ -3426,7 +3426,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       heal: function (value, settings, schema) {
           throw new Error('Not implemented');
       },
-      subvalueDefinitions: [
+      subvalueParsers: [
           {
               subvalueName: 'ROW',
               mapValues: function (value, outputParameterName, settings, mapCallback) {
@@ -3505,10 +3505,10 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       ],
   };
   /**
-   * TODO: [🍓] In `CsvFormatDefinition` implement simple `isValid`
-   * TODO: [🍓] In `CsvFormatDefinition` implement partial `canBeValid`
-   * TODO: [🍓] In `CsvFormatDefinition` implement `heal
-   * TODO: [🍓] In `CsvFormatDefinition` implement `subvalueDefinitions`
+   * TODO: [🍓] In `CsvFormatParser` implement simple `isValid`
+   * TODO: [🍓] In `CsvFormatParser` implement partial `canBeValid`
+   * TODO: [🍓] In `CsvFormatParser` implement `heal
+   * TODO: [🍓] In `CsvFormatParser` implement `subvalueParsers`
    * TODO: [🏢] Allow to expect something inside CSV objects and other formats
    */
 
@@ -3517,7 +3517,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    *
    * @private still in development [🏢]
    */
-  var JsonFormatDefinition = {
+  var JsonFormatParser = {
       formatName: 'JSON',
       mimeType: 'application/json',
       isValid: function (value, settings, schema) {
@@ -3529,28 +3529,28 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       heal: function (value, settings, schema) {
           throw new Error('Not implemented');
       },
-      subvalueDefinitions: [],
+      subvalueParsers: [],
   };
   /**
    * TODO: [🧠] Maybe propper instance of object
    * TODO: [0] Make string_serialized_json
    * TODO: [1] Make type for JSON Settings and Schema
    * TODO: [🧠] What to use for validating JSONs - JSON Schema, ZoD, typescript types/interfaces,...?
-   * TODO: [🍓] In `JsonFormatDefinition` implement simple `isValid`
-   * TODO: [🍓] In `JsonFormatDefinition` implement partial `canBeValid`
-   * TODO: [🍓] In `JsonFormatDefinition` implement `heal
-   * TODO: [🍓] In `JsonFormatDefinition` implement `subvalueDefinitions`
+   * TODO: [🍓] In `JsonFormatParser` implement simple `isValid`
+   * TODO: [🍓] In `JsonFormatParser` implement partial `canBeValid`
+   * TODO: [🍓] In `JsonFormatParser` implement `heal
+   * TODO: [🍓] In `JsonFormatParser` implement `subvalueParsers`
    * TODO: [🏢] Allow to expect something inside JSON objects and other formats
    */
 
   /**
    * Definition for any text - this will be always valid
    *
-   * Note: This is not useful for validation, but for splitting and mapping with `subvalueDefinitions`
+   * Note: This is not useful for validation, but for splitting and mapping with `subvalueParsers`
    *
    * @public exported from `@promptbook/core`
    */
-  var TextFormatDefinition = {
+  var TextFormatParser = {
       formatName: 'TEXT',
       isValid: function (value) {
           return typeof value === 'string';
@@ -3559,9 +3559,9 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
           return typeof partialValue === 'string';
       },
       heal: function () {
-          throw new UnexpectedError('It does not make sense to call `TextFormatDefinition.heal`');
+          throw new UnexpectedError('It does not make sense to call `TextFormatParser.heal`');
       },
-      subvalueDefinitions: [
+      subvalueParsers: [
           {
               subvalueName: 'LINE',
               mapValues: function (value, outputParameterName, settings, mapCallback) {
@@ -3592,10 +3592,10 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   /**
    * TODO: [1] Make type for XML Text and Schema
    * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
-   * TODO: [🍓] In `TextFormatDefinition` implement simple `isValid`
-   * TODO: [🍓] In `TextFormatDefinition` implement partial `canBeValid`
-   * TODO: [🍓] In `TextFormatDefinition` implement `heal
-   * TODO: [🍓] In `TextFormatDefinition` implement `subvalueDefinitions`
+   * TODO: [🍓] In `TextFormatParser` implement simple `isValid`
+   * TODO: [🍓] In `TextFormatParser` implement partial `canBeValid`
+   * TODO: [🍓] In `TextFormatParser` implement `heal
+   * TODO: [🍓] In `TextFormatParser` implement `subvalueParsers`
    * TODO: [🏢] Allow to expect something inside each item of list and other formats
    */
 
@@ -3604,7 +3604,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    *
    * @private still in development [🏢]
    */
-  var XmlFormatDefinition = {
+  var XmlFormatParser = {
       formatName: 'XML',
       mimeType: 'application/xml',
       isValid: function (value, settings, schema) {
@@ -3616,17 +3616,17 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       heal: function (value, settings, schema) {
           throw new Error('Not implemented');
       },
-      subvalueDefinitions: [],
+      subvalueParsers: [],
   };
   /**
    * TODO: [🧠] Maybe propper instance of object
    * TODO: [0] Make string_serialized_xml
    * TODO: [1] Make type for XML Settings and Schema
    * TODO: [🧠] What to use for validating XMLs - XSD,...
-   * TODO: [🍓] In `XmlFormatDefinition` implement simple `isValid`
-   * TODO: [🍓] In `XmlFormatDefinition` implement partial `canBeValid`
-   * TODO: [🍓] In `XmlFormatDefinition` implement `heal
-   * TODO: [🍓] In `XmlFormatDefinition` implement `subvalueDefinitions`
+   * TODO: [🍓] In `XmlFormatParser` implement simple `isValid`
+   * TODO: [🍓] In `XmlFormatParser` implement partial `canBeValid`
+   * TODO: [🍓] In `XmlFormatParser` implement `heal
+   * TODO: [🍓] In `XmlFormatParser` implement `subvalueParsers`
    * TODO: [🏢] Allow to expect something inside XML and other formats
    */
 
@@ -3636,10 +3636,10 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * @private internal index of `...` <- TODO [🏢]
    */
   var FORMAT_DEFINITIONS = [
-      JsonFormatDefinition,
-      XmlFormatDefinition,
-      TextFormatDefinition,
-      CsvFormatDefinition,
+      JsonFormatParser,
+      XmlFormatParser,
+      TextFormatParser,
+      CsvFormatParser,
   ];
   /**
    * Note: [💞] Ignore a discrepancy between file name and entity name
@@ -3827,7 +3827,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
   /**
    * TODO: Add some auto-healing logic + extract YAML, JSON5, TOML, etc.
-   * TODO: [🏢] Make this logic part of `JsonFormatDefinition` or `isValidJsonString`
+   * TODO: [🏢] Make this logic part of `JsonFormatParser` or `isValidJsonString`
    */
 
   /**
@@ -4302,7 +4302,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       PAGES: countPages,
   };
   /**
-   * TODO: [🧠][🤠] This should be probbably as part of `TextFormatDefinition`
+   * TODO: [🧠][🤠] This should be probbably as part of `TextFormatParser`
    * Note: [💞] Ignore a discrepancy between file name and entity name
    */
 
@@ -4341,7 +4341,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
   /**
    * TODO: [💝] Unite object for expecting amount and format
-   * TODO: [🧠][🤠] This should be part of `TextFormatDefinition`
+   * TODO: [🧠][🤠] This should be part of `TextFormatParser`
    * Note: [💝] and [🤠] are interconnected together
    */
 
@@ -4620,7 +4620,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                                       if (task.format) {
                                           if (task.format === 'JSON') {
                                               if (!isValidJsonString($ongoingTaskResult.$resultString || '')) {
-                                                  // TODO: [🏢] Do more universally via `FormatDefinition`
+                                                  // TODO: [🏢] Do more universally via `FormatParser`
                                                   try {
                                                       $ongoingTaskResult.$resultString = extractJsonBlock($ongoingTaskResult.$resultString || '');
                                                   }
@@ -4719,7 +4719,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
   function executeFormatSubvalues(options) {
       return __awaiter(this, void 0, void 0, function () {
-          var task, jokerParameterNames, parameters, priority, csvSettings, pipelineIdentification, parameterValue, formatDefinition, subvalueDefinition, formatSettings, resultString;
+          var task, jokerParameterNames, parameters, priority, csvSettings, pipelineIdentification, parameterValue, formatDefinition, subvalueParser, formatSettings, resultString;
           var _this = this;
           return __generator(this, function (_a) {
               switch (_a.label) {
@@ -4742,14 +4742,14 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                               .map(function (formatName) { return "- ".concat(formatName); })
                               .join('\n')), "\n\n                    [\u26F7] This should never happen because format name should be validated during parsing\n\n                    ").concat(block(pipelineIdentification), "\n                "); }));
                       }
-                      subvalueDefinition = formatDefinition.subvalueDefinitions.find(function (subvalueDefinition) {
-                          return __spreadArray([subvalueDefinition.subvalueName], __read((subvalueDefinition.aliases || [])), false).includes(task.foreach.subformatName);
+                      subvalueParser = formatDefinition.subvalueParsers.find(function (subvalueParser) {
+                          return __spreadArray([subvalueParser.subvalueName], __read((subvalueParser.aliases || [])), false).includes(task.foreach.subformatName);
                       });
-                      if (subvalueDefinition === undefined) {
+                      if (subvalueParser === undefined) {
                           throw new UnexpectedError(
                           // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
-                          spaceTrim__default["default"](function (block) { return "\n                    Unsupported subformat name \"".concat(task.foreach.subformatName, "\" for format \"").concat(task.foreach.formatName, "\"\n\n                    Available subformat names for format \"").concat(formatDefinition.formatName, "\":\n                    ").concat(block(formatDefinition.subvalueDefinitions
-                              .map(function (subvalueDefinition) { return subvalueDefinition.subvalueName; })
+                          spaceTrim__default["default"](function (block) { return "\n                    Unsupported subformat name \"".concat(task.foreach.subformatName, "\" for format \"").concat(task.foreach.formatName, "\"\n\n                    Available subformat names for format \"").concat(formatDefinition.formatName, "\":\n                    ").concat(block(formatDefinition.subvalueParsers
+                              .map(function (subvalueParser) { return subvalueParser.subvalueName; })
                               .map(function (subvalueName) { return "- ".concat(subvalueName); })
                               .join('\n')), "\n\n                    [\u26F7] This should never happen because subformat name should be validated during parsing\n\n                    ").concat(block(pipelineIdentification), "\n                "); }));
                       }
@@ -4757,7 +4757,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                           formatSettings = csvSettings;
                           // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
                       }
-                      return [4 /*yield*/, subvalueDefinition.mapValues(parameterValue, task.foreach.outputSubparameterName, formatSettings, function (subparameters, index) { return __awaiter(_this, void 0, void 0, function () {
+                      return [4 /*yield*/, subvalueParser.mapValues(parameterValue, task.foreach.outputSubparameterName, formatSettings, function (subparameters, index) { return __awaiter(_this, void 0, void 0, function () {
                               var mappedParameters, allSubparameters, subresultString;
                               return __generator(this, function (_a) {
                                   switch (_a.label) {

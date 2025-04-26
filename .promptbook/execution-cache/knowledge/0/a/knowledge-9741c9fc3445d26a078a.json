@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:33:05.675Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T13:16:19.230Z",
+    "promptbookVersion": "0.92.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nA paradigm shift in software development is emerging, where plain human languages like English, French, or Latin will be used to write software that is both understandable and executable by humans and machines.\n\n---\n\nThe evolution of computer languages has progressed from physical rewiring of vacuum tubes through low-level machine code to high-level languages like Python and JavaScript. The next revolution involves writing software in natural human language.\n\n---\n\nThe growth in microprocessor power and Moore's Law have driven the development of increasingly powerful programming languages. Large language models like GPT and Claude are now poised to transform human-computer interaction.\n\n---\n\nThis shift towards natural language programming is inevitable, and the goal is to implement it excellently rather than just adequately.",
+        "content": "---\n\nThe book proposes a paradigm shift in software development, suggesting that the future of programming lies in using plain human languages like English, French, or Latin.\n\n---\n\nThe evolution of programming languages has progressed from physical hardware manipulation to low-level machine code, and then to high-level languages like Python and JavaScript. The book argues that the next revolution in this evolution is writing software in natural human language.\n\n---\n\nLarge language models, such as GPT and Claude, are identified as the key technological drivers behind this transformation in human-computer interaction. This advancement is compared to the role that Moore's Law and microprocessor improvements played in previous generations of programming languages.\n\n---\n\nThe book emphasizes that this shift towards natural language programming is inevitable and encourages readers to participate in ensuring its successful implementation.",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:33:02.219Z",
-            "complete": "2025-02-26T15:33:05.674Z"
+            "start": "2025-04-23T13:16:15.517Z",
+            "complete": "2025-04-23T13:16:19.229Z"
         },
         "usage": {
             "price": {
-                "value": 0.0034740000000000005
+                "value": 0.003639
             },
             "input": {
                 "tokensCount": {
@@ -32,7 +32,7 @@
                     "value": 1535
                 },
                 "wordsCount": {
-                    "value": 241
+                    "value": 242
                 },
                 "sentencesCount": {
                     "value": 11
@@ -49,19 +49,19 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 160
+                    "value": 171
                 },
                 "charactersCount": {
-                    "value": 840
+                    "value": 944
                 },
                 "wordsCount": {
-                    "value": 122
+                    "value": 135
                 },
                 "sentencesCount": {
                     "value": 6
                 },
                 "linesCount": {
-                    "value": 19
+                    "value": 20
                 },
                 "paragraphsCount": {
                     "value": 8
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01Hopprhkf1uaGpCy5tAvrG1",
+            "id": "msg_01T6R5i6bvv63ALcAC8yZXS7",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nA paradigm shift in software development is emerging, where plain human languages like English, French, or Latin will be used to write software that is both understandable and executable by humans and machines.\n\n---\n\nThe evolution of computer languages has progressed from physical rewiring of vacuum tubes through low-level machine code to high-level languages like Python and JavaScript. The next revolution involves writing software in natural human language.\n\n---\n\nThe growth in microprocessor power and Moore's Law have driven the development of increasingly powerful programming languages. Large language models like GPT and Claude are now poised to transform human-computer interaction.\n\n---\n\nThis shift towards natural language programming is inevitable, and the goal is to implement it excellently rather than just adequately."
+                    "text": "---\n\nThe book proposes a paradigm shift in software development, suggesting that the future of programming lies in using plain human languages like English, French, or Latin.\n\n---\n\nThe evolution of programming languages has progressed from physical hardware manipulation to low-level machine code, and then to high-level languages like Python and JavaScript. The book argues that the next revolution in this evolution is writing software in natural human language.\n\n---\n\nLarge language models, such as GPT and Claude, are identified as the key technological drivers behind this transformation in human-computer interaction. This advancement is compared to the role that Moore's Law and microprocessor improvements played in previous generations of programming languages.\n\n---\n\nThe book emphasizes that this shift towards natural language programming is inevitable and encourages readers to participate in ensuring its successful implementation."
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 358,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 160
+                "output_tokens": 171
             }
         }
     }

@@ -8,6 +8,7 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { string_app_id } from '../../types/typeAliases';
 import type { string_email } from '../../types/typeAliases';
 import type { string_password } from '../../types/typeAliases';
+import type { string_token } from '../../types/typeAliases';
 import type { string_user_id } from '../../types/typeAliases';
 import type { ApplicationModeIdentification } from '../socket-types/_subtypes/Identification';
 import type { Identification } from '../socket-types/_subtypes/Identification';
@@ -115,7 +116,7 @@ export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
      *
      * Note: This is passed for example to `createLlmExecutionTools`
      */
-    readonly userToken?: string_user_id;
+    readonly userToken?: string_token;
 
     /**
      * Additional arbitrary options to identify the client or to pass custom metadata

@@ -61,6 +61,8 @@ export type KnowledgePiecePreparedJson = {
      * List of models embeddings that are associated with the knowledge piece
      */
     readonly index: ReadonlyArray<{
+        //    <- TODO: [🧠] Maybe rename `index` -> `embeddings`
+
         /**
          * Model name which generated the embedding
          */

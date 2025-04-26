@@ -1,4 +1,5 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
+import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { CONNECTION_TIMEOUT_MS } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -25,6 +26,10 @@ import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToo
 
 keepTypeImported<Usage>();
 
+// Default rate limits (requests per minute) - adjust as needed based on Azure OpenAI tier
+const DEFAULT_RPM = 60;
+// <- TODO: !!! Put in some better place
+
 /**
  * Execution Tools for calling Azure OpenAI API.
  *
@@ -37,11 +42,21 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
     private client: OpenAIClient | null = null;
 
     /**
+     * Rate limiter instance
+     */
+    private limiter: Bottleneck;
+
+    /**
      * Creates OpenAI Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(protected readonly options: AzureOpenAiExecutionToolsOptions) {}
+    public constructor(protected readonly options: AzureOpenAiExecutionToolsOptions) {
+        // TODO: Allow configuring rate limits via options
+        this.limiter = new Bottleneck({
+            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_RPM),
+        });
+    }
 
     public get title(): string_title & string_markdown_text {
         return 'Azure OpenAI';
@@ -144,12 +159,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
             }
 
             const rawRequest = [modelName, messages, modelSettings] as const;
-            const rawResponse = await this.withTimeout(client.getChatCompletions(...rawRequest)).catch((error) => {
-                if (this.options.isVerbose) {
-                    console.info(colors.bgRed('error'), error);
-                }
-                throw error;
-            });
+            const rawResponse = await this.limiter
+                .schedule(() => this.withTimeout(client.getChatCompletions(...rawRequest)))
+                .catch((error) => {
+                    if (this.options.isVerbose) {
+                        console.info(colors.bgRed('error'), error);
+                    }
+                    throw error;
+                });
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -259,12 +276,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                 modelSettings,
             ] as const;
 
-            const rawResponse = await this.withTimeout(client.getCompletions(...rawRequest)).catch((error) => {
-                if (this.options.isVerbose) {
-                    console.info(colors.bgRed('error'), error);
-                }
-                throw error;
-            });
+            const rawResponse = await this.limiter
+                .schedule(() => this.withTimeout(client.getCompletions(...rawRequest)))
+                .catch((error) => {
+                    if (this.options.isVerbose) {
+                        console.info(colors.bgRed('error'), error);
+                    }
+                    throw error;
+                });
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));

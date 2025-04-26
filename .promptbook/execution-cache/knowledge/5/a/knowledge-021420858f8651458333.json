@@ -1,6 +1,6 @@
 {
-    "date": "2025-02-26T15:22:08.506Z",
-    "promptbookVersion": "0.86.6",
+    "date": "2025-04-23T20:44:48.328Z",
+    "promptbookVersion": "0.92.0-7",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "WebGPT, web page generation, Pavol, Collboard, virtual whiteboard, H-edu, electronic textbooks",
+        "content": "WebGPT, web page generation, Collboard, virtual whiteboard, H-edu, electronic textbooks",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2025-02-26T15:22:07.530Z",
-            "complete": "2025-02-26T15:22:08.505Z"
+            "start": "2025-04-23T20:44:47.540Z",
+            "complete": "2025-04-23T20:44:48.328Z"
         },
         "usage": {
             "price": {
-                "value": 0.000741
+                "value": 0.000681
             },
             "input": {
                 "tokensCount": {
@@ -32,7 +32,7 @@
                     "value": 391
                 },
                 "wordsCount": {
-                    "value": 56
+                    "value": 57
                 },
                 "sentencesCount": {
                     "value": 3
@@ -49,10 +49,10 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 31
+                    "value": 27
                 },
                 "charactersCount": {
-                    "value": 94
+                    "value": 87
                 },
                 "wordsCount": {
                     "value": 12
@@ -83,14 +83,14 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01DcwRFjUGLQEubQfzG4xzmy",
+            "id": "msg_01JsvaWRDLCk89zqsDaEHCBh",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "WebGPT, web page generation, Pavol, Collboard, virtual whiteboard, H-edu, electronic textbooks"
+                    "text": "WebGPT, web page generation, Collboard, virtual whiteboard, H-edu, electronic textbooks"
                 }
             ],
             "stop_reason": "end_turn",
@@ -99,7 +99,7 @@
                 "input_tokens": 92,
                 "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0,
-                "output_tokens": 31
+                "output_tokens": 27
             }
         }
     }
