@@ -24,8 +24,7 @@ import { $provideFilesystemForNode } from '../../scrapers/_common/register/$prov
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -354,9 +353,9 @@ export function $initializeRunCommand(program: Program) {
                 );
             }
 
-            if (saveReport && saveReport.endsWith('.json')) {
+            if (executionReport !== null && saveReport && saveReport.endsWith('.json')) {
                 await writeFile(saveReport, JSON.stringify(executionReport, null, 4) + '\n', 'utf-8');
-            } else if (saveReport && saveReport.endsWith('.md')) {
+            } else if (executionReport !== null && saveReport && saveReport.endsWith('.md')) {
                 const executionReportString = executionReportJsonToString(executionReport);
                 await writeFile(saveReport, executionReportString, 'utf-8');
             }

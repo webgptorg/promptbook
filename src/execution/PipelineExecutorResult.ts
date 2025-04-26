@@ -25,8 +25,10 @@ export type PipelineExecutorResult = AbstractTaskResult & {
 
     /**
      * The report of the execution with all details
+     *
+     * Note: If the execution fails unexpectedly, this will be `null`
      */
-    readonly executionReport: ReadonlyDeep<ExecutionReportJson>;
+    readonly executionReport: ReadonlyDeep<ExecutionReportJson> | null;
 
     /**
      * The prepared pipeline that was used for the execution
