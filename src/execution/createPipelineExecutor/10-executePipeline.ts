@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -11,10 +10,7 @@ import { serializeError } from '../../errors/utils/serializeError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
-import type { InputParameters } from '../../types/typeAliases';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { InputParameters, Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { valueToString } from '../../utils/parameters/valueToString';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
@@ -109,8 +105,6 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
      * Note: This is a flag to prevent `onProgress` call after the pipeline execution is finished
      */
     let isReturned = false;
-
-    console.log(`!!! preparedPipeline`, preparedPipeline);
 
     // Note: Check that all input input parameters are defined
     for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
