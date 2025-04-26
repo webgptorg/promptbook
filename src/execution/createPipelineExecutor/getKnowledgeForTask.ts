@@ -6,6 +6,7 @@ import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { ExecutionTools } from '../ExecutionTools';
+import { computeCosineSimilarity } from './computeCosineSimilarity';
 
 /**
  * @@@
@@ -61,7 +62,7 @@ export async function getKnowledgeForTask(
         },
         content: task.content,
         parameters: {
-            /* !!!!!!!! */
+            /* !!!! */
         },
     } as const satisfies Prompt;
     const taskEmbeddingResult = await llmTools.callEmbeddingModel!(taskEmbeddingPrompt);

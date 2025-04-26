@@ -1,10 +1,7 @@
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
-import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
-
-// !!!! Rename `FormatDefinition` -> `FormatParser`
+import type { FormatSubvalueParser } from './FormatSubvalueParser';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
@@ -14,7 +11,7 @@ import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
  * @see https://github.com/webgptorg/promptbook/discussions/36
  * @private still in development [🏢]
  */
-export type FormatDefinition<
+export type FormatParser<
     TValue extends TPartialValue,
     TPartialValue extends string,
     TSettings extends empty_object,
@@ -72,7 +69,7 @@ export type FormatDefinition<
     /**
      * @@@
      */
-    readonly subvalueDefinitions: ReadonlyArray<FormatSubvalueDefinition<TValue, TSettings>>;
+    readonly subvalueParsers: ReadonlyArray<FormatSubvalueParser<TValue, TSettings>>;
 };
 
 /**

@@ -1,27 +1,28 @@
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { FormatDefinition } from '../_common/FormatDefinition';
-import { isValidJsonString } from './utils/isValidJsonString';
+import type { FormatParser } from '../_common/FormatParser';
+import { isValidXmlString } from './utils/isValidXmlString';
 
 /**
- * Definition for JSON format
+ * Definition for XML format
  *
  * @private still in development [🏢]
  */
-export const JsonFormatDefinition: FormatDefinition<
+export const XmlFormatParser: FormatParser<
     string /* <- [0] */,
     string /* <- [👨‍⚖️] */,
     TODO_any /* <- [1] */,
     TODO_any /* <- [1] */
 > = {
-    formatName: 'JSON',
+    formatName: 'XML',
 
-    mimeType: 'application/json',
+    mimeType: 'application/xml',
 
     isValid(value, settings, schema): value is string /* <- [0] */ {
-        TODO_USE(schema /* <- TODO: Use schema here */);
+        TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(settings /* <- TODO: Use settings here */);
-        return isValidJsonString(value);
+        TODO_USE(schema /* <- TODO: Use schema here */);
+        return isValidXmlString(value);
     },
 
     canBeValid(partialValue, settings, schema): partialValue is string /* <- [0] */ {
@@ -38,17 +39,17 @@ export const JsonFormatDefinition: FormatDefinition<
         throw new Error('Not implemented');
     },
 
-    subvalueDefinitions: [],
+    subvalueParsers: [],
 };
 
 /**
  * TODO: [🧠] Maybe propper instance of object
- * TODO: [0] Make string_serialized_json
- * TODO: [1] Make type for JSON Settings and Schema
- * TODO: [🧠] What to use for validating JSONs - JSON Schema, ZoD, typescript types/interfaces,...?
- * TODO: [🍓] In `JsonFormatDefinition` implement simple `isValid`
- * TODO: [🍓] In `JsonFormatDefinition` implement partial `canBeValid`
- * TODO: [🍓] In `JsonFormatDefinition` implement `heal
- * TODO: [🍓] In `JsonFormatDefinition` implement `subvalueDefinitions`
- * TODO: [🏢] Allow to expect something inside JSON objects and other formats
+ * TODO: [0] Make string_serialized_xml
+ * TODO: [1] Make type for XML Settings and Schema
+ * TODO: [🧠] What to use for validating XMLs - XSD,...
+ * TODO: [🍓] In `XmlFormatParser` implement simple `isValid`
+ * TODO: [🍓] In `XmlFormatParser` implement partial `canBeValid`
+ * TODO: [🍓] In `XmlFormatParser` implement `heal
+ * TODO: [🍓] In `XmlFormatParser` implement `subvalueParsers`
+ * TODO: [🏢] Allow to expect something inside XML and other formats
  */

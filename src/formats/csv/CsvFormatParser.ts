@@ -2,12 +2,12 @@ import { unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { FormatDefinition } from '../_common/FormatDefinition';
+import type { FormatParser } from '../_common/FormatParser';
 import { CsvFormatError } from './CsvFormatError';
 import type { CsvSettings } from './CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from './CsvSettings';
-import { isValidCsvString } from './utils/isValidCsvString';
 import { csvParse } from './utils/csvParse';
+import { isValidCsvString } from './utils/isValidCsvString';
 
 /**
  * Definition for CSV spreadsheet
@@ -15,7 +15,7 @@ import { csvParse } from './utils/csvParse';
  * @public exported from `@promptbook/core`
  *                          <- TODO: [🏢] Export from package `@promptbook/csv`
  */
-export const CsvFormatDefinition: FormatDefinition<
+export const CsvFormatParser: FormatParser<
     string /* <- [0] */,
     string /* <- [👨‍⚖️] */,
     CsvSettings,
@@ -46,7 +46,7 @@ export const CsvFormatDefinition: FormatDefinition<
         throw new Error('Not implemented');
     },
 
-    subvalueDefinitions: [
+    subvalueParsers: [
         {
             subvalueName: 'ROW',
             async mapValues(value, outputParameterName, settings, mapCallback) {
@@ -131,9 +131,9 @@ export const CsvFormatDefinition: FormatDefinition<
 };
 
 /**
- * TODO: [🍓] In `CsvFormatDefinition` implement simple `isValid`
- * TODO: [🍓] In `CsvFormatDefinition` implement partial `canBeValid`
- * TODO: [🍓] In `CsvFormatDefinition` implement `heal
- * TODO: [🍓] In `CsvFormatDefinition` implement `subvalueDefinitions`
+ * TODO: [🍓] In `CsvFormatParser` implement simple `isValid`
+ * TODO: [🍓] In `CsvFormatParser` implement partial `canBeValid`
+ * TODO: [🍓] In `CsvFormatParser` implement `heal
+ * TODO: [🍓] In `CsvFormatParser` implement `subvalueParsers`
  * TODO: [🏢] Allow to expect something inside CSV objects and other formats
  */

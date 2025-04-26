@@ -2,8 +2,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
@@ -72,27 +71,23 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
         );
     }
 
-    const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
-        (subvalueDefinition) =>
-            [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(
-                task.foreach!.subformatName,
-            ),
+    const subvalueParser = formatDefinition.subvalueParsers.find(
+        (subvalueParser) =>
+            [subvalueParser.subvalueName, ...(subvalueParser.aliases || [])].includes(task.foreach!.subformatName),
         // <- Note: All names here are already normalized
     );
 
-    if (subvalueDefinition === undefined) {
+    if (subvalueParser === undefined) {
         throw new UnexpectedError(
             // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
             spaceTrim(
                 (block) => `
-                    Unsupported subformat name "${task.foreach!.subformatName}" for format "${
-                    task.foreach!.formatName
-                }"
+                    Unsupported subformat name "${task.foreach!.subformatName}" for format "${task.foreach!.formatName}"
 
                     Available subformat names for format "${formatDefinition.formatName}":
                     ${block(
-                        formatDefinition.subvalueDefinitions
-                            .map((subvalueDefinition) => subvalueDefinition.subvalueName)
+                        formatDefinition.subvalueParsers
+                            .map((subvalueParser) => subvalueParser.subvalueName)
                             .map((subvalueName) => `- ${subvalueName}`)
                             .join('\n'),
                     )}
@@ -112,7 +107,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
         // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
     }
 
-    const resultString = await subvalueDefinition.mapValues(
+    const resultString = await subvalueParser.mapValues(
         parameterValue,
         task.foreach.outputSubparameterName,
         formatSettings,

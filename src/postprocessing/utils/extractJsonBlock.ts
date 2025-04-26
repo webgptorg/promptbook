@@ -1,6 +1,5 @@
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
-import type { string_json } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_json, string_markdown } from '../../types/typeAliases';
 import { extractAllBlocksFromMarkdown } from '../../utils/markdown/extractAllBlocksFromMarkdown';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 
@@ -46,5 +45,5 @@ export function extractJsonBlock(markdown: string_markdown): string_json<really_
 
 /**
  * TODO: Add some auto-healing logic + extract YAML, JSON5, TOML, etc.
- * TODO: [🏢] Make this logic part of `JsonFormatDefinition` or `isValidJsonString`
+ * TODO: [🏢] Make this logic part of `JsonFormatParser` or `isValidJsonString`
  */

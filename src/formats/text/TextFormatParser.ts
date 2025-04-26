@@ -1,15 +1,15 @@
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { FormatDefinition } from '../_common/FormatDefinition';
+import type { FormatParser } from '../_common/FormatParser';
 
 /**
  * Definition for any text - this will be always valid
  *
- * Note: This is not useful for validation, but for splitting and mapping with `subvalueDefinitions`
+ * Note: This is not useful for validation, but for splitting and mapping with `subvalueParsers`
  *
  * @public exported from `@promptbook/core`
  */
-export const TextFormatDefinition: FormatDefinition<string, string, TODO_any /* <- [1] */, TODO_any /* <- [1] */> = {
+export const TextFormatParser: FormatParser<string, string, TODO_any /* <- [1] */, TODO_any /* <- [1] */> = {
     formatName: 'TEXT',
 
     isValid(value: string): value is string {
@@ -21,10 +21,10 @@ export const TextFormatDefinition: FormatDefinition<string, string, TODO_any /* 
     },
 
     heal() {
-        throw new UnexpectedError('It does not make sense to call `TextFormatDefinition.heal`');
+        throw new UnexpectedError('It does not make sense to call `TextFormatParser.heal`');
     },
 
-    subvalueDefinitions: [
+    subvalueParsers: [
         {
             subvalueName: 'LINE',
             async mapValues(value, outputParameterName, settings, mapCallback) {
@@ -52,9 +52,9 @@ export const TextFormatDefinition: FormatDefinition<string, string, TODO_any /* 
 /**
  * TODO: [1] Make type for XML Text and Schema
  * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
- * TODO: [🍓] In `TextFormatDefinition` implement simple `isValid`
- * TODO: [🍓] In `TextFormatDefinition` implement partial `canBeValid`
- * TODO: [🍓] In `TextFormatDefinition` implement `heal
- * TODO: [🍓] In `TextFormatDefinition` implement `subvalueDefinitions`
+ * TODO: [🍓] In `TextFormatParser` implement simple `isValid`
+ * TODO: [🍓] In `TextFormatParser` implement partial `canBeValid`
+ * TODO: [🍓] In `TextFormatParser` implement `heal
+ * TODO: [🍓] In `TextFormatParser` implement `subvalueParsers`
  * TODO: [🏢] Allow to expect something inside each item of list and other formats
  */
