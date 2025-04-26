@@ -1,9 +1,10 @@
 import { spaceTrim } from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
+import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../../utils/normalization/titleToName';
 
@@ -28,6 +29,13 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
     const { linkTask = () => null } = options || {};
 
     const parameterNameToTaskName = (parameterName: string_name) => {
+        if (parameterName === 'knowledge') {
+            return 'knowledge';
+            // <- TODO: !!!! Check that this works
+        } else if (RESERVED_PARAMETER_NAMES.includes(parameterName as TODO_any)) {
+            return 'reserved';
+        }
+
         const parameter = pipelineJson.parameters.find((parameter) => parameter.name === parameterName);
 
         if (!parameter) {
@@ -59,6 +67,8 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
                   direction TB
 
                   input((Input)):::input
+                  other((Other)):::other
+                  knowledge((Knowledgebase)):::knowledge
                   ${block(
                       pipelineJson.tasks
                           .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
