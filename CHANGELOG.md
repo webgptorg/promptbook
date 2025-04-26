@@ -790,6 +790,7 @@ Models
 -   Rename `FormatDefinition` -> `FormatParser`
 -   Limit rate of requests to models
 -   Autoheal `\r` in `CsvFormatParser` ~~`CsvFormatDefinition`~~
+-   Add `getIndexedDbStorage`
 
 ## Drafts
 
