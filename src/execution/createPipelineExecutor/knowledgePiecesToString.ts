@@ -1,4 +1,4 @@
-import { KnowledgePiecePreparedJson } from '../../_packages/types.index';
+import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 
 /**
  *
