@@ -16,7 +16,7 @@ export const BOOK_LANGUAGE_VERSION: string_semantic_version = '1.0.0';
  * @generated
  * @see https://github.com/webgptorg/promptbook
  */
-export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '0.92.0-16';
+export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '0.92.0-17';
 
 
 /**
