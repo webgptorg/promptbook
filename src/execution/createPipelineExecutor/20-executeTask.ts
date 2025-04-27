@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
+import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { extractParameterNamesFromTask } from '../../conversion/utils/extractParameterNamesFromTask';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
@@ -88,10 +89,13 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
     const dependentParameterNames = new Set(currentTask.dependentParameterNames);
     // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
     if (
-        union(
-            difference(usedParameterNames, dependentParameterNames),
-            difference(dependentParameterNames, usedParameterNames),
-            // <- TODO: [💯]
+        difference(
+            union(
+                difference(usedParameterNames, dependentParameterNames),
+                difference(dependentParameterNames, usedParameterNames),
+                // <- TODO: [💯]
+            ),
+            new Set(RESERVED_PARAMETER_NAMES),
         ).size !== 0
     ) {
         throw new UnexpectedError(
