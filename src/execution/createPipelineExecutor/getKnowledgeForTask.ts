@@ -1,13 +1,14 @@
 import type { ReadonlyDeep } from 'type-fest';
+import { assertsError } from '../../errors/assertsError';
 import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_markdown, string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
+import { knowledgePiecesToString } from './knowledgePiecesToString';
 
 /**
  * @@@
@@ -48,67 +49,75 @@ export async function getKnowledgeForTask(
     // <- TODO: Do not use just first knowledge piece and first index to determine embedding model, use also keyword search
 
     if (firstKnowlegePiece === undefined || firstKnowlegeIndex === undefined) {
-        return 'No knowledge pieces found';
+        return ''; // <- Note: Np knowledge present, return empty string
     }
 
-    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
-    const _llms = arrayableToArray(tools.llm);
-    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+    try {
+        // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+        const _llms = arrayableToArray(tools.llm);
+        const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
-    const taskEmbeddingPrompt = {
-        title: 'Knowledge Search',
-        modelRequirements: {
-            modelVariant: 'EMBEDDING',
-            modelName: firstKnowlegeIndex.modelName,
-        },
-        content: task.content,
-        parameters: {
-            /* !!!! */
-        },
-    } as const satisfies Prompt;
-    const taskEmbeddingResult = await llmTools.callEmbeddingModel!(taskEmbeddingPrompt);
+        const taskEmbeddingPrompt = {
+            title: 'Knowledge Search',
+            modelRequirements: {
+                modelVariant: 'EMBEDDING',
+                modelName: firstKnowlegeIndex.modelName,
+            },
+            content: task.content,
+            parameters: {
+                /* !!!! */
+            },
+        } as const satisfies Prompt;
+        const taskEmbeddingResult = await llmTools.callEmbeddingModel!(taskEmbeddingPrompt);
 
-    const knowledgePiecesWithRelevance = preparedPipeline.knowledgePieces.map((knowledgePiece) => {
-        const { index } = knowledgePiece;
+        const knowledgePiecesWithRelevance = preparedPipeline.knowledgePieces.map((knowledgePiece) => {
+            const { index } = knowledgePiece;
 
-        const knowledgePieceIndex = index.find((i) => i.modelName === firstKnowlegeIndex.modelName);
-        // <- TODO: Do not use just first knowledge piece and first index to determine embedding model
+            const knowledgePieceIndex = index.find((i) => i.modelName === firstKnowlegeIndex.modelName);
+            // <- TODO: Do not use just first knowledge piece and first index to determine embedding model
 
-        if (knowledgePieceIndex === undefined) {
+            if (knowledgePieceIndex === undefined) {
+                return {
+                    content: knowledgePiece.content,
+                    relevance: 0,
+                };
+            }
+
+            const relevance = computeCosineSimilarity(knowledgePieceIndex.position, taskEmbeddingResult.content);
+
             return {
                 content: knowledgePiece.content,
-                relevance: 0,
+                relevance,
             };
-        }
+        });
 
-        const relevance = computeCosineSimilarity(knowledgePieceIndex.position, taskEmbeddingResult.content);
+        const knowledgePiecesSorted = knowledgePiecesWithRelevance.sort((a, b) => a.relevance - b.relevance);
+        const knowledgePiecesLimited = knowledgePiecesSorted.slice(
+            0,
+            5,
+            // <- TODO: Number of knowledge pieces to return determined by the task and used model
+        );
 
-        return {
-            content: knowledgePiece.content,
-            relevance,
-        };
-    });
+        console.log('!!! Embedding', {
+            task,
+            taskEmbeddingPrompt,
+            taskEmbeddingResult,
+            firstKnowlegePiece,
+            firstKnowlegeIndex,
+            knowledgePiecesWithRelevance,
+            knowledgePiecesSorted,
+            knowledgePiecesLimited,
+        });
 
-    const knowledgePiecesSorted = knowledgePiecesWithRelevance.sort((a, b) => a.relevance - b.relevance);
-    const knowledgePiecesLimited = knowledgePiecesSorted.slice(
-        0,
-        5,
-        // <- TODO: Number of knowledge pieces to return determined by the task and used model
-    );
+        return knowledgePiecesToString(knowledgePiecesLimited);
+    } catch (error) {
+        assertsError(error);
 
-    console.log('!!! Embedding', {
-        task,
-        taskEmbeddingPrompt,
-        taskEmbeddingResult,
-        firstKnowlegePiece,
-        firstKnowlegeIndex,
-        knowledgePiecesWithRelevance,
-        knowledgePiecesSorted,
-        knowledgePiecesLimited,
-    });
+        console.error('Error in `getKnowledgeForTask`', error);
 
-    return knowledgePiecesLimited.map(({ content }) => `- ${content}`).join('\n');
-    //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
+        // Note: If the LLM fails, just return all knowledge pieces
+        return knowledgePiecesToString(preparedPipeline.knowledgePieces);
+    }
 }
 
 /**
