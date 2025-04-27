@@ -122,6 +122,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
             preparedPipeline,
             task: currentTask,
             pipelineIdentification,
+            parameters: parametersToPass,
         })),
         ...parametersToPass,
     });

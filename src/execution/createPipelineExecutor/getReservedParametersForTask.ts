@@ -1,16 +1,18 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../../constants';
-import { RESERVED_PARAMETER_NAMES } from '../../constants';
-import { RESERVED_PARAMETER_RESTRICTED } from '../../constants';
+import {
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_RESTRICTED,
+} from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { ReservedParameters } from '../../types/typeAliases';
+import type { Parameters, ReservedParameters } from '../../types/typeAliases';
+import type { ExecutionTools } from '../ExecutionTools';
 import { getContextForTask } from './getContextForTask';
 import { getExamplesForTask } from './getExamplesForTask';
 import { getKnowledgeForTask } from './getKnowledgeForTask';
-import type { ExecutionTools } from '../ExecutionTools';
 
 /**
  * @@@
@@ -35,6 +37,13 @@ type GetReservedParametersForTaskOptions = {
 
     /**
      * @@@
+     *
+     * Parameters to complete the content of the task for embedding
+     */
+    readonly parameters: Readonly<Parameters>;
+
+    /**
+     * @@@
      */
     readonly pipelineIdentification: string;
 };
@@ -47,10 +56,10 @@ type GetReservedParametersForTaskOptions = {
 export async function getReservedParametersForTask(
     options: GetReservedParametersForTaskOptions,
 ): Promise<Readonly<ReservedParameters>> {
-    const { tools, preparedPipeline, task, pipelineIdentification } = options;
+    const { tools, preparedPipeline, task, parameters, pipelineIdentification } = options;
 
     const context = await getContextForTask(task); // <- [🏍]
-    const knowledge = await getKnowledgeForTask({ tools, preparedPipeline, task });
+    const knowledge = await getKnowledgeForTask({ tools, preparedPipeline, task, parameters });
     const examples = await getExamplesForTask(task);
     const currentDate = new Date().toISOString(); // <- TODO: [🧠][💩] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;
