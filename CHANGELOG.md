@@ -792,6 +792,7 @@ Models and Migrations
 -   Autoheal `\r` in `CsvFormatParser` ~~`CsvFormatDefinition`~~
 -   Add `getIndexedDbStorage`
 -   Pipeline migrations
+-   Add formfactor `WRITER` <!-- <- TODO: !!!! Review that this is the real ff added -->
 
 ## Drafts
 
@@ -867,5 +868,6 @@ More expect variations
 Across the repository there are marked [🍓] places that are required to be done before `1.0.0` release
 
 <!-- Note: All places marked by [➕] to add new NPM package -->
+<!-- Note: All places marked by [🛬] to add new formfactor-->
 <!-- Note: All places marked by [🤖] to add new model variant -->
 <!-- Note: All places marked by [🅱] to add new task type -->

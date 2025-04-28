@@ -19,6 +19,7 @@ export const FORMFACTOR_DEFINITIONS = [
     MatcherFormfactorDefinition,
     GeneratorFormfactorDefinition,
     ImageGeneratorFormfactorDefinition,
+    // <- [🛬] When making new formfactor, copy the _boilerplate and link it here
 ] as const;
 
 /**
