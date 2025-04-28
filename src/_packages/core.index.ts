@@ -108,6 +108,7 @@ import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutio
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { migratePipeline } from '../migrations/migratePipeline';
 import { preparePersona } from '../personas/preparePersona';
 import { book } from '../pipeline/book-notation';
 import { isValidPipelineString } from '../pipeline/isValidPipelineString';
@@ -256,6 +257,7 @@ export { joinLlmExecutionTools };
 export { MultipleLlmExecutionTools };
 export { _OpenAiMetadataRegistration };
 export { _OpenAiAssistantMetadataRegistration };
+export { migratePipeline };
 export { preparePersona };
 export { book };
 export { isValidPipelineString };
