@@ -771,7 +771,7 @@ User system and spending of credits
 
 ### `0.92.0` _(2025-04-)_
 
-Models
+Models and Migrations
 
 -   Models are picked by description<!-- <- TODO: !!! [models] Implement or remove -->
 -   During preparation of the pipeline, not single model picked but all models which are relevant for task are sorted by relevance
@@ -791,6 +791,7 @@ Models
 -   Limit rate of requests to models
 -   Autoheal `\r` in `CsvFormatParser` ~~`CsvFormatDefinition`~~
 -   Add `getIndexedDbStorage`
+-   Pipeline migrations
 
 ## Drafts
 

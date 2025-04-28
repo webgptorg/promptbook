@@ -1,17 +1,17 @@
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_relative_filename } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_markdown_text,
+    string_pipeline_url,
+    string_relative_filename,
+    string_semantic_version,
+} from '../../types/typeAliases';
 import type { PipelineString } from '../PipelineString';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
 import type { ParameterJson } from './ParameterJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { TaskJson } from './TaskJson';
 
@@ -127,6 +127,7 @@ export type PipelineJson = {
 };
 
 /**
+ * TODO: [🌪] Make type for deprecated pipelines
  * TODO: [🛳] Default PERSONA for the pipeline `defaultPersonaName` (same as `defaultModelRequirements`)
  * TODO: [🍙] Make some standard order of json properties
  * TODO: [🧠] Maybe wrap all {parameterNames} in brackets for example { "resultingParameterName": "{foo}" }
