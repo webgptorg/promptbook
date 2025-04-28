@@ -792,7 +792,7 @@ Models and Migrations
 -   Autoheal `\r` in `CsvFormatParser` ~~`CsvFormatDefinition`~~
 -   Add `getIndexedDbStorage`
 -   Pipeline migrations
--   Add formfactor `WRITER` <!-- <- TODO: !!!! Review that this is the real ff added -->
+-   Add formfactor `COMPLETION` which emulates `Completion` variant of the model <!-- <- TODO: !!!! Review that this is the real ff added -->
 
 ## Drafts
 
