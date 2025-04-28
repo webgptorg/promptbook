@@ -1,8 +1,10 @@
-import type { TODO_any } from '../utils/organization/TODO_any';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
  * Migrates the pipeline to the latest version
+ *
+ * Note: Migration does not do heavy lifting like calling the LLMs, just lightweight changes of the structure
  *
  * @public exported from `@promptbook/core`
  */
@@ -27,10 +29,13 @@ export function migratePipeline(
         sources,
     } = deprecatedPipeline;
 
+    let isChanged = false;
+
     personas = personas.map((persona) => {
         const migratedPersona = { ...persona } as TODO_any; /* <- TODO: [🌪] */
 
         if (migratedPersona.modelRequirements !== undefined) {
+            isChanged = true;
             migratedPersona.modelsRequirements = [migratedPersona.modelRequirements];
             delete migratedPersona.modelRequirements;
         }
@@ -38,7 +43,12 @@ export function migratePipeline(
         return migratedPersona;
     });
 
-    return {
+    if (!isChanged) {
+        // Note: If nothing to migrate, return the same pipeline
+        return deprecatedPipeline;
+    }
+
+    const migratedPipeline: PipelineJson = {
         pipelineUrl,
         sourceFile,
         title,
@@ -54,4 +64,10 @@ export function migratePipeline(
         sources,
         // <- TODO: [🍙] Make some standard order of json properties
     };
+
+    console.info(`Book automatically migrated`, { deprecatedPipeline, migratedPipeline });
+    // console.info(`Book automatically migrated from ${} -> ${}`, {deprecatedPipeline,migratedPipeline})
+    // <- TODO: Report the versions of the migration, DO not migrate backwards, throw `CompatibilityError` when given newer version than current version of the engine and link the NPM + Docker packages
+
+    return migratedPipeline;
 }
