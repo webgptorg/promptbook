@@ -1,0 +1,106 @@
+{
+    "date": "2025-04-28T22:58:34.494Z",
+    "promptbookVersion": "0.92.0-20",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The platform allows users to write specifications in plain English, which are then translated into working code, focusing on concepts like personas, knowledge, and actions rather than traditional programming constructs."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Natural language processing, code generation, specifications, plain English, personas, knowledge, actions, programming constructs",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-04-28T22:58:33.678Z",
+            "complete": "2025-04-28T22:58:34.494Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000606
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 82
+                },
+                "charactersCount": {
+                    "value": 413
+                },
+                "wordsCount": {
+                    "value": 56
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 24
+                },
+                "charactersCount": {
+                    "value": 129
+                },
+                "wordsCount": {
+                    "value": 13
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The platform allows users to write specifications in plain English, which are then translated into working code, focusing on concepts like personas, knowledge, and actions rather than traditional programming constructs.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The platform allows users to write specifications in plain English, which are then translated into working code, focusing on concepts like personas, knowledge, and actions rather than traditional programming constructs."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01MmMnzkmBW3Cd4MNewG51KS",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Natural language processing, code generation, specifications, plain English, personas, knowledge, actions, programming constructs"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 82,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 24
+            }
+        }
+    }
+}
