@@ -35,7 +35,7 @@ export function jsonParse<T>(value: string) {
             spaceTrim(
                 (block) => `
                     ${block((error as Error).message)}
-            
+
                     The JSON text:
                     ${block(value)}
                 `,
@@ -43,7 +43,3 @@ export function jsonParse<T>(value: string) {
         );
     }
 }
-
-/**
- * TODO: !!!! Use in Promptbook.studio
- */
