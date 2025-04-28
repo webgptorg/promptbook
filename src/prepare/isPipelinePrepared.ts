@@ -22,7 +22,6 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
 
     if (!pipeline.personas.every((persona) => (persona as PersonaPreparedJson).modelsRequirements !== undefined)) {
         // TODO: !!! Comment this out
-
         console.log('Pipeline is not prepared because personas are not prepared', pipeline.personas);
         return false;
     }
