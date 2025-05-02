@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/templates",
-    "version": "0.92.0-21",
+    "version": "0.92.0-22",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -51,7 +51,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/templates.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.92.0-21"
+        "@promptbook/core": "0.92.0-22"
     },
     "dependencies": {
         "prettier": "2.8.1",
