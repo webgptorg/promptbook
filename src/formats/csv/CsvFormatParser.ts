@@ -74,20 +74,26 @@ export const CsvFormatParser: FormatParser<
 
                 TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
 
-                const mappedData = await Promise.all(
-                    csv.data.map(async (row, index) => {
-                        if (row[outputParameterName]) {
-                            throw new CsvFormatError(
-                                `Can not overwrite existing column "${outputParameterName}" in CSV row`,
-                            );
-                        }
+                const mappedData: Record<string, TODO_any>[] = [];
+                for (let index = 0; index < csv.data.length; index++) {
+                    const row = csv.data[index]!;
+                    if (row[outputParameterName]) {
+                        throw new CsvFormatError(
+                            `Can not overwrite existing column "${outputParameterName}" in CSV row`,
+                        );
+                    }
 
-                        return {
-                            ...row,
-                            [outputParameterName]: await mapCallback(row, index),
-                        };
-                    }),
-                );
+                    const mappedRow: Record<string, TODO_any> = {
+                        ...row,
+                        [outputParameterName]: await mapCallback(row, index),
+                    };
+                    mappedData.push(mappedRow);
+
+                    if (onProgress) {
+                        // Note: Report the CSV with all rows mapped so far
+                        await onProgress(unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS }));
+                    }
+                }
 
                 return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
             },
