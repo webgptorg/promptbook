@@ -1,5 +1,6 @@
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatParser } from '../_common/FormatParser';
 
 /**
@@ -27,8 +28,12 @@ export const TextFormatParser: FormatParser<string, string, TODO_any /* <- [1] *
     subvalueParsers: [
         {
             subvalueName: 'LINE',
-            async mapValues(value, outputParameterName, settings, mapCallback) {
+            async mapValues(options) {
+                const { value, mapCallback, onProgress } = options;
                 const lines = value.split('\n');
+
+                TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
+
                 const mappedLines = await Promise.all(
                     lines.map((lineContent, lineNumber) =>
                         // TODO: [🧠] Maybe option to skip empty line

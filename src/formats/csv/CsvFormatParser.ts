@@ -49,7 +49,8 @@ export const CsvFormatParser: FormatParser<
     subvalueParsers: [
         {
             subvalueName: 'ROW',
-            async mapValues(value, outputParameterName, settings, mapCallback) {
+            async mapValues(options) {
+                const { value, outputParameterName, settings, mapCallback, onProgress } = options;
                 const csv = csvParse(value, settings);
 
                 if (csv.errors.length !== 0) {
@@ -70,6 +71,8 @@ export const CsvFormatParser: FormatParser<
                         ),
                     );
                 }
+
+                TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
 
                 const mappedData = await Promise.all(
                     csv.data.map(async (row, index) => {
@@ -91,7 +94,8 @@ export const CsvFormatParser: FormatParser<
         },
         {
             subvalueName: 'CELL',
-            async mapValues(value, outputParameterName, settings, mapCallback) {
+            async mapValues(options) {
+                const { value, settings, mapCallback, onProgress } = options;
                 const csv = csvParse(value, settings);
 
                 if (csv.errors.length !== 0) {
@@ -112,6 +116,8 @@ export const CsvFormatParser: FormatParser<
                         ),
                     );
                 }
+
+                TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
 
                 const mappedData = await Promise.all(
                     csv.data.map(async (row, rowIndex) => {

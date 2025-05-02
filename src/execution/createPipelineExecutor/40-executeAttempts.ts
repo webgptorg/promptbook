@@ -70,6 +70,7 @@ export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions
      * @@@
      */
     readonly task: ReadonlyDeep<TaskJson>;
+     //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
 
     /**
      * @@@

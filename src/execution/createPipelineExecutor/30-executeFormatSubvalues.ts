@@ -1,11 +1,12 @@
 import spaceTrim from 'spacetrim';
+import type { PartialDeep, Promisable } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
+import { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
 import { executeAttempts } from './40-executeAttempts';
 
@@ -14,7 +15,12 @@ import { executeAttempts } from './40-executeAttempts';
  *
  * @private internal type of `executeFormatSubvalues`
  */
-type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
+type ExecuteFormatCellsOptions = ExecuteAttemptsOptions & {
+    /**
+     * @@@
+     */
+    readonly onProgress: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>;
+};
 
 /**
  * @@@
@@ -22,7 +28,8 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { task, jokerParameterNames, parameters, priority, csvSettings, pipelineIdentification } = options;
+    const { task, jokerParameterNames, parameters, priority, csvSettings, onProgress, pipelineIdentification } =
+        options;
 
     if (task.foreach === undefined) {
         return /* not await */ executeAttempts(options);
@@ -108,11 +115,20 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
         // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
     }
 
-    const resultString = await subvalueParser.mapValues(
-        parameterValue,
-        task.foreach.outputSubparameterName,
-        formatSettings,
-        async (subparameters, index) => {
+    const resultString = await subvalueParser.mapValues({
+        value: parameterValue,
+        outputParameterName: task.foreach.outputSubparameterName,
+        settings: formatSettings,
+        onProgress(partialResultString) {
+            return onProgress(
+                Object.freeze({
+                    [task.resultingParameterName]:
+                        // <- Note: [👩‍👩‍👧] No need to detect parameter collision here because pipeline checks logic consistency during construction
+                        partialResultString,
+                }),
+            );
+        },
+        async mapCallback(subparameters, index) {
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;
 
             // TODO: [🤹‍♂️][🪂] Limit to N concurrent executions
@@ -167,7 +183,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
 
             return subresultString;
         },
-    );
+    });
 
     return resultString;
 }

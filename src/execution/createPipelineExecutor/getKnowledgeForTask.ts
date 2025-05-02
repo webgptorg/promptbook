@@ -32,6 +32,7 @@ type GetKnowledgeForTaskOptions = {
      * @@@
      */
     readonly task: ReadonlyDeep<TaskJson>;
+     //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
 
     /**
      * @@@

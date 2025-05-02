@@ -1,7 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { Parameters, string_name, string_parameter_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 
@@ -27,12 +25,18 @@ export type FormatSubvalueParser<TValue extends string, TSettings extends empty_
      * For example, if you have a JSON object and you want to map all values to uppercase
      * Or iterate over all CSV cells @@@
      */
-    mapValues(
-        value: TValue,
-        outputParameterName: string_parameter_name,
-        settings: TSettings,
-        mapCallback: (subvalues: Parameters, index: number) => Promisable<string>,
-    ): Promise<string>;
+    mapValues(options: FormatSubvalueParserMapValuesOptions<TValue, TSettings>): Promise<string>;
+};
+
+/**
+ * @@@
+ */
+export type FormatSubvalueParserMapValuesOptions<TValue extends string, TSettings extends empty_object> = {
+    readonly value: TValue;
+    readonly outputParameterName: string_parameter_name;
+    readonly settings: TSettings;
+    mapCallback: (subvalues: Parameters, index: number) => Promisable<TValue>;
+    onProgress(partialResultString: TValue): Promisable<void>;
 };
 
 /*

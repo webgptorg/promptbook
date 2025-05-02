@@ -24,6 +24,7 @@ type executeSingleTaskOptions = Required<CreatePipelineExecutorOptions> & {
      * @@@
      */
     readonly currentTask: ReadonlyDeep<TaskJson>;
+    //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
 
     /**
      * @@@
@@ -77,12 +78,6 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
     } = options;
 
     const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
-
-    await onProgress({
-        outputParameters: {
-            [currentTask.resultingParameterName]: '', // <- TODO: [🧠] What is the best value here?
-        },
-    });
 
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
     const usedParameterNames = extractParameterNamesFromTask(currentTask);
@@ -184,6 +179,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         preparedPipeline,
         tools,
         $executionReport,
+        onProgress,
         pipelineIdentification,
         maxExecutionAttempts,
         maxParallelCount,
