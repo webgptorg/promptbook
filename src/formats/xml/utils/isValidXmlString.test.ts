@@ -27,4 +27,9 @@ describe('isValidXmlString', () => {
         expect(isValidXmlString(null as unknown as string)).toBe(false);
         expect(isValidXmlString(undefined as unknown as string)).toBe(false);
     });
+
+    it('should return false for strings with only whitespace', () => {
+        const whitespaceString = '   ';
+        expect(isValidXmlString(whitespaceString)).toBe(false);
+    });
 });
