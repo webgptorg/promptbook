@@ -4,7 +4,7 @@ import { assertsError } from '../../../errors/assertsError';
  * Function to check if a string is valid XML
  *
  * @param value
- * @returns True if the string is a valid XML string, false otherwise
+ * @returns `true` if the string is a valid XML string, false otherwise
  *
  * @public exported from `@promptbook/utils`
  */

@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -11,10 +10,7 @@ import { serializeError } from '../../errors/utils/serializeError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
-import type { InputParameters } from '../../types/typeAliases';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { InputParameters, Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { valueToString } from '../../utils/parameters/valueToString';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
@@ -27,46 +23,49 @@ import { executeTask } from './20-executeTask';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
 /**
- * @@@
+ * Options for executing an entire pipeline, including input parameters, pipeline context, and progress callbacks.
  *
  * @private internal type of `executePipeline`
  */
 type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
-     * @@@
+     * The input parameters provided by the user for pipeline execution.
      */
     readonly inputParameters: Readonly<InputParameters>;
 
     /**
-     * @@@
+     * Optional callback invoked with partial results as the pipeline execution progresses.
      */
     onProgress?(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
 
     /**
-     * @@@
+     * The pipeline definition to execute.
      */
     readonly pipeline: PipelineJson;
 
     /**
-     * @@@
+     * The prepared and validated pipeline, ready for execution.
      */
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
-     * @@@
+     * Callback to update the prepared pipeline reference after preparation.
      */
     readonly setPreparedPipeline: (preparedPipeline: ReadonlyDeep<PipelineJson>) => void;
 
     /**
-     * @@@
+     * String identifier for the pipeline, used in error messages and reporting.
      */
     readonly pipelineIdentification: string;
 };
 
 /**
- * @@@
+ * Executes an entire pipeline, resolving tasks in dependency order, handling errors, and reporting progress.
  *
- * Note: This is not a `PipelineExecutor` (which is binded with one exact pipeline), but a utility function of `createPipelineExecutor` which creates `PipelineExecutor`
+ * Note: This is not a `PipelineExecutor` (which is bound to a single pipeline), but a utility function used by `createPipelineExecutor` to create a `PipelineExecutor`.
+ *
+ * @param options - Options for execution, including input parameters, pipeline, and callbacks.
+ * @returns The result of the pipeline execution, including output parameters, errors, and usage statistics.
  *
  * @private internal utility of `createPipelineExecutor`
  */

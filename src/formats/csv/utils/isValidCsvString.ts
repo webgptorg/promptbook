@@ -4,7 +4,7 @@ import { assertsError } from '../../../errors/assertsError';
  * Function to check if a string is valid CSV
  *
  * @param value The string to check
- * @returns True if the string is a valid CSV string, false otherwise
+ * @returns `true` if the string is a valid CSV string, false otherwise
  *
  * @public exported from `@promptbook/utils`
  */

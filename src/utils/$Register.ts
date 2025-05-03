@@ -8,37 +8,38 @@ import { normalizeTo_snake_case } from './normalization/normalizeTo_snake_case';
 import type { TODO_string } from './organization/TODO_string';
 
 /**
- * @@@
+ * Represents an entity in a global registry.
+ * Contains identifying information about the package and class.
  */
 export type Registered = {
     /**
-     * @@@
+     * The name of the package where the registered entity is defined.
      */
     readonly packageName: TODO_string;
 
     /**
-     * @@@
+     * The name of the class being registered.
      */
     readonly className: TODO_string;
 };
 
 /**
- * @@@
+ * Represents a registration record, including destroyable interface and registry name.
  */
 export type Registration = Registered &
     IDestroyable & {
         /**
-         * @@@
+         * The name of the register this entity is registered in.
          */
         readonly registerName: string_name;
     };
 
 /**
- * Register is @@@
+ * Global registry for storing and managing registered entities of a given type.
  *
  * Note: `$` is used to indicate that this function is not a pure function - it accesses and adds variables in global scope.
  *
- * @private internal utility, exported are only signleton instances of this class
+ * @private internal utility, exported are only singleton instances of this class
  */
 export class $Register<TRegistered extends Registered> {
     private readonly storage: Array<TRegistered>;

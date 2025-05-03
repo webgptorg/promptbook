@@ -1,10 +1,7 @@
 import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_promptbook_server_url } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -190,20 +187,22 @@ export const DEFAULT_MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
 export const DEFAULT_MAX_EXECUTION_ATTEMPTS = 10; // <- TODO: [🤹‍♂️]
 
 /**
- * @@@
- * TODO: [🐝][main] !!3 Use
+ * The maximum depth to which knowledge sources will be scraped when building a knowledge base.
+ * This prevents infinite recursion and limits resource usage.
  *
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
+// <- TODO: [🐝]
 
 /**
- * @@@
- * TODO: [🐝][main] !!3 Use
+ * The maximum total number of knowledge sources that will be scraped in a single operation.
+ * This acts as a global limit to avoid excessive resource consumption.
  *
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
+// <- TODO: [🐝]
 
 /**
  * Where to store your books
@@ -294,7 +293,7 @@ export const DEFAULT_REMOTE_SERVER_URL: string_promptbook_server_url = REMOTE_SE
 // <- TODO: [🧜‍♂️]
 
 /**
- * @@@
+ * Default settings for parsing and generating CSV files in Promptbook.
  *
  * @public exported from `@promptbook/core`
  */
@@ -306,16 +305,16 @@ export const DEFAULT_CSV_SETTINGS: CsvSettings = Object.freeze({
 });
 
 /**
- * @@@
+ * Controls whether verbose logging is enabled by default throughout the application.
  *
  * @public exported from `@promptbook/core`
  */
 export let DEFAULT_IS_VERBOSE = false;
 
 /**
- * @@@
+ * Enables or disables verbose logging globally at runtime.
  *
- * Note: This is experimental feature
+ * Note: This is an experimental feature.
  *
  * @public exported from `@promptbook/core`
  */
@@ -324,7 +323,7 @@ export function SET_IS_VERBOSE(isVerbose: boolean): void {
 }
 
 /**
- * @@@
+ * Controls whether auto-installation of dependencies is enabled by default.
  *
  * @public exported from `@promptbook/core`
  */
@@ -347,7 +346,7 @@ export const DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME = `getPipelineCollect
 export const DEFAULT_RPM = 60;
 
 /**
- * @@@
+ * Indicates whether pipeline logic validation is enabled. When true, the pipeline logic is checked for consistency.
  *
  * @private within the repository
  */
@@ -368,7 +367,7 @@ export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
 );
 
 /**
- * @@@
+ * Indicates whether cost-prevention is enabled. When true, real API keys are prevented from being used in tests.
  *
  * @private within the repository
  */

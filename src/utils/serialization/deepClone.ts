@@ -1,8 +1,12 @@
 import type { WritableDeep } from 'type-fest';
 
 /**
- * @@@
+ * Creates a deep clone of the given object
  *
+ * Note: This method only works for objects that are fully serializable to JSON and do not contain functions, Dates, or special types.
+ *
+ * @param objectValue The object to clone.
+ * @returns A deep, writable clone of the input object.
  * @public exported from `@promptbook/utils`
  */
 export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> {

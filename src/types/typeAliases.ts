@@ -162,7 +162,8 @@ export type InputParameters = Exclude<Record<string_parameter_name, really_unkno
 export type string_reserved_parameter_name = TupleToUnion<typeof RESERVED_PARAMETER_NAMES>;
 
 /**
- * @@@
+ * Represents a mapping of reserved parameter names to their values.
+ * Reserved parameters are used internally by the pipeline and should not be set by users.
  *
  * Note: [🚉] This is fully serializable as JSON
  */
@@ -286,7 +287,9 @@ export type string_markdown_codeblock_language = 'book' | 'markdown' | 'text' | 
 //          <- TODO: [🏥] DRY
 
 /**
- * @@@
+ * A URL pointing to Promptbook documentation or a specific discussion.
+ *
+ * For example: `https://github.com/webgptorg/promptbook/discussions/123`
  */
 export type string_promptbook_documentation_url = `https://github.com/webgptorg/promptbook/discussions/${
     | number
@@ -534,16 +537,15 @@ export type string_uuid = string & {
 };
 
 /**
- * Application identifier
+ * Application identifier, used to distinguish different apps or clients.
  *
- * @@@
+ * For example: 'cli', 'playground', or a custom app id.
  */
 export type string_app_id = id | 'app';
 
 /**
- * End user identifier
- *
- * @@@
+ * End user identifier, can be a user id or email address.
+ * Used for tracking and abuse prevention.
  */
 export type string_user_id = id | string_email;
 

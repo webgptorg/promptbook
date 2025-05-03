@@ -793,6 +793,7 @@ Models and Migrations
 -   Add `getIndexedDbStorage`
 -   Pipeline migrations
 -   Add formfactor `COMPLETION` which emulates `Completion` variant of the model <!-- <- TODO: !!!! Review that this is the real ff added -->
+-   Add JSDoc annotations to all entities which are exported from any package
 
 ## Drafts
 

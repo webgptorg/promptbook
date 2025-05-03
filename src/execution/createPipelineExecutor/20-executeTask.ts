@@ -15,45 +15,48 @@ import { executeFormatSubvalues } from './30-executeFormatSubvalues';
 import { getReservedParametersForTask } from './getReservedParametersForTask';
 
 /**
- * @@@
+ * Options for executing a single pipeline task, including task details, pipeline context, parameters, and callbacks.
  *
  * @private internal type of `executeTask`
  */
 type executeSingleTaskOptions = Required<CreatePipelineExecutorOptions> & {
     /**
-     * @@@
+     * The task to be executed.
      */
     readonly currentTask: ReadonlyDeep<TaskJson>;
     //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
 
     /**
-     * @@@
+     * The pipeline in which the task resides, fully prepared and validated.
      */
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
-     * @@@
+     * The parameters to pass to the task execution.
      */
     readonly parametersToPass: Readonly<Parameters>;
 
     /**
-     * @@@
+     * Callback invoked with partial results as the execution progresses.
      */
     readonly onProgress: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>;
 
     /**
-     * @@@
+     * Mutable execution report object for tracking execution details.
      */
     readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
-     * @@@
+     * String identifier for the pipeline, used in error messages and reporting.
      */
     readonly pipelineIdentification: string;
 };
 
 /**
- * @@@
+ * Executes a single task within a pipeline, handling parameter validation, error checking, and progress reporting.
+ *
+ * @param options - Options for execution, including the task, pipeline, parameters, and callbacks.
+ * @returns The output parameters produced by the task.
  *
  * @private internal utility of `createPipelineExecutor`
  */

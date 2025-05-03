@@ -3,8 +3,7 @@ import type { PartialDeep, Promisable } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
@@ -12,19 +11,24 @@ import type { ExecuteAttemptsOptions } from './40-executeAttempts';
 import { executeAttempts } from './40-executeAttempts';
 
 /**
- * @@@
+ * Options for executing a pipeline task that involves formatting subvalues (e.g., iterating over CSV rows).
+ * Extends ExecuteAttemptsOptions with a progress callback.
  *
  * @private internal type of `executeFormatSubvalues`
  */
 type ExecuteFormatCellsOptions = ExecuteAttemptsOptions & {
     /**
-     * @@@
+     * Callback invoked with partial results as the execution progresses.
      */
     readonly onProgress: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>;
 };
 
 /**
- * @@@
+ * Executes a pipeline task that requires mapping or iterating over subvalues of a parameter (such as rows in a CSV).
+ * Handles format and subformat resolution, error handling, and progress reporting.
+ *
+ * @param options - Options for execution, including task details and progress callback.
+ * @returns The result of the subvalue mapping or execution attempts.
  *
  * @private internal utility of `createPipelineExecutor`
  */

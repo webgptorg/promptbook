@@ -1,12 +1,11 @@
 import type { Promisable } from 'type-fest';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { Parameters, string_name, string_parameter_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 
 /**
- * @@@
+ * Defines how to extract or map subvalues from a main value in a specific format (e.g., cells from CSV, items from JSON array).
+ * Used for iterating or transforming structured data in pipeline tasks.
  */
 export type FormatSubvalueParser<TValue extends string, TSettings extends empty_object> = {
     /**
@@ -22,16 +21,16 @@ export type FormatSubvalueParser<TValue extends string, TSettings extends empty_
     readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
-     * Maps values
+     * Maps or transforms subvalues from the main value. For example, iterates over all CSV cells or JSON array items.
      *
-     * For example, if you have a JSON object and you want to map all values to uppercase
-     * Or iterate over all CSV cells @@@
+     * @param options - Options for mapping, including callbacks for progress and value transformation.
+     * @returns The final mapped string result.
      */
     mapValues(options: FormatSubvalueParserMapValuesOptions<TValue, TSettings>): Promise<string>;
 };
 
 /**
- * @@@
+ * Options for mapping or extracting subvalues from a main value using a FormatSubvalueParser.
  */
 export type FormatSubvalueParserMapValuesOptions<TValue extends string, TSettings extends empty_object> = {
     readonly value: TValue;

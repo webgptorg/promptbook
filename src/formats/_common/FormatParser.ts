@@ -5,9 +5,11 @@ import type { empty_object } from '../../utils/organization/empty_object';
 import type { FormatSubvalueParser } from './FormatSubvalueParser';
 
 /**
- * A format definition is a set of functions that define how to validate, heal and convert response from LLM
+ * A format definition is a set of functions that define how to validate, heal and convert response from LLM.
  *
- * @@@ Describe setting vs schema
+ * @remarks
+ * - "settings" are runtime options that affect parsing (e.g., delimiter for CSV).
+ * - "schema" is a structural definition or contract for the data (e.g., expected fields in JSON).
  *
  * @see https://github.com/webgptorg/promptbook/discussions/36
  * @private still in development [🏢]
@@ -68,7 +70,7 @@ export type FormatParser<
     heal(value: string, settings?: TSettings, scheme?: TSchema): TValue;
 
     /**
-     * @@@
+     * Parsers for extracting or mapping subvalues from the main value (e.g., rows from CSV, items from JSON array).
      */
     readonly subvalueParsers: ReadonlyArray<FormatSubvalueParser<TValue, TSettings>>;
 };
@@ -80,4 +82,3 @@ export type FormatParser<
  * TODO: [🍓][🧠] Should execution tools be available to heal, canBeValid and isValid?
  * TODO: [🍓][🧠] llm Provider Bindings
  * TODO: [🍓][🔼] Export via some package
- */

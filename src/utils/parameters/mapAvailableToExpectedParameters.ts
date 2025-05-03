@@ -1,32 +1,31 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { union } from '../sets/union';
 
 /**
- * @@@
+ * Options for mapping available parameters to expected parameters in a pipeline task.
  */
 type MakeapAvailableToExpectedParametersOptions = {
     /**
-     * @@@
+     * The set of expected parameter names (keys) for the task, all values are null.
      */
     readonly expectedParameters: Readonly<Record<string_parameter_name, null>>;
 
     /**
-     * @@@
+     * The set of available parameters (name-value pairs) to map to the expected parameters.
      */
     readonly availableParameters: Readonly<Record<string_parameter_name, string_parameter_value>>;
 };
 
 /**
- * Maps available parameters to expected parameters
+ * Maps available parameters to expected parameters for a pipeline task.
  *
  * The strategy is:
- * 1) @@@
- * 2) @@@
+ * 1) First, match parameters by name where both available and expected.
+ * 2) Then, if there are unmatched expected and available parameters, map them by order.
  *
- * @throws {PipelineExecutionError} @@@
+ * @throws {PipelineExecutionError} If the number of unmatched expected and available parameters does not match, or mapping is ambiguous.
  * @private within the repository used in `createPipelineExecutor`
  */
 export function mapAvailableToExpectedParameters(
