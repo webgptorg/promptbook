@@ -35,7 +35,7 @@ export const TextFormatParser: FormatParser<string, string, TODO_any /* <- [1] *
                 TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
 
                 const mappedLines = await Promise.all(
-                    lines.map((lineContent, lineNumber) =>
+                    lines.map((lineContent, lineNumber, array) =>
                         // TODO: [🧠] Maybe option to skip empty line
                         /* not await */ mapCallback(
                             {
@@ -44,6 +44,7 @@ export const TextFormatParser: FormatParser<string, string, TODO_any /* <- [1] *
                                 // TODO: [🧠] Maybe also put here `lineNumber`
                             },
                             lineNumber,
+                            array.length,
                         ),
                     ),
                 );

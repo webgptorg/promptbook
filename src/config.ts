@@ -80,6 +80,29 @@ export const DEFAULT_BOOK_OUTPUT_PARAMETER_NAME = 'result';
 export const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 /**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const BIG_DATASET_TRESHOLD = 50;
+
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const FAILED_VALUE_PLACEHOLDER = '!';
+// <- TODO: !!!! Use
+
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PENDING_VALUE_PLACEHOLDER = '…';
+// <- TODO: !!!! Use
+
+/**
  * Warning message for the generated sections and files files
  *
  * @private within the repository

@@ -33,10 +33,38 @@ export type FormatSubvalueParser<TValue extends string, TSettings extends empty_
  * Options for mapping or extracting subvalues from a main value using a FormatSubvalueParser.
  */
 export type FormatSubvalueParserMapValuesOptions<TValue extends string, TSettings extends empty_object> = {
+    /**
+     * @@@
+     */
     readonly value: TValue;
+
+    /**
+     * @@@
+     */
     readonly outputParameterName: string_parameter_name;
+
+    /**
+     * @@@
+     */
     readonly settings: TSettings;
-    mapCallback: (subvalues: Parameters, index: number) => Promisable<TValue>;
+
+    /**
+     * @@@
+     *
+     * @param subvalues @@@
+     * @param index Current index of the subvalue which is being mapped
+     * @param length Full length of the subvalues
+     * @param number @@@
+     * @returns @@@
+     */
+    mapCallback(subvalues: Parameters, index: number, length: number): Promisable<TValue>;
+
+    /**
+     * @@@
+     *
+     * @param partialResultString @@@
+     * @returns @@@
+     */
     onProgress(partialResultString: TValue): Promisable<void>;
 };
 

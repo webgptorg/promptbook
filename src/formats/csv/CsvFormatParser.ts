@@ -75,7 +75,8 @@ export const CsvFormatParser: FormatParser<
                 TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
 
                 const mappedData: Record<string, TODO_any>[] = [];
-                for (let index = 0; index < csv.data.length; index++) {
+                const length = csv.data.length;
+                for (let index = 0; index < length; index++) {
                     const row = csv.data[index]!;
                     if (row[outputParameterName]) {
                         throw new CsvFormatError(
@@ -85,7 +86,7 @@ export const CsvFormatParser: FormatParser<
 
                     const mappedRow: Record<string, TODO_any> = {
                         ...row,
-                        [outputParameterName]: await mapCallback(row, index),
+                        [outputParameterName]: await mapCallback(row, index, length),
                     };
                     mappedData.push(mappedRow);
 
@@ -128,9 +129,9 @@ export const CsvFormatParser: FormatParser<
                 const mappedData = await Promise.all(
                     csv.data.map(async (row, rowIndex) => {
                         return /* not await */ Promise.all(
-                            Object.entries(row).map(async ([key, value], columnIndex) => {
+                            Object.entries(row).map(async ([key, value], columnIndex, array) => {
                                 const index = rowIndex * Object.keys(row).length + columnIndex;
-                                return /* not await */ mapCallback({ [key]: value }, index);
+                                return /* not await */ mapCallback({ [key]: value }, index, array.length);
                             }),
                         );
                     }),

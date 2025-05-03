@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import type { PartialDeep, Promisable } from 'type-fest';
+import { BIG_DATASET_TRESHOLD } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
@@ -127,17 +128,12 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
         onProgress(partialResultString) {
             return onProgress(
                 Object.freeze({
-                    [task.resultingParameterName]:
-                        // <- Note: [👩‍👩‍👧] No need to detect parameter collision here because pipeline checks logic consistency during construction
-                        partialResultString,
+                    [task.resultingParameterName]: partialResultString,
                 }),
             );
         },
-        async mapCallback(subparameters, index) {
+        async mapCallback(subparameters, index, length) {
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;
-
-            // TODO: [🤹‍♂️][🪂] Limit to N concurrent executions
-            // TODO: When done [🐚] Report progress also for each subvalue here
 
             try {
                 mappedParameters = mapAvailableToExpectedParameters({
@@ -151,19 +147,26 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                     throw error;
                 }
 
-                throw new PipelineExecutionError(
+                const highLevelError = new PipelineExecutionError(
                     spaceTrim(
                         (block) => `
-                        ${(error as PipelineExecutionError).message}
+                            ${(error as PipelineExecutionError).message}
 
-                        This is error in FOREACH command
-                        You have probbably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command
+                            This is error in FOREACH command when mapping data
+                            You have probbably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command
 
-                        ${block(pipelineIdentification)}
-                        Subparameter index: ${index}
-                    `,
+                            ${block(pipelineIdentification)}
+                            Subparameter index: ${index}
+                        `,
                     ),
                 );
+
+                if (length > BIG_DATASET_TRESHOLD) {
+                    console.error(highLevelError);
+                    return '~';
+                }
+
+                throw highLevelError;
             }
 
             const allSubparameters = {
@@ -171,22 +174,39 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                 ...mappedParameters,
             };
 
-            // Note: [👨‍👨‍👧] Now we can freeze `subparameters` because we are sure that all and only used parameters are defined and are not going to be changed
             Object.freeze(allSubparameters);
 
-            const subresultString = await executeAttempts({
-                ...options,
-                priority: priority + index,
-                parameters: allSubparameters,
-                pipelineIdentification: spaceTrim(
-                    (block) => `
-                        ${block(pipelineIdentification)}
-                        Subparameter index: ${index}
-                    `,
-                ),
-            });
+            try {
+                const subresultString = await executeAttempts({
+                    ...options,
+                    priority: priority + index,
+                    parameters: allSubparameters,
+                    pipelineIdentification: spaceTrim(
+                        (block) => `
+                            ${block(pipelineIdentification)}
+                            Subparameter index: ${index}
+                        `,
+                    ),
+                });
+                return subresultString;
+            } catch (error) {
+                if (length > BIG_DATASET_TRESHOLD) {
+                    console.error(
+                        spaceTrim(
+                            (block) => `
+                              Error in FOREACH command:
 
-            return subresultString;
+                              ${block(pipelineIdentification)}
+
+                              ${block(pipelineIdentification)}
+                              Subparameter index: ${index}
+                          `,
+                        ),
+                    );
+                    return '~';
+                }
+                throw error;
+            }
         },
     });
 

@@ -771,7 +771,7 @@ User system and spending of credits
 
 ### `0.92.0` _(2025-04-)_
 
-Models and Migrations
+Models and Migrations and processing big tables
 
 -   Models are picked by description<!-- <- TODO: !!! [models] Implement or remove -->
 -   During preparation of the pipeline, not single model picked but all models which are relevant for task are sorted by relevance
@@ -794,6 +794,7 @@ Models and Migrations
 -   Pipeline migrations
 -   Add formfactor `COMPLETION` which emulates `Completion` variant of the model <!-- <- TODO: !!!! Review that this is the real ff added -->
 -   Add JSDoc annotations to all entities which are exported from any package
+-   When processing more than 50 values, if many items pass but some fail, use "~" for failed value and just console log the error.
 
 ## Drafts
 
