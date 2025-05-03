@@ -6,6 +6,7 @@ describe('how titleToName works', () => {
         expect(titleToName(`hello`)).toBe(`hello`);
         expect(titleToName(`hello 🤘`)).toBe(`hello`);
         expect(titleToName(`hello world`)).toBe(`hello-world`);
+        expect(titleToName(`hello_world`)).toBe(`hello-world`);
         expect(titleToName(`Hello, how are ýóů?`)).toBe(`hello-how-are-you`);
         expect(
             titleToName(`  Hello, how

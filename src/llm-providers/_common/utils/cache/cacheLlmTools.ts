@@ -5,9 +5,11 @@ import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
@@ -68,8 +70,11 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         const cacheItem = !isCacheReloaded ? await storage.getItem(key) : null;
 
         if (cacheItem) {
+            console.log('!!! Cache hit for key:', key);
             return cacheItem.promptResult as ChatPromptResult;
         }
+
+        console.log('!!! Cache miss for key:', key);
 
         let promptResult: TODO_any;
         variant: switch (prompt.modelRequirements.modelVariant) {
