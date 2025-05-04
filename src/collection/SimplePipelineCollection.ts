@@ -22,7 +22,7 @@ export class SimplePipelineCollection implements PipelineCollection {
     /**
      * Constructs a pipeline collection from pipelines
      *
-     * @param pipelines @@@
+     * @param pipelines Array of pipeline JSON objects to include in the collection
      *
      * Note: During the construction logic of all pipelines are validated
      * Note: It is not recommended to use this constructor directly, use `createCollectionFromJson` *(or other variant)* instead

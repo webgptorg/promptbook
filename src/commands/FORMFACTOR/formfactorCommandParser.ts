@@ -4,15 +4,13 @@ import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { FormfactorCommand } from './FormfactorCommand';
 
 /**
  * Parses the formfactor command
  *
- * Note: @@@ This command is used as formfactor for new commands - it should NOT be used in any `.book` file
+ * Note: This command is used as a formfactor for new commands and defines the app type format - it should NOT be used in any `.book` file
  *
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/editable`
@@ -37,7 +35,7 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
     /**
      * Description of the FORMFACTOR command
      */
-    description: `@@`,
+    description: `Specifies the application type and interface requirements that this promptbook should conform to`,
 
     /**
      * Link to documentation

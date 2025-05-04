@@ -1,7 +1,8 @@
 import { EntityMetadata, findAllProjectEntities } from './findAllProjectEntities';
 
 /**
- * @@@
+ * Groups all project entities by file, creating a mapping between source files
+ * and the exported entities (i.e. functions, classes, interfaces, etc.) they contain
  */
 export async function findAllProjectFilesWithEntities(): Promise<
     ReadonlyArray<{ filename: string; entities: ReadonlyArray<Omit<EntityMetadata, 'filename'>> }>

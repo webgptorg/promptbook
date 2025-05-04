@@ -5,9 +5,11 @@ import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
@@ -134,7 +136,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
 /**
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
- *            @@@ write discussion about this and storages
- *            @@@ write how to combine multiple interceptors
+ * TODO: [👷‍♂️] Comprehensive manual about construction of llmTools
+ *            Detailed explanation about caching strategies and appropriate storage selection for different use cases
+ *            Examples of how to combine multiple interceptors for advanced caching, logging, and usage tracking
  */

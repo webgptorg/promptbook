@@ -5,8 +5,6 @@ import type { string_pipeline_url } from '../types/typeAliases';
 
 /**
  * Collection that groups together pipelines, knowledge, personas, tools and actions
- *
- * @see @@@ https://github.com/webgptorg/pipeline#pipeline-collection
  */
 export type PipelineCollection = {
     /**

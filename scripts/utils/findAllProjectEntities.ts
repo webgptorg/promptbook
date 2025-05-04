@@ -42,7 +42,8 @@ export type EntityMetadata = {
 };
 
 /**
- * @@@
+ * Scans the project source code to identify and extract metadata about all exported entities
+ * i.e. functions, classes, interfaces, and type definitions
  */
 export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMetadata>> {
     const files = await readAllProjectFiles();

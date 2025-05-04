@@ -1,7 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { Parameters, string_name, string_parameter_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 
@@ -36,36 +34,36 @@ export type FormatSubvalueParser<TValue extends string, TSettings extends empty_
  */
 export type FormatSubvalueParserMapValuesOptions<TValue extends string, TSettings extends empty_object> = {
     /**
-     * @@@
+     * The input string value to parse for subvalues
      */
     readonly value: TValue;
 
     /**
-     * @@@
+     * The name of the output parameter where the processed value will be stored
      */
     readonly outputParameterName: string_parameter_name;
 
     /**
-     * @@@
+     * Format-specific settings that control how subvalues are parsed or processed
      */
     readonly settings: TSettings;
 
     /**
-     * @@@
+     * Callback function that processes each subvalue and returns the transformed value
      *
-     * @param subvalues @@@
+     * @param subvalues Object containing the extracted subvalues
      * @param index Current index of the subvalue which is being mapped
      * @param length Full length of the subvalues
-     * @param number @@@
-     * @returns @@@
+     * @param number Total number of subvalues to process
+     * @returns Transformed value after processing
      */
     mapCallback(subvalues: Parameters, index: number, length: number): Promisable<TValue>;
 
     /**
-     * @@@
+     * Progress callback that receives partial results during processing
      *
-     * @param partialResultString @@@
-     * @returns @@@
+     * @param partialResultString The current partial result as processing progresses
+     * @returns Promise or void to continue execution
      */
     onProgress(partialResultString: TValue): Promisable<void>;
 };

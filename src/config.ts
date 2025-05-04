@@ -1,10 +1,7 @@
 import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_promptbook_server_url } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -83,22 +80,26 @@ export const DEFAULT_BOOK_OUTPUT_PARAMETER_NAME = 'result';
 export const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 /**
- * @@@
+ * Threshold value that determines when a dataset is considered "big"
+ * and may require special handling or optimizations
+ *
+ * For example, when error occurs in one item of the big dataset, it will not fail the whole pipeline
  *
  * @public exported from `@promptbook/core`
  */
 export const BIG_DATASET_TRESHOLD = 50;
 
 /**
- * @@@
+ * Placeholder text used to represent a placeholder value of failed operation
  *
  * @public exported from `@promptbook/core`
  */
-export const FAILED_VALUE_PLACEHOLDER = '!';
+export const FAILED_VALUE_PLACEHOLDER = '!?';
 // <- TODO: !!!! Use
 
 /**
- * @@@
+ * Placeholder text used to represent operations or values that are still in progress
+ * or awaiting completion in UI displays and logging
  *
  * @public exported from `@promptbook/core`
  */
