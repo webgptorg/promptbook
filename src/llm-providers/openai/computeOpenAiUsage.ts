@@ -31,10 +31,12 @@ export function computeOpenAiUsage(
     >,
 ): Usage {
     if (rawResponse.usage === undefined) {
+        console.log('!!! computeOpenAiUsage', 'The usage is not defined in the response from OpenAI');
         throw new PipelineExecutionError('The usage is not defined in the response from OpenAI');
     }
 
     if (rawResponse.usage?.prompt_tokens === undefined) {
+        console.log('!!! computeOpenAiUsage', 'In OpenAI response `usage.prompt_tokens` not defined');
         throw new PipelineExecutionError('In OpenAI response `usage.prompt_tokens` not defined');
     }
 
@@ -42,6 +44,14 @@ export function computeOpenAiUsage(
     const outputTokens = (rawResponse as OpenAI.Chat.Completions.ChatCompletion).usage?.completion_tokens || 0;
 
     const modelInfo = OPENAI_MODELS.find((model) => model.modelName === rawResponse.model);
+
+    console.log('!!! computeOpenAiUsage', {
+        inputTokens,
+        outputTokens,
+        rawResponse,
+        resultContent,
+        modelInfo,
+    });
 
     let price: UncertainNumber;
 
