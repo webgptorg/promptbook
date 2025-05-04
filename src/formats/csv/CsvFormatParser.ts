@@ -97,7 +97,7 @@ export const CsvFormatParser: FormatParser<
                         !!!!
                          // Report progress with updated value
                             const progressData = mappedData.map((row, i) =>
-                              i > index ? { ...row, [outputParameterName]: '~' } : row,
+                              i > index ? { ...row, [outputParameterName]: PENDING_VALUE_PLACEHOLDER } : row,
                           );
 
 

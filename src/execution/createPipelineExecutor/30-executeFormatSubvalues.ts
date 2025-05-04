@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import type { PartialDeep, Promisable } from 'type-fest';
-import { BIG_DATASET_TRESHOLD } from '../../config';
+import { BIG_DATASET_TRESHOLD, FAILED_VALUE_PLACEHOLDER } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
@@ -164,7 +164,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
 
                 if (length > BIG_DATASET_TRESHOLD) {
                     console.error(highLevelError);
-                    return '~';
+                    return FAILED_VALUE_PLACEHOLDER;
                 }
 
                 throw highLevelError;
@@ -204,7 +204,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                           `,
                         ),
                     );
-                    return '~';
+                    return FAILED_VALUE_PLACEHOLDER;
                 }
                 throw error;
             }
