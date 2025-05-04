@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import type { PartialDeep, Promisable } from 'type-fest';
-import { BIG_DATASET_TRESHOLD, FAILED_VALUE_PLACEHOLDER } from '../../config';
+import { BIG_DATASET_TRESHOLD } from '../../config';
+import { FAILED_VALUE_PLACEHOLDER } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
