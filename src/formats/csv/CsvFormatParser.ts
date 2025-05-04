@@ -92,6 +92,16 @@ export const CsvFormatParser: FormatParser<
 
                     if (onProgress) {
                         // Note: Report the CSV with all rows mapped so far
+
+                        /*
+                        !!!!
+                         // Report progress with updated value
+                            const progressData = mappedData.map((row, i) =>
+                              i > index ? { ...row, [outputParameterName]: '~' } : row,
+                          );
+
+
+                        */
                         await onProgress(unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS }));
                     }
                 }
