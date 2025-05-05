@@ -1,5 +1,6 @@
 import type OpenAI from 'openai';
 import type { PartialDeep } from 'type-fest';
+import { SALT_NONCE } from '../../constants';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { UncertainNumber } from '../../execution/UncertainNumber';
 import type { Usage } from '../../execution/Usage';
@@ -43,12 +44,19 @@ export function computeOpenAiUsage(
     const inputTokens = rawResponse.usage.prompt_tokens;
     const outputTokens = (rawResponse as OpenAI.Chat.Completions.ChatCompletion).usage?.completion_tokens || 0;
 
-    const modelInfo = OPENAI_MODELS.find((model) => model.modelName === rawResponse.model);
+    let modelInfo = OPENAI_MODELS.find((model) => model.modelName === rawResponse.model);
+
+    if (modelInfo === undefined) {
+        // Note: Model is not in the list of known models, maybe just a different version of the same model
+        modelInfo = OPENAI_MODELS.find((model) => model.modelName.startsWith(rawResponse.model || SALT_NONCE));
+    }
 
     console.log('!!! computeOpenAiUsage', {
         inputTokens,
         outputTokens,
         rawResponse,
+        'rawResponse.model': rawResponse.model,
+        OPENAI_MODELS,
         resultContent,
         modelInfo,
     });

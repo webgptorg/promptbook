@@ -30,6 +30,14 @@ export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = 
  */
 export const REPLACING_NONCE = 'ptbkauk42kV2dzao34faw7FudQUHYPtW';
 
+
+/**
+ * Nonce which is used as string which is not occurring in normal text
+ *
+ * @private within the repository
+ */
+export const SALT_NONCE = 'ptbkghhewbvruets21t54et5';
+
 /**
  * Placeholder value indicating a parameter is missing its value.
  *

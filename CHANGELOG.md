@@ -795,6 +795,8 @@ Models and Migrations and processing big tables
 -   Add formfactor `COMPLETION` which emulates `Completion` variant of the model <!-- <- TODO: !!!! Review that this is the real ff added -->
 -   Add JSDoc annotations to all entities which are exported from any package
 -   When processing more than 50 values, if many items pass but some fail, use "~" for failed value and just console log the error.
+-   Fix OpenAI pricing
+-   Fix LLM cache
 
 ## Drafts
 
