@@ -5,9 +5,11 @@ import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
@@ -62,6 +64,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                 sha256(
                     hexEncoder.parse(JSON.stringify({ parameters, content, modelRequirements })),
                 ).toString(/* hex */),
+            //    <- TODO: !!!! Crop to `MAX_FILENAME_LENGTH`
             //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         );
 
@@ -72,7 +75,14 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             return cacheItem.promptResult as ChatPromptResult;
         }
 
-        console.log('!!! Cache miss for key:', key);
+        console.log('!!! Cache miss for key:', key, {
+            prompt,
+            'prompt.title': prompt.title,
+            MAX_FILENAME_LENGTH,
+            parameters,
+            content,
+            modelRequirements,
+        });
 
         let promptResult: TODO_any;
         variant: switch (prompt.modelRequirements.modelVariant) {
