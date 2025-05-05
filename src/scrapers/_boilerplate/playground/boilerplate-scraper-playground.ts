@@ -26,12 +26,12 @@ playground()
     });
 
 async function playground() {
-    console.info(`🧸  Scrape knowledge from @@@ (playground)`);
+    console.info(`🧸  Scrape knowledge from @@ (playground)`);
 
     // Do here stuff you want to test
     //========================================>
 
-    const example = '10-simple.@@@';
+    const example = '10-simple.@@';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them
 
     const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });

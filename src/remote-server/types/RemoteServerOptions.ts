@@ -5,16 +5,17 @@ import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_email } from '../../types/typeAliases';
-import type { string_password } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
-import type { ApplicationModeIdentification } from '../socket-types/_subtypes/Identification';
-import type { Identification } from '../socket-types/_subtypes/Identification';
+import type {
+    string_app_id,
+    string_email,
+    string_password,
+    string_token,
+    string_user_id,
+} from '../../types/typeAliases';
+import type { ApplicationModeIdentification, Identification } from '../socket-types/_subtypes/Identification';
 
 /**
- * @@@
+ * Options for configuring the Promptbook remote server.
  *
  * There are two modes of remote server:
  *
@@ -29,6 +30,7 @@ import type { Identification } from '../socket-types/_subtypes/Identification';
 export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     /**
      * Port on which the server will listen
+     * @property {number} port The port number the server will listen on.
      */
     readonly port: number;
 

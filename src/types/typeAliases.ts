@@ -192,28 +192,30 @@ export type string_persona_description = string;
 export type string_model_description = string;
 
 /**
- * Source of one knowledge
+ * Source of one knowledge piece.
  *
- * It can be a link, a relative path to file or direct text
+ * It can be a link, a relative path to file or direct text content.
  *
  * For example `"https://pavolhejny.com/"`
  * For example `"./pavol-hejny-cv.pdf"`
  * For example `"Pavol Hejný has web https://pavolhejny.com/"`
  * For example `"Pavol Hejný is web developer and creator of Promptbook and Collboard"`
  *
- * @@@ string_knowledge_source vs string_knowledge_source_link
+ * Note: Distinguishes between `string_knowledge_source_content` and `string_knowledge_source_link`:
+ * `string_knowledge_source_content` refers to the actual content or source of knowledge
+ * `string_knowledge_source_link` refers to a reference or link to the knowledge source
  */
 export type string_knowledge_source_content = string_knowledge_source_link | string_markdown;
 
 /**
- * One link to knowledge source
+ * One link to a knowledge source.
  *
- * It can be a link or relative path
+ * It can be a URL or relative path.
  *
  * For example `"https://pavolhejny.com/"`
  * For example `"./pavol-hejny-cv.pdf"`
  *
- * @@@ string_knowledge_source vs string_knowledge_source_link
+ * Note: string_knowledge_source_link refers to a reference or link to the knowledge source, while string_knowledge_source_content can be the link or the actual content.
  */
 export type string_knowledge_source_link = string_url | string_filename;
 

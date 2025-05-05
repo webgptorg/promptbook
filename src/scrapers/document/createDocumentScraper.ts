@@ -8,7 +8,7 @@ import { documentScraperMetadata } from './register-metadata';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Creates a scraper for document content.
  *
  * @public exported from `@promptbook/documents`
  */

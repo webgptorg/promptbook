@@ -5,7 +5,8 @@ import { isSerializableAsJson } from '../../../utils/serialization/isSerializabl
 import type { PromptbookStorage } from '../../_common/PromptbookStorage';
 
 /**
- * @@@
+ * Creates a Promptbook storage interface from a web storage object.
+ * Facilitates using Web Storage (localStorage/sessionStorage) as a storage backend.
  *
  * @private for `getLocalStorage` and `getSessionStorage`
  */

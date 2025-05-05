@@ -9,22 +9,25 @@ import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 
 type PrepareTaskInput = Pick<PipelineJson, 'tasks' | 'parameters'> & {
     /**
-     * @@@
+     * The number of knowledge pieces available for the pipeline.
      */
     readonly knowledgePiecesCount: number;
 };
 
 type PreparedTasks = {
     /**
-     * @@@ Sequence of tasks that are chained together to form a pipeline
+     * The sequence of tasks after preparation.
      */
     readonly tasksPrepared: ReadonlyArray<TaskJson>;
 };
 
 /**
- * @@@
+ * Prepares tasks by adding knowledge to the prompt and ensuring all necessary parameters are included.
  *
- * @public exported from `@promptbook/core`
+ * @param tasks Sequence of tasks that are chained together to form a pipeline
+ * @returns A promise that resolves to the prepared tasks.
+ *
+ * @private internal utility of `preparePipeline`
  */
 export async function prepareTasks(
     pipeline: PrepareTaskInput,

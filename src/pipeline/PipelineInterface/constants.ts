@@ -1,7 +1,7 @@
 import type { PipelineInterface } from './PipelineInterface';
 
 /**
- * @@@
+ * Pipeline interface which is equivalent to `any`
  *
  * @see https://github.com/webgptorg/promptbook/discussions/171
  *

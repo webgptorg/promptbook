@@ -6,6 +6,7 @@ import { MAX_FILENAME_LENGTH } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
 import type { string_filename } from '../../types/typeAliases';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
@@ -15,12 +16,12 @@ import { isSerializableAsJson } from '../../utils/serialization/isSerializableAs
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from './FileCacheStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
-import { jsonParse } from '../../formats/json/utils/jsonParse';
 
 /**
- * @@@
+ * A storage implementation that caches data in files organized in a directory structure.
+ * Provides methods for retrieving, storing, and managing cached data on the filesystem.
  *
- * @public exported from `@promptbook/node`
+ * This class implements the PromptbookStorage interface for filesystem-based caching.
  */
 export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     constructor(
@@ -33,7 +34,8 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * @@@
+     * Converts a storage key to a filesystem path where the data should be stored.
+     * Creates a consistent, deterministic file path based on the key string.
      */
     private getFilenameForKey(key: string): string_filename {
         // TODO: [👬] DRY
@@ -51,7 +53,8 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * @@@ Returns the current value associated with the given key, or null if the given key does not exist in the list associated with the object.
+     * Returns the current value associated with the given key, or null if the given key does not exist.
+     * Retrieves the cached data from the file system storage.
      */
     public async getItem(key: string): Promise<TItem | null> {
         const filename = this.getFilenameForKey(key);
@@ -69,7 +72,8 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * @@@ Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
+     * Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
+     * Persists data to the file system, creating necessary directory structure if it doesn't exist.
      */
     public async setItem(key: string, value: TItem): Promise<void> {
         const filename = this.getFilenameForKey(key);
@@ -85,7 +89,8 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * @@@ Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists.
+     * Removes the key/value pair with the given key from the storage, if a key/value pair with the given key exists.
+     * Deletes the corresponding file from the filesystem.
      */
     public async removeItem(key: string): Promise<void> {
         const filename = this.getFilenameForKey(key);

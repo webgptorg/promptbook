@@ -11,8 +11,8 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
  * @public exported from `@promptbook/core`
  */
 export function isPipelinePrepared(pipeline: PipelineJson): boolean {
-    // Note: Ignoring `pipeline.preparations` @@@
-    // Note: Ignoring `pipeline.knowledgePieces` @@@
+    // Note: Ignoring `pipeline.preparations`
+    // Note: Ignoring `pipeline.knowledgePieces`
 
     if (pipeline.title === undefined || pipeline.title === '' || pipeline.title === DEFAULT_BOOK_TITLE) {
         // TODO: !!! Comment this out

@@ -8,9 +8,10 @@ import { basename, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { version } from '../../package.json';
 import { GENERATOR_WARNING } from '../../src/config';
+import { assertsError } from '../../src/errors/assertsError';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../src/version';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
-import { assertsError } from '../../src/errors/assertsError';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -69,9 +70,9 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                  */
                 export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '${version}';
 
-
                 /**
-                 * @@@
+                 * Represents the version string of the Promptbook engine.
+                 * It follows semantic versioning (e.g., \`${PROMPTBOOK_ENGINE_VERSION}\`).
                  *
                  * @generated
                  */

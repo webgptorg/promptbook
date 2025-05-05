@@ -1,13 +1,15 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME } from '../../../config';
-import { DEFAULT_BOOK_TITLE } from '../../../config';
+import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME, DEFAULT_BOOK_TITLE } from '../../../config';
 import type { PipelineString } from '../../../pipeline/PipelineString';
 import { validatePipelineString } from '../../../pipeline/validatePipelineString';
 import type { string_prompt } from '../../../types/typeAliases';
 import { isFlatPipeline } from '../utils/isFlatPipeline';
 
 /**
- * @@@
+ * Converts a pipeline structure to its string representation.
+ *
+ * Transforms a flat, simple pipeline into a properly formatted pipeline string
+ * with sections for title, prompt, and return statement.
  *
  * @public exported from `@promptbook/editable`
  */

@@ -7,7 +7,8 @@ import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
- * @@@
+ * Provides filesystem access (for example for Node.js-based scrapers)
+ * Creates a standardized filesystem interface that scrapers can use for file operations.
  *
  * @public exported from `@promptbook/node`
  */

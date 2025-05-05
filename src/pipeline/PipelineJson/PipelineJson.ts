@@ -1,27 +1,27 @@
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_relative_filename } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_markdown_text,
+    string_pipeline_url,
+    string_relative_filename,
+    string_semantic_version,
+} from '../../types/typeAliases';
 import type { PipelineString } from '../PipelineString';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
 import type { ParameterJson } from './ParameterJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { TaskJson } from './TaskJson';
 
 /**
- * Promptbook is the **core concept of this package**.
+ * Represents a Promptbook pipeline defined in JSON format.
  * It represents a series of tasks chained together to form a pipeline / one big task with input and result parameters.
  *
  * Note: [🚉] This is fully serializable as JSON
  *
- * @see @@@ https://github.com/webgptorg/promptbook#promptbook
+ * @see The main Promptbook documentation for more details: https://github.com/webgptorg/promptbook#promptbook
  */
 export type PipelineJson = {
     /*

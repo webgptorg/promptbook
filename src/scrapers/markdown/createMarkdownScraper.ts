@@ -8,7 +8,7 @@ import { markdownScraperMetadata } from './register-metadata';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Creates a scraper for markdown content.
  *
  * @public exported from `@promptbook/markdown-utils`
  */

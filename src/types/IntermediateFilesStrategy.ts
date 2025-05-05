@@ -1,5 +1,6 @@
 /**
- * @@@
+ * Defines strategies for handling intermediate files during pipeline execution.
+ * Controls how temporary or intermediate files are managed throughout processing.
  */
 export type IntermediateFilesStrategy = 'HIDE_AND_CLEAN' | 'HIDE_AND_KEEP' /* | 'VISIBLE' <- TODO: [😡] Add */;
 

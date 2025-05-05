@@ -7,9 +7,8 @@ import { $provideEnvFilename } from './$provideEnvFilename';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
- * @@@
+ * Provides LLM tools configuration by reading environment variables.
  *
- * @@@ .env
  * Note: `$` is used to indicate that this function is not a pure function - it uses filesystem to access `.env` file
  *
  * It looks for environment variables:
@@ -17,7 +16,8 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * - `process.env.ANTHROPIC_CLAUDE_API_KEY`
  * - ...
  *
- * @returns @@@
+ * @see Environment variables documentation or .env file for required variables.
+ * @returns A promise that resolves to the LLM tools configuration, or null if configuration is incomplete or missing.
  * @public exported from `@promptbook/node`
  */
 export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsConfiguration> {

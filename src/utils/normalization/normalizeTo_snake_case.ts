@@ -9,10 +9,10 @@ import { normalizeTo_SCREAMING_CASE } from './normalizeTo_SCREAMING_CASE';
 export type string_snake_case = string;
 
 /**
- * @@@
+ * Normalizes a text string to snake_case format.
  *
- * @param text @@@
- * @returns @@@
+ * @param text The text string to be converted to snake_case format.
+ * @returns The normalized text in snake_case format.
  * @example 'hello_world'
  * @example 'i_love_promptbook'
  * @public exported from `@promptbook/utils`

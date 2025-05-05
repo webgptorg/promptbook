@@ -30,17 +30,15 @@ export const ORDER_OF_PIPELINE_JSON: ExportJsonOptions<PipelineJson>['order'] = 
  */
 export const REPLACING_NONCE = 'ptbkauk42kV2dzao34faw7FudQUHYPtW';
 
-
-
 /**
- * @@@
+ * Placeholder value indicating a parameter is missing its value.
  *
  * @private within the repository
  */
 export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
 
 /**
- * @@@
+ * Placeholder value indicating a parameter is restricted and cannot be used directly.
  *
  * @private within the repository
  */

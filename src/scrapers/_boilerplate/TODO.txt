@@ -1,3 +1,3 @@
-TODO: @@@ Make example documents for `BoilerplateScraper`
-TODO: @@@ Add `BoilerplateScraper` playground to terminals
-TODO: @@@ ➕ Create package `@promptbook/boilerplate`
+TODO: @@ Make example documents for `BoilerplateScraper`
+TODO: @@ Add `BoilerplateScraper` playground to terminals
+TODO: @@ ➕ Create package `@promptbook/boilerplate`

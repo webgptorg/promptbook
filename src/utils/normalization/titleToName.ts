@@ -5,11 +5,11 @@ import { isValidUrl } from '../validators/url/isValidUrl';
 import { normalizeToKebabCase } from './normalize-to-kebab-case';
 
 /**
- * @@@
+ * Converts a title string into a normalized name.
  *
- * @param value @@@
- * @returns @@@
- * @example @@@
+ * @param value The title string to be converted to a name.
+ * @returns A normalized name derived from the input title.
+ * @example 'Hello World!' -> 'hello-world'
  * @public exported from `@promptbook/utils`
  */
 export function titleToName(value: string): string {

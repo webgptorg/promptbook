@@ -8,7 +8,8 @@ import { legacyDocumentScraperMetadata } from './register-metadata';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Creates a scraper for legacy document formats (.doc, .rtf, etc).
+ * Uses LibreOffice for conversion to extract content from older document formats.
  *
  * @public exported from `@promptbook/legacy-documents`
  */

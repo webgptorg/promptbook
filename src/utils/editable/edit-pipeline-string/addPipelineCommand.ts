@@ -9,7 +9,7 @@ type AddPipelineCommandOptions = {
 };
 
 /**
- * @@@
+ * Adds a new command to a pipeline string in the correct format.
  *
  * @public exported from `@promptbook/editable`
  */

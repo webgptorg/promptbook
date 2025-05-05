@@ -15,10 +15,10 @@ export type string_kebab_case = string;
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 
 /**
- * @@@
+ * Converts a given text to kebab-case format.
  *
- * @param text @@@
- * @returns @@@
+ * @param text The text to be converted.
+ * @returns The kebab-case formatted string.
  * @example 'hello-world'
  * @example 'i-love-promptbook'
  * @public exported from `@promptbook/utils`

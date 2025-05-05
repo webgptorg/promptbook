@@ -1,5 +1,4 @@
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 
 /**
  * Utility function to extract all list items from markdown
@@ -10,7 +9,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
  * Note: It can not work with html syntax and comments
  *
  * @param markdown any valid markdown
- * @returns @@@
+ * @returns An array of strings, each representing an individual list item found in the markdown
  * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllListItemsFromMarkdown(markdown: string_markdown): string_markdown_text[] {

@@ -3,7 +3,8 @@ import type { PipelineString } from '../../../pipeline/PipelineString';
 import { removeMarkdownComments } from '../../markdown/removeMarkdownComments';
 
 /**
- * @@@
+ * Utility to determine if a pipeline string is in flat format.
+ * A flat pipeline is a simple text without proper structure (headers, blocks, etc).
  *
  * @public exported from `@promptbook/editable`
  */

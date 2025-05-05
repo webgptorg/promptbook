@@ -1,5 +1,4 @@
-import { DEFAULT_IS_AUTO_INSTALLED } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -9,11 +8,9 @@ import type { Scraper } from '../Scraper';
 import { $scrapersRegister } from './$scrapersRegister';
 
 /**
- * @@@
- *
- * 1) @@@
- * 2) @@@
- *
+ * Provides a collection of scrapers optimized for Node.js environment.
+ * 1) `provideScrapersForNode` use as default
+ * 2) `provideScrapersForBrowser` use in limited browser environment *
  * @public exported from `@promptbook/node`
  */
 export async function $provideScrapersForNode(

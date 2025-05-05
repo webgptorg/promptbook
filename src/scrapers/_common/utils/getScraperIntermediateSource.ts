@@ -12,14 +12,16 @@ import type { ScraperSourceHandler } from '../Scraper';
 import type { ScraperIntermediateSource } from '../ScraperIntermediateSource';
 
 /**
- * @@@
+ * Type representing source information for generating intermediate storage.
+ * Contains essential file and URL information needed to create a deterministic storage path.
  *
  * @private internal utility of `getScraperIntermediateSource`
  */
 type GetScraperIntermediateSourceSource = Pick<ScraperSourceHandler, 'filename' | 'url'>;
 
 /**
- * @@@
+ * Options for intermediate source generation and management.
+ * Configures how intermediate files are named, stored, and cleaned up.
  *
  * @private internal utility of `getScraperIntermediateSource`
  */
@@ -30,9 +32,8 @@ type GetScraperIntermediateSourceHandler = Required<
 };
 
 /**
- * Create a filename for intermediate cache for scrapers
- *
- * Note: It also checks if directory exists and creates it if not
+ * Retrieves an intermediate source for a scraper based on the knowledge source.
+ * Manages the caching and retrieval of intermediate scraper results for optimized performance.
  *
  * @private as internal utility for scrapers
  */

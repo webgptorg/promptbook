@@ -1,11 +1,11 @@
 import { removeDiacritics } from './removeDiacritics';
 
 /**
- * @@@
- * 
- * @param name @@@
- * @returns @@@
- * @example @@@
+ * Converts a name string into a URI-compatible format.
+ *
+ * @param name The string to be converted to a URI-compatible format.
+ * @returns A URI-compatible string derived from the input name.
+ * @example 'Hello World' -> 'hello-world'
  * @public exported from `@promptbook/utils`
  */
 export function nameToUriPart(name: string): string {

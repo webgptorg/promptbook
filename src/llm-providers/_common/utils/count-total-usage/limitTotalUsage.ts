@@ -1,42 +1,42 @@
 import { LimitReachedError } from '../../../../errors/LimitReachedError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { Usage } from '../../../../execution/Usage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
-import type { ChatPrompt } from '../../../../types/Prompt';
-import type { CompletionPrompt } from '../../../../types/Prompt';
-import type { EmbeddingPrompt } from '../../../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { countUsage } from './countUsage';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
- * Options for `limitTotalUsage`
+ * Options for the `limitTotalUsage` function.
  */
 type LimitTotalUsageOptions = {
     /**
-     * @@@
+     * The usage limits to apply.
      *
      * @default ZERO_USAGE
      */
     maxTotalUsage: Usage;
 
     /**
-     * @@@
+     * The storage mechanism to use for tracking usage across multiple executions or instances.
      *
-     * @default MemoryStorage
+     * @default MemoryStorage which will not persist when the process ends
      */
     storage: PromptbookStorage<TODO_any>;
 };
 
 /**
- * @@@
+ * Wraps LlmExecutionTools to limit the total usage based on provided limits.
  *
  * @public exported from `@promptbook/core`
  */

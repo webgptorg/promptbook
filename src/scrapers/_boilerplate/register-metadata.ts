@@ -16,14 +16,14 @@ export const boilerplateScraperMetadata = $deepFreeze({
     packageName: '@promptbook/boilerplate',
     className: 'BoilerplateScraper',
     mimeTypes: [
-        '@@@/@@@',
-        // <- TODO: @@@ Add compatible mime types with Boilerplate scraper
+        '@@/@@',
+        // <- TODO: @@ Add compatible mime types with Boilerplate scraper
     ],
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@@',
-    isAvilableInBrowser: false, // <- TODO: @@@ Is it avilable in browser?
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+    isAvilableInBrowser: false, // <- TODO: @@ Is it avilable in browser?
     // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
     requiredExecutables: [
-        /* @@@ 'Pandoc' */
+        /* @@ 'Pandoc' */
     ],
 }) satisfies ScraperAndConverterMetadata; /* <- Note: [🤛] */
 

@@ -5,7 +5,8 @@ import type { Scraper } from '../Scraper';
 import type { ScraperAndConverterMetadata } from './ScraperAndConverterMetadata';
 
 /**
- * @@@
+ * Type definition for a constructor function that creates a Scraper instance.
+ * Used for registering scrapers in the system to handle different content types.
  */
 export type ScraperConstructor = Registered &
     ScraperAndConverterMetadata &

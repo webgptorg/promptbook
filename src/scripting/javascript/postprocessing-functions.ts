@@ -32,7 +32,11 @@ const trim = (str: string) => str.trim();
 const reverse = (str: string) => str.split('').reverse().join('');
 
 /**
- * @@@
+ * Collection of utility functions that can be used for post-processing model outputs.
+ * These functions help transform, extract, or format the raw model responses.
+ *
+ * These utilities range from simple string manipulations to markdown processing
+ * and formatting functions for specific types of output.
  *
  * @public exported from `@promptbook/javascript`
  */

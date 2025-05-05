@@ -18,11 +18,8 @@ export const BOOK_LANGUAGE_VERSION: string_semantic_version = '1.0.0';
  */
 export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '0.92.0-24';
 
-
 /**
- * @@@
- *
- * @generated
+ * Represents the version of the Promptbook engine
  */
 export type string_promptbook_version = string_semantic_version;
 

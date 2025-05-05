@@ -1,13 +1,16 @@
 import type { Promisable } from 'type-fest';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_url } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_knowledge_source_link,
+    string_mime_type,
+    string_url,
+} from '../../types/typeAliases';
 import type { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 
 /**
- * @@@
+ * Interface defining the requirements for scraper implementations.
+ * Scrapers are responsible for extracting structured content from various knowledge sources.
  */
 export type Scraper = {
     /**
@@ -24,7 +27,8 @@ export type Scraper = {
 };
 
 /**
- * @@@
+ * Handler for accessing and processing content from diverse knowledge sources.
+ * Provides standardized methods to interact with files, URLs and raw text sources.
  */
 export type ScraperSourceHandler = {
     /**
@@ -65,6 +69,5 @@ export type ScraperSourceHandler = {
 /**
  * TODO: [🧠] Maybe split `ScraperSourceHandler` into `ScraperWebsiteSourceHandler` + `ScraperFileSourceHandler`
  * TODO: [🥽] Add ` asBlob(): Promisable<Blob>;` or asFile
- * TODO: [🐝] @@@ Annotate all
  * TODO: [🔼] Export via types
  */

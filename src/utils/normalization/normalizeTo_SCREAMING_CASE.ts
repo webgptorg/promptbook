@@ -13,10 +13,10 @@ export type string_SCREAMING_CASE = string;
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 
 /**
- * @@@
+ * Normalizes a text string to SCREAMING_CASE (all uppercase with underscores).
  *
- * @param text @@@
- * @returns @@@
+ * @param text The text string to be converted to SCREAMING_CASE format.
+ * @returns The normalized text in SCREAMING_CASE format.
  * @example 'HELLO_WORLD'
  * @example 'I_LOVE_PROMPTBOOK'
  * @public exported from `@promptbook/utils`

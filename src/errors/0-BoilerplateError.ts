@@ -1,5 +1,5 @@
 /**
- * This error indicates @@@
+ * This error indicates @@
  *
  * @public exported from `@promptbook/core`
  */
@@ -12,5 +12,5 @@ export class BoilerplateError extends Error {
 }
 
 /**
- * TODO: @@@ Do not forget to add the error into `0-index.ts` ERRORS
+ * TODO: @@ Do not forget to add the error into `0-index.ts` ERRORS
  */

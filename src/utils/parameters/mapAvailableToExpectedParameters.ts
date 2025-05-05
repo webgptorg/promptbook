@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { union } from '../sets/union';
 
 /**
@@ -61,7 +60,7 @@ export function mapAvailableToExpectedParameters(
     }
 
     if (expectedParameterNames.size === 0) {
-        // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@@
+        // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent accidental modifications after mapping
         Object.freeze(mappedParameters);
         return mappedParameters;
     }
@@ -106,7 +105,7 @@ export function mapAvailableToExpectedParameters(
         mappedParameters[expectedParameterNamesArray[i]!] = availableParameters[availableParametersNamesArray[i]!]!;
     }
 
-    // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@@
+    // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent accidental modifications after mapping
     Object.freeze(mappedParameters);
     return mappedParameters;
 }

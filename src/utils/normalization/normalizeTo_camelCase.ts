@@ -12,13 +12,12 @@ export type string_camelCase = string;
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'OTHER';
 
-
 /**
- * @@@
- * 
- * @param text @@@
- * @param _isFirstLetterCapital @@@
- * @returns @@@
+ * Normalizes a given text to camelCase format.
+ *
+ * @param text The text to be normalized.
+ * @param _isFirstLetterCapital Whether the first letter should be capitalized.
+ * @returns The camelCase formatted string.
  * @example 'helloWorld'
  * @example 'iLovePromptbook'
  * @public exported from `@promptbook/utils`

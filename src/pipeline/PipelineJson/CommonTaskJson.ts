@@ -1,14 +1,16 @@
 import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
 import type { SectionType } from '../../types/SectionType';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
-import type { string_prompt } from '../../types/typeAliases';
-import type { string_template } from '../../types/typeAliases';
+import type {
+    string_javascript,
+    string_markdown,
+    string_markdown_text,
+    string_name,
+    string_parameter_name,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_template,
+} from '../../types/typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
@@ -44,7 +46,8 @@ export type CommonTaskJson = {
     //                                 <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
-     * If theese parameters meet the expectations requirements, they are used instead of executing this task
+     * List of parameter names that act as jokers.
+     * If a joker parameter meets the expectations, its value is used instead of executing the task.
      *
      * @see https://github.com/webgptorg/promptbook/discussions/66
      */
@@ -52,7 +55,8 @@ export type CommonTaskJson = {
     //                              <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
-     * @@@
+     * Configuration for the FOREACH command, if used.
+     * Allows iterating over a list parameter.
      */
     readonly foreach?: ForeachJson;
 
@@ -63,16 +67,17 @@ export type CommonTaskJson = {
     readonly taskType: SectionType;
 
     /**
-     * Content of the task with {placeholders} for parameters
+     * Raw content of the task with {placeholders} for parameters before any preparation.
      *
-     * @@@ content vs preparedContent
+     * @see preparedContent
      */
     readonly content: (string_prompt | string_javascript | string_markdown) & string_template;
 
     /**
-     * @@@ Content of the task with {placeholders} for parameters
+     * Content of the task after preparation, with {placeholders} for parameters.
+     * This is the content used during execution.
      *
-     * @@@ content vs preparedContent
+     * @see content
      *
      * @default "{content}"
      */

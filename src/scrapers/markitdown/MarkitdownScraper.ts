@@ -1,8 +1,6 @@
 import { readFile } from 'fs/promises';
 import type { MarkItDown } from 'markitdown-ts'; // <- TODO: [🍀] Use Markitdown directly not through this package
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -13,8 +11,7 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
@@ -90,8 +87,8 @@ export class MarkitdownScraper implements Converter, Scraper {
             isVerbose,
         });
 
-        // TODO: @@@ Preserve, delete or modify
-        // Note: Running Pandoc ONLY if the file in the cache does not exist
+        // TODO: Determine if Markitdown conversion should run only if the cache file doesn't exist, or always.
+        // Note: Running Markitdown conversion ONLY if the file in the cache does not exist
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
             const src = source.filename || source.url || null;
 
@@ -121,14 +118,14 @@ export class MarkitdownScraper implements Converter, Scraper {
     }
 
     /**
-     * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
+     * Scrapes the source document (PDF, DOCX, etc.) and returns the knowledge pieces or `null` if it can't scrape it.
      */
     public async scrape(
         source: ScraperSourceHandler,
     ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const cacheFilehandler = await this.$convert(source);
 
-        // TODO: @@@ Preserve, delete or modify
+        // TODO: Ensure this correctly creates the source object for the internal MarkdownScraper using the converted file.
         const markdownSource = {
             source: source.source,
             filename: cacheFilehandler.filename,

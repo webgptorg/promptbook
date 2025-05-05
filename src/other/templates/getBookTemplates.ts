@@ -6,7 +6,7 @@ import type { string_pipeline_url } from '../../types/typeAliases';
 import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection';
 
 /**
- * @@@
+ * Internal cache for the `getBookTemplates` function, storing retrieved pipelines.
  *
  * @singleton
  * @private internal cache of `getBookTemplate`
@@ -14,7 +14,7 @@ import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection
 export let pipelines: Array<SetRequired<PipelineJson, 'pipelineUrl'>> | null = null;
 
 /**
- * Get template for new book
+ * Retrieves a collection of Promptbook templates.
  *
  * @param formfactorName - optional filter for FORMFACTOR - get only pipelines for this formfactor
  * @returns list of pipelines

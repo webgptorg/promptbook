@@ -11,8 +11,8 @@ import { prompt } from './prompt-notation';
  * 2) `promptTemplate` alias for `prompt`
  * 3) `book` for notating and validating entire books exported from `@promptbook/utils`
  *
- * @param strings @@@
- * @param values @@@
+ * @param strings The static string parts of the template literal
+ * @param values The dynamic values embedded within the template literal used as data
  * @returns the pipeline string
  * @public exported from `@promptbook/core`
  */

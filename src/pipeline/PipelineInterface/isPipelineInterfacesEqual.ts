@@ -2,7 +2,7 @@ import type { really_any } from '../../utils/organization/really_any';
 import type { PipelineInterface } from './PipelineInterface';
 
 /**
- * @@@
+ * Checks if two pipeline interfaces are structurally identical.
  *
  * @deprecated https://github.com/webgptorg/promptbook/pull/186
  * @see https://github.com/webgptorg/promptbook/discussions/171

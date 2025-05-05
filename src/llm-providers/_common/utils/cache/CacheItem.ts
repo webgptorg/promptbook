@@ -4,26 +4,26 @@ import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import type { string_promptbook_version } from '../../../../version';
 
 /**
- * @@@
+ * Represents a single item stored in the LLM cache.
  */
 export type CacheItem = {
     /**
-     * @@@
+     * The date and time when the cache item was created, in ISO 8601 format.
      */
     date: string_date_iso8601;
 
     /**
-     * @@@
+     * The version of the Promptbook library used when this cache item was created.
      */
     promptbookVersion?: string_promptbook_version;
 
     /**
-     * @@@
+     * The prompt that was sent to the LLM.
      */
     prompt: Prompt;
 
     /**
-     * @@@
+     * The response received from the LLM.
      */
     promptResult: PromptResult;
 };

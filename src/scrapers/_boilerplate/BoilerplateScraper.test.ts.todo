@@ -1,4 +1,4 @@
-// TODO: @@@ Uncomment this test when making new scraper from boilerplate
+// TODO: @@ Uncomment this test when making new scraper from boilerplate
 
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
@@ -8,7 +8,7 @@ import { $provideFilesystemForNode } from '../_common/register/$provideFilesyste
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { BoilerplateScraper } from './BoilerplateScraper';
 
-describe('how creating knowledge from @@@ works', () => {
+describe('how creating knowledge from @@ works', () => {
     const rootDirname = join(__dirname, 'examples');
 
     const boilerplateScraperPromise = (async () =>
@@ -23,13 +23,13 @@ describe('how creating knowledge from @@@ works', () => {
             },
         ))();
 
-    it('should scrape simple information from a @@@ file', () =>
+    it('should scrape simple information from a @@ file', () =>
         expect(
             Promise.all([
                 boilerplateScraperPromise,
                 makeKnowledgeSourceHandler(
                     {
-                        knowledgeSourceContent: '10-simple.@@@',
+                        knowledgeSourceContent: '10-simple.@@',
                     },
                     { fs: $provideFilesystemForNode() },
                     { rootDirname },
@@ -44,7 +44,7 @@ describe('how creating knowledge from @@@ works', () => {
             },
         ]));
 
-    // TODO: @@@ Add all samples
+    // TODO: @@ Add all samples
 
     it('should NOT scrape irrelevant information', () =>
         expect(
@@ -52,7 +52,7 @@ describe('how creating knowledge from @@@ works', () => {
                 boilerplateScraperPromise,
                 makeKnowledgeSourceHandler(
                     {
-                        knowledgeSourceContent: '10-simple.@@@',
+                        knowledgeSourceContent: '10-simple.@@',
                     },
                     { fs: $provideFilesystemForNode() },
                     { rootDirname },

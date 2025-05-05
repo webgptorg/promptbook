@@ -8,7 +8,8 @@ import { WebsiteScraper } from './WebsiteScraper';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Factory function to create an instance of WebsiteScraper.
+ * It bundles the scraper class with its metadata.
  *
  * @public exported from `@promptbook/website-crawler`
  */

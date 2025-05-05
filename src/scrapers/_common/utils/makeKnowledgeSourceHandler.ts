@@ -4,15 +4,18 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_DOWNLOAD_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { DEFAULT_MAX_FILE_SIZE } from '../../../config';
-import { MAX_FILENAME_LENGTH } from '../../../config';
+import {
+    DEFAULT_DOWNLOAD_CACHE_DIRNAME,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_FILE_SIZE,
+    MAX_FILENAME_LENGTH,
+} from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { LimitReachedError } from '../../../errors/LimitReachedError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
+import { jsonParse } from '../../../formats/json/utils/jsonParse';
 import type { KnowledgeSourceJson } from '../../../pipeline/PipelineJson/KnowledgeSourceJson';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
@@ -26,10 +29,11 @@ import { isValidFilePath } from '../../../utils/validators/filePath/isValidFileP
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceHandler } from '../Scraper';
 import { promptbookFetch } from './promptbookFetch';
-import { jsonParse } from '../../../formats/json/utils/jsonParse';
 
 /**
- * @@@
+ * Factory function that creates a handler for processing knowledge sources.
+ * Provides standardized processing of different types of knowledge sources
+ * across various scraper implementations.
  *
  * @public exported from `@promptbook/core`
  */
