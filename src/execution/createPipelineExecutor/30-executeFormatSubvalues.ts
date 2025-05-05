@@ -1,12 +1,10 @@
 import spaceTrim from 'spacetrim';
 import type { PartialDeep, Promisable } from 'type-fest';
-import { BIG_DATASET_TRESHOLD } from '../../config';
-import { FAILED_VALUE_PLACEHOLDER } from '../../config';
+import { BIG_DATASET_TRESHOLD, FAILED_VALUE_PLACEHOLDER } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
@@ -154,11 +152,12 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                         (block) => `
                             ${(error as PipelineExecutionError).message}
 
-                            This is error in FOREACH command when mapping data
+                            This is error in FOREACH command when mapping ${formatDefinition.formatName} ${
+                            subvalueParser.subvalueName
+                        } data (${index + 1}/${length})
                             You have probbably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command
 
                             ${block(pipelineIdentification)}
-                            Subparameter index: ${index}
                         `,
                     ),
                 );
@@ -196,12 +195,13 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                     console.error(
                         spaceTrim(
                             (block) => `
-                              Error in FOREACH command:
+                              ${(error as PipelineExecutionError).message}
+
+                              This is error in FOREACH command when processing ${formatDefinition.formatName} ${
+                                subvalueParser.subvalueName
+                            } data (${index + 1}/${length})
 
                               ${block(pipelineIdentification)}
-
-                              ${block(pipelineIdentification)}
-                              Subparameter index: ${index}
                           `,
                         ),
                     );
