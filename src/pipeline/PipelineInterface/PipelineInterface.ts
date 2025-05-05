@@ -1,4 +1,5 @@
-import type { InputParameterJson, OutputParameterJson } from '../PipelineJson/ParameterJson';
+import type { InputParameterJson } from '../PipelineJson/ParameterJson';
+import type { OutputParameterJson } from '../PipelineJson/ParameterJson';
 
 /**
  * Defines the interface of a Promptbook pipeline, specifying its input and output parameters.
