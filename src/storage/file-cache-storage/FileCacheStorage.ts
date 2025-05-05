@@ -22,6 +22,8 @@ import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
  * Provides methods for retrieving, storing, and managing cached data on the filesystem.
  *
  * This class implements the PromptbookStorage interface for filesystem-based caching.
+ *
+ * @public exported from `@promptbook/node`
  */
 export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     constructor(
