@@ -1,0 +1,112 @@
+{
+    "date": "2025-05-06T11:54:08.291Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nSpringfield is the county seat of Sangamon County in the U.S. state of Illinois. As of 2019, it had a population of 10,566, ranking it as the sixth most populous city in Illinois.\n\n---"
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Springfield: Illinois' Historic Capital City",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:54:07.072Z",
+            "complete": "2025-05-06T11:54:08.290Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00047700000000000005
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 109
+                },
+                "charactersCount": {
+                    "value": 373
+                },
+                "wordsCount": {
+                    "value": 61
+                },
+                "sentencesCount": {
+                    "value": 6
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 10
+                },
+                "charactersCount": {
+                    "value": 44
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> ---\n> \n> Springfield is the county seat of Sangamon County in the U.S. state of Illinois. As of 2019, it had a population of 10,566, ranking it as the sixth most populous city in Illinois.\n> \n> ---",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> ---\n> \n> Springfield is the county seat of Sangamon County in the U.S. state of Illinois. As of 2019, it had a population of 10,566, ranking it as the sixth most populous city in Illinois.\n> \n> ---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_0142bjqHMDJwWPJaYj5HhU4K",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Springfield: Illinois' Historic Capital City"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 109,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 10
+            }
+        }
+    }
+}
