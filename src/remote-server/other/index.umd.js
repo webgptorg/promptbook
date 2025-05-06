@@ -263,7 +263,7 @@
   var DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
   // <- TODO: [🧜‍♂️]
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/core`
    */
@@ -274,19 +274,19 @@
       skipEmptyLines: true,
   });
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/core`
    */
   var DEFAULT_IS_VERBOSE = false;
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/core`
    */
   var DEFAULT_IS_AUTO_INSTALLED = false;
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
@@ -325,7 +325,7 @@
   var $isRunningInNode = new Function("\n    try {\n        return this === global;\n    } catch (e) {\n        return false;\n    }\n");
 
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/node`
    */
@@ -398,7 +398,7 @@
   }(Error));
 
   /**
-   * @@@
+   * @@
    *
    * Note: `$` is used to indicate that this function is not a pure function - it access global scope
    *
@@ -409,10 +409,10 @@
   }
 
   /**
-   * @@@
+   * @@
    *
-   * @param text @@@
-   * @returns @@@
+   * @param text @@
+   * @returns @@
    * @example 'HELLO_WORLD'
    * @example 'I_LOVE_PROMPTBOOK'
    * @public exported from `@promptbook/utils`
@@ -475,10 +475,10 @@
    */
 
   /**
-   * @@@
+   * @@
    *
-   * @param text @@@
-   * @returns @@@
+   * @param text @@
+   * @returns @@
    * @example 'hello_world'
    * @example 'i_love_promptbook'
    * @public exported from `@promptbook/utils`
@@ -488,7 +488,7 @@
   }
 
   /**
-   * Register is @@@
+   * Register is @@
    *
    * Note: `$` is used to indicate that this function is not a pure function - it accesses and adds variables in global scope.
    *
@@ -537,10 +537,10 @@
   }());
 
   /**
-   * @@@
+   * @@
    *
    * Note: `$` is used to indicate that this interacts with the global scope
-   * @singleton Only one instance of each register is created per build, but thare can be more @@@
+   * @singleton Only one instance of each register is created per build, but thare can be more @@
    * @public exported from `@promptbook/core`
    */
   var $scrapersRegister = new $Register('scraper_constructors');
@@ -549,10 +549,10 @@
    */
 
   /**
-   * @@@
+   * @@
    *
-   * 1) @@@
-   * 2) @@@
+   * 1) @@
+   * 2) @@
    *
    * @public exported from `@promptbook/node`
    */
@@ -905,7 +905,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
   // Note: We want to use the `exec` as async function
   var exec$1 = util.promisify(child_process.exec);
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
@@ -975,7 +975,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
   // Note: We want to use the `exec` as async function
   var exec = util.promisify(child_process.exec);
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
@@ -1024,7 +1024,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    */
 
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
@@ -1130,7 +1130,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    */
 
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
@@ -1148,7 +1148,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    */
 
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
@@ -1166,7 +1166,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    */
 
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/node`
    */
@@ -1486,14 +1486,14 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
       return new (MultipleLlmExecutionTools.bind.apply(MultipleLlmExecutionTools, __spreadArray([void 0], __read(llmExecutionTools), false)))();
   }
   /**
-   * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+   * TODO: [👷‍♂️] @@ Manual about construction of llmTools
    */
 
   /**
-   * @@@
+   * @@
    *
    * Note: `$` is used to indicate that this interacts with the global scope
-   * @singleton Only one instance of each register is created per build, but thare can be more @@@
+   * @singleton Only one instance of each register is created per build, but thare can be more @@
    * @public exported from `@promptbook/core`
    */
   var $llmToolsRegister = new $Register('llm_execution_tools_constructors');
@@ -1502,10 +1502,10 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    */
 
   /**
-   * @@@
+   * @@
    *
    * Note: `$` is used to indicate that this interacts with the global scope
-   * @singleton Only one instance of each register is created per build, but thare can be more @@@
+   * @singleton Only one instance of each register is created per build, but thare can be more @@
    * @public exported from `@promptbook/core`
    */
   var $llmToolsMetadataRegister = new $Register('llm_tools_metadata');
@@ -1660,11 +1660,11 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
    */
 
   /**
-   * @@@
+   * @@
    *
    * Note: This function is not cached, every call creates new instance of `MultipleLlmExecutionTools`
    *
-   * @returns @@@
+   * @returns @@
    * @public exported from `@promptbook/core`
    */
   function createLlmToolsFromConfiguration(configuration, options) {
@@ -1687,7 +1687,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
   /**
    * TODO: [🎌] Together with `createLlmToolsFromConfiguration` + 'EXECUTION_TOOLS_CLASSES' gets to `@promptbook/core` ALL model providers, make this more efficient
    * TODO: [🧠][🎌] Dynamically install required providers
-   * TODO: @@@ write discussion about this - wizzard
+   * TODO: @@ write discussion about this - wizzard
    * TODO: [🧠][🍛] Which name is better `createLlmToolsFromConfig` or `createLlmToolsFromConfiguration`?
    * TODO: [🧠] Is there some meaningfull way how to test this util
    * TODO: This should be maybe not under `_common` but under `utils`
@@ -2166,7 +2166,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/utils`
    */
@@ -2249,13 +2249,13 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
   var REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
   var RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
   /**
-   * @@@
+   * @@
    *
    * @private within the repository
    */
@@ -2789,7 +2789,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       /**
        * Constructs a pipeline collection from pipelines
        *
-       * @param pipelines @@@
+       * @param pipelines @@
        *
        * Note: During the construction logic of all pipelines are validated
        * Note: It is not recommended to use this constructor directly, use `createCollectionFromJson` *(or other variant)* instead
@@ -2942,8 +2942,8 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * @public exported from `@promptbook/core`
    */
   function isPipelinePrepared(pipeline) {
-      // Note: Ignoring `pipeline.preparations` @@@
-      // Note: Ignoring `pipeline.knowledgePieces` @@@
+      // Note: Ignoring `pipeline.preparations` @@
+      // Note: Ignoring `pipeline.knowledgePieces` @@
       if (pipeline.title === undefined || pipeline.title === '' || pipeline.title === DEFAULT_BOOK_TITLE) {
           return false;
       }
@@ -3399,7 +3399,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
 
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/core`
    */
@@ -3649,10 +3649,10 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * Maps available parameters to expected parameters
    *
    * The strategy is:
-   * 1) @@@
-   * 2) @@@
+   * 1) @@
+   * 2) @@
    *
-   * @throws {PipelineExecutionError} @@@
+   * @throws {PipelineExecutionError} @@
    * @private within the repository used in `createPipelineExecutor`
    */
   function mapAvailableToExpectedParameters(options) {
@@ -3690,7 +3690,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
           finally { if (e_1) throw e_1.error; }
       }
       if (expectedParameterNames.size === 0) {
-          // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@@
+          // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@
           Object.freeze(mappedParameters);
           return mappedParameters;
       }
@@ -3709,7 +3709,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       for (var i = 0; i < expectedParameterNames.size; i++) {
           mappedParameters[expectedParameterNamesArray[i]] = availableParameters[availableParametersNamesArray[i]];
       }
-      // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@@
+      // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@
       Object.freeze(mappedParameters);
       return mappedParameters;
   }
@@ -4261,10 +4261,10 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   */
 
   /**
-   * @@@
+   * @@
    *
-   * @param input @@@
-   * @returns @@@
+   * @param input @@
+   * @returns @@
    * @public exported from `@promptbook/utils`
    */
   function removeDiacritics(input) {
@@ -4346,7 +4346,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -4713,7 +4713,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -4795,7 +4795,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -4808,7 +4808,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -4821,7 +4821,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -4839,7 +4839,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -4896,7 +4896,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -5030,7 +5030,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
    * @private internal utility of `createPipelineExecutor`
    */
@@ -5068,7 +5068,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   }
 
   /**
-   * @@@
+   * @@
    *
    * Note: This is not a `PipelineExecutor` (which is binded with one exact pipeline), but a utility function of `createPipelineExecutor` which creates `PipelineExecutor`
    *
@@ -5625,7 +5625,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * TODO: [🧠] Is there some meaningfull way how to test this util
    * TODO: [🧠][🌯] Maybe a way how to hide ability to `get totalUsage`
    *     > const [llmToolsWithUsage,getUsage] = countTotalUsage(llmTools);
-   * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+   * TODO: [👷‍♂️] @@ Manual about construction of llmTools
    */
 
   /**
@@ -5697,10 +5697,10 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
    * Note: `$` is used to indicate that this interacts with the global scope
-   * @singleton Only one instance of each register is created per build, but thare can be more @@@
+   * @singleton Only one instance of each register is created per build, but thare can be more @@
    * @public exported from `@promptbook/core`
    */
   var $scrapersMetadataRegister = new $Register('scrapers_metadata');
@@ -5829,10 +5829,10 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
-   * @param text @@@
-   * @returns @@@
+   * @param text @@
+   * @returns @@
    * @example 'hello-world'
    * @example 'i-love-promptbook'
    * @public exported from `@promptbook/utils`
@@ -6043,7 +6043,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/core`
    */
@@ -6323,7 +6323,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
 
   /**
-   * @@@
+   * @@
    *
    * @public exported from `@promptbook/core`
    */
