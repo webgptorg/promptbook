@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T12:01:15.141Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nPavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports global deployment of generative AI."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Pavol, developer, user applications, AI models, Ainautes, consulting group, global deployment, generative AI",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T12:01:14.113Z",
+            "complete": "2025-05-06T12:01:15.140Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000711
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 92
+                },
+                "charactersCount": {
+                    "value": 393
+                },
+                "wordsCount": {
+                    "value": 56
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 29
+                },
+                "charactersCount": {
+                    "value": 108
+                },
+                "wordsCount": {
+                    "value": 13
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Pavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports global deployment of generative AI.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Pavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports global deployment of generative AI."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_018FdQoEHVq4TGX8o9K6A11Y",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Pavol, developer, user applications, AI models, Ainautes, consulting group, global deployment, generative AI"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 92,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 29
+            }
+        }
+    }
+}

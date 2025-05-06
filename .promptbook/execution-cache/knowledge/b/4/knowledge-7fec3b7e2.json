@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T11:58:09.309Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The book argues that this transition to natural language programming is inevitable and imminent. It emphasizes the importance of embracing and excelling in this change, rather than merely adapting to it."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Natural language programming, transition, inevitable, imminent, embracing, excelling, change, adapting",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:58:08.132Z",
+            "complete": "2025-05-06T11:58:09.309Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0006150000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 85
+                },
+                "charactersCount": {
+                    "value": 397
+                },
+                "wordsCount": {
+                    "value": 57
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 24
+                },
+                "charactersCount": {
+                    "value": 102
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The book argues that this transition to natural language programming is inevitable and imminent. It emphasizes the importance of embracing and excelling in this change, rather than merely adapting to it.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The book argues that this transition to natural language programming is inevitable and imminent. It emphasizes the importance of embracing and excelling in this change, rather than merely adapting to it."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01RFis8pXZjTCsPHutPcSAKW",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Natural language programming, transition, inevitable, imminent, embracing, excelling, change, adapting"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 85,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 24
+            }
+        }
+    }
+}

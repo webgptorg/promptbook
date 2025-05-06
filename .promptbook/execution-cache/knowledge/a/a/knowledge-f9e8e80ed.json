@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T12:01:38.020Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Pavol has worked on numerous scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, serves as a jury member, and mentors in various Czech and international competitions."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Pavol, scientific projects, Czech Ornithological Society, lectures, conferences, jury member, mentors, Czech, international competitions",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T12:01:36.828Z",
+            "complete": "2025-05-06T12:01:38.020Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0007260000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 87
+                },
+                "charactersCount": {
+                    "value": 410
+                },
+                "wordsCount": {
+                    "value": 57
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 31
+                },
+                "charactersCount": {
+                    "value": 136
+                },
+                "wordsCount": {
+                    "value": 14
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol has worked on numerous scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, serves as a jury member, and mentors in various Czech and international competitions.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol has worked on numerous scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, serves as a jury member, and mentors in various Czech and international competitions."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Ckk6tcGfRiVvBWWcNY2fbU",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Pavol, scientific projects, Czech Ornithological Society, lectures, conferences, jury member, mentors, Czech, international competitions"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 87,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 31
+            }
+        }
+    }
+}

@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T11:57:36.193Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Keeping up with rapidly evolving technology trends and distinguishing important developments from daily noise can be challenging for businesses and individuals.\n\n---"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Technology trends, evolving, important developments, daily noise, businesses, individuals, challenges",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:57:35.151Z",
+            "complete": "2025-05-06T11:57:36.193Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000531
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 77
+                },
+                "charactersCount": {
+                    "value": 363
+                },
+                "wordsCount": {
+                    "value": 47
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 20
+                },
+                "charactersCount": {
+                    "value": 101
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Keeping up with rapidly evolving technology trends and distinguishing important developments from daily noise can be challenging for businesses and individuals.\n> \n> ---",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Keeping up with rapidly evolving technology trends and distinguishing important developments from daily noise can be challenging for businesses and individuals.\n> \n> ---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_015yz5cFmxvz9VRXrt8Fi3Pm",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Technology trends, evolving, important developments, daily noise, businesses, individuals, challenges"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 77,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 20
+            }
+        }
+    }
+}

@@ -1,0 +1,112 @@
+{
+    "date": "2025-05-06T12:02:44.849Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Pavol develops WebGPT, a web page generation service. He has previously created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "WebGPT: Innovating Web Page Generation",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T12:02:43.806Z",
+            "complete": "2025-05-06T12:02:44.849Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000498
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 96
+                },
+                "charactersCount": {
+                    "value": 373
+                },
+                "wordsCount": {
+                    "value": 57
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 14
+                },
+                "charactersCount": {
+                    "value": 38
+                },
+                "wordsCount": {
+                    "value": 6
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol develops WebGPT, a web page generation service. He has previously created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol develops WebGPT, a web page generation service. He has previously created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01QSZaCgvmm8EesfmFAQUbZL",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "WebGPT: Innovating Web Page Generation"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 96,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 14
+            }
+        }
+    }
+}

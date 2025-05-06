@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T11:58:31.279Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "microprocessors, Moore's Law, programming languages, large language models, GPT, Claude, human-computer interaction, language technology",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:58:30.328Z",
+            "complete": "2025-05-06T11:58:31.279Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000762
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 104
+                },
+                "charactersCount": {
+                    "value": 529
+                },
+                "wordsCount": {
+                    "value": 73
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 30
+                },
+                "charactersCount": {
+                    "value": 136
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Xzx9eJWtFoVckMGbP2QRi9",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "microprocessors, Moore's Law, programming languages, large language models, GPT, Claude, human-computer interaction, language technology"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 104,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 30
+            }
+        }
+    }
+}
