@@ -1,9 +1,9 @@
+import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
 
 /**
  * Registration of LLM provider metadata
@@ -20,7 +20,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
     className: 'GoogleExecutionTools',
     envVariables: ['GOOGLE_GENERATIVE_AI_API_KEY'],
     trustLevel: 'CLOSED',
-    order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] Maybe `TOP_TIER`?
+    order: MODEL_ORDERS.NORMAL, // <- TODO: [🧠] Maybe `TOP_TIER`?
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {

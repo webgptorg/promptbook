@@ -1,10 +1,10 @@
 import { DEFAULT_RPM } from '../../config';
+import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
 
 /**
  * Registration of LLM provider metadata
@@ -21,7 +21,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
     className: 'OpenAiExecutionTools',
     envVariables: ['OPENAI_API_KEY'],
     trustLevel: 'CLOSED',
-    order: MODEL_ORDER.TOP_TIER,
+    order: MODEL_ORDERS.TOP_TIER,
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
@@ -68,7 +68,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
     envVariables: null,
     //            <- TODO: ['OPENAI_API_KEY', 'OPENAI_ASSISTANT_ID']
     trustLevel: 'CLOSED',
-    order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] What is the right tier for Open AI Assistant
+    order: MODEL_ORDERS.NORMAL, // <- TODO: [🧠] What is the right tier for Open AI Assistant
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
