@@ -1,11 +1,10 @@
-import { MODEL_ORDERS, MODEL_TRUST_LEVELS } from '../../../constants';
+import { MODEL_ORDERS } from '../../../constants';
+import { MODEL_TRUST_LEVELS } from '../../../constants';
 import type { string_name } from '../../../types/typeAliases';
 import type { string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
-
-
 
 /**
  * Metadata definition for LLM execution tools that provides information about a provider's capabilities,
