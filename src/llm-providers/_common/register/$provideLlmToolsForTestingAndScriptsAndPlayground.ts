@@ -16,7 +16,8 @@ import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFro
 
 type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromConfigurationOptions & {
     /**
-     * @@@
+     * Flag indicating whether the cache should be reloaded or reused
+     * When set to true, the existing cache will not be used but thinks will be still saved to the cache
      *
      * @default false
      */
@@ -68,5 +69,5 @@ export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
  * Note: [⚪] This should never be in any released package
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
- * TODO: [®] DRY Register logic
+ * TODO: [®] DRY Register logi
  */
