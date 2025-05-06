@@ -6,7 +6,7 @@ import { computeUsage } from '../openai/computeUsage';
 /**
  * List of available Anthropic Claude models with pricing
  *
- * Note: Done at 2024-08-16
+ * Note: Done at 2025-05-06
  *
  * @see https://docs.anthropic.com/en/docs/models-overview
  * @public exported from `@promptbook/anthropic-claude`
@@ -28,8 +28,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest Claude model with great reasoning, coding, and language understanding capabilities. 200K context window. Optimized balance of intelligence and speed.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
+                prompt: computeUsage(`$2.50 / 1M tokens`),
+                output: computeUsage(`$12.50 / 1M tokens`),
             },
         },
         {
@@ -39,8 +39,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Most capable Claude model excelling at complex reasoning, coding, and detailed instruction following. 200K context window. Best for sophisticated tasks requiring nuanced understanding.',
             pricing: {
-                prompt: computeUsage(`$15.00 / 1M tokens`),
-                output: computeUsage(`$75.00 / 1M tokens`),
+                prompt: computeUsage(`$12.00 / 1M tokens`),
+                output: computeUsage(`$60.00 / 1M tokens`),
             },
         },
         {
@@ -105,8 +105,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest generation Claude model with advanced reasoning and language understanding. Enhanced capabilities over 3.5 with improved domain knowledge. 200K context window.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
+                prompt: computeUsage(`$2.50 / 1M tokens`),
+                output: computeUsage(`$12.50 / 1M tokens`),
             },
         },
         {

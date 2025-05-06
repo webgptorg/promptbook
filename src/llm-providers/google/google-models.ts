@@ -6,7 +6,7 @@ import { computeUsage } from '../openai/computeUsage';
 /**
  * List of available Google models with descriptions
  *
- * Note: Done at 2025-04-22
+ * Note: Done at 2025-05-06
  *
  * @see https://ai.google.dev/models/gemini
  * @public exported from `@promptbook/google`
@@ -29,8 +29,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest advanced multimodal model with exceptional reasoning, tool use, and instruction following. 1M token context window with improved vision capabilities for complex visual tasks.',
             pricing: {
-                prompt: computeUsage(`$7.00 / 1M tokens`),
-                output: computeUsage(`$21.00 / 1M tokens`),
+                prompt: computeUsage(`$8.00 / 1M tokens`),
+                output: computeUsage(`$24.00 / 1M tokens`),
             },
         },
         {
@@ -73,8 +73,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Efficient model balancing speed and quality for general-purpose applications. 1M token context window with good multimodal capabilities and quick response times.',
             pricing: {
-                prompt: computeUsage(`$0.35 / 1M tokens`),
-                output: computeUsage(`$1.05 / 1M tokens`),
+                prompt: computeUsage(`$0.25 / 1M tokens`),
+                output: computeUsage(`$0.75 / 1M tokens`),
             },
         },
         {
@@ -151,8 +151,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Flagship multimodal model with strong performance across text, code, vision, and audio tasks. 1M token context window with excellent reasoning capabilities.',
             pricing: {
-                prompt: computeUsage(`$7.00 / 1M tokens`),
-                output: computeUsage(`$21.00 / 1M tokens`),
+                prompt: computeUsage(`$6.00 / 1M tokens`),
+                output: computeUsage(`$18.00 / 1M tokens`),
             },
         },
         {
