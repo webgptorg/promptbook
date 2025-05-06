@@ -1,20 +1,24 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
+import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
+import { extractParameterNames } from '../../../../_packages/utils.index';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
 import { titleToName } from '../../../../utils/normalization/titleToName';
 import type { really_any } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
@@ -56,20 +60,33 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         const { parameters, content, modelRequirements } = prompt;
         // <- Note: These are relevant things from the prompt that the cache key should depend on.
 
+        // TODO: Maybe some standalone function for normalization of content for cache
+        let normalizedContent = content;
+        normalizedContent = normalizedContent.replace(/\s+/g, ' ');
+        normalizedContent = normalizedContent.split('\r\n').join('\n');
+        normalizedContent = spaceTrim(normalizedContent);
+
+        // Note: Do not need to save everything in the cache, just the relevant parameters
+        const relevantParameterNames = extractParameterNames(content);
+        const relevantParameters = Object.fromEntries(
+            Object.entries(parameters).filter(([key]) => relevantParameterNames.has(key)),
+        );
+
+        const keyHashBase = { relevantParameters, normalizedContent, modelRequirements };
+
         const key = titleToName(
             prompt.title.substring(0, MAX_FILENAME_LENGTH - 10) +
                 '-' +
-                sha256(
-                    hexEncoder.parse(JSON.stringify({ parameters, content, modelRequirements })),
-                ).toString(/* hex */),
-            //    <- TODO: !!!! Crop to `MAX_FILENAME_LENGTH`
+                sha256(hexEncoder.parse(JSON.stringify(keyHashBase)))
+                    .toString(/* hex */)
+                    .substring(0, 10 - 1),
             //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         );
 
         const cacheItem = !isCacheReloaded ? await storage.getItem(key) : null;
 
         if (cacheItem) {
-            console.log('!!! Cache hit for key:', key);
+            console.log('!!! Cache hit for key:', { key, keyHashBase });
             return cacheItem.promptResult as ChatPromptResult;
         }
 
@@ -77,8 +94,11 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             prompt,
             'prompt.title': prompt.title,
             MAX_FILENAME_LENGTH,
+            keyHashBase,
             parameters,
+            relevantParameters,
             content,
+            normalizedContent,
             modelRequirements,
         });
 
@@ -109,7 +129,17 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         await storage.setItem(key, {
             date: $getCurrentDate(),
             promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
-            prompt,
+            bookVersion: BOOK_LANGUAGE_VERSION,
+            prompt: {
+                ...prompt,
+                parameters:
+                    Object.entries(parameters).length === Object.entries(relevantParameters).length
+                        ? parameters
+                        : {
+                              ...relevantParameters,
+                              note: `<- Note: Only relevant parameters are stored in the cache`,
+                          },
+            },
             promptResult,
         });
 

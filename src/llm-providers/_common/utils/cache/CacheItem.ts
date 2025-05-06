@@ -1,6 +1,6 @@
 import type { PromptResult } from '../../../../execution/PromptResult';
 import type { Prompt } from '../../../../types/Prompt';
-import type { string_date_iso8601 } from '../../../../types/typeAliases';
+import type { string_date_iso8601, string_semantic_version } from '../../../../types/typeAliases';
 import type { string_promptbook_version } from '../../../../version';
 
 /**
@@ -16,6 +16,11 @@ export type CacheItem = {
      * The version of the Promptbook library used when this cache item was created.
      */
     promptbookVersion?: string_promptbook_version;
+
+    /**
+     * The version of the Book language used when this cache item was created.
+     */
+    bookVersion?: string_semantic_version;
 
     /**
      * The prompt that was sent to the LLM.
