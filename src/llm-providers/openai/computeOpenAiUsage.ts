@@ -44,11 +44,15 @@ export function computeOpenAiUsage(
     const inputTokens = rawResponse.usage.prompt_tokens;
     const outputTokens = (rawResponse as OpenAI.Chat.Completions.ChatCompletion).usage?.completion_tokens || 0;
 
+    let isUncertain = false;
     let modelInfo = OPENAI_MODELS.find((model) => model.modelName === rawResponse.model);
 
     if (modelInfo === undefined) {
-        // Note: Model is not in the list of known models, maybe just a different version of the same model
-        modelInfo = OPENAI_MODELS.find((model) => model.modelName.startsWith(rawResponse.model || SALT_NONCE));
+        // Note: Model is not in the list of known models, fallback to the family of the models and mark price as uncertain
+        modelInfo = OPENAI_MODELS.find((model) => (rawResponse.model || SALT_NONCE).startsWith(model.modelName));
+        if (modelInfo !== undefined) {
+            isUncertain = true;
+        }
     }
 
     console.log('!!! computeOpenAiUsage', {
@@ -66,7 +70,10 @@ export function computeOpenAiUsage(
     if (modelInfo === undefined || modelInfo.pricing === undefined) {
         price = uncertainNumber();
     } else {
-        price = uncertainNumber(inputTokens * modelInfo.pricing.prompt + outputTokens * modelInfo.pricing.output);
+        price = uncertainNumber(
+            inputTokens * modelInfo.pricing.prompt + outputTokens * modelInfo.pricing.output,
+            isUncertain,
+        );
     }
 
     return {
