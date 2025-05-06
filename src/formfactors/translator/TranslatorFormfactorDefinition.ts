@@ -1,13 +1,16 @@
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
- * Translator is form of app that @@@
+ * Translator is form of app that transforms input text from one form to another,
+ * such as language translation, style conversion, tone modification, or other text transformations.
  *
  * @public exported from `@promptbook/core`
  */
 export const TranslatorFormfactorDefinition = {
     name: 'TRANSLATOR',
-    description: `@@@`,
+    description: `A text transformation system that converts input content into different forms,
+    including language translations, paraphrasing, style conversions, and tone adjustments.
+    This form factor takes one input and produces one transformed output.`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/175`,
     pipelineInterface: {
         inputParameters: [

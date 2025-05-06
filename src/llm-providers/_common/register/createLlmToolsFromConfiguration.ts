@@ -27,15 +27,20 @@ export type CreateLlmToolsFromConfigurationOptions = {
      *
      * Note: This is passed to the LLM tools providers to identify misuse
      */
-    readonly userId?: string_user_id ;
+    readonly userId?: string_user_id;
 };
 
 /**
- * @@@
+ * Creates LLM execution tools from provided configuration objects
+ *
+ * Instantiates and configures LLM tool instances for each configuration entry,
+ * combining them into a unified interface via MultipleLlmExecutionTools.
  *
  * Note: This function is not cached, every call creates new instance of `MultipleLlmExecutionTools`
  *
- * @returns @@@
+ * @param configuration Array of LLM tool configurations to instantiate
+ * @param options Additional options for configuring the LLM tools
+ * @returns A unified interface combining all successfully instantiated LLM tools
  * @public exported from `@promptbook/core`
  */
 export function createLlmToolsFromConfiguration(
@@ -91,7 +96,11 @@ export function createLlmToolsFromConfiguration(
 /**
  * TODO: [🎌] Together with `createLlmToolsFromConfiguration` + 'EXECUTION_TOOLS_CLASSES' gets to `@promptbook/core` ALL model providers, make this more efficient
  * TODO: [🧠][🎌] Dynamically install required providers
- * TODO: @@@ write discussion about this - wizzard
+ * TODO: We should implement an interactive configuration wizard that would:
+ *       1. Detect which LLM providers are available in the environment
+ *       2. Guide users through required configuration settings for each provider
+ *       3. Allow testing connections before completing setup
+ *       4. Generate appropriate configuration code for application integration
  * TODO: [🧠][🍛] Which name is better `createLlmToolsFromConfig` or `createLlmToolsFromConfiguration`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: This should be maybe not under `_common` but under `utils`
