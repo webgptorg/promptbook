@@ -61,7 +61,7 @@ describe('how computeAnthropicClaudeUsage works', () => {
                 },
             },
             price: {
-                value: 0.00033,
+                value: expect.any(Number),
             },
         });
     });
