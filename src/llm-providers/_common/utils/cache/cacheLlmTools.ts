@@ -2,23 +2,22 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { extractParameterNames } from '../../../../_packages/utils.index';
+import { extractParameterNames } from '../../../../utils/parameters/extractParameterNames';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type {
-    ChatPromptResult,
-    CompletionPromptResult,
-    EmbeddingPromptResult,
-} from '../../../../execution/PromptResult';
+import type { ChatPromptResult } from '../../../../execution/PromptResult';
+import type { CompletionPromptResult } from '../../../../execution/PromptResult';
+import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
 import { titleToName } from '../../../../utils/normalization/titleToName';
 import type { really_any } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
+import { BOOK_LANGUAGE_VERSION } from '../../../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
