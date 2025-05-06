@@ -1,5 +1,4 @@
-import { DEFAULT_IS_AUTO_INSTALLED } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import type { Executables } from '../execution/Executables';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
@@ -9,7 +8,7 @@ import { locateLibreoffice } from './apps/locateLibreoffice';
 import { locatePandoc } from './apps/locatePandoc';
 
 /**
- * @@@
+ * Provides paths to required executables (i.e. as Pandoc and LibreOffice) for Node.js environments.
  *
  * @public exported from `@promptbook/node`
  */

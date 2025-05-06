@@ -6,7 +6,7 @@ import type { ExecutionReportJson } from './execution-report/ExecutionReportJson
 import type { Usage } from './Usage';
 
 /**
- * @@@
+ * The result of executing a pipeline
  *
  * Note: [🚉] This is fully serializable as JSON
  */

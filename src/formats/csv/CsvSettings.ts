@@ -1,7 +1,7 @@
 import type { ParseConfig, UnparseConfig } from 'papaparse';
 
 /**
- * @@@
+ * Settings and configuration options for CSV format handling within the application.
  */
 export type CsvSettings = Pick<
     ParseConfig & UnparseConfig,
@@ -10,7 +10,7 @@ export type CsvSettings = Pick<
 >;
 
 /**
- * @@@
+ * Contains configuration options for parsing and generating CSV files, such as delimiters and quoting rules.
  *
  * @public exported from `@promptbook/core`
  */

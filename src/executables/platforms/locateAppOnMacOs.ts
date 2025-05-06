@@ -11,7 +11,8 @@ import type { LocateAppOptions } from '../locateApp';
 const userhome = require('userhome');
 
 /**
- * @@@
+ * Attempts to locate the specified application on a macOS system by checking standard application paths and using mdfind.
+ * Returns the path to the executable if found, or null otherwise.
  *
  * @private within the repository
  */

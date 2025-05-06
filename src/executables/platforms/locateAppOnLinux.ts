@@ -4,7 +4,8 @@ import { $execCommand } from '../../utils/execCommand/$execCommand';
 import type { LocateAppOptions } from '../locateApp';
 
 /**
- * @@@
+ * Attempts to locate the specified application on a Linux system using the 'which' command.
+ * Returns the path to the executable if found, or null otherwise.
  *
  * @private within the repository
  */

@@ -6,7 +6,8 @@ import { isExecutable } from '../../utils/files/isExecutable';
 import type { LocateAppOptions } from '../locateApp';
 
 /**
- * @@@
+ * Attempts to locate the specified application on a Windows system by searching common installation directories.
+ * Returns the path to the executable if found, or null otherwise.
  *
  * @private within the repository
  */

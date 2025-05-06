@@ -15,9 +15,9 @@ import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
 export const _OpenAiRegistration: Registration = $llmToolsRegister.register(createOpenAiExecutionTools);
 
 /**
- * @@@ registration2
+ * Registration of the OpenAI Assistant provider
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Note: [🏐] Configurations registrations are done in register-constructor.ts BUT constructor register-constructor.ts
  *
  * @public exported from `@promptbook/openai`
  * @public exported from `@promptbook/wizzard`

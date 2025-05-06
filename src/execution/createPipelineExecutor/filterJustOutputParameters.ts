@@ -5,35 +5,36 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { Parameters } from '../../types/typeAliases';
 
 /**
- * @@@
+ * Options for filtering and extracting only output parameters from a pipeline execution.
  *
  * @private internal type of `createPipelineExecutor`
  */
 type FilterJustOutputParametersOptions = {
     /**
-     * @@@
+     * The fully prepared pipeline containing parameter definitions.
      */
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
-     * @@@
+     * The parameters passed to the pipeline, including both input and output values.
      */
     readonly parametersToPass: Readonly<Parameters>;
 
     /**
-     * @@@
+     * Array to collect warnings encountered during parameter extraction.
      */
     readonly $warnings: PipelineExecutionError[];
     // <- [🏮]
 
     /**
-     * @@@
+     * String identifier for the pipeline, used in warning messages.
      */
     readonly pipelineIdentification: string;
 };
 
 /**
- * @@@
+ * Filters and returns only the output parameters from the provided pipeline execution options.
+ * Adds warnings for any expected output parameters that are missing.
  *
  * @private internal utility of `createPipelineExecutor`
  */

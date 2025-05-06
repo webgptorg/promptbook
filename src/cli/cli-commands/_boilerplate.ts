@@ -17,16 +17,16 @@ export function $initializeBoilerplateCommand(program: Program) {
     const boilerplateCommand = program.command('boilerplate');
     boilerplateCommand.description(
         spaceTrim(`
-            @@@
+            @@
         `),
     );
 
     boilerplateCommand.action(
         handleActionErrors(async (cliOptions) => {
-            // @@@
+            // @@
             TODO_USE(cliOptions);
 
-            console.error(colors.green(`@@@`));
+            console.error(colors.green(`@@`));
 
             return process.exit(0);
         }),

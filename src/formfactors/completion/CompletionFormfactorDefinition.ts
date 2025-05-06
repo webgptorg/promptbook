@@ -7,7 +7,7 @@ import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactor
  */
 export const CompletionFormfactorDefinition = {
     name: 'COMPLETION',
-    description: `@@@`,
+    description: `Completion is formfactor that emulates completion models`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/@@`,
     //                                                                     <- TODO: https://github.com/webgptorg/promptbook/discussions/new?category=concepts
     //                                                                              "🔠 Completion Formfactor"

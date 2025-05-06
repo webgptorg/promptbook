@@ -16,8 +16,6 @@ import type { ForeachCommand } from './ForeachCommand';
 /**
  * Parses the foreach command
  *
- * Note: @@@ This command is used as foreach for new commands - it should NOT be used in any `.book` file
- *
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/editable`
  */

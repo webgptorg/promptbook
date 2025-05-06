@@ -2,7 +2,7 @@ import { ReadonlyDeep } from 'type-fest';
 import type { ErrorJson } from '../errors/utils/ErrorJson';
 
 /**
- * @@@
+ * Represents the result of execution of a task in a pipeline
  *
  * Note: [🚉] This is fully serializable as JSON
  */

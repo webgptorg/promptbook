@@ -2,7 +2,8 @@ import type { string_executable_path } from '../../types/typeAliases';
 import { locateApp } from '../locateApp';
 
 /**
- * @@@
+ * Locates the LibreOffice executable on the current system by searching platform-specific paths.
+ * Returns the path to the executable if found, or null otherwise.
  *
  * @private within the repository
  */

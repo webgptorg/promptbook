@@ -53,9 +53,9 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
 });
 
 /**
- * @@@ registration1 of default configuration for Open AI
+ * Registration of the OpenAI Assistant metadata
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Note: [🏐] Configurations registrations are done in the metadata registration section, but the constructor registration is handled separately.
  *
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/wizzard`

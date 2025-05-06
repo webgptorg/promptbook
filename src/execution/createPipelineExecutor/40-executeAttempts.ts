@@ -11,11 +11,8 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -32,65 +29,71 @@ import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorO
 keepTypeImported<ModelRequirements>();
 
 /**
- * @@@
+ * Options for executing attempts of a pipeline task, including configuration for jokers, priority,
+ * maximum attempts, prepared content, parameters, the task itself, the prepared pipeline, execution report,
+ * and pipeline identification. Used internally by the pipeline executor.
  *
  * @private internal type of `executeAttempts`
  */
 export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions, 'pipeline'>> & {
     /**
-     * @@@
+     * Names of parameters that act as jokers, which can be used to bypass normal execution if their value meets requirements.
      */
     readonly jokerParameterNames: Readonly<ReadonlyArray<string_parameter_name>>;
 
     /**
-     * @@@
+     * Priority of the current execution attempt, used to influence UI or execution order.
      */
     readonly priority: number;
 
     /**
-     * @@@
-     *
+     * Maximum number of attempts allowed for this task, including retries and joker attempts.
      * Note: [💂] There are two distinct variabiles
-     * 1) `maxExecutionAttempts` - the amount of attempts LLM model
-     * 2) `maxAttempts` - the amount of attempts for any task - LLM, SCRIPT, DIALOG, etc.
+     * 1) `maxExecutionAttempts` - attempts for LLM model
+     * 2) `maxAttempts` - attempts for any task (LLM, SCRIPT, DIALOG, etc.)
      */
     readonly maxAttempts: number;
 
     /**
-     * @@@
+     * The content prepared for execution, with parameters already substituted.
      */
     readonly preparedContent: TODO_string;
 
     /**
-     * @@@
+     * The parameters provided for this execution attempt.
      */
     readonly parameters: Readonly<Parameters>;
 
     /**
-     * @@@
+     * The task being executed, as a deeply immutable TaskJson object.
+     * Note: Naming should be unified between `task` and `currentTask`.
      */
     readonly task: ReadonlyDeep<TaskJson>;
-     //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
+    //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
 
     /**
-     * @@@
+     * The pipeline structure prepared for execution, as a deeply immutable PipelineJson object.
      */
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
-     * @@@
+     * The execution report object, which is updated during execution.
      */
     readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
-     * @@@
+     * String identifier for the pipeline, used for logging and error reporting.
      */
     readonly pipelineIdentification: string;
 };
 
 /**
- * @@@
+ * Executes a pipeline task with multiple attempts, including joker and retry logic. Handles different task types
+ * (prompt, script, dialog, etc.), applies postprocessing, checks expectations, and updates the execution report.
+ * Throws errors if execution fails after all attempts.
  *
+ * @param options - The options for execution, including task, parameters, pipeline, and configuration.
+ * @returns The result string of the executed task.
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<TODO_string> {

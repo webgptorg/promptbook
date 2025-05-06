@@ -6,19 +6,19 @@ import type { AutomaticTranslator } from './AutomaticTranslator';
 import type { TranslatorOptions } from './TranslatorOptions';
 
 /**
- * @@@
+ * Options for configuring the Lindat automatic translator, including API URL and language settings.
  */
 type LindatAutomaticTranslatorOptions = TranslatorOptions & {
     /**
-     * @@@
+     * Optional URL of the Lindat translation API endpoint.
      */
     readonly apiUrl?: URL;
 };
 
 /**
- * @@@
+ * Automatic translator implementation using the Lindat translation API.
  *
- * @private still in development [🏳]
+ * @private still in development [🏳️]
  */
 export class LindatAutomaticTranslator implements AutomaticTranslator {
     public constructor(protected readonly options: LindatAutomaticTranslatorOptions) {}
@@ -28,7 +28,8 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
         formData.append('src', this.options.from);
         formData.append('tgt', this.options.to);
 
-        const response = await fetch( // <- TODO: [🏳] Probbably pass the fetching function
+        const response = await fetch(
+            // <- TODO: [🏳] Probbably pass the fetching function
             this.options.apiUrl || '!!',
 
             {

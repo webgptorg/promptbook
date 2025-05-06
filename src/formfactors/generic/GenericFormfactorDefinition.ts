@@ -2,13 +2,13 @@ import { GENERIC_PIPELINE_INTERFACE } from '../../pipeline/PipelineInterface/con
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
- * @@@
+ * A generic pipeline
  *
  * @public exported from `@promptbook/core`
  */
 export const GenericFormfactorDefinition = {
     name: 'GENERIC',
-    description: `@@@`,
+    description: `A generic pipeline`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/173`,
     pipelineInterface: GENERIC_PIPELINE_INTERFACE,
 } as const satisfies AbstractFormfactorDefinition;

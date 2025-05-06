@@ -4,48 +4,43 @@ import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecu
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { Parameters, string_markdown, string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
 import { knowledgePiecesToString } from './knowledgePiecesToString';
 
 /**
- * @@@
+ * Options for retrieving relevant knowledge for a specific task during pipeline execution.
  *
- * @private internal type of `getKnowledgeFoTask`
+ * @private internal type of `getKnowledgeForTask`
  */
 type GetKnowledgeForTaskOptions = {
     /**
-     * The execution tools to be used during the execution of the pipeline
+     * The execution tools to be used during the execution of the pipeline.
      */
     readonly tools: ExecutionTools;
 
     /**
-     * @@@
+     * The fully prepared pipeline containing all tasks and knowledge pieces.
      */
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
-     * @@@
+     * The current task for which knowledge is being retrieved.
      */
     readonly task: ReadonlyDeep<TaskJson>;
-     //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
+    //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
 
     /**
-     * @@@
-     *
-     * Parameters to complete the content of the task for embedding
+     * Parameters used to complete the content of the task for embedding and knowledge retrieval.
      */
     readonly parameters: Readonly<Parameters>;
 };
 
 /**
- * @@@
- *
- * Here is the place where RAG (retrieval-augmented generation) happens
+ * Retrieves the most relevant knowledge pieces for a given task using embedding-based similarity search.
+ * This is where retrieval-augmented generation (RAG) is performed to enhance the task with external knowledge.
  *
  * @private internal utility of `createPipelineExecutor`
  */
