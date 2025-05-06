@@ -93,8 +93,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'GPT-4 is a powerful language model with enhanced reasoning, instruction-following capabilities, and 8K context window. Optimized for complex tasks requiring deep understanding.',
             pricing: {
-                prompt: computeUsage(`$25.00 / 1M tokens`),
-                output: computeUsage(`$50.00 / 1M tokens`),
+                prompt: computeUsage(`$30.00 / 1M tokens`),
+                output: computeUsage(`$60.00 / 1M tokens`),
             },
         },
         /**/
@@ -210,8 +210,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest version of GPT-3.5 Turbo with improved performance and instruction following capabilities. Default 4K context window with options for 16K.',
             pricing: {
-                prompt: computeUsage(`$0.40 / 1M tokens`),
-                output: computeUsage(`$1.20 / 1M tokens`),
+                prompt: computeUsage(`$0.50 / 1M tokens`),
+                output: computeUsage(`$1.50 / 1M tokens`),
             },
         },
         /**/
@@ -315,7 +315,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 "OpenAI's most capable text embedding model designed for high-quality embeddings for complex similarity tasks and information retrieval.",
             pricing: {
-                prompt: computeUsage(`$0.10 / 1M tokens`),
+                prompt: computeUsage(`$0.13 / 1M tokens`),
                 // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
                 output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
             },
@@ -330,7 +330,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'Cost-effective embedding model with good performance for simpler tasks like text similarity and retrieval. Good balance of quality and efficiency.',
             pricing: {
-                prompt: computeUsage(`$0.015 / 1M tokens`),
+                prompt: computeUsage(`$0.02 / 1M tokens`),
                 // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
                 output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
             },
@@ -422,8 +422,8 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelDescription:
                 'Smaller, more cost-effective version of GPT-4o with good performance across text, vision, and audio tasks at reduced complexity.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$9.00 / 1M tokens`),
+                prompt: computeUsage(`$0.15 / 1M tokens`),
+                output: computeUsage(`$0.60 / 1M tokens`),
             },
         },
         /**/
