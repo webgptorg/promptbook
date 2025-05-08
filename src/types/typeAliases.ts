@@ -7,6 +7,7 @@
 import type { TupleToUnion } from 'type-fest';
 import { RESERVED_PARAMETER_NAMES } from '../constants';
 import type { really_unknown } from '../utils/organization/really_unknown';
+import { Brand } from '../utils/types/branded-types';
 
 /**
  * Semantic helper
@@ -112,7 +113,7 @@ export type string_char = string;
  *
  * For example `"ainautes"`
  */
-export type string_name = string;
+export type string_name = Brand<string, 'Name'>;
 
 /**
  * Semantic helper
@@ -128,7 +129,7 @@ export type string_parameter_name = string_name;
  *
  * For example `"DevConf 2024"`
  */
-export type string_parameter_value = string;
+export type string_parameter_value = Brand<string, 'ParameterValue'>;
 
 /**
  * Parameters of the pipeline
@@ -395,7 +396,7 @@ export type string_css_selector = string;
  *
  * For example `"https://collboard.com/9SeSQTupmQHwuSrLi"`
  */
-export type string_url = string;
+export type string_url = Brand<string, 'URL'>;
 
 /**
  * Semantic helper
@@ -529,14 +530,11 @@ export type string_emails = string;
  *
  * Use utils:
  *   - `randomUuid` to generate
- *   - `isValidUuid  to check validity
+ *   - `isValidUuid` to check validity
  *
- * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
- * TODO: [🥬] Make some system for hashes and ids of promptbook
+ * @example "5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"
  */
-export type string_uuid = string & {
-    readonly _type: 'uuid' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
-};
+export type string_uuid = Brand<string, 'UUID'>;
 
 /**
  * Application identifier, used to distinguish different apps or clients.
@@ -726,7 +724,10 @@ export type string_pgp_key = string;
  * @see https://en.wikipedia.org/wiki/ISO_8601
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
  */
-export type string_date_iso8601 = `${number}-${number}-${number}${string}${number}:${number}:${number}${string}`;
+export type string_date_iso8601 = Brand<
+    `${number}-${number}-${number}${string}${number}:${number}:${number}${string}`,
+    'ISO8601Date'
+>;
 
 //=========================[ Numbers ]=========================
 
