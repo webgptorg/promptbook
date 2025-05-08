@@ -1,13 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import type { TODO_any } from '../../utils/organization/TODO_any';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../../utils/normalization/titleToName';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * Addtional options for rendering Mermaid graph
@@ -29,12 +28,16 @@ export type renderPipelineMermaidOptions = {
 export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: renderPipelineMermaidOptions): string {
     const { linkTask = () => null } = options || {};
 
+    const MERMAID_PREFIX = 'mermaid_';
+    const KNOWLEDGE_NAME = MERMAID_PREFIX + 'knowledge';
+    const RESERVED_NAME = MERMAID_PREFIX + 'reserved';
+
     const parameterNameToTaskName = (parameterName: string_name) => {
         if (parameterName === 'knowledge') {
-            return 'knowledge';
+            return KNOWLEDGE_NAME;
             // <- TODO: !!!! Check that this works
         } else if (RESERVED_PARAMETER_NAMES.includes(parameterName as TODO_any)) {
-            return 'reserved';
+            return RESERVED_NAME;
         }
 
         const parameter = pipelineJson.parameters.find((parameter) => parameter.name === parameterName);
@@ -45,7 +48,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
         }
 
         if (parameter.isInput) {
-            return 'input';
+            return MERMAID_PREFIX + 'input';
         }
 
         const task = pipelineJson.tasks.find((task) => task.resultingParameterName === parameterName);
@@ -54,7 +57,7 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
             throw new Error(`Could not find task for {${parameterName}}`);
         }
 
-        return task.name || normalizeTo_camelCase('task-' + titleToName(task.title));
+        return MERMAID_PREFIX + (task.name || normalizeTo_camelCase('task-' + titleToName(task.title)));
     };
 
     const promptbookMermaid = spaceTrim(
@@ -68,8 +71,8 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
                   direction TB
 
                   input((Input)):::input
-                  other((Other)):::other
-                  knowledge((Knowledgebase)):::knowledge
+                  ${RESERVED_NAME}((Other)):::${RESERVED_NAME}
+                  ${KNOWLEDGE_NAME}((Knowledgebase)):::${KNOWLEDGE_NAME}
                   ${block(
                       pipelineJson.tasks
                           .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
