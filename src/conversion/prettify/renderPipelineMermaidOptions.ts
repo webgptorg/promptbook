@@ -3,8 +3,7 @@ import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../../utils/normalization/titleToName';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -29,27 +28,28 @@ export type renderPipelineMermaidOptions = {
 export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: renderPipelineMermaidOptions): string {
     const { linkTask = () => null } = options || {};
 
-    const MERMAID_PREFIX = 'mermaid_';
-    const KNOWLEDGE_NAME = MERMAID_PREFIX + 'knowledge';
-    const RESERVED_NAME = MERMAID_PREFIX + 'reserved';
+    const MERMAID_PREFIX = 'pipeline_';
+    const MERMAID_KNOWLEDGE_NAME = MERMAID_PREFIX + 'knowledge';
+    const MERMAID_RESERVED_NAME = MERMAID_PREFIX + 'reserved';
+    const MERMAID_INPUT_NAME = MERMAID_PREFIX + 'input';
+    const MERMAID_OUTPUT_NAME = MERMAID_PREFIX + 'output';
 
     const parameterNameToTaskName = (parameterName: string_name) => {
         if (parameterName === 'knowledge') {
-            return KNOWLEDGE_NAME;
-            // <- TODO: !!!! Check that this works
+            return MERMAID_KNOWLEDGE_NAME;
         } else if (RESERVED_PARAMETER_NAMES.includes(parameterName as TODO_any)) {
-            return RESERVED_NAME;
+            return MERMAID_RESERVED_NAME;
         }
 
         const parameter = pipelineJson.parameters.find((parameter) => parameter.name === parameterName);
 
         if (!parameter) {
             throw new UnexpectedError(`Could not find {${parameterName}}`);
-            // <- TODO: !!6 This causes problems when {knowledge} and other reserved parameters are used
+            // <- TODO: This causes problems when {knowledge} and other reserved parameters are used
         }
 
         if (parameter.isInput) {
-            return MERMAID_PREFIX + 'input';
+            return MERMAID_INPUT_NAME;
         }
 
         const task = pipelineJson.tasks.find((task) => task.resultingParameterName === parameterName);
@@ -61,6 +61,52 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
         return MERMAID_PREFIX + (task.name || normalizeTo_camelCase('task-' + titleToName(task.title)));
     };
 
+    const inputAndIntermediateParametersMermaid = pipelineJson.tasks
+        .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
+            `${parameterNameToTaskName(resultingParameterName)}("${title}")`,
+            ...dependentParameterNames.map(
+                (dependentParameterName) =>
+                    `${parameterNameToTaskName(
+                        dependentParameterName,
+                    )}--"{${dependentParameterName}}"-->${parameterNameToTaskName(resultingParameterName)}`,
+            ),
+        ])
+        .join('\n');
+
+    const outputParametersMermaid = pipelineJson.parameters
+        .filter(({ isOutput }) => isOutput)
+        .map(({ name }) => `${parameterNameToTaskName(name)}--"{${name}}"-->${MERMAID_OUTPUT_NAME}`)
+        .join('\n');
+
+    const linksMermaid = pipelineJson.tasks
+        .map((task) => {
+            const link = linkTask(task);
+
+            if (link === null) {
+                return '';
+            }
+
+            const { href, title } = link;
+
+            const taskName = parameterNameToTaskName(task.resultingParameterName);
+
+            return `click ${taskName} href "${href}" "${title}";`;
+        })
+        .filter((line) => line !== '')
+        .join('\n');
+
+    const interactionPointsMermaid = Object.entries({
+        [MERMAID_INPUT_NAME]: 'Input',
+        [MERMAID_OUTPUT_NAME]: 'Output',
+        [MERMAID_RESERVED_NAME]: 'Other',
+        [MERMAID_KNOWLEDGE_NAME]: 'Knowledge',
+    })
+        .filter(([MERMAID_NAME]) =>
+            (inputAndIntermediateParametersMermaid + outputParametersMermaid).includes(MERMAID_NAME),
+        )
+        .map(([MERMAID_NAME, title]) => `${MERMAID_NAME}((${title})):::${MERMAID_NAME}`)
+        .join('\n');
+
     const promptbookMermaid = spaceTrim(
         (block) => `
 
@@ -69,56 +115,27 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
             flowchart LR
               subgraph "${pipelineJson.title}"
 
+                  %% Basic configuration
                   direction TB
 
-                  input((Input)):::input
-                  ${RESERVED_NAME}((Other)):::${RESERVED_NAME}
-                  ${KNOWLEDGE_NAME}((Knowledgebase)):::${KNOWLEDGE_NAME}
-                  ${block(
-                      pipelineJson.tasks
-                          .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
-                              `${parameterNameToTaskName(resultingParameterName)}("${title}")`,
-                              ...dependentParameterNames.map(
-                                  (dependentParameterName) =>
-                                      `${parameterNameToTaskName(
-                                          dependentParameterName,
-                                      )}--"{${dependentParameterName}}"-->${parameterNameToTaskName(
-                                          resultingParameterName,
-                                      )}`,
-                              ),
-                          ])
-                          .join('\n'),
-                  )}
+                  %% Interaction points from pipeline to outside
+                  ${block(interactionPointsMermaid)}
 
-                  ${block(
-                      pipelineJson.parameters
-                          .filter(({ isOutput }) => isOutput)
-                          .map(({ name }) => `${parameterNameToTaskName(name)}--"{${name}}"-->output`)
-                          .join('\n'),
-                  )}
-                  output((Output)):::output
+                  %% Input and intermediate parameters
+                  ${block(inputAndIntermediateParametersMermaid)}
 
-                  ${block(
-                      pipelineJson.tasks
-                          .map((task) => {
-                              const link = linkTask(task);
 
-                              if (link === null) {
-                                  return '';
-                              }
+                  %% Output parameters
+                  ${block(outputParametersMermaid)}
 
-                              const { href, title } = link;
+                  %% Links
+                  ${block(linksMermaid)}
 
-                              const taskName = parameterNameToTaskName(task.resultingParameterName);
-
-                              return `click ${taskName} href "${href}" "${title}";`;
-                          })
-                          .filter((line) => line !== '')
-                          .join('\n'),
-                  )}
-
-                  classDef input color: grey;
-                  classDef output color: grey;
+                  %% Styles
+                  classDef ${MERMAID_INPUT_NAME} color: grey;
+                  classDef ${MERMAID_OUTPUT_NAME} color: grey;
+                  classDef ${MERMAID_RESERVED_NAME} color: grey;
+                  classDef ${MERMAID_KNOWLEDGE_NAME} color: grey;
 
               end;
 
