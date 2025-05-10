@@ -3,7 +3,6 @@ import express from 'express';
 import http from 'http';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-// !!!! Remove import swaggerJsdoc from 'swagger-jsdoc';
 import * as OpenApiValidator from 'express-openapi-validator';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
