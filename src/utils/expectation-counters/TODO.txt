@@ -1,1 +1,9 @@
 TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+TODO: [🍓] Add splitInto functions to `@promptbook/utils` besides all the `count` functions
+-   Add `countCharacters` -> `splitIntoCharacters`
+-   Add `countLines` -> `splitIntoLines`
+-   Add `countPages` -> `splitIntoPages`
+-   Add `countParagraphs` -> `splitIntoParagraphs`
+-   Add `countSentences` -> `splitIntoSentences`
+-   Add `CountUtils` -> `splitIntoUtils`
+-   Add `countWords` -> `splitIntoWords`

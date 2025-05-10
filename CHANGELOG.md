@@ -769,7 +769,7 @@ User system and spending of credits
 
 ## In pre-release
 
-### `0.92.0` _(2025-04-)_
+### `0.92.0` _(2025-05-)_
 
 Models and Migrations and processing big tables
 
@@ -798,74 +798,11 @@ Models and Migrations and processing big tables
 -   Fix OpenAI pricing
 -   Fix LLM cache
 
-## Drafts
+## Upcoming
 
-### `0..0` _(2024--)_
+### `0.93.0` _(2025-05-)_
 
-`createLibraryFromDirectory` uses prebuild library
-
-### `0..0` _(2024--)_
-
-Better expectation format in `PromptbookJson`
-
-### `0..0` _(2024--)_
-
-Allow to split parameters into multiple values and iterate over them
-
-### `0..0` _(2024--)_
-
-<!-- Search ACRY "MODEL NAME " -->
-
--   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
-
-### `0..0` _(2024--)_
-
-Better script execution
-
--   Gettings rid of `JavascriptEvalExecutionTools` and implement propper isolated script execution in `JavascriptExecutionTools`
--   List all default postprocessing functions in `@promptbook/utils` README
--   Implement `PythonExecutionTools` for executing Python scripts
-
-### `0..0` _(2024--)_
-
-<!--[🍓]-->
-
-More options to create `PromptbookLibrary`
-
-### `0..0` _(2024--)_
-
-Intagration with Langtail
-
-### `0..0` _(2024--)_
-
-<!--[🍓]-->
-
--   TODO: Add splitInto functions to `@promptbook/utils` besides all the `count` functions
-
--   Add `countCharacters` -> `splitIntoCharacters`
--   Add `countLines` -> `splitIntoLines`
--   Add `countPages` -> `splitIntoPages`
--   Add `countParagraphs` -> `splitIntoParagraphs`
--   Add `countSentences` -> `splitIntoSentences`
--   Add `CountUtils` -> `splitIntoUtils`
--   Add `countWords` -> `splitIntoWords`
-
-### `0..0` _(2024-0-)_
-
-More expect variations
-
-<!--[🍓]-->
-
--   Add command `EXPECT "..."` <- [🥤]
--   Add command `EXPECT /.../i` <- [🥤]
--   Add command `EXPECT "...{foo}..."` <- [🥤]
--   Add command `EXPECT /...{foo}.../i` <- [🥤]
--   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <- [🥤]
-
-## Upcomming features
-
--   When postprocessing fails, retry in same way as failed expectations
--   When making next attempt for `DIALOG BLOCK`, preserve the previous user input <- [🌹]
+Enhance the presentation of the Promptbook
 
 ## `1.0.0` Release
 
