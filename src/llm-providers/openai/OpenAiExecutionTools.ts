@@ -3,20 +3,21 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -24,7 +25,6 @@ import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
-import { DEFAULT_RPM } from '../../config';
 
 /**
  * Execution Tools for calling OpenAI API
@@ -50,7 +50,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
     public constructor(protected readonly options: OpenAiExecutionToolsOptions) {
         // TODO: Allow configuring rate limits via options
         this.limiter = new Bottleneck({
-            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_RPM),
+            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_MAX_REQUESTS_PER_MINUTE),
         });
     }
 

@@ -1,8 +1,8 @@
-# TODO: !!! Import this YML file directly into the code
+# TODO: [🥺] Import this YML file directly into the code
 openapi: 3.0.0
 info:
-    title: Promptbook Remote Server API (!!!! From YML)
-    version: 1.0.0 # <- TODO: !!!! Make this dynamic
+    title: Promptbook Remote Server API ([🥺] From YML)
+    version: 1.0.0 # <- TODO: [🥺] Make this dynamic
     description: API documentation for the Promptbook Remote Server
 paths:
     /:

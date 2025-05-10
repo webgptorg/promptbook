@@ -1,13 +1,13 @@
-// TODO: !!!! List running services from REMOTE_SERVER_URLS
-// TODO: !!!! Import directly from YML
+// TODO: [🥺] List running services from REMOTE_SERVER_URLS
+// TODO: [🥺] Import directly from YML
 
 /**
- * @private !!!! Decide how to expose this
+ * @private [🥺] Decide how to expose this
  */
 export const openapiJson = {
     openapi: '3.0.0',
     info: {
-        title: 'Promptbook Remote Server API (!!!! From YML)',
+        title: 'Promptbook Remote Server API ([🥺] From YML)',
         version: '1.0.0',
         description: 'API documentation for the Promptbook Remote Server',
     },

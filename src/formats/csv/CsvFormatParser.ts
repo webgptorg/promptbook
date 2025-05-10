@@ -72,7 +72,9 @@ export const CsvFormatParser: FormatParser<
                     );
                 }
 
-                TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
+                TODO_USE(
+                    onProgress /* <- TODO: [🛕] Report progress here, report all the data including pending ones, use `PENDING_VALUE_PLACEHOLDER` */,
+                );
 
                 const mappedData: Record<string, TODO_any>[] = [];
                 const length = csv.data.length;
@@ -94,13 +96,10 @@ export const CsvFormatParser: FormatParser<
                         // Note: Report the CSV with all rows mapped so far
 
                         /*
-                        !!!!
-                         // Report progress with updated value
-                            const progressData = mappedData.map((row, i) =>
-                              i > index ? { ...row, [outputParameterName]: PENDING_VALUE_PLACEHOLDER } : row,
-                          );
-
-
+                        // TODO: [🛕] Report progress with all the rows including the pending ones
+                          const progressData = mappedData.map((row, i) =>
+                            i > index ? { ...row, [outputParameterName]: PENDING_VALUE_PLACEHOLDER } : row,
+                        );
                         */
                         await onProgress(unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS }));
                     }
@@ -134,7 +133,9 @@ export const CsvFormatParser: FormatParser<
                     );
                 }
 
-                TODO_USE(onProgress /* <- TODO: !!! Report progress here */);
+                TODO_USE(
+                    onProgress /* <- TODO: [🛕] Report progress here, report all the data including pending ones, use `PENDING_VALUE_PLACEHOLDER` */,
+                );
 
                 const mappedData = await Promise.all(
                     csv.data.map(async (row, rowIndex) => {

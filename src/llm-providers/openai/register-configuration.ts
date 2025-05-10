@@ -1,4 +1,4 @@
-import { DEFAULT_RPM } from '../../config';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
@@ -30,7 +30,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
             className: 'OpenAiExecutionTools',
             options: {
                 apiKey: 'sk-',
-                maxRequestsPerMinute: DEFAULT_RPM,
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
             },
         };
     },

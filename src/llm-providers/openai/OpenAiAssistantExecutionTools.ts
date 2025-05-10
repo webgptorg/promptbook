@@ -37,7 +37,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
     public constructor(options: OpenAiAssistantExecutionToolsOptions) {
         super(options);
         this.assistantId = options.assistantId;
-        // TODO: !!!! Make limiter same as in OpenAiExecutionTools
+        // TODO: [👱] Make limiter same as in `OpenAiExecutionTools`
     }
 
     public get title(): string_title & string_markdown_text {

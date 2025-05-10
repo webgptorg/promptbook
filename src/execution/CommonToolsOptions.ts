@@ -23,7 +23,7 @@ export type CommonToolsOptions = {
      * Maximum number of requests per minute
      */
     readonly maxRequestsPerMinute?: number;
-    // <- TODO: !!!! Use in all places using CommonToolsOptions OR Omit this from there
+    // <- TODO: [👱] Use in all places using CommonToolsOptions OR Omit this from there
 };
 
 /**

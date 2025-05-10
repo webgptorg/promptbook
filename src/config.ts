@@ -1,10 +1,7 @@
 import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_promptbook_server_url } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -106,7 +103,6 @@ export const FAILED_VALUE_PLACEHOLDER = '!?';
  * @public exported from `@promptbook/core`
  */
 export const PENDING_VALUE_PLACEHOLDER = '…';
-// <- TODO: !!!! Use
 
 /**
  * Warning message for the generated sections and files files
@@ -372,7 +368,7 @@ export const DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME = `getPipelineCollect
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_RPM = 60;
+export const DEFAULT_MAX_REQUESTS_PER_MINUTE = 60;
 
 /**
  * Indicates whether pipeline logic validation is enabled. When true, the pipeline logic is checked for consistency.

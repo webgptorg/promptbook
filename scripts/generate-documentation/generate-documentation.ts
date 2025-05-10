@@ -116,7 +116,7 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
         );
 
         await writeFile(`documents/commands/${name}.md`, await prettify(commandContent, 'markdown'), 'utf-8');
-        // <- TODO: !!! Add generator warnings
+        // <- TODO: [💆] Add generator warnings
     }
 
     // ==============================
@@ -139,7 +139,7 @@ interface GitHubDiscussion {
 }
 
 async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
-    // TODO: !!! Paginate through all discussions (Maybe @JorgeSquared)
+    // TODO: [💆] Paginate through all discussions (Maybe @JorgeSquared)
     const query = `
         query {
             repository(owner: "webgptorg", name: "promptbook") {

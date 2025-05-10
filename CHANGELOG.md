@@ -773,11 +773,11 @@ User system and spending of credits
 
 Models and Migrations and processing big tables
 
--   Models are picked by description<!-- <- TODO: !!! [models] Implement or remove -->
+-   Models are picked by description
 -   During preparation of the pipeline, not single model picked but all models which are relevant for task are sorted by relevance
--   Make real RAG of knowledge<!-- <- TODO: !!! [models] Implement or remove -->
+-   Make real RAG of knowledge
 -   Remove "(boilerplate)" from model names
--   Sort model providers by relevance<!-- <- TODO: !!! [models] Implement or remove -->
+-   Sort model providers by relevance
 -   Export utility function `filterModels` from `@promptbook/core`
 -   All OpenAI models contain description
 -   All Anthropic models contain description
