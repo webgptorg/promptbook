@@ -127,7 +127,7 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
     }
 }
 
-interface GitHubDiscussion {
+type GitHubDiscussion = {
     id: string;
     title: string;
     body: string;
@@ -136,7 +136,7 @@ interface GitHubDiscussion {
     } | null;
     url: string;
     updatedAt: string;
-}
+};
 
 async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
     // TODO: [💆] Paginate through all discussions (Maybe @JorgeSquared)

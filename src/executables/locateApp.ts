@@ -9,7 +9,7 @@ import { locateAppOnWindows } from './platforms/locateAppOnWindows';
 /**
  * Options for locating any application
  */
-export interface LocateAppOptions {
+export type LocateAppOptions = {
     /**
      * Name of the application
      */
@@ -29,7 +29,7 @@ export interface LocateAppOptions {
      * Name of the application on macOS
      */
     macOsName?: string;
-}
+};
 
 /**
  * Locates an application on the system
