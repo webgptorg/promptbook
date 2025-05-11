@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -11,10 +10,7 @@ import { serializeError } from '../../errors/utils/serializeError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
-import type { InputParameters } from '../../types/typeAliases';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { InputParameters, Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { valueToString } from '../../utils/parameters/valueToString';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
@@ -55,7 +51,7 @@ type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * Callback to update the prepared pipeline reference after preparation.
      */
-    readonly setPreparedPipeline: (preparedPipeline: ReadonlyDeep<PipelineJson>) => void;
+    setPreparedPipeline(preparedPipeline: ReadonlyDeep<PipelineJson>): void;
 
     /**
      * String identifier for the pipeline, used in error messages and reporting.

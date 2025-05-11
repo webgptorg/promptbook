@@ -24,8 +24,7 @@ import { $provideFilesystemForNode } from '../../scrapers/_common/register/$prov
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -170,7 +169,9 @@ export function $initializeRunCommand(program: Program) {
                     type: 'text',
                     name: 'pipelineSource',
                     message: '', // <- TODO: [🧠] What is the message here
-                    validate: (value) => (value.length > 0 ? true : 'Pipeline source is required'),
+                    validate(value) {
+                        return value.length > 0 ? true : 'Pipeline source is required';
+                    },
                 });
 
                 if (!response.pipelineSource) {

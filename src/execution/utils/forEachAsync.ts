@@ -22,7 +22,7 @@ export async function forEachAsync<TItem>(
     array: ReadonlyArray<TItem>,
     options: ForEachAsyncOptions,
     callbackfunction: (value: TItem, index: number, array: ReadonlyArray<TItem>) => Promisable<void>,
-) {
+): Promise<void> {
     const { maxParallelCount = Infinity } = options;
     let index = 0;
 

@@ -39,7 +39,7 @@ type executeSingleTaskOptions = Required<CreatePipelineExecutorOptions> & {
     /**
      * Callback invoked with partial results as the execution progresses.
      */
-    readonly onProgress: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>;
+    onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
 
     /**
      * Mutable execution report object for tracking execution details.

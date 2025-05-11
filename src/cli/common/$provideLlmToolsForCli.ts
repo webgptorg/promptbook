@@ -106,16 +106,19 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
                         type: 'text',
                         name: 'username',
                         message: 'Enter your email:', // <- TODO: [🧠] What is the message here, asking for email but outputting username
-                        validate: (value) => (isValidEmail(value) ? true : 'Valid email is required'),
+                        validate(value) {
+                            return isValidEmail(value) ? true : 'Valid email is required';
+                        },
                     },
                     {
                         type: 'password',
                         name: 'password',
                         message: 'Enter your password:', // <- TODO: [🧠] What is the message here
-                        validate: (value) =>
-                            value.length /* <- TODO: [🧠] Better password validation */ > 0
+                        validate(value) {
+                            return value.length /* <- TODO: [🧠] Better password validation */ > 0
                                 ? true
-                                : 'Password is required',
+                                : 'Password is required';
+                        },
                     },
                 ]);
 
