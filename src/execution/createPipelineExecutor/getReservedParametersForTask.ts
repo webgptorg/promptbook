@@ -1,13 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../../constants';
-import { RESERVED_PARAMETER_NAMES } from '../../constants';
-import { RESERVED_PARAMETER_RESTRICTED } from '../../constants';
+import {
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_RESTRICTED,
+} from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { Parameters } from '../../types/typeAliases';
-import type { ReservedParameters } from '../../types/typeAliases';
+import type { Parameters, ReservedParameters } from '../../types/typeAliases';
 import type { ExecutionTools } from '../ExecutionTools';
 import { getContextForTask } from './getContextForTask';
 import { getExamplesForTask } from './getExamplesForTask';
@@ -59,6 +60,8 @@ export async function getReservedParametersForTask(
     options: GetReservedParametersForTaskOptions,
 ): Promise<Readonly<ReservedParameters>> {
     const { tools, preparedPipeline, task, parameters, pipelineIdentification } = options;
+
+    console.log('!!! getReservedParametersForTask', options);
 
     const context = await getContextForTask(task); // <- [🏍]
     const knowledge = await getKnowledgeForTask({ tools, preparedPipeline, task, parameters });

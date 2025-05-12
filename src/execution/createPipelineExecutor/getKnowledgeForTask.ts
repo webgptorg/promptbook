@@ -4,9 +4,7 @@ import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecu
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { Parameters, string_markdown, string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
@@ -103,7 +101,7 @@ export async function getKnowledgeForTask(
             // <- TODO: Number of knowledge pieces to return determined by the task and used model
         );
 
-        console.log('!!! Embedding', {
+        console.log('!!! `getKnowledgeForTask` Embedding', {
             task,
             taskEmbeddingPrompt,
             taskEmbeddingResult,
