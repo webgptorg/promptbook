@@ -797,6 +797,7 @@ Models and Migrations and processing big tables
 -   When processing more than 50 values, if many items pass but some fail, use "~" for failed value and just console log the error.
 -   Fix OpenAI pricing
 -   Fix LLM cache
+-   Add `title` and `promptbookVersion` to `ExecutionTask`
 -   Cache `getLocalStorage`, `getSessionStorage` and `getIndexedDbStorage`
 -   Pass `databaseName` and `storeName` into `getIndexedDbStorage`
 -   ✨Auto-enhance model providers, _try autonomous agent to work on Promptbook_

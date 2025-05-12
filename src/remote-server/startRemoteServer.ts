@@ -6,8 +6,7 @@ import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -28,8 +27,7 @@ import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
 import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
@@ -41,8 +39,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -344,13 +341,25 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
         // <- TODO: [🧠] This should be maybe method of `ExecutionTask` itself
-        const { taskType, taskId, status, errors, warnings, createdAt, updatedAt, currentValue } = executionTask;
+        const {
+            taskType,
+            promptbookVersion,
+            taskId,
+            title,
+            status,
+            errors,
+            warnings,
+            createdAt,
+            updatedAt,
+            currentValue,
+        } = executionTask;
 
         if (isFull) {
             return {
-                nonce: '✨',
                 taskId,
+                title,
                 taskType,
+                promptbookVersion,
                 status,
                 errors: errors.map(serializeError),
                 warnings: warnings.map(serializeError),
@@ -360,9 +369,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
             };
         } else {
             return {
-                nonce: '✨',
                 taskId,
+                title,
                 taskType,
+                promptbookVersion,
                 status,
                 createdAt,
                 updatedAt,

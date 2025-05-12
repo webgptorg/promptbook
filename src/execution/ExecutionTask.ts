@@ -8,6 +8,7 @@ import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import type { really_any } from '../utils/organization/really_any';
 import { $randomToken } from '../utils/random/$randomToken';
 import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
+import { PROMPTBOOK_ENGINE_VERSION, string_promptbook_version } from '../version';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
@@ -22,12 +23,24 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
     readonly taskType: AbstractTask<TTaskResult>['taskType'];
 
     /**
+     * Human-readable title of the task - used for displaying in the UI
+     */
+    readonly title: AbstractTask<TTaskResult>['title'];
+
+    /**
      * Callback that processes the task and updates the ongoing result
      * @param ongoingResult The partial result of the task processing
      * @returns The final task result
      */
     taskProcessCallback(
-        updateOngoingResult: (newOngoingResult: PartialDeep<TTaskResult>) => void,
+        updateOngoingResult: (
+            newOngoingResult: PartialDeep<TTaskResult> & {
+                /**
+                 * Optional update of the task title
+                 */
+                readonly title?: AbstractTask<TTaskResult>['title'];
+            },
+        ) => void,
     ): Promise<TTaskResult>;
 };
 
@@ -40,6 +53,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     options: CreateTaskOptions<TTaskResult>,
 ): AbstractTask<TTaskResult> {
     const { taskType, taskProcessCallback } = options;
+    let { title } = options;
 
     // TODO: [🐙] DRY
     const taskId = `${taskType.toLowerCase().substring(0, 4)}-${$randomToken(
@@ -55,7 +69,13 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     const partialResultSubject = new Subject<PartialDeep<TTaskResult>>();
     // <- Note: Not using `BehaviorSubject` because on error we can't access the last value
 
-    const finalResultPromise = /* not await */ taskProcessCallback((newOngoingResult: PartialDeep<TTaskResult>) => {
+    const finalResultPromise = /* not await */ taskProcessCallback((newOngoingResult) => {
+        if (newOngoingResult.title) {
+            title = newOngoingResult.title;
+        }
+
+        updatedAt = new Date();
+
         Object.assign(currentValue, newOngoingResult);
         // <- TODO: assign deep
         partialResultSubject.next(newOngoingResult);
@@ -112,17 +132,24 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     return {
         taskType,
         taskId,
+        get promptbookVersion() {
+            return PROMPTBOOK_ENGINE_VERSION;
+        },
+        get title() {
+            return title;
+            // <- Note: [1] Theese must be getters to allow changing the value in the future
+        },
         get status() {
             return status;
-            // <- Note: [1] Theese must be getters to allow changing the value in the future
+            // <- Note: [1] --||--
         },
         get createdAt() {
             return createdAt;
-            // <- Note: [1]
+            // <- Note: [1] --||--
         },
         get updatedAt() {
             return updatedAt;
-            // <- Note: [1]
+            // <- Note: [1] --||--
         },
         asPromise,
         asObservable() {
@@ -130,17 +157,17 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
         },
         get errors() {
             return errors;
-            // <- Note: [1]
+            // <- Note: [1] --||--
         },
         get warnings() {
             return warnings;
-            // <- Note: [1]
+            // <- Note: [1] --||--
         },
         get currentValue() {
             return currentValue;
-            // <- Note: [1]
+            // <- Note: [1] --||--
         },
-    } as TODO_remove_as<AbstractTask<TTaskResult>>;
+    } satisfies AbstractTask<TTaskResult>;
 }
 
 /**
@@ -178,9 +205,21 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
     readonly taskType: string_SCREAMING_CASE;
 
     /**
+     * Version of the promptbook used to run the task
+     */
+    readonly promptbookVersion: string_promptbook_version;
+
+    /**
      * Unique identifier for the task
      */
     readonly taskId: task_id;
+
+    /**
+     * Human-readable title of the task - used for displaying in the UI
+     */
+    readonly title: string;
+
+    // <- TODO: [🧠] Maybe also `pipelineUrl` here
 
     /**
      * Status of the task
