@@ -32,12 +32,10 @@ export function computeOpenAiUsage(
     >,
 ): Usage {
     if (rawResponse.usage === undefined) {
-        console.log('!!! computeOpenAiUsage', 'The usage is not defined in the response from OpenAI');
         throw new PipelineExecutionError('The usage is not defined in the response from OpenAI');
     }
 
     if (rawResponse.usage?.prompt_tokens === undefined) {
-        console.log('!!! computeOpenAiUsage', 'In OpenAI response `usage.prompt_tokens` not defined');
         throw new PipelineExecutionError('In OpenAI response `usage.prompt_tokens` not defined');
     }
 
@@ -54,16 +52,6 @@ export function computeOpenAiUsage(
             isUncertain = true;
         }
     }
-
-    console.log('!!! computeOpenAiUsage', {
-        inputTokens,
-        outputTokens,
-        rawResponse,
-        'rawResponse.model': rawResponse.model,
-        OPENAI_MODELS,
-        resultContent,
-        modelInfo,
-    });
 
     let price: UncertainNumber;
 
