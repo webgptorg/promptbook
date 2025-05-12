@@ -1,5 +1,5 @@
 import type { PromptbookStorage } from '../../_common/PromptbookStorage';
-import { IndexedDbStorageOptions } from './IndexedDbStorageOptions';
+import type { IndexedDbStorageOptions } from './IndexedDbStorageOptions';
 
 /**
  * Creates a PromptbookStorage backed by IndexedDB.

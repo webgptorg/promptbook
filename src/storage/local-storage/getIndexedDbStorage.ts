@@ -1,8 +1,8 @@
 import { isRunningInBrowser } from 'openai/core';
-import { really_any } from '../../_packages/types.index';
+import type { really_any } from '../../utils/organization/really_any';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
-import { IndexedDbStorageOptions } from './utils/IndexedDbStorageOptions';
+import type { IndexedDbStorageOptions } from './utils/IndexedDbStorageOptions';
 import { makePromptbookStorageFromIndexedDb } from './utils/makePromptbookStorageFromIndexedDb';
 
 /**
