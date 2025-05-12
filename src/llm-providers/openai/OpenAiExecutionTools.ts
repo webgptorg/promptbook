@@ -9,15 +9,15 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -170,7 +170,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             user: this.options.userId?.toString(),
         };
         const start: string_date_iso8601 = $getCurrentDate();
-        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
@@ -179,16 +178,15 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             .schedule(() => client.chat.completions.create(rawRequest))
             .catch((error) => {
                 assertsError(error);
-
                 if (this.options.isVerbose) {
                     console.info(colors.bgRed('error'), error);
                 }
                 throw error;
             });
-
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
+        const complete: string_date_iso8601 = $getCurrentDate();
 
         if (!rawResponse.choices[0]) {
             throw new PipelineExecutionError('No choises from OpenAI');
@@ -200,8 +198,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         }
 
         const resultContent = rawResponse.choices[0].message.content;
-        // eslint-disable-next-line prefer-const
-        complete = $getCurrentDate();
         const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
         if (resultContent === null) {
@@ -265,7 +261,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             user: this.options.userId?.toString(),
         };
         const start: string_date_iso8601 = $getCurrentDate();
-        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
@@ -274,16 +269,15 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             .schedule(() => client.completions.create(rawRequest))
             .catch((error) => {
                 assertsError(error);
-
                 if (this.options.isVerbose) {
                     console.info(colors.bgRed('error'), error);
                 }
                 throw error;
             });
-
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
+        const complete: string_date_iso8601 = $getCurrentDate();
 
         if (!rawResponse.choices[0]) {
             throw new PipelineExecutionError('No choises from OpenAI');
@@ -295,8 +289,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         }
 
         const resultContent = rawResponse.choices[0].text;
-        // eslint-disable-next-line prefer-const
-        complete = $getCurrentDate();
         const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
         return exportJson({
@@ -347,26 +339,23 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         };
 
         const start: string_date_iso8601 = $getCurrentDate();
-        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-
         const rawResponse = await this.limiter
             .schedule(() => client.embeddings.create(rawRequest))
             .catch((error) => {
                 assertsError(error);
-
                 if (this.options.isVerbose) {
                     console.info(colors.bgRed('error'), error);
                 }
                 throw error;
             });
-
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
+        const complete: string_date_iso8601 = $getCurrentDate();
 
         if (rawResponse.data.length !== 1) {
             throw new PipelineExecutionError(
@@ -376,8 +365,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
 
         const resultContent = rawResponse.data[0]!.embedding;
 
-        // eslint-disable-next-line prefer-const
-        complete = $getCurrentDate();
         const usage = computeOpenAiUsage(
             content || '',
             '',
@@ -411,7 +398,10 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
      * Get the model that should be used as default
      */
     private getDefaultModel(defaultModelName: string_model_name): AvailableModel {
-        const model = OPENAI_MODELS.find(({ modelName }) => modelName === defaultModelName);
+        // Note: Match exact or prefix for model families
+        const model = OPENAI_MODELS.find(
+            ({ modelName }) => modelName === defaultModelName || modelName.startsWith(defaultModelName),
+        );
         if (model === undefined) {
             throw new UnexpectedError(
                 spaceTrim(

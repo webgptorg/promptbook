@@ -4,17 +4,14 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
 
 /**
@@ -48,10 +45,8 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
      * Check the configuration of all execution tools
      */
     public async checkConfiguration(): Promise<void> {
-        // TODO: Maybe do it in parallel
-        for (const llmExecutionTools of this.llmExecutionTools) {
-            await llmExecutionTools.checkConfiguration();
-        }
+        // Note: Run checks in parallel
+        await Promise.all(this.llmExecutionTools.map((tools) => tools.checkConfiguration()));
     }
 
     /**
@@ -59,15 +54,9 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
      * This lists is a combination of all available models from all execution tools
      */
     public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
-        const availableModels: Array<AvailableModel> = [];
-
-        for (const llmExecutionTools of this.llmExecutionTools) {
-            // TODO: [🪂] Obtain models in parallel
-            const models = await llmExecutionTools.listModels();
-            availableModels.push(...models);
-        }
-
-        return availableModels;
+        // Obtain all models in parallel and flatten
+        const modelArrays = await Promise.all(this.llmExecutionTools.map((tools) => tools.listModels()));
+        return modelArrays.flat();
     }
 
     /**
@@ -81,7 +70,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
      * Calls the best available completion model
      */
     public callCompletionModel(prompt: CompletionPrompt): Promise<CompletionPromptResult> {
-        return this.callCommonModel(prompt) as Promise<ChatPromptResult>;
+        return this.callCommonModel(prompt) as Promise<CompletionPromptResult>;
     }
 
     /**
