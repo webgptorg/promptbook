@@ -27,6 +27,8 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
             packageName: '@promptbook/azure-openai',
             className: 'AzureOpenAiExecutionTools',
             options: {
+                resourceName: 'my-resource-name',
+                deploymentName: 'my-deployment-name',
                 apiKey: 'sk-',
             },
         };
