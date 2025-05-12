@@ -1,7 +1,15 @@
 import { isRunningInBrowser } from 'openai/core';
+import { really_any } from '../../_packages/types.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStorageFromWebStorage';
+
+/**
+ * Cache storage
+ *
+ * @private internal cache for `getSessionStorage`
+ */
+let promptbookSessionStorage: null | PromptbookStorage<really_any> = null;
 
 /**
  * Gets wrapper around `sessionStorage` object which can be used as `PromptbookStorage`
@@ -13,7 +21,13 @@ export function getSessionStorage<TItem>(): PromptbookStorage<TItem> {
         throw new EnvironmentMismatchError(`You can get sessionStorage works only in browser environment`);
     }
 
-    return makePromptbookStorageFromWebStorage<TItem>(sessionStorage);
+    if (promptbookSessionStorage) {
+        return promptbookSessionStorage as PromptbookStorage<TItem>;
+    }
+
+    promptbookSessionStorage = makePromptbookStorageFromWebStorage<TItem>(sessionStorage);
+
+    return promptbookSessionStorage as PromptbookStorage<TItem>;
 }
 
 /**

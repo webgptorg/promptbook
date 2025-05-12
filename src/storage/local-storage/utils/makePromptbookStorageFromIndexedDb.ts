@@ -1,4 +1,5 @@
 import type { PromptbookStorage } from '../../_common/PromptbookStorage';
+import { IndexedDbStorageOptions } from './IndexedDbStorageOptions';
 
 /**
  * Creates a PromptbookStorage backed by IndexedDB.
@@ -6,12 +7,13 @@ import type { PromptbookStorage } from '../../_common/PromptbookStorage';
  * @private for `getIndexedDbStorage`
  */
 export function makePromptbookStorageFromIndexedDb<TValue>(
-    dbName: string = 'PromptbookDB',
-    storeName: string = 'promptbook',
+    options: IndexedDbStorageOptions,
 ): PromptbookStorage<TValue> {
+    const { databaseName, storeName } = options;
+
     function getDb(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(dbName, 1);
+            const request = indexedDB.open(databaseName, 1);
             request.onupgradeneeded = () => {
                 request.result.createObjectStore(storeName);
             };
