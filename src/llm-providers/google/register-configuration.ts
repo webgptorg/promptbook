@@ -29,6 +29,7 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
             className: 'GoogleExecutionTools',
             options: {
                 apiKey: 'AI',
+                
             },
         };
     },

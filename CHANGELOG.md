@@ -801,6 +801,7 @@ Models and Migrations and processing big tables
 -   Cache `getLocalStorage`, `getSessionStorage` and `getIndexedDbStorage`
 -   Pass `databaseName` and `storeName` into `getIndexedDbStorage`
 -   Fix `AzureOpenAiExecutionTools`
+-   Add `maxRequestsPerMinute` to LLM provider boilerplate configurations
 -   ✨Auto-enhance model providers, _try autonomous agent to work on Promptbook_
 
 ## Upcoming

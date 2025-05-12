@@ -1,3 +1,4 @@
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
@@ -17,7 +18,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
     title: 'Azure Open AI',
     packageName: '@promptbook/azure-openai',
     className: 'AzureOpenAiExecutionTools',
-    envVariables: ['AZUREOPENAI_RESOURCE_NAME', 'AZUREOPENAI_DEPLOYMENT_NAME', 'AZUREOPENAI_API_KEY'],
+    envVariables: ['AZUREOPENAI_API_KEY', 'AZUREOPENAI_RESOURCE_NAME', 'AZUREOPENAI_DEPLOYMENT_NAME'],
     trustLevel: 'CLOSED_BUSINESS',
     order: MODEL_ORDERS.NORMAL, // <- TODO: [🧠] What is the right tier for Azure Open AI
 
@@ -27,9 +28,10 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
             packageName: '@promptbook/azure-openai',
             className: 'AzureOpenAiExecutionTools',
             options: {
+                apiKey: 'sk-',
                 resourceName: 'my-resource-name',
                 deploymentName: 'my-deployment-name',
-                apiKey: 'sk-',
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
             },
         };
     },
@@ -46,15 +48,15 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
                 packageName: '@promptbook/azure-openai',
                 className: 'AzureOpenAiExecutionTools',
                 options: {
+                    apiKey: env.AZUREOPENAI_API_KEY,
                     resourceName: env.AZUREOPENAI_RESOURCE_NAME,
                     deploymentName: env.AZUREOPENAI_DEPLOYMENT_NAME,
-                    apiKey: env.AZUREOPENAI_API_KEY,
                 },
             };
         } else if (
+            typeof env.AZUREOPENAI_API_KEY === 'string' ||
             typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' ||
-            typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ||
-            typeof env.AZUREOPENAI_API_KEY === 'string'
+            typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string'
         ) {
             return null;
             /*

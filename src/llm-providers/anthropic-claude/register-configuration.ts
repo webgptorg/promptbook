@@ -1,4 +1,4 @@
-import { DEFAULT_REMOTE_SERVER_URL } from '../../config';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
@@ -31,6 +31,7 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
                 apiKey: 'sk-ant-api03-',
                 isProxied: true,
                 remoteServerUrl: DEFAULT_REMOTE_SERVER_URL,
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
             },
         };
     },

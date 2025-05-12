@@ -1,7 +1,5 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { string_name } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
+import type { string_name, string_token, string_user_id } from '../../types/typeAliases';
 
 /**
  * Options for `AzureOpenAiExecutionTools`
@@ -10,6 +8,11 @@ import type { string_user_id } from '../../types/typeAliases';
  * @public exported from `@promptbook/azure-openai`
  */
 export type AzureOpenAiExecutionToolsOptions = CommonToolsOptions & {
+    /**
+     * The API key of the Azure OpenAI resource
+     */
+    readonly apiKey: string_token;
+
     /**
      * The resource name of the Azure OpenAI resource
      *
@@ -25,11 +28,6 @@ export type AzureOpenAiExecutionToolsOptions = CommonToolsOptions & {
      * Note: Typically you have one resource and multiple deployments.
      */
     readonly deploymentName: string_name;
-
-    /**
-     * The API key of the Azure OpenAI resource
-     */
-    readonly apiKey: string_token;
 
     /**
      * A unique identifier representing your end-user, which can help Azure OpenAI to monitor
