@@ -11,7 +11,7 @@ export function makePromptbookStorageFromIndexedDb<TValue>(
 ): PromptbookStorage<TValue> {
     const { databaseName, storeName } = options;
 
-    function getDb(): Promise<IDBDatabase> {
+    function getDatabase(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(databaseName, 1);
             request.onupgradeneeded = () => {
@@ -26,37 +26,37 @@ export function makePromptbookStorageFromIndexedDb<TValue>(
         async getItem(key: string): Promise<TValue | null> {
             console.log('!!! IndexedDB getItem', key);
 
-            const db = await getDb();
+            const database = await getDatabase();
             return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readonly');
-                const store = tx.objectStore(storeName);
-                const req = store.get(key);
-                req.onsuccess = () => resolve(req.result ?? null);
-                req.onerror = () => reject(req.error);
+                const transaction = database.transaction(storeName, 'readonly');
+                const objectStore = transaction.objectStore(storeName);
+                const request = objectStore.get(key);
+                request.onsuccess = () => resolve(request.result ?? null);
+                request.onerror = () => reject(request.error);
             });
         },
         async setItem(key: string, value: TValue): Promise<void> {
             console.log('!!! IndexedDB setItem', key, { value });
 
-            const db = await getDb();
+            const database = await getDatabase();
             return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readwrite');
-                const store = tx.objectStore(storeName);
-                const req = store.put(value, key);
-                req.onsuccess = () => resolve();
-                req.onerror = () => reject(req.error);
+                const transaction = database.transaction(storeName, 'readwrite');
+                const objectStore = transaction.objectStore(storeName);
+                const request = objectStore.put(value, key);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
             });
         },
         async removeItem(key: string): Promise<void> {
             console.log('!!! IndexedDB removeItem', key);
 
-            const db = await getDb();
+            const database = await getDatabase();
             return new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, 'readwrite');
-                const store = tx.objectStore(storeName);
-                const req = store.delete(key);
-                req.onsuccess = () => resolve();
-                req.onerror = () => reject(req.error);
+                const transaction = database.transaction(storeName, 'readwrite');
+                const objectStore = transaction.objectStore(storeName);
+                const request = objectStore.delete(key);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
             });
         },
     };
