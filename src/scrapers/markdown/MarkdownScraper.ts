@@ -1,20 +1,18 @@
 import spaceTrim from 'spacetrim';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
+import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { arrayableToArray } from '../../utils/arrayableToArray';
@@ -143,6 +141,13 @@ export class MarkdownScraper implements Scraper {
                     // ---
 
                     if (!llmTools.callEmbeddingModel) {
+                        console.log('!!! No callEmbeddingModel function provided', {
+                            'llmTools.title': llmTools.title,
+                            'llmTools.description': llmTools.description,
+                            'llmTools.callEmbeddingModel': llmTools.callEmbeddingModel,
+                            llmTools,
+                        });
+
                         // TODO: [🟥] Detect browser / node and make it colorfull
                         console.error('No callEmbeddingModel function provided');
                     } else {

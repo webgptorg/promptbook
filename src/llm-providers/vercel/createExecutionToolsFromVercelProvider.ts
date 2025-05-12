@@ -26,6 +26,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
 
     if (!/Vercel/i.test(title)) {
         title = `${title} (through Vercel)`;
+        // <- TODO: [🧈] Maybe standartize the suffix
     } /* not else */
 
     if (description === undefined) {
@@ -34,6 +35,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
 
     if (!/Vercel/i.test(description)) {
         description = `${description} (through Vercel)`;
+        // <- TODO: [🧈] Maybe standartize the suffix
     } /* not else */
 
     return {

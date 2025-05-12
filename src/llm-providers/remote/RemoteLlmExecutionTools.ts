@@ -1,10 +1,12 @@
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
 import { createRemoteClient } from '../../remote-server/createRemoteClient';
 import type { PromptbookServer_Error } from '../../remote-server/socket-types/_common/PromptbookServer_Error';
 import type { PromptbookServer_ListModels_Request } from '../../remote-server/socket-types/listModels/PromptbookServer_ListModels_Request';
@@ -12,13 +14,8 @@ import type { PromptbookServer_ListModels_Response } from '../../remote-server/s
 import type { PromptbookServer_Prompt_Request } from '../../remote-server/socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from '../../remote-server/socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { RemoteClientOptions } from '../../remote-server/types/RemoteClientOptions';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
 
@@ -40,11 +37,11 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
 
     public get title(): string_title & string_markdown_text {
         // TODO: [🧠] Maybe fetch title+description from the remote server (as well as if model methods are defined)
-        return 'Remote server';
+        return 'Promptbook remote server';
     }
 
     public get description(): string_markdown {
-        return 'Use all models by your remote server';
+        return `Models from Promptbook remote server ${this.options.remoteServerUrl}`;
     }
 
     /**

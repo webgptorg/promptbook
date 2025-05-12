@@ -5,7 +5,7 @@ import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { jsonParse } from '../formats/json/utils/jsonParse';
-import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import { joinLlmExecutionTools } from '../llm-providers/_multiple/joinLlmExecutionTools';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';

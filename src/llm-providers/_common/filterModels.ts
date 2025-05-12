@@ -20,8 +20,14 @@ export function filterModels<TLlmTools extends LlmExecutionTools>(
         // Keep all properties from the original llmTools
         ...llmTools,
 
+        get title() {
+            return `${llmTools.title} (filtered)`;
+            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
+        },
+
         get description() {
             return `${llmTools.description} (filtered)`;
+            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
         },
 
         // Override listModels to filter the models

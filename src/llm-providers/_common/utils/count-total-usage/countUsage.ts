@@ -2,15 +2,15 @@ import { Subject, type Observable } from 'rxjs';
 import type { Promisable } from 'type-fest';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { Usage } from '../../../../execution/Usage';
 import { addUsage } from '../../../../execution/utils/addUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import type { ChatPrompt } from '../../../../types/Prompt';
-import type { CompletionPrompt } from '../../../../types/Prompt';
-import type { EmbeddingPrompt } from '../../../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
@@ -26,13 +26,15 @@ export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTo
 
     const proxyTools: LlmExecutionToolsWithTotalUsage = {
         get title() {
-            // TODO: [🧠] Maybe put here some suffix
-            return llmTools.title;
+            return `${llmTools.title} (+usage)`;
+            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
+            // <- TODO: [🧈][🧠] Does it make sence to suffix "(+usage)"?
         },
 
         get description() {
-            // TODO: [🧠] Maybe put here some suffix
-            return llmTools.description;
+            return `${llmTools.description} (+usage)`;
+            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
+            // <- TODO: [🧈][🧠] Does it make sence to suffix "(+usage)"?
         },
 
         checkConfiguration(): Promisable<void> {

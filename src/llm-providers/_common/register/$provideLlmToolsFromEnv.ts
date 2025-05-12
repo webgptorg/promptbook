@@ -2,7 +2,7 @@ import spaceTrim from 'spacetrim';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
+import { MultipleLlmExecutionTools } from '../../_multiple/MultipleLlmExecutionTools';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $provideLlmToolsConfigurationFromEnv } from './$provideLlmToolsConfigurationFromEnv';
 import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';

@@ -4,17 +4,14 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
 
 /**
@@ -41,7 +38,17 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
     }
 
     public get description(): string_markdown {
-        return this.llmExecutionTools.map(({ title }, index) => `${index + 1}) \`${title}\``).join('\n');
+        const innerModelsTitlesAndDescriptions = this.llmExecutionTools
+            .map(({ title, description }, index) => `${index + 1}) \`${title}\`\n${description}`)
+            .join('\n\n');
+
+        return spaceTrim(
+            (block) => `
+                Multiple LLM Providers:
+
+                ${block(innerModelsTitlesAndDescriptions)}
+            `,
+        );
     }
 
     /**
