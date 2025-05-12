@@ -137,6 +137,7 @@ import type { JavascriptExecutionToolsOptions } from '../scripting/javascript/Ja
 import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { PromptbookStorage } from '../storage/_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from '../storage/file-cache-storage/FileCacheStorageOptions';
+import type { IndexedDbStorageOptions } from '../storage/local-storage/utils/IndexedDbStorageOptions';
 import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { CompletionModelRequirements } from '../types/ModelRequirements';
@@ -436,6 +437,7 @@ export type { JavascriptExecutionToolsOptions };
 export type { PostprocessingFunction };
 export type { PromptbookStorage };
 export type { FileCacheStorageOptions };
+export type { IndexedDbStorageOptions };
 export type { IntermediateFilesStrategy };
 export type { ModelRequirements };
 export type { CompletionModelRequirements };
