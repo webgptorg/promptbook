@@ -145,6 +145,7 @@ export class MarkdownScraper implements Scraper {
                             'llmTools.title': llmTools.title,
                             'llmTools.description': llmTools.description,
                             'llmTools.callEmbeddingModel': llmTools.callEmbeddingModel,
+                            'llmTools.callChatModel': llmTools.callChatModel,
                             llmTools,
                         });
 
