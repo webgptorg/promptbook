@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/google",
-    "version": "0.92.0-35",
+    "version": "0.92.0",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -63,7 +63,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/google.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.92.0-35"
+        "@promptbook/core": "0.92.0"
     },
     "dependencies": {
         "@ai-sdk/google": "1.0.5",

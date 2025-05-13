@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/wizzard",
-    "version": "0.92.0-35",
+    "version": "0.92.0",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -63,7 +63,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/wizzard.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.92.0-35"
+        "@promptbook/core": "0.92.0"
     },
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.6",
