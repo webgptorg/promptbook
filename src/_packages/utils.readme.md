@@ -70,7 +70,7 @@ templateParameters(
 
 ## Counting
 
-Theese functions are usefull to count stats about the input/output in human-like terms not tokens and bytes, you can use
+These functions are useful to count stats about the input/output in human-like terms not tokens and bytes, you can use
 `countCharacters`, `countLines`, `countPages`, `countParagraphs`, `countSentences`, `countWords`
 
 ```typescript
@@ -81,7 +81,7 @@ console.log(countWords('Hello, world!')); // 2
 
 ## Splitting
 
-Splitting functions are similar to counting but they return the splitted parts of the input/output, you can use
+Splitting functions are similar to counting but they return the split parts of the input/output, you can use
 `splitIntoCharacters`, `splitIntoLines`, `splitIntoPages`, `splitIntoParagraphs`, `splitIntoSentences`, `splitIntoWords`
 
 ```typescript
@@ -106,7 +106,7 @@ console.log(normalizeTo['kebab-case']('Hello, world!')); // 'hello-world'
 ```
 
 -   There are more normalization functions like `capitalize`, `decapitalize`, `removeDiacritics`,...
--   Theese can be also used as postprocessing functions in the `POSTPROCESS` command in promptbook
+-   These can be also used as postprocessing functions in the `POSTPROCESS` command in promptbook
 
 ## Postprocessing
 

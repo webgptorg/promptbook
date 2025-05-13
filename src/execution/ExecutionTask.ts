@@ -8,8 +8,8 @@ import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import type { really_any } from '../utils/organization/really_any';
 import { $randomToken } from '../utils/random/$randomToken';
 import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { string_promptbook_version } from '../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
@@ -58,7 +58,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 
     // TODO: [🐙] DRY
     const taskId = `${taskType.toLowerCase().substring(0, 4)}-${$randomToken(
-        8 /* <- TODO: To global config + Use Base58 to avoid simmilar char conflicts   */,
+        8 /* <- TODO: To global config + Use Base58 to avoid similar char conflicts   */,
     )}`;
 
     let status: task_status = 'RUNNING';
@@ -138,7 +138,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
         },
         get title() {
             return title;
-            // <- Note: [1] Theese must be getters to allow changing the value in the future
+            // <- Note: [1] These must be getters to allow changing the value in the future
         },
         get status() {
             return status;

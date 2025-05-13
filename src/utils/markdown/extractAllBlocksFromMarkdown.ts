@@ -26,8 +26,8 @@ export type CodeBlock = {
 /**
  * Extracts all code blocks from markdown.
  *
- * Note: There are multiple simmilar function:
- * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
+ * Note: There are multiple similar functions:
+ * - `extractBlock` just extracts the content of the code block which is also used as built-in function for postprocessing
  * - `extractJsonBlock` extracts exactly one valid JSON code block
  * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
  * - `extractAllBlocksFromMarkdown` extracts all code blocks with language of the code block
@@ -88,7 +88,7 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Readonl
                 currentCodeBlock.content += '\n';
             }
 
-            currentCodeBlock.content += line.split('\\`\\`\\`').join('```') /* <- TODO: Maybe make propper unescape */;
+            currentCodeBlock.content += line.split('\\`\\`\\`').join('```') /* <- TODO: Maybe make proper unescape */;
         }
     }
 

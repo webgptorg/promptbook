@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
@@ -14,7 +13,7 @@ import { $registeredScrapersMessage } from './register/$registeredScrapersMessag
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 
 /**
- * Prepares the knowle
+ * Prepares the knowledge pieces
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
  * @public exported from `@promptbook/core`

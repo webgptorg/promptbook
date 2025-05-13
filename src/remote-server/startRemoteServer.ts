@@ -6,8 +6,7 @@ import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -28,8 +27,7 @@ import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
 import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
@@ -41,8 +39,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -102,7 +99,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         let llm: LlmExecutionTools;
 
         if (isAnonymous === true) {
-            // Note: Anonymouse mode
+            // Note: Anonymous mode
             // TODO: Maybe check that configuration is not empty
             const { llmToolsConfiguration } = identification;
             llm = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
@@ -111,7 +108,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             llm = await createLlmExecutionTools!(identification);
         } else {
             throw new PipelineExecutionError(
-                `You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured`,
+                `You must provide either llmToolsConfiguration or non-anonymous mode must be properly configured`,
             );
         }
 
@@ -199,7 +196,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     **Server port:** ${port}
                     **Startup date:** ${startupDate.toISOString()}
-                    **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
+                    **Anonymous mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
                         !isApplicationModeAllowed || collection === null
@@ -233,7 +230,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     To connect to this server use:
 
                     1) The client https://www.npmjs.com/package/@promptbook/remote-client
-                    2) OpenAI compatible client *(Not wotking yet)*
+                    2) OpenAI compatible client *(Not working yet)*
                     3) REST API
 
                     For more information look at:
@@ -583,7 +580,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
         // -----------
 
-        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+        // TODO: [👒] Listing models (and checking configuration) probably should go through REST API not Socket.io
         socket.on('listModels-request', async (request: PromptbookServer_ListModels_Request<TCustomOptions>) => {
             const { identification } = request;
 
@@ -613,7 +610,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
         // -----------
 
-        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+        // TODO: [👒] Listing models (and checking configuration) probably should go through REST API not Socket.io
         socket.on(
             'preparePipeline-request',
             async (request: PromptbookServer_PreparePipeline_Request<TCustomOptions>) => {
@@ -697,7 +694,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODO: [🌡] Add CORS and security - probbably via `helmet`
+ * TODO: [🌡] Add CORS and security - probably via `helmet`
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`

@@ -5,21 +5,22 @@ import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../types/typeAliases';
-import type { string_email } from '../../types/typeAliases';
-import type { string_password } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
-import type { string_user_id } from '../../types/typeAliases';
-import type { ApplicationModeIdentification } from '../socket-types/_subtypes/Identification';
-import type { Identification } from '../socket-types/_subtypes/Identification';
+import type {
+    string_app_id,
+    string_email,
+    string_password,
+    string_token,
+    string_user_id,
+} from '../../types/typeAliases';
+import type { ApplicationModeIdentification, Identification } from '../socket-types/_subtypes/Identification';
 
 /**
  * Options for configuring the Promptbook remote server.
  *
  * There are two modes of remote server:
  *
- * 1) **Application mode** Server will recieve `collection` and execute prompts only from this collection
- * 2) **Anonymous mode** Server will recieve full `LlmToolsConfiguration` (with api keys) and just acts as a proxy
+ * 1) **Application mode** Server will receive `collection` and execute prompts only from this collection
+ * 2) **Anonymous mode** Server will receive full `LlmToolsConfiguration` (with api keys) and just acts as a proxy
  *    In anonymous mode, `collection` will be ignored and any prompt will be executed
  *
  * You can enable both modes at the same time.
@@ -36,7 +37,7 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     /**
      * Creates execution tools the client
      *
-     * This is relevant also in anonymous mode in oposition to `createLlmExecutionTools`
+     * This is relevant also in anonymous mode in opposition to `createLlmExecutionTools`
      *
      * Note: You can provide only some tools and leave the rest to the default ones also llm tools are created by `createLlmExecutionTools`
      * Note: This is useful when you want to provide some custom restrictions for example:
@@ -99,7 +100,7 @@ export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
     /**
      * Identifier of the application
      *
-     * Note: This is usefull when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
+     * Note: This is useful when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
      * Note: This can be some id or some semantic name like "email-agent"
      */
     readonly appId: string_app_id | null;
@@ -132,7 +133,7 @@ export type LoginRequest = {
     /**
      * Identifier of the application you are using
      *
-     * Note: This is usefull when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
+     * Note: This is useful when you use Promptbook remote server for multiple apps/frontends, if its used just for single app, use here just "app" or "your-app-name"
      */
     readonly appId: string_app_id | null;
 

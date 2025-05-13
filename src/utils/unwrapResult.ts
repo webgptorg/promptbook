@@ -24,9 +24,9 @@ type UnwrapResultOptions = {
 /**
  * Removes quotes and optional introduce text from a string
  *
- * Tip: This is very usefull for post-processing of the result of the LLM model
+ * Tip: This is very useful for post-processing of the result of the LLM model
  * Note: This function trims the text and removes whole introduce sentence if it is present
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `removeQuotes` which removes only bounding quotes
  * - `unwrapResult` which removes whole introduce sentence
  *

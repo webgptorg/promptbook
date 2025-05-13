@@ -334,12 +334,12 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ]);
     });
 
-    it('should work with codeblock with escaped embeded codeblock as content', () => {
+    it('should work with codeblock with escaped embedded codeblock as content', () => {
         expect(
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
 
-                  This is a simple markdown with code block with escaped embeded code block as content:
+                  This is a simple markdown with code block with escaped embedded code block as content:
 
                   \`\`\`markdown
 
@@ -395,7 +395,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ]);
     });
 
-    it('should throw error when code block is not propperly closed', () => {
+    it('should throw error when code block is not properly closed', () => {
         expect(() =>
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
@@ -457,7 +457,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
 
-                  This is a simple markdown with code block with escaped embeded code block as content:
+                  This is a simple markdown with code block with escaped embedded code block as content:
 
                   \`\`\`markdown
                   Block
@@ -484,7 +484,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
 
-                    This is a simple markdown with code block with escaped embeded code block as content:
+                    This is a simple markdown with code block with escaped embedded code block as content:
 
                     \`\`\`markdown
                     Block
@@ -511,7 +511,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
 
-                    This is a simple markdown with code block with escaped embeded code block as content:
+                    This is a simple markdown with code block with escaped embedded code block as content:
 
                     > Block
                     > \`\`\`markdown

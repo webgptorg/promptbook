@@ -290,7 +290,7 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 -   Standartization of model providers
 -   Delete `@promptbook/wizzard`
 -   Move `assertsExecutionSuccessful`,`checkExpectations`,`executionReportJsonToString`,`ExecutionReportStringOptions`,`ExecutionReportStringOptionsDefaults`,`isPassingExpectations`,`prettifyPromptbookString` from `@promptbook/utils` to `@promptbook/core`
--   Make and use `JavascriptExecutionTools` as placeholder for better implementation with propper sandboxing
+-   Make and use `JavascriptExecutionTools` as placeholder for better implementation with proper sandboxing
 -   Implement `createPromptbookLibraryFromDirectory` export from `@promptbook/core`
 -   Make `PromptbookLibraryError`
 -   Check Promptbook URL uniqueness in `SimplePromptbookLibrary` _(see [🦄])_
@@ -339,7 +339,7 @@ Better JSON Mode
 
 ### `0.59.0` _(2024-06-30)_
 
-Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and propper building of pipeline collection.
+Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and proper building of pipeline collection.
 
 -   Add `MaterialKnowledgePieceJson`
 -   Add `KnowledgeJson`
@@ -559,7 +559,7 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   `getClient` methods are public
 -   In remote server allow to pass not only `userId` but also `appId` and `customOptions`
 -   In remote server `userId` can not be `undefined` anymore but `null`
--   `OpenAiExecutionTools` recieves `userId` (not `user`)
+-   `OpenAiExecutionTools` receives `userId` (not `user`)
 -   Change Collection mode -> Application mode
 
 ### `0.73.0` _(2024-11-08)_
@@ -803,6 +803,7 @@ Models and Migrations and processing big tables
 -   Fix `AzureOpenAiExecutionTools`
 -   Add `maxRequestsPerMinute` to LLM provider boilerplate configurations
 -   ✨Auto-enhance model providers, _try autonomous agent to work on Promptbook_
+-   ✨Auto-fix grammar and typos and do spellcheck during the deployment
 
 ## Upcoming
 

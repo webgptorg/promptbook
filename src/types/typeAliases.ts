@@ -1,6 +1,6 @@
 /*
 .--------------------------------------------------.
-| Theese string_whatever are just semantic helpers |
+| These string_whatever are just semantic helpers |
 '--------------------------------------------------'
 */
 
@@ -232,7 +232,7 @@ export type string_html = string;
  * For example `"<foo>bar</foo>"`
  *
  *
- * TODO: [🎞️] Probbably use some object-based method for working with XMLs
+ * TODO: [🎞️] Probably use some object-based method for working with XMLs
  */
 export type string_xml = string;
 
@@ -758,7 +758,7 @@ export type number_port = number_positive & number_integer;
 
 /**
  * Semantic helper;
- * Percentage from 0 to 1 (100%) (and bellow and above)
+ * Percentage from 0 to 1 (100%) (and below and above)
  */
 export type number_percent = number;
 
@@ -780,10 +780,9 @@ export type number_seed = number_percent;
 /**
  * Likeness of the wallpaper
  *
- * - 👍 is eqivalent for 1
- * - 👎 is eqivalent for -1
- * - ❤ is eqivalent for more than 1
- * - etc
+ * - 👍 is equivalent to 1
+ * - 👎 is equivalent to -1
+ * - ❤ is equivalent to more than 1
  */
 export type number_likeness = number;
 
