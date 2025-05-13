@@ -47,3 +47,4 @@ export function stringifyPipelineJson<TType>(pipeline: TType): string_json<TType
  * TODO: [🧠][0] Maybe rename to `stringifyPipelineJson`, `stringifyIndexedJson`,...
  * TODO: [🧠] Maybe more elegant solution than replacing via regex
  * TODO: [🍙] Make some standard order of json properties
+ */
