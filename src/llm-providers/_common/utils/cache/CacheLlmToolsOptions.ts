@@ -21,4 +21,11 @@ export type CacheLlmToolsOptions = {
      */
     isCacheReloaded?: boolean;
     // <- TODO: [🎅] Maybe unite with `intermediateFilesStrategy` and change to `cacheStrategy`
+
+    /**
+     * If true, the preparation logs additional information
+     *
+     * @default DEFAULT_IS_VERBOSE
+     */
+    readonly isVerbose?: boolean;
 };
