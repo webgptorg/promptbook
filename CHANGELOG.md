@@ -803,7 +803,7 @@ Models and Migrations and processing big tables
 -   Fix `AzureOpenAiExecutionTools`
 -   Add `maxRequestsPerMinute` to LLM provider boilerplate configurations
 -   ✨Auto-enhance model providers, _try autonomous agent to work on Promptbook_
--   ✨Auto-fix grammar and typos and do spellcheck during the deployment
+-   ✨Auto-fix grammar and typos
 
 ## Upcoming
 
