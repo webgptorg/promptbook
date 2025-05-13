@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.92.0-34",
+    "version": "0.92.0-35",
     "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
     "private": false,
     "sideEffects": false,
@@ -60,10 +60,10 @@
         "words": []
     },
     "peerDependencies": {
-        "@promptbook/core": "0.92.0-34"
+        "@promptbook/core": "0.92.0-35"
     },
     "dependencies": {
-        "promptbook": "0.92.0-34"
+        "promptbook": "0.92.0-35"
     },
     "bin": {
         "ptbk": "bin/promptbook-cli-proxy.js"
