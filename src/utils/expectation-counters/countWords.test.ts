@@ -89,5 +89,5 @@ describe('countWords', () => {
         expect(countWords('{"keyFoo": "My name is Pavol"}')).toBe(6);
     });
 
-    // TODO: Implement simmilar logic for other formats like CSV, XML, HTML, etc., use formats logic here
+    // TODO: Implement similar logic for other formats like CSV, XML, HTML, etc., use formats logic here
 });

@@ -3,7 +3,7 @@ import type { Blob as NodeBlob } from 'buffer';
 /**
  * Interface for Blob that is available in both browser and Node
  *
- * Note: [🍝] In future (higher version of Node on server) probbably just use non-exported blob from environment
+ * Note: [🍝] In future (higher version of Node on server) probably just use non-exported blob from environment
  */
 export type CrossBlob = Blob | NodeBlob;
 

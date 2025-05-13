@@ -4,7 +4,7 @@ import type { really_any } from './really_any';
  * Returns the same value that is passed as argument.
  * No side effects.
  *
- * Note: It can be usefull for:
+ * Note: It can be useful for:
  *
  * 1) Leveling indentation
  * 2) Putting always-true or always-false conditions without getting eslint errors

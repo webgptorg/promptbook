@@ -6,7 +6,7 @@ import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBloc
  *
  * - When there are multiple or no code blocks the function throws a `ParseError`
  *
- * Note: There are multiple simmilar function:
+ * Note: There are multiple similar function:
  * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
  * - `extractJsonBlock` extracts exactly one valid JSON code block
  * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block

@@ -49,7 +49,7 @@ export async function promptbookCli(): Promise<void> {
     program.version(PROMPTBOOK_ENGINE_VERSION);
     program.description(CLAIM);
 
-    // Note: Theese options are valid for all commands
+    // Note: These options are valid for all commands
 
     $initializeAboutCommand(program);
     $initializeRunCommand(program);

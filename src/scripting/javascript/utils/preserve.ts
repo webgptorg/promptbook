@@ -26,6 +26,6 @@ export function preserve(func: (...params: ReadonlyArray<really_any>) => unknown
 }
 
 /**
- * TODO: Probbably remove in favour of `keepImported`
+ * TODO: Probably remove in favour of `keepImported`
  * TODO: [1] This maybe does memory leak
  */

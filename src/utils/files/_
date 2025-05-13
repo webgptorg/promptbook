@@ -12,7 +12,7 @@ import { string_mime_type } from '../typeAliases';
  *
  * @collboard-modules-sdk
  */
-export async function findPropperFileType(file: File | Blob): Promise<string_mime_type> {
+export async function findProperFileType(file: File | Blob): Promise<string_mime_type> {
     // Note: making this function artificially async to not change its signature in the future
 
     if (file.type) {

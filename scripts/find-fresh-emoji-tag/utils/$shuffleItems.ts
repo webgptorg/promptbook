@@ -16,6 +16,6 @@ export function $shuffleItems<TItem>(...items: ReadonlyArray<TItem>): ReadonlyAr
 }
 
 /**
- * TODO: [🧠][👵] Figure out something between rotateItems and shuffleItems which is more generic and recieves a ruleset how to reordeto the array in some general way
+ * TODO: [🧠][👵] Figure out something between rotateItems and shuffleItems which is more generic and receives a ruleset how to reordeto the array in some general way
  * Note: [⚫] Code in this file should never be published in any package
  */

@@ -4,7 +4,7 @@ import type { really_any } from './really_any';
  * Just says that the variable is not used but should be kept
  * No side effects.
  *
- * Note: It can be usefull for:
+ * Note: It can be useful for:
  *
  * 1) Suppressing eager optimization of unused imports
  * 2) Suppressing eslint errors of unused variables in the tests

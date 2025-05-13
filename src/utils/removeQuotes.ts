@@ -1,9 +1,9 @@
 /**
  * Removes quotes from a string
  *
- * Tip: This is very usefull for post-processing of the result of the LLM model
+ * Tip: This is very useful for post-processing of the result of the LLM model
  * Note: This function removes only the same quotes from the beginning and the end of the string
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `removeQuotes` which removes only bounding quotes
  * - `unwrapResult` which removes whole introduce sentence
  *
@@ -16,7 +16,7 @@ export function removeQuotes(text: string): string {
         return text.slice(1, -1);
     }
 
-    if (text.startsWith('\'') && text.endsWith('\'')) {
+    if (text.startsWith("'") && text.endsWith("'")) {
         return text.slice(1, -1);
     }
 

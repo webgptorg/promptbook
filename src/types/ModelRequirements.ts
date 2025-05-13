@@ -1,8 +1,5 @@
 import type { ModelVariant } from './ModelVariant';
-import type { number_model_temperature } from './typeAliases';
-import type { number_seed } from './typeAliases';
-import type { string_model_name } from './typeAliases';
-import type { string_system_message } from './typeAliases';
+import type { number_model_temperature, number_seed, string_model_name, string_system_message } from './typeAliases';
 
 /**
  * Abstract way to specify the LLM.
@@ -111,9 +108,9 @@ export type CommonModelRequirements = {
 };
 
 /**
- * TODO: [🧠][🈁] `seed` should maybe be somewhere else (not in `ModelRequirements`) (simmilar that `user` identification is not here)
+ * TODO: [🧠][🈁] `seed` should maybe be somewhere else (not in `ModelRequirements`) (similar that `user` identification is not here)
  * TODO: [🧠][💱] Add more model options: `stop_token`, `logit_bias`, `logprobs` (`top_logprobs`), `top_k`, `top_p`, `presence_penalty`, `frequency_penalty`, `bestOf`, `logitBias`, `logitBiasType`,...
- *       [💱] Probbably keep using just `temperature` in Promptbook (not `top_k` and `top_p`)
+ *       [💱] Probably keep using just `temperature` in Promptbook (not `top_k` and `top_p`)
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  * TODO: Maybe figure out better word than "variant"
  * TODO: Add here more requirement options like max context size, max tokens, etc.

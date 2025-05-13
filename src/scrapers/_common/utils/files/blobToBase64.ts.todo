@@ -9,7 +9,7 @@ import { blobToDataurl } from './blobToDataurl';
  */
 export async function blobToBase64(source: Blob | File): Promise<string> {
     if (isRunningInNode()) {
-        // Note: [☔️] Same 2 lines of code in theese two functions to prevent circular dependency
+        // Note: [☔️] Same 2 lines of code in these two functions to prevent circular dependency
         const buffer = Buffer.from(await source.arrayBuffer());
         const base64 = buffer.toString('base64');
         return base64;

@@ -4,10 +4,12 @@ import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -172,7 +174,7 @@ function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, 
         `),
         // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
         // <- TODO: [🚞]
-        // <- TODO: [🧠] What is the propper way of theese `compilePipeline` warnings
+        // <- TODO: [🧠] What is the proper way of these `compilePipeline` warnings
     );
 
     persona.description += spaceTrim('\n\n' + personaDescription);

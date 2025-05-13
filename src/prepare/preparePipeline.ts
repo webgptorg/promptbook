@@ -1,9 +1,7 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -202,7 +200,7 @@ export async function preparePipeline(
         order: ORDER_OF_PIPELINE_JSON,
         value: {
             ...pipeline,
-            // <- TODO: Probbably deeply clone the pipeline because `$exportJson` freezes the subobjects
+            // <- TODO: Probably deeply clone the pipeline because `$exportJson` freezes the subobjects
             title,
             knowledgeSources: knowledgeSourcesPrepared,
             knowledgePieces: knowledgePiecesPrepared,

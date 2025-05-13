@@ -29,7 +29,7 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
         formData.append('tgt', this.options.to);
 
         const response = await fetch(
-            // <- TODO: [🏳] Probbably pass the fetching function
+            // <- TODO: [🏳] Probably pass the fetching function
             this.options.apiUrl || '!!',
 
             {

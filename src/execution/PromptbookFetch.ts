@@ -6,7 +6,7 @@ import type { string_url } from '../types/typeAliases';
  * In most cases it is just native `fetch` function with a lightweight error handling wrapper
  * But it can be replaced with any other fetch function, polyfill, custom implementation, security layer, etc.
  *
- * It is used in theese places:
+ * It is used in these places:
  * - Fetching knowledge sources
  * - Callbacks from remote server
  */

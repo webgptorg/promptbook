@@ -13,7 +13,7 @@ type PartialUsage = Pick<Usage, 'input' | 'output'> & {
 /**
  * Function usageToWorktime will take usage and estimate saved worktime in hours of reading / writing
  *
- * Note: This is an estimate based of theese sources:
+ * Note: This is an estimate based of these sources:
  * - https://jecas.cz/doba-cteni
  * - https://www.originalnitonery.cz/blog/psani-vsemi-deseti-se-muzete-naucit-i-sami-doma
  *

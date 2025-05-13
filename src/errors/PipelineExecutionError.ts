@@ -15,7 +15,7 @@ export class PipelineExecutionError extends Error {
 
         // TODO: [🐙] DRY - Maybe $randomId
         this.id = `error-${$randomToken(
-            8 /* <- TODO: To global config + Use Base58 to avoid simmilar char conflicts   */,
+            8 /* <- TODO: To global config + Use Base58 to avoid similar char conflicts   */,
         )}`;
 
         Object.setPrototypeOf(this, PipelineExecutionError.prototype);

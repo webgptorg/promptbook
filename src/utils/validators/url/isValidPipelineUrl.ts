@@ -5,7 +5,7 @@ import { isValidUrl } from './isValidUrl';
 /**
  * Tests if given string is valid pipeline URL URL.
  *
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `isValidUrl` which tests any URL
  * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
  *

@@ -15,5 +15,5 @@ export type PromptbookServer_ListModels_Response = {
 };
 
 /**
- * TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+ * TODO: [👒] Listing models (and checking configuration) probably should go through REST API not Socket.io
  */

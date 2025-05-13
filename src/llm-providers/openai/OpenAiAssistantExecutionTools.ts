@@ -7,11 +7,13 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -21,7 +23,7 @@ import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 /**
  * Execution Tools for calling OpenAI API Assistants
  *
- * This is usefull for calling OpenAI API with a single assistant, for more wide usage use `OpenAiExecutionTools`.
+ * This is useful for calling OpenAI API with a single assistant, for more wide usage use `OpenAiExecutionTools`.
  *
  * @public exported from `@promptbook/openai`
  */

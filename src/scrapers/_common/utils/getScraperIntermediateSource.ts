@@ -49,7 +49,7 @@ export async function getScraperIntermediateSource(
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         hexEncoder.parse(
             sourceFilename || url || 'untitled',
-            // <- TODO: [🧠] Probbably hash file content instead of filename - now hash does not provide any extra value
+            // <- TODO: [🧠] Probably hash file content instead of filename - now hash does not provide any extra value
         ),
     )
         .toString(/* hex */)

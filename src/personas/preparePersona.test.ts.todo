@@ -117,7 +117,7 @@ describe('how preparePersona works', () => {
     */
 
     /*
-    Note: Probbably no failure cases needed
+    Note: Probably no failure cases needed
         > it('should NOT work with bar', () =>
         >     expect(
         >         preparePersona({...}),

@@ -42,7 +42,7 @@ export const JsonFormatParser: FormatParser<
 };
 
 /**
- * TODO: [🧠] Maybe propper instance of object
+ * TODO: [🧠] Maybe proper instance of object
  * TODO: [0] Make string_serialized_json
  * TODO: [1] Make type for JSON Settings and Schema
  * TODO: [🧠] What to use for validating JSONs - JSON Schema, ZoD, typescript types/interfaces,...?

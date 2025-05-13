@@ -1,6 +1,4 @@
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 
 /**
  * Describes one parameter of the pipeline
@@ -107,6 +105,6 @@ export type CommonParameterJson = {
  * TODO: [🧠][🛴][♈] Maybe add type + expectations into the intefrace, like "a person name"
  *       [🛴] @see https://github.com/webgptorg/promptbook/discussions/53
  * TODO: [🧠] Should be here registered subparameters from foreach or not?
- * TODO: [♈] Probbably move expectations from tasks to parameters
+ * TODO: [♈] Probably move expectations from tasks to parameters
  * TODO: [🍙] Make some standard order of json properties
  */

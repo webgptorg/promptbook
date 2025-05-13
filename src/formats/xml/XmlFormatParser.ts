@@ -43,7 +43,7 @@ export const XmlFormatParser: FormatParser<
 };
 
 /**
- * TODO: [🧠] Maybe propper instance of object
+ * TODO: [🧠] Maybe proper instance of object
  * TODO: [0] Make string_serialized_xml
  * TODO: [1] Make type for XML Settings and Schema
  * TODO: [🧠] What to use for validating XMLs - XSD,...

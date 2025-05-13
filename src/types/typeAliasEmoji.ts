@@ -1,6 +1,6 @@
 /*
 .--------------------------------------------------.
-| Theese string_whatever are just semantic helpers |
+| These string_whatever are just semantic helpers |
 '--------------------------------------------------'
 */
 

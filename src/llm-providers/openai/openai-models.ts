@@ -449,7 +449,7 @@ export const OPENAI_MODELS: ReadonlyArray<
             modelName: 'o1-preview-2024-09-12',
             modelDescription:
                 'September 2024 version of O1 preview with specialized reasoning capabilities for complex tasks requiring precise analytical thinking.',
-            //             <- TODO: [💩] Some better system to organize theese date suffixes and versions
+            //             <- TODO: [💩] Some better system to organize these date suffixes and versions
             pricing: {
                 prompt: computeUsage(`$15.00 / 1M tokens`),
                 output: computeUsage(`$60.00 / 1M tokens`),

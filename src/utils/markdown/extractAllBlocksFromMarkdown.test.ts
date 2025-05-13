@@ -569,7 +569,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             extractAllBlocksFromMarkdown(
                 spaceTrim(`
 
-                    This is a simple markdown with code block with escaped embeded code block as content:
+                    This is a simple markdown with code block with escaped embedded code block as content:
 
                     \`\`\`markdown
                     A

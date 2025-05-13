@@ -11,10 +11,12 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type {
+    InputParameters,
+    string_filename,
+    string_parameter_value,
+    string_pipeline_url,
+} from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
@@ -36,7 +38,7 @@ class Wizzard {
      * 2) As a URL https://promptbook.studio/hejny/write-cv.book fetched from the internet
      * 3) As a string
      *
-     * Note: This works simmilar to the `ptbk run` command
+     * Note: This works similar to the `ptbk run` command
      */
     public async execute(
         book: string_pipeline_url | string_filename | PipelineString,

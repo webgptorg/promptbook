@@ -1,12 +1,11 @@
 import { ExpectError } from '../../errors/ExpectError';
-import type { Expectations } from '../../pipeline/PipelineJson/Expectations';
-import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
+import type { Expectations, ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { CountUtils } from '../../utils/expectation-counters/index';
 
 /**
  * Function checkExpectations will check if the expectations on given value are met
  *
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `checkExpectations` which throws an error if the expectations are not met
  * - `isPassingExpectations` which returns a boolean
  *
@@ -31,7 +30,7 @@ export function checkExpectations(expectations: Expectations, value: string): vo
 /**
  * Function checkExpectations will check if the expectations on given value are met
  *
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `checkExpectations` which throws an error if the expectations are not met
  * - `isPassingExpectations` which returns a boolean
  *

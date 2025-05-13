@@ -1,6 +1,6 @@
 /**
  * ExecutionReport is result of executing one promptbook
- * It is kind of a variant of the promptbook usefull for debugging, logging and transparency for users.
+ * It is kind of a variant of the promptbook useful for debugging, logging and transparency for users.
  *
  * It can have 2 formats:
  * -   _(this)_ **.md file** created from the **JSON** format

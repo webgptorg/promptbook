@@ -29,7 +29,7 @@ export default function () {
             const plugins = [
                 typescriptPlugin({
                     tsconfig: './tsconfig.json',
-                    //       <- Note: This is essential propper type declaration generation
+                    //       <- Note: This is essential proper type declaration generation
                 }),
                 jsonPlugin({
                     preferConst: true,
@@ -85,7 +85,7 @@ export default function () {
 /**
  * Gets metadata of all packages of Promptbook ecosystem
  *
- * There are 2 simmilar functions:
+ * There are 2 similar functions:
  * - `getPackagesMetadata` Async version with declared types and extended information, use this in scripts
  * - `getPackagesMetadataForRollup` - Sync version with less information, use this ONLY in rollup config
  */

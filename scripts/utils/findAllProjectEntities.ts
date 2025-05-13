@@ -27,7 +27,7 @@ export type EntityMetadata = {
     /**
      * Documentation text
      */
-    readonly anotation?: string;
+    readonly annotation?: string;
 
     /**
      * JSDoc tags
@@ -51,11 +51,11 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
     const entitities: Array<EntityMetadata> = [];
     for (const file of files) {
         for (const match of file.content.matchAll(
-            /(?<anotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
+            /(?<annotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
         )) {
-            const { type, name, anotation } = match.groups!;
+            const { type, name, annotation } = match.groups!;
 
-            const tags = Array.from(anotation?.match(/@([a-zA-Z0-9_-]+)*/g) || []);
+            const tags = Array.from(annotation?.match(/@([a-zA-Z0-9_-]+)*/g) || []);
 
             let isType = false;
 
@@ -79,7 +79,7 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
                 filename,
                 type: type as EntityType,
                 name,
-                anotation,
+                annotation,
                 tags,
                 isType,
             });

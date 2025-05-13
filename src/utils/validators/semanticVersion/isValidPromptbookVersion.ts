@@ -8,7 +8,7 @@ import { isValidSemanticVersion } from './isValidSemanticVersion';
  *
  * @see https://www.npmjs.com/package/promptbook?activeTab=versions
  * Note: When you are using for example promptbook 2.0.0 and there already is promptbook 3.0.0 it don`t know about it.
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `isValidSemanticVersion` which tests any semantic version
  * - `isValidPromptbookVersion` *(this one)* which tests just Promptbook versions
  *

@@ -4,7 +4,7 @@ import { isHostnameOnPrivateNetwork } from './isHostnameOnPrivateNetwork';
 /**
  * Checks if an IP address or hostname is reserved for private networks or localhost.
  *
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `isUrlOnPrivateNetwork` *(this one)* which tests full URL
  * - `isHostnameOnPrivateNetwork` which tests just hostname
  *

@@ -32,6 +32,6 @@ export class JavascriptExecutionTools implements ScriptExecutionTools {
 
 /**
  * TODO: Pass isVerbose to constructor and use it
- * TODO: Probbably make some common util createStatementToEvaluate
+ * TODO: Probably make some common util createStatementToEvaluate
  * TODO: Implement via vm2
  */

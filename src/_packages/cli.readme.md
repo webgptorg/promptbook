@@ -39,7 +39,7 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-This is simmilar to compilation process, during the build time the `ptbk make` command will check promptbooks for errors, convert them to the more optimized format and build knowledge (RAG) for the pipeline collection.
+This is similar to compilation process, during the build time the `ptbk make` command will check promptbooks for errors, convert them to the more optimized format and build knowledge (RAG) for the pipeline collection.
 
 There is also a javascript and json format available.
 

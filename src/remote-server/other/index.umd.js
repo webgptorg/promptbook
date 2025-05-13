@@ -159,7 +159,7 @@
    * Returns the same value that is passed as argument.
    * No side effects.
    *
-   * Note: It can be usefull for:
+   * Note: It can be useful for:
    *
    * 1) Leveling indentation
    * 2) Putting always-true or always-false conditions without getting eslint errors
@@ -389,7 +389,7 @@
   var UnexpectedError = /** @class */ (function (_super) {
       __extends(UnexpectedError, _super);
       function UnexpectedError(message) {
-          var _this = _super.call(this, spaceTrim.spaceTrim(function (block) { return "\n                    ".concat(block(message), "\n\n                    Note: This error should not happen.\n                    It's probbably a bug in the pipeline collection\n\n                    Please report issue:\n                    ").concat(block(getErrorReportUrl(new Error(message)).href), "\n\n                    Or contact us on ").concat(ADMIN_EMAIL, "\n\n                "); })) || this;
+          var _this = _super.call(this, spaceTrim.spaceTrim(function (block) { return "\n                    ".concat(block(message), "\n\n                    Note: This error should not happen.\n                    It's probably a bug in the pipeline collection\n\n                    Please report issue:\n                    ").concat(block(getErrorReportUrl(new Error(message)).href), "\n\n                    Or contact us on ").concat(ADMIN_EMAIL, "\n\n                "); })) || this;
           _this.name = 'UnexpectedError';
           Object.setPrototypeOf(_this, UnexpectedError.prototype);
           return _this;
@@ -657,7 +657,7 @@
   }(AbstractFormatError));
 
   /**
-   * This error indicates that the pipeline collection cannot be propperly loaded
+   * This error indicates that the pipeline collection cannot be properly loaded
    *
    * @public exported from `@promptbook/core`
    */
@@ -731,7 +731,7 @@
   var MissingToolsError = /** @class */ (function (_super) {
       __extends(MissingToolsError, _super);
       function MissingToolsError(message) {
-          var _this = _super.call(this, spaceTrim.spaceTrim(function (block) { return "\n                    ".concat(block(message), "\n\n                    Note: You have probbably forgot to provide some tools for pipeline execution or preparation\n\n                "); })) || this;
+          var _this = _super.call(this, spaceTrim.spaceTrim(function (block) { return "\n                    ".concat(block(message), "\n\n                    Note: You have probably forgot to provide some tools for pipeline execution or preparation\n\n                "); })) || this;
           _this.name = 'MissingToolsError';
           Object.setPrototypeOf(_this, MissingToolsError.prototype);
           return _this;
@@ -1805,7 +1805,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       if (bookVersion !== "undefined") {
           commands.push("BOOK VERSION ".concat(bookVersion));
       }
-      // TODO: [main] !!5 This increases size of the bundle and is probbably not necessary
+      // TODO: [main] !!5 This increases size of the bundle and is probably not necessary
       pipelineString = prettifyMarkdown(pipelineString);
       try {
           for (var _g = __values(parameters.filter(function (_a) {
@@ -2287,7 +2287,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   /**
    * Tests if given string is valid semantic version
    *
-   * Note: There are two simmilar functions:
+   * Note: There are two similar functions:
    * - `isValidSemanticVersion` which tests any semantic version
    * - `isValidPromptbookVersion` *(this one)* which tests just Promptbook versions
    *
@@ -2309,7 +2309,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    *
    * @see https://www.npmjs.com/package/promptbook?activeTab=versions
    * Note: When you are using for example promptbook 2.0.0 and there already is promptbook 3.0.0 it don`t know about it.
-   * Note: There are two simmilar functions:
+   * Note: There are two similar functions:
    * - `isValidSemanticVersion` which tests any semantic version
    * - `isValidPromptbookVersion` *(this one)* which tests just Promptbook versions
    *
@@ -2329,7 +2329,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   /**
    * Checks if an URL is reserved for private networks or localhost.
    *
-   * Note: There are two simmilar functions:
+   * Note: There are two similar functions:
    * - `isUrlOnPrivateNetwork` which tests full URL
    * - `isHostnameOnPrivateNetwork` *(this one)* which tests just hostname
    *
@@ -2362,7 +2362,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   /**
    * Checks if an IP address or hostname is reserved for private networks or localhost.
    *
-   * Note: There are two simmilar functions:
+   * Note: There are two similar functions:
    * - `isUrlOnPrivateNetwork` *(this one)* which tests full URL
    * - `isHostnameOnPrivateNetwork` which tests just hostname
    *
@@ -2381,7 +2381,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * Tests if given string is valid URL.
    *
    * Note: Dataurl are considered perfectly valid.
-   * Note: There are two simmilar functions:
+   * Note: There are two similar functions:
    * - `isValidUrl` which tests any URL
    * - `isValidPipelineUrl` *(this one)* which tests just promptbook URL
    *
@@ -2409,7 +2409,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   /**
    * Tests if given string is valid pipeline URL URL.
    *
-   * Note: There are two simmilar functions:
+   * Note: There are two similar functions:
    * - `isValidUrl` which tests any URL
    * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
    *
@@ -2492,12 +2492,12 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
           // <- Note: [🚲]
           throw new PipelineLogicError(spaceTrim.spaceTrim(function (block) { return "\n                    Invalid Promptbook Version \"".concat(pipeline.bookVersion, "\"\n\n                    ").concat(block(pipelineIdentification), "\n                "); }));
       }
-      // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
+      // TODO: [🧠] Maybe do here some proper JSON-schema / ZOD checking
       if (!Array.isArray(pipeline.parameters)) {
           // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
           throw new ParseError(spaceTrim.spaceTrim(function (block) { return "\n                    Pipeline is valid JSON but with wrong structure\n\n                    `PipelineJson.parameters` expected to be an array, but got ".concat(typeof pipeline.parameters, "\n\n                    ").concat(block(pipelineIdentification), "\n                "); }));
       }
-      // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
+      // TODO: [🧠] Maybe do here some proper JSON-schema / ZOD checking
       if (!Array.isArray(pipeline.tasks)) {
           // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
           throw new ParseError(spaceTrim.spaceTrim(function (block) { return "\n                    Pipeline is valid JSON but with wrong structure\n\n                    `PipelineJson.tasks` expected to be an array, but got ".concat(typeof pipeline.tasks, "\n\n                    ").concat(block(pipelineIdentification), "\n                "); }));
@@ -3532,7 +3532,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       subvalueParsers: [],
   };
   /**
-   * TODO: [🧠] Maybe propper instance of object
+   * TODO: [🧠] Maybe proper instance of object
    * TODO: [0] Make string_serialized_json
    * TODO: [1] Make type for JSON Settings and Schema
    * TODO: [🧠] What to use for validating JSONs - JSON Schema, ZoD, typescript types/interfaces,...?
@@ -3619,7 +3619,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       subvalueParsers: [],
   };
   /**
-   * TODO: [🧠] Maybe propper instance of object
+   * TODO: [🧠] Maybe proper instance of object
    * TODO: [0] Make string_serialized_xml
    * TODO: [1] Make type for XML Settings and Schema
    * TODO: [🧠] What to use for validating XMLs - XSD,...
@@ -3717,7 +3717,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   /**
    * Extracts all code blocks from markdown.
    *
-   * Note: There are multiple simmilar function:
+   * Note: There are multiple similar function:
    * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
    * - `extractJsonBlock` extracts exactly one valid JSON code block
    * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
@@ -3771,7 +3771,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                   if (currentCodeBlock.content !== '') {
                       currentCodeBlock.content += '\n';
                   }
-                  currentCodeBlock.content += line.split('\\`\\`\\`').join('```') /* <- TODO: Maybe make propper unescape */;
+                  currentCodeBlock.content += line.split('\\`\\`\\`').join('```') /* <- TODO: Maybe make proper unescape */;
               }
           }
       }
@@ -3799,7 +3799,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * - When there are multiple JSON code blocks the function throws a `ParseError`
    *
    * Note: It is not important if marked as ```json BUT if it is VALID JSON
-   * Note: There are multiple simmilar function:
+   * Note: There are multiple similar function:
    * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
    * - `extractJsonBlock` extracts exactly one valid JSON code block
    * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
@@ -4302,14 +4302,14 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       PAGES: countPages,
   };
   /**
-   * TODO: [🧠][🤠] This should be probbably as part of `TextFormatParser`
+   * TODO: [🧠][🤠] This should be probably as part of `TextFormatParser`
    * Note: [💞] Ignore a discrepancy between file name and entity name
    */
 
   /**
    * Function checkExpectations will check if the expectations on given value are met
    *
-   * Note: There are two simmilar functions:
+   * Note: There are two similar functions:
    * - `checkExpectations` which throws an error if the expectations are not met
    * - `isPassingExpectations` which returns a boolean
    *
@@ -4755,7 +4755,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                       }
                       if (formatDefinition.formatName === 'CSV') {
                           formatSettings = csvSettings;
-                          // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
+                          // <- TODO: [🤹‍♂️] More universal, make similar pattern for other formats for example \n vs \r\n in text
                       }
                       return [4 /*yield*/, subvalueParser.mapValues(parameterValue, task.foreach.outputSubparameterName, formatSettings, function (subparameters, index) { return __awaiter(_this, void 0, void 0, function () {
                               var mappedParameters, allSubparameters, subresultString;
@@ -4774,7 +4774,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                                               if (!(error instanceof PipelineExecutionError)) {
                                                   throw error;
                                               }
-                                              throw new PipelineExecutionError(spaceTrim__default["default"](function (block) { return "\n                        ".concat(error.message, "\n\n                        This is error in FOREACH command\n                        You have probbably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command\n\n                        ").concat(block(pipelineIdentification), "\n                        Subparameter index: ").concat(index, "\n                    "); }));
+                                              throw new PipelineExecutionError(spaceTrim__default["default"](function (block) { return "\n                        ".concat(error.message, "\n\n                        This is error in FOREACH command\n                        You have probably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command\n\n                        ").concat(block(pipelineIdentification), "\n                        Subparameter index: ").concat(index, "\n                    "); }));
                                           }
                                           allSubparameters = __assign(__assign({}, parameters), mappedParameters);
                                           // Note: [👨‍👨‍👧] Now we can freeze `subparameters` because we are sure that all and only used parameters are defined and are not going to be changed
@@ -6317,7 +6317,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
    *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
    * TODO: [🪂] More than max things can run in parallel by acident [1,[2a,2b,_],[3a,3b,_]]
-   * TODO: [🧠][❎] Do here propper M:N mapping
+   * TODO: [🧠][❎] Do here proper M:N mapping
    *       [x] One source can make multiple pieces
    *       [ ] One piece can have multiple sources
    */
@@ -6362,7 +6362,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       });
   }
   /**
-   * TODO: [😂] Adding knowledge should be convert to async high-level abstractions, simmilar thing with expectations to sync high-level abstractions
+   * TODO: [😂] Adding knowledge should be convert to async high-level abstractions, similar thing with expectations to sync high-level abstractions
    * TODO: [🧠] Add context to each task (if missing)
    * TODO: [🧠] What is better name `prepareTask` or `prepareTaskAndParameters`
    * TODO: [♨][main] !!3 Prepare index the examples and maybe tasks
@@ -6500,7 +6500,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                               message: "Result of `preparePipeline`",
                               order: ORDER_OF_PIPELINE_JSON,
                               value: __assign(__assign({}, pipeline), {
-                                  // <- TODO: Probbably deeply clone the pipeline because `$exportJson` freezes the subobjects
+                                  // <- TODO: Probably deeply clone the pipeline because `$exportJson` freezes the subobjects
                                   title: title, knowledgeSources: knowledgeSourcesPrepared, knowledgePieces: knowledgePiecesPrepared, tasks: __spreadArray([], __read(tasksPrepared), false),
                                   // <- TODO: [🪓] Here should be no need for spreading new array, just ` tasks: tasksPrepared`
                                   personas: preparedPersonas, preparations: __spreadArray([], __read(preparations), false) }),
@@ -6547,7 +6547,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                               return __generator(this, function (_f) {
                                   switch (_f.label) {
                                       case 0:
-                                          _b = (_a = "\n                    Server for processing promptbook remote requests is running.\n\n                    Version: ".concat(PROMPTBOOK_ENGINE_VERSION, "\n                    Socket.io path: ").concat(path, "/socket.io\n                    Anonymouse mode: ").concat(isAnonymousModeAllowed ? 'enabled' : 'disabled', "\n                    Application mode: ").concat(isApplicationModeAllowed ? 'enabled' : 'disabled', "\n                    ")).concat;
+                                          _b = (_a = "\n                    Server for processing promptbook remote requests is running.\n\n                    Version: ".concat(PROMPTBOOK_ENGINE_VERSION, "\n                    Socket.io path: ").concat(path, "/socket.io\n                    Anonymous mode: ").concat(isAnonymousModeAllowed ? 'enabled' : 'disabled', "\n                    Application mode: ").concat(isApplicationModeAllowed ? 'enabled' : 'disabled', "\n                    ")).concat;
                                           _c = block;
                                           if (!!isApplicationModeAllowed) return [3 /*break*/, 1];
                                           _d = '';
@@ -6612,7 +6612,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                       case 2:
                           llm = _b.sent();
                           return [3 /*break*/, 4];
-                      case 3: throw new PipelineExecutionError("You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured");
+                      case 3: throw new PipelineExecutionError("You must provide either llmToolsConfiguration or non-anonymous mode must be properly configured");
                       case 4:
                           fs = $provideFilesystemForNode();
                           return [4 /*yield*/, $provideExecutablesForNode()];
@@ -6715,7 +6715,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
               });
           }); });
           // -----------
-          // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+          // TODO: [👒] Listing models (and checking configuration) probably should go through REST API not Socket.io
           socket.on('listModels-request', function (request) { return __awaiter(_this, void 0, void 0, function () {
               var identification, executionTools, llm, models, error_2;
               return __generator(this, function (_a) {
@@ -6752,7 +6752,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
               });
           }); });
           // -----------
-          // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+          // TODO: [👒] Listing models (and checking configuration) probably should go through REST API not Socket.io
           socket.on('preparePipeline-request', function (request) { return __awaiter(_this, void 0, void 0, function () {
 
               console.log('preparePipeline-request begin');

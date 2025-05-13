@@ -202,11 +202,11 @@ export class PipelineEditable implements PipelineEditableSerialized {
         }
     }
     public get createdAt(): string_date_iso8601 {
-        // TODO: [🧠] Probbably make variant which returns moment or Date instance
+        // TODO: [🧠] Probably make variant which returns moment or Date instance
         return this.data.createdAt; // <- TODO: !!6 Deserialize here
     }
     public get updatedAt(): string_date_iso8601 | null {
-        // TODO: [🧠] Probbably make variant which returns moment or Date instance
+        // TODO: [🧠] Probably make variant which returns moment or Date instance
         return this.data.updatedAt; // <- TODO: !!6 Deserialize here
     }
 
@@ -395,7 +395,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     public editMetadata(
         metadata: Partial<Pick<PipelineJson, 'title' | 'bookVersion' | 'description'>>,
     ): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         return this.edit(() => ({
             ...this.data,
@@ -405,7 +405,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     public addInputParameter(preferredName: string_name, description?: string_markdown_text): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
         const parameterName = this.getUniqueParameterName(preferredName);
 
         return this.edit(() => ({
@@ -447,7 +447,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
      // TODO: [👨‍✈️] Deeper logic and check to (dis)allow parameter to change isInput / isOutput / delete the parameter
         return this.edit(() => {
             // TODO: !!3 Implement
-            // TODO: !!3 Anotate
+            // TODO: !!3 Annotate
         });
     }
     */
@@ -456,7 +456,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         parameterName: string_name,
         metadata: Partial<Omit<ParameterJson, 'name'>>,
     ): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         return this.edit(() => ({
             ...this.data,
@@ -472,7 +472,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     private getUniqueParameterName(preferredName: string_name): string_name {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         // TODO: In situation when there is param1, param2, param4 DO not make param3 BUT param5
         for (let i = 0; i < LOOP_LIMIT; i++) {
@@ -490,7 +490,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     private addTask(promptTask: TaskJson): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         // TODO: !!> promptTask.resultingParameterName  <-  Always unique parameter name
 
@@ -528,7 +528,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     public addLlmTask(): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         // TODO: !!5 Make some nice fake-pipeline-like task
 
@@ -553,7 +553,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     public addSimpleTask(): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         // TODO: !!5 Make some nice fake-pipeline-like task
 
@@ -574,7 +574,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     public addScript(): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         // TODO: !!5 Make some nice fake-pipeline-like task
 
@@ -596,7 +596,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     public addPromptDialog(): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         // TODO: !!5 Make some nice fake-pipeline-like task
 
@@ -620,7 +620,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         promptTaskName: string_name,
         editCallback: (originalPrompt: Omit<TaskJson, 'name'>) => Omit<TaskJson, 'name'>,
     ): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         return this.edit(() => ({
             ...this.data,
@@ -633,7 +633,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
     }
 
     public deletePromptTask(promptTaskName: string_name): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         const promptTask = this.data.tasks.find((existingPromptTask) => existingPromptTask.name === promptTaskName);
 
@@ -656,7 +656,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
      * Note: Does not throw any errors, if markdown is not valid it will be backed up to pipelineString
      */
     public editMarkdown(newSourceMarkdown: PipelineString | string): PipelineEditable {
-        // TODO: !!3 Anotate
+        // TODO: !!3 Annotate
 
         return this.edit(() => {
             try {
@@ -702,7 +702,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         });
     }
 
-    // ================= New, clonning ================
+    // ================= New, cloning ================
 
     /**
      * Copy this pipeline into new one
@@ -770,7 +770,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
         let pipelineString = sourceJson.pipelineString || undefined;
 
         if (pipelineString !== undefined) {
-            // TODO: Maybe make utility `renamePipeline(pipeline: PipelineJson|PipelineString)` (simmilar util as `removePipelineCommand`)
+            // TODO: Maybe make utility `renamePipeline(pipeline: PipelineJson|PipelineString)` (similar util as `removePipelineCommand`)
             pipelineString = pipelineString.split('✨ Hello Book').join(title);
             console.log('!! pipelineString', pipelineString);
         }
