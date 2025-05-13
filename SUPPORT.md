@@ -42,28 +42,21 @@ Hello world examples:
 -   [Hello world in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello world in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
-
-
 We also have a community of developers and users of **Promptbook**:
 
 -   [Discord community](https://discord.gg/x3QWNaa89N)
 -   [Landing page `ptbk.io`](https://ptbk.io)
 -   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
 -   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536) 
+-   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
 
 And **Promptbook.studio** branded socials:
-
-
 
 -   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
 
 And **Promptujeme** sub-brand:
 
 _/Subbrand for Czech clients/_
-
-
-
 
 -   [Promptujeme.cz](https://www.promptujeme.cz/)
 -   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
@@ -74,5 +67,35 @@ _/Sub-brand for images and graphics generated via Promptbook prompting/_
 
 -   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
 -   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
+
+# 🆘 Need Help?
+
+We’re here to support you on your Promptbook journey. Choose one of the following:
+
+# 🛠️ Support Resources
+
+## 💬 Community & Chat
+
+-   Join our [Discord community](https://discord.gg/x3QWNaa89N) for real-time help and discussions.
+-   Share ideas and ask questions on [GitHub Discussions](https://github.com/webgptorg/promptbook/discussions).
+
+## 🐞 Report Issues
+
+-   Found a bug? Please [create an issue](https://github.com/webgptorg/promptbook/issues/new) with details and reproduction steps.
+
+## 📖 Documentation
+
+-   Explore the [Promptbook documentation](./README.md) for guides, examples, and API references.
+
+## ☕ Commercial Support & Sponsorship
+
+-   Need professional support? Check our [sponsorship options](https://buymeacoffee.com/hejny).
+-   Become a patron to help fund ongoing development.
+
+## 📧 Email Support
+
+Have questions or need enterprise help? Email us at [support@ptbk.io](mailto:support@ptbk.io).
+
+Thank you for using Promptbook!
 
 <!--/Import ./book/SIGNPOST.md-->
