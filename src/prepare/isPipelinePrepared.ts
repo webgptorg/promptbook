@@ -15,14 +15,12 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
     // Note: Ignoring `pipeline.knowledgePieces`
 
     if (pipeline.title === undefined || pipeline.title === '' || pipeline.title === DEFAULT_BOOK_TITLE) {
-        // TODO: !!! Comment this out
-        console.log('Pipeline is not prepared because title is undefined or empty', pipeline);
+        // console.log('Pipeline is not prepared because title is undefined or empty', pipeline);
         return false;
     }
 
     if (!pipeline.personas.every((persona) => (persona as PersonaPreparedJson).modelsRequirements !== undefined)) {
-        // TODO: !!! Comment this out
-        console.log('Pipeline is not prepared because personas are not prepared', pipeline.personas);
+        // console.log('Pipeline is not prepared because personas are not prepared', pipeline.personas);
         return false;
     }
 
@@ -31,8 +29,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
             (knowledgeSource) => (knowledgeSource as KnowledgeSourcePreparedJson).preparationIds !== undefined,
         )
     ) {
-        // TODO: !!! Comment this out
-        console.log('Pipeline is not prepared because knowledge sources are not prepared', pipeline.knowledgeSources);
+        //console.log('Pipeline is not prepared because knowledge sources are not prepared', pipeline.knowledgeSources);
         return false;
     }
 

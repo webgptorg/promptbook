@@ -51,7 +51,6 @@ export async function getKnowledgeForTask(
 ): Promise<string_parameter_value & string_markdown> {
     const { tools, preparedPipeline, task, parameters } = options;
 
-    console.log('!!! getKnowledgeForTask', options);
 
     const firstKnowlegePiece = preparedPipeline.knowledgePieces[0];
     const firstKnowlegeIndex = firstKnowlegePiece?.index[0];
@@ -105,7 +104,8 @@ export async function getKnowledgeForTask(
             // <- TODO: Number of knowledge pieces to return determined by the task and used model
         );
 
-        console.log('!!! `getKnowledgeForTask` Embedding', {
+        /*
+        console.log('`getKnowledgeForTask` Embedding', {
             task,
             taskEmbeddingPrompt,
             taskEmbeddingResult,
@@ -115,6 +115,7 @@ export async function getKnowledgeForTask(
             knowledgePiecesSorted,
             knowledgePiecesLimited,
         });
+        */
 
         return knowledgePiecesToString(knowledgePiecesLimited);
     } catch (error) {
@@ -128,7 +129,6 @@ export async function getKnowledgeForTask(
 }
 
 /**
- * TODO: !!!! Verify if this is working
  * TODO: [♨] Implement Better - use keyword search
  * TODO: [♨] Examples of values
  */

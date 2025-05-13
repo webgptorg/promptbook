@@ -2,13 +2,15 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { MAX_FILENAME_LENGTH } from '../../../../config';
+import { DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/$getCurrentDate';
@@ -16,8 +18,7 @@ import { titleToName } from '../../../../utils/normalization/titleToName';
 import type { really_any } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { extractParameterNames } from '../../../../utils/parameters/extractParameterNames';
-import { BOOK_LANGUAGE_VERSION } from '../../../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
@@ -33,7 +34,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
     options: Partial<CacheLlmToolsOptions> = {},
 ): TLlmTools {
-    const { storage = new MemoryStorage(), isCacheReloaded = false } = options;
+    const { storage = new MemoryStorage(), isCacheReloaded = false, isVerbose = DEFAULT_IS_VERBOSE } = options;
 
     const proxyTools: TLlmTools = {
         ...llmTools,
@@ -87,21 +88,22 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         const cacheItem = !isCacheReloaded ? await storage.getItem(key) : null;
 
         if (cacheItem) {
-            console.log('!!! Cache hit for key:', { key, keyHashBase });
             return cacheItem.promptResult as ChatPromptResult;
         }
 
-        console.log('!!! Cache miss for key:', key, {
-            prompt,
-            'prompt.title': prompt.title,
-            MAX_FILENAME_LENGTH,
-            keyHashBase,
-            parameters,
-            relevantParameters,
-            content,
-            normalizedContent,
-            modelRequirements,
-        });
+        if (isVerbose) {
+            console.info('Cache miss for key:', key, {
+                prompt,
+                'prompt.title': prompt.title,
+                MAX_FILENAME_LENGTH,
+                keyHashBase,
+                parameters,
+                relevantParameters,
+                content,
+                normalizedContent,
+                modelRequirements,
+            });
+        }
 
         let promptResult: TODO_any;
         variant: switch (prompt.modelRequirements.modelVariant) {

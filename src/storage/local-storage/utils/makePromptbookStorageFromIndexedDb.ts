@@ -24,8 +24,6 @@ export function makePromptbookStorageFromIndexedDb<TValue>(
 
     return {
         async getItem(key: string): Promise<TValue | null> {
-            console.log('!!! IndexedDB getItem', key);
-
             const database = await getDatabase();
             return new Promise((resolve, reject) => {
                 const transaction = database.transaction(storeName, 'readonly');
@@ -36,8 +34,6 @@ export function makePromptbookStorageFromIndexedDb<TValue>(
             });
         },
         async setItem(key: string, value: TValue): Promise<void> {
-            console.log('!!! IndexedDB setItem', key, { value });
-
             const database = await getDatabase();
             return new Promise((resolve, reject) => {
                 const transaction = database.transaction(storeName, 'readwrite');
@@ -48,8 +44,6 @@ export function makePromptbookStorageFromIndexedDb<TValue>(
             });
         },
         async removeItem(key: string): Promise<void> {
-            console.log('!!! IndexedDB removeItem', key);
-
             const database = await getDatabase();
             return new Promise((resolve, reject) => {
                 const transaction = database.transaction(storeName, 'readwrite');

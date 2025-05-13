@@ -543,8 +543,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                         break;
 
                     case 'EMBEDDING':
-                        console.log('!!! llm (EMBEDDING)', llm);
-
                         if (llm.callEmbeddingModel === undefined) {
                             // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Embedding model is not available`);

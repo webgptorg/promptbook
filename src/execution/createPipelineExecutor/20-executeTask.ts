@@ -80,8 +80,6 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         isNotPreparedWarningSupressed,
     } = options;
 
-    console.log('!!! executeTask', options);
-
     const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
 
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
@@ -126,6 +124,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         task: currentTask,
         pipelineIdentification,
         parameters: parametersToPass,
+        isVerbose,
     });
     const definedParameters: Parameters = Object.freeze({
         ...reservedParameters,

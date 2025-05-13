@@ -1,13 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../../constants';
-import { RESERVED_PARAMETER_NAMES } from '../../constants';
-import { RESERVED_PARAMETER_RESTRICTED } from '../../constants';
+import {
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_RESTRICTED,
+} from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { Parameters } from '../../types/typeAliases';
-import type { ReservedParameters } from '../../types/typeAliases';
+import type { Parameters, ReservedParameters } from '../../types/typeAliases';
 import type { ExecutionTools } from '../ExecutionTools';
 import { getContextForTask } from './getContextForTask';
 import { getExamplesForTask } from './getExamplesForTask';
@@ -44,6 +45,11 @@ type GetReservedParametersForTaskOptions = {
      * String identifier for the pipeline, used in error messages and reporting.
      */
     readonly pipelineIdentification: string;
+
+    /**
+     * If true, the preparation logs the reserved parameters for debugging purposes.
+     */
+    readonly isVerbose?: boolean;
 };
 
 /**
@@ -58,9 +64,7 @@ type GetReservedParametersForTaskOptions = {
 export async function getReservedParametersForTask(
     options: GetReservedParametersForTaskOptions,
 ): Promise<Readonly<ReservedParameters>> {
-    const { tools, preparedPipeline, task, parameters, pipelineIdentification } = options;
-
-    console.log('!!! getReservedParametersForTask', options);
+    const { tools, preparedPipeline, task, parameters, pipelineIdentification, isVerbose } = options;
 
     const context = await getContextForTask(task); // <- [🏍]
     const knowledge = await getKnowledgeForTask({ tools, preparedPipeline, task, parameters });
@@ -76,6 +80,10 @@ export async function getReservedParametersForTask(
         currentDate,
         modelName,
     };
+
+    if (isVerbose) {
+        console.info('Reserved parameters for task:', { options, reservedParameters });
+    }
 
     // Note: Doublecheck that ALL reserved parameters are defined:
     for (const parameterName of RESERVED_PARAMETER_NAMES) {

@@ -141,14 +141,6 @@ export class MarkdownScraper implements Scraper {
                     // ---
 
                     if (!llmTools.callEmbeddingModel) {
-                        console.log('!!! No callEmbeddingModel function provided', {
-                            'llmTools.title': llmTools.title,
-                            'llmTools.description': llmTools.description,
-                            'llmTools.callEmbeddingModel': llmTools.callEmbeddingModel,
-                            'llmTools.callChatModel': llmTools.callChatModel,
-                            llmTools,
-                        });
-
                         // TODO: [🟥] Detect browser / node and make it colorfull
                         console.error('No callEmbeddingModel function provided');
                     } else {
