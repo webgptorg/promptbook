@@ -379,21 +379,7 @@ See [CHANGELOG.md](./CHANGELOG.md)
 
 ## 📜 License
 
-This project is licensed under [BUSL 1.1](https://spdx.org/licenses/BUSL-1.1.html).
-
-## ✨ Partners
-
-<div style="display: flex; align-items: center; gap: 20px;">
-
-  <a href="https://promptbook.studio/">
-    <img src="./design/promptbook-studio-logo.png" alt="Partner 3" height="70">
-  </a>
-
-  <a href="https://technologickainkubace.org/en/about-technology-incubation/about-the-project/">
-    <img src="./other/partners/CI-Technology-Incubation.png" alt="Technology Incubation" height="70">
-  </a>
-
-</div>
+This project is licensed under [BUSL 1.1](./LICENSE.md).
 
 ## 🤝 Contributing
 
@@ -403,4 +389,4 @@ You can also ⭐ star the project, [follow us on GitHub](https://github.com/hejn
 
 ## 🆘 Support
 
-For help and resources, please see our [Support page](./SUPPORT.md).
+For help and resources, please see our [signpost](./SIGNPOST.md).
