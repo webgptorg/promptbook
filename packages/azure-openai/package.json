@@ -1,7 +1,7 @@
 {
     "name": "@promptbook/azure-openai",
     "version": "0.92.0",
-    "description": "It's time for a paradigm shift. The future of software in plain English, French or Latin",
+    "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
     "repository": {
