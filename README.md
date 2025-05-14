@@ -373,7 +373,7 @@ If you have a question [start a discussion](https://github.com/webgptorg/promptb
 -   [❔ Is Promptbook using RAG _(Retrieval-Augmented Generation)_?](https://github.com/webgptorg/promptbook/discussions/123)
 -   [❔ Is Promptbook using function calling?](https://github.com/webgptorg/promptbook/discussions/124)
 
-## ⌚ Changelog
+## 📅 Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md)
 
@@ -387,6 +387,14 @@ We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guideline
 
 You can also ⭐ star the project, [follow us on GitHub](https://github.com/hejny) or [various other social networks](https://www.pavolhejny.com/contact/).We are open to [pull requests, feedback, and suggestions](./CONTRIBUTING.md).
 
-## 🆘 Support
+## 🆘 Support & Community
 
-For help and resources, please see our [signpost](./SIGNPOST.md).
+Need help with Book language? We're here for you!
+
+-   💬 [Join our Discord community](https://discord.gg/x3QWNaa89N) for real-time support
+-   📝 [Browse our GitHub discussions](https://github.com/webgptorg/promptbook/discussions) for FAQs and community knowledge
+-   🐛 [Report issues](https://github.com/webgptorg/book/issues) for bugs or feature requests
+-   📚 Visit [ptbk.io](https://ptbk.io) for more resources and documentation
+-   📧 Contact us directly through the channels listed in our [signpost](./SIGNPOST.md)
+
+We welcome contributions and feedback to make Book language better for everyone!
