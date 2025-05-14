@@ -1,7 +1,7 @@
 <!--Import ./book/SIGNPOST.md-->
 <!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
 
-## 💜 The Promptbook Project
+# 💜 The Promptbook Project
 
 Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
 

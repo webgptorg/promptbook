@@ -12,9 +12,18 @@ Write AI applications using plain human language across multiple models and plat
 [![Coverage Status](https://coveralls.io/repos/github/webgptorg/promptbook/badge.svg?branch=main)](https://coveralls.io/github/webgptorg/promptbook?branch=main)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
-<!--[![License of ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://img.shields.io/github/license/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/blob/main/LICENSE)-->
+<!--
+TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 
-<!--/Badges-->
+## 📑 Table of Contents
+
+-   [🌟 New Features](#-new-features)
+-   [🚀 Get Started](#-get-started)
+-   [📚 Documentation](#-documentation)
+-   [🆘 Support](#-support)
+-   [🤝 Contributing](#-contributing)
+-   [📜 License](#-license)
+-->
 
 ## 🌟 New Features
 
@@ -209,6 +218,10 @@ But unlike programming languages, it is designed to be understandable by non-pro
 
 <!--/Import ./book/BLUEPRINT.md-->
 
+## 📚 Documentation
+
+See detailed guides and API reference in the [docs](https://github.com/webgptorg/promptbook/discussions/categories/concepts) or [online](https://discord.gg/x3QWNaa89N).
+
 ## 🔒 Security
 
 For information on reporting security vulnerabilities, see our [Security Policy](./SECURITY.md).
@@ -366,13 +379,9 @@ See [CHANGELOG.md](./CHANGELOG.md)
 
 ## 📜 License
 
-Promptbook project is under [BUSL 1.1 is an SPDX license](https://spdx.org/licenses/BUSL-1.1.html)
+This project is licensed under [BUSL 1.1](https://spdx.org/licenses/BUSL-1.1.html).
 
-## 🎯 Todos
-
-See [TODO.md](./TODO.md)
-
-## 🤝 Partners
+## ✨ Partners
 
 <div style="display: flex; align-items: center; gap: 20px;">
 
@@ -386,10 +395,12 @@ See [TODO.md](./TODO.md)
 
 </div>
 
-## 🖋️ Contributing
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 You can also ⭐ star the project, [follow us on GitHub](https://github.com/hejny) or [various other social networks](https://www.pavolhejny.com/contact/).We are open to [pull requests, feedback, and suggestions](./CONTRIBUTING.md).
 
-## 📞 Support
+## 🆘 Support
 
-If you need help or have questions, please check our [Support Resources](./SUPPORT.md).
+For help and resources, please see our [Support page](./SUPPORT.md).
