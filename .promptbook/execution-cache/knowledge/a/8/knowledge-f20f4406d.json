@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-14T09:10:08.476Z",
+    "promptbookVersion": "0.92.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The Book language is a human-understandable markup language for creating AI applications such as chatbots, knowledge bases, agents, avatars, translators, and automations."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Book language, markup language, AI applications, chatbots, knowledge bases, agents, avatars, translators, automations, human-understandable",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-14T09:10:00.499Z",
+            "complete": "2025-05-14T09:10:08.476Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0006450000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 83
+                },
+                "charactersCount": {
+                    "value": 364
+                },
+                "wordsCount": {
+                    "value": 49
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 35
+                },
+                "charactersCount": {
+                    "value": 139
+                },
+                "wordsCount": {
+                    "value": 15
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The Book language is a human-understandable markup language for creating AI applications such as chatbots, knowledge bases, agents, avatars, translators, and automations.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The Book language is a human-understandable markup language for creating AI applications such as chatbots, knowledge bases, agents, avatars, translators, and automations."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01SCjUykCfjs4YX1AKbh21M2",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Book language, markup language, AI applications, chatbots, knowledge bases, agents, avatars, translators, automations, human-understandable"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 83,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 35
+            }
+        }
+    }
+}

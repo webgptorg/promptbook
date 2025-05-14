@@ -1,0 +1,112 @@
+{
+    "date": "2025-05-14T09:10:03.006Z",
+    "promptbookVersion": "0.92.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook.studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Promptbook: Web-Based Book App Editor",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-14T09:09:55.976Z",
+            "complete": "2025-05-14T09:10:03.005Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00034750000000000004
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 74
+                },
+                "charactersCount": {
+                    "value": 290
+                },
+                "wordsCount": {
+                    "value": 44
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 13
+                },
+                "charactersCount": {
+                    "value": 37
+                },
+                "wordsCount": {
+                    "value": 6
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook.studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Promptbook.studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01R4KwxmyxUa6NSEAjzF7NLz",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook: Web-Based Book App Editor"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 74,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 13
+            }
+        }
+    }
+}

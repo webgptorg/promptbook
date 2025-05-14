@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-14T09:10:10.197Z",
+    "promptbookVersion": "0.92.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Book language has two variants: flat (a prompt with no structure) and full (structured with tasks, commands, and prompts)."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Book language, variants, flat, full, prompt, structure, tasks, commands",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-14T09:10:03.024Z",
+            "complete": "2025-05-14T09:10:10.197Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00042
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 73
+                },
+                "charactersCount": {
+                    "value": 316
+                },
+                "wordsCount": {
+                    "value": 45
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 19
+                },
+                "charactersCount": {
+                    "value": 71
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Book language has two variants: flat (a prompt with no structure) and full (structured with tasks, commands, and prompts).",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Book language has two variants: flat (a prompt with no structure) and full (structured with tasks, commands, and prompts)."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01TrAPpHQysCaxNQHPbA76EW",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Book language, variants, flat, full, prompt, structure, tasks, commands"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 73,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 19
+            }
+        }
+    }
+}
