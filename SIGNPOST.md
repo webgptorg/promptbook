@@ -1,7 +1,7 @@
 <!--Import ./book/SIGNPOST.md-->
 <!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
 
-# 💜 The Promptbook Project
+## 💜 The Promptbook Project
 
 Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
 
@@ -42,60 +42,53 @@ Hello world examples:
 -   [Hello world in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello world in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
-We also have a community of developers and users of **Promptbook**:
+### 🌐 Community & Social Media
 
--   [Discord community](https://discord.gg/x3QWNaa89N)
--   [Landing page `ptbk.io`](https://ptbk.io)
--   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
--   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
+Join our growing community of developers and users:
 
-And **Promptbook.studio** branded socials:
+<table>
+  <thead>
+    <tr>
+      <th>Platform</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://discord.gg/x3QWNaa89N">💬 Discord</a></td>
+      <td>Join our active developer community for discussions and support</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/webgptorg/promptbook/discussions">🗣️ GitHub Discussions</a></td>
+      <td>Technical discussions, feature requests, and community Q&A</td>
+    </tr>
+    <tr>
+      <td><a href="https://linkedin.com/company/promptbook">👔 LinkedIn</a></td>
+      <td>Professional updates and industry insights</td>
+    </tr>
+    <tr>
+      <td><a href="https://www.facebook.com/61560776453536">📱 Facebook</a></td>
+      <td>General announcements and community engagement</td>
+    </tr>
+    <tr>
+      <td><a href="https://ptbk.io">🔗 ptbk.io</a></td>
+      <td>Official landing page with project information</td>
+    </tr>
+  </tbody>
+</table>
 
--   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
+### 🖼️ Product & Brand Channels
 
-And **Promptujeme** sub-brand:
+#### Promptbook.studio
 
-_/Subbrand for Czech clients/_
-
--   [Promptujeme.cz](https://www.promptujeme.cz/)
--   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
-
-And **Promptbook.city** branded socials:
-
-_/Sub-brand for images and graphics generated via Promptbook prompting/_
-
--   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
--   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
-
-# 🆘 Need Help?
-
-We’re here to support you on your Promptbook journey. Choose one of the following:
-
-# 🛠️ Support Resources
-
-## 💬 Community & Chat
-
--   Join our [Discord community](https://discord.gg/x3QWNaa89N) for real-time help and discussions.
--   Share ideas and ask questions on [GitHub Discussions](https://github.com/webgptorg/promptbook/discussions).
-
-## 🐞 Report Issues
-
--   Found a bug? Please [create an issue](https://github.com/webgptorg/promptbook/issues/new) with details and reproduction steps.
-
-## 📖 Documentation
-
--   Explore the [Promptbook documentation](./README.md) for guides, examples, and API references.
-
-## ☕ Commercial Support & Sponsorship
-
--   Need professional support? Check our [sponsorship options](https://buymeacoffee.com/hejny).
--   Become a patron to help fund ongoing development.
-
-## 📧 Email Support
-
-Have questions or need enterprise help? Email us at [support@ptbk.io](mailto:support@ptbk.io).
-
-Thank you for using Promptbook!
+<table>
+  <tbody>
+    <tr>
+      <td><a href="https://www.instagram.com/promptbook.studio/">📸 Instagram @promptbook.studio</a></td>
+      <td>Visual updates, UI showcases, and design inspiration</td>
+    </tr>
+    
+  </tbody>
+</table>
 
 <!--/Import ./book/SIGNPOST.md-->

@@ -45,6 +45,8 @@ TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
 
+
+
 It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
 
 The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
@@ -112,56 +114,92 @@ Hello world examples:
 -   [Hello world in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello world in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
-We also have a community of developers and users of **Promptbook**:
+### 🌐 Community & Social Media
 
--   [Discord community](https://discord.gg/x3QWNaa89N)
--   [Landing page `ptbk.io`](https://ptbk.io)
--   [Github discussions](https://github.com/webgptorg/promptbook/discussions)
--   [LinkedIn `Promptbook`](https://linkedin.com/company/promptbook)
--   [Facebook `Promptbook`](https://www.facebook.com/61560776453536)
+Join our growing community of developers and users:
 
-And **Promptbook.studio** branded socials:
+<table>
+  <thead>
+    <tr>
+      <th>Platform</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://discord.gg/x3QWNaa89N">💬 Discord</a></td>
+      <td>Join our active developer community for discussions and support</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/webgptorg/promptbook/discussions">🗣️ GitHub Discussions</a></td>
+      <td>Technical discussions, feature requests, and community Q&A</td>
+    </tr>
+    <tr>
+      <td><a href="https://linkedin.com/company/promptbook">👔 LinkedIn</a></td>
+      <td>Professional updates and industry insights</td>
+    </tr>
+    <tr>
+      <td><a href="https://www.facebook.com/61560776453536">📱 Facebook</a></td>
+      <td>General announcements and community engagement</td>
+    </tr>
+    <tr>
+      <td><a href="https://ptbk.io">🔗 ptbk.io</a></td>
+      <td>Official landing page with project information</td>
+    </tr>
+  </tbody>
+</table>
 
--   [Instagram `@promptbook.studio`](https://www.instagram.com/promptbook.studio/)
+### 🖼️ Product & Brand Channels
 
-And **Promptujeme** sub-brand:
+#### Promptbook.studio
 
-_/Subbrand for Czech clients/_
-
--   [Promptujeme.cz](https://www.promptujeme.cz/)
--   [Facebook `Promptujeme`](https://www.facebook.com/promptujeme/)
-
-And **Promptbook.city** branded socials:
-
-_/Sub-brand for images and graphics generated via Promptbook prompting/_
-
--   [Instagram `@promptbook.city`](https://www.instagram.com/promptbook.city/)
--   [Facebook `Promptbook City`](https://www.facebook.com/61565718625569)
+<table>
+  <tbody>
+    <tr>
+      <td><a href="https://www.instagram.com/promptbook.studio/">📸 Instagram @promptbook.studio</a></td>
+      <td>Visual updates, UI showcases, and design inspiration</td>
+    </tr>
+    
+  </tbody>
+</table>
 
 <!--/Import ./book/SIGNPOST.md-->
 
 <!--Import ./book/BLUEPRINT.md-->
 <!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
 
-## 💙 The Book language
+## 📘 Book Language Blueprint
 
-Following is the documentation and blueprint of the [Book language](https://github.com/webgptorg/book).
+_A concise, Markdown-based DSL for crafting AI workflows and automations._
 
-Book is a language that can be used to write AI applications, agents, workflows, automations, knowledgebases, translators, sheet processors, email automations and more. It allows you to harness the power of AI models in human-like terms, without the need to know the specifics and technicalities of the models.
+---
+
+### 📑 Table of Contents
+
+-   [Introduction](#introduction)
+-   [Example](#example)
+-   [1. What: Workflows, Tasks & Parameters](#1-what-workflows-tasks--parameters)
+-   [2. Who: Personas](#2-who-personas)
+-   [3. How: Knowledge, Instruments & Actions](#3-how-knowledge-instruments-and-actions)
+-   [General Principles](#general-principles)
+
+### Introduction
+
+Book is a Markdown-based language that simplifies the creation of AI applications, workflows, and automations. With human-readable commands, you can define inputs, outputs, personas, knowledge sources, and actions—without needing model-specific details.
 
 ### Example
 
-```markdown
-# 🌟 My first Book
+```book
+# 🌟 My First Book
 
 -   BOOK VERSION 1.0.0
 -   URL https://promptbook.studio/hello.book
 -   INPUT PARAMETER {topic}
 -   OUTPUT PARAMETER {article}
 
-# Write an article
+# Write an Article
 
--   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
+-   PERSONA Jane, marketing specialist with prior experience in tech and AI writing
 -   KNOWLEDGE https://wikipedia.org/
 -   KNOWLEDGE ./journalist-ethics.pdf
 -   EXPECT MIN 1 Sentence
@@ -169,12 +207,12 @@ Book is a language that can be used to write AI applications, agents, workflows,
 
 > Write an article about {topic}
 
--> {article}
+→ {article}
 ```
 
 Each part of the book defines one of 3 circles:
 
-### **What:** Workflows, Tasks and Parameters
+### **1. What:** Workflows, Tasks and Parameters
 
 What work needs to be done. Each book defines a [workflow _(scenario or pipeline)_](https://github.com/webgptorg/promptbook/discussions/88), which is one or more tasks. Each workflow has a fixed input and output. For example, you have a book that generates an article from a topic. Once it generates an article about AI, once about marketing, once about cooking. The workflow (= your AI program) is the same, only the input and output change.
 
@@ -182,7 +220,7 @@ What work needs to be done. Each book defines a [workflow _(scenario or pipeline
 
 -   [PARAMETER](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PARAMETER.md)
 
-### **Who:** Personas
+### **2. Who:** Personas
 
 Who does the work. Each task is performed by a persona. A persona is a description of your virtual employee. It is a higher abstraction than the model, tokens, temperature, top-k, top-p and other model parameters.
 
@@ -194,7 +232,9 @@ Personas can have access to different knowledge, tools and actions. They can als
 
 -   [PERSONA](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PERSONA.md)
 
-### **How:** Knowledge, Instruments and Actions
+
+
+### **3. How:** Knowledge, Instruments and Actions
 
 The resources used by the personas are used to do the work.
 
@@ -204,7 +244,7 @@ The resources used by the personas are used to do the work.
 -   [INSTRUMENT](https://github.com/webgptorg/promptbook/blob/main/documents/commands/INSTRUMENT.md) for real-time data like time, location, weather, stock prices, searching the internet, calculations, etc.
 -   [ACTION](https://github.com/webgptorg/promptbook/blob/main/documents/commands/ACTION.md) for actions like sending emails, creating files, ending a workflow, etc.
 
-### General principles of book language
+### General Principles
 
 Book language is based on markdown. It is subset of markdown. It is designed to be easy to read and write. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
 
@@ -292,6 +332,8 @@ The following glossary is used to clarify certain concepts:
 
 _Note: This section is not complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
 
+
+
 ### 💯 Core concepts
 
 -   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
@@ -300,25 +342,56 @@ _Note: This section is not complete dictionary, more list of general AI / LLM te
 -   [🤼 Personas](https://github.com/webgptorg/promptbook/discussions/22)
 -   [⭕ Parameters](https://github.com/webgptorg/promptbook/discussions/83)
 -   [🚀 Pipeline execution](https://github.com/webgptorg/promptbook/discussions/84)
--   [🧪 Expectations](https://github.com/webgptorg/promptbook/discussions/30)
--   [✂️ Postprocessing](https://github.com/webgptorg/promptbook/discussions/31)
--   [🔣 Words not tokens](https://github.com/webgptorg/promptbook/discussions/29)
--   [☯ Separation of concerns](https://github.com/webgptorg/promptbook/discussions/32)
+-   [🧪 Expectations](https://github.com/webgptorg/promptbook/discussions/30) - Define what outputs should look like and how they're validated
+-   [✂️ Postprocessing](https://github.com/webgptorg/promptbook/discussions/31) - How outputs are refined after generation
+-   [🔣 Words not tokens](https://github.com/webgptorg/promptbook/discussions/29) - The human-friendly way to think about text generation
+-   [☯ Separation of concerns](https://github.com/webgptorg/promptbook/discussions/32) - How Book language organizes different aspects of AI workflows
 
-#### Advanced concepts
+### Advanced concepts
 
--   [📚 Knowledge (Retrieval-augmented generation)](https://github.com/webgptorg/promptbook/discussions/41)
--   [🌏 Remote server](https://github.com/webgptorg/promptbook/discussions/89)
--   [🃏 Jokers (conditions)](https://github.com/webgptorg/promptbook/discussions/66)
--   [🔳 Metaprompting](https://github.com/webgptorg/promptbook/discussions/35)
--   [🌏 Linguistically typed languages](https://github.com/webgptorg/promptbook/discussions/53)
--   [🌍 Auto-Translations](https://github.com/webgptorg/promptbook/discussions/42)
--   [📽 Images, audio, video, spreadsheets](https://github.com/webgptorg/promptbook/discussions/54)
--   [🔙 Expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37)
--   [⏳ Just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33)
--   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
--   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
--   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
+<table>
+  <tr>
+    <th>Data & Knowledge Management</th>
+    <th>Pipeline Control</th>
+  </tr>
+  <tr>
+    <td>
+      <ul>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/41">📚 Knowledge (RAG)</a> - Retrieve and use external information</li>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/54">📽 Media handling</a> - Working with images, audio, video, spreadsheets</li>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/40">🔴 Anomaly detection</a> - Identifying unusual patterns or outputs</li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/89">🌏 Remote server</a> - Executing workflows on remote infrastructure</li>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/66">🃏 Jokers (conditions)</a> - Adding conditional logic to workflows</li>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/35">🔳 Metaprompting</a> - Creating prompts that generate other prompts</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Language & Output Control</th>
+    <th>Advanced Generation</th>
+  </tr>
+  <tr>
+    <td>
+      <ul>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/53">🌏 Linguistically typed languages</a> - Type systems for natural language</li>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/42">🌍 Auto-Translations</a> - Automatic multilingual support</li>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/39">👮 Agent adversary expectations</a> - Safety and control mechanisms</li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/37">🔙 Expectation-aware generation</a> - Outputs that meet defined criteria</li>
+        <li><a href="https://github.com/webgptorg/promptbook/discussions/33">⏳ Just-in-time fine-tuning</a> - Dynamic model adaptation</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><a href="https://github.com/webgptorg/promptbook/discussions/categories/concepts">🔍 View more concepts</a></p>
 
 <!--/Import ./book/DICTIONARY.md-->
 
