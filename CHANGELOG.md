@@ -805,11 +805,13 @@ Models and Migrations and processing big tables
 -   ✨Auto-enhance model providers, _try autonomous agent to work on Promptbook_
 -   ✨Auto-fix grammar and typos
 
-## Upcoming
-
 ### `0.93.0` _(2025-05-)_
 
 Enhance the presentation of the Promptbook
+
+✨ First release mainly managed by AI
+
+## Upcoming
 
 ## `1.0.0` Release
 
