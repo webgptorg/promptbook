@@ -111,6 +111,7 @@ import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
 import { _DeepseekMetadataRegistration } from '../llm-providers/deepseek/register-configuration';
 import { _GoogleMetadataRegistration } from '../llm-providers/google/register-configuration';
+import { _OllamaMetadataRegistration } from '../llm-providers/ollama/register-configuration';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { migratePipeline } from '../migrations/migratePipeline';
@@ -264,6 +265,7 @@ export { _AnthropicClaudeMetadataRegistration };
 export { _AzureOpenAiMetadataRegistration };
 export { _DeepseekMetadataRegistration };
 export { _GoogleMetadataRegistration };
+export { _OllamaMetadataRegistration };
 export { _OpenAiMetadataRegistration };
 export { _OpenAiAssistantMetadataRegistration };
 export { migratePipeline };

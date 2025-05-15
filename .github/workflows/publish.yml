@@ -101,6 +101,11 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/ollama
+              working-directory: ./packages/ollama
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/openai
               working-directory: ./packages/openai
               run: npm publish --provenance --access public

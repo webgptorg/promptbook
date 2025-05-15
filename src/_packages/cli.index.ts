@@ -11,6 +11,8 @@ import { _DeepseekMetadataRegistration } from '../llm-providers/deepseek/registe
 import { _DeepseekRegistration } from '../llm-providers/deepseek/register-constructor';
 import { _GoogleMetadataRegistration } from '../llm-providers/google/register-configuration';
 import { _GoogleRegistration } from '../llm-providers/google/register-constructor';
+import { _OllamaMetadataRegistration } from '../llm-providers/ollama/register-configuration';
+import { _OllamaRegistration } from '../llm-providers/ollama/register-constructor';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
@@ -45,6 +47,8 @@ export { _DeepseekMetadataRegistration };
 export { _DeepseekRegistration };
 export { _GoogleMetadataRegistration };
 export { _GoogleRegistration };
+export { _OllamaMetadataRegistration };
+export { _OllamaRegistration };
 export { _OpenAiMetadataRegistration };
 export { _OpenAiAssistantMetadataRegistration };
 export { _OpenAiRegistration };
