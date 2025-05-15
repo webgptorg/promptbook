@@ -5,6 +5,15 @@ import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 
+/**
+ * Registration of LLM provider metadata
+ *
+ * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
+ *
+ * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/cli`
+ */
 export const _OllamaMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
     title: 'Ollama',
     packageName: '@promptbook/ollama',
