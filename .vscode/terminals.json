@@ -171,6 +171,12 @@
             "focus": true
         },
         {
+            "name": "🧸 Ollama playground",
+            "command": "npx ts-node ./src/llm-providers/ollama/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧸 Anthropic Claude playground (💸)",
             "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
             "onlySingle": true,
