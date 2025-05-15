@@ -217,6 +217,8 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
 
     /**
      * Human-readable title of the task - used for displaying in the UI
+     *
+     * For example name of the book which is being executed
      */
     readonly title: string;
 
@@ -250,7 +252,7 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
     /**
      * Gets just the current value which is mutated during the task processing
      */
-    currentValue: PartialDeep<TTaskResult>;
+    readonly currentValue: PartialDeep<TTaskResult>;
 
     /**
      * List of errors that occurred during the task processing
