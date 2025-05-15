@@ -65,36 +65,65 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
 
 Hello world examples:
 
-We also have a community of developers and users of Promptbook:
+🌐 Community & Social Media
+Join our growing community of developers and users:
 
-And Promptbook.studio branded socials:
+  
+    
+      Platform
+      Description
+    
+  
+  
+    
+      💬 Discord
+      Join our active developer community for discussions and support
+    
+    
+      🗣️ GitHub Discussions
+      Technical discussions, feature requests, and community Q&A
+    
+    
+      👔 LinkedIn
+      Professional updates and industry insights
+    
+    
+      📱 Facebook
+      General announcements and community engagement
+    
+    
+      🔗 ptbk.io
+      Official landing page with project information
+    
+  
 
-And Promptujeme sub-brand:
-/Subbrand for Czech clients/
-
-And Promptbook.city branded socials:
-/Sub-brand for images and graphics generated via Promptbook prompting/
+🖼️ Product & Brand Channels
+Promptbook.studio
 
 
 
 
-💙 The Book language
-Following is the documentation and blueprint of the Book language.
-Book is a language that can be used to write AI applications, agents, workflows, automations, knowledgebases, translators, sheet processors, email automations and more. It allows you to harness the power of AI models in human-like terms, without the need to know the specifics and technicalities of the models.
+📘 Book Language Blueprint
+A concise, Markdown-based DSL for crafting AI workflows and automations.
+
+📑 Table of Contents
+
+Introduction
+Book is a Markdown-based language that simplifies the creation of AI applications, workflows, and automations. With human-readable commands, you can define inputs, outputs, personas, knowledge sources, and actions—without needing model-specific details.
 Example
 
 Each part of the book defines one of 3 circles:
-What: Workflows, Tasks and Parameters
+1. What: Workflows, Tasks and Parameters
 What work needs to be done. Each book defines a workflow (scenario or pipeline), which is one or more tasks. Each workflow has a fixed input and output. For example, you have a book that generates an article from a topic. Once it generates an article about AI, once about marketing, once about cooking. The workflow (= your AI program) is the same, only the input and output change.
 Related commands:
 
-Who: Personas
+2. Who: Personas
 Who does the work. Each task is performed by a persona. A persona is a description of your virtual employee. It is a higher abstraction than the model, tokens, temperature, top-k, top-p and other model parameters.
 You can describe what you want in human language like Jane, creative writer with a sense of sharp humour instead of gpt-4-2024-13-31, temperature 1.2, top-k 40, STOP token ".\n",....
 Personas can have access to different knowledge, tools and actions. They can also consult their work with other personas or user, if allowed.
 Related commands:
 
-How: Knowledge, Instruments and Actions
+3. How: Knowledge, Instruments and Actions
 The resources used by the personas are used to do the work.
 Related commands:
 
@@ -102,7 +131,7 @@ KNOWLEDGE of documents, websites, and other resources
 INSTRUMENT for real-time data like time, location, weather, stock prices, searching the internet, calculations, etc.
 ACTION for actions like sending emails, creating files, ending a workflow, etc.
 
-General principles of book language
+General Principles
 Book language is based on markdown. It is subset of markdown. It is designed to be easy to read and write. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
 The file has .book extension. It uses UTF-8 non BOM encoding.
 Book has two variants: flat - which is just a prompt with no structure, and full - which has a structure with tasks, commands and prompts.
@@ -136,6 +165,47 @@ Note: This section is not complete dictionary, more list of general AI / LLM ter
 
 Advanced concepts
 
+  
+    Data & Knowledge Management
+    Pipeline Control
+  
+  
+    
+      
+        📚 Knowledge (RAG) - Retrieve and use external information
+        📽 Media handling - Working with images, audio, video, spreadsheets
+        🔴 Anomaly detection - Identifying unusual patterns or outputs
+      
+    
+    
+      
+        🌏 Remote server - Executing workflows on remote infrastructure
+        🃏 Jokers (conditions) - Adding conditional logic to workflows
+        🔳 Metaprompting - Creating prompts that generate other prompts
+      
+    
+  
+  
+    Language & Output Control
+    Advanced Generation
+  
+  
+    
+      
+        🌏 Linguistically typed languages - Type systems for natural language
+        🌍 Auto-Translations - Automatic multilingual support
+        👮 Agent adversary expectations - Safety and control mechanisms
+      
+    
+    
+      
+        🔙 Expectation-aware generation - Outputs that meet defined criteria
+        ⏳ Just-in-time fine-tuning - Dynamic model adaptation
+      
+    
+  
+
+🔍 View more concepts
 
 🚂 Promptbook Engine
 
@@ -153,20 +223,14 @@ See more
 ❔ FAQ
 If you have a question start a discussion, open an issue or write me an email.
 
-⌚ Changelog
+📅 Changelog
 See CHANGELOG.md
 📜 License
 This project is licensed under BUSL 1.1.
-✨ Partners
-
-    
-  
-  
-    
-  
-
 🤝 Contributing
 We welcome contributions! See CONTRIBUTING.md for guidelines.
 You can also ⭐ star the project, follow us on GitHub or various other social networks.We are open to pull requests, feedback, and suggestions.
-🆘 Support
-For help and resources, please see our Support page.
+🆘 Support & Community
+Need help with Book language? We're here for you!
+
+We welcome contributions and feedback to make Book language better for everyone!

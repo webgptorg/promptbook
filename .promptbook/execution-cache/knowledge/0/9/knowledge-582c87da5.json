@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-15T00:01:24.632Z",
+    "promptbookVersion": "0.93.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Book files use the .book extension and UTF-8 non-BOM encoding, leveraging version control systems like git."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "book files, .book extension, UTF-8, non-BOM encoding, version control systems, git",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-15T00:01:14.652Z",
+            "complete": "2025-05-15T00:01:24.631Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0004925
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 72
+                },
+                "charactersCount": {
+                    "value": 301
+                },
+                "wordsCount": {
+                    "value": 44
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 25
+                },
+                "charactersCount": {
+                    "value": 82
+                },
+                "wordsCount": {
+                    "value": 13
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Book files use the .book extension and UTF-8 non-BOM encoding, leveraging version control systems like git.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Book files use the .book extension and UTF-8 non-BOM encoding, leveraging version control systems like git."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Nqvoj2fptUqypH5KUFCDD4",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "book files, .book extension, UTF-8, non-BOM encoding, version control systems, git"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 72,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 25
+            }
+        }
+    }
+}
