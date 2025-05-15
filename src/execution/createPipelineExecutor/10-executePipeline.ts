@@ -113,6 +113,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     if (onProgress) {
         const emptyOutputParameters = Object.fromEntries(
             preparedPipeline.parameters.filter((param) => !param.isInput).map((param) => [param.name, '']),
+            // <- TODO: [🧠] Should be reported intermediate parameters or just output parameters?
         );
 
         onProgress({
