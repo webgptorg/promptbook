@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/documents",
-    "version": "0.94.0-2",
+    "version": "0.94.0-3",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -63,7 +63,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/documents.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.94.0-2"
+        "@promptbook/core": "0.94.0-3"
     },
     "dependencies": {
         "colors": "1.4.0",
