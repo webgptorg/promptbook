@@ -7,14 +7,14 @@ import type { Prompt } from '../../types/Prompt';
  * Creates a wrapper around LlmExecutionTools that only exposes models matching the filter function
  *
  * @param llmTools The original LLM execution tools to wrap
- * @param modelFilter Function that determines whether a model should be included
+ * @param predicate Function that determines whether a model should be included
  * @returns A new LlmExecutionTools instance with filtered models
  *
  * @public exported from `@promptbook/core`
  */
 export function filterModels<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
-    modelFilter: (model: AvailableModel) => boolean,
+    predicate: (model: AvailableModel) => boolean,
 ): TLlmTools {
     const filteredTools: TLlmTools = {
         // Keep all properties from the original llmTools
@@ -36,9 +36,9 @@ export function filterModels<TLlmTools extends LlmExecutionTools>(
 
             // Handle both synchronous and Promise return types
             if (originalModels instanceof Promise) {
-                return originalModels.then((models) => models.filter(modelFilter));
+                return originalModels.then((models) => models.filter(predicate));
             } else {
-                return originalModels.filter(modelFilter);
+                return originalModels.filter(predicate);
             }
         },
     };
