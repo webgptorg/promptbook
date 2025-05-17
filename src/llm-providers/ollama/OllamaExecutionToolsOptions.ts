@@ -1,4 +1,4 @@
-import { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
 
 /**
  * Default base URL for Ollama API

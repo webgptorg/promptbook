@@ -1,8 +1,9 @@
-import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { createOpenAiExecutionTools } from '../openai/createOpenAiExecutionTools';
-import { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
-import { DEFAULT_OLLAMA_BASE_URL, OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
+import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
+import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 
 /**
  * Execution Tools for calling Ollama API
