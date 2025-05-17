@@ -4,7 +4,7 @@ import type { string_token } from '../../types/typeAliases';
 import type { string_user_id } from '../../types/typeAliases';
 
 /**
- * Options for `AzureOpenAiExecutionTools`
+ * Options for `createAzureOpenAiExecutionTools` and `AzureOpenAiExecutionTools`
  *
  * @see https://oai.azure.com/portal/
  * @public exported from `@promptbook/azure-openai`

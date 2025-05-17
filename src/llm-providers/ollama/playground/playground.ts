@@ -12,7 +12,7 @@ import { keepUnused } from '../../../utils/organization/keepUnused';
 // import { OllamaAssistantExecutionTools } from '../OllamaAssistantExecutionTools';
 import type { Usage } from '../../../execution/Usage';
 import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
-import { OllamaExecutionTools } from '../OllamaExecutionTools';
+import { createOllamaExecutionTools } from '../createOllamaExecutionTools';
 
 playground()
     .catch((error) => {
@@ -30,18 +30,10 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const ollamaExecutionTools = new OllamaExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            isVerbose: true,
-            userId: 'playground',
-
-            baseUrl: 'http://localhost:11434',
-
-            /** Model name to use for requests */
-            model: 'llama2',
-        },
-    );
+    const ollamaExecutionTools = createOllamaExecutionTools({
+        isVerbose: true,
+        baseURL: 'http://localhost:11434/v1', // <- TODO: !!!! What is the correct base URL?
+    });
 
     const ollamaExecutionToolsWithUsage = countUsage(ollamaExecutionTools);
 
@@ -50,26 +42,13 @@ async function playground() {
         console.log(`[💸] Spending ${wordCount} words`);
     });
 
-    /*/
-    const ollamaAssistantExecutionTools = new OllamaAssistantExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            isVerbose: true,
-            userId: 'playground',
-            apiKey: process.env.OLLAMA_API_KEY!,
-            assistantId: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
-            //            <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
-        },
-    );
-    /**/
-
     keepUnused(ollamaExecutionTools);
-    // keepUnused(ollamaAssistantExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
-    /**/
+    /*/
+    // TODO: !!!! Listing the Ollama models - do it dynamically
     const models = await ollamaExecutionTools.listModels();
     console.info({ models });
     /**/
@@ -89,13 +68,14 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+    /**/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
-        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
+        content: `Hello`,
         modelRequirements: {
             modelVariant: 'CHAT',
+            modelName: 'mistral',
             systemMessage: 'You are an assistant who only speaks in rhymes.',
             temperature: 1.5,
         },
@@ -126,65 +106,6 @@ async function playground() {
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
-    /**/
-
-    /*/
-    const chatPrompt = {
-        title: 'Promptbook speech',
-        parameters: {},
-        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
-        modelRequirements: {
-            modelVariant: 'CHAT',
-            // TODO: [👨‍👨‍👧‍👧] systemMessage: 'You are an assistant who only speaks in rhymes.',
-            // TODO: [👨‍👨‍👧‍👧] temperature: 1.5,
-        },
-
-        /*
-        [🗯]
-        replyingTo: {
-
-        }
-        * /
-    } as const satisfies Prompt;
-    const chatPromptResult = await ollamaAssistantExecutionTools.callChatModel(chatPrompt);
-    console.info({ chatPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Assistant: ') + colors.green(chatPromptResult.content));
-    /**/
-
-    /*/
-    const ollama = await ollamaExecutionTools.getClient();
-    const stream = ollama.beta.threads.createAndRunStream({
-        stream: true,
-        assistant_id: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
-        //             <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
-        thread: {
-            messages: [{ role: 'user', content: 'What is the meaning of life? I want breathtaking speech.' }],
-        },
-    });
-
-    console.log(stream);
-
-    stream.on('connect', () => {
-        console.log('connect', stream.currentEvent);
-    });
-
-    stream.on('messageDelta', (messageDelta) => {
-        console.log('messageDelta', (messageDelta as any).content[0].text);
-    });
-
-    stream.on('messageCreated', (message) => {
-        console.log('messageCreated', message);
-    });
-
-    stream.on('messageDone', (message) => {
-        console.log('messageDone', message);
-    });
-
-    const finalMessages = await stream.finalMessages();
-    console.log('finalMessages', finalMessages, finalMessages[0]!.content[0]!);
-
     /**/
 
     /*/

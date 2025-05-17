@@ -28,7 +28,7 @@ export const _OllamaMetadataRegistration: Registration = $llmToolsMetadataRegist
             packageName: '@promptbook/ollama',
             className: 'OllamaExecutionTools',
             options: {
-                baseUrl: 'http://localhost:11434',
+                baseURL: 'http://localhost:11434',
                 model: 'llama2',
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
             },
@@ -42,7 +42,7 @@ export const _OllamaMetadataRegistration: Registration = $llmToolsMetadataRegist
                 packageName: '@promptbook/ollama',
                 className: 'OllamaExecutionTools',
                 options: {
-                    baseUrl: env.OLLAMA_BASE_URL,
+                    baseURL: env.OLLAMA_BASE_URL,
                     model: env.OLLAMA_MODEL || 'llama2',
                     maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
                 },

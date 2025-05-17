@@ -3,7 +3,7 @@ import type { string_token } from '../../types/typeAliases';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
- * Options for `OpenAiAssistantExecutionTools`
+ * Options for `createOpenAiAssistantExecutionTools` and `OpenAiAssistantExecutionTools`
  *
  * @public exported from `@promptbook/openai`
  */

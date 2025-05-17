@@ -1,19 +1,25 @@
-export interface OllamaExecutionToolsOptions {
-    /** Base URL of Ollama API, e.g., http://localhost:11434 */
-    baseUrl: string;
-  // <- TODO: !!!! default
+import { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
 
+/**
+ * Default base URL for Ollama API
+ *
+ * @public exported from `@promptbook/ollama`
+ */
+export const DEFAULT_OLLAMA_BASE_URL = 'http://localhost:11434'; // <- TODO: !!!! What is the correct base URL? /v1?
 
-    /** Model name to use for requests */
-    model: string;
-    /** Optional rate limit: max requests per minute */
-    maxRequestsPerMinute?: number;
-    /** Verbose logging */
-    isVerbose?: boolean;
-    /** Optional user identifier */
-    userId?: string;
-}
-
-/*
-!!!
-*/
+/**
+ * Options for `createOllamaExecutionTools`
+ *
+ * This combines options for Promptbook, Google and Vercel together
+ * @public exported from `@promptbook/ollama`
+ */
+export type OllamaExecutionToolsOptions = {
+    /**
+     * Base URL of Ollama API
+     *
+     * Note: Naming this `baseURL` not `baseUrl` to be consistent with OpenAI API
+     *
+     * @default `DEFAULT_OLLAMA_BASE_URL`
+     */
+    baseURL?: string;
+} & Omit<OpenAiExecutionToolsOptions, 'baseURL' | 'userId'>;

@@ -2,7 +2,7 @@ import type { createDeepSeek } from '@ai-sdk/deepseek';
 import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptions';
 
 /**
- * Options for `DeepseekExecutionTools`
+ * Options for `createDeepseekExecutionTools`
  *
  * This combines options for Promptbook, Deepseek and Vercel together
  * @public exported from `@promptbook/deepseek`

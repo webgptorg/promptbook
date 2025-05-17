@@ -2,7 +2,7 @@ import type { createGoogleGenerativeAI } from '@ai-sdk/google';
 import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionToolsOptions';
 
 /**
- * Options for `GoogleExecutionTools`
+ * Options for `createGoogleExecutionTools`
  *
  * This combines options for Promptbook, Google and Vercel together
  * @public exported from `@promptbook/google`

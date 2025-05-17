@@ -3,7 +3,7 @@ import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { RemoteClientOptions } from '../../remote-server/types/RemoteClientOptions';
 
 /**
- * Options for `AnthropicClaudeExecutionTools`
+ * Options for `createAnthropicClaudeExecutionTools` and `AnthropicClaudeExecutionTools`
  *
  * This extends Anthropic's `ClientOptions` with are directly passed to the Anthropic client.
  * @public exported from `@promptbook/anthropic-claude`

@@ -7,6 +7,8 @@ import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions'
 /**
  * Execution Tools for calling OpenAI API
  *
+ * Note: This can be also used for other OpenAI compatible APIs, like Ollama
+ *
  * @public exported from `@promptbook/openai`
  */
 export const createOpenAiExecutionTools = Object.assign(
