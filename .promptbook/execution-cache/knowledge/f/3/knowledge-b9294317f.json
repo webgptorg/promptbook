@@ -1,0 +1,148 @@
+{
+    "date": "2025-05-17T16:16:04.261Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "knowledge, instruments, actions, documents, websites, real-time data, weather, calculations, sending emails, creating files, resources, personas",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:52.932Z",
+            "complete": "2025-05-17T16:16:04.261Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 82
+                },
+                "charactersCount": {
+                    "value": 390
+                },
+                "wordsCount": {
+                    "value": 49
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 27
+                },
+                "charactersCount": {
+                    "value": 144
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "knowledge, instruments, actions, documents, websites, real-time data, weather, calculations, sending emails, creating files, resources, personas",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 82,
+                "completionTokens": 27
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 82
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146a89cd85f992-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:54 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=FpAdL0Mu1lCfAtHpT43ECwvumveRWy5zT4DQTxr0oOg-1747498554-1.0.1.1-Pgbhhn0DpJ6WqZg.ujVmRRZWl_GpQXhN7KEi4YyHwoheFzksEmbp5Q25AC_R9DojGkgDK3Rl0_pq2U.uhwx_qRx9o92EMnIK_4EzDnyPbRw; path=/; expires=Sat, 17-May-25 16:45:54 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "7bd90ffae7e466b93d9d20f6ac8bf347"
+                }
+            },
+            "response": {
+                "id": "eb92d026-49e4-4a9f-8174-58ded93d4ac2",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:54.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas.\"}]}"
+            }
+        }
+    }
+}

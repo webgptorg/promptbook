@@ -1,0 +1,148 @@
+{
+    "date": "2025-05-17T16:16:04.316Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nThe future of software development is shifting towards writing applications in plain human languages (e.g., English, French) that are executable by both humans and machines, enabled by advancements in large language models (LLMs) like GPT or Claude."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "software development, human languages, English, French, executable, machines, large language models, LLMs, GPT, Claude",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:53.928Z",
+            "complete": "2025-05-17T16:16:04.315Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 92
+                },
+                "charactersCount": {
+                    "value": 452
+                },
+                "wordsCount": {
+                    "value": 64
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 24
+                },
+                "charactersCount": {
+                    "value": 118
+                },
+                "wordsCount": {
+                    "value": 14
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> The future of software development is shifting towards writing applications in plain human languages (e.g., English, French) that are executable by both humans and machines, enabled by advancements in large language models (LLMs) like GPT or Claude.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> The future of software development is shifting towards writing applications in plain human languages (e.g., English, French) that are executable by both humans and machines, enabled by advancements in large language models (LLMs) like GPT or Claude."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "software development, human languages, English, French, executable, machines, large language models, LLMs, GPT, Claude",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 92,
+                "completionTokens": 24
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 92
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> The future of software development is shifting towards writing applications in plain human languages (e.g., English, French) that are executable by both humans and machines, enabled by advancements in large language models (LLMs) like GPT or Claude."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146a8ffe7f2759-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:55 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=5noMxwBlD.7PWvLqPMdO1.S7AUY2GxHk1Z2hduGm6_w-1747498555-1.0.1.1-tv7UrMSQkYpWenhaqshhfyc_j61VD1NTrcY.y8arl1_noXW5blJESHmEa1zfnI1oHacKednopiBWIAj7VohzkcX2UwYsHiTcf82YUqBt8iI; path=/; expires=Sat, 17-May-25 16:45:55 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "f063af4221e1e6db0f5f9a41fbeb55c7"
+                }
+            },
+            "response": {
+                "id": "65fdb1e8-291f-41fd-b5a1-ab17a7772f4c",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:55.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> ---\\n> \\n> The future of software development is shifting towards writing applications in plain human languages (e.g., English, French) that are executable by both humans and machines, enabled by advancements in large language models (LLMs) like GPT or Claude.\"}]}"
+            }
+        }
+    }
+}

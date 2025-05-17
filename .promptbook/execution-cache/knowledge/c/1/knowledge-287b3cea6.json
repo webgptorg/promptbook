@@ -1,0 +1,148 @@
+{
+    "date": "2025-05-17T16:16:09.798Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Key tools in the Promptbook ecosystem include **Promptbook Engine** (runs Book applications via NPM/Docker), **Promptbook Studio** (web-based editor/runner), and a **VSCode plugin** for `.book` files."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook Engine, Promptbook Studio, VSCode plugin, .book files, NPM, Docker, web-based editor, runner",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:58.729Z",
+            "complete": "2025-05-17T16:16:09.797Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 90
+                },
+                "charactersCount": {
+                    "value": 394
+                },
+                "wordsCount": {
+                    "value": 54
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 27
+                },
+                "charactersCount": {
+                    "value": 103
+                },
+                "wordsCount": {
+                    "value": 14
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Key tools in the Promptbook ecosystem include **Promptbook Engine** (runs Book applications via NPM/Docker), **Promptbook Studio** (web-based editor/runner), and a **VSCode plugin** for `.book` files.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Key tools in the Promptbook ecosystem include **Promptbook Engine** (runs Book applications via NPM/Docker), **Promptbook Studio** (web-based editor/runner), and a **VSCode plugin** for `.book` files."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Promptbook Engine, Promptbook Studio, VSCode plugin, .book files, NPM, Docker, web-based editor, runner",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 90,
+                "completionTokens": 27
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 90
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Key tools in the Promptbook ecosystem include **Promptbook Engine** (runs Book applications via NPM/Docker), **Promptbook Studio** (web-based editor/runner), and a **VSCode plugin** for `.book` files."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146aadfa75b34d-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:16:00 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=Nxlx7Vi6JsIoT1kttCopFxTy5Pj0esW.2NuPHDrx48c-1747498560-1.0.1.1-P8EP2eyvGwZLva07r7BgrDk69wwmaU.IllEdIxqF2py8SwivZr_CfM9egR0g2sjyyLTbrJimS.yfUk.R6O9u0SQAhmMX2azblyOT_8Zh_1c; path=/; expires=Sat, 17-May-25 16:46:00 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "7566af94b736fdcccd08fbe0a8ad53cd"
+                }
+            },
+            "response": {
+                "id": "31ca69d8-d2de-4503-a87c-b2f30022860a",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:59.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Key tools in the Promptbook ecosystem include **Promptbook Engine** (runs Book applications via NPM/Docker), **Promptbook Studio** (web-based editor/runner), and a **VSCode plugin** for `.book` files.\"}]}"
+            }
+        }
+    }
+}

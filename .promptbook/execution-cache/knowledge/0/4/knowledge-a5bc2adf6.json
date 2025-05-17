@@ -1,0 +1,148 @@
+{
+    "date": "2025-05-17T16:16:01.757Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "**Book Language** is a Markdown-based DSL for defining AI workflows, tasks, and parameters without requiring model-specific details. It focuses on three core components: **What** (workflows/tasks), **Who** (personas), and **How** (knowledge/instruments/actions)."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Book Language, Markdown-based DSL, AI workflows, tasks, parameters, model-specific, core components, What, workflows, tasks, Who, personas, How, knowledge, instruments, actions",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:51.008Z",
+            "complete": "2025-05-17T16:16:01.756Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 99
+                },
+                "charactersCount": {
+                    "value": 456
+                },
+                "wordsCount": {
+                    "value": 61
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 38
+                },
+                "charactersCount": {
+                    "value": 176
+                },
+                "wordsCount": {
+                    "value": 22
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> **Book Language** is a Markdown-based DSL for defining AI workflows, tasks, and parameters without requiring model-specific details. It focuses on three core components: **What** (workflows/tasks), **Who** (personas), and **How** (knowledge/instruments/actions).",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> **Book Language** is a Markdown-based DSL for defining AI workflows, tasks, and parameters without requiring model-specific details. It focuses on three core components: **What** (workflows/tasks), **Who** (personas), and **How** (knowledge/instruments/actions)."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Book Language, Markdown-based DSL, AI workflows, tasks, parameters, model-specific, core components, What, workflows, tasks, Who, personas, How, knowledge, instruments, actions",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 99,
+                "completionTokens": 38
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 99
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> **Book Language** is a Markdown-based DSL for defining AI workflows, tasks, and parameters without requiring model-specific details. It focuses on three core components: **What** (workflows/tasks), **Who** (personas), and **How** (knowledge/instruments/actions)."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146a7db96923fa-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:52 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=1a2kkwOpUIEUt1wuvGwNqkWAnhFDQ0GK1qtPTx0KVeg-1747498552-1.0.1.1-L2iN1NSxPOU6bRV.yMSlZg9SEtDYblRUyZm3hqfWFYtnbu_EYBJCNXT6StW_o4._wnQAiuBq9rHk_FtTLpq3q.vLeQEai_uds09oy1or6I4; path=/; expires=Sat, 17-May-25 16:45:52 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "fae3789031fc097c473d2d81640a54a5"
+                }
+            },
+            "response": {
+                "id": "6d960b73-6ac9-455f-a565-d9f2d83c82a2",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:52.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> **Book Language** is a Markdown-based DSL for defining AI workflows, tasks, and parameters without requiring model-specific details. It focuses on three core components: **What** (workflows/tasks), **Who** (personas), and **How** (knowledge/instruments/actions).\"}]}"
+            }
+        }
+    }
+}

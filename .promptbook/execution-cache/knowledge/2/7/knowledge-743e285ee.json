@@ -1,0 +1,148 @@
+{
+    "date": "2025-05-17T16:16:09.794Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Advanced features include multilingual support, anomaly detection, conditional logic (\"Jokers\"), metaprompting, and dynamic model fine-tuning, catering to complex AI workflows."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "multilingual support, anomaly detection, conditional logic, Jokers, metaprompting, dynamic model fine-tuning, AI workflows",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:57.850Z",
+            "complete": "2025-05-17T16:16:09.794Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 72
+                },
+                "charactersCount": {
+                    "value": 370
+                },
+                "wordsCount": {
+                    "value": 47
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 25
+                },
+                "charactersCount": {
+                    "value": 122
+                },
+                "wordsCount": {
+                    "value": 14
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Advanced features include multilingual support, anomaly detection, conditional logic (\"Jokers\"), metaprompting, and dynamic model fine-tuning, catering to complex AI workflows.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Advanced features include multilingual support, anomaly detection, conditional logic (\"Jokers\"), metaprompting, and dynamic model fine-tuning, catering to complex AI workflows."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "multilingual support, anomaly detection, conditional logic, Jokers, metaprompting, dynamic model fine-tuning, AI workflows",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 72,
+                "completionTokens": 25
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 72
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Advanced features include multilingual support, anomaly detection, conditional logic (\"Jokers\"), metaprompting, and dynamic model fine-tuning, catering to complex AI workflows."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146aa87fcc97d7-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:59 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=VHgUELXZXluJqfEcKwRCRZ_GV60qlq0cBXD9LEckXeM-1747498559-1.0.1.1-mX4KM0Vbu.dO7DVR1Zzgt1IKE4XpDTwpsvmW33uifjVosB495yzt3CU2DbabSaSsZcNY3b__dL75pN1pX4ceIxR64muIl5wmdLKAeiWBMoM; path=/; expires=Sat, 17-May-25 16:45:59 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "fb2c1079f448eaf4c80708d1b30507a7"
+                }
+            },
+            "response": {
+                "id": "93cc1687-51c9-4117-9f5d-00be30effaba",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:59.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Advanced features include multilingual support, anomaly detection, conditional logic (\\\"Jokers\\\"), metaprompting, and dynamic model fine-tuning, catering to complex AI workflows.\"}]}"
+            }
+        }
+    }
+}

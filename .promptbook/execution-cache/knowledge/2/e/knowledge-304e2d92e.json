@@ -1,0 +1,153 @@
+{
+    "date": "2025-05-17T16:15:55.474Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands)."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "\"Simple, Version-Friendly Language Guide\"",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:43.262Z",
+            "complete": "2025-05-17T16:15:55.474Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 93
+                },
+                "charactersCount": {
+                    "value": 391
+                },
+                "wordsCount": {
+                    "value": 56
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 8
+                },
+                "charactersCount": {
+                    "value": 41
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands).",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands)."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "\"Simple, Version-Friendly Language Guide\"",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 93,
+                "completionTokens": 8
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 93
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands)."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146a4d6a1b3516-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:44 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=u5sJ4eznYcLBWeKXv3yate_Lf34qmdAGVMpee4LSUYk-1747498544-1.0.1.1-.nVbnyqnC5ToqxVijcRc87k3vvk8cwhvv0iKGLoJ.bdcSt5D_gBOTtuW4AcrKav9RTzPmqWAJDkf9oS3oMjkdSwjuv3YONoTSEbJ8MF9WBY; path=/; expires=Sat, 17-May-25 16:45:44 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "72328332ba19059f2b76e90070723461"
+                }
+            },
+            "response": {
+                "id": "d9207bfa-0d61-4f64-a1d0-7729da3f2039",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:44.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands).\"}]}"
+            }
+        }
+    }
+}

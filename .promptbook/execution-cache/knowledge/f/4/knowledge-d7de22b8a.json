@@ -1,0 +1,153 @@
+{
+    "date": "2025-05-17T16:15:49.753Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Personas in Book Language abstract AI model configurations into human-readable descriptions (e.g., \"Jane, a creative writer with sharp humor\" instead of technical parameters like `temperature=1.2`)."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "\"Humanizing AI with Persona Descriptions\"",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:41.242Z",
+            "complete": "2025-05-17T16:15:49.753Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 84
+                },
+                "charactersCount": {
+                    "value": 374
+                },
+                "wordsCount": {
+                    "value": 55
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 10
+                },
+                "charactersCount": {
+                    "value": 41
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Personas in Book Language abstract AI model configurations into human-readable descriptions (e.g., \"Jane, a creative writer with sharp humor\" instead of technical parameters like `temperature=1.2`).",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Personas in Book Language abstract AI model configurations into human-readable descriptions (e.g., \"Jane, a creative writer with sharp humor\" instead of technical parameters like `temperature=1.2`)."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "\"Humanizing AI with Persona Descriptions\"",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 84,
+                "completionTokens": 10
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 84
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Personas in Book Language abstract AI model configurations into human-readable descriptions (e.g., \"Jane, a creative writer with sharp humor\" instead of technical parameters like `temperature=1.2`)."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146a40ceb9f97a-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:42 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=KkVkUvvxjS7TDWVVe43EQpDy4Cc_0vgy9sYkarbg3jI-1747498542-1.0.1.1-iL1Qd2gmIg9gOAgOkmP1I8ho0FbeJcqM40sKyauP8a4UA9gfAmUQjVhZcSzgEmVV6muBGA4tgnBlPXfd4ash29K2K8MjCxLiZN9ts9qNfoY; path=/; expires=Sat, 17-May-25 16:45:42 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "ebdc97a0cb7de07b6fd3815e3e235642"
+                }
+            },
+            "response": {
+                "id": "21cadcc2-c6b0-432c-a4d3-1cdf4c632fc7",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:42.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> Personas in Book Language abstract AI model configurations into human-readable descriptions (e.g., \\\"Jane, a creative writer with sharp humor\\\" instead of technical parameters like `temperature=1.2`).\"}]}"
+            }
+        }
+    }
+}

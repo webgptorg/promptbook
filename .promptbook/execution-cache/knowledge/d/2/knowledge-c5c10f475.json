@@ -1,0 +1,148 @@
+{
+    "date": "2025-05-17T16:16:13.590Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook is licensed under BUSL 1.1, encourages contributions (pull requests, feedback), and provides support via GitHub issues and discussions. Known limitations and intentionally excluded features are documented."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, licensed, BUSL 1.1, contributions, pull requests, feedback, support, GitHub issues, discussions, limitations, excluded features, documented",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:59.647Z",
+            "complete": "2025-05-17T16:16:13.590Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 78
+                },
+                "charactersCount": {
+                    "value": 410
+                },
+                "wordsCount": {
+                    "value": 55
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 32
+                },
+                "charactersCount": {
+                    "value": 151
+                },
+                "wordsCount": {
+                    "value": 18
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook is licensed under BUSL 1.1, encourages contributions (pull requests, feedback), and provides support via GitHub issues and discussions. Known limitations and intentionally excluded features are documented.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook is licensed under BUSL 1.1, encourages contributions (pull requests, feedback), and provides support via GitHub issues and discussions. Known limitations and intentionally excluded features are documented."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Promptbook, licensed, BUSL 1.1, contributions, pull requests, feedback, support, GitHub issues, discussions, limitations, excluded features, documented",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 78,
+                "completionTokens": 32
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 78
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook is licensed under BUSL 1.1, encourages contributions (pull requests, feedback), and provides support via GitHub issues and discussions. Known limitations and intentionally excluded features are documented."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146ab3bf512759-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:16:00 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=3G6u.dbYxnqPrE0mx0OhntyGaMz4yjKFVmwjqLstgLg-1747498560-1.0.1.1-piI1_h.zvOzn7bYgSgL_n0SMer2Q_vfGJR4jP26QybCuYGVO3qlmuf6HBPy0aHbjBOnkcnSfMlVXulwvueVmrmGv4Xggw7KyJ3TGHWLZHJs; path=/; expires=Sat, 17-May-25 16:46:00 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "75ef2f02d5b5a269694874752dd3fd51"
+                }
+            },
+            "response": {
+                "id": "4173a90e-15e5-4c9f-8fb2-c7356f2ad0a3",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:16:00.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Promptbook is licensed under BUSL 1.1, encourages contributions (pull requests, feedback), and provides support via GitHub issues and discussions. Known limitations and intentionally excluded features are documented.\"}]}"
+            }
+        }
+    }
+}
