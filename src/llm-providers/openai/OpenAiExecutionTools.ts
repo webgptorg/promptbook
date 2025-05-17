@@ -9,15 +9,15 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -98,7 +98,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
     /**
      * List all available OpenAI models that can be used
      */
-    public listModels(): ReadonlyArray<AvailableModel> {
+    public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
         /*
         Note: Dynamic lising of the models
         const models = await this.openai.models.list({});
@@ -107,7 +107,33 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         console.log(models.data);
         */
 
-        return OPENAI_MODELS;
+        const client = await this.getClient();
+        const rawModelsList = await client.models.list();
+
+        const availableModels = rawModelsList.data
+            .sort((a, b) => (a.created > b.created ? 1 : -1))
+            .map((modelFromApi) => {
+                // TODO: !!!! What about other model compatibilities?
+                const modelFromList = OPENAI_MODELS.find(
+                    ({ modelName }) =>
+                        modelName === modelFromApi.id ||
+                        modelName.startsWith(modelFromApi.id) ||
+                        modelFromApi.id.startsWith(modelName),
+                );
+
+                if (modelFromList !== undefined) {
+                    return modelFromList;
+                }
+
+                return {
+                    modelVariant: 'CHAT', // <- TODO: Is it correct to assume that listed models are chat models?
+                    modelTitle: modelFromApi.id,
+                    modelName: modelFromApi.id,
+                    modelDescription: '',
+                } satisfies AvailableModel;
+            });
+
+        return availableModels;
     }
 
     /**

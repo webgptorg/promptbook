@@ -767,9 +767,7 @@ User system and spending of credits
 
 > `0.90.0` and `0.91.0` were skipped
 
-## In pre-release
-
-### `0.92.0` _(2025-05-)_
+### `0.92.0` _(2025-05-13)_
 
 Models and Migrations and processing big tables
 
@@ -805,11 +803,22 @@ Models and Migrations and processing big tables
 -   ✨Auto-enhance model providers, _try autonomous agent to work on Promptbook_
 -   ✨Auto-fix grammar and typos
 
-### `0.93.0` _(2025-05-)_
+### `0.93.0` _(2025-05-14)_
 
 Enhance the presentation of the Promptbook
 
 ✨ First release mainly managed by AI
+
+## In pre-release
+
+### `0.94.0` _(2025-05-)_
+
+Integration of local models
+
+-   OpenAI compatibility layer
+-   Make `@promptbook/ollama` package
+-   `AvailableModel` has pricing information
+-   Better reporting of progress
 
 ## Upcoming
 

@@ -1,5 +1,4 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { number_usd } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { computeUsage } from './computeUsage';
 
@@ -12,14 +11,7 @@ import { computeUsage } from './computeUsage';
  * @see https://openai.com/api/pricing/
  * @public exported from `@promptbook/openai`
  */
-export const OPENAI_MODELS: ReadonlyArray<
-    AvailableModel & {
-        pricing?: {
-            readonly prompt: number_usd;
-            readonly output: number_usd;
-        };
-    }
-> = exportJson({
+export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
     name: 'OPENAI_MODELS',
     value: [
         /*/

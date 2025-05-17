@@ -65,7 +65,7 @@ async function playground() {
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
-    /*/
+    /**/
     const models = await openAiExecutionTools.listModels();
     console.info({ models });
     /**/
@@ -85,7 +85,7 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /**/
+    /*/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},

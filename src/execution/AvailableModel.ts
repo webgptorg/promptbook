@@ -1,7 +1,5 @@
 import type { ModelVariant } from '../types/ModelVariant';
-import type { string_model_description } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
+import type { number_usd, string_model_description, string_model_name, string_title } from '../types/typeAliases';
 
 /**
  * Represents a model that can be used for prompt execution
@@ -36,8 +34,16 @@ export type AvailableModel = {
      * @example "Model with 1 billion parameters and advanced reasoning capabilities"
      */
     readonly modelDescription?: string_model_description;
+
+    /**
+     * Pricing information for the model
+     */
+    readonly pricing?: {
+        readonly prompt: number_usd;
+        readonly output: number_usd;
+    };
 };
 
 /**
- * TODO: (not only [🕘]) Put pricing information here
+ * TODO: [🧠] Maybe rename to something else - like `ModelInformation` or `ModelMetadata`
  */
