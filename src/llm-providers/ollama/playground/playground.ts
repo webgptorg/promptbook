@@ -47,7 +47,7 @@ async function playground() {
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
-    /**/
+    /*/
     // TODO: !!!! Listing the Ollama models - do it dynamically
     const models = await ollamaExecutionTools.listModels();
     console.info({ models });
@@ -68,7 +68,7 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+    /**/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
