@@ -1,7 +1,7 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { computeUsage } from '../openai/computeUsage';
+import { pricing } from '../_common/utils/computeUsage';
 
 /**
  * List of available Anthropic Claude models with pricing
@@ -28,8 +28,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest Claude model with great reasoning, coding, and language understanding capabilities. 200K context window. Optimized balance of intelligence and speed.',
             pricing: {
-                prompt: computeUsage(`$2.50 / 1M tokens`),
-                output: computeUsage(`$12.50 / 1M tokens`),
+                prompt: pricing(`$2.50 / 1M tokens`),
+                output: pricing(`$12.50 / 1M tokens`),
             },
         },
         {
@@ -39,8 +39,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Most capable Claude model excelling at complex reasoning, coding, and detailed instruction following. 200K context window. Best for sophisticated tasks requiring nuanced understanding.',
             pricing: {
-                prompt: computeUsage(`$12.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
+                prompt: pricing(`$12.00 / 1M tokens`),
+                output: pricing(`$60.00 / 1M tokens`),
             },
         },
         {
@@ -50,8 +50,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Strong general-purpose model with excellent performance across reasoning, conversation, and coding tasks. 200K context window. Good balance of intelligence and cost-efficiency.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$15.00 / 1M tokens`),
             },
         },
         {
@@ -61,8 +61,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Fastest and most compact Claude model optimized for responsiveness in interactive applications. 200K context window. Excellent for quick responses and lightweight applications.',
             pricing: {
-                prompt: computeUsage(`$0.25 / 1M tokens`),
-                output: computeUsage(`$1.25 / 1M tokens`),
+                prompt: pricing(`$0.25 / 1M tokens`),
+                output: pricing(`$1.25 / 1M tokens`),
             },
         },
         {
@@ -72,8 +72,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Improved version of Claude 2 with better performance across reasoning and truthfulness. 100K context window. Legacy model with strong reliability.',
             pricing: {
-                prompt: computeUsage(`$8.00 / 1M tokens`),
-                output: computeUsage(`$24.00 / 1M tokens`),
+                prompt: pricing(`$8.00 / 1M tokens`),
+                output: pricing(`$24.00 / 1M tokens`),
             },
         },
         {
@@ -83,8 +83,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Legacy model with strong general reasoning and language capabilities. 100K context window. Superseded by newer Claude 3 models.',
             pricing: {
-                prompt: computeUsage(`$8.00 / 1M tokens`),
-                output: computeUsage(`$24.00 / 1M tokens`),
+                prompt: pricing(`$8.00 / 1M tokens`),
+                output: pricing(`$24.00 / 1M tokens`),
             },
         },
         {
@@ -94,8 +94,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Older, faster Claude model optimized for high throughput applications. Lower cost but less capable than newer models. 100K context window.',
             pricing: {
-                prompt: computeUsage(`$0.80 / 1M tokens`),
-                output: computeUsage(`$2.40 / 1M tokens`),
+                prompt: pricing(`$0.80 / 1M tokens`),
+                output: pricing(`$2.40 / 1M tokens`),
             },
         },
         {
@@ -105,8 +105,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest generation Claude model with advanced reasoning and language understanding. Enhanced capabilities over 3.5 with improved domain knowledge. 200K context window.',
             pricing: {
-                prompt: computeUsage(`$2.50 / 1M tokens`),
-                output: computeUsage(`$12.50 / 1M tokens`),
+                prompt: pricing(`$2.50 / 1M tokens`),
+                output: pricing(`$12.50 / 1M tokens`),
             },
         },
         {
@@ -116,8 +116,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelDescription:
                 'Fast and efficient Claude 3.5 variant optimized for speed and cost-effectiveness. Great for interactive applications requiring quick responses. 200K context window.',
             pricing: {
-                prompt: computeUsage(`$0.25 / 1M tokens`),
-                output: computeUsage(`$1.25 / 1M tokens`),
+                prompt: pricing(`$0.25 / 1M tokens`),
+                output: pricing(`$1.25 / 1M tokens`),
             },
         },
 

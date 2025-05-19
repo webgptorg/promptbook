@@ -1,7 +1,7 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { computeUsage } from '../openai/computeUsage';
+import { pricing } from '../_common/utils/computeUsage';
 
 /**
  * List of available Deepseek models with descriptions
@@ -29,8 +29,8 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
             modelDescription:
                 'General-purpose language model with strong performance across conversation, reasoning, and content generation. 128K context window with excellent instruction following capabilities.',
             pricing: {
-                prompt: computeUsage(`$0.80 / 1M tokens`),
-                output: computeUsage(`$1.60 / 1M tokens`),
+                prompt: pricing(`$0.80 / 1M tokens`),
+                output: pricing(`$1.60 / 1M tokens`),
             },
         },
         {
@@ -40,8 +40,8 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
             modelDescription:
                 'Specialized model focused on complex reasoning tasks like mathematical problem-solving and logical analysis. Enhanced step-by-step reasoning with explicit chain-of-thought processes. 128K context window.',
             pricing: {
-                prompt: computeUsage(`$3.50 / 1M tokens`),
-                output: computeUsage(`$7.00 / 1M tokens`),
+                prompt: pricing(`$3.50 / 1M tokens`),
+                output: pricing(`$7.00 / 1M tokens`),
             },
         },
         {
@@ -51,8 +51,8 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
             modelDescription:
                 'Advanced general-purpose model with improved reasoning, coding abilities, and multimodal understanding. Built on the latest DeepSeek architecture with enhanced knowledge representation.',
             pricing: {
-                prompt: computeUsage(`$1.50 / 1M tokens`),
-                output: computeUsage(`$3.00 / 1M tokens`),
+                prompt: pricing(`$1.50 / 1M tokens`),
+                output: pricing(`$3.00 / 1M tokens`),
             },
         },
         {
@@ -62,8 +62,8 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
             modelDescription:
                 'Research-focused model optimized for scientific problem-solving and analytical tasks. Excellent performance on tasks requiring domain-specific expertise and critical thinking.',
             pricing: {
-                prompt: computeUsage(`$5.00 / 1M tokens`),
-                output: computeUsage(`$10.00 / 1M tokens`),
+                prompt: pricing(`$5.00 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
             },
         },
         // <- [🕕]

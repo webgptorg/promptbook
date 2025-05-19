@@ -1,7 +1,7 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { computeUsage } from '../openai/computeUsage';
+import { pricing } from '../_common/utils/computeUsage';
 
 /**
  * List of available Google models with descriptions
@@ -29,8 +29,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest advanced multimodal model with exceptional reasoning, tool use, and instruction following. 1M token context window with improved vision capabilities for complex visual tasks.',
             pricing: {
-                prompt: computeUsage(`$8.00 / 1M tokens`),
-                output: computeUsage(`$24.00 / 1M tokens`),
+                prompt: pricing(`$8.00 / 1M tokens`),
+                output: pricing(`$24.00 / 1M tokens`),
             },
         },
         {
@@ -40,8 +40,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Fast, efficient model optimized for rapid response times. Good balance between performance and cost, with strong capabilities across text, code, and reasoning tasks. 128K context window.',
             pricing: {
-                prompt: computeUsage(`$0.35 / 1M tokens`),
-                output: computeUsage(`$1.05 / 1M tokens`),
+                prompt: pricing(`$0.35 / 1M tokens`),
+                output: pricing(`$1.05 / 1M tokens`),
             },
         },
         {
@@ -51,8 +51,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Streamlined version of Gemini 2.0 Flash, designed for extremely low-latency applications and edge deployments. Optimized for efficiency while maintaining core capabilities.',
             pricing: {
-                prompt: computeUsage(`$0.20 / 1M tokens`),
-                output: computeUsage(`$0.60 / 1M tokens`),
+                prompt: pricing(`$0.20 / 1M tokens`),
+                output: pricing(`$0.60 / 1M tokens`),
             },
         },
         {
@@ -62,8 +62,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Experimental model focused on enhanced reasoning with explicit chain-of-thought processes. Designed for tasks requiring structured thinking and problem-solving approaches.',
             pricing: {
-                prompt: computeUsage(`$0.35 / 1M tokens`),
-                output: computeUsage(`$1.05 / 1M tokens`),
+                prompt: pricing(`$0.35 / 1M tokens`),
+                output: pricing(`$1.05 / 1M tokens`),
             },
         },
         {
@@ -73,8 +73,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Efficient model balancing speed and quality for general-purpose applications. 1M token context window with good multimodal capabilities and quick response times.',
             pricing: {
-                prompt: computeUsage(`$0.25 / 1M tokens`),
-                output: computeUsage(`$0.75 / 1M tokens`),
+                prompt: pricing(`$0.25 / 1M tokens`),
+                output: pricing(`$0.75 / 1M tokens`),
             },
         },
         {
@@ -140,8 +140,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Points to the most recent version of the flagship Gemini 1.5 Pro model, ensuring access to the latest capabilities and improvements.',
             pricing: {
-                prompt: computeUsage(`$7.00 / 1M tokens`),
-                output: computeUsage(`$21.00 / 1M tokens`),
+                prompt: pricing(`$7.00 / 1M tokens`),
+                output: pricing(`$21.00 / 1M tokens`),
             },
         },
         {
@@ -151,8 +151,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Flagship multimodal model with strong performance across text, code, vision, and audio tasks. 1M token context window with excellent reasoning capabilities.',
             pricing: {
-                prompt: computeUsage(`$6.00 / 1M tokens`),
-                output: computeUsage(`$18.00 / 1M tokens`),
+                prompt: pricing(`$6.00 / 1M tokens`),
+                output: pricing(`$18.00 / 1M tokens`),
             },
         },
         {
@@ -183,8 +183,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Original Gemini series foundation model with solid multimodal capabilities. 32K context window with good performance on text, code, and basic vision tasks.',
             pricing: {
-                prompt: computeUsage(`$0.35 / 1M tokens`),
-                output: computeUsage(`$1.05 / 1M tokens`),
+                prompt: pricing(`$0.35 / 1M tokens`),
+                output: pricing(`$1.05 / 1M tokens`),
             },
         },
         // <- [🕕]

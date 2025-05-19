@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { computeUsage } from './computeUsage';
+import { pricing } from '../_common/utils/computeUsage';
 
 /**
  * List of available OpenAI models with pricing
@@ -36,8 +36,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Legacy completion model with strong performance on text generation tasks. Optimized for complex instructions and longer outputs.',
             pricing: {
-                prompt: computeUsage(`$2.00 / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
+                prompt: pricing(`$2.00 / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
             },
         },
         /**/
@@ -57,8 +57,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'GPT-3.5 Turbo with extended 16k token context length for handling longer conversations and documents.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$4.00 / 1M tokens`),
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$4.00 / 1M tokens`),
             },
         },
         /**/
@@ -85,8 +85,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'GPT-4 is a powerful language model with enhanced reasoning, instruction-following capabilities, and 8K context window. Optimized for complex tasks requiring deep understanding.',
             pricing: {
-                prompt: computeUsage(`$30.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
+                prompt: pricing(`$30.00 / 1M tokens`),
+                output: pricing(`$60.00 / 1M tokens`),
             },
         },
         /**/
@@ -99,8 +99,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Extended context version of GPT-4 with a 32K token window for processing very long inputs and generating comprehensive responses for complex tasks.',
             pricing: {
-                prompt: computeUsage(`$60.00 / 1M tokens`),
-                output: computeUsage(`$120.00 / 1M tokens`),
+                prompt: pricing(`$60.00 / 1M tokens`),
+                output: pricing(`$120.00 / 1M tokens`),
             },
         },
         /**/
@@ -125,8 +125,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Latest stable GPT-4 Turbo model from April 2024 with enhanced reasoning and context handling capabilities. Offers 128K context window and improved performance.',
             pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
+                prompt: pricing(`$10.00 / 1M tokens`),
+                output: pricing(`$30.00 / 1M tokens`),
             },
         },
         /**/
@@ -139,8 +139,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'November 2023 version of GPT-3.5 Turbo with improved instruction following and a 16K token context window.',
             pricing: {
-                prompt: computeUsage(`$1.00 / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
+                prompt: pricing(`$1.00 / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
             },
         },
         /**/
@@ -153,8 +153,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'More capable model than GPT-4 with improved instruction following, function calling and a 128K token context window for handling very large documents.',
             pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
+                prompt: pricing(`$10.00 / 1M tokens`),
+                output: pricing(`$30.00 / 1M tokens`),
             },
         },
         /**/
@@ -167,8 +167,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'September 2023 version of GPT-3.5 Turbo optimized for completion-style instruction following with a 4K context window.',
             pricing: {
-                prompt: computeUsage(`$1.50  / 1M tokens`), // <- For gpt-3.5-turbo-instruct
-                output: computeUsage(`$2.00 / 1M tokens`), // <- For gpt-3.5-turbo-instruct
+                prompt: pricing(`$1.50  / 1M tokens`), // <- For gpt-3.5-turbo-instruct
+                output: pricing(`$2.00 / 1M tokens`), // <- For gpt-3.5-turbo-instruct
             },
         },
         /**/
@@ -181,8 +181,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Optimized version of GPT-3.5 for completion-style API with good instruction following and a 4K token context window.',
             pricing: {
-                prompt: computeUsage(`$1.50  / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
+                prompt: pricing(`$1.50  / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
             },
         },
         /**/
@@ -202,8 +202,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Latest version of GPT-3.5 Turbo with improved performance and instruction following capabilities. Default 4K context window with options for 16K.',
             pricing: {
-                prompt: computeUsage(`$0.50 / 1M tokens`),
-                output: computeUsage(`$1.50 / 1M tokens`),
+                prompt: pricing(`$0.50 / 1M tokens`),
+                output: pricing(`$1.50 / 1M tokens`),
             },
         },
         /**/
@@ -216,8 +216,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'March 2023 version of GPT-3.5 Turbo with a 4K token context window. Legacy model maintained for backward compatibility.',
             pricing: {
-                prompt: computeUsage(`$1.50 / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
+                prompt: pricing(`$1.50 / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
             },
         },
         /**/
@@ -230,8 +230,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Efficient legacy completion model with a good balance of performance and speed. Suitable for straightforward text generation tasks.',
             pricing: {
-                prompt: computeUsage(`$0.40 / 1M tokens`),
-                output: computeUsage(`$0.40 / 1M tokens`),
+                prompt: pricing(`$0.40 / 1M tokens`),
+                output: pricing(`$0.40 / 1M tokens`),
             },
         },
         /**/
@@ -244,8 +244,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'November 2023 preview version of GPT-4 Turbo with improved instruction following and a 128K token context window.',
             pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
+                prompt: pricing(`$10.00 / 1M tokens`),
+                output: pricing(`$30.00 / 1M tokens`),
             },
         },
         /**/
@@ -258,8 +258,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'January 2024 preview version of GPT-4 Turbo with improved reasoning capabilities and a 128K token context window.',
             pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
+                prompt: pricing(`$10.00 / 1M tokens`),
+                output: pricing(`$30.00 / 1M tokens`),
             },
         },
         /**/
@@ -279,8 +279,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'January 2024 version of GPT-3.5 Turbo with improved reasoning capabilities and a 16K token context window.',
             pricing: {
-                prompt: computeUsage(`$0.50 / 1M tokens`),
-                output: computeUsage(`$1.50  / 1M tokens`),
+                prompt: pricing(`$0.50 / 1M tokens`),
+                output: pricing(`$1.50  / 1M tokens`),
             },
         },
         /**/
@@ -293,8 +293,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Preview version of GPT-4 Turbo that points to the latest model version. Features improved instruction following, 128K token context window and lower latency.',
             pricing: {
-                prompt: computeUsage(`$10.00 / 1M tokens`),
-                output: computeUsage(`$30.00 / 1M tokens`),
+                prompt: pricing(`$10.00 / 1M tokens`),
+                output: pricing(`$30.00 / 1M tokens`),
             },
         },
         /**/
@@ -307,7 +307,7 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 "OpenAI's most capable text embedding model designed for high-quality embeddings for complex similarity tasks and information retrieval.",
             pricing: {
-                prompt: computeUsage(`$0.13 / 1M tokens`),
+                prompt: pricing(`$0.13 / 1M tokens`),
                 // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
                 output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
             },
@@ -322,7 +322,7 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Cost-effective embedding model with good performance for simpler tasks like text similarity and retrieval. Good balance of quality and efficiency.',
             pricing: {
-                prompt: computeUsage(`$0.02 / 1M tokens`),
+                prompt: pricing(`$0.02 / 1M tokens`),
                 // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
                 output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
             },
@@ -337,8 +337,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'June 2023 version of GPT-3.5 Turbo with function calling capabilities and a 4K token context window.',
             pricing: {
-                prompt: computeUsage(`$1.50 / 1M tokens`),
-                output: computeUsage(`$2.00 / 1M tokens`),
+                prompt: pricing(`$1.50 / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
             },
         },
         /**/
@@ -351,7 +351,7 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Legacy text embedding model suitable for text similarity and retrieval augmented generation use cases. Replaced by newer embedding-3 models.',
             pricing: {
-                prompt: computeUsage(`$0.1 / 1M tokens`), // <- Not sure, taken from https://tokescompare.io/product/openai-text-embedding-ada-002/, no official pricing
+                prompt: pricing(`$0.1 / 1M tokens`), // <- Not sure, taken from https://tokescompare.io/product/openai-text-embedding-ada-002/, no official pricing
                 // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
                 output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
             },
@@ -386,8 +386,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'May 2024 version of GPT-4o with enhanced multimodal capabilities, improved reasoning, and optimized for vision, audio and chat at lower latencies.',
             pricing: {
-                prompt: computeUsage(`$5.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
+                prompt: pricing(`$5.00 / 1M tokens`),
+                output: pricing(`$15.00 / 1M tokens`),
             },
         },
         /**/
@@ -400,8 +400,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 "OpenAI's most advanced multimodal model optimized for performance, speed, and cost. Capable of vision, reasoning, and high quality text generation.",
             pricing: {
-                prompt: computeUsage(`$5.00 / 1M tokens`),
-                output: computeUsage(`$15.00 / 1M tokens`),
+                prompt: pricing(`$5.00 / 1M tokens`),
+                output: pricing(`$15.00 / 1M tokens`),
             },
         },
         /**/
@@ -414,8 +414,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Smaller, more cost-effective version of GPT-4o with good performance across text, vision, and audio tasks at reduced complexity.',
             pricing: {
-                prompt: computeUsage(`$0.15 / 1M tokens`),
-                output: computeUsage(`$0.60 / 1M tokens`),
+                prompt: pricing(`$0.15 / 1M tokens`),
+                output: pricing(`$0.60 / 1M tokens`),
             },
         },
         /**/
@@ -428,8 +428,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Advanced reasoning model with exceptional performance on complex logical, mathematical, and analytical tasks. Built for deep reasoning and specialized professional tasks.',
             pricing: {
-                prompt: computeUsage(`$15.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
+                prompt: pricing(`$15.00 / 1M tokens`),
+                output: pricing(`$60.00 / 1M tokens`),
             },
         },
         /**/
@@ -443,8 +443,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 'September 2024 version of O1 preview with specialized reasoning capabilities for complex tasks requiring precise analytical thinking.',
             //             <- TODO: [💩] Some better system to organize these date suffixes and versions
             pricing: {
-                prompt: computeUsage(`$15.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
+                prompt: pricing(`$15.00 / 1M tokens`),
+                output: pricing(`$60.00 / 1M tokens`),
             },
         },
         /**/
@@ -457,8 +457,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Smaller, cost-effective version of the O1 model with good performance on reasoning tasks while maintaining efficiency for everyday analytical use.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$12.00 / 1M tokens`),
             },
         },
         /**/
@@ -471,8 +471,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 "OpenAI's advanced reasoning model focused on logic and problem-solving. Designed for complex analytical tasks with rigorous step-by-step reasoning. 128K context window.",
             pricing: {
-                prompt: computeUsage(`$15.00 / 1M tokens`),
-                output: computeUsage(`$60.00 / 1M tokens`),
+                prompt: pricing(`$15.00 / 1M tokens`),
+                output: pricing(`$60.00 / 1M tokens`),
             },
         },
         /**/
@@ -485,8 +485,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Cost-effective reasoning model optimized for academic and scientific problem-solving. Efficient performance on STEM tasks with deep mathematical and scientific knowledge. 128K context window.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$12.00 / 1M tokens`),
                 // <- TODO: !! Unsure, check the pricing
             },
         },
@@ -500,8 +500,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 "September 2024 version of O1-mini with balanced reasoning capabilities and cost-efficiency. Good for analytical tasks that don't require the full O1 model.",
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$12.00 / 1M tokens`),
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$12.00 / 1M tokens`),
             },
         },
         /**/
@@ -514,8 +514,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'June 2023 version of GPT-3.5 Turbo with extended 16k token context window for processing longer conversations and documents.',
             pricing: {
-                prompt: computeUsage(`$3.00 / 1M tokens`),
-                output: computeUsage(`$4.00 / 1M tokens`),
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$4.00 / 1M tokens`),
             },
         },
         /**/

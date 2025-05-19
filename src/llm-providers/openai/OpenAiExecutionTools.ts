@@ -1,6 +1,7 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
 
@@ -37,9 +38,14 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
      *
      * Note: Purpose of this is to provide more information about models than standard listing from API
      */
-    protected listHardcodedModels(): ReadonlyArray<AvailableModel> {
+    protected get HARDCODED_MODELS(): ReadonlyArray<AvailableModel> {
         return OPENAI_MODELS;
     }
+
+    /**
+     * Computes the usage of the OpenAI API based on the response from OpenAI
+     */
+    protected computeUsage = computeOpenAiUsage;
 
     /**
      * Default model for chat variant.
@@ -64,3 +70,7 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
 
     // <- Note: [🤖] getDefaultXxxModel
 }
+
+/**
+ * TODO: !!!! Make `OllamaExecutionTools`
+ */

@@ -12,22 +12,21 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type {
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_title,
+  string_date_iso8601,
+  string_markdown,
+  string_markdown_text,
+  string_model_name,
+  string_title,
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { computeOpenAiUsage } from './computeOpenAiUsage';
-import { OPENAI_MODELS } from './openai-models';
+import type { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
- * Execution Tools for calling OpenAI API
+ * Execution Tools for calling OpenAI API or other OpeenAI compatible provider
  *
  * @public exported from `@promptbook/openai`
  */
@@ -43,9 +42,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     private limiter: Bottleneck;
 
     /**
-     * Creates OpenAI Execution Tools.
+     * Creates OpenAI compatible Execution Tools.
      *
-     * @param options which are relevant are directly passed to the OpenAI client
+     * @param options which are relevant are directly passed to the OpenAI compatible client
      */
     public constructor(protected readonly options: OpenAiExecutionToolsOptions) {
         // TODO: Allow configuring rate limits via options
@@ -79,7 +78,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     }
 
     /**
-     * List all available OpenAI models that can be used
+     * List all available OpenAI compatible models that can be used
      */
     public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
         const client = await this.getClient();
@@ -88,8 +87,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const availableModels = rawModelsList.data
             .sort((a, b) => (a.created > b.created ? 1 : -1))
             .map((modelFromApi) => {
-                // TODO: !!!! Separate as protected abstract listHardcodedModels() method
-                const modelFromList = OPENAI_MODELS.find(
+                const modelFromList = this.HARDCODED_MODELS.find(
                     ({ modelName }) =>
                         modelName === modelFromApi.id ||
                         modelName.startsWith(modelFromApi.id) ||
@@ -112,13 +110,13 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     }
 
     /**
-     * Calls OpenAI API to use a chat model.
+     * Calls OpenAI compatible API to use a chat model.
      */
     public async callChatModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
-            console.info('💬 OpenAI callChatModel call', { prompt });
+            console.info(`💬 ${this.title} callChatModel call`, { prompt });
         }
 
         const { content, parameters, modelRequirements, format } = prompt;
@@ -190,24 +188,24 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const complete: string_date_iso8601 = $getCurrentDate();
 
         if (!rawResponse.choices[0]) {
-            throw new PipelineExecutionError('No choises from OpenAI');
+            throw new PipelineExecutionError(`No choises from ${this.title}`);
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new PipelineExecutionError('More than one choise from OpenAI');
+            throw new PipelineExecutionError(`More than one choise from ${this.title}`);
         }
 
         const resultContent = rawResponse.choices[0].message.content;
-        const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
+        const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
 
         if (resultContent === null) {
-            throw new PipelineExecutionError('No response message from OpenAI');
+            throw new PipelineExecutionError(`No response message from ${this.title}`);
         }
 
         return exportJson({
             name: 'promptResult',
-            message: `Result of \`OpenAiExecutionTools.callChatModel\``,
+            message: `Result of \`OpenAiCompatibleExecutionTools.callChatModel\``,
             order: [],
             value: {
                 content: resultContent,
@@ -232,7 +230,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI callCompletionModel call', { prompt });
+            console.info(`🖋 ${this.title} callCompletionModel call`, { prompt });
         }
 
         const { content, parameters, modelRequirements } = prompt;
@@ -281,20 +279,20 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const complete: string_date_iso8601 = $getCurrentDate();
 
         if (!rawResponse.choices[0]) {
-            throw new PipelineExecutionError('No choises from OpenAI');
+            throw new PipelineExecutionError(`No choises from ${this.title}`);
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new PipelineExecutionError('More than one choise from OpenAI');
+            throw new PipelineExecutionError(`More than one choise from ${this.title}`);
         }
 
         const resultContent = rawResponse.choices[0].text;
-        const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
+        const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
 
         return exportJson({
             name: 'promptResult',
-            message: `Result of \`OpenAiExecutionTools.callCompletionModel\``,
+            message: `Result of \`OpenAiCompatibleExecutionTools.callCompletionModel\``,
             order: [],
             value: {
                 content: resultContent,
@@ -313,13 +311,13 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     }
 
     /**
-     * Calls OpenAI API to use a embedding model
+     * Calls OpenAI compatible API to use a embedding model
      */
     public async callEmbeddingModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<EmbeddingPromptResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI embedding call', { prompt });
+            console.info(`🖋 ${this.title} embedding call`, { prompt });
         }
 
         const { content, parameters, modelRequirements } = prompt;
@@ -366,7 +364,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         const resultContent = rawResponse.data[0]!.embedding;
 
-        const usage = computeOpenAiUsage(
+        const usage = this.computeUsage(
             content || '',
             '',
             // <- Note: Embedding does not have result content
@@ -375,7 +373,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         return exportJson({
             name: 'promptResult',
-            message: `Result of \`OpenAiExecutionTools.callEmbeddingModel\``,
+            message: `Result of \`OpenAiCompatibleExecutionTools.callEmbeddingModel\``,
             order: [],
             value: {
                 content: resultContent,
@@ -400,8 +398,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      */
     protected getDefaultModel(defaultModelName: string_model_name): AvailableModel {
         // Note: Match exact or prefix for model families
-        const model = OPENAI_MODELS.find(
-            // TODO: !!!! Separate as protected abstract listHardcodedModels() method
+        const model = this.HARDCODED_MODELS.find(
             ({ modelName }) => modelName === defaultModelName || modelName.startsWith(defaultModelName),
         );
         if (model === undefined) {
@@ -409,15 +406,12 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 spaceTrim(
                     (block) =>
                         `
-                            Cannot find model in OpenAI models with name "${defaultModelName}" which should be used as default.
+                            Cannot find model in ${
+                                this.title
+                            } models with name "${defaultModelName}" which should be used as default.
 
                             Available models:
-                            ${block(
-                                OPENAI_MODELS
-                                    // TODO: !!!! Separate as protected abstract listHardcodedModels() method
-                                    .map(({ modelName }) => `- "${modelName}"`)
-                                    .join('\n'),
-                            )}
+                            ${block(this.HARDCODED_MODELS.map(({ modelName }) => `- "${modelName}"`).join('\n'))}
 
                         `,
                 ),
@@ -425,6 +419,18 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
         return model;
     }
+
+    /**
+     * List all available models (non dynamically)
+     *
+     * Note: Purpose of this is to provide more information about models than standard listing from API
+     */
+    protected abstract get HARDCODED_MODELS(): ReadonlyArray<AvailableModel>;
+
+    /**
+     * Computes the usage of the OpenAI API based on the response from OpenAI Compatible API
+     */
+    protected abstract computeUsage: typeof computeOpenAiUsage;
 
     /**
      * Default model for chat variant.
@@ -444,8 +450,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 }
 
 /**
- * TODO: !!!! Go through all "OpenAI" in strings and use `.title` instead
- * TODO: Maybe make custom OpenAiError
+ * TODO: Maybe make custom OpenAiCompatibleError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */
