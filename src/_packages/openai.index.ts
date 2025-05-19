@@ -7,6 +7,7 @@ import { createOpenAiExecutionTools } from '../llm-providers/openai/createOpenAi
 import { OPENAI_MODELS } from '../llm-providers/openai/openai-models';
 import { OpenAiAssistantExecutionTools } from '../llm-providers/openai/OpenAiAssistantExecutionTools';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
+import { OpenAiCompatibleExecutionTools } from '../llm-providers/openai/OpenAiCompatibleExecutionTools';
 import { OpenAiExecutionTools } from '../llm-providers/openai/OpenAiExecutionTools';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
@@ -23,6 +24,7 @@ export { createOpenAiExecutionTools };
 export { OPENAI_MODELS };
 export { OpenAiAssistantExecutionTools };
 export type { OpenAiAssistantExecutionToolsOptions };
+export { OpenAiCompatibleExecutionTools };
 export { OpenAiExecutionTools };
 export type { OpenAiExecutionToolsOptions };
 export { _OpenAiRegistration };

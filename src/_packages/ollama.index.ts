@@ -3,6 +3,8 @@
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { createOllamaExecutionTools } from '../llm-providers/ollama/createOllamaExecutionTools';
+import { OLLAMA_MODELS } from '../llm-providers/ollama/ollama-models';
+import { OllamaExecutionTools } from '../llm-providers/ollama/OllamaExecutionTools';
 import { DEFAULT_OLLAMA_BASE_URL } from '../llm-providers/ollama/OllamaExecutionToolsOptions';
 import type { OllamaExecutionToolsOptions } from '../llm-providers/ollama/OllamaExecutionToolsOptions';
 import { _OllamaRegistration } from '../llm-providers/ollama/register-constructor';
@@ -14,6 +16,8 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 // Note: Entities of the `@promptbook/ollama`
 export { createOllamaExecutionTools };
+export { OLLAMA_MODELS };
+export { OllamaExecutionTools };
 export { DEFAULT_OLLAMA_BASE_URL };
 export type { OllamaExecutionToolsOptions };
 export { _OllamaRegistration };
