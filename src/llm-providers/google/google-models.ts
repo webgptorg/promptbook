@@ -187,7 +187,27 @@ export const GOOGLE_MODELS: ReadonlyArray<
                 output: pricing(`$1.05 / 1M tokens`),
             },
         },
-        // <- [🕕]
+        {
+            modelVariant: 'EMBEDDING',
+            modelTitle: 'Gemini Embedder',
+            modelName: 'gemini-embedder-v1',
+            modelDescription: 'High-quality embeddings for retrieval',
+            pricing: {
+                prompt: pricing(`$0.08 / 1M tokens`),
+                output: 0,
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Gemini Pro Vision',
+            modelName: 'gemini-pro-vision-v1',
+            modelDescription: 'Advanced vision + language model',
+            pricing: {
+                prompt: pricing(`$9.00 / 1M tokens`),
+                output: pricing(`$27.00 / 1M tokens`),
+            },
+        },
+        // …add any additional from https://ai.google.dev/models/gemini…
     ],
 });
 

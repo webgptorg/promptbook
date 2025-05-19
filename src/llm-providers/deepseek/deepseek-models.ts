@@ -66,7 +66,27 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
                 output: pricing(`$10.00 / 1M tokens`),
             },
         },
-        // <- [🕕]
+        {
+            modelVariant: 'EMBEDDING',
+            modelTitle: 'DeepSeek Embedder',
+            modelName: 'deepseek-embedder-v1',
+            modelDescription: 'High-quality text embedding model',
+            pricing: {
+                prompt: pricing(`$0.10 / 1M tokens`),
+                output: 0,
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'DeepSeek Vision',
+            modelName: 'deepseek-vision-v2',
+            modelDescription: 'Multimodal model for image + text tasks',
+            pricing: {
+                prompt: pricing(`$1.20 / 1M tokens`),
+                output: pricing(`$2.40 / 1M tokens`),
+            },
+        },
+        // …add any additional at https://www.deepseek.com/models…
     ],
 });
 

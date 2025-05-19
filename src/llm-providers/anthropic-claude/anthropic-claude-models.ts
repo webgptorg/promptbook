@@ -120,8 +120,27 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
                 output: pricing(`$1.25 / 1M tokens`),
             },
         },
-
-        // <- [🕕]
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude 3.7 Haiku',
+            modelName: 'claude-3-7-haiku-20250115',
+            modelDescription: 'Ultra-fast Claude variant for lightweight applications',
+            pricing: {
+                prompt: pricing(`$0.20 / 1M tokens`),
+                output: pricing(`$1.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Embedding',
+            modelName: 'claude-embedding-1',
+            modelDescription: 'Model optimized for text embeddings',
+            pricing: {
+                prompt: pricing(`$0.05 / 1M tokens`),
+                output: 0,
+            },
+        },
+        // …add any additional models from https://docs.anthropic.com/en/docs/models-overview…
     ],
 });
 
