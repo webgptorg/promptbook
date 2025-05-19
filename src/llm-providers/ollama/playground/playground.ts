@@ -32,7 +32,6 @@ async function playground() {
 
     const ollamaExecutionTools = createOllamaExecutionTools({
         isVerbose: true,
-        baseURL: 'http://localhost:11434/v1', // <- TODO: !!!! What is the correct base URL?
     });
 
     const ollamaExecutionToolsWithUsage = countUsage(ollamaExecutionTools);
@@ -48,7 +47,6 @@ async function playground() {
     keepUnused<Prompt>();
 
     /**/
-    // TODO: !!!! Listing the Ollama models - do it dynamically
     const models = await ollamaExecutionTools.listModels();
     console.info({ models });
     /**/
@@ -68,7 +66,7 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /**/
+    /*/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},

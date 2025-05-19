@@ -24,7 +24,9 @@ export function usageToHuman(usage: PartialUsage): string_markdown {
     const uncertainNumberToHuman = ({ value, isUncertain }: UncertainNumber) =>
         `${isUncertain ? 'approximately ' : ''}${Math.round(value * 100) / 100}`;
 
-    if (
+    if (usage.price.value === 0) {
+        reportItems.push(`Zero cost`);
+    } else if (
         usage.price.value > 0.01
         // <- TODO: [🍓][🧞‍♂️][👩🏽‍🤝‍🧑🏻] Configure negligible value - default value to config + value to `UsageToHumanSettings`
     ) {

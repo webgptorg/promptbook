@@ -6,6 +6,7 @@ import type { string_markdown, string_markdown_text, string_title } from '../../
 import { computeOpenAiUsage } from '../openai/computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from '../openai/OpenAiCompatibleExecutionTools';
 import { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
+import { OLLAMA_MODELS } from './ollama-models';
 import { DEFAULT_OLLAMA_BASE_URL, OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 
 /**
@@ -40,9 +41,7 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
      * Note: Purpose of this is to provide more information about models than standard listing from API
      */
     protected get HARDCODED_MODELS(): ReadonlyArray<AvailableModel> {
-        return [
-            /* !!!! */
-        ];
+        return OLLAMA_MODELS;
     }
 
     /**
@@ -67,6 +66,7 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
      */
     protected getDefaultCompletionModel(): AvailableModel {
         return this.getDefaultModel('llama2'); // <- TODO: [🧠] Pick the best default model
+        // <- TODO: !!!! What happen with 'alpaca' when model not installed but has metadata?
     }
 
     /**

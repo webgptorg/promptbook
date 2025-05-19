@@ -5,7 +5,7 @@ import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionTools
  *
  * @public exported from `@promptbook/ollama`
  */
-export const DEFAULT_OLLAMA_BASE_URL = 'http://localhost:11434'; // <- TODO: !!!! What is the correct base URL? /v1?
+export const DEFAULT_OLLAMA_BASE_URL = 'http://localhost:11434/v1';
 
 /**
  * Options for `createOllamaExecutionTools`
