@@ -5,6 +5,8 @@ import type { Registration } from '../../utils/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata
@@ -31,7 +33,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
             options: {
                 apiKey: 'sk-',
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
-            },
+            } satisfies OpenAiExecutionToolsOptions,
         };
     },
 
@@ -44,7 +46,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
                 className: 'OpenAiExecutionTools',
                 options: {
                     apiKey: env.OPENAI_API_KEY!,
-                },
+                } satisfies OpenAiExecutionToolsOptions,
             };
         }
 
@@ -79,7 +81,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
                 apiKey: 'sk-',
                 assistantId: 'asst_',
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
-            },
+            } satisfies OpenAiAssistantExecutionToolsOptions,
         };
     },
 
@@ -96,7 +98,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
                 options: {
                     apiKey: env.OPENAI_API_KEY!,
                     assistantId: env.OPENAI_XXX!
-                },
+                } satisfies OpenAiAssistantExecutionToolsOptions,
             };
         }
 

@@ -4,6 +4,7 @@ import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata
@@ -28,11 +29,11 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
             packageName: '@promptbook/azure-openai',
             className: 'AzureOpenAiExecutionTools',
             options: {
-                apiKey: 'sk-',
+                apiKey: '',
                 resourceName: 'my-resource-name',
                 deploymentName: 'my-deployment-name',
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
-            },
+            } satisfies AzureOpenAiExecutionToolsOptions,
         };
     },
 
@@ -51,7 +52,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
                     apiKey: env.AZUREOPENAI_API_KEY,
                     resourceName: env.AZUREOPENAI_RESOURCE_NAME,
                     deploymentName: env.AZUREOPENAI_DEPLOYMENT_NAME,
-                },
+                } satisfies AzureOpenAiExecutionToolsOptions,
             };
         } else if (
             typeof env.AZUREOPENAI_API_KEY === 'string' ||

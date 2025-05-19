@@ -4,6 +4,7 @@ import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { DEFAULT_OLLAMA_BASE_URL, OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata
@@ -28,10 +29,9 @@ export const _OllamaMetadataRegistration: Registration = $llmToolsMetadataRegist
             packageName: '@promptbook/ollama',
             className: 'OllamaExecutionTools',
             options: {
-                baseURL: 'http://localhost:11434',
-                model: 'llama2',
+                baseURL: DEFAULT_OLLAMA_BASE_URL,
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
-            },
+            } satisfies OllamaExecutionToolsOptions,
         };
     },
 
@@ -43,9 +43,7 @@ export const _OllamaMetadataRegistration: Registration = $llmToolsMetadataRegist
                 className: 'OllamaExecutionTools',
                 options: {
                     baseURL: env.OLLAMA_BASE_URL,
-                    model: env.OLLAMA_MODEL || 'llama2',
-                    maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
-                },
+                } satisfies OllamaExecutionToolsOptions,
             };
         }
         return null;

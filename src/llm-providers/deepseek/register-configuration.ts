@@ -4,6 +4,7 @@ import type { Registration } from '../../utils/$Register';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { DeepseekExecutionToolsOptions } from './DeepseekExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata
@@ -29,7 +30,7 @@ export const _DeepseekMetadataRegistration: Registration = $llmToolsMetadataRegi
             className: 'DeepseekExecutionTools',
             options: {
                 apiKey: 'AI',
-            },
+            } satisfies DeepseekExecutionToolsOptions,
         };
     },
 
@@ -50,7 +51,7 @@ export const _DeepseekMetadataRegistration: Registration = $llmToolsMetadataRegi
                 className: 'DeepseekExecutionTools',
                 options: {
                     apiKey: env.DEEPSEEK_GENERATIVE_AI_API_KEY!,
-                },
+                } satisfies DeepseekExecutionToolsOptions,
             };
         }
 
