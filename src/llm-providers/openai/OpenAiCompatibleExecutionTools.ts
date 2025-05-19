@@ -50,7 +50,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     public constructor(protected readonly options: OpenAiExecutionToolsOptions) {
         // TODO: Allow configuring rate limits via options
         this.limiter = new Bottleneck({
-            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_MAX_REQUESTS_PER_MINUTE),
+            minTime: 60_000 / (this.options.maxRequestsPerMinute || DEFAULT_MAX_REQUESTS_PER_MINUTE),
         });
     }
 

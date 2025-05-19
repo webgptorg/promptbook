@@ -13,8 +13,8 @@ export function preserve(func: (...params: ReadonlyArray<really_any>) => unknown
     // Note: NOT calling the function
 
     (async () => {
-        // TODO: [💩] Change to `await forEver` or something better
-        await forTime(100000000);
+        // TODO: [💩] Change to `await forEver` or `forTime(Infinity)`
+        await forTime(100_000_000);
 
         // [1]
         try {

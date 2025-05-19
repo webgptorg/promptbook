@@ -83,7 +83,7 @@ describe('how normalizing exec options works', () => {
             crashOnError: true,
             humanReadableCommand: 'run',
             isVerbose: true,
-            timeout: 1000,
+            timeout: 1_000,
         });
     });
 

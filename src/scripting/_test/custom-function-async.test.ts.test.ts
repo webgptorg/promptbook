@@ -88,7 +88,7 @@ async function getPipelineExecutor() {
                     // Note: [🕎]
                     functions: {
                         async addHello(value) {
-                            await forTime(1000);
+                            await forTime(1_000);
                             return `Hello ${value}`;
                         },
                     },
