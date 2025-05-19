@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/browser",
-    "version": "0.94.0-3",
+    "version": "0.94.0-4",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -63,7 +63,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/browser.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.94.0-3"
+        "@promptbook/core": "0.94.0-4"
     },
     "dependencies": {
         "crypto": "1.0.1",
