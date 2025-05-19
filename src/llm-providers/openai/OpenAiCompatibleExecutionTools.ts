@@ -453,7 +453,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 }
 
 /**
- * TODO: Maybe make custom OpenAiCompatibleError
+ * TODO: [🛄] Some way how to re-wrap the errors from `OpenAiCompatibleExecutionTools`
+ * TODO: [🛄] Maybe make custom `OpenAiCompatibleError`
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */

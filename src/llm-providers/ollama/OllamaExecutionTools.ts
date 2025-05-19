@@ -59,6 +59,7 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
      */
     protected getDefaultChatModel(): AvailableModel {
         return this.getDefaultModel('llama2'); // <- TODO: [🧠] Pick the best default model
+          // <- TODO: [🛄] When 'llama2' not installed, maybe better error message
     }
 
     /**
@@ -66,7 +67,7 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
      */
     protected getDefaultCompletionModel(): AvailableModel {
         return this.getDefaultModel('llama2'); // <- TODO: [🧠] Pick the best default model
-        // <- TODO: !!!! What happen with 'alpaca' when model not installed but has metadata?
+        // <- TODO: [🛄] When 'llama2' not installed, maybe better error message
     }
 
     /**
@@ -74,7 +75,13 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
      */
     protected getDefaultEmbeddingModel(): AvailableModel {
         return this.getDefaultModel('text-embedding-3-large'); // <- TODO: [🧠] Pick the best default model
-    }
+    // <- TODO: [🛄]
+      }
 
     // <- Note: [🤖] getDefaultXxxModel
 }
+
+
+/**
+ * TODO: [🛄] Some way how to re-wrap the errors from `OpenAiCompatibleExecutionTools`
+ */
