@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { pricing } from '../_common/utils/computeUsage';
+import { pricing } from '../_common/utils/pricing';
 
 /**
  * List of available OpenAI models with pricing

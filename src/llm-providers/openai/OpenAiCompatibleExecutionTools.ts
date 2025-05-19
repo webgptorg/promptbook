@@ -6,17 +6,17 @@ import spaceTrim from 'spacetrim';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
+import { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
 import type {
-  string_date_iso8601,
-  string_markdown,
-  string_markdown_text,
-  string_model_name,
-  string_title,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
@@ -401,8 +401,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const model = this.HARDCODED_MODELS.find(
             ({ modelName }) => modelName === defaultModelName || modelName.startsWith(defaultModelName),
         );
+
         if (model === undefined) {
-            throw new UnexpectedError(
+            throw new PipelineExecutionError(
                 spaceTrim(
                     (block) =>
                         `
@@ -412,6 +413,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                             Available models:
                             ${block(this.HARDCODED_MODELS.map(({ modelName }) => `- "${modelName}"`).join('\n'))}
+
+                            Model "${defaultModelName}" is probably not available anymore, not installed, inaccessible or misconfigured.
 
                         `,
                 ),
@@ -430,7 +433,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     /**
      * Computes the usage of the OpenAI API based on the response from OpenAI Compatible API
      */
-    protected abstract computeUsage: typeof computeOpenAiUsage;
+    protected abstract computeUsage(...args: Parameters<typeof computeOpenAiUsage>): Usage;
 
     /**
      * Default model for chat variant.

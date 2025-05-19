@@ -1,7 +1,7 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { pricing } from '../_common/utils/computeUsage';
+import { pricing } from '../_common/utils/pricing';
 
 /**
  * List of available Deepseek models with descriptions

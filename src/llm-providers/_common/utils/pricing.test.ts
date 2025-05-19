@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { pricing } from './computeUsage';
+import { pricing } from './pricing';
 
 describe('how computeUsage works', () => {
     it('should compute a pricing', () => {

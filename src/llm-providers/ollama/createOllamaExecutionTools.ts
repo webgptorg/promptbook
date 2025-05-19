@@ -1,8 +1,6 @@
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
-import { createOpenAiExecutionTools } from '../openai/createOpenAiExecutionTools';
-import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
-import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
+import { OllamaExecutionTools } from './OllamaExecutionTools';
 import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 
 /**
@@ -11,17 +9,8 @@ import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions'
  * @public exported from `@promptbook/ollama`
  */
 export const createOllamaExecutionTools = Object.assign(
-    (ollamaOptions: OllamaExecutionToolsOptions): LlmExecutionTools => {
-        const openAiCompatibleOptions = {
-            baseURL: DEFAULT_OLLAMA_BASE_URL,
-            ...ollamaOptions,
-            userId: 'ollama',
-        } satisfies OpenAiExecutionToolsOptions;
-
-        // TODO: !!!! Listing the models - do it dynamically in OpenAiExecutionTools
-        // TODO: !!!! Do not allow to create Assistant from OpenAi compatible tools
-
-        return createOpenAiExecutionTools(openAiCompatibleOptions);
+    (options: OllamaExecutionToolsOptions): LlmExecutionTools => {
+        return new OllamaExecutionTools(options);
     },
     {
         packageName: '@promptbook/ollama',

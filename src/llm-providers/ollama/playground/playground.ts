@@ -47,7 +47,7 @@ async function playground() {
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
-    /*/
+    /**/
     // TODO: !!!! Listing the Ollama models - do it dynamically
     const models = await ollamaExecutionTools.listModels();
     console.info({ models });
