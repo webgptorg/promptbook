@@ -24,7 +24,7 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
         const openAiCompatibleOptions = {
             baseURL: DEFAULT_OLLAMA_BASE_URL,
             ...ollamaOptions,
-            userId: 'ollama',
+            apiKey: 'ollama',
         } satisfies OpenAiExecutionToolsOptions;
 
         super(openAiCompatibleOptions);
