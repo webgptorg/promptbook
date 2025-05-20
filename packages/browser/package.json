@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/browser",
-    "version": "0.94.0-6",
+    "version": "0.94.0-5",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -36,6 +36,29 @@
         "o1-mini",
         "o1-preview",
         "anthropic",
+        "claude",
+        "claude-3",
+        "claude-3-opus",
+        "claude-3-sonnet",
+        "claude-3-haiku",
+        "gemini",
+        "gemini-pro",
+        "gemini-flash",
+        "mixtral",
+        "mistral",
+        "ollama",
+        "ai-orchestration",
+        "prompt-engineering",
+        "llmops",
+        "multimodal",
+        "reasoning",
+        "rag",
+        "embeddings",
+        "function-calling",
+        "large-language-models",
+        "ai-application-framework",
+        "text-generation",
+        "ai-agents",
         "LLMOps"
     ],
     "license": "BUSL-1.1",
@@ -63,7 +86,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/browser.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.94.0-6"
+        "@promptbook/core": "0.94.0-5"
     },
     "dependencies": {
         "crypto": "1.0.1",
