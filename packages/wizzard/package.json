@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/wizzard",
-    "version": "0.94.0-11",
+    "version": "0.94.0-12",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -86,6 +86,6 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/wizzard.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.94.0-11"
+        "@promptbook/core": "0.94.0-12"
     }
 }
