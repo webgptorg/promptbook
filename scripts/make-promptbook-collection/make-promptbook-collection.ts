@@ -52,7 +52,7 @@ async function makePipelineCollection({
     isCacheReloaded: boolean;
     isVerbose: boolean;
 }) {
-    console.info(`📖 Make Promptbook library`);
+    console.info(`📖 Make Promptbook collection`);
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
@@ -86,22 +86,22 @@ async function makePipelineCollection({
     const collectionJsonFilePath = join(promptbookSourceDir, 'index.json');
     const collectionJsonFileContent = collectionJsonString + '\n';
 
-    const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
-    const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
+    const collectionTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
+    const collectionTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
 
     console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
     await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');
     console.info(colors.green(`Made ${collectionJsonFilePath}`));
-    await writeFile(libraryTypescriptFilePath, libraryTypescriptFileContent, 'utf-8');
-    console.info(colors.green(`Made ${libraryTypescriptFilePath}`));
+    await writeFile(collectionTypescriptFilePath, collectionTypescriptFileContent, 'utf-8');
+    console.info(colors.green(`Made ${collectionTypescriptFilePath}`));
 
     if (isCommited) {
-        await commit([promptbookSourceDir, '.promptbook'], `📖 Make Promptbook library`);
+        await commit([promptbookSourceDir, '.promptbook'], `📖 Make Promptbook collection`);
     }
 
-    // Note: Making library for templates
+    // Note: Making collection for templates
     // Note: [🌼] Look here how it should look like
 
     const filePath = `./src/other/templates/getTemplatesPipelineCollection.ts`;
@@ -118,15 +118,15 @@ async function makePipelineCollection({
     await writeFile(filePath, content, 'utf-8');
 
     if (isCommited) {
-        await commit([filePath, '.promptbook'], `📖 Make Promptbook templates library`);
+        await commit([filePath, '.promptbook'], `📖 Make Promptbook templates collection`);
     }
 
-    console.info(`[ Done 📖 Make Promptbook library ]`);
+    console.info(`[ Done 📖 Make Promptbook collection ]`);
 }
 
 /**
  * Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
- * TODO: [🌼] Maybe use `ptbk make --no-interactive` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
+ * TODO: [🌼] Maybe use `ptbk make --no-interactive` cli command instead of this script (but figure out what to do with nessesity to have collection commited here)
  * TODO: [main] !!3 Use `ptbk make --no-interactive` cli command this in WebGPT and Promptbook
  * Note: [⚫] Code in this file should never be published in any package
  */
