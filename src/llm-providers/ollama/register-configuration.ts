@@ -4,7 +4,8 @@ import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { DEFAULT_OLLAMA_BASE_URL, OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
+import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
+import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata

@@ -4,7 +4,7 @@ import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
+import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata

@@ -5,8 +5,8 @@ import type { Registration } from '../../utils/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
-import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata
