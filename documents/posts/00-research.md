@@ -1,6 +1,6 @@
 How to efficiently organize and professionalize prompts in a large application?
 
-I am working on a AI website generator that relies heavily on internal prompts and prompt pipelines. So far, I have been using a simple system of text/markdown files with {VARS}.
+I am working on an AI website generator that relies heavily on internal prompts and prompt pipelines. So far, I have been using a simple system of text/markdown files with {VARS}.
 
 However, this simple solution is no longer sufficient and is becoming chaotic.
 
