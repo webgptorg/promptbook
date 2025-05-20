@@ -333,7 +333,7 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelTitle: 'gpt-3.5-turbo-0613',
             modelName: 'gpt-3.5-turbo-0613',
             modelDescription:
-                'June 2023 version of GPT-3.5 Turbo with 4K token context window. Features function calling capabilities for structured data extraction and API interaction. Includes knowledge cutoff from September 2021. Maintained for applications specifically designed for this version's behaviors and capabilities.',
+                "June 2023 version of GPT-3.5 Turbo with 4K token context window. Features function calling capabilities for structured data extraction and API interaction. Includes knowledge cutoff from September 2021. Maintained for applications specifically designed for this version's behaviors and capabilities.",
             pricing: {
                 prompt: pricing(`$1.50 / 1M tokens`),
                 output: pricing(`$2.00 / 1M tokens`),
@@ -507,7 +507,7 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelTitle: 'gpt-3.5-turbo-16k-0613',
             modelName: 'gpt-3.5-turbo-16k-0613',
             modelDescription:
-                'June 2023 version of GPT-3.5 Turbo with extended 16K token context window. Features good handling of longer conversations and documents with improved memory management across extended contexts. Includes knowledge cutoff from September 2021. Maintained for applications specifically designed for this version's behaviors and capabilities.',
+                "June 2023 version of GPT-3.5 Turbo with extended 16K token context window. Features good handling of longer conversations and documents with improved memory management across extended contexts. Includes knowledge cutoff from September 2021. Maintained for applications specifically designed for this version's behaviors and capabilities.",
             pricing: {
                 prompt: pricing(`$3.00 / 1M tokens`),
                 output: pricing(`$4.00 / 1M tokens`),
