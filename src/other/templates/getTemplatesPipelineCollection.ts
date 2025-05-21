@@ -127,8 +127,8 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "deepseek-chat-pro",
-                                "systemMessage": "You are a helpful assistant and experienced AI engineer, specializing in assisting with the Promptbook Project development.",
+                                "modelName": "claude-3-5-sonnet-20240620",
+                                "systemMessage": "You are a developer of the Promptbook Project.",
                                 "temperature": 0.7
                             }
                         ],
@@ -140,17 +140,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.039950000000000006
+                                "value": 0.03987000000000001
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7837
+                                    "value": 7836
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -170,19 +170,19 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 51
+                                    "value": 46
                                 },
                                 "charactersCount": {
-                                    "value": 219
+                                    "value": 138
                                 },
                                 "wordsCount": {
-                                    "value": 27
+                                    "value": 20
                                 },
                                 "sentencesCount": {
                                     "value": 3
                                 },
                                 "linesCount": {
-                                    "value": 7
+                                    "value": 6
                                 },
                                 "paragraphsCount": {
                                     "value": 1
@@ -600,8 +600,8 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "deepseek-chat-pro",
-                                "systemMessage": "You are a helpful assistant and experienced AI engineer, specializing in assisting with the Promptbook Project development.",
+                                "modelName": "claude-3-5-sonnet-20240620",
+                                "systemMessage": "You are a developer of the Promptbook Project.",
                                 "temperature": 0.7
                             }
                         ],
@@ -613,17 +613,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.039950000000000006
+                                "value": 0.03987000000000001
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7837
+                                    "value": 7836
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -643,19 +643,19 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 51
+                                    "value": 46
                                 },
                                 "charactersCount": {
-                                    "value": 219
+                                    "value": 138
                                 },
                                 "wordsCount": {
-                                    "value": 27
+                                    "value": 20
                                 },
                                 "sentencesCount": {
                                     "value": 3
                                 },
                                 "linesCount": {
-                                    "value": 7
+                                    "value": 6
                                 },
                                 "paragraphsCount": {
                                     "value": 1
@@ -1250,8 +1250,8 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-5-sonnet-20240620",
-                                "systemMessage": "You are a linguist and Corrector.",
+                                "modelName": "claude-3-opus-20240229",
+                                "systemMessage": "You are a knowledgeable linguist and corrector.",
                                 "temperature": 0.5
                             }
                         ],
@@ -1263,17 +1263,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.039900000000000005
+                                "value": 0.039895
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7836
+                                    "value": 7835
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -1296,7 +1296,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                                     "value": 48
                                 },
                                 "charactersCount": {
-                                    "value": 160
+                                    "value": 147
                                 },
                                 "wordsCount": {
                                     "value": 18
@@ -1375,9 +1375,9 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-7-sonnet-20250219",
-                                "systemMessage": "You are a skilled copywriter for an eshop, creating engaging and persuasive content to attract and retain customers.",
-                                "temperature": 0.7
+                                "modelName": "gpt-4",
+                                "systemMessage": "You are a skilled copywriter for an eShop. Your task is to create engaging product descriptions, persuasive marketing copy, and informative blog posts.",
+                                "temperature": 0.5
                             }
                         ],
                         "preparationIds": [
@@ -1388,17 +1388,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.040095000000000006
+                                "value": 0.04009
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7836
+                                    "value": 7835
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -1421,16 +1421,16 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                                     "value": 61
                                 },
                                 "charactersCount": {
-                                    "value": 224
+                                    "value": 239
                                 },
                                 "wordsCount": {
-                                    "value": 30
+                                    "value": 33
                                 },
                                 "sentencesCount": {
-                                    "value": 3
+                                    "value": 4
                                 },
                                 "linesCount": {
-                                    "value": 7
+                                    "value": 9
                                 },
                                 "paragraphsCount": {
                                     "value": 1
@@ -1485,7 +1485,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -1592,7 +1592,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-5-sonnet-20240620",
+                                "modelName": "claude-3-7-sonnet-20250219",
                                 "systemMessage": "You are an experienced marketing specialist and business consultant.",
                                 "temperature": 0.5
                             }
@@ -1605,17 +1605,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.03987000000000001
+                                "value": 0.10061500000000001
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7836
+                                    "value": 7835
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -1635,10 +1635,10 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 46
+                                    "value": 4096
                                 },
                                 "charactersCount": {
-                                    "value": 157
+                                    "value": 12725
                                 },
                                 "wordsCount": {
                                     "value": 21
@@ -1647,13 +1647,13 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                                     "value": 3
                                 },
                                 "linesCount": {
-                                    "value": 6
+                                    "value": 2963
                                 },
                                 "paragraphsCount": {
-                                    "value": 1
+                                    "value": 5
                                 },
                                 "pagesCount": {
-                                    "value": 1
+                                    "value": 68
                                 }
                             }
                         }
@@ -1725,8 +1725,8 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are a customer service representative and skilled copywriter for an eshop.",
+                                "modelName": "claude-3-7-sonnet-20250219",
+                                "systemMessage": "You are a customer service representative and skilled copywriter for eShop.",
                                 "temperature": 0.5
                             }
                         ],
@@ -1738,17 +1738,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.039950000000000006
+                                "value": 0.03999
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7840
+                                    "value": 7839
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -1768,13 +1768,13 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 50
+                                    "value": 53
                                 },
                                 "charactersCount": {
-                                    "value": 167
+                                    "value": 195
                                 },
                                 "wordsCount": {
-                                    "value": 23
+                                    "value": 24
                                 },
                                 "sentencesCount": {
                                     "value": 3
@@ -2035,7 +2035,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
+                                "modelName": "claude-3-7-sonnet-20250219",
                                 "systemMessage": "You are a linguist and Esperantist.",
                                 "temperature": 0.5
                             }
@@ -2048,17 +2048,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.039885000000000004
+                                "value": 0.039865000000000005
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7836
+                                    "value": 7835
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -2078,13 +2078,13 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 47
+                                    "value": 46
                                 },
                                 "charactersCount": {
-                                    "value": 135
+                                    "value": 127
                                 },
                                 "wordsCount": {
-                                    "value": 17
+                                    "value": 18
                                 },
                                 "sentencesCount": {
                                     "value": 3
@@ -2159,9 +2159,9 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
+                                "modelName": "claude-3-5-sonnet-20240620",
                                 "systemMessage": "You are an accomplished poet and storyteller.",
-                                "temperature": 0.7
+                                "temperature": 1.2
                             }
                         ],
                         "preparationIds": [
@@ -2172,17 +2172,17 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.94.0-16",
+                        "promptbookVersion": "0.94.0",
                         "usage": {
                             "price": {
-                                "value": 0.039865000000000005
+                                "value": 0.039875
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 7835
+                                    "value": 7834
                                 },
                                 "charactersCount": {
-                                    "value": 2378
+                                    "value": 2377
                                 },
                                 "wordsCount": {
                                     "value": 348
@@ -2202,19 +2202,19 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 46
+                                    "value": 47
                                 },
                                 "charactersCount": {
-                                    "value": 146
+                                    "value": 167
                                 },
                                 "wordsCount": {
-                                    "value": 18
+                                    "value": 19
                                 },
                                 "sentencesCount": {
                                     "value": 3
                                 },
                                 "linesCount": {
-                                    "value": 7
+                                    "value": 6
                                 },
                                 "paragraphsCount": {
                                     "value": 1
