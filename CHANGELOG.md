@@ -809,9 +809,7 @@ Enhance the presentation of the Promptbook
 
 ✨ First release mainly managed by AI
 
-## In pre-release
-
-### `0.94.0` _(2025-05-)_
+### `0.94.0` _(2025-05-21)_
 
 Integration of local models
 
@@ -819,6 +817,8 @@ Integration of local models
 -   Make `@promptbook/ollama` package
 -   `AvailableModel` has pricing information
 -   Better reporting of progress
+
+## In pre-release
 
 ## Upcoming
 
