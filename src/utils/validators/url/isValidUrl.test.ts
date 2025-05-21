@@ -37,7 +37,7 @@ describe(`validation of urls`, () => {
     });
     */
 
-    it(`realtive uri is NOT valid url`, () => {
+    it(`relative uri is NOT valid url`, () => {
         expect(isValidUrl(`/aegfawsgsdasdg`)).toBe(false);
         expect(isValidUrl(`?foo=bar`)).toBe(false);
     });

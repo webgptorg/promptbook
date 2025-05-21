@@ -1,0 +1,10 @@
+x
+xxx
+spacetrim
+unprepare
+promisable
+destroyable
+"supersimple
+foo
+bar
+baz

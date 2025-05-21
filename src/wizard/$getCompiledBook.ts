@@ -21,7 +21,7 @@ import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 /**
  * @see ./wizard.ts `getPipeline` method
  *
- * @private usable through `ptbk run` and `@prompbook/wizard`
+ * @private usable through `ptbk run` and `@promptbook/wizard`
  */
 export async function $getCompiledBook(
     tools: Required<Pick<ExecutionTools, 'fs' | 'fetch'>>,

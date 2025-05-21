@@ -13,7 +13,7 @@ import { validatePipeline } from '../validation/validatePipeline';
  * @param fs Filesystem tools
  * @returns Pipelines loaded from the archive
  *
- * @private utility of Prompbook
+ * @private utility of Promptbook
  */
 export async function loadArchive(
     filePath: string_filename,

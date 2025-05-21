@@ -1,9 +1,9 @@
 import JSZip from 'jszip';
-import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_filename } from '../../types/typeAliases';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { string_filename } from '../../types/typeAliases';
+import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { validatePipeline } from '../validation/validatePipeline';
 
 /**
@@ -13,7 +13,7 @@ import { validatePipeline } from '../validation/validatePipeline';
  * @param books Pipelines to be saved in the archive
  * @param fs Filesystem tools
  *
- * @private utility of Prompbook
+ * @private utility of Promptbook
  */
 export async function saveArchive(
     filePath: string_filename,

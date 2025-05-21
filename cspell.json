@@ -1,18 +1,20 @@
 {
     "version": "0.2",
-    "language": ["en", "cs"],
-    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git"],
-    "words": [
-        "ptbk",
-        "promptbook",
-        "spacetrim",
-        "unprepare",
-        "x",
-        "promisable",
-        "supersimple",
-        "foo",
-        "bar",
-        "baz",
-        "ěščřžýáíéúů"
-    ]
+    "language": "en",
+    "dictionaries": ["promptbook-words", "misc-words", "czech-words"],
+    "dictionaryDefinitions": [
+        {
+            "name": "czech-words",
+            "path": "./other/cspell-dictionaries/czech-words.txt"
+        },
+        {
+            "name": "promptbook-words",
+            "path": "./other/cspell-dictionaries/promptbook-words.txt"
+        },
+        {
+            "name": "misc-words",
+            "path": "./other/cspell-dictionaries/misc-words.txt"
+        }
+    ],
+    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git"]
 }
