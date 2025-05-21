@@ -151,8 +151,8 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: 🔼 Publish @promptbook/wizzard
-              working-directory: ./packages/wizzard
+            - name: 🔼 Publish @promptbook/wizard
+              working-directory: ./packages/wizard
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

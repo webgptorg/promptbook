@@ -45,8 +45,6 @@ TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
 
-
-
 It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
 
 The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
@@ -172,8 +170,6 @@ Join our growing community of developers and users:
 
 _A concise, Markdown-based DSL for crafting AI workflows and automations._
 
-
-
 ### Introduction
 
 Book is a Markdown-based language that simplifies the creation of AI applications, workflows, and automations. With human-readable commands, you can define inputs, outputs, personas, knowledge sources, and actions—without needing model-specific details.
@@ -223,8 +219,6 @@ Personas can have access to different knowledge, tools and actions. They can als
 
 -   [PERSONA](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PERSONA.md)
 
-
-
 ### **3. How:** Knowledge, Instruments and Actions
 
 The resources used by the personas are used to do the work.
@@ -272,13 +266,13 @@ Or you can install them separately:
 
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
--   ⭐🧙‍♂️ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizzard to just run the books in node without any struggle
+-   ⭐🧙‍♂️ **[@promptbook/wizard](https://www.npmjs.com/package/@promptbook/wizard)** - Wizard to just run the books in node without any struggle
 -   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
 -   **[@promptbook/node](https://www.npmjs.com/package/@promptbook/node)** - Core of the library for Node.js environment
 -   **[@promptbook/browser](https://www.npmjs.com/package/@promptbook/browser)** - Core of the library for browser environment
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
 -   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
--   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
+-   _(Not finished)_ **[@promptbook/wizard](https://www.npmjs.com/package/@promptbook/wizard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
 -   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK <!-- <- TODO: [👩‍🚒] Should be this package named `@promptbook/anthropic-claude` or just `@promptbook/anthropic` -->
@@ -323,8 +317,6 @@ The following glossary is used to clarify certain concepts:
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 _Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 ### 💯 Core concepts
 

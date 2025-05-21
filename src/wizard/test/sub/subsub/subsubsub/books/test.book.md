@@ -6,6 +6,6 @@
 
 -   SIMPLE TEMPLATE
 
-> src/wizzard/test/sub/subsub/subsubsub/books/test.book
+> src/wizard/test/sub/subsub/subsubsub/books/test.book
 
 -> {directoryName}

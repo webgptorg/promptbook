@@ -111,6 +111,6 @@
         "@promptbook/utils": "0.94.0",
         "@promptbook/vercel": "0.94.0",
         "@promptbook/website-crawler": "0.94.0",
-        "@promptbook/wizzard": "0.94.0"
+        "@promptbook/wizard": "0.94.0"
     }
 }

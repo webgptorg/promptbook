@@ -14,7 +14,7 @@ import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions'
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/core`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
@@ -60,7 +60,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
  * Note: [🏐] Configurations registrations are done in the metadata registration section, but the constructor registration is handled separately.
  *
  * @public exported from `@promptbook/core`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.register({

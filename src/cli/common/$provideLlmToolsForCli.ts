@@ -4,7 +4,7 @@ import spaceTrim from 'spacetrim';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
-import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
+import { $provideLlmToolsForWizardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizardOrCli';
 import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
 import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
@@ -70,7 +70,7 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
             );
         }
 
-        const llm = await $provideLlmToolsForWizzardOrCli({ strategy, ...options });
+        const llm = await $provideLlmToolsForWizardOrCli({ strategy, ...options });
         return { strategy, llm };
     } else if (strategy === 'REMOTE_SERVER') {
         if (!isValidUrl(remoteServerUrlRaw)) {
@@ -80,7 +80,7 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
 
         const remoteServerUrl = remoteServerUrlRaw.endsWith('/') ? remoteServerUrlRaw.slice(0, -1) : remoteServerUrlRaw;
 
-        const llm = await $provideLlmToolsForWizzardOrCli({
+        const llm = await $provideLlmToolsForWizardOrCli({
             isLoginloaded,
             strategy,
             appId: CLI_APP_ID,

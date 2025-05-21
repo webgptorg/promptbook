@@ -5,14 +5,14 @@
         "title": "Report whoami",
         "pipelineUrl": "https://promptbook.studio/test.ptbk.md#report-whoami",
         "parameters": {},
-        "content": "src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md",
+        "content": "src/wizard/test/sub/subsub/subsubsub/books/test.ptbk.md",
         "modelRequirements": {
             "modelVariant": "CHAT"
         },
         "expectations": {}
     },
     "promptResult": {
-        "content": "I apologize, but I don't actually have access to any document at the file path you mentioned (src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md). I'm an AI assistant without access to external files or documents unless they are specifically provided to me in the conversation. If you have a specific question about the contents of that file or if you'd like to share some information from it, I'd be happy to try to help based on what you provide. Otherwise, I can only respond in general terms about file structures or markdown files.",
+        "content": "I apologize, but I don't actually have access to any document at the file path you mentioned (src/wizard/test/sub/subsub/subsubsub/books/test.ptbk.md). I'm an AI assistant without access to external files or documents unless they are specifically provided to me in the conversation. If you have a specific question about the contents of that file or if you'd like to share some information from it, I'd be happy to try to help based on what you provide. Otherwise, I can only respond in general terms about file structures or markdown files.",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
             "start": "2025-01-08T15:53:10.709Z",
@@ -69,14 +69,14 @@
                 }
             }
         },
-        "rawPromptContent": "src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md",
+        "rawPromptContent": "src/wizard/test/sub/subsub/subsubsub/books/test.ptbk.md",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md"
+                    "content": "src/wizard/test/sub/subsub/subsubsub/books/test.ptbk.md"
                 }
             ]
         },
@@ -88,7 +88,7 @@
             "content": [
                 {
                     "type": "text",
-                    "text": "I apologize, but I don't actually have access to any document at the file path you mentioned (src/wizzard/test/sub/subsub/subsubsub/books/test.ptbk.md). I'm an AI assistant without access to external files or documents unless they are specifically provided to me in the conversation. If you have a specific question about the contents of that file or if you'd like to share some information from it, I'd be happy to try to help based on what you provide. Otherwise, I can only respond in general terms about file structures or markdown files."
+                    "text": "I apologize, but I don't actually have access to any document at the file path you mentioned (src/wizard/test/sub/subsub/subsubsub/books/test.ptbk.md). I'm an AI assistant without access to external files or documents unless they are specifically provided to me in the conversation. If you have a specific question about the contents of that file or if you'd like to share some information from it, I'd be happy to try to help based on what you provide. Otherwise, I can only respond in general terms about file structures or markdown files."
                 }
             ],
             "stop_reason": "end_turn",

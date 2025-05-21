@@ -11,6 +11,7 @@ import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { GENERATOR_WARNING } from '../../src/config';
+import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
@@ -18,7 +19,6 @@ import { removeMarkdownComments } from '../../src/utils/markdown/removeMarkdownC
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { getPackagesMetadata } from './getPackagesMetadata';
-import { assertsError } from '../../src/errors/assertsError';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -397,7 +397,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 // Note: Packages for Node.js only:
                 packageFullname !== '@promptbook/node' &&
                 packageFullname !== '@promptbook/cli' &&
-                packageFullname !== '@promptbook/wizzard' &&
+                packageFullname !== '@promptbook/wizard' &&
                 packageFullname !== '@promptbook/remote-server' &&
                 packageFullname !== '@promptbook/documents' &&
                 packageFullname !== '@promptbook/legacy-documents' &&

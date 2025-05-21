@@ -8,7 +8,7 @@ import { createDocumentScraper } from './createDocumentScraper';
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
  * @public exported from `@promptbook/documents`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _DocumentScraperRegistration: Registration = $scrapersRegister.register(createDocumentScraper);

@@ -4,8 +4,8 @@ import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
 import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
+import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata
@@ -13,7 +13,7 @@ import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions'
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/core`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _OllamaMetadataRegistration: Registration = $llmToolsMetadataRegister.register({

@@ -288,7 +288,7 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 -   Export `MultipleLlmExecutionTools` from `@promptbook/core`
 -   Always use "modelName" not just "model"
 -   Standartization of model providers
--   Delete `@promptbook/wizzard`
+-   Delete `@promptbook/wizard`
 -   Move `assertsExecutionSuccessful`,`checkExpectations`,`executionReportJsonToString`,`ExecutionReportStringOptions`,`ExecutionReportStringOptionsDefaults`,`isPassingExpectations`,`prettifyPromptbookString` from `@promptbook/utils` to `@promptbook/core`
 -   Make and use `JavascriptExecutionTools` as placeholder for better implementation with proper sandboxing
 -   Implement `createPromptbookLibraryFromDirectory` export from `@promptbook/core`
@@ -652,14 +652,14 @@ Editing, templates and flat pipelines
 -   Add `valueToString` and `numberToString` utility function
 -   Allow `boolean`, `number`, `null`, `undefined` and full `json` parameters in `templateParameters` _(alongside with `string`)_
 -   Change `--output` to `--output` in CLI `ptbk make`
--   Re-introduction of package `@promptbook/wizzard`
+-   Re-introduction of package `@promptbook/wizard`
 -   Allow flat pipelines
 -   Root URL for flat pipelines
--   Change `$provideLlmToolsForCli` -> `$provideLlmToolsForWizzardOrCli`
+-   Change `$provideLlmToolsForCli` -> `$provideLlmToolsForWizardOrCli`
 -   Do not require `.book.md` in pipeline url
 -   More file paths are considered as valid
 -   Walk to the root of the project and find the nearest `.env` file
--   `$provideLlmToolsConfigurationFromEnv`, `$provideLlmToolsFromEnv`, `$provideLlmToolsForWizzardOrCli`, `$provideLlmToolsForTestingAndScriptsAndPlayground` are async
+-   `$provideLlmToolsConfigurationFromEnv`, `$provideLlmToolsFromEnv`, `$provideLlmToolsForWizardOrCli`, `$provideLlmToolsForTestingAndScriptsAndPlayground` are async
 -   `GENERATOR` and `IMAGE_GENERATOR` formfactors
 -   Rename `removeContentComments` -> `removeMarkdownComments`
 -   Rename `DEFAULT_TITLE` -> `DEFAULT_BOOK_TITLE`
@@ -686,7 +686,7 @@ Compile via remote server
 -   `book` notation supports values interpolation
 -   Make equivalent of `book` notation the `prompt` exported through `@promptbook/utils`
 -   Flat books does not expect return parameter
--   Wizzard always returns simple `result: string` key in output
+-   Wizard always returns simple `result: string` key in output
 -   Using `BUSL-1.1` license (only for `@promptbook/utils` keep using `CC-BY-4.0`)
 -   Support of [DeepSeek models](https://www.deepseek.com/)
 -   Support of [`o3-mini` model by OpenAI](https://openai.com/index/openai-o3-mini/)

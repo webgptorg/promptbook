@@ -1687,7 +1687,7 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
   /**
    * TODO: [🎌] Together with `createLlmToolsFromConfiguration` + 'EXECUTION_TOOLS_CLASSES' gets to `@promptbook/core` ALL model providers, make this more efficient
    * TODO: [🧠][🎌] Dynamically install required providers
-   * TODO: @@ write discussion about this - wizzard
+   * TODO: @@ write discussion about this - wizard
    * TODO: [🧠][🍛] Which name is better `createLlmToolsFromConfig` or `createLlmToolsFromConfiguration`?
    * TODO: [🧠] Is there some meaningfull way how to test this util
    * TODO: This should be maybe not under `_common` but under `utils`
@@ -2818,7 +2818,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                       pipelineJsonToString(unpreparePipeline(pipeline)) !==
                           pipelineJsonToString(unpreparePipeline(this.collection.get(pipeline.pipelineUrl)))) {
                       var existing = this.collection.get(pipeline.pipelineUrl);
-                      throw new PipelineUrlError(spaceTrim.spaceTrim("\n                        Pipeline with URL ".concat(pipeline.pipelineUrl, " is already in the collection \uD83C\uDF4E\n\n                        Conflicting files:\n                        ").concat(existing.sourceFile || 'Unknown', "\n                        ").concat(pipeline.sourceFile || 'Unknown', "\n\n                        Note: You have probably forgotten to run \"ptbk make\" to update the collection\n                        Note: Pipelines with the same URL are not allowed\n                              Only exepction is when the pipelines are identical\n\n                    ")));
+                      throw new PipelineUrlError(spaceTrim.spaceTrim("\n                        Pipeline with URL ".concat(pipeline.pipelineUrl, " is already in the collection \uD83C\uDF4E\n\n                        Conflicting files:\n                        ").concat(existing.sourceFile || 'Unknown', "\n                        ").concat(pipeline.sourceFile || 'Unknown', "\n\n                        Note: You have probably forgotten to run \"ptbk make\" to update the collection\n                        Note: Pipelines with the same URL are not allowed\n                              Only exception is when the pipelines are identical\n\n                    ")));
                   }
                   // Note: [🧠] Overwrite existing pipeline with the same URL
                   this.collection.set(pipeline.pipelineUrl, pipeline);

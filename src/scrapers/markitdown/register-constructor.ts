@@ -9,7 +9,7 @@ import { createMarkitdownScraper } from './createMarkitdownScraper';
  *
  * @public exported from `@promptbook/markitdown`
  * @public exported from `@promptbook/pdf`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _MarkitdownScraperRegistration: Registration = $scrapersRegister.register(createMarkitdownScraper);

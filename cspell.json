@@ -1,0 +1,18 @@
+{
+    "version": "0.2",
+    "language": ["en", "cs"],
+    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git"],
+    "words": [
+        "ptbk",
+        "promptbook",
+        "spacetrim",
+        "unprepare",
+        "x",
+        "promisable",
+        "supersimple",
+        "foo",
+        "bar",
+        "baz",
+        "ěščřžýáíéúů"
+    ]
+}

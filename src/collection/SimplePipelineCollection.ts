@@ -70,7 +70,7 @@ export class SimplePipelineCollection implements PipelineCollection {
 
                         Note: You have probably forgotten to run "ptbk make" to update the collection
                         Note: Pipelines with the same URL are not allowed
-                              Only exepction is when the pipelines are identical
+                              Only exception is when the pipelines are identical
 
                     `),
                 );

@@ -4,29 +4,31 @@ import { $provideExecutablesForNode } from '../executables/$provideExecutablesFo
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
-import { $provideLlmToolsForWizzardOrCli } from '../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
+import { $provideLlmToolsForWizardOrCli } from '../llm-providers/_common/register/$provideLlmToolsForWizardOrCli';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type {
+    InputParameters,
+    string_filename,
+    string_parameter_value,
+    string_pipeline_url,
+} from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
 /**
- * Wizzard for simple usage of the Promptbook
- * Look at `wizzard` for more details
+ * Wizard for simple usage of the Promptbook
+ * Look at `wizard` for more details
  *
  * Note: This works only in Node.js environment and looks for the configuration, environment, tools and cache in the Node.js environment
  *
  * @private just for single instance
  */
-class Wizzard {
+class Wizard {
     /**
      * Run the book
      *
@@ -50,7 +52,7 @@ class Wizzard {
         } & PipelineExecutorResult
     > {
         if (!$isRunningInNode()) {
-            throw new EnvironmentMismatchError('Wizzard works only in Node.js environment');
+            throw new EnvironmentMismatchError('Wizard works only in Node.js environment');
         }
 
         // ▶ Get the tools
@@ -99,8 +101,8 @@ class Wizzard {
             isCacheReloaded: false, // <- TODO: Allow to pass
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-        const llm = await $provideLlmToolsForWizzardOrCli({
-            // TODO: [🌃] Allow to use Promptbook.studio token in wizzard> strategy: 'REMOTE_SERVER'
+        const llm = await $provideLlmToolsForWizardOrCli({
+            // TODO: [🌃] Allow to use Promptbook.studio token in wizard> strategy: 'REMOTE_SERVER'
             strategy: 'BRING_YOUR_OWN_KEYS',
             ...prepareAndScrapeOptions,
         });
@@ -138,14 +140,14 @@ class Wizzard {
 }
 
 /**
- * Wizzard for simple usage of the Promptbook
+ * Wizard for simple usage of the Promptbook
  *
  * Note: This works only in Node.js environment and looks for the configuration, environment, tools and cache in the Node.js environment
  *
  * @singleton
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  */
-export const wizzard = new Wizzard();
+export const wizard = new Wizard();
 
 /**
  * TODO: [🧠] Maybe some way how to handle the progress and streaming?

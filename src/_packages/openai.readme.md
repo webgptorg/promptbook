@@ -60,7 +60,7 @@ console.info(outputParameters);
 OpenAiExecutionTools.createAssistantSubtools
 -->
 
-<!--Import ./wizzard.readme.md-->
+<!--Import ./wizard.readme.md-->
 <!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
 
 ## 🧙‍♂️ Wizard
@@ -68,18 +68,18 @@ OpenAiExecutionTools.createAssistantSubtools
 Run books without any settings, boilerplate or struggle in Node.js:
 
 ```typescript
-import { wizzard } from '@promptbook/wizzard';
+import { wizard } from '@promptbook/wizard';
 
 const {
     outputParameters: { joke },
-} = await wizzard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book`, {
+} = await wizard.execute(`https://github.com/webgptorg/book/blob/main/books/templates/generic.book`, {
     topic: 'Prague',
 });
 
 console.info(joke);
 ```
 
-<!--/Import ./wizzard.readme.md-->
+<!--/Import ./wizard.readme.md-->
 
 <!--Import ./content/$provideExecutionToolsForNode.md-->
 <!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->

@@ -12,7 +12,7 @@ describe('how parsing of keywords from objects works', () => {
         expect(parseKeywords({ b: ['foo bar', 'bzz'] })).toEqual(new Set(['foo', 'bar', 'bzz']));
     });
 
-    it('can parse numecic keywords', () => {
+    it('can parse numeric keywords', () => {
         expect(parseKeywords(['foo 123'])).toEqual(new Set(['foo', '123']));
         expect(parseKeywords(['foo 0 bar 1', 'bzz', '4story', 'hevesh5'])).toEqual(
             new Set(['foo', '0', 'bar', '1', 'bzz', '4story', 'hevesh5']),

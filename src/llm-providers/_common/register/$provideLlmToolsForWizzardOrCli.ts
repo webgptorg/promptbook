@@ -1,7 +1,6 @@
 import { join } from 'path';
 import { Promisable } from 'type-fest';
-import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_REMOTE_SERVER_URL } from '../../../config';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME, DEFAULT_REMOTE_SERVER_URL } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
@@ -11,9 +10,7 @@ import { promptbookTokenToIdentification } from '../../../remote-server/socket-t
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { $EnvStorage } from '../../../storage/env-storage/$EnvStorage';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
-import type { string_app_id } from '../../../types/typeAliases';
-import type { string_promptbook_token } from '../../../types/typeAliases';
-import type { string_url } from '../../../types/typeAliases';
+import type { string_app_id, string_promptbook_token, string_url } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { really_any } from '../../../utils/organization/really_any';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
@@ -23,7 +20,7 @@ import { countUsage } from '../utils/count-total-usage/countUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 
-type ProvideLlmToolsForWizzardOrCliOptions = {
+type ProvideLlmToolsForWizardOrCliOptions = {
     /**
      * If true, user will be always prompted for login
      *
@@ -74,12 +71,12 @@ type ProvideLlmToolsForWizzardOrCliOptions = {
  *
  * @private within the repository - for CLI utils
  */
-export async function $provideLlmToolsForWizzardOrCli(
-    options?: ProvideLlmToolsForWizzardOrCliOptions,
+export async function $provideLlmToolsForWizardOrCli(
+    options?: ProvideLlmToolsForWizardOrCliOptions,
 ): Promise<LlmExecutionToolsWithTotalUsage> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
-            'Function `$provideLlmToolsForWizzardOrCli` works only in Node.js environment',
+            'Function `$provideLlmToolsForWizardOrCli` works only in Node.js environment',
         );
     }
 
@@ -122,7 +119,7 @@ export async function $provideLlmToolsForWizzardOrCli(
     } else if (strategy === 'BRING_YOUR_OWN_KEYS') {
         llmExecutionTools = await $provideLlmToolsFromEnv();
     } else {
-        throw new UnexpectedError(`\`$provideLlmToolsForWizzardOrCli\` wrong strategy "${strategy}"`);
+        throw new UnexpectedError(`\`$provideLlmToolsForWizardOrCli\` wrong strategy "${strategy}"`);
     }
 
     return cacheLlmTools(
