@@ -18,7 +18,7 @@ describe('how EXPECT command in .book.md files works', () => {
             amount: 1,
         });
 
-        expect(parseCommand('Expect mininimum 1 character', 'PIPELINE_TASK')).toEqual({
+        expect(parseCommand('Expect minimum 1 character', 'PIPELINE_TASK')).toEqual({
             type: 'EXPECT',
             sign: 'MINIMUM',
             unit: 'CHARACTERS',

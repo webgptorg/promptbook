@@ -786,7 +786,7 @@ export type number_seed = number_percent;
  */
 export type number_likeness = number;
 
-export type number_miliseconds = number_integer;
+export type number_milliseconds = number_integer;
 export type number_seconds = number;
 export type number_minutes = number;
 export type number_hours = number;

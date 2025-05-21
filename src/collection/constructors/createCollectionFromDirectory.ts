@@ -215,7 +215,7 @@ export async function createCollectionFromDirectory(
                     throw new CollectionError(wrappedErrorMessage);
                 }
 
-                // TODO: [🟥] Detect browser / node and make it colorfull
+                // TODO: [🟥] Detect browser / node and make it colorful
                 console.error(wrappedErrorMessage);
             }
         }
@@ -334,7 +334,7 @@ export async function createCollectionFromDirectory(
                     throw new CollectionError(wrappedErrorMessage);
                 }
 
-                // TODO: [🟥] Detect browser / node and make it colorfull
+                // TODO: [🟥] Detect browser / node and make it colorful
                 console.error(wrappedErrorMessage);
             }
         }

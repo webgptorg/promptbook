@@ -27,7 +27,7 @@ export function prettifyMarkdown<TContent extends string_html>(content: TContent
             bracketSpacing: true,
         }) as TContent;
     } catch (error) {
-        // TODO: [🟥] Detect browser / node and make it colorfull
+        // TODO: [🟥] Detect browser / node and make it colorful
         console.error('There was an error with prettifying the markdown, using the original as the fallback', {
             error,
             html: content,

@@ -1460,12 +1460,12 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
       }
       if (llmExecutionTools.length === 0) {
           var warningMessage = spaceTrim__default["default"]("\n            You have not provided any `LlmExecutionTools`\n            This means that you won't be able to execute any prompts that require large language models like GPT-4 or Anthropic's Claude.\n\n            Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.\n        ");
-          // TODO: [🟥] Detect browser / node and make it colorfull
+          // TODO: [🟥] Detect browser / node and make it colorful
           console.warn(warningMessage);
           /*
           return {
               async listModels() {
-                  // TODO: [🟥] Detect browser / node and make it colorfull
+                  // TODO: [🟥] Detect browser / node and make it colorful
                   console.warn(
                       spaceTrim(
                           (block) => `
@@ -1764,7 +1764,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
           });
       }
       catch (error) {
-          // TODO: [🟥] Detect browser / node and make it colorfull
+          // TODO: [🟥] Detect browser / node and make it colorful
           console.error('There was an error with prettifying the markdown, using the original as the fallback', {
               error: error,
               html: content,

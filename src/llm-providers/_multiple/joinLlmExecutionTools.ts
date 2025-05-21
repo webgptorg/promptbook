@@ -28,14 +28,14 @@ export function joinLlmExecutionTools(
             Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.
         `);
 
-        // TODO: [🟥] Detect browser / node and make it colorfull
+        // TODO: [🟥] Detect browser / node and make it colorful
         console.warn(warningMessage);
         // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
 
         /*
         return {
             async listModels() {
-                // TODO: [🟥] Detect browser / node and make it colorfull
+                // TODO: [🟥] Detect browser / node and make it colorful
                 console.warn(
                     spaceTrim(
                         (block) => `

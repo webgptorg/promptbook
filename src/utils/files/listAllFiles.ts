@@ -1,7 +1,6 @@
 import { join } from 'path';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_dirname, string_filename } from '../../types/typeAliases';
 import { isDirectoryExisting } from './isDirectoryExisting';
 
 /**
@@ -41,7 +40,7 @@ export async function listAllFiles(
 }
 
 /**
- * TODO: [😶] Unite floder listing
+ * TODO: [😶] Unite folder listing
  * Note: Not [~🟢~] because it is not directly dependent on `fs
  * TODO: [🖇] What about symlinks?
  */

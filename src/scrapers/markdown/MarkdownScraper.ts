@@ -1,15 +1,13 @@
 import spaceTrim from 'spacetrim';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -143,7 +141,7 @@ export class MarkdownScraper implements Scraper {
                     // ---
 
                     if (!llmTools.callEmbeddingModel) {
-                        // TODO: [🟥] Detect browser / node and make it colorfull
+                        // TODO: [🟥] Detect browser / node and make it colorful
                         console.error('No callEmbeddingModel function provided');
                     } else {
                         // TODO: [🧠][🎛] Embedding via multiple models
@@ -170,7 +168,7 @@ export class MarkdownScraper implements Scraper {
                         throw error;
                     }
 
-                    // TODO: [🟥] Detect browser / node and make it colorfull
+                    // TODO: [🟥] Detect browser / node and make it colorful
                     console.error(
                         error,
                         "<- Note: This error is not critical to prepare the pipeline, just knowledge pieces won't have embeddings",
