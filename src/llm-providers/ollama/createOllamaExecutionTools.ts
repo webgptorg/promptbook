@@ -1,4 +1,5 @@
-import { $isRunningInBrowser, $isRunningInWebWorker } from '../../_packages/utils.index';
+import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
+import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { OllamaExecutionTools } from './OllamaExecutionTools';
