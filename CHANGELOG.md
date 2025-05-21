@@ -818,6 +818,13 @@ Integration of local models
 -   `AvailableModel` has pricing information
 -   Better reporting of progress
 
+### `0.95.0` _(2025-05-21)_
+
+Spell checking and grammar
+
+-   Rename `@promptbook/wizzard` -> `@promptbook/wizard`
+-   Add `npm run spellcheck` command to publishing pipeline
+
 ## In pre-release
 
 ## Upcoming

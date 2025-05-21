@@ -76,7 +76,7 @@ jobs:
               run: npm ci
 
             - name: Spell check
-              run: npm run spell
+              run: npm run spellcheck
 
     # TODO: Unit tests are failing on Github Actions with the following error, fix it:
     #       "Jest worker encountered 4 child process exceptions"

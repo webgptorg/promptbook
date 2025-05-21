@@ -45,7 +45,7 @@
         },
         {
             "name": "🧪 Spell check",
-            "command": "npm run spell",
+            "command": "npm run spellcheck",
             "execute": false,
             "onlySingle": false,
             "focus": false
