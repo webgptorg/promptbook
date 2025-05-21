@@ -1,0 +1,122 @@
+{
+    "date": "2025-05-21T09:09:22.186Z",
+    "promptbookVersion": "0.94.0-15",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "## License and Contributing\n\n**License**  \n   Project licensed under BUSL 1.1.\n\n**Contributing**  \n   Contributions are welcomed; guidelines available in CONTRIBUTING.md.\n\n**Support**  \n   Community support and resources are provided for handling queries and improvements."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "License, BUSL 1.1, Contributing, CONTRIBUTING.md, Support, Community support, Resources, Queries, Improvements",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2025-05-21T09:09:17.521Z",
+            "complete": "2025-05-21T09:09:22.185Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0009450000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 111
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 26
+                },
+                "charactersCount": {
+                    "value": 110
+                },
+                "wordsCount": {
+                    "value": 13
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ## License and Contributing\n> \n> **License**  \n>    Project licensed under BUSL 1.1.\n> \n> **Contributing**  \n>    Contributions are welcomed; guidelines available in CONTRIBUTING.md.\n> \n> **Support**  \n>    Community support and resources are provided for handling queries and improvements.",
+        "rawRequest": {
+            "model": "gpt-4o-2024-05-13",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ## License and Contributing\n> \n> **License**  \n>    Project licensed under BUSL 1.1.\n> \n> **Contributing**  \n>    Contributions are welcomed; guidelines available in CONTRIBUTING.md.\n> \n> **Support**  \n>    Community support and resources are provided for handling queries and improvements."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BZZjt8XBfcqRxfuQ4NMrsgfkKV0Sb",
+            "object": "chat.completion",
+            "created": 1747818561,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "License, BUSL 1.1, Contributing, CONTRIBUTING.md, Support, Community support, Resources, Queries, Improvements",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 111,
+                "completion_tokens": 26,
+                "total_tokens": 137,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_a9047283ac"
+        }
+    }
+}

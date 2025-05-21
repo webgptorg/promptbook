@@ -1,0 +1,122 @@
+{
+    "date": "2025-05-21T09:09:19.990Z",
+    "promptbookVersion": "0.94.0-15",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "## Additional Features and Notes\n\n### Security\n   Follow the Security Policy for reporting vulnerabilities.\n\n### Developer Packages\n   The library consists of multiple packages that can be installed either all at once or individually.\n\n### Glossary of Terms\n   Basic AI/LLM terms and core concepts related to Promptbook, including data management, pipeline control, media handling, and anomaly detection.\n\n### Promptbook Engine\n   Guidelines for when to use the Promptbook engine, known issues, and its limitations.\n\n### Support & Community\n   Contributions and feedback are welcomed to improve the Book language. "
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Security Policy, vulnerabilities, Developer Packages, library, Glossary of Terms, AI, LLM, Promptbook, data management, pipeline control, media handling, anomaly detection, Promptbook Engine, guidelines, known issues, limitations, Support, Community, Contributions, feedback, Book language.",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2025-05-21T09:09:16.289Z",
+            "complete": "2025-05-21T09:09:19.989Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001755
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 180
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 57
+                },
+                "charactersCount": {
+                    "value": 290
+                },
+                "wordsCount": {
+                    "value": 32
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 5
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ## Additional Features and Notes\n> \n> ### Security\n>    Follow the Security Policy for reporting vulnerabilities.\n> \n> ### Developer Packages\n>    The library consists of multiple packages that can be installed either all at once or individually.\n> \n> ### Glossary of Terms\n>    Basic AI/LLM terms and core concepts related to Promptbook, including data management, pipeline control, media handling, and anomaly detection.\n> \n> ### Promptbook Engine\n>    Guidelines for when to use the Promptbook engine, known issues, and its limitations.\n> \n> ### Support & Community\n>    Contributions and feedback are welcomed to improve the Book language. ",
+        "rawRequest": {
+            "model": "gpt-4o-2024-05-13",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ## Additional Features and Notes\n> \n> ### Security\n>    Follow the Security Policy for reporting vulnerabilities.\n> \n> ### Developer Packages\n>    The library consists of multiple packages that can be installed either all at once or individually.\n> \n> ### Glossary of Terms\n>    Basic AI/LLM terms and core concepts related to Promptbook, including data management, pipeline control, media handling, and anomaly detection.\n> \n> ### Promptbook Engine\n>    Guidelines for when to use the Promptbook engine, known issues, and its limitations.\n> \n> ### Support & Community\n>    Contributions and feedback are welcomed to improve the Book language. "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BZZjrNVlDieRXu1LnpYKcfVoQEf96",
+            "object": "chat.completion",
+            "created": 1747818559,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Security Policy, vulnerabilities, Developer Packages, library, Glossary of Terms, AI, LLM, Promptbook, data management, pipeline control, media handling, anomaly detection, Promptbook Engine, guidelines, known issues, limitations, Support, Community, Contributions, feedback, Book language.",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 180,
+                "completion_tokens": 57,
+                "total_tokens": 237,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_9923407c12"
+        }
+    }
+}

@@ -1,0 +1,122 @@
+{
+    "date": "2025-05-21T09:09:12.664Z",
+    "promptbookVersion": "0.94.0-15",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\n## Overview\n\n**Paradigm Shift in Software Development**  \nA new era of software programming is emerging where applications are written in plain human languages (e.g., English, French, Latin). This shift is driven by advancements in large language models (LLMs) like GPT and Claude, promising more accessible and powerful software development."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Paradigm Shift, Software Development, Human Languages, Large Language Models, LLMs, GPT, Claude, Accessible Software, Powerful Software, Advancements, Applications",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2025-05-21T09:09:11.313Z",
+            "complete": "2025-05-21T09:09:12.663Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001065
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 117
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 32
+                },
+                "charactersCount": {
+                    "value": 163
+                },
+                "wordsCount": {
+                    "value": 18
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> ## Overview\n> \n> **Paradigm Shift in Software Development**  \n> A new era of software programming is emerging where applications are written in plain human languages (e.g., English, French, Latin). This shift is driven by advancements in large language models (LLMs) like GPT and Claude, promising more accessible and powerful software development.",
+        "rawRequest": {
+            "model": "gpt-4o-2024-05-13",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> ## Overview\n> \n> **Paradigm Shift in Software Development**  \n> A new era of software programming is emerging where applications are written in plain human languages (e.g., English, French, Latin). This shift is driven by advancements in large language models (LLMs) like GPT and Claude, promising more accessible and powerful software development."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BZZjkWHuu8LtQWqvFW7CHXFCSvXLj",
+            "object": "chat.completion",
+            "created": 1747818552,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Paradigm Shift, Software Development, Human Languages, Large Language Models, LLMs, GPT, Claude, Accessible Software, Powerful Software, Advancements, Applications",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 117,
+                "completion_tokens": 32,
+                "total_tokens": 149,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_9923407c12"
+        }
+    }
+}

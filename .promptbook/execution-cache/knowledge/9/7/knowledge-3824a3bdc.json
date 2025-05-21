@@ -1,0 +1,122 @@
+{
+    "date": "2025-05-21T09:09:17.051Z",
+    "promptbookVersion": "0.94.0-15",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "**Community and Support**\n\n1. **Discord**  \n   Active developer discussions and support.\n\n2. **GitHub Discussions**  \n   Platform for technical discussions, feature requests, and Q&A.\n\n3. **LinkedIn and Facebook**  \n   Professional updates, industry insights, and general announcements.\n\n4. **Official Website**  \n   Project information available at ptbk.io."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Discord, GitHub Discussions, LinkedIn, Facebook, Official Website, developer discussions, technical discussions, feature requests, Q&A, professional updates, industry insights, general announcements, project information, ptbk.io",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2025-05-21T09:09:13.337Z",
+            "complete": "2025-05-21T09:09:17.051Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00131
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 139
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 41
+                },
+                "charactersCount": {
+                    "value": 228
+                },
+                "wordsCount": {
+                    "value": 27
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 4
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> **Community and Support**\n> \n> 1. **Discord**  \n>    Active developer discussions and support.\n> \n> 2. **GitHub Discussions**  \n>    Platform for technical discussions, feature requests, and Q&A.\n> \n> 3. **LinkedIn and Facebook**  \n>    Professional updates, industry insights, and general announcements.\n> \n> 4. **Official Website**  \n>    Project information available at ptbk.io.",
+        "rawRequest": {
+            "model": "gpt-4o-2024-05-13",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> **Community and Support**\n> \n> 1. **Discord**  \n>    Active developer discussions and support.\n> \n> 2. **GitHub Discussions**  \n>    Platform for technical discussions, feature requests, and Q&A.\n> \n> 3. **LinkedIn and Facebook**  \n>    Professional updates, industry insights, and general announcements.\n> \n> 4. **Official Website**  \n>    Project information available at ptbk.io."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BZZjnxlzI3wriM0mELjdx4XOMhL3S",
+            "object": "chat.completion",
+            "created": 1747818555,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Discord, GitHub Discussions, LinkedIn, Facebook, Official Website, developer discussions, technical discussions, feature requests, Q&A, professional updates, industry insights, general announcements, project information, ptbk.io",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 139,
+                "completion_tokens": 41,
+                "total_tokens": 180,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_a9047283ac"
+        }
+    }
+}
