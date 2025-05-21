@@ -1,7 +1,5 @@
 import type { Executables } from '../../../execution/Executables';
-import type { string_mime_type } from '../../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
-import type { string_title } from '../../../types/typeAliases';
+import type { string_mime_type, string_promptbook_documentation_url, string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 
 /**
@@ -36,7 +34,7 @@ export type ScraperAndConverterMetadata = Registered & {
      *
      * Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
      */
-    readonly isAvilableInBrowser: boolean;
+    readonly isAvailableInBrowser: boolean;
 
     /**
      * List of executables required by this scraper or converter to function properly.

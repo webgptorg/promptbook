@@ -2109,7 +2109,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                   for (var _b = __values(Object.entries(value)), _c = _b.next(); !_c.done; _c = _b.next()) {
                       var _d = __read(_c.value, 2), subName = _d[0], subValue = _d[1];
                       if (subValue === undefined) {
-                          // Note: undefined in object is serializable - it is just omited
+                          // Note: undefined in object is serializable - it is just omitted
                           continue;
                       }
                       checkSerializableAsJson({ name: "".concat(name, ".").concat(subName), value: subValue, message: message });
@@ -4902,12 +4902,12 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
   function executeTask(options) {
       return __awaiter(this, void 0, void 0, function () {
-          var currentTask, preparedPipeline, parametersToPass, tools, onProgress, $executionReport, pipelineIdentification, maxExecutionAttempts, maxParallelCount, csvSettings, isVerbose, rootDirname, cacheDirname, intermediateFilesStrategy, isAutoInstalled, isNotPreparedWarningSupressed, name, title, priority, usedParameterNames, dependentParameterNames, definedParameters, _a, _b, _c, definedParameterNames, parameters, _loop_1, _d, _e, parameterName, maxAttempts, jokerParameterNames, preparedContent, resultString;
+          var currentTask, preparedPipeline, parametersToPass, tools, onProgress, $executionReport, pipelineIdentification, maxExecutionAttempts, maxParallelCount, csvSettings, isVerbose, rootDirname, cacheDirname, intermediateFilesStrategy, isAutoInstalled, isNotPreparedWarningSuppressed, name, title, priority, usedParameterNames, dependentParameterNames, definedParameters, _a, _b, _c, definedParameterNames, parameters, _loop_1, _d, _e, parameterName, maxAttempts, jokerParameterNames, preparedContent, resultString;
           var e_1, _f, _g;
           return __generator(this, function (_h) {
               switch (_h.label) {
                   case 0:
-                      currentTask = options.currentTask, preparedPipeline = options.preparedPipeline, parametersToPass = options.parametersToPass, tools = options.tools, onProgress = options.onProgress, $executionReport = options.$executionReport, pipelineIdentification = options.pipelineIdentification, maxExecutionAttempts = options.maxExecutionAttempts, maxParallelCount = options.maxParallelCount, csvSettings = options.csvSettings, isVerbose = options.isVerbose, rootDirname = options.rootDirname, cacheDirname = options.cacheDirname, intermediateFilesStrategy = options.intermediateFilesStrategy, isAutoInstalled = options.isAutoInstalled, isNotPreparedWarningSupressed = options.isNotPreparedWarningSupressed;
+                      currentTask = options.currentTask, preparedPipeline = options.preparedPipeline, parametersToPass = options.parametersToPass, tools = options.tools, onProgress = options.onProgress, $executionReport = options.$executionReport, pipelineIdentification = options.pipelineIdentification, maxExecutionAttempts = options.maxExecutionAttempts, maxParallelCount = options.maxParallelCount, csvSettings = options.csvSettings, isVerbose = options.isVerbose, rootDirname = options.rootDirname, cacheDirname = options.cacheDirname, intermediateFilesStrategy = options.intermediateFilesStrategy, isAutoInstalled = options.isAutoInstalled, isNotPreparedWarningSuppressed = options.isNotPreparedWarningSuppressed;
                       name = "pipeline-executor-frame-".concat(currentTask.name);
                       title = currentTask.title;
                       priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
@@ -4997,7 +4997,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                               cacheDirname: cacheDirname,
                               intermediateFilesStrategy: intermediateFilesStrategy,
                               isAutoInstalled: isAutoInstalled,
-                              isNotPreparedWarningSupressed: isNotPreparedWarningSupressed,
+                              isNotPreparedWarningSuppressed: isNotPreparedWarningSuppressed,
                           })];
                   case 3:
                       resultString = _h.sent();
@@ -5127,7 +5127,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                       _g.label = 6;
                   case 6: return [2 /*return*/, exportJson({
                           name: "executionReport",
-                          message: "Unuccessful PipelineExecutorResult (with missing parameter {".concat(parameter.name, "}) PipelineExecutorResult"),
+                          message: "Unsuccessful PipelineExecutorResult (with missing parameter {".concat(parameter.name, "}) PipelineExecutorResult"),
                           order: [],
                           value: {
                               isSuccessful: false,
@@ -5180,7 +5180,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                                       _h.label = 3;
                                   case 3: return [2 /*return*/, { value: exportJson({
                                               name: 'pipelineExecutorResult',
-                                              message: spaceTrim.spaceTrim(function (block) { return "\n                        Unuccessful PipelineExecutorResult (with extra parameter {".concat(parameter.name, "}) PipelineExecutorResult\n\n                        ").concat(block(pipelineIdentification), "\n                    "); }),
+                                              message: spaceTrim.spaceTrim(function (block) { return "\n                        Unsuccessful PipelineExecutorResult (with extra parameter {".concat(parameter.name, "}) PipelineExecutorResult\n\n                        ").concat(block(pipelineIdentification), "\n                    "); }),
                                               order: [],
                                               value: {
                                                   isSuccessful: false,
@@ -5351,7 +5351,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                       _g.label = 27;
                   case 27: return [2 /*return*/, exportJson({
                           name: 'pipelineExecutorResult',
-                          message: "Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult",
+                          message: "Unsuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult",
                           order: [],
                           value: {
                               isSuccessful: false,
@@ -5413,7 +5413,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
    */
   function createPipelineExecutor(options) {
       var _this = this;
-      var pipeline = options.pipeline, tools = options.tools, _a = options.maxExecutionAttempts, maxExecutionAttempts = _a === void 0 ? DEFAULT_MAX_EXECUTION_ATTEMPTS : _a, _b = options.maxParallelCount, maxParallelCount = _b === void 0 ? DEFAULT_MAX_PARALLEL_COUNT : _b, _c = options.csvSettings, csvSettings = _c === void 0 ? DEFAULT_CSV_SETTINGS : _c, _d = options.isVerbose, isVerbose = _d === void 0 ? DEFAULT_IS_VERBOSE : _d, _e = options.isNotPreparedWarningSupressed, isNotPreparedWarningSupressed = _e === void 0 ? false : _e, _f = options.cacheDirname, cacheDirname = _f === void 0 ? DEFAULT_SCRAPE_CACHE_DIRNAME : _f, _g = options.intermediateFilesStrategy, intermediateFilesStrategy = _g === void 0 ? DEFAULT_INTERMEDIATE_FILES_STRATEGY : _g, _h = options.isAutoInstalled, isAutoInstalled = _h === void 0 ? DEFAULT_IS_AUTO_INSTALLED : _h, _j = options.rootDirname, rootDirname = _j === void 0 ? null : _j;
+      var pipeline = options.pipeline, tools = options.tools, _a = options.maxExecutionAttempts, maxExecutionAttempts = _a === void 0 ? DEFAULT_MAX_EXECUTION_ATTEMPTS : _a, _b = options.maxParallelCount, maxParallelCount = _b === void 0 ? DEFAULT_MAX_PARALLEL_COUNT : _b, _c = options.csvSettings, csvSettings = _c === void 0 ? DEFAULT_CSV_SETTINGS : _c, _d = options.isVerbose, isVerbose = _d === void 0 ? DEFAULT_IS_VERBOSE : _d, _e = options.isNotPreparedWarningSuppressed, isNotPreparedWarningSuppressed = _e === void 0 ? false : _e, _f = options.cacheDirname, cacheDirname = _f === void 0 ? DEFAULT_SCRAPE_CACHE_DIRNAME : _f, _g = options.intermediateFilesStrategy, intermediateFilesStrategy = _g === void 0 ? DEFAULT_INTERMEDIATE_FILES_STRATEGY : _g, _h = options.isAutoInstalled, isAutoInstalled = _h === void 0 ? DEFAULT_IS_AUTO_INSTALLED : _h, _j = options.rootDirname, rootDirname = _j === void 0 ? null : _j;
       validatePipeline(pipeline);
       var pipelineIdentification = (function () {
           // Note: This is a 😐 implementation of [🚞]
@@ -5430,7 +5430,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
       if (isPipelinePrepared(pipeline)) {
           preparedPipeline = pipeline;
       }
-      else if (isNotPreparedWarningSupressed !== true) {
+      else if (isNotPreparedWarningSuppressed !== true) {
           console.warn(spaceTrim.spaceTrim(function (block) { return "\n                    Pipeline is not prepared\n\n                    ".concat(block(pipelineIdentification), "\n\n                    It will be prepared ad-hoc before the first execution and **returned as `preparedPipeline` in `PipelineExecutorResult`**\n                    But it is recommended to prepare the pipeline during collection preparation\n\n                    @see more at https://ptbk.io/prepare-pipeline\n                "); }));
       }
       var runCount = 0;
@@ -5451,7 +5451,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
                       maxParallelCount: maxParallelCount,
                       csvSettings: csvSettings,
                       isVerbose: isVerbose,
-                      isNotPreparedWarningSupressed: isNotPreparedWarningSupressed,
+                      isNotPreparedWarningSuppressed: isNotPreparedWarningSuppressed,
                       rootDirname: rootDirname,
                       cacheDirname: cacheDirname,
                       intermediateFilesStrategy: intermediateFilesStrategy,
@@ -5721,16 +5721,16 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
        * Mixes registered scrapers from $scrapersMetadataRegister and $scrapersRegister
        */
       var all = [];
-      var _loop_1 = function (packageName, className, mimeTypes, documentationUrl, isAvilableInBrowser) {
+      var _loop_1 = function (packageName, className, mimeTypes, documentationUrl, isAvailableInBrowser) {
           if (all.some(function (item) { return item.packageName === packageName && item.className === className; })) {
               return "continue";
           }
-          all.push({ packageName: packageName, className: className, mimeTypes: mimeTypes, documentationUrl: documentationUrl, isAvilableInBrowser: isAvilableInBrowser });
+          all.push({ packageName: packageName, className: className, mimeTypes: mimeTypes, documentationUrl: documentationUrl, isAvailableInBrowser: isAvailableInBrowser });
       };
       try {
           for (var _d = __values($scrapersMetadataRegister.list()), _e = _d.next(); !_e.done; _e = _d.next()) {
-              var _f = _e.value, packageName = _f.packageName, className = _f.className, mimeTypes = _f.mimeTypes, documentationUrl = _f.documentationUrl, isAvilableInBrowser = _f.isAvilableInBrowser;
-              _loop_1(packageName, className, mimeTypes, documentationUrl, isAvilableInBrowser);
+              var _f = _e.value, packageName = _f.packageName, className = _f.className, mimeTypes = _f.mimeTypes, documentationUrl = _f.documentationUrl, isAvailableInBrowser = _f.isAvailableInBrowser;
+              _loop_1(packageName, className, mimeTypes, documentationUrl, isAvailableInBrowser);
           }
       }
       catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -5740,16 +5740,16 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
           }
           finally { if (e_1) throw e_1.error; }
       }
-      var _loop_2 = function (packageName, className, mimeTypes, documentationUrl, isAvilableInBrowser) {
+      var _loop_2 = function (packageName, className, mimeTypes, documentationUrl, isAvailableInBrowser) {
           if (all.some(function (item) { return item.packageName === packageName && item.className === className; })) {
               return "continue";
           }
-          all.push({ packageName: packageName, className: className, mimeTypes: mimeTypes, documentationUrl: documentationUrl, isAvilableInBrowser: isAvilableInBrowser });
+          all.push({ packageName: packageName, className: className, mimeTypes: mimeTypes, documentationUrl: documentationUrl, isAvailableInBrowser: isAvailableInBrowser });
       };
       try {
           for (var _g = __values($scrapersRegister.list()), _h = _g.next(); !_h.done; _h = _g.next()) {
-              var _j = _h.value, packageName = _j.packageName, className = _j.className, mimeTypes = _j.mimeTypes, documentationUrl = _j.documentationUrl, isAvilableInBrowser = _j.isAvilableInBrowser;
-              _loop_2(packageName, className, mimeTypes, documentationUrl, isAvilableInBrowser);
+              var _j = _h.value, packageName = _j.packageName, className = _j.className, mimeTypes = _j.mimeTypes, documentationUrl = _j.documentationUrl, isAvailableInBrowser = _j.isAvailableInBrowser;
+              _loop_2(packageName, className, mimeTypes, documentationUrl, isAvailableInBrowser);
           }
       }
       catch (e_2_1) { e_2 = { error: e_2_1 }; }
@@ -5785,18 +5785,18 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
               var packageName = _a.packageName, className = _a.className;
               return metadata.packageName === packageName && metadata.className === className;
           });
-          var isAvilableInTools = availableScrapers.some(function (_a) {
+          var isAvailableInTools = availableScrapers.some(function (_a) {
               var _b = _a.metadata, packageName = _b.packageName, className = _b.className;
               return metadata.packageName === packageName && metadata.className === className;
           });
-          return __assign(__assign({}, metadata), { isMetadataAviailable: isMetadataAviailable, isInstalled: isInstalled, isAvilableInTools: isAvilableInTools });
+          return __assign(__assign({}, metadata), { isMetadataAviailable: isMetadataAviailable, isInstalled: isInstalled, isAvailableInTools: isAvailableInTools });
       });
       if (metadata.length === 0) {
           return spaceTrim__default["default"]("\n            **No scrapers are available**\n\n            This is a unexpected behavior, you are probably using some broken version of Promptbook\n            At least there should be available the metadata of the scrapers\n        ");
       }
       return spaceTrim__default["default"](function (block) { return "\n            Available scrapers are:\n            ".concat(block(metadata
           .map(function (_a, i) {
-          var packageName = _a.packageName, className = _a.className, isMetadataAviailable = _a.isMetadataAviailable, isInstalled = _a.isInstalled, mimeTypes = _a.mimeTypes, isAvilableInBrowser = _a.isAvilableInBrowser, isAvilableInTools = _a.isAvilableInTools;
+          var packageName = _a.packageName, className = _a.className, isMetadataAviailable = _a.isMetadataAviailable, isInstalled = _a.isInstalled, mimeTypes = _a.mimeTypes, isAvailableInBrowser = _a.isAvailableInBrowser, isAvailableInTools = _a.isAvailableInTools;
           var more = [];
           // TODO: [🧠] Maybe use `documentationUrl`
           if (isMetadataAviailable) {
@@ -5805,16 +5805,16 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
           if (isInstalled) {
               more.push("\uD83D\uDFE9 Installed");
           } // not else
-          if (isAvilableInTools) {
+          if (isAvailableInTools) {
               more.push("\uD83D\uDFE6 Available in tools");
           } // not else
           if (!isMetadataAviailable && isInstalled) {
               more.push("When no metadata registered but scraper is installed, it is an unexpected behavior");
           } // not else
-          if (!isInstalled && isAvilableInTools) {
+          if (!isInstalled && isAvailableInTools) {
               more.push("When the scraper is not installed but available in tools, it is an unexpected compatibility behavior");
           } // not else
-          if (!isAvilableInBrowser) {
+          if (!isAvailableInBrowser) {
               more.push("Not usable in browser");
           }
           var moreText = more.length === 0 ? '' : " *(".concat(more.join('; '), ")*");
@@ -6316,7 +6316,7 @@ if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(
   /**
    * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
    *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
-   * TODO: [🪂] More than max things can run in parallel by acident [1,[2a,2b,_],[3a,3b,_]]
+   * TODO: [🪂] More than max things can run in parallel by accident [1,[2a,2b,_],[3a,3b,_]]
    * TODO: [🧠][❎] Do here proper M:N mapping
    *       [x] One source can make multiple pieces
    *       [ ] One piece can have multiple sources

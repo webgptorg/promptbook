@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../../types/typeAliases';
 import type { Scraper } from '../Scraper';
 import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
 import { $scrapersRegister } from './$scrapersRegister';
@@ -20,7 +19,7 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
     const all: Array<
         Pick<
             ScraperAndConverterMetadata,
-            'packageName' | 'className' | 'mimeTypes' | 'documentationUrl' | 'isAvilableInBrowser'
+            'packageName' | 'className' | 'mimeTypes' | 'documentationUrl' | 'isAvailableInBrowser'
         >
     > = [];
 
@@ -29,12 +28,12 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
         className,
         mimeTypes,
         documentationUrl,
-        isAvilableInBrowser,
+        isAvailableInBrowser,
     } of $scrapersMetadataRegister.list()) {
         if (all.some((item) => item.packageName === packageName && item.className === className)) {
             continue;
         }
-        all.push({ packageName, className, mimeTypes, documentationUrl, isAvilableInBrowser });
+        all.push({ packageName, className, mimeTypes, documentationUrl, isAvailableInBrowser });
     }
 
     for (const {
@@ -42,12 +41,12 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
         className,
         mimeTypes,
         documentationUrl,
-        isAvilableInBrowser,
+        isAvailableInBrowser,
     } of $scrapersRegister.list()) {
         if (all.some((item) => item.packageName === packageName && item.className === className)) {
             continue;
         }
-        all.push({ packageName, className, mimeTypes, documentationUrl, isAvilableInBrowser });
+        all.push({ packageName, className, mimeTypes, documentationUrl, isAvailableInBrowser });
     }
 
     for (const { metadata } of availableScrapers) {
@@ -69,12 +68,12 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
                     metadata.packageName === packageName && metadata.className === className,
             );
 
-        const isAvilableInTools = availableScrapers.some(
+        const isAvailableInTools = availableScrapers.some(
             ({ metadata: { packageName, className } }) =>
                 metadata.packageName === packageName && metadata.className === className,
         );
 
-        return { ...metadata, isMetadataAviailable, isInstalled, isAvilableInTools };
+        return { ...metadata, isMetadataAviailable, isInstalled, isAvailableInTools };
     });
 
     if (metadata.length === 0) {
@@ -99,8 +98,8 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
                                 isMetadataAviailable,
                                 isInstalled,
                                 mimeTypes,
-                                isAvilableInBrowser,
-                                isAvilableInTools,
+                                isAvailableInBrowser,
+                                isAvailableInTools,
                             },
                             i,
                         ) => {
@@ -115,7 +114,7 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
                             if (isInstalled) {
                                 more.push(`🟩 Installed`);
                             } // not else
-                            if (isAvilableInTools) {
+                            if (isAvailableInTools) {
                                 more.push(`🟦 Available in tools`);
                             } // not else
 
@@ -125,13 +124,13 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
                                 );
                             } // not else
 
-                            if (!isInstalled && isAvilableInTools) {
+                            if (!isInstalled && isAvailableInTools) {
                                 more.push(
                                     `When the scraper is not installed but available in tools, it is an unexpected compatibility behavior`,
                                 );
                             } // not else
 
-                            if (!isAvilableInBrowser) {
+                            if (!isAvailableInBrowser) {
                                 more.push(`Not usable in browser`);
                             }
 

@@ -145,7 +145,7 @@ TODO: [🧊] This is how it can look in future
 /**
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
- * TODO: [🪂] More than max things can run in parallel by acident [1,[2a,2b,_],[3a,3b,_]]
+ * TODO: [🪂] More than max things can run in parallel by accident [1,[2a,2b,_],[3a,3b,_]]
  * TODO: [🧠][❎] Do here proper M:N mapping
  *       [x] One source can make multiple pieces
  *       [ ] One piece can have multiple sources

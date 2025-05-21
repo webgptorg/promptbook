@@ -77,7 +77,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         cacheDirname,
         intermediateFilesStrategy,
         isAutoInstalled,
-        isNotPreparedWarningSupressed,
+        isNotPreparedWarningSuppressed,
     } = options;
 
     const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
@@ -194,7 +194,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         cacheDirname,
         intermediateFilesStrategy,
         isAutoInstalled,
-        isNotPreparedWarningSupressed,
+        isNotPreparedWarningSuppressed,
     });
 
     await onProgress({

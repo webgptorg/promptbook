@@ -234,7 +234,7 @@ module.exports = class DetectTOC extends ToLineItemTransformation {
     }
 };
 
-// Find out how the TOC page link actualy translates to the page.index
+// Find out how the TOC page link actually translates to the page.index
 function detectPageMappingNumber(pages, tocLinks) {
     for (var tocLink of tocLinks) {
         const page = findPageWithHeadline(pages, tocLink.lineItem.text());

@@ -107,7 +107,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
         const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
-            // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sence - combination of OpenAI assistants with Promptbook Personas
+            // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
 
             assistant_id: this.assistantId,
             thread: {

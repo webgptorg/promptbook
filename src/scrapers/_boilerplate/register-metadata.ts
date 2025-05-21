@@ -20,7 +20,7 @@ export const boilerplateScraperMetadata = $deepFreeze({
         // <- TODO: @@ Add compatible mime types with Boilerplate scraper
     ],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
-    isAvilableInBrowser: false, // <- TODO: @@ Is it avilable in browser?
+    isAvailableInBrowser: false, // <- TODO: @@ Is it available in browser?
     // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
     requiredExecutables: [
         /* @@ 'Pandoc' */

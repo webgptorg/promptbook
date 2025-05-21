@@ -43,13 +43,13 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         get title() {
             return `${llmTools.title} (cached)`;
             // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sence to suffix "(cached)"?
+            // <- TODO: [🧈][🧠] Does it make sense to suffix "(cached)"?
         },
 
         get description() {
             return `${llmTools.description} (cached)`;
             // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sence to suffix "(cached)"?
+            // <- TODO: [🧈][🧠] Does it make sense to suffix "(cached)"?
         },
 
         listModels(): Promisable<ReadonlyArray<AvailableModel>> {

@@ -22,7 +22,7 @@ export const markitdownScraperMetadata = $deepFreeze({
         // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
-    isAvilableInBrowser: false,
+    isAvailableInBrowser: false,
     // <- Note: [🌏] Only `MarkdownScraper` makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
     requiredExecutables: [],
 }) satisfies ScraperAndConverterMetadata; /* <- Note: [🤛] */

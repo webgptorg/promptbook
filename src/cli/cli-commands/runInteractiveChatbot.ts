@@ -150,7 +150,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
         } catch (error) {
             assertsError(error);
 
-            // TODO: Allow to ressurect the chatbot after an error - prompt the user to continue
+            // TODO: Allow to resurrect the chatbot after an error - prompt the user to continue
             console.error(colors.red(error.stack || error.message));
             return process.exit(1);
         }

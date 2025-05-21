@@ -235,7 +235,7 @@ export function $initializeRunCommand(program: Program) {
             const pipelineExecutor = createPipelineExecutor({
                 pipeline,
                 tools,
-                isNotPreparedWarningSupressed: true,
+                isNotPreparedWarningSuppressed: true,
                 maxExecutionAttempts: DEFAULT_MAX_EXECUTION_ATTEMPTS, // <- TODO: Pass via CLI argument
                 //                          <- TODO: Why "LLM execution failed undefinedx"
                 maxParallelCount: 1, // <- TODO: Pass CLI argument

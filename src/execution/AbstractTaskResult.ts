@@ -13,12 +13,12 @@ export type AbstractTaskResult = {
     readonly isSuccessful: boolean;
 
     /**
-     * Errors that occured during the execution, details are available in `executionReport`
+     * Errors that occurred during the execution, details are available in `executionReport`
      */
     readonly errors: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 
     /**
-     * Warnings that occured during the execution, details are available in `executionReport`
+     * Warnings that occurred during the execution, details are available in `executionReport`
      */
     readonly warnings: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 };

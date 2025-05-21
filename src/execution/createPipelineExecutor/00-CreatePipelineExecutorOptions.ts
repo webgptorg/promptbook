@@ -32,7 +32,7 @@ export type CreatePipelineExecutorOptions = PrepareAndScrapeOptions & {
      */
     readonly csvSettings?: CsvSettings;
     // <- TODO: [💿] Maybe move to `PrepareAndScrapeOptions` + also use in preparation
-    // <- TODO: [🧎][💩] Move to better place or make more univeral
+    // <- TODO: [🧎][💩] Move to better place or make more universal
 
     /**
      * If you pass fully prepared pipeline, this does not matter
@@ -43,7 +43,7 @@ export type CreatePipelineExecutorOptions = PrepareAndScrapeOptions & {
      *
      * @default false
      */
-    readonly isNotPreparedWarningSupressed?: boolean;
+    readonly isNotPreparedWarningSuppressed?: boolean;
 };
 
 /**

@@ -34,9 +34,7 @@ Loginloaded
 bookc
 Prettifyed
 floder
-Supressed
 undefinedx
-ressurect fix: resurrect
 exaple
 BYOK
 colorfull
@@ -48,7 +46,6 @@ stringifying
 ACRY
 mininimum
 recognisable
-minumum fix: minimum
 subformat
 Subparameter
 subparameter
@@ -86,12 +83,10 @@ validaton
 promptbool
 prettifyed
 Prettyfies
-Addtional fix: Additional
 resoved
 unresoved
 Resoved
 rerefenced
-Delagates fix: Delegates
 catched
 kindof
 repared
@@ -100,10 +95,8 @@ pandoc
 userhome
 mdfind
 LOCALAPPDATA
-occured fix: occurred
 aviailable
-Unuccessful
-univeral fix: universal
+
 Subvalues
 doublecheck
 Subparameters
@@ -112,11 +105,9 @@ arrayable
 llms
 imporant
 everyhing
-Knowlege fix: Knowledge
 Doublecheck
 xyzt
 swriter
-wich fix: which
  witch
 strins
 Arrayable
@@ -125,7 +116,7 @@ emuate
 onject
 Lindat
 Multiplicated
-hellohellohellosrc/execution/translation/automatic-translate/automatic-translators/utils/extractMultiplicatedOccurrence.test.ts:8:18 - Unknown word Шарна
+Шарна
 дошка
 негайно
 використання
@@ -224,12 +215,10 @@ confugured
 xxxxxxfakekey
 Ixxxxxxfakekeys
 alongsite
-sence fix: sense
  since
 langtail
 choises
 choise
-begining fix: beginning
 lagacy
 Deepseek's
 eventsource
@@ -289,9 +278,7 @@ signleton
 thare
 endfinally
 webgpt
-helpfull fix: helpful
 unserialized
-omited fix: omitted
 retun
 QUHYPW
 Dataurl
@@ -299,10 +286,8 @@ precol
 diacritless
 separatelly
 binded
-Avilable fix: Available
 knowle
 Unflatten
-acident fix: accident
 malitious
 inanonymous
 topbar
@@ -310,7 +295,6 @@ customfav
 frontends
 Filehandler
 itterate
-avilable fix: available
 coolproject
 praha
 Clening
@@ -333,7 +317,6 @@ Blovice
 Žije
 obyvatel
 sacraping
-occurence fix: occurrence
 enumify
 Punctation
 creatortool
@@ -344,27 +327,20 @@ smalles
 kala
 chakra
 Healine
-actualy fix: actually
 licenes
 accros
-occuring fix: occurring
 annoate
-Occurence fix: Occurrence
 domstubs
 xlink
 Wordprocessor
 narust
-podvodnesrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:3:34 - Unknown word bizuterie
 krizi
-Nárůst
-podvodnésrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:4:35 - Unknown word bižuterie
 Korálky
 Katlas
 zaznamenaly
 zvýšený
 výskyt
 zdraví
-škodlivésrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:5:110 - Unknown word trhu
 době
 ekonomické
 krize
@@ -373,14 +349,14 @@ lidé
 Zákazníci
 hlásí
 problémy
-podvodysrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:5:198 - Unknown word bižuterií
 České
 republice
 zahraničí
 korálky
-podvodnásrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:10:21 - Unknown word škodlivá
+podvodná
+škodlivá
 ekonomická
-šetřenísrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:13:14 - Unknown word zákazníci
+šetření
 Česká
 republika
 dulezite
@@ -389,13 +365,11 @@ nakup
 Důležité
 nákup
 připravily
-shrnutísrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:33:55 - Unknown word důležitých
-bodů
+shrnutíbodů
 které
 měli
 dávat
 pozor
-nákupusrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:33:125 - Unknown word hotovésrc/scrapers/website/examples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.knowledge.json:33:144 - Unknown word bižuterních
 polotovarů
 Tyto
 informace
@@ -411,7 +385,8 @@ koralkach
 katlas
 Korálkách
 Standa
-zodpovědný
+zodpov
+nákupuědný
 aktivity
 vedl
 prezentaci

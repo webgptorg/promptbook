@@ -102,7 +102,7 @@ export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions)
         } else {
             for (const [subName, subValue] of Object.entries(value)) {
                 if (subValue === undefined) {
-                    // Note: undefined in object is serializable - it is just omited
+                    // Note: undefined in object is serializable - it is just omitted
                     continue;
                 }
                 checkSerializableAsJson({ name: `${name}.${subName}`, value: subValue, message });

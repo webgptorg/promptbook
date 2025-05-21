@@ -15,5 +15,5 @@ export type PromptbookServer_ListModels_Request<TCustomOptions> = {
 };
 
 /**
- * TODO: [🧠] Listing models inanonymous mode does not make sence - keeping only to preserve consistency
+ * TODO: [🧠] Listing models inanonymous mode does not make sense - keeping only to preserve consistency
  */

@@ -21,7 +21,7 @@ describe('how `isSerializableAsJson` works', () => {
         expect(isSerializableAsJson({ foo: 'Hi', bar: ['hello', undefined] })).toBe(false);
     });
 
-    it('undefined in object is serializable - it is just omited', () => {
+    it('undefined in object is serializable - it is just omitted', () => {
         expect(isSerializableAsJson({ foo: undefined })).toBe(true);
         expect(isSerializableAsJson({ foo: undefined, bar: 'hello' })).toBe(true);
     });

@@ -7,9 +7,7 @@ import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
@@ -144,7 +142,7 @@ export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
         if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
             if ($taskJson.expectations[unit]!.min !== undefined) {
                 throw new ParseError(
-                    `Already defined minumum ${
+                    `Already defined minimum ${
                         $taskJson.expectations![unit]!.min
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );

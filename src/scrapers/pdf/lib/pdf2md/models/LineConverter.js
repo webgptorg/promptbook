@@ -17,7 +17,7 @@ module.exports = class LineConverter {
 
     // returns a CombineResult
     compact(textItems /*: TextItem[] */) /*: LineItem */ {
-        // we can't trust order of occurence, esp. footnoteLinks like to come last
+        // we can't trust order of occurrence, esp. footnoteLinks like to come last
         sortByX(textItems);
 
         const wordStream = new WordDetectionStream(this.fontToFormats);

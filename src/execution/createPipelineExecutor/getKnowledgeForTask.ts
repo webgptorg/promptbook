@@ -4,9 +4,7 @@ import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExec
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { Parameters, string_markdown, string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
@@ -51,12 +49,11 @@ export async function getKnowledgeForTask(
 ): Promise<string_parameter_value & string_markdown> {
     const { tools, preparedPipeline, task, parameters } = options;
 
-
-    const firstKnowlegePiece = preparedPipeline.knowledgePieces[0];
-    const firstKnowlegeIndex = firstKnowlegePiece?.index[0];
+    const firstKnowledgePiece = preparedPipeline.knowledgePieces[0];
+    const firstKnowledgeIndex = firstKnowledgePiece?.index[0];
     // <- TODO: Do not use just first knowledge piece and first index to determine embedding model, use also keyword search
 
-    if (firstKnowlegePiece === undefined || firstKnowlegeIndex === undefined) {
+    if (firstKnowledgePiece === undefined || firstKnowledgeIndex === undefined) {
         return ''; // <- Note: Np knowledge present, return empty string
     }
 
@@ -69,7 +66,7 @@ export async function getKnowledgeForTask(
             title: 'Knowledge Search',
             modelRequirements: {
                 modelVariant: 'EMBEDDING',
-                modelName: firstKnowlegeIndex.modelName,
+                modelName: firstKnowledgeIndex.modelName,
             },
             content: task.content,
             parameters,
@@ -79,7 +76,7 @@ export async function getKnowledgeForTask(
         const knowledgePiecesWithRelevance = preparedPipeline.knowledgePieces.map((knowledgePiece) => {
             const { index } = knowledgePiece;
 
-            const knowledgePieceIndex = index.find((i) => i.modelName === firstKnowlegeIndex.modelName);
+            const knowledgePieceIndex = index.find((i) => i.modelName === firstKnowledgeIndex.modelName);
             // <- TODO: Do not use just first knowledge piece and first index to determine embedding model
 
             if (knowledgePieceIndex === undefined) {
@@ -109,8 +106,8 @@ export async function getKnowledgeForTask(
             task,
             taskEmbeddingPrompt,
             taskEmbeddingResult,
-            firstKnowlegePiece,
-            firstKnowlegeIndex,
+            firstKnowledgePiece,
+            firstKnowledgeIndex,
             knowledgePiecesWithRelevance,
             knowledgePiecesSorted,
             knowledgePiecesLimited,

@@ -1,20 +1,28 @@
 {
     "version": "0.2",
     "language": "en",
-    "dictionaries": ["promptbook-words", "misc-words", "czech-words"],
+    "dictionaries": ["promptbook-words", "misc-words", "czech-words", "unknown-words"],
     "dictionaryDefinitions": [
         {
             "name": "czech-words",
-            "path": "./other/cspell-dictionaries/czech-words.txt"
+            "path": "./other/cspell-dictionaries/czech-words.txt",
+            "caseSensitive": false
         },
         {
             "name": "promptbook-words",
-            "path": "./other/cspell-dictionaries/promptbook-words.txt"
+            "path": "./other/cspell-dictionaries/promptbook-words.txt",
+            "caseSensitive": false
         },
         {
             "name": "misc-words",
-            "path": "./other/cspell-dictionaries/misc-words.txt"
+            "path": "./other/cspell-dictionaries/misc-words.txt",
+            "caseSensitive": false
+        },
+        {
+            "name": "unknown-words",
+            "path": "./other/cspell-dictionaries/unknown-words.txt",
+            "caseSensitive": false
         }
     ],
-    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git"]
+    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git", "src/scrapers/website/examples"]
 }

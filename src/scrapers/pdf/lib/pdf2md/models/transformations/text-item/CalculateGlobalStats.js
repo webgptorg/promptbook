@@ -105,11 +105,11 @@ module.exports = class CalculateGlobalStats extends ToTextItemTransformation {
 };
 
 function getMostUsedKey(keyToOccurrence) {
-    var maxOccurence = 0;
+    var maxOccurrence = 0;
     var maxKey;
     Object.keys(keyToOccurrence).map((element) => {
-        if (!maxKey || keyToOccurrence[element] > maxOccurence) {
-            maxOccurence = keyToOccurrence[element];
+        if (!maxKey || keyToOccurrence[element] > maxOccurrence) {
+            maxOccurrence = keyToOccurrence[element];
             maxKey = element;
         }
     });

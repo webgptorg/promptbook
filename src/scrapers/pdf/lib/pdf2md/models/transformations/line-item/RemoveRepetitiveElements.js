@@ -28,7 +28,7 @@ module.exports = class RemoveRepetitiveElements extends ToLineItemTransformation
     // The idea is the following:
     // - For each page, collect all items of the first, and all items of the last line
     // - Calculate how often these items occur accros all pages (hash ignoring numbers, whitespace, upper/lowercase)
-    // - Delete items occuring on more then 2/3 of all pages
+    // - Delete items occurring on more then 2/3 of all pages
     transform(parseResult /*: ParseResult */) /*: ParseResult */ {
         // find first and last lines per page
         const pageStore = [];
