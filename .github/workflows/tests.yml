@@ -1,4 +1,4 @@
-name: ✅ Checks
+name: Tests
 
 on:
     push:
