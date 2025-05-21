@@ -63,6 +63,21 @@ jobs:
             - name: Lint
               run: npm run lint
 
+    spell-check:
+        name: 🧪 Spell check
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Spell check
+              run: npm run spell
+
     # TODO: Unit tests are failing on Github Actions with the following error, fix it:
     #       "Jest worker encountered 4 child process exceptions"
     #> test:

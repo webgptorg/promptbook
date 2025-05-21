@@ -24,6 +24,10 @@ Join our [Discord community](https://discord.gg/x3QWNaa89N) or participate in [G
 
 Thank you for contributing!
 
+## How to Get Help
+
+If you're stuck or unsure how to contribute, [just ask!](https://github.com/webgptorg/promptbook/discussions) We welcome questions, ideas, and feedback from everyone—whether you're a developer, designer, writer, or user.
+
 ## 🎯 Todos
 
 There are a lot of TODOs in the repository, in the future there will probably be some kind of agent system that can automatically go through the TODOs and implement them one by one according to priority and rules.

@@ -1,7 +1,7 @@
-
 @see https://github.com/webgptorg/promptbook/issues/51
 TODO: This is orphan draft code - code that is not integrated into the main codebase and is not exported.
 TODO: [🍓] Integration of this code into the main codebase.
 TODO: [🏳][🍓] Annotate all here
 TODO: [🏳][🍓] Take content of this folder and make TRANSLATION model variant
 TODO: [🧠][🔛] Auto-translate of entire pipelines
+TODO: Support more languages and auto-detect input language
