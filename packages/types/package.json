@@ -70,18 +70,6 @@
         "node": ">=16.0.0",
         "npm": ">=8.0.0"
     },
-    "cspell": {
-        "version": "0.2",
-        "language": "en",
-        "ignorePaths": [
-            "node_modules",
-            ".next",
-            "coverage",
-            "dist",
-            ".git"
-        ],
-        "words": []
-    },
     "typings": "./esm/typings/src/_packages/types.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.94.0"

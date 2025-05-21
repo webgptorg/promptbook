@@ -70,18 +70,6 @@
         "node": ">=16.0.0",
         "npm": ">=8.0.0"
     },
-    "cspell": {
-        "version": "0.2",
-        "language": "en",
-        "ignorePaths": [
-            "node_modules",
-            ".next",
-            "coverage",
-            "dist",
-            ".git"
-        ],
-        "words": []
-    },
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.6",
         "@ai-sdk/google": "1.0.5",

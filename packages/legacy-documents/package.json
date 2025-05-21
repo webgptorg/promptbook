@@ -70,18 +70,6 @@
         "node": ">=16.0.0",
         "npm": ">=8.0.0"
     },
-    "cspell": {
-        "version": "0.2",
-        "language": "en",
-        "ignorePaths": [
-            "node_modules",
-            ".next",
-            "coverage",
-            "dist",
-            ".git"
-        ],
-        "words": []
-    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/legacy-documents.index.d.ts",
