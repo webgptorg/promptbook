@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { extensionToMimeType } from './extensionToMimeType';
 
 describe('how `extensionToMimeType` works', () => {
-    it('should work with various exemples', () => {
+    it('should work with various examples', () => {
         expect(extensionToMimeType('exe')).toBe('application/x-msdos-program');
         expect(extensionToMimeType('pdf')).toBe('application/pdf');
         expect(extensionToMimeType('docx')).toBe(

@@ -1,7 +1,7 @@
 {
     "version": "0.2",
     "language": "en",
-    "dictionaries": ["promptbook-words", "misc-words", "czech-words", "unknown-words"],
+    "dictionaries": ["promptbook-words", "misc-words", "czech-words"],
     "dictionaryDefinitions": [
         {
             "name": "czech-words",
@@ -16,11 +16,6 @@
         {
             "name": "misc-words",
             "path": "./other/cspell-dictionaries/misc-words.txt",
-            "caseSensitive": false
-        },
-        {
-            "name": "unknown-words",
-            "path": "./other/cspell-dictionaries/unknown-words.txt",
             "caseSensitive": false
         }
     ],

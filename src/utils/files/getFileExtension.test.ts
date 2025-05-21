@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { getFileExtension } from './getFileExtension';
 
 describe('how `getFileExtension` works', () => {
-    it('should work with various exemples', () => {
+    it('should work with various examples', () => {
         expect(getFileExtension('file.png')).toBe('png');
         expect(getFileExtension('file.jpeg')).toBe('jpeg');
         expect(getFileExtension('foo/bar/file.jpg')).toBe('jpg');

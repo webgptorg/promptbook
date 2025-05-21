@@ -219,7 +219,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 }
 
 /**
- * TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for thoose who want to use just OpenAI
+ * TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for those who want to use just OpenAI
  * TODO: Maybe make custom OpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
