@@ -19,5 +19,13 @@
             "caseSensitive": false
         }
     ],
-    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git", "src/scrapers/website/examples"]
+    "ignorePaths": [
+        "node_modules",
+        ".next",
+        "coverage",
+        "dist",
+        ".git",
+        "src/scrapers/website/examples",
+        "src/scrapers/markdown/examples"
+    ]
 }

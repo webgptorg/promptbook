@@ -154,6 +154,7 @@ describe('how trimCodeBlock works', () => {
         );
     });
 
+    // cspell:disable
     it('will work on real-life example', () => {
         expect(
             trimCodeBlock(
@@ -260,4 +261,6 @@ describe('how trimCodeBlock works', () => {
             ),
         );
     });
+
+    // cspell:enable
 });

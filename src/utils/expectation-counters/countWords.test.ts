@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { countWords } from './countWords';
 
+// cspell:disable
 describe('countWords', () => {
     it('should return 0 for an empty string', () => {
         expect(countWords('')).toBe(0);
