@@ -28,13 +28,13 @@ export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTo
         get title() {
             return `${llmTools.title} (+usage)`;
             // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sence to suffix "(+usage)"?
+            // <- TODO: [🧈][🧠] Does it make sense to suffix "(+usage)"?
         },
 
         get description() {
             return `${llmTools.description} (+usage)`;
             // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sence to suffix "(+usage)"?
+            // <- TODO: [🧈][🧠] Does it make sense to suffix "(+usage)"?
         },
 
         checkConfiguration(): Promisable<void> {
