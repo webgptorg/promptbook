@@ -22,10 +22,36 @@ jobs:
               run: npm ci
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
-            - name: 🆚 Update version in Dockerfile
+            - name: 🔍 Find name discrepancies
+              run: npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
+            - name: 📦 Make promptbook collection
+              run: npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts
+            - name: 🔧 Repair imports
+              run: npx ts-node ./scripts/repair-imports/repair-imports.ts
+            - name: ✍️ Spellcheck
+              run: npm run spellcheck
+            - name: 🔍 Lint
+              run: npm run lint
+            - name: 🧪 Run tests
+              run: npm test
+            - name: 📝 Test types
+              run: npm run test-types
+            - name: 📦 Test package generation
+              run: npm run test-package-generation
+            - name: 🆚 Update version in config
               run: npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts
+            - name: 📝 Generate examples JSONs
+              run: npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts
             - name: 🏭 Build packages bundles
               run: npx ts-node ./scripts/generate-packages/generate-packages.ts
+            - name: 📚 Generate documentation
+              run: npx ts-node ./scripts/generate-documentation/generate-documentation.ts
+            - name: 📄 Import markdowns
+              run: npx deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts
+            - name: 🔄 Generate OpenAPI types
+              run: npx openapi-typescript src/remote-server/openapi.yml -o src/remote-server/openapi-types.ts --immutable --export-type
+            - name: 🔄 Use packages
+              run: npx ts-node ./scripts/use-packages/use-packages.ts
             - name: 🔼 Publish @promptbook/anthropic-claude
               working-directory: ./packages/anthropic-claude
               run: npm publish --provenance --access public
