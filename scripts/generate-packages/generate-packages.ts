@@ -532,7 +532,6 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                         permissions: {
                             contents: 'read',
                             'id-token': 'write',
-                            // <- Note: Permissions are required with provenance statement @see https://docs.npmjs.com/generating-provenance-statements
                         },
                         steps: [
                             {
@@ -556,16 +555,64 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 run: 'git submodule update --init --recursive',
                             },
                             {
-                                name: '🆚 Update version in Dockerfile',
+                                name: '🔍 Find name discrepancies',
+                                run: 'npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts',
+                            },
+                            {
+                                name: '📦 Make promptbook collection',
+                                run: 'npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts',
+                            },
+                            {
+                                name: '🔧 Repair imports',
+                                run: 'npx ts-node ./scripts/repair-imports/repair-imports.ts',
+                            },
+                            {
+                                name: '✍️ Spellcheck',
+                                run: 'npm run spellcheck',
+                            },
+                            {
+                                name: '🔍 Lint',
+                                run: 'npm run lint',
+                            },
+                            {
+                                name: '🧪 Run tests',
+                                run: 'npm test',
+                            },
+                            {
+                                name: '📝 Test types',
+                                run: 'npm run test-types',
+                            },
+                            {
+                                name: '📦 Test package generation',
+                                run: 'npm run test-package-generation',
+                            },
+                            {
+                                name: '🆚 Update version in config',
                                 run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
-                                // <- Note: Update version in Dockerfile before building the image
+                            },
+                            {
+                                name: '📝 Generate examples JSONs',
+                                run: 'npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts',
                             },
                             {
                                 name: '🏭 Build packages bundles',
-                                // Note: [🔙] Generate packages before publishing to put the recent version in each package.json
-                                // TODO: It will be better to have here just "npx rollup --config rollup.config.js" / "node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js" BUT it will not work because:
-                                //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
-                                run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
+                                run: 'npx ts-node ./scripts/generate-packages/generate-packages.ts',
+                            },
+                            {
+                                name: '📚 Generate documentation',
+                                run: 'npx ts-node ./scripts/generate-documentation/generate-documentation.ts',
+                            },
+                            {
+                                name: '📄 Import markdowns',
+                                run: 'npx deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts',
+                            },
+                            {
+                                name: '🔄 Generate OpenAPI types',
+                                run: 'npx openapi-typescript src/remote-server/openapi.yml -o src/remote-server/openapi-types.ts --immutable --export-type',
+                            },
+                            {
+                                name: '🔄 Use packages',
+                                run: 'npx ts-node ./scripts/use-packages/use-packages.ts',
                             },
                             ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                 name: `🔼 Publish ${packageFullname}`,
@@ -577,7 +624,6 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             })),
                         ],
                     },
-                    // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
                     'publish-docker': {
                         name: 'Publish Docker image to DockerHub',
                         needs: 'publish-npm',
@@ -614,7 +660,6 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             {
                                 name: '🆚 Update version in Dockerfile',
                                 run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
-                                // <- Note: Update version in Dockerfile before building the image
                             },
                             {
                                 name: '🆚 Load current version into the environment',
