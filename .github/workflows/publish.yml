@@ -10,6 +10,11 @@ jobs:
         permissions:
             contents: read
             id-token: write
+        env:
+            ANTHROPIC_CLAUDE_API_KEY: ${{ secrets.ANTHROPIC_CLAUDE_API_KEY }}
+            GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+            OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+            DEEPSEEK_GENERATIVE_AI_API_KEY: ${{ secrets.DEEPSEEK_GENERATIVE_AI_API_KEY }}
         steps:
             - name: 🔽 Checkout
               uses: actions/checkout@v4
@@ -25,7 +30,8 @@ jobs:
             - name: 🔍 Find name discrepancies
               run: npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
             - name: 📦 Make promptbook collection
-              run: npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts
+              run: npx ts-node
+                  ./scripts/make-promptbook-collection/make-promptbook-collection.ts
             - name: 🔧 Repair imports
               run: npx ts-node ./scripts/repair-imports/repair-imports.ts
             - name: ✍️ Spellcheck
@@ -47,9 +53,12 @@ jobs:
             - name: 📚 Generate documentation
               run: npx ts-node ./scripts/generate-documentation/generate-documentation.ts
             - name: 📄 Import markdowns
-              run: npx deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts
+              run: npx deno --allow-env --allow-read --allow-write --allow-sys
+                  --unstable-sloppy-imports
+                  ./book/scripts/import-markdown/import-markdown.ts
             - name: 🔄 Generate OpenAPI types
-              run: npx openapi-typescript src/remote-server/openapi.yml -o src/remote-server/openapi-types.ts --immutable --export-type
+              run: npx openapi-typescript src/remote-server/openapi.yml -o
+                  src/remote-server/openapi-types.ts --immutable --export-type
             - name: 🔄 Use packages
               run: npx ts-node ./scripts/use-packages/use-packages.ts
             - name: 🔼 Publish @promptbook/anthropic-claude

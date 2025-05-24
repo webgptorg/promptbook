@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/deepseek",
-    "version": "0.95.0",
+    "version": "0.96.0-2",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -74,12 +74,6 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/deepseek.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.95.0"
-    },
-    "dependencies": {
-        "@ai-sdk/deepseek": "0.1.6",
-        "colors": "1.4.0",
-        "crypto": "1.0.1",
-        "spacetrim": "0.11.59"
+        "@promptbook/core": "0.96.0-2"
     }
 }
