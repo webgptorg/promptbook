@@ -93,7 +93,8 @@
         "make-promptbook-collection": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit",
         "repair-imports": "ts-node ./scripts/repair-imports/repair-imports.ts --commit",
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
-        "use-packages": "ts-node ./scripts/use-packages/use-packages.ts"
+        "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
+        "postversion": "git push && git push --tags"
     },
     "engines": {
         "node": ">=16.0.0",
