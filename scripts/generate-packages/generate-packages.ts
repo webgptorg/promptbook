@@ -561,6 +561,14 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 run: 'git submodule update --init --recursive',
                             },
                             {
+                                name: '📚 Install Pandoc',
+                                run: 'sudo apt-get update && sudo apt-get install -y pandoc',
+                            },
+                            {
+                                name: '📄 Install LibreOffice',
+                                run: 'sudo apt-get update && sudo apt-get install -y libreoffice',
+                            },
+                            {
                                 name: '🔍 Find name discrepancies',
                                 run: 'npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts',
                             },
