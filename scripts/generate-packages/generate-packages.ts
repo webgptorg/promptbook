@@ -533,6 +533,12 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             contents: 'read',
                             'id-token': 'write',
                         },
+                        env: {
+                            ANTHROPIC_CLAUDE_API_KEY: '${{ secrets.ANTHROPIC_CLAUDE_API_KEY }}',
+                            GOOGLE_GENERATIVE_AI_API_KEY: '${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}',
+                            OPENAI_API_KEY: '${{ secrets.OPENAI_API_KEY }}',
+                            DEEPSEEK_GENERATIVE_AI_API_KEY: '${{ secrets.DEEPSEEK_GENERATIVE_AI_API_KEY }}',
+                        },
                         steps: [
                             {
                                 name: '🔽 Checkout',
