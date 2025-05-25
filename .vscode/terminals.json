@@ -344,6 +344,13 @@
             "focus": true
         },
         {
+            "name": "🔼🧪 Release pre-release version (💸)",
+            "command": "npm version prerelease",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼🩹 Release patch version (💸)",
             "command": "npm version patch",
             "onlySingle": true,
