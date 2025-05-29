@@ -313,6 +313,12 @@
             "focus": true
         },
         {
+            "name": "🍴 Make empty commit",
+            "commands": ["git commit --allow-empty -m 'Empty commit'", "git push"],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🍴⏫ Git push all branches",
             "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
             "onlySingle": true,
