@@ -1,0 +1,10 @@
+
+
+Rollups are prepared in logo-design-system.svg
+
+Then copy to rollup-v_.svg
+
+And postprocessed in
+
+
+https://www.pdf2cmyk.com/

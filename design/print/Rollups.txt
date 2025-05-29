@@ -1,0 +1,2 @@
+Rollups are exported as pngs from Inkscape and then converted to CMYK PDF in Gimp 
+https://www.nej-rollup.cz/tiskova-data-pro-rollup-bannery
