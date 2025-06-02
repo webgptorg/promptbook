@@ -1,0 +1,108 @@
+{
+    "date": "2025-06-02T14:45:20.923Z",
+    "promptbookVersion": "0.95.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Key features of this programming approach include:\n1. Natural Language Programming: Writing specifications in plain English\n2. AI-Native Applications: Using human-understandable concepts instead of traditional programming elements\n3. Rapid Development: Building AI applications quickly\n4. Enterprise Readiness: Offering built-in security, privacy, encryption, testing, and scalability"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Natural Language Programming, AI-Native Applications, Rapid Development, Enterprise Readiness, specifications, plain English, human-understandable concepts, security, privacy, encryption, testing, scalability",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-06-02T14:45:15.590Z",
+            "complete": "2025-06-02T14:45:20.923Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0008600000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 129
+                },
+                "charactersCount": {
+                    "value": 586
+                },
+                "wordsCount": {
+                    "value": 74
+                },
+                "sentencesCount": {
+                    "value": 6
+                },
+                "linesCount": {
+                    "value": 14
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 43
+                },
+                "charactersCount": {
+                    "value": 208
+                },
+                "wordsCount": {
+                    "value": 21
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 4
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Key features of this programming approach include:\n> 1. Natural Language Programming: Writing specifications in plain English\n> 2. AI-Native Applications: Using human-understandable concepts instead of traditional programming elements\n> 3. Rapid Development: Building AI applications quickly\n> 4. Enterprise Readiness: Offering built-in security, privacy, encryption, testing, and scalability",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Key features of this programming approach include:\n> 1. Natural Language Programming: Writing specifications in plain English\n> 2. AI-Native Applications: Using human-understandable concepts instead of traditional programming elements\n> 3. Rapid Development: Building AI applications quickly\n> 4. Enterprise Readiness: Offering built-in security, privacy, encryption, testing, and scalability"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01WrScbi7PYCgnYGmutCWVxD",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Natural Language Programming, AI-Native Applications, Rapid Development, Enterprise Readiness, specifications, plain English, human-understandable concepts, security, privacy, encryption, testing, scalability"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 129,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 43,
+                "service_tier": "standard"
+            }
+        }
+    }
+}

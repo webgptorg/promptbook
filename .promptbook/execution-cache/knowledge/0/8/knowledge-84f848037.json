@@ -1,0 +1,108 @@
+{
+    "date": "2025-06-02T14:45:10.880Z",
+    "promptbookVersion": "0.95.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": "Program in Plain EnglishA revolutionary 4th generation language that transforms natural language specifications into functional applications. Write what you want, get what you need.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\"\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs..."
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nProgram in Plain English is a 4th generation language that converts natural language specifications into functional applications, allowing users to write what they want and get what they need.\n\n---\n\nThe platform offers various features including a chatbot, a corrector, and spreadsheet processing capabilities.\n\n---\n\nPromptbook, a tool in this category, is praised for bridging the gap between technology and people by enabling programming in native languages and making the process accessible to everyone.\n\n---\n\nKey features of this programming approach include:\n1. Natural Language Programming: Writing specifications in plain English\n2. AI-Native Applications: Using human-understandable concepts instead of traditional programming elements\n3. Rapid Development: Building AI applications quickly\n4. Enterprise Readiness: Offering built-in security, privacy, encryption, testing, and scalability\n\n---\n\nThe development team includes Pavol Hejný, who serves as the CTO & Co-founder and is described as an AI engineer and developer.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-06-02T14:45:06.748Z",
+            "complete": "2025-06-02T14:45:10.878Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.003645
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 398
+                },
+                "charactersCount": {
+                    "value": 1705
+                },
+                "wordsCount": {
+                    "value": 240
+                },
+                "sentencesCount": {
+                    "value": 13
+                },
+                "linesCount": {
+                    "value": 33
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 212
+                },
+                "charactersCount": {
+                    "value": 1036
+                },
+                "wordsCount": {
+                    "value": 142
+                },
+                "sentencesCount": {
+                    "value": 8
+                },
+                "linesCount": {
+                    "value": 25
+                },
+                "paragraphsCount": {
+                    "value": 10
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Program in Plain EnglishA revolutionary 4th generation language that transforms natural language specifications into functional applications. Write what you want, get what you need.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\"\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs...",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Program in Plain EnglishA revolutionary 4th generation language that transforms natural language specifications into functional applications. Write what you want, get what you need.✨ Try It Yourself💬 ChatbotThe BookYour App🐜 CorrectorThe BookYour App🧮 Spreadsheet processingThe BookYour AppWhat People Are Saying\"By enabling programming in your native language, tools like Promptbook are bridging the gap between technology and people.\"\"Promptbook transforms programming into a creative process accessible to everyone. As someone passionate about innovation, I see this as a game-changer.\"The NumbersThe Future of ProgrammingNatural Language ProgrammingWrite your specifications in plain English. Your specifications will be accurately translated into working code.AI-Native ApplicationsUse human-understandable concepts like personas, knowledge, or actions instead of ifs, loops, variables, or tokens.Rapid DevelopmentBuild AI applications in minutes, not weeks. Focus on what you want, not low-level stuff.Enterprise ReadyProduction-ready solution with built-in security, privacy, encryption, testing, and scalability considerations.Meet Our TeamPavol HejnýCTO & Co-founderAI engineer and developerFrequently Asked QuestionsLoading FAQs..."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_011DmgX51Y1Ey8bqcQ2cq3Gq",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nProgram in Plain English is a 4th generation language that converts natural language specifications into functional applications, allowing users to write what they want and get what they need.\n\n---\n\nThe platform offers various features including a chatbot, a corrector, and spreadsheet processing capabilities.\n\n---\n\nPromptbook, a tool in this category, is praised for bridging the gap between technology and people by enabling programming in native languages and making the process accessible to everyone.\n\n---\n\nKey features of this programming approach include:\n1. Natural Language Programming: Writing specifications in plain English\n2. AI-Native Applications: Using human-understandable concepts instead of traditional programming elements\n3. Rapid Development: Building AI applications quickly\n4. Enterprise Readiness: Offering built-in security, privacy, encryption, testing, and scalability\n\n---\n\nThe development team includes Pavol Hejný, who serves as the CTO & Co-founder and is described as an AI engineer and developer."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 398,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 212,
+                "service_tier": "standard"
+            }
+        }
+    }
+}
