@@ -94,7 +94,7 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-## 🤺 Usage with OpenAI`s Assistants (GPTs)
+## 🤺 Usage with OpenAI's Assistants (GPTs)
 
 > TODO: Write a guide how to use OpenAI's Assistants with Promptbook
 
@@ -197,7 +197,7 @@ const llm = [
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
         {
             resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME
             apiKey: process.env.AZUREOPENAI_API_KEY,
         },
     ),
@@ -244,6 +244,55 @@ See the other model integrations:
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
 
 
+
+## 🤖 Using Promptbook as an OpenAI-compatible model
+
+You can use Promptbook books as if they were OpenAI models by using the OpenAI-compatible endpoint. This allows you to use the standard OpenAI SDK with Promptbook books.
+
+First, start the Promptbook server:
+
+```typescript
+import { startRemoteServer } from '@promptbook/remote-server';
+
+// Start the server
+await startRemoteServer({
+    port: 3000,
+    collection: await createCollectionFromDirectory('./books'),
+    isAnonymousModeAllowed: true,
+    isApplicationModeAllowed: true,
+});
+```
+
+Then use the standard OpenAI SDK with the server URL:
+
+```typescript
+import OpenAI from 'openai';
+
+// Create OpenAI client pointing to your Promptbook server
+const openai = new OpenAI({
+    baseURL: 'http://localhost:3000', // Your Promptbook server URL
+    apiKey: 'not-needed', // API key is not needed for Promptbook
+});
+
+// Use any Promptbook book as a model
+const response = await openai.chat.completions.create({
+    model: 'https://promptbook.studio/my-collection/write-article.book', // Book URL as model name
+    messages: [
+        {
+            role: 'user',
+            content: 'Write a short story about a cat',
+        },
+    ],
+});
+
+console.log(response.choices[0].message.content);
+```
+
+This allows you to:
+
+-   Use Promptbook books with any OpenAI-compatible client
+-   Integrate Promptbook into existing OpenAI-based applications
+-   Use Promptbook books as models in other AI frameworks
 
 
 ---
