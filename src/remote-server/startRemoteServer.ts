@@ -150,11 +150,22 @@ export function startRemoteServer<TCustomOptions = undefined>(
             const { model, messages } = params;
 
             // Convert messages to a single prompt
-            const prompt = messages.map((msg) => `${msg.role}: ${msg.content}`).join('\n');
+            const prompt = messages
+                .map((message: { role: string; content: string }) => `${message.role}: ${message.content}`)
+                .join('\n');
 
             // Get pipeline for the book
+            if (!collection) {
+                throw new Error('No collection available');
+            }
             const pipeline = await collection.getPipelineByUrl(model);
-            const pipelineExecutor = createPipelineExecutor({ pipeline });
+            const pipelineExecutor = createPipelineExecutor({
+                pipeline,
+                tools: await getExecutionToolsFromIdentification({
+                    isAnonymous: true,
+                    llmToolsConfiguration: [],
+                }),
+            });
 
             // Execute the pipeline with the prompt content as input
             const result = await pipelineExecutor({ prompt }).asPromise({ isCrashedOnError: true });
