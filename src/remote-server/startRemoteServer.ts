@@ -6,8 +6,7 @@ import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
-import { CLAIM } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -28,8 +27,7 @@ import { keepTypeImported } from '../utils/organization/keepTypeImported';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
-import { BOOK_LANGUAGE_VERSION } from '../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
 import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
@@ -41,8 +39,7 @@ import type { PromptbookServer_PreparePipeline_Request } from './socket-types/pr
 import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
-import type { LoginResponse } from './types/RemoteServerOptions';
-import type { RemoteServerOptions } from './types/RemoteServerOptions';
+import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -142,6 +139,61 @@ export function startRemoteServer<TCustomOptions = undefined>(
     app.use(function (request, response, next) {
         response.setHeader('X-Powered-By', 'Promptbook engine');
         next();
+    });
+
+    // Note: OpenAI-compatible chat completions endpoint
+    app.post('/v1/chat/completions', async (request, response) => {
+        // TODO: !!!! Make more promptbook-native:
+
+        try {
+            const params = request.body;
+            const { model, messages } = params;
+
+            // Convert messages to a single prompt
+            const prompt = messages.map((msg) => `${msg.role}: ${msg.content}`).join('\n');
+
+            // Get pipeline for the book
+            const pipeline = await collection.getPipelineByUrl(model);
+            const pipelineExecutor = createPipelineExecutor({ pipeline });
+
+            // Execute the pipeline with the prompt content as input
+            const result = await pipelineExecutor({ prompt }).asPromise({ isCrashedOnError: true });
+
+            if (!result.isSuccessful) {
+                throw new Error(`Failed to execute book: ${result.errors.join(', ')}`);
+            }
+
+            // Return the result in OpenAI-compatible format
+            response.json({
+                id: 'chatcmpl-' + Math.random().toString(36).substring(2),
+                object: 'chat.completion',
+                created: Math.floor(Date.now() / 1000),
+                model,
+                choices: [
+                    {
+                        index: 0,
+                        message: {
+                            role: 'assistant',
+                            content: result.outputParameters.response,
+                        },
+                        finish_reason: 'stop',
+                    },
+                ],
+                usage: {
+                    prompt_tokens: 0, // TODO: Implement token counting
+                    completion_tokens: 0,
+                    total_tokens: 0,
+                },
+            });
+        } catch (error) {
+            response.status(500).json({
+                error: {
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    type: 'server_error',
+                    code: 'internal_error',
+                },
+            });
+        }
     });
 
     // TODO: [🥺] Expose openapiJson to consumer and also allow to add new routes

@@ -827,6 +827,12 @@ Spell checking and grammar
 
 ## In pre-release
 
+### `0.96.0` _(2025-06-)_
+
+Promptbook server has OpenAI compatibility
+
+-   You can call `book` personas as any other OpenAI model
+
 ## Upcoming
 
 ## `1.0.0` Release
