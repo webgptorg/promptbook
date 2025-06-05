@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.97.0-0",
+    "version": "0.98.0-0",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
