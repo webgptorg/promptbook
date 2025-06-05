@@ -827,7 +827,7 @@ Spell checking and grammar
 
 ## In pre-release
 
-### `0.96.0` _(2025-06-)_
+### `0.97.0` _(2025-06-)_
 
 Promptbook server has OpenAI compatibility
 
