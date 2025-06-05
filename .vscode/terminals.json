@@ -344,8 +344,15 @@
         },
         {
             "name": "🔼🧪 Release pre-minor version (💸)",
-            "commands": ["npm version preminor", "npm version prerelease"],
-            "execute": false,
+            "command": "npm version preminor",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🧪 Release pre-release version (💸)",
+            "command": "npm version prerelease",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
