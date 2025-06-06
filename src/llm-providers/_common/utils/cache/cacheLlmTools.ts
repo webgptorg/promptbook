@@ -129,22 +129,41 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         // TODO: [🧠] !!5 How to do timing in mixed cache / non-cache situation
         // promptResult.timing: FromtoItems
 
-        await storage.setItem(key, {
-            date: $getCurrentDate(),
-            promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
-            bookVersion: BOOK_LANGUAGE_VERSION,
-            prompt: {
-                ...prompt,
-                parameters:
-                    Object.entries(parameters).length === Object.entries(relevantParameters).length
-                        ? parameters
-                        : {
-                              ...relevantParameters,
-                              note: `<- Note: Only relevant parameters are stored in the cache`,
-                          },
-            },
-            promptResult,
-        });
+        // Check if the result is valid and should be cached
+        // A result is considered failed if:
+        // 1. It has a content property that is null or undefined
+        // 2. It has an error property that is truthy
+        // 3. It has a success property that is explicitly false
+        const isFailedResult =
+            promptResult.content === null ||
+            promptResult.content === undefined ||
+            (promptResult as really_any).error ||
+            (promptResult as really_any).success === false;
+
+        if (!isFailedResult) {
+            await storage.setItem(key, {
+                date: $getCurrentDate(),
+                promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
+                bookVersion: BOOK_LANGUAGE_VERSION,
+                prompt: {
+                    ...prompt,
+                    parameters:
+                        Object.entries(parameters).length === Object.entries(relevantParameters).length
+                            ? parameters
+                            : {
+                                  ...relevantParameters,
+                                  note: `<- Note: Only relevant parameters are stored in the cache`,
+                              },
+                },
+                promptResult,
+            });
+        } else if (isVerbose) {
+            console.info('Not caching failed result for key:', key, {
+                content: promptResult.content,
+                error: (promptResult as really_any).error,
+                success: (promptResult as really_any).success,
+            });
+        }
 
         return promptResult;
     };
