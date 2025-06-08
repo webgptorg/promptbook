@@ -3,6 +3,7 @@ import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
 import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 
 /**
  * Execution Tools for calling OpenAI compatible API
@@ -17,7 +18,7 @@ export const createOpenAiCompatibleExecutionTools = Object.assign(
             options = { ...options, dangerouslyAllowBrowser: true };
         }
 
-        return new OpenAiCompatibleExecutionTools(options);
+        return new OpenAiExecutionTools(options);
     },
     {
         packageName: '@promptbook/openai',
