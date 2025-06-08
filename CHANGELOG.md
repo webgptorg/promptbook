@@ -832,6 +832,7 @@ Spell checking and grammar
 Promptbook server has OpenAI compatibility
 
 -   You can call `book` personas as any other OpenAI model
+-   Alongside `OpenAiExecutionTools` and `OpenAiAssistantExecutionTools` add `OpenAiCompatibleExecutionTools` as registration of configuration and the constructor
 
 ## Upcoming
 

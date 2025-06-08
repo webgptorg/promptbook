@@ -6,6 +6,7 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
@@ -104,6 +105,43 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
 
         return null;
         */
+    },
+});
+
+/**
+ * Registration of the OpenAI Compatible metadata
+ *
+ * Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be instantiated directly.
+ * It serves as a base class for OpenAiExecutionTools and other compatible implementations.
+ *
+ * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/wizard`
+ * @public exported from `@promptbook/cli`
+ */
+export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.register({
+    title: 'Open AI Compatible',
+    packageName: '@promptbook/openai',
+    className: 'OpenAiCompatibleExecutionTools',
+    envVariables: ['OPENAI_API_KEY'],
+    trustLevel: 'CLOSED',
+    order: MODEL_ORDERS.TOP_TIER,
+
+    getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
+        return {
+            title: 'Open AI Compatible',
+            packageName: '@promptbook/openai',
+            className: 'OpenAiCompatibleExecutionTools',
+            options: {
+                apiKey: 'sk-',
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
+            } satisfies OpenAiCompatibleExecutionToolsOptions,
+        };
+    },
+
+    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        // Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be instantiated directly
+        keepUnused(env);
+        return null;
     },
 });
 

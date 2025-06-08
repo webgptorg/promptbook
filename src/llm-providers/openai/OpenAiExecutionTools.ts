@@ -4,8 +4,8 @@ import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
-import { OPENAI_MODELS } from './openai-models';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
+import { OPENAI_MODELS } from './openai-models';
 
 /**
  * Execution Tools for calling OpenAI API

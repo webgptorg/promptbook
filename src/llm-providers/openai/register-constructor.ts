@@ -2,6 +2,7 @@ import type { Registration } from '../../utils/$Register';
 import { $llmToolsRegister } from '../_common/register/$llmToolsRegister';
 import { createOpenAiAssistantExecutionTools } from './createOpenAiAssistantExecutionTools';
 import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
+// Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be instantiated directly
 
 /**
  * Registration of LLM provider
@@ -24,6 +25,11 @@ export const _OpenAiRegistration: Registration = $llmToolsRegister.register(crea
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiAssistantRegistration = $llmToolsRegister.register(createOpenAiAssistantExecutionTools);
+
+/**
+ * Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be registered directly.
+ * It serves as a base class for OpenAiExecutionTools and other compatible implementations.
+ */
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

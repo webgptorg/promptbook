@@ -23,7 +23,7 @@ import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API or other OpeenAI compatible provider
@@ -46,7 +46,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      *
      * @param options which are relevant are directly passed to the OpenAI compatible client
      */
-    public constructor(protected readonly options: OpenAiExecutionToolsOptions) {
+    public constructor(protected readonly options: OpenAiCompatibleExecutionToolsOptions) {
         // TODO: Allow configuring rate limits via options
         this.limiter = new Bottleneck({
             minTime: 60_000 / (this.options.maxRequestsPerMinute || DEFAULT_MAX_REQUESTS_PER_MINUTE),

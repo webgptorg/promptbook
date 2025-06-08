@@ -1,13 +1,13 @@
 import type { ClientOptions } from 'openai';
 import type { string_token } from '../../types/typeAliases';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 
 /**
  * Options for `createOpenAiAssistantExecutionTools` and `OpenAiAssistantExecutionTools`
  *
  * @public exported from `@promptbook/openai`
  */
-export type OpenAiAssistantExecutionToolsOptions = OpenAiExecutionToolsOptions &
+export type OpenAiAssistantExecutionToolsOptions = OpenAiCompatibleExecutionToolsOptions &
     ClientOptions & {
         /**
          * Which assistant to use

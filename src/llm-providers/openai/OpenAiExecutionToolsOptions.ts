@@ -1,12 +1,10 @@
-import type { ClientOptions } from 'openai';
-import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 
 /**
  * Options for `createOpenAiExecutionTools` and `OpenAiExecutionTools`
  *
- * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
- * Rest is used by the `OpenAiExecutionTools`.
+ * This extends OpenAiCompatibleExecutionToolsOptions.
  *
  * @public exported from `@promptbook/openai`
  */
-export type OpenAiExecutionToolsOptions = CommonToolsOptions & ClientOptions;
+export type OpenAiExecutionToolsOptions = OpenAiCompatibleExecutionToolsOptions;
