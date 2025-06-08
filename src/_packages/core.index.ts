@@ -114,6 +114,7 @@ import { _GoogleMetadataRegistration } from '../llm-providers/google/register-co
 import { _OllamaMetadataRegistration } from '../llm-providers/ollama/register-configuration';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { _OpenAiCompatibleMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { migratePipeline } from '../migrations/migratePipeline';
 import { preparePersona } from '../personas/preparePersona';
 import { book } from '../pipeline/book-notation';
@@ -268,6 +269,7 @@ export { _GoogleMetadataRegistration };
 export { _OllamaMetadataRegistration };
 export { _OpenAiMetadataRegistration };
 export { _OpenAiAssistantMetadataRegistration };
+export { _OpenAiCompatibleMetadataRegistration };
 export { migratePipeline };
 export { preparePersona };
 export { book };

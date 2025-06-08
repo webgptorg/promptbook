@@ -84,6 +84,7 @@ import type { DeepseekExecutionToolsOptions } from '../llm-providers/deepseek/De
 import type { GoogleExecutionToolsOptions } from '../llm-providers/google/GoogleExecutionToolsOptions';
 import type { OllamaExecutionToolsOptions } from '../llm-providers/ollama/OllamaExecutionToolsOptions';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import type { VercelExecutionToolsOptions } from '../llm-providers/vercel/VercelExecutionToolsOptions';
 import type { VercelProvider } from '../llm-providers/vercel/VercelProvider';
@@ -385,6 +386,7 @@ export type { DeepseekExecutionToolsOptions };
 export type { GoogleExecutionToolsOptions };
 export type { OllamaExecutionToolsOptions };
 export type { OpenAiAssistantExecutionToolsOptions };
+export type { OpenAiCompatibleExecutionToolsOptions };
 export type { OpenAiExecutionToolsOptions };
 export type { VercelExecutionToolsOptions };
 export type { VercelProvider };

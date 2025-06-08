@@ -14,6 +14,7 @@ import { _OllamaMetadataRegistration } from '../llm-providers/ollama/register-co
 import { _OllamaRegistration } from '../llm-providers/ollama/register-constructor';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { _OpenAiCompatibleMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
 import { _OpenAiAssistantRegistration } from '../llm-providers/openai/register-constructor';
 import { _BoilerplateScraperRegistration } from '../scrapers/_boilerplate/register-constructor';
@@ -50,6 +51,7 @@ export { _OllamaMetadataRegistration };
 export { _OllamaRegistration };
 export { _OpenAiMetadataRegistration };
 export { _OpenAiAssistantMetadataRegistration };
+export { _OpenAiCompatibleMetadataRegistration };
 export { _OpenAiRegistration };
 export { _OpenAiAssistantRegistration };
 export { _BoilerplateScraperRegistration };
