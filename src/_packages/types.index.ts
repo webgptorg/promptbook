@@ -75,6 +75,7 @@ import type { LlmToolsMetadata } from '../llm-providers/_common/register/LlmTool
 import type { LlmToolsOptions } from '../llm-providers/_common/register/LlmToolsOptions';
 import type { CacheItem } from '../llm-providers/_common/utils/cache/CacheItem';
 import type { CacheLlmToolsOptions } from '../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
+import type { CacheValidationResult } from '../llm-providers/_common/utils/cache/CacheValidationResult';
 import type { LlmExecutionToolsWithTotalUsage } from '../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import type { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
@@ -377,6 +378,7 @@ export type { LlmToolsMetadata };
 export type { LlmToolsOptions };
 export type { CacheItem };
 export type { CacheLlmToolsOptions };
+export type { CacheValidationResult };
 export type { LlmExecutionToolsWithTotalUsage };
 export type { AnthropicClaudeExecutionToolsOptions };
 export type { AnthropicClaudeExecutionToolsDirectOptions };

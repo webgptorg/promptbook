@@ -34,7 +34,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
     options: Partial<CacheLlmToolsOptions> = {},
 ): TLlmTools {
-    const { storage = new MemoryStorage(), isCacheReloaded = false, isVerbose = DEFAULT_IS_VERBOSE } = options;
+    const { storage = new MemoryStorage(), isCacheReloaded = false, isVerbose = DEFAULT_IS_VERBOSE, validateForCaching } = options;
 
     const proxyTools: TLlmTools = {
         ...llmTools,
@@ -140,7 +140,34 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             (promptResult as really_any).error ||
             (promptResult as really_any).success === false;
 
-        if (!isFailedResult) {
+        let shouldCache = !isFailedResult;
+        let suppressionReason: string | undefined;
+
+        // If there's a validation function, use it to determine if we should cache
+        if (!isFailedResult && validateForCaching) {
+            try {
+                const validationResult = await validateForCaching(prompt, promptResult);
+                shouldCache = validationResult.shouldCache;
+                suppressionReason = validationResult.suppressionReason;
+
+                if (!shouldCache && isVerbose) {
+                    console.info('Cache suppressed by validation function for key:', key, {
+                        reason: suppressionReason,
+                        expectationError: validationResult.expectationError?.message,
+                    });
+                }
+            } catch (validationError) {
+                // If validation fails, don't cache and log the error
+                shouldCache = false;
+                suppressionReason = `Validation function threw error: ${validationError}`;
+
+                if (isVerbose) {
+                    console.warn('Cache validation failed for key:', key, validationError);
+                }
+            }
+        }
+
+        if (shouldCache) {
             await storage.setItem(key, {
                 date: $getCurrentDate(),
                 promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
@@ -158,10 +185,12 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                 promptResult,
             });
         } else if (isVerbose) {
-            console.info('Not caching failed result for key:', key, {
+            console.info('Not caching result for key:', key, {
                 content: promptResult.content,
                 error: (promptResult as really_any).error,
                 success: (promptResult as really_any).success,
+                suppressionReason,
+                isFailedResult,
             });
         }
 

@@ -25,6 +25,7 @@ import type { ExecutionReportJson } from '../execution-report/ExecutionReportJso
 import { checkExpectations } from '../utils/checkExpectations';
 import type { $OngoingTaskResult } from './$OngoingTaskResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
+import { createExpectationValidator } from '../../llm-providers/_common/utils/cache/createExpectationValidator';
 
 keepTypeImported<ModelRequirements>();
 
