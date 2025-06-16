@@ -1,6 +1,7 @@
 import type { Registration } from '../../utils/$Register';
 import { $llmToolsRegister } from '../_common/register/$llmToolsRegister';
 import { createOpenAiAssistantExecutionTools } from './createOpenAiAssistantExecutionTools';
+import { createOpenAiCompatibleExecutionTools } from './createOpenAiCompatibleExecutionTools';
 import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
 // Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be instantiated directly
 
@@ -25,6 +26,19 @@ export const _OpenAiRegistration: Registration = $llmToolsRegister.register(crea
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiAssistantRegistration = $llmToolsRegister.register(createOpenAiAssistantExecutionTools);
+
+
+/**
+ * Registration of the OpenAI Compatible provider
+ *
+ * Note: [🏐] Configurations registrations are done in register-constructor.ts BUT constructor register-constructor.ts
+ *
+ * @public exported from `@promptbook/openai`
+ * @public exported from `@promptbook/wizard`
+ * @public exported from `@promptbook/cli`
+ */
+export const _OpenAiCompatibleRegistration = $llmToolsRegister.register(createOpenAiCompatibleExecutionTools);
+
 
 /**
  * Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be registered directly.
