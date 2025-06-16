@@ -11,11 +11,8 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -91,6 +88,11 @@ export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions
 };
 
 /**
+ * Track all failed attempts during execution
+ */
+const allFailedResults: Array<{ result: string | null; error: ExpectError }> = [];
+
+/**
  * Executes a pipeline task with multiple attempts, including joker and retry logic. Handles different task types
  * (prompt, script, dialog, etc.), applies postprocessing, checks expectations, and updates the execution report.
  * Throws errors if execution fails after all attempts.
@@ -99,9 +101,6 @@ export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions
  * @returns The result string of the executed task.
  * @private internal utility of `createPipelineExecutor`
  */
-// Track all failed attempts during execution
-const allFailedResults: Array<{ result: string | null; error: ExpectError }> = [];
-
 export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<TODO_string> {
     const {
         jokerParameterNames,
