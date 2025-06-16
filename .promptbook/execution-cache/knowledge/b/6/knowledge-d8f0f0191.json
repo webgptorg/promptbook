@@ -1,0 +1,108 @@
+{
+    "date": "2025-06-16T17:03:56.039Z",
+    "promptbookVersion": "0.98.0-4",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": "## Zákaznický servis:\n\nTelefon: +420 722 941 618 (PO-PÁ 9:00-15:00)\n\nE-mail: info@katlasbeads.com\n\n## Otevírací doba prodejny:\n\n- **Pondělí - Pátek: 9:00 - 17:00 hodin**\n- **Sobota: 8:00 - 12:00 hodin**\n- **Neděle: Zavřeno**\n\n<!-- -->\n\n<span><span></span>Adresa:&nbsp;<a href=\"https://www.google.com/maps?q=Horn%C3%AD+1577,+700+30+Ostrava-jih&amp;sxsrf=APwXEdcfQj4jNk5z2ngeRohDesEGEP-ZXw:1683110611379&amp;uact=5&amp;gs_lcp=Cgxnd3Mtd2l6LXNlcnAQAzIECCMQJzIECCMQJzICCCZKBAhBGABQAFgAYOwDaABwAHgAgAFYiAFYkgEBMZgBAKABAqABAcABAQ&amp;um=1&amp;ie=UTF-8&amp;sa=X&amp;ved=2ahUKEwi3z5TS-9j-AhX9g_0HHenlD7UQ_AUoAXoECAEQAw\"><span><span>Horní 1577, 700 30 Ostrava-jih</span></span></a>;&nbsp;zelená budova Kovárna.</span>\n\n"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Customer service phone: +420 722 941 618 (Mon-Fri 9:00-15:00)\nCustomer service email: info@katlasbeads.com\n\n---\n\nStore opening hours:\nMonday - Friday: 9:00 - 17:00\nSaturday: 8:00 - 12:00\nSunday: Closed\n\n---\n\nStore address: Horní 1577, 700 30 Ostrava-jih; green building Kovárna.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-06-16T17:03:51.902Z",
+            "complete": "2025-06-16T17:03:56.038Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00288
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 577
+                },
+                "charactersCount": {
+                    "value": 1205
+                },
+                "wordsCount": {
+                    "value": 187
+                },
+                "sentencesCount": {
+                    "value": 8
+                },
+                "linesCount": {
+                    "value": 37
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 115
+                },
+                "charactersCount": {
+                    "value": 278
+                },
+                "wordsCount": {
+                    "value": 46
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ## Zákaznický servis:\n> \n> Telefon: +420 722 941 618 (PO-PÁ 9:00-15:00)\n> \n> E-mail: info@katlasbeads.com\n> \n> ## Otevírací doba prodejny:\n> \n> - **Pondělí - Pátek: 9:00 - 17:00 hodin**\n> - **Sobota: 8:00 - 12:00 hodin**\n> - **Neděle: Zavřeno**\n> \n> <!-- -->\n> \n> <span><span></span>Adresa:&nbsp;<a href=\"https://www.google.com/maps?q=Horn%C3%AD+1577,+700+30+Ostrava-jih&amp;sxsrf=APwXEdcfQj4jNk5z2ngeRohDesEGEP-ZXw:1683110611379&amp;uact=5&amp;gs_lcp=Cgxnd3Mtd2l6LXNlcnAQAzIECCMQJzIECCMQJzICCCZKBAhBGABQAFgAYOwDaABwAHgAgAFYiAFYkgEBMZgBAKABAqABAcABAQ&amp;um=1&amp;ie=UTF-8&amp;sa=X&amp;ved=2ahUKEwi3z5TS-9j-AhX9g_0HHenlD7UQ_AUoAXoECAEQAw\"><span><span>Horní 1577, 700 30 Ostrava-jih</span></span></a>;&nbsp;zelená budova Kovárna.</span>\n> \n> ",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ## Zákaznický servis:\n> \n> Telefon: +420 722 941 618 (PO-PÁ 9:00-15:00)\n> \n> E-mail: info@katlasbeads.com\n> \n> ## Otevírací doba prodejny:\n> \n> - **Pondělí - Pátek: 9:00 - 17:00 hodin**\n> - **Sobota: 8:00 - 12:00 hodin**\n> - **Neděle: Zavřeno**\n> \n> <!-- -->\n> \n> <span><span></span>Adresa:&nbsp;<a href=\"https://www.google.com/maps?q=Horn%C3%AD+1577,+700+30+Ostrava-jih&amp;sxsrf=APwXEdcfQj4jNk5z2ngeRohDesEGEP-ZXw:1683110611379&amp;uact=5&amp;gs_lcp=Cgxnd3Mtd2l6LXNlcnAQAzIECCMQJzIECCMQJzICCCZKBAhBGABQAFgAYOwDaABwAHgAgAFYiAFYkgEBMZgBAKABAqABAcABAQ&amp;um=1&amp;ie=UTF-8&amp;sa=X&amp;ved=2ahUKEwi3z5TS-9j-AhX9g_0HHenlD7UQ_AUoAXoECAEQAw\"><span><span>Horní 1577, 700 30 Ostrava-jih</span></span></a>;&nbsp;zelená budova Kovárna.</span>\n> \n> "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01UEzNaGBr2fo8DYxdcrCED6",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Customer service phone: +420 722 941 618 (Mon-Fri 9:00-15:00)\nCustomer service email: info@katlasbeads.com\n\n---\n\nStore opening hours:\nMonday - Friday: 9:00 - 17:00\nSaturday: 8:00 - 12:00\nSunday: Closed\n\n---\n\nStore address: Horní 1577, 700 30 Ostrava-jih; green building Kovárna."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 577,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 115,
+                "service_tier": "standard"
+            }
+        }
+    }
+}
