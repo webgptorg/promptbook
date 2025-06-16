@@ -1,19 +1,19 @@
 # ✨ Example: Rare Expectations
 
-This will fail in 2/3 cases
+This will fail in most cases, this is to test unrelyable tasks
 
 -   PIPELINE URL https://promptbook.studio/examples/rare-expectations.book
 -   OUTPUT PARAMETER `{greeting}`
 
-## Fail in 2/3 cases
+## Fail in 5/7 cases
 
 
-- EXPECT EXACTLY 1 Word
+- EXPECT EXACTLY 5 Characters
 
 
 ```
-Write one of the following text: "foo", "foo hoo", "foo hoo hooo", "bar", "bar hoo", "bar hoo hooo".
-Write only the text, without any additional information, explanation without quotes.
+Pick randomly one of following items: "cat", "hair", "horse", "snake", "reptile", "lizzard", "dragon".
+Write only the text of the item, without any additional information, explanation without quotes.
 ```
 
 `-> {greeting}`

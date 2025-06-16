@@ -1,10 +1,7 @@
 import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_promptbook_server_url } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -212,7 +209,7 @@ export const DEFAULT_MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_MAX_EXECUTION_ATTEMPTS = 3; // <- TODO: [🤹‍♂️]
+export const DEFAULT_MAX_EXECUTION_ATTEMPTS = 7; // <- TODO: [🤹‍♂️]
 
 /**
  * The maximum depth to which knowledge sources will be scraped when building a knowledge base.

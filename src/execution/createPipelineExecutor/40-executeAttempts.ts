@@ -9,11 +9,8 @@ import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExec
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
@@ -128,16 +125,16 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
     const _llms = arrayableToArray(tools.llm);
     const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
-    attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
-        const isJokerAttempt = attempt < 0;
-        const jokerParameterName = jokerParameterNames[jokerParameterNames.length + attempt];
+    attempts: for (let attemptIndex = -jokerParameterNames.length; attemptIndex < maxAttempts; attemptIndex++) {
+        const isJokerAttempt = attemptIndex < 0;
+        const jokerParameterName = jokerParameterNames[jokerParameterNames.length + attemptIndex];
 
         // TODO: [🧠][🍭] JOKERS, EXPECTATIONS, POSTPROCESSING and FOREACH
         if (isJokerAttempt && !jokerParameterName) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
-                        Joker not found in attempt ${attempt}
+                        Joker not found in attempt ${attemptIndex}
 
                         ${block(pipelineIdentification)}
                     `,
@@ -442,6 +439,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 $ongoingTaskResult.$failedResults = [];
             }
             $ongoingTaskResult.$failedResults.push({
+                attemptIndex,
                 result: $ongoingTaskResult.$resultString,
                 error: error,
             });
@@ -467,20 +465,13 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 });
             }
         }
-        if ($ongoingTaskResult.$expectError !== null && attempt === maxAttempts - 1) {
-            // Store the current failure before throwing
-            $ongoingTaskResult.$failedResults = $ongoingTaskResult.$failedResults || [];
-            $ongoingTaskResult.$failedResults.push({
-                result: $ongoingTaskResult.$resultString,
-                error: $ongoingTaskResult.$expectError,
-            });
-
-            // Create a summary of all failures
+        if ($ongoingTaskResult.$expectError !== null && attemptIndex === maxAttempts - 1) {
+            // Note: Create a summary of all failures
             const failuresSummary = $ongoingTaskResult.$failedResults
-                .map((failure, index) =>
+                .map((failure) =>
                     spaceTrim(
                         (block) => `
-                            Attempt ${index + 1}:
+                            Attempt ${failure.attemptIndex + 1}:
                             Error ${failure.error?.name || ''}:
                             ${block(
                                 failure.error?.message
