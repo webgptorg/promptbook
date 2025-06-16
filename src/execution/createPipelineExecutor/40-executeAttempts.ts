@@ -5,11 +5,9 @@ import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
-import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { ChatPrompt } from '../../types/Prompt';
 import type { CompletionPrompt } from '../../types/Prompt';
@@ -18,14 +16,13 @@ import type { Parameters } from '../../types/typeAliases';
 import type { string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
-import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
-import { checkExpectations } from '../utils/checkExpectations';
+import { validatePromptResult } from '../utils/validatePromptResult';
 import type { $OngoingTaskResult } from './$OngoingTaskResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 
@@ -412,49 +409,20 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             }
 
             // TODO: [💝] Unite object for expecting amount and format
-            if (task.format) {
-                if (task.format === 'JSON') {
-                    if (!isValidJsonString($ongoingTaskResult.$resultString || '')) {
-                        // TODO: [🏢] Do more universally via `FormatParser`
+            // Use the common validation function for both format and expectations
+            if (task.format || task.expectations) {
+                const validationResult = validatePromptResult({
+                    resultString: $ongoingTaskResult.$resultString || '',
+                    expectations: task.expectations,
+                    format: task.format,
+                });
 
-                        try {
-                            $ongoingTaskResult.$resultString = extractJsonBlock($ongoingTaskResult.$resultString || '');
-                        } catch (error) {
-                            keepUnused(
-                                error,
-                                // <- Note: This error is not important
-                                //          ONLY imporant thing is the information that `resultString` not contain valid JSON block
-                            );
-
-                            throw new ExpectError(
-                                spaceTrim(
-                                    (block) => `
-                                        Expected valid JSON string
-
-                                        ${block(
-                                            /*<- Note: No need for `pipelineIdentification`, it will be catched and added later */ '',
-                                        )}
-                                    `,
-                                ),
-                            );
-                        }
-                    }
-                } else {
-                    throw new UnexpectedError(
-                        spaceTrim(
-                            (block) => `
-                                Unknown format "${task.format}"
-
-                                ${block(pipelineIdentification)}
-                            `,
-                        ),
-                    );
+                if (!validationResult.isValid) {
+                    throw validationResult.error!;
                 }
-            }
 
-            // TODO: [💝] Unite object for expecting amount and format
-            if (task.expectations) {
-                checkExpectations(task.expectations, $ongoingTaskResult.$resultString || '');
+                // Update the result string in case format processing modified it (e.g., JSON extraction)
+                $ongoingTaskResult.$resultString = validationResult.processedResultString;
             }
 
             break attempts;

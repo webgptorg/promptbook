@@ -19,6 +19,7 @@ import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { extractParameterNames } from '../../../../utils/parameters/extractParameterNames';
 import { BOOK_LANGUAGE_VERSION } from '../../../../version';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
+import { validatePromptResult } from '../../../../execution/utils/validatePromptResult';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
@@ -134,13 +135,47 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         // 1. It has a content property that is null or undefined
         // 2. It has an error property that is truthy
         // 3. It has a success property that is explicitly false
-        const isFailedResult =
+        // 4. It doesn't meet the prompt's expectations or format requirements
+        const isBasicFailedResult =
             promptResult.content === null ||
             promptResult.content === undefined ||
             (promptResult as really_any).error ||
             (promptResult as really_any).success === false;
 
-        if (!isFailedResult) {
+        let shouldCache = !isBasicFailedResult;
+
+        // If the basic result is valid, check against expectations and format
+        if (shouldCache && promptResult.content) {
+            try {
+                const validationResult = validatePromptResult({
+                    resultString: promptResult.content,
+                    expectations: prompt.expectations,
+                    format: prompt.format,
+                });
+
+                shouldCache = validationResult.isValid;
+
+                if (!shouldCache && isVerbose) {
+                    console.info('Not caching result that fails expectations/format validation for key:', key, {
+                        content: promptResult.content,
+                        expectations: prompt.expectations,
+                        format: prompt.format,
+                        validationError: validationResult.error?.message,
+                    });
+                }
+            } catch (error) {
+                // If validation throws an unexpected error, don't cache
+                shouldCache = false;
+                if (isVerbose) {
+                    console.info('Not caching result due to validation error for key:', key, {
+                        content: promptResult.content,
+                        validationError: error instanceof Error ? error.message : String(error),
+                    });
+                }
+            }
+        }
+
+        if (shouldCache) {
             await storage.setItem(key, {
                 date: $getCurrentDate(),
                 promptbookVersion: PROMPTBOOK_ENGINE_VERSION,
@@ -157,7 +192,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                 },
                 promptResult,
             });
-        } else if (isVerbose) {
+        } else if (isVerbose && isBasicFailedResult) {
             console.info('Not caching failed result for key:', key, {
                 content: promptResult.content,
                 error: (promptResult as really_any).error,

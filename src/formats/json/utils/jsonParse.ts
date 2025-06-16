@@ -36,7 +36,7 @@ export function jsonParse<T>(value: string) {
                 (block) => `
                     ${block((error as Error).message)}
 
-                    The JSON text:
+                    The expected JSON text:
                     ${block(value)}
                 `,
             ),
