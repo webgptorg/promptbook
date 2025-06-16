@@ -103,7 +103,6 @@ import { $llmToolsMetadataRegister } from '../llm-providers/_common/register/$ll
 import { $llmToolsRegister } from '../llm-providers/_common/register/$llmToolsRegister';
 import { createLlmToolsFromConfiguration } from '../llm-providers/_common/register/createLlmToolsFromConfiguration';
 import { cacheLlmTools } from '../llm-providers/_common/utils/cache/cacheLlmTools';
-import { createExpectationValidator } from '../llm-providers/_common/utils/cache/createExpectationValidator';
 import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countUsage';
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
 import { joinLlmExecutionTools } from '../llm-providers/_multiple/joinLlmExecutionTools';
@@ -259,7 +258,6 @@ export { $llmToolsMetadataRegister };
 export { $llmToolsRegister };
 export { createLlmToolsFromConfiguration };
 export { cacheLlmTools };
-export { createExpectationValidator };
 export { countUsage };
 export { limitTotalUsage };
 export { joinLlmExecutionTools };
