@@ -11,7 +11,7 @@ import type { RemoteClientOptions } from '../../remote-server/types/RemoteClient
  * @public exported from `@promptbook/openai`
  */
 export type OpenAiCompatibleExecutionToolsOptions =
-    | OpenAiCompatibleExecutionToolsDirectOptions
+    | OpenAiCompatibleExecutionToolsNonProxiedOptions
     | OpenAiCompatibleExecutionToolsProxiedOptions;
 
 /**
@@ -20,20 +20,22 @@ export type OpenAiCompatibleExecutionToolsOptions =
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
  * @public exported from `@promptbook/openai`
  */
-export type OpenAiCompatibleExecutionToolsDirectOptions = CommonToolsOptions & ClientOptions & {
-    /**
-     * Base URL for the OpenAI-compatible API endpoint
-     *
-     * This allows connecting to any OpenAI-compatible LLM service by specifying their API endpoint.
-     *
-     * @example 'https://api.openai.com/v1' (OpenAI)
-     * @example 'http://localhost:11434/v1' (Ollama)
-     * @example 'https://api.deepseek.com/v1' (DeepSeek)
-     */
-    baseURL?: string;
+export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions &
+    ClientOptions & {
+        /**
+         * Base URL for the OpenAI-compatible API endpoint
+         *
+         * This allows connecting to any OpenAI-compatible LLM service by specifying their API endpoint.
+         *
+         * @example 'https://https://promptbook.s5.ptbk.io/' (Promptbook)
+         * @example 'https://api.openai.com/v1' (OpenAI)
+         * @example 'http://localhost:11434/v1' (Ollama)
+         * @example 'https://api.deepseek.com/v1' (DeepSeek)
+         */
+        baseURL?: string;
 
-    isProxied?: false;
-};
+        isProxied?: false;
+    };
 
 /**
  * Options for proxied `OpenAiCompatibleExecutionTools`
@@ -41,17 +43,19 @@ export type OpenAiCompatibleExecutionToolsDirectOptions = CommonToolsOptions & C
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
  * @public exported from `@promptbook/openai`
  */
-export type OpenAiCompatibleExecutionToolsProxiedOptions = CommonToolsOptions & ClientOptions & {
-    /**
-     * Base URL for the OpenAI-compatible API endpoint
-     *
-     * This allows connecting to any OpenAI-compatible LLM service by specifying their API endpoint.
-     *
-     * @example 'https://api.openai.com/v1' (OpenAI)
-     * @example 'http://localhost:11434/v1' (Ollama)
-     * @example 'https://api.deepseek.com/v1' (DeepSeek)
-     */
-    baseURL?: string;
+export type OpenAiCompatibleExecutionToolsProxiedOptions = CommonToolsOptions &
+    ClientOptions & {
+        /**
+         * Base URL for the OpenAI-compatible API endpoint
+         *
+         * This allows connecting to any OpenAI-compatible LLM service by specifying their API endpoint.
+         *
+         * @example 'https://https://promptbook.s5.ptbk.io/' (Promptbook)
+         * @example 'https://api.openai.com/v1' (OpenAI)
+         * @example 'http://localhost:11434/v1' (Ollama)
+         * @example 'https://api.deepseek.com/v1' (DeepSeek)
+         */
+        baseURL?: string;
 
-    isProxied: true;
-} & Pick<RemoteClientOptions<undefined>, 'remoteServerUrl'>;
+        isProxied: true;
+    } & Pick<RemoteClientOptions<undefined>, 'remoteServerUrl'>;

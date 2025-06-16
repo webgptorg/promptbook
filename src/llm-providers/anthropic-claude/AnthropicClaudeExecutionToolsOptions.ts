@@ -9,7 +9,7 @@ import type { RemoteClientOptions } from '../../remote-server/types/RemoteClient
  * @public exported from `@promptbook/anthropic-claude`
  */
 export type AnthropicClaudeExecutionToolsOptions =
-    | AnthropicClaudeExecutionToolsDirectOptions
+    | AnthropicClaudeExecutionToolsNonProxiedOptions
     | AnthropicClaudeExecutionToolsProxiedOptions;
 
 /**
@@ -18,7 +18,7 @@ export type AnthropicClaudeExecutionToolsOptions =
  * This extends Anthropic's `ClientOptions` with are directly passed to the Anthropic client.
  * @public exported from `@promptbook/anthropic-claude`
  */
-export type AnthropicClaudeExecutionToolsDirectOptions = CommonToolsOptions &
+export type AnthropicClaudeExecutionToolsNonProxiedOptions = CommonToolsOptions &
     ClientOptions & {
         isProxied?: false;
     };

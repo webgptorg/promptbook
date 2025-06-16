@@ -1,16 +1,14 @@
-import { ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { Usage } from '../../execution/Usage';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import { ZERO_VALUE } from '../../execution/utils/usage-constants';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { computeOpenAiUsage } from '../openai/computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from '../openai/OpenAiCompatibleExecutionTools';
 import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
 import { OLLAMA_MODELS } from './ollama-models';
-import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
 import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
+import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
 
 /**
  * Execution Tools for calling Ollama API
@@ -25,6 +23,7 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
             baseURL: DEFAULT_OLLAMA_BASE_URL,
             ...ollamaOptions,
             apiKey: 'ollama',
+            isProxied: false, // <- Note: Ollama is always local
         } satisfies OpenAiExecutionToolsOptions;
 
         super(openAiCompatibleOptions);

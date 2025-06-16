@@ -9,20 +9,21 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
-import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
+import type { AnthropicClaudeExecutionToolsNonProxiedOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
 
 /**
@@ -43,7 +44,9 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
      *
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(protected readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {
+    public constructor(
+        protected readonly options: AnthropicClaudeExecutionToolsNonProxiedOptions = { isProxied: false },
+    ) {
         const rate = this.options.maxRequestsPerMinute || DEFAULT_MAX_REQUESTS_PER_MINUTE;
         this.limiter = new Bottleneck({ minTime: 60000 / rate });
     }
