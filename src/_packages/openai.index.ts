@@ -14,6 +14,7 @@ import { OpenAiExecutionTools } from '../llm-providers/openai/OpenAiExecutionToo
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
 import { _OpenAiAssistantRegistration } from '../llm-providers/openai/register-constructor';
+import { _OpenAiCompatibleRegistration } from '../llm-providers/openai/register-constructor';
 
 
 // Note: Exporting version from each package
@@ -33,3 +34,4 @@ export { OpenAiExecutionTools };
 export type { OpenAiExecutionToolsOptions };
 export { _OpenAiRegistration };
 export { _OpenAiAssistantRegistration };
+export { _OpenAiCompatibleRegistration };

@@ -18,6 +18,7 @@ import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/re
 import { _OpenAiCompatibleMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
 import { _OpenAiAssistantRegistration } from '../llm-providers/openai/register-constructor';
+import { _OpenAiCompatibleRegistration } from '../llm-providers/openai/register-constructor';
 import { _BoilerplateScraperRegistration } from '../scrapers/_boilerplate/register-constructor';
 import { _BoilerplateScraperMetadataRegistration } from '../scrapers/_boilerplate/register-metadata';
 import { _LegacyDocumentScraperRegistration } from '../scrapers/document-legacy/register-constructor';
@@ -55,6 +56,7 @@ export { _OpenAiAssistantMetadataRegistration };
 export { _OpenAiCompatibleMetadataRegistration };
 export { _OpenAiRegistration };
 export { _OpenAiAssistantRegistration };
+export { _OpenAiCompatibleRegistration };
 export { _BoilerplateScraperRegistration };
 export { _BoilerplateScraperMetadataRegistration };
 export { _LegacyDocumentScraperRegistration };
