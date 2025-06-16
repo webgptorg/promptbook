@@ -1,4 +1,5 @@
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import { DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
@@ -134,6 +135,8 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
             options: {
                 apiKey: 'sk-',
                 baseURL: 'https://api.openai.com/v1',
+                isProxied: true,
+                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL,
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
             } satisfies OpenAiCompatibleExecutionToolsOptions,
         };

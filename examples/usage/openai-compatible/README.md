@@ -25,6 +25,17 @@ const tools = createOpenAiCompatibleExecutionTools({
 });
 ```
 
+### Proxied Usage (for Browser/Remote)
+
+```typescript
+const tools = createOpenAiCompatibleExecutionTools({
+    apiKey: 'your-api-key',
+    baseURL: 'https://api.openai.com/v1',
+    isProxied: true,
+    remoteServerUrl: 'https://your-promptbook-server.com',
+});
+```
+
 ### Environment Variables
 
 You can also configure the tools using environment variables:
@@ -83,6 +94,8 @@ The `OpenAiCompatibleExecutionToolsOptions` includes all standard OpenAI client 
 
 - `baseURL`: The base URL for the OpenAI-compatible API endpoint
 - `apiKey`: Your API key for the service
+- `isProxied`: Whether to use a remote Promptbook server to proxy API calls (optional, default: false)
+- `remoteServerUrl`: URL of the remote Promptbook server (required when `isProxied` is true)
 - `maxRequestsPerMinute`: Rate limiting (optional)
 - `isVerbose`: Enable verbose logging (optional)
 

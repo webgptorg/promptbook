@@ -83,12 +83,27 @@ async function main() {
         console.info(colors.yellow('Set OPENAI_API_KEY and OPENAI_BASE_URL environment variables to test this example'));
     }
 
+    // Example 5: Using with proxied mode (for browser/remote usage)
+    console.info(colors.bgBlue('📡 Example 5: Proxied Mode'));
+    const proxiedTools = createOpenAiCompatibleExecutionTools({
+        apiKey: 'sk-placeholder', // API key for proxied mode
+        baseURL: 'https://api.openai.com/v1',
+        isProxied: true,
+        remoteServerUrl: 'https://your-promptbook-server.com',
+        isVerbose: true,
+    });
+
+    console.info(`Title: ${proxiedTools.title}`);
+    console.info(`Description: ${proxiedTools.description}`);
+    console.info('This configuration uses a remote Promptbook server to proxy API calls');
+
     // Test basic functionality (if API key is available)
     if (process.env.OPENAI_API_KEY) {
         console.info(colors.bgGreen('🧪 Testing basic chat functionality'));
 
         try {
             const result = await openaiTools.callChatModel({
+                title: 'Test OpenAI Compatible Tools',
                 content: 'Say "Hello from OpenAI Compatible Tools!"',
                 parameters: {},
                 modelRequirements: {
