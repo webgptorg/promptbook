@@ -1,0 +1,19 @@
+# ✨ Example: Rare Expectations
+
+This will fail in 2/3 cases
+
+-   PIPELINE URL https://promptbook.studio/examples/rare-expectations.book
+-   OUTPUT PARAMETER `{greeting}`
+
+## Fail in 2/3 cases
+
+
+- EXPECT EXACTLY 1 Word
+
+
+```
+Write one of the following text: "foo", "foo hoo", "foo hoo hooo", "bar", "bar hoo", "bar hoo hooo".
+Write only the text, without any additional information, explanation without quotes.
+```
+
+`-> {greeting}`

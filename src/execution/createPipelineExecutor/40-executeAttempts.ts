@@ -528,7 +528,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         `,
                     ),
                 )
-                .join('\n\n\n---\n\n\n');
+                .join('\n\n---\n\n');
 
             throw new PipelineExecutionError(
                 spaceTrim(

@@ -827,12 +827,14 @@ Spell checking and grammar
 
 ## In pre-release
 
-### `0.97.0` _(2025-06-)_
+### `0.98.0` _(2025-06-)_
 
 Promptbook server has OpenAI compatibility
 
 -   You can call `book` personas as any other OpenAI model
 -   Alongside `OpenAiExecutionTools` and `OpenAiAssistantExecutionTools` add `OpenAiCompatibleExecutionTools` as registration of configuration and the constructor
+-   Logging all failed results not just last result
+-   Do not cache failed results and bring `DEFAULT_MAX_EXECUTION_ATTEMPTS` down to 3
 
 ## Upcoming
 
