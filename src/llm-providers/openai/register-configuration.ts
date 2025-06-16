@@ -122,7 +122,7 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
     title: 'Open AI Compatible',
     packageName: '@promptbook/openai',
     className: 'OpenAiCompatibleExecutionTools',
-    envVariables: ['OPENAI_API_KEY'],
+    envVariables: ['OPENAI_API_KEY', 'OPENAI_BASE_URL'],
     trustLevel: 'CLOSED',
     order: MODEL_ORDERS.TOP_TIER,
 
@@ -133,6 +133,7 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
             className: 'OpenAiCompatibleExecutionTools',
             options: {
                 apiKey: 'sk-',
+                baseURL: 'https://api.openai.com/v1',
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
             } satisfies OpenAiCompatibleExecutionToolsOptions,
         };
@@ -140,7 +141,25 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
         // Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be instantiated directly
-        keepUnused(env);
+        // However, we can provide configuration for users who want to manually instantiate it
+        if (typeof env.OPENAI_API_KEY === 'string') {
+            const options: OpenAiCompatibleExecutionToolsOptions = {
+                apiKey: env.OPENAI_API_KEY,
+            };
+
+            // Add baseURL if provided in environment
+            if (typeof env.OPENAI_BASE_URL === 'string') {
+                options.baseURL = env.OPENAI_BASE_URL;
+            }
+
+            return {
+                title: 'Open AI Compatible (from env)',
+                packageName: '@promptbook/openai',
+                className: 'OpenAiCompatibleExecutionTools',
+                options,
+            };
+        }
+
         return null;
     },
 });
