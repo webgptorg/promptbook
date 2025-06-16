@@ -1,3 +1,4 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
@@ -15,6 +16,10 @@ export const createOpenAiExecutionTools = Object.assign(
     (options: OpenAiExecutionToolsOptions): OpenAiExecutionTools => {
         if (($isRunningInBrowser() || $isRunningInWebWorker()) && !options.dangerouslyAllowBrowser) {
             options = { ...options, dangerouslyAllowBrowser: true };
+        }
+
+        if (options.isProxied) {
+            throw new NotYetImplementedError(`Proxy mode is not yet implemented in createOpenAiExecutionTools`);
         }
 
         return new OpenAiExecutionTools(options);

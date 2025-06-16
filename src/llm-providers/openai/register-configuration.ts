@@ -135,7 +135,7 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
             options: {
                 apiKey: 'sk-',
                 baseURL: 'https://api.openai.com/v1',
-                isProxied: true,
+                isProxied: false as boolean,
                 remoteServerUrl: DEFAULT_REMOTE_SERVER_URL,
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
             } satisfies OpenAiCompatibleExecutionToolsOptions,
@@ -148,7 +148,7 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
         if (typeof env.OPENAI_API_KEY === 'string') {
             const options: Parameters<typeof createOpenAiCompatibleExecutionTools>[0] = {
                 apiKey: env.OPENAI_API_KEY,
-                isProxied: true,
+                isProxied: false as boolean,
                 remoteServerUrl: DEFAULT_REMOTE_SERVER_URL,
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
                 defaultModelName: 'gpt-4-turbo',
