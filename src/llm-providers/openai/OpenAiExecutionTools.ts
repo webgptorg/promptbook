@@ -1,11 +1,9 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
-import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
 import { OPENAI_MODELS } from './openai-models';
+import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
 
 /**
  * Execution Tools for calling OpenAI API
@@ -53,7 +51,7 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
      * Default model for chat variant.
      */
     protected getDefaultChatModel(): AvailableModel {
-        return this.getDefaultModel('gpt-4o');
+        return this.getDefaultModel('gpt-4-turbo');
     }
 
     /**
