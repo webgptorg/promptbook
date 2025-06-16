@@ -1,9 +1,6 @@
 import { ExpectError } from '../../errors/ExpectError';
 import type { Prompt } from '../../types/Prompt';
-import type { ChatPromptResult } from '../PromptResult';
-import type { CompletionPromptResult } from '../PromptResult';
-import type { EmbeddingPromptResult } from '../PromptResult';
-import type { PromptResult } from '../PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../PromptResult';
 
 /**
  * Represents the ongoing result of a pipeline task execution
@@ -54,4 +51,12 @@ export type $OngoingTaskResult = {
      * List of errors encountered during script postprocessing or execution.
      */
     $scriptPipelineExecutionErrors: Array<Error>;
+
+    /**
+     * Array of all failed attempts, storing both the result string and the error for each failure
+     */
+    $failedResults: Array<{
+        result: string | null;
+        error: ExpectError;
+    }>;
 };

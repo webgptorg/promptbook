@@ -11,11 +11,8 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -99,6 +96,9 @@ export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions
  * @returns The result string of the executed task.
  * @private internal utility of `createPipelineExecutor`
  */
+// Track all failed attempts during execution
+const allFailedResults: Array<{ result: string | null; error: ExpectError }> = [];
+
 export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<TODO_string> {
     const {
         jokerParameterNames,
@@ -119,6 +119,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         $resultString: null,
         $expectError: null,
         $scriptPipelineExecutionErrors: [],
+        $failedResults: [], // Track all failed attempts
     };
 
     // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
@@ -458,6 +459,19 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             }
 
             $ongoingTaskResult.$expectError = error;
+            // Store failed attempt
+            allFailedResults.push({
+                result: $ongoingTaskResult.$resultString,
+                error: error as ExpectError,
+            });
+            // Store each failed attempt
+            if (!Array.isArray($ongoingTaskResult.$failedResults)) {
+                $ongoingTaskResult.$failedResults = [];
+            }
+            $ongoingTaskResult.$failedResults.push({
+                result: $ongoingTaskResult.$resultString,
+                error: error,
+            });
         } finally {
             if (
                 !isJokerAttempt &&
@@ -480,8 +494,42 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 });
             }
         }
-
         if ($ongoingTaskResult.$expectError !== null && attempt === maxAttempts - 1) {
+            // Store the current failure before throwing
+            $ongoingTaskResult.$failedResults = $ongoingTaskResult.$failedResults || [];
+            $ongoingTaskResult.$failedResults.push({
+                result: $ongoingTaskResult.$resultString,
+                error: $ongoingTaskResult.$expectError,
+            });
+
+            // Create a summary of all failures
+            const failuresSummary = $ongoingTaskResult.$failedResults
+                .map((failure, index) =>
+                    spaceTrim(
+                        (block) => `
+                            Attempt ${index + 1}:
+                            Error ${failure.error?.name || ''}:
+                            ${block(
+                                failure.error?.message
+                                    .split('\n')
+                                    .map((line) => `> ${line}`)
+                                    .join('\n'),
+                            )}
+
+                            Result:
+                            ${block(
+                                failure.result === null
+                                    ? 'null'
+                                    : spaceTrim(failure.result)
+                                          .split('\n')
+                                          .map((line) => `> ${line}`)
+                                          .join('\n'),
+                            )}
+                        `,
+                    ),
+                )
+                .join('\n\n\n---\n\n\n');
+
             throw new PipelineExecutionError(
                 spaceTrim(
                     (block) => `
@@ -489,7 +537,6 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
 
                         ${block(pipelineIdentification)}
 
-                        ---
                         The Prompt:
                         ${block(
                             ($ongoingTaskResult.$prompt?.content || '')
@@ -498,24 +545,8 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                 .join('\n'),
                         )}
 
-                        Last error ${$ongoingTaskResult.$expectError?.name || ''}:
-                        ${block(
-                            ($ongoingTaskResult.$expectError?.message || '')
-                                .split('\n')
-                                .map((line) => `> ${line}`)
-                                .join('\n'),
-                        )}
-
-                        Last result:
-                        ${block(
-                            $ongoingTaskResult.$resultString === null
-                                ? 'null'
-                                : spaceTrim($ongoingTaskResult.$resultString)
-                                      .split('\n')
-                                      .map((line) => `> ${line}`)
-                                      .join('\n'),
-                        )}
-                        ---
+                        All Failed Attempts:
+                        ${block(failuresSummary)}
                     `,
                 ),
             );
