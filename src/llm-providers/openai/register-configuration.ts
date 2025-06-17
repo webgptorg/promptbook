@@ -1,13 +1,13 @@
-import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
-import { DEFAULT_REMOTE_SERVER_URL } from '../../config';
+import { really_any } from '../../_packages/types.index';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import type { createOpenAiCompatibleExecutionTools } from './createOpenAiCompatibleExecutionTools';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
-import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
@@ -135,10 +135,11 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
             options: {
                 apiKey: 'sk-',
                 baseURL: 'https://api.openai.com/v1',
-                isProxied: false as boolean,
-                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL,
-                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
-            } satisfies OpenAiCompatibleExecutionToolsOptions,
+                defaultModelName: 'gpt-4-turbo',
+                isProxied: false as really_any,
+                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL as really_any,
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE as really_any,
+            } satisfies Parameters<typeof createOpenAiCompatibleExecutionTools>[0],
         };
     },
 
