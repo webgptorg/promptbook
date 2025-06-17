@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { $isRunningInBrowser, $isRunningInNode, $isRunningInWebWorker } from '../../../_packages/utils.index';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { string_user_id } from '../../../types/typeAliases';
@@ -65,6 +66,9 @@ export function createLlmToolsFromConfiguration(
                         There is no constructor for LLM provider \`${llmConfiguration.className}\` from \`${
                         llmConfiguration.packageName
                     }\`
+                        Running in ${!$isRunningInBrowser() ? '' : 'browser environment'}${
+                        !$isRunningInNode() ? '' : 'node environment'
+                    }${!$isRunningInWebWorker() ? '' : 'worker environment'}
 
                         You have probably forgotten install and import the provider package.
                         To fix this issue, you can:
