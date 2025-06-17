@@ -700,7 +700,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     assertsError(error);
 
                     socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
-                    // <- TODO: [🚋] There is a problem with the remote server handling errors and sending them back to the client
                 } finally {
                     socket.disconnect();
                     // TODO: [🍚]> executionTools.destroy();
