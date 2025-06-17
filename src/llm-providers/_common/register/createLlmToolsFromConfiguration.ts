@@ -1,10 +1,10 @@
 import spaceTrim from 'spacetrim';
-import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { string_user_id } from '../../../types/typeAliases';
+import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../../_multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../../_multiple/MultipleLlmExecutionTools';
@@ -61,7 +61,7 @@ export function createLlmToolsFromConfiguration(
             );
 
         if (registeredItem === undefined) {
-            console.log('!!! $llmToolsRegister.list()', $llmToolsRegister.list());
+            // console.log('$llmToolsRegister.list()', $llmToolsRegister.list());
             throw new Error(
                 spaceTrim(
                     (block) => `
