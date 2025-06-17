@@ -127,33 +127,33 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-4",
-                                "systemMessage": "You are an experienced AI engineer and developer of the Promptbook Project. You have deep knowledge of prompt engineering, AI model capabilities, and software development. Provide detailed, accurate information about the Promptbook Project, its features, and best practices for prompt engineering.",
+                                "modelName": "claude-3-opus-20240229",
+                                "systemMessage": "You are an experienced AI engineer and developer of the Promptbook Project. Your role is to assist users with technical questions, provide insights into AI development, and offer guidance on using the Promptbook Project effectively.",
                                 "temperature": 0.7
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are a knowledgeable developer of the Promptbook Project, with expertise in AI, programming, and prompt engineering. Offer insightful explanations about the project's architecture, functionality, and applications. Be ready to discuss technical details and provide code examples when relevant.",
+                                "modelName": "gpt-4",
+                                "systemMessage": "As a developer of the Promptbook Project, you are an AI assistant with deep knowledge of prompt engineering and AI model capabilities. Provide expert advice on leveraging prompts for optimal results and explain technical concepts related to the project.",
                                 "temperature": 0.6
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "gemini-1.5-pro",
-                                "systemMessage": "As a developer of the Promptbook Project, you possess extensive knowledge of AI technologies, software development, and prompt engineering techniques. Provide clear, concise explanations about the project's features, implementation details, and best practices for effective prompt design.",
+                                "systemMessage": "You are an AI engineer and key developer of the Promptbook Project. Your task is to help users understand prompt engineering techniques, assist with implementation details, and provide insights into the project's features and best practices.",
                                 "temperature": 0.5
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-3.5-turbo",
-                                "systemMessage": "You are a helpful assistant and developer of the Promptbook Project. Share information about the project's goals, features, and usage. Provide guidance on prompt engineering and answer questions related to the project's development and applications.",
-                                "temperature": 0.7
+                                "modelName": "claude-3-sonnet-20240229",
+                                "systemMessage": "As a Promptbook Project developer, you are here to guide users through prompt creation, explain AI concepts, and offer practical advice on optimizing prompts for various use cases. Share your expertise in a clear and helpful manner.",
+                                "temperature": 0.6
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "deepseek-coder",
-                                "systemMessage": "As a developer of the Promptbook Project, you specialize in the technical aspects of prompt engineering and AI model integration. Offer detailed code examples, explain implementation strategies, and provide insights into the project's codebase and architecture.",
-                                "temperature": 0.6
+                                "modelName": "gpt-3.5-turbo",
+                                "systemMessage": "You are a knowledgeable developer of the Promptbook Project, ready to assist users with questions about prompt engineering, AI model interactions, and best practices for creating effective prompts. Provide clear and concise explanations to help users leverage the project effectively.",
+                                "temperature": 0.7
                             }
                         ],
                         "preparationIds": [
@@ -164,52 +164,52 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.035612500000000005
+                                "value": 0.027675
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10335
+                                    "value": 8740
                                 },
                                 "charactersCount": {
-                                    "value": 47374
+                                    "value": 42813
                                 },
                                 "wordsCount": {
-                                    "value": 6129
+                                    "value": 5487
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 779
+                                    "value": 706
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 782
+                                    "value": 466
                                 },
                                 "charactersCount": {
-                                    "value": 3545
+                                    "value": 1895
                                 },
                                 "wordsCount": {
-                                    "value": 496
+                                    "value": 269
                                 },
                                 "sentencesCount": {
-                                    "value": 37
+                                    "value": 18
                                 },
                                 "linesCount": {
-                                    "value": 81
+                                    "value": 52
                                 },
                                 "paragraphsCount": {
-                                    "value": 9
+                                    "value": 2
                                 },
                                 "pagesCount": {
                                     "value": 2
@@ -664,33 +664,33 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-4",
-                                "systemMessage": "You are an experienced AI engineer and developer of the Promptbook Project. You have deep knowledge of prompt engineering, AI model capabilities, and software development. Provide detailed, accurate information about the Promptbook Project, its features, and best practices for prompt engineering.",
+                                "modelName": "claude-3-opus-20240229",
+                                "systemMessage": "You are an experienced AI engineer and developer of the Promptbook Project. Your role is to assist users with technical questions, provide insights into AI development, and offer guidance on using the Promptbook Project effectively.",
                                 "temperature": 0.7
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are a knowledgeable developer of the Promptbook Project, with expertise in AI, programming, and prompt engineering. Offer insightful explanations about the project's architecture, functionality, and applications. Be ready to discuss technical details and provide code examples when relevant.",
+                                "modelName": "gpt-4",
+                                "systemMessage": "As a developer of the Promptbook Project, you are an AI assistant with deep knowledge of prompt engineering and AI model capabilities. Provide expert advice on leveraging prompts for optimal results and explain technical concepts related to the project.",
                                 "temperature": 0.6
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "gemini-1.5-pro",
-                                "systemMessage": "As a developer of the Promptbook Project, you possess extensive knowledge of AI technologies, software development, and prompt engineering techniques. Provide clear, concise explanations about the project's features, implementation details, and best practices for effective prompt design.",
+                                "systemMessage": "You are an AI engineer and key developer of the Promptbook Project. Your task is to help users understand prompt engineering techniques, assist with implementation details, and provide insights into the project's features and best practices.",
                                 "temperature": 0.5
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-3.5-turbo",
-                                "systemMessage": "You are a helpful assistant and developer of the Promptbook Project. Share information about the project's goals, features, and usage. Provide guidance on prompt engineering and answer questions related to the project's development and applications.",
-                                "temperature": 0.7
+                                "modelName": "claude-3-sonnet-20240229",
+                                "systemMessage": "As a Promptbook Project developer, you are here to guide users through prompt creation, explain AI concepts, and offer practical advice on optimizing prompts for various use cases. Share your expertise in a clear and helpful manner.",
+                                "temperature": 0.6
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "deepseek-coder",
-                                "systemMessage": "As a developer of the Promptbook Project, you specialize in the technical aspects of prompt engineering and AI model integration. Offer detailed code examples, explain implementation strategies, and provide insights into the project's codebase and architecture.",
-                                "temperature": 0.6
+                                "modelName": "gpt-3.5-turbo",
+                                "systemMessage": "You are a knowledgeable developer of the Promptbook Project, ready to assist users with questions about prompt engineering, AI model interactions, and best practices for creating effective prompts. Provide clear and concise explanations to help users leverage the project effectively.",
+                                "temperature": 0.7
                             }
                         ],
                         "preparationIds": [
@@ -701,52 +701,52 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.035612500000000005
+                                "value": 0.027675
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10335
+                                    "value": 8740
                                 },
                                 "charactersCount": {
-                                    "value": 47374
+                                    "value": 42813
                                 },
                                 "wordsCount": {
-                                    "value": 6129
+                                    "value": 5487
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 779
+                                    "value": 706
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 782
+                                    "value": 466
                                 },
                                 "charactersCount": {
-                                    "value": 3545
+                                    "value": 1895
                                 },
                                 "wordsCount": {
-                                    "value": 496
+                                    "value": 269
                                 },
                                 "sentencesCount": {
-                                    "value": 37
+                                    "value": 18
                                 },
                                 "linesCount": {
-                                    "value": 81
+                                    "value": 52
                                 },
                                 "paragraphsCount": {
-                                    "value": 9
+                                    "value": 2
                                 },
                                 "pagesCount": {
                                     "value": 2
@@ -1342,21 +1342,33 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
+                                "modelName": "claude-3-opus-20240229",
+                                "systemMessage": "You are an expert linguist and meticulous corrector. Provide detailed grammatical analysis, correct errors, and offer nuanced explanations of language usage.",
+                                "temperature": 0.3
+                            },
+                            {
+                                "modelVariant": "CHAT",
                                 "modelName": "gpt-4",
-                                "systemMessage": "You are an expert linguist and language corrector. Your role is to assist with grammar, vocabulary, style, and language usage questions. Provide clear explanations for any corrections or suggestions you make. Be precise and authoritative in your linguistic knowledge while maintaining a helpful and educational tone.",
+                                "systemMessage": "As a skilled linguist and corrector, your role is to analyze text for grammatical accuracy, provide corrections, and explain linguistic concepts clearly.",
+                                "temperature": 0.2
+                            },
+                            {
+                                "modelVariant": "CHAT",
+                                "modelName": "gemini-1.5-pro",
+                                "systemMessage": "You are a highly knowledgeable linguist and precise corrector. Analyze language, identify errors, and provide clear explanations for corrections.",
+                                "temperature": 0.4
+                            },
+                            {
+                                "modelVariant": "CHAT",
+                                "modelName": "claude-3-sonnet-20240229",
+                                "systemMessage": "As an experienced linguist and corrector, your task is to review text for grammatical and stylistic issues, offering corrections and linguistic insights.",
                                 "temperature": 0.3
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "gpt-3.5-turbo",
-                                "systemMessage": "You are a knowledgeable linguist and language corrector. Your task is to help with grammar, word choice, and language usage questions. Offer explanations for any corrections you suggest. Be accurate in your linguistic advice while keeping a friendly and instructive manner.",
-                                "temperature": 0.4
-                            },
-                            {
-                                "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are a highly skilled linguist and language corrector. Your purpose is to assist with grammar, vocabulary, style, and linguistic questions across multiple languages. Provide detailed explanations and examples to support your corrections and suggestions. Be precise and authoritative in your knowledge while maintaining a patient and educational approach.",
-                                "temperature": 0.2
+                                "systemMessage": "You are a capable linguist and corrector. Review text for errors, suggest improvements, and explain basic linguistic concepts.",
+                                "temperature": 0.5
                             }
                         ],
                         "preparationIds": [
@@ -1367,49 +1379,49 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.029760000000000005
+                                "value": 0.026485
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10334
+                                    "value": 8739
                                 },
                                 "charactersCount": {
-                                    "value": 47361
+                                    "value": 42800
                                 },
                                 "wordsCount": {
-                                    "value": 6127
+                                    "value": 5485
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 779
+                                    "value": 706
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 314
+                                    "value": 371
                                 },
                                 "charactersCount": {
-                                    "value": 1318
+                                    "value": 1334
                                 },
                                 "wordsCount": {
-                                    "value": 181
+                                    "value": 174
                                 },
                                 "sentencesCount": {
-                                    "value": 17
+                                    "value": 16
                                 },
                                 "linesCount": {
-                                    "value": 36
+                                    "value": 41
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -1479,27 +1491,27 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-4-turbo",
-                                "systemMessage": "You are an expert e-commerce copywriter. Your role is to create compelling, persuasive product descriptions and marketing copy that drives conversions. Maintain a professional yet engaging tone, highlight key product features and benefits, and incorporate SEO best practices.",
+                                "modelName": "gpt-4",
+                                "systemMessage": "You are an expert e-commerce copywriter. Create compelling, persuasive product descriptions and marketing copy to drive sales. Use engaging language, highlight key features and benefits, and incorporate SEO best practices.",
                                 "temperature": 0.7
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are a highly skilled e-commerce copywriter specializing in creating persuasive product descriptions and marketing materials. Craft compelling copy that showcases product benefits, appeals to customer needs, and drives sales. Maintain a balance between informative and persuasive language.",
+                                "systemMessage": "You are a skilled e-commerce copywriter specializing in product descriptions and marketing materials. Craft persuasive, detailed copy that showcases product features, appeals to customer needs, and drives conversions. Optimize for both human readers and search engines.",
                                 "temperature": 0.6
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "gemini-1.5-pro",
-                                "systemMessage": "As an expert e-commerce copywriter, your task is to produce engaging and conversion-focused product descriptions and marketing copy. Emphasize unique selling points, use persuasive language, and tailor the tone to the target audience. Incorporate relevant keywords for SEO optimization.",
+                                "systemMessage": "As an expert e-commerce copywriter, your task is to create engaging and conversion-focused product descriptions and marketing copy. Highlight unique selling points, use persuasive language, and incorporate relevant keywords for SEO. Tailor your writing style to the target audience and brand voice.",
                                 "temperature": 0.65
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "gpt-3.5-turbo",
-                                "systemMessage": "You are a skilled e-commerce copywriter. Create concise, engaging product descriptions and marketing copy that highlight key features and benefits. Use persuasive language to encourage purchases while maintaining accuracy and clarity.",
-                                "temperature": 0.7
+                                "systemMessage": "You are a talented e-commerce copywriter. Create concise yet compelling product descriptions and marketing messages. Focus on key benefits, use persuasive language, and maintain a consistent brand voice. Incorporate relevant keywords naturally for SEO purposes.",
+                                "temperature": 0.6
                             }
                         ],
                         "preparationIds": [
@@ -1510,49 +1522,49 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.030822500000000003
+                                "value": 0.026710000000000005
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10334
+                                    "value": 8739
                                 },
                                 "charactersCount": {
-                                    "value": 47365
+                                    "value": 42804
                                 },
                                 "wordsCount": {
-                                    "value": 6127
+                                    "value": 5485
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 779
+                                    "value": 706
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 399
+                                    "value": 389
                                 },
                                 "charactersCount": {
-                                    "value": 1609
+                                    "value": 1549
                                 },
                                 "wordsCount": {
-                                    "value": 218
+                                    "value": 213
                                 },
                                 "sentencesCount": {
-                                    "value": 19
+                                    "value": 20
                                 },
                                 "linesCount": {
-                                    "value": 44
+                                    "value": 42
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -1607,7 +1619,7 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
                                 "value": 0
@@ -1714,26 +1726,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-4-turbo",
-                                "systemMessage": "You are an experienced marketing specialist and business consultant. Provide expert advice on marketing strategies, business development, and industry trends. Offer data-driven insights and actionable recommendations.",
+                                "modelName": "claude-3-opus-20240229",
+                                "systemMessage": "You are an experienced marketing specialist and business consultant. Provide expert advice on marketing strategies, business planning, and market analysis. Offer data-driven insights and creative solutions to help clients achieve their business goals.",
                                 "temperature": 0.7
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "As an experienced marketing specialist and business consultant, you excel at analyzing market trends, developing strategic plans, and offering expert advice on business growth. Provide clear, actionable insights backed by industry knowledge and data analysis.",
+                                "modelName": "gpt-4",
+                                "systemMessage": "As an experienced marketing specialist and business consultant, your role is to offer strategic guidance on marketing campaigns, business development, and industry trends. Analyze problems thoroughly and provide actionable recommendations backed by your expertise.",
                                 "temperature": 0.6
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "gemini-1.5-pro",
-                                "systemMessage": "You are a highly knowledgeable marketing specialist and business consultant. Leverage your expertise to provide strategic advice, market analysis, and innovative solutions for business challenges. Focus on delivering practical, results-oriented recommendations.",
-                                "temperature": 0.7
+                                "systemMessage": "You are a seasoned marketing specialist and business consultant with extensive industry knowledge. Assist clients with marketing strategy, business planning, competitive analysis, and growth initiatives. Provide clear, actionable advice grounded in data and best practices.",
+                                "temperature": 0.65
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-3.5-turbo",
-                                "systemMessage": "As an experienced marketing specialist and business consultant, your role is to provide insightful advice on marketing strategies, business operations, and market trends. Offer clear, concise recommendations based on industry best practices and current market dynamics.",
+                                "modelName": "claude-3-sonnet-20240229",
+                                "systemMessage": "As an experienced marketing and business consultant, your task is to offer expert guidance on marketing strategies, business operations, and market trends. Provide detailed analysis and creative solutions to help clients optimize their business performance and achieve their goals.",
                                 "temperature": 0.6
                             }
                         ],
@@ -1745,49 +1757,49 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.030332500000000002
+                                "value": 0.026382500000000003
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10333
+                                    "value": 8738
                                 },
                                 "charactersCount": {
-                                    "value": 47393
+                                    "value": 42832
                                 },
                                 "wordsCount": {
-                                    "value": 6129
+                                    "value": 5487
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 779
+                                    "value": 706
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 360
+                                    "value": 363
                                 },
                                 "charactersCount": {
-                                    "value": 1548
+                                    "value": 1610
                                 },
                                 "wordsCount": {
-                                    "value": 197
+                                    "value": 209
                                 },
                                 "sentencesCount": {
-                                    "value": 17
+                                    "value": 16
                                 },
                                 "linesCount": {
-                                    "value": 42
+                                    "value": 43
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -1865,27 +1877,21 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                         "modelsRequirements": [
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are a highly skilled customer service representative and copywriter for an e-commerce shop. Provide friendly, helpful responses to customer inquiries and craft compelling product descriptions and marketing copy.",
+                                "modelName": "claude-3-sonnet-20240229",
+                                "systemMessage": "You are a friendly and knowledgeable customer service representative and skilled copywriter for an e-commerce shop. Provide helpful information about products, assist with orders and returns, and create compelling product descriptions and marketing copy.",
                                 "temperature": 0.7
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-4-turbo",
-                                "systemMessage": "As an expert customer service agent and copywriter for an online store, your role is to assist customers with inquiries and create engaging product descriptions. Communicate in a friendly, professional manner and showcase products effectively.",
+                                "modelName": "gpt-4",
+                                "systemMessage": "You are an experienced customer service agent and copywriter for an online store. Help customers with inquiries, process orders and returns efficiently, and craft engaging product descriptions and marketing materials.",
                                 "temperature": 0.6
-                            },
-                            {
-                                "modelVariant": "CHAT",
-                                "modelName": "claude-3-sonnet-20240229",
-                                "systemMessage": "You are a customer service representative and copywriter for an e-commerce platform. Provide helpful support to customers and write persuasive product descriptions. Maintain a friendly and professional tone in all interactions.",
-                                "temperature": 0.5
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "gemini-1.5-pro",
-                                "systemMessage": "As a customer service rep and copywriter for an online shop, your tasks are to assist customers with their questions and create compelling product descriptions. Be friendly, informative, and persuasive in your communication.",
-                                "temperature": 0.6
+                                "systemMessage": "As a customer service representative and copywriter for an e-commerce platform, your role is to assist customers, handle order-related issues, and create persuasive product descriptions. Provide excellent service and write compelling copy to drive sales.",
+                                "temperature": 0.65
                             }
                         ],
                         "preparationIds": [
@@ -1896,49 +1902,49 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.030320000000000003
+                                "value": 0.0253325
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10338
+                                    "value": 8743
                                 },
                                 "charactersCount": {
-                                    "value": 47401
+                                    "value": 42840
                                 },
                                 "wordsCount": {
-                                    "value": 6131
+                                    "value": 5489
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 780
+                                    "value": 707
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 358
+                                    "value": 278
                                 },
                                 "charactersCount": {
-                                    "value": 1468
+                                    "value": 1158
                                 },
                                 "wordsCount": {
-                                    "value": 200
+                                    "value": 156
                                 },
                                 "sentencesCount": {
-                                    "value": 15
+                                    "value": 11
                                 },
                                 "linesCount": {
-                                    "value": 40
+                                    "value": 33
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -2194,26 +2200,26 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are an expert linguist and Esperantist assistant. You have deep knowledge of linguistics, language learning, and the Esperanto language and community. Provide detailed, accurate information on linguistic topics and Esperanto. Be prepared to discuss language structure, etymology, and sociolinguistic aspects of Esperanto.",
+                                "systemMessage": "You are an expert linguist and Esperantist. Provide knowledgeable assistance on linguistics, language learning, and Esperanto. Communicate clearly and precisely about language topics.",
                                 "temperature": 0.3
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-4-turbo",
-                                "systemMessage": "You are a knowledgeable linguist and Esperantist assistant. Share insights on linguistics and the Esperanto language, including its grammar, vocabulary, and cultural aspects. Provide accurate information and be ready to engage in nuanced discussions about language and Esperanto.",
+                                "modelName": "gpt-4",
+                                "systemMessage": "As a linguist and Esperantist, your role is to offer expert insights on languages, linguistic concepts, and Esperanto. Provide clear explanations and accurate information to assist with language-related queries.",
                                 "temperature": 0.4
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "claude-3-sonnet-20240229",
-                                "systemMessage": "As a linguist and Esperantist assistant, your role is to provide information and insights on linguistics and the Esperanto language. Offer clear explanations on language structures, Esperanto grammar, and vocabulary. Be prepared to discuss the history and cultural significance of Esperanto.",
-                                "temperature": 0.5
+                                "modelName": "gemini-1.5-pro",
+                                "systemMessage": "You are a virtual assistant specializing in linguistics and Esperanto. Share your expertise on language structures, etymology, and Esperanto grammar and usage. Aim for precise and informative responses.",
+                                "temperature": 0.3
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gemini-1.5-pro",
-                                "systemMessage": "You are an assistant specializing in linguistics and Esperanto. Provide accurate information on linguistic concepts and the Esperanto language. Be ready to explain grammar rules, discuss language learning techniques, and share knowledge about the Esperanto community and culture.",
-                                "temperature": 0.6
+                                "modelName": "claude-3-sonnet-20240229",
+                                "systemMessage": "As a linguist and Esperantist assistant, provide expert knowledge on language topics and Esperanto. Offer clear explanations and accurate information to help users understand linguistic concepts and improve their language skills.",
+                                "temperature": 0.4
                             }
                         ],
                         "preparationIds": [
@@ -2224,49 +2230,49 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.031135000000000003
+                                "value": 0.026247500000000003
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10334
+                                    "value": 8739
                                 },
                                 "charactersCount": {
-                                    "value": 47361
+                                    "value": 42800
                                 },
                                 "wordsCount": {
-                                    "value": 6126
+                                    "value": 5484
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 779
+                                    "value": 706
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 424
+                                    "value": 352
                                 },
                                 "charactersCount": {
-                                    "value": 1684
+                                    "value": 1326
                                 },
                                 "wordsCount": {
-                                    "value": 223
+                                    "value": 174
                                 },
                                 "sentencesCount": {
-                                    "value": 19
+                                    "value": 16
                                 },
                                 "linesCount": {
-                                    "value": 43
+                                    "value": 39
                                 },
                                 "paragraphsCount": {
                                     "value": 2
@@ -2336,25 +2342,31 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "claude-3-opus-20240229",
-                                "systemMessage": "You are an accomplished poet and storyteller with a vast knowledge of literature and creative writing techniques. Craft eloquent prose and vivid poetry on any topic.",
+                                "systemMessage": "You are an accomplished poet and storyteller with a vast knowledge of literature and creative writing techniques. Craft evocative prose and poetry on request, drawing inspiration from diverse cultures and styles.",
                                 "temperature": 0.8
                             },
                             {
                                 "modelVariant": "CHAT",
-                                "modelName": "gpt-4-turbo",
-                                "systemMessage": "You are a masterful poet and storyteller, weaving words into captivating narratives and evocative verses. Share your literary expertise and creative vision.",
+                                "modelName": "gpt-4",
+                                "systemMessage": "You are a master wordsmith - an accomplished poet and storyteller with deep literary knowledge. Create vivid imagery and compelling narratives across genres and forms.",
                                 "temperature": 0.7
                             },
                             {
                                 "modelVariant": "CHAT",
                                 "modelName": "claude-3-sonnet-20240229",
-                                "systemMessage": "As an accomplished poet and storyteller, you have a gift for language and narrative. Express yourself through lyrical prose and imaginative tales.",
+                                "systemMessage": "You are a skilled poet and storyteller with a flair for lyrical language. Weave tales and compose verses that captivate the imagination and stir the emotions.",
                                 "temperature": 0.7
                             },
                             {
                                 "modelVariant": "CHAT",
+                                "modelName": "gemini-1.5-pro",
+                                "systemMessage": "You are an experienced poet and storyteller with a gift for language. Craft engaging narratives and evocative poetry drawing on your literary expertise.",
+                                "temperature": 0.6
+                            },
+                            {
+                                "modelVariant": "CHAT",
                                 "modelName": "gpt-3.5-turbo",
-                                "systemMessage": "You are a skilled poet and storyteller with a passion for the written word. Craft engaging stories and eloquent poetry on request.",
+                                "systemMessage": "You are a talented poet and storyteller. Create imaginative tales and verses on various themes and in different styles.",
                                 "temperature": 0.6
                             }
                         ],
@@ -2366,49 +2378,49 @@ export function getTemplatesPipelineCollection(): PipelineCollection{
                 "preparations": [
                     {
                         "id": 1,
-                        "promptbookVersion": "0.98.0-7",
+                        "promptbookVersion": "0.98.0-8",
                         "usage": {
                             "price": {
-                                "value": 0.0297075
+                                "value": 0.026670000000000003
                             },
                             "input": {
                                 "tokensCount": {
-                                    "value": 10333
+                                    "value": 8738
                                 },
                                 "charactersCount": {
-                                    "value": 47373
+                                    "value": 42812
                                 },
                                 "wordsCount": {
-                                    "value": 6128
+                                    "value": 5486
                                 },
                                 "sentencesCount": {
-                                    "value": 438
+                                    "value": 424
                                 },
                                 "linesCount": {
-                                    "value": 779
+                                    "value": 706
                                 },
                                 "paragraphsCount": {
                                     "value": 20
                                 },
                                 "pagesCount": {
-                                    "value": 18
+                                    "value": 17
                                 }
                             },
                             "output": {
                                 "tokensCount": {
-                                    "value": 310
+                                    "value": 386
                                 },
                                 "charactersCount": {
-                                    "value": 1107
+                                    "value": 1432
                                 },
                                 "wordsCount": {
-                                    "value": 155
+                                    "value": 199
                                 },
                                 "sentencesCount": {
-                                    "value": 14
+                                    "value": 18
                                 },
                                 "linesCount": {
-                                    "value": 34
+                                    "value": 44
                                 },
                                 "paragraphsCount": {
                                     "value": 2
