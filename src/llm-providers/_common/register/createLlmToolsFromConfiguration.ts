@@ -1,5 +1,7 @@
 import spaceTrim from 'spacetrim';
-import { $isRunningInBrowser, $isRunningInNode, $isRunningInWebWorker } from '../../../_packages/utils.index';
+import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { string_user_id } from '../../../types/typeAliases';
