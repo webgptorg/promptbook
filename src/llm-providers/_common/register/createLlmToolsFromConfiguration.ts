@@ -58,6 +58,7 @@ export function createLlmToolsFromConfiguration(
             );
 
         if (registeredItem === undefined) {
+            console.log('!!! $llmToolsRegister.list()', $llmToolsRegister.list());
             throw new Error(
                 spaceTrim(
                     (block) => `
