@@ -284,7 +284,168 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         packageJson.name = packageFullname;
 
-        // TODO: [❇️] Join dynamic and general keywords
+        // Note: [❇️] Joining dynamic and general keywords
+        const generalKeywords = [
+            'ai',
+            'llm',
+            'prompt',
+            'template',
+            'language-model',
+            'machine-learning',
+            'natural-language-processing',
+            'nlp',
+            'ai-orchestration',
+            'prompt-engineering',
+            'llmops',
+            'multimodal',
+            'reasoning',
+            'rag',
+            'embeddings',
+            'function-calling',
+            'large-language-models',
+            'ai-application-framework',
+            'text-generation',
+            'ai-agents',
+            'book-language',
+            'markdown-dsl',
+            'ai-workflow',
+            'ai-automation',
+            'pipeline',
+            'workflow',
+            'orchestration',
+            'ai-pipeline',
+            'prompt-template',
+            'prompt-chaining',
+            'ai-scripting',
+            'conversational-ai',
+            'chatbot',
+            'ai-assistant',
+            'knowledge-base',
+            'typescript',
+            'javascript',
+            'nodejs',
+            'browser',
+            'cross-platform',
+            'api-integration',
+            'model-agnostic',
+            'multi-model',
+            'ai-sdk',
+            'ai-framework',
+            'ai-platform',
+            'generative-ai',
+            'content-generation',
+            'text-processing',
+            'natural-language',
+            'human-readable',
+            'plain-english',
+            'automation-framework',
+            'workflow-engine',
+            'task-automation',
+            'ai-ops',
+            'mlops',
+            'developer-tools',
+            'ai-development',
+            'prompt-management',
+            'unified-interface',
+            'cross-provider',
+            'vendor-agnostic',
+        ];
+
+        // Dynamic keywords based on package functionality
+        const dynamicKeywords: string[] = [];
+
+        // Add LLM provider specific keywords
+        if (packageFullname.includes('openai')) {
+            dynamicKeywords.push(
+                'openai',
+                'gpt-3',
+                'gpt-4',
+                'gpt-4o',
+                'gpt-4o-mini',
+                'o1',
+                'o1-mini',
+                'o1-preview',
+                'o3',
+                'o3-mini',
+                'chatgpt',
+            );
+        }
+        if (packageFullname.includes('anthropic')) {
+            dynamicKeywords.push(
+                'anthropic',
+                'claude',
+                'claude-3',
+                'claude-3-opus',
+                'claude-3-sonnet',
+                'claude-3-haiku',
+            );
+        }
+        if (packageFullname.includes('google')) {
+            dynamicKeywords.push('google', 'gemini', 'gemini-pro', 'gemini-flash');
+        }
+        if (packageFullname.includes('deepseek')) {
+            dynamicKeywords.push('deepseek');
+        }
+        if (packageFullname.includes('ollama')) {
+            dynamicKeywords.push('ollama', 'local-llm', 'self-hosted');
+        }
+        if (packageFullname.includes('azure')) {
+            dynamicKeywords.push('azure', 'azure-openai', 'microsoft');
+        }
+        if (packageFullname.includes('vercel')) {
+            dynamicKeywords.push('vercel', 'vercel-ai', 'edge-functions');
+        }
+
+        // Add functionality specific keywords
+        if (packageFullname.includes('cli')) {
+            dynamicKeywords.push('cli', 'cli-tool', 'command-line', 'terminal', 'automation');
+        }
+        if (packageFullname.includes('browser')) {
+            dynamicKeywords.push('browser', 'web', 'client-side', 'frontend');
+        }
+        if (packageFullname.includes('node')) {
+            dynamicKeywords.push('nodejs', 'server-side', 'backend');
+        }
+        if (packageFullname.includes('remote')) {
+            dynamicKeywords.push('remote-execution', 'distributed', 'cloud', 'server');
+        }
+        if (packageFullname.includes('types')) {
+            dynamicKeywords.push('typescript', 'types', 'type-definitions', 'intellisense');
+        }
+        if (packageFullname.includes('utils')) {
+            dynamicKeywords.push('utilities', 'helpers', 'tools', 'preprocessing', 'postprocessing');
+        }
+        if (packageFullname.includes('markdown')) {
+            dynamicKeywords.push('markdown', 'markdown-processing', 'text-processing');
+        }
+        if (packageFullname.includes('pdf')) {
+            dynamicKeywords.push('pdf', 'pdf-processing', 'document-processing');
+        }
+        if (packageFullname.includes('documents')) {
+            dynamicKeywords.push('document-processing', 'docx', 'odt', 'office-documents');
+        }
+        if (packageFullname.includes('website-crawler')) {
+            dynamicKeywords.push('web-scraping', 'website-crawler', 'scraping', 'crawling');
+        }
+        if (packageFullname.includes('fake-llm')) {
+            dynamicKeywords.push('testing', 'mocking', 'fake', 'mock-llm', 'development');
+        }
+        if (packageFullname.includes('wizard')) {
+            dynamicKeywords.push('wizard', 'setup', 'configuration', 'getting-started');
+        }
+        if (packageFullname.includes('javascript')) {
+            dynamicKeywords.push('javascript', 'js', 'scripting', 'execution');
+        }
+        if (packageFullname.includes('editable')) {
+            dynamicKeywords.push('editable', 'dynamic', 'runtime', 'imperative');
+        }
+        if (packageFullname.includes('templates')) {
+            dynamicKeywords.push('templates', 'examples', 'boilerplate', 'starter');
+        }
+
+        // Combine and deduplicate keywords
+        const combinedKeywords = [...new Set([...generalKeywords, ...dynamicKeywords])].sort();
+        packageJson.keywords = combinedKeywords;
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
         //     <- TODO: Add GENERATOR_WARNING to package.json
