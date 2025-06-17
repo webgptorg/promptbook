@@ -1,12 +1,10 @@
-import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
-import { DEFAULT_REMOTE_SERVER_URL } from '../../config';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
 import type { Registration } from '../../utils/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { createOpenAiCompatibleExecutionTools } from './createOpenAiCompatibleExecutionTools';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
@@ -144,30 +142,8 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
     },
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
-        // Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be instantiated directly
-        // However, we can provide configuration for users who want to manually instantiate it
-        if (typeof env.OPENAI_API_KEY === 'string') {
-            const options: Parameters<typeof createOpenAiCompatibleExecutionTools>[0] = {
-                apiKey: env.OPENAI_API_KEY,
-                isProxied: false as boolean,
-                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL,
-                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
-                defaultModelName: 'gpt-4-turbo',
-            };
-
-            // Add baseURL if provided in environment
-            if (typeof env.OPENAI_BASE_URL === 'string') {
-                options.baseURL = env.OPENAI_BASE_URL;
-            }
-
-            return {
-                title: 'Open AI Compatible (from env)',
-                packageName: '@promptbook/openai',
-                className: 'OpenAiCompatibleExecutionTools',
-                options,
-            };
-        }
-
+        // Note: OpenAI compatible tools are always created manually
+        keepUnused(env);
         return null;
     },
 });
