@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/azure-openai",
-    "version": "0.98.0-9",
+    "version": "0.98.0-10",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -74,7 +74,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/azure-openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.98.0-9"
+        "@promptbook/core": "0.98.0-10"
     },
     "dependencies": {
         "@azure/openai": "1.0.0-beta.12",

@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/markdown-utils",
-    "version": "0.98.0-9",
+    "version": "0.98.0-10",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
