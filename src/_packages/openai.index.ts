@@ -10,6 +10,8 @@ import { OpenAiAssistantExecutionTools } from '../llm-providers/openai/OpenAiAss
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
 import { OpenAiCompatibleExecutionTools } from '../llm-providers/openai/OpenAiCompatibleExecutionTools';
 import type { OpenAiCompatibleExecutionToolsOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsProxiedOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from '../llm-providers/openai/OpenAiExecutionTools';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
@@ -30,6 +32,8 @@ export { OpenAiAssistantExecutionTools };
 export type { OpenAiAssistantExecutionToolsOptions };
 export { OpenAiCompatibleExecutionTools };
 export type { OpenAiCompatibleExecutionToolsOptions };
+export type { OpenAiCompatibleExecutionToolsNonProxiedOptions };
+export type { OpenAiCompatibleExecutionToolsProxiedOptions };
 export { OpenAiExecutionTools };
 export type { OpenAiExecutionToolsOptions };
 export { _OpenAiRegistration };
