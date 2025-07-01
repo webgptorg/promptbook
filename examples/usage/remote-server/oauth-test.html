@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promptbook OAuth Login Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .oauth-btn {
+            display: inline-block;
+            padding: 15px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .facebook {
+            background-color: #1877F2;
+            color: white;
+        }
+        .facebook:hover {
+            background-color: #166FE5;
+        }
+        .google {
+            background-color: #4285F4;
+            color: white;
+        }
+        .google:hover {
+            background-color: #3367D6;
+        }
+        .linkedin {
+            background-color: #0A66C2;
+            color: white;
+        }
+        .linkedin:hover {
+            background-color: #004182;
+        }
+        .github {
+            background-color: #333;
+            color: white;
+        }
+        .github:hover {
+            background-color: #24292e;
+        }
+        .regular-login {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .login-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-btn:hover {
+            background-color: #218838;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Promptbook OAuth Login Test</h1>
+        
+        <div class="info">
+            <strong>📝 Instructions:</strong><br>
+            1. Make sure your Promptbook server is running on <code>http://localhost:4444</code><br>
+            2. Configure OAuth apps and set environment variables<br>
+            3. Click on any OAuth provider below to test social login
+        </div>
+
+        <div class="oauth-buttons">
+            <a href="http://localhost:4444/auth/facebook?appId=test-app" class="oauth-btn facebook">
+                🔵 Login with Facebook
+            </a>
+            
+            <a href="http://localhost:4444/auth/google?appId=test-app" class="oauth-btn google">
+                🔴 Login with Google
+            </a>
+            
+            <a href="http://localhost:4444/auth/linkedin?appId=test-app" class="oauth-btn linkedin">
+                🔷 Login with LinkedIn
+            </a>
+            
+            <a href="http://localhost:4444/auth/github?appId=test-app" class="oauth-btn github">
+                ⚫ Login with GitHub
+            </a>
+        </div>
+
+        <div class="regular-login">
+            <h3>Or login with username/password:</h3>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" value="admin" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" value="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="appId">App ID:</label>
+                    <input type="text" id="appId" name="appId" value="test-app">
+                </div>
+                <button type="submit" class="login-btn">🔐 Login</button>
+            </form>
+        </div>
+
+        <div class="note">
+            <strong>💡 Note:</strong> This is a test page for OAuth integration. In a real application, you would integrate OAuth login into your application's UI and handle the authentication flow properly with secure token storage.
+        </div>
+    </div>
+
+    <script>
+        // Handle regular login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const appId = document.getElementById('appId').value;
+            
+            try {
+                const response = await fetch('http://localhost:4444/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        appId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.isSuccess) {
+                    alert('✅ Login successful!\n\n' + JSON.stringify(result, null, 2));
+                } else {
+                    alert('❌ Login failed!\n\n' + JSON.stringify(result, null, 2));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        });
+        
+        // Listen for OAuth callback messages
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'oauth_success') {
+                alert('✅ OAuth Login Successful!\n\n' + event.data.message);
+            } else if (event.data && event.data.type === 'oauth_error') {
+                alert('❌ OAuth Login Failed!\n\n' + event.data.message);
+            }
+        });
+    </script>
+</body>
+</html>
