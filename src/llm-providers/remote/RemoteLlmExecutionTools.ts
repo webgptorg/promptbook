@@ -51,8 +51,38 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
      * Check the configuration of all execution tools
      */
     public async checkConfiguration(): Promise<void> {
-        const socket = await createRemoteClient(this.options);
-        socket.disconnect();
+        try {
+            const socket = await createRemoteClient(this.options);
+            socket.disconnect();
+        } catch (error) {
+            if (error instanceof Error) {
+                // Provide user-friendly error messages for common connection issues
+                if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+                    throw new Error(
+                        `Connection to Promptbook server timed out. This may happen during authentication flows like Facebook login. ` +
+                        `Please ensure: 1) Server is running at ${this.options.remoteServerUrl}, ` +
+                        `2) Network connection is stable, 3) Authentication process is completed within the timeout period. ` +
+                        `Original error: ${error.message}`
+                    );
+                }
+                if (error.message.includes('connect') || error.message.includes('ECONNREFUSED')) {
+                    throw new Error(
+                        `Cannot connect to Promptbook server at ${this.options.remoteServerUrl}. ` +
+                        `Please check if the server is running and accessible. ` +
+                        `Original error: ${error.message}`
+                    );
+                }
+                if (error.message.includes('authentication') || error.message.includes('auth')) {
+                    throw new Error(
+                        `Authentication failed when connecting to Promptbook server. ` +
+                        `This may happen if social login (like Facebook) was not completed properly. ` +
+                        `Please retry the authentication process. ` +
+                        `Original error: ${error.message}`
+                    );
+                }
+            }
+            throw error; // Re-throw if not a recognized error pattern
+        }
 
         // TODO: [main] !!3 Check version of the remote server and compatibility
         // TODO: [🎍] Send checkConfiguration
