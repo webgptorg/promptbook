@@ -95,7 +95,7 @@ export function getConnectionTimeout(type: 'standard' | 'oauth' | 'health_check'
  */
 export function createTimeoutWithProgress(timeoutMs: number, onProgress?: ConnectionProgressCallback): Promise<never> {
     return new Promise((_, reject) => {
-        const timeoutId = setTimeout(() => {
+        /*const timeoutId = */ setTimeout(() => {
             if (onProgress) {
                 onProgress('timeout', `Connection timed out after ${timeoutMs / 1000} seconds`);
             }
