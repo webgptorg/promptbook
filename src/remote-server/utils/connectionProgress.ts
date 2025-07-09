@@ -4,16 +4,22 @@
 
 /**
  * Connection status types for better progress indication
+ *
+ * @private
  */
 export type ConnectionStatus = 'connecting' | 'authenticating' | 'connected' | 'disconnected' | 'error' | 'timeout';
 
 /**
  * Progress callback function type for connection status updates
+ *
+ * @private
  */
 export type ConnectionProgressCallback = (status: ConnectionStatus, message?: string) => void;
 
 /**
  * Enhanced connection options with progress reporting
+ *
+ * @private
  */
 export interface ConnectionProgressOptions {
     onProgress?: ConnectionProgressCallback;
@@ -22,6 +28,8 @@ export interface ConnectionProgressOptions {
 
 /**
  * Default progress messages for different connection states
+ *
+ * @private
  */
 export const DEFAULT_PROGRESS_MESSAGES = {
     connecting: 'Connecting to Promptbook server...',
@@ -35,6 +43,8 @@ export const DEFAULT_PROGRESS_MESSAGES = {
 /**
  * Creates a progress reporter for connection status
  * This can be used by frontend applications to show connection progress
+ *
+ * @private
  */
 export function createConnectionProgressReporter(callback?: ConnectionProgressCallback): ConnectionProgressCallback {
     return (status: ConnectionStatus, message?: string) => {
@@ -63,6 +73,8 @@ export function createConnectionProgressReporter(callback?: ConnectionProgressCa
 
 /**
  * Timeout constants with descriptions for different connection types
+ *
+ * @private
  */
 export const CONNECTION_TIMEOUTS = {
     /** Standard timeout for regular connections */
@@ -77,6 +89,8 @@ export const CONNECTION_TIMEOUTS = {
 
 /**
  * Helper function to get appropriate timeout based on connection type
+ *
+ * @private
  */
 export function getConnectionTimeout(type: 'standard' | 'oauth' | 'health_check'): number {
     switch (type) {
@@ -92,6 +106,8 @@ export function getConnectionTimeout(type: 'standard' | 'oauth' | 'health_check'
 
 /**
  * Creates a timeout wrapper with progress reporting
+ *
+ * @private
  */
 export function createTimeoutWithProgress(timeoutMs: number, onProgress?: ConnectionProgressCallback): Promise<never> {
     return new Promise((_, reject) => {
