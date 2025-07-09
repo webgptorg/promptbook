@@ -283,3 +283,4 @@ wórld
 paůl
 chatcmpl
 preconfigured
+ecommerce
