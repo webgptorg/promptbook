@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { CONNECTION_TIMEOUT_MS, OAUTH_TIMEOUT_MS } from '../config';
+import { CONNECTION_TIMEOUT_MS } from '../config';
+import { OAUTH_TIMEOUT_MS } from '../config';
 
 describe('Connection timeout improvements for Facebook connection issue', () => {
     it('should have increased connection timeout to handle OAuth flows', () => {
