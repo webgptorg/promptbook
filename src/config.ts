@@ -164,13 +164,10 @@ export const SMALL_NUMBER = 0.001;
 
 /**
  * Timeout for the connections in milliseconds
- * 
- * Note: Increased from 7 seconds to 30 seconds to accommodate OAuth flows
- * like Facebook login which may require user interaction and redirects
  *
  * @private within the repository - too low-level in comparison with other `MAX_...`
  */
-export const CONNECTION_TIMEOUT_MS = 30 * 1000;
+export const CONNECTION_TIMEOUT_MS = 7 * 1000;
 
 // <- TODO: [⏳] Standardize timeouts, Make DEFAULT_TIMEOUT_MS as global constant
 
@@ -180,14 +177,6 @@ export const CONNECTION_TIMEOUT_MS = 30 * 1000;
  * @private within the repository - too low-level in comparison with other `MAX_...`
  */
 export const CONNECTION_RETRIES_LIMIT = 5;
-
-/**
- * Timeout specifically for OAuth authentication flows in milliseconds
- * OAuth flows typically require more time due to user interaction and redirects
- *
- * @private within the repository - too low-level in comparison with other `MAX_...`
- */
-export const OAUTH_TIMEOUT_MS = 60 * 1000; // 60 seconds for OAuth flows
 
 /**
  * Short time interval to prevent race conditions in milliseconds

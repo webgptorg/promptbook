@@ -55,45 +55,14 @@ export async function createRemoteClient<TCustomOptions = undefined>(
 
         // console.log('Connecting to', this.options.remoteServerUrl.href, { socket });
 
-        let isResolved = false;
-
         socket.on('connect', () => {
-            if (!isResolved) {
-                isResolved = true;
-                resolve(socket);
-            }
+            resolve(socket);
         });
 
-        socket.on('connect_error', (error) => {
-            if (!isResolved) {
-                isResolved = true;
-                reject(new Error(`Failed to connect to ${remoteServerUrl}: ${error.message || error}`));
-            }
-        });
+        // TODO: [💩] Better timeout handling
 
-        socket.on('disconnect', (reason) => {
-            if (!isResolved) {
-                isResolved = true;
-                reject(new Error(`Connection to ${remoteServerUrl} was disconnected: ${reason}`));
-            }
-        });
-
-        // Better timeout handling with more descriptive error message
-        const timeoutId = setTimeout(() => {
-            if (!isResolved) {
-                isResolved = true;
-                socket.disconnect();
-                reject(new Error(
-                    `Connection timeout after ${CONNECTION_TIMEOUT_MS / 1000} seconds while connecting to ${remoteServerUrl}. ` +
-                    `This may indicate network issues or the server may be experiencing high load. ` +
-                    `For authentication flows like social login, ensure sufficient time is allowed for user interaction.`
-                ));
-            }
+        setTimeout(() => {
+            reject(new Error(`Timeout while connecting to ${remoteServerUrl}`));
         }, CONNECTION_TIMEOUT_MS);
-
-        // Clean up timeout if connection succeeds
-        socket.on('connect', () => {
-            clearTimeout(timeoutId);
-        });
     });
 }
