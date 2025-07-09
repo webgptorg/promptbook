@@ -114,7 +114,24 @@ export class MarkitdownScraper implements Converter, Scraper {
 
             // console.log('!!', { result, cacheFilehandler });
 
-            await this.tools.fs.writeFile(cacheFilehandler.filename, result.text_content);
+            // Note: Try to cache the converted content, but don't fail if the filesystem is read-only
+            try {
+                await this.tools.fs.writeFile(cacheFilehandler.filename, result.text_content);
+            } catch (error) {
+                // Note: If we can't write to cache, we'll continue without caching
+                //       This handles read-only filesystems like Vercel
+                if (error instanceof Error && (
+                    error.message.includes('EROFS') ||
+                    error.message.includes('read-only') ||
+                    error.message.includes('EACCES') ||
+                    error.message.includes('EPERM')
+                )) {
+                    // Silently ignore read-only filesystem errors
+                } else {
+                    // Re-throw other unexpected errors
+                    throw error;
+                }
+            }
         }
 
         return cacheFilehandler;

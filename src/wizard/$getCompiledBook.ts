@@ -58,7 +58,24 @@ export async function $getCompiledBook(
 
                 const compiledFilePath = filePath.replace('.book.md', '.book').replace('.book', '.bookc');
 
-                await saveArchive(compiledFilePath, [pipelineJson], fs);
+                // Note: Try to save the compiled book to disk for caching, but don't fail if the filesystem is read-only
+                try {
+                    await saveArchive(compiledFilePath, [pipelineJson], fs);
+                } catch (error) {
+                    // Note: Ignore filesystem errors (like EROFS on read-only systems like Vercel)
+                    //       The compiled book can still be used even if it can't be cached
+                    if (error instanceof Error && (
+                        error.message.includes('EROFS') ||
+                        error.message.includes('read-only') ||
+                        error.message.includes('EACCES') ||
+                        error.message.includes('EPERM')
+                    )) {
+                        // Silently ignore read-only filesystem errors
+                    } else {
+                        // Re-throw other unexpected errors
+                        throw error;
+                    }
+                }
 
                 return pipelineJson;
             }

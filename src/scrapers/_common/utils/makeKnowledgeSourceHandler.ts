@@ -115,7 +115,36 @@ export async function makeKnowledgeSourceHandler(
             );
         }
 
-        await tools.fs!.writeFile(join(rootDirname, filepath), fileContent);
+        // Note: Try to cache the downloaded file, but don't fail if the filesystem is read-only
+        try {
+            await tools.fs!.writeFile(join(rootDirname, filepath), fileContent);
+        } catch (error) {
+            // Note: If we can't write to cache, we'll process the file directly from memory
+            //       This handles read-only filesystems like Vercel
+            if (error instanceof Error && (
+                error.message.includes('EROFS') ||
+                error.message.includes('read-only') ||
+                error.message.includes('EACCES') ||
+                error.message.includes('EPERM')
+            )) {
+                // Return a handler that works directly with the downloaded content
+                return {
+                    source: name,
+                    filename: null,
+                    url,
+                    mimeType,
+                    async asJson() {
+                        return JSON.parse(fileContent.toString('utf-8'));
+                    },
+                    async asText() {
+                        return fileContent.toString('utf-8');
+                    },
+                };
+            } else {
+                // Re-throw other unexpected errors
+                throw error;
+            }
+        }
 
         // TODO: [💵] Check the file security
         // TODO: [🧹][🧠] Delete the file after the scraping is done

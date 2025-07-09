@@ -108,7 +108,24 @@ export class WebsiteScraper implements Converter, Scraper {
             isVerbose,
         });
 
-        await this.tools.fs.writeFile(cacheFilehandler.filename, html, 'utf-8');
+        // Note: Try to cache the scraped content, but don't fail if the filesystem is read-only
+        try {
+            await this.tools.fs.writeFile(cacheFilehandler.filename, html, 'utf-8');
+        } catch (error) {
+            // Note: If we can't write to cache, we'll continue without caching
+            //       This handles read-only filesystems like Vercel
+            if (error instanceof Error && (
+                error.message.includes('EROFS') ||
+                error.message.includes('read-only') ||
+                error.message.includes('EACCES') ||
+                error.message.includes('EPERM')
+            )) {
+                // Silently ignore read-only filesystem errors
+            } else {
+                // Re-throw other unexpected errors
+                throw error;
+            }
+        }
 
         const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
 
