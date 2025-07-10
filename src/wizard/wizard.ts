@@ -19,6 +19,16 @@ import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
 /**
+ * Options for wizard methods
+ */
+interface WizardOptions {
+    /**
+     * Whether to enable verbose logging
+     */
+    isVerbose?: boolean;
+}
+
+/**
  * Wizard for simple usage of the Promptbook
  * Look at `wizard` for more details
  *
@@ -41,6 +51,7 @@ class Wizard {
     public async execute(
         book: string_pipeline_url | string_filename | PipelineString,
         inputParameters: InputParameters,
+        options: WizardOptions = {},
     ): Promise<
         {
             /**
@@ -54,10 +65,10 @@ class Wizard {
         }
 
         // ▶ Get the tools
-        const tools = await this.getExecutionTools();
+        const tools = await this.getExecutionTools(options);
 
         // ▶ Get the Pipeline
-        const pipeline = await this.getCompiledBook(book);
+        const pipeline = await this.getCompiledBook(book, options);
 
         // ▶ Create executor - the function that will execute the Pipeline
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -86,16 +97,16 @@ class Wizard {
     /**
      * Provides the tools automatically for the Node.js environment
      *
-     * @param pipelineSource
+     * @param options
      */
-    public async getExecutionTools(): Promise<Required<Pick<ExecutionTools, 'fs' | 'fetch'>>> {
+    public async getExecutionTools(options: WizardOptions = {}): Promise<Required<Pick<ExecutionTools, 'fs' | 'fetch'>>> {
         if (this.executionTools !== null) {
             return this.executionTools;
         }
 
         // TODO: DRY [◽]
         const prepareAndScrapeOptions = {
-            isVerbose: false,
+            isVerbose: options.isVerbose ?? false,
             isCacheReloaded: false, // <- TODO: Allow to pass
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
         const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
@@ -128,11 +139,13 @@ class Wizard {
      * 3) As a string
      *
      * @param pipelineSource
+     * @param options
      */
     public async getCompiledBook(
         pipelineSource: string_filename | string_pipeline_url | PipelineString,
+        options: WizardOptions = {},
     ): Promise<PipelineJson> {
-        const tools = await this.getExecutionTools();
+        const tools = await this.getExecutionTools(options);
         return /* not await */ $getCompiledBook(tools, pipelineSource);
     }
 }
