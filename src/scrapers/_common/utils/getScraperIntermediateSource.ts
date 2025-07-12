@@ -89,7 +89,25 @@ export async function getScraperIntermediateSource(
         '.' +
         extension;
 
-    await mkdir(dirname(cacheFilename), { recursive: true });
+    // Note: Try to create cache directory, but don't fail if filesystem has issues
+    try {
+        await mkdir(dirname(cacheFilename), { recursive: true });
+    } catch (error) {
+        // Note: If we can't create cache directory, continue without it
+        //       This handles read-only filesystems, permission issues, and missing parent directories
+        if (error instanceof Error && (
+            error.message.includes('EROFS') ||
+            error.message.includes('read-only') ||
+            error.message.includes('EACCES') ||
+            error.message.includes('EPERM') ||
+            error.message.includes('ENOENT')
+        )) {
+            // Silently ignore filesystem errors - caching is optional
+        } else {
+            // Re-throw other unexpected errors
+            throw error;
+        }
+    }
 
     let isDestroyed = true;
     const fileHandler = {

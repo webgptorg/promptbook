@@ -118,7 +118,8 @@ export class WebsiteScraper implements Converter, Scraper {
                 error.message.includes('EROFS') ||
                 error.message.includes('read-only') ||
                 error.message.includes('EACCES') ||
-                error.message.includes('EPERM')
+                error.message.includes('EPERM') ||
+                error.message.includes('ENOENT')
             )) {
                 // Silently ignore read-only filesystem errors
             } else {

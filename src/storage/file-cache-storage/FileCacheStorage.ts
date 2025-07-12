@@ -86,8 +86,27 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
 
         const fileContent = stringifyPipelineJson(value);
 
-        await mkdir(dirname(filename), { recursive: true }); // <- [0]
-        await writeFile(filename, fileContent, 'utf-8');
+        // Note: Try to create cache directory and write file, but don't fail if filesystem is read-only or has permission issues
+        try {
+            await mkdir(dirname(filename), { recursive: true }); // <- [0]
+            await writeFile(filename, fileContent, 'utf-8');
+        } catch (error) {
+            // Note: If we can't write to cache, silently ignore the error
+            //       This handles read-only filesystems, permission issues, and missing parent directories
+            if (error instanceof Error && (
+                error.message.includes('EROFS') ||
+                error.message.includes('read-only') ||
+                error.message.includes('EACCES') ||
+                error.message.includes('EPERM') ||
+                error.message.includes('ENOENT')
+            )) {
+                // Silently ignore filesystem errors - caching is optional
+                return;
+            } else {
+                // Re-throw other unexpected errors
+                throw error;
+            }
+        }
     }
 
     /**

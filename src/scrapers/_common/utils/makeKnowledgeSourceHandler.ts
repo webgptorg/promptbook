@@ -104,7 +104,26 @@ export async function makeKnowledgeSourceHandler(
             `${basename.substring(0, MAX_FILENAME_LENGTH)}.${mimeTypeToExtension(mimeType)}`,
         );
 
-        await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
+        // Note: Try to create cache directory, but don't fail if filesystem has issues
+        try {
+            await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
+        } catch (error) {
+            // Note: If we can't create cache directory, we'll handle it when trying to write the file
+            //       This handles read-only filesystems, permission issues, and missing parent directories
+            if (error instanceof Error && (
+                error.message.includes('EROFS') ||
+                error.message.includes('read-only') ||
+                error.message.includes('EACCES') ||
+                error.message.includes('EPERM') ||
+                error.message.includes('ENOENT')
+            )) {
+                // Continue - we'll handle the error when trying to write the file
+            } else {
+                // Re-throw other unexpected errors
+                throw error;
+            }
+        }
+
         const fileContent = Buffer.from(await response.arrayBuffer());
 
         if (fileContent.length > DEFAULT_MAX_FILE_SIZE /* <- TODO: Allow to pass different value to remote server */) {
@@ -125,7 +144,8 @@ export async function makeKnowledgeSourceHandler(
                 error.message.includes('EROFS') ||
                 error.message.includes('read-only') ||
                 error.message.includes('EACCES') ||
-                error.message.includes('EPERM')
+                error.message.includes('EPERM') ||
+                error.message.includes('ENOENT')
             )) {
                 // Return a handler that works directly with the downloaded content
                 return {
