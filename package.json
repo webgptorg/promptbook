@@ -1,6 +1,6 @@
 {
     "name": "promptbook-engine",
-    "version": "0.100.0-5",
+    "version": "0.100.0-6",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "--note-0": "    <- [🐊]",
     "private": false,
