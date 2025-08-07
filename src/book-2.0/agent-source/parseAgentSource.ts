@@ -1,3 +1,4 @@
+import { string_agent_name, string_url_image } from '../../types/typeAliases';
 import { parseAgentSourceBasicInfo } from '../commitments/_misc/parseAgentSourceWithCommitments';
 import type { string_agent_source } from './string_agent_source';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { spaceTrim } from '@promptbook/utils';
+import spaceTrim from 'spacetrim';
 import { parseAgentSource } from './parseAgentSource';
 import { createAgentSource } from './string_agent_source';
 

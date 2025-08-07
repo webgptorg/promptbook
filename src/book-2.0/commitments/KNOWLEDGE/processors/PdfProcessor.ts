@@ -1,6 +1,8 @@
-import pdf from 'pdf-parse';
+// import pdf from 'pdf-parse';
+import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { string_url } from '../../../../types/typeAliases';
-import type { KnowledgeChunk, KnowledgeSourceMetadata } from '../types';
+import { keepUnused } from '../../../../utils/organization/keepUnused';
+import type { KnowledgeChunk } from '../types';
 import { BaseKnowledgeProcessor } from './BaseKnowledgeProcessor';
 
 /**
@@ -14,6 +16,11 @@ export class PdfProcessor extends BaseKnowledgeProcessor {
      * Process PDF buffer and extract text content
      */
     async processBuffer(buffer: Buffer, sourceUrl: string_url): Promise<KnowledgeChunk[]> {
+        keepUnused(buffer, sourceUrl);
+        throw new NotYetImplementedError(
+            'PdfProcessor is not yet implemented after transfer from Promptbook.studio to Promptbook Engine',
+        );
+        /*
         try {
             const pdfData = await pdf(buffer);
             const fullText = pdfData.text;
@@ -39,6 +46,7 @@ export class PdfProcessor extends BaseKnowledgeProcessor {
         } catch (error) {
             throw new Error(`Failed to process PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
+        */
     }
 
     /**

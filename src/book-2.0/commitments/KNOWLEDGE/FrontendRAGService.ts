@@ -1,3 +1,4 @@
+import { promptbookFetch } from '../../../_packages/core.index';
 import type { string_url } from '../../../types/typeAliases';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { KnowledgeChunk, RAGConfig, RetrievalResult } from './types';
