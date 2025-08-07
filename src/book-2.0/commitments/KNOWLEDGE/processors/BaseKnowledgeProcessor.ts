@@ -1,8 +1,6 @@
 import crypto from 'crypto';
-import type { string_url } from '../../../../utils/typeAliases';
-import type { KnowledgeChunk } from '../types';
-import type { KnowledgeSourceFormat } from '../types';
-import type { RAGConfig } from '../types';
+import type { string_url } from '../../../../types/typeAliases';
+import type { KnowledgeChunk, KnowledgeSourceFormat, RAGConfig } from '../types';
 
 /**
  * Base class for knowledge source processors

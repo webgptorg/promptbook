@@ -1,5 +1,5 @@
-import { promptbookFetch } from '../../../_packages/core.index';
-import type { string_url } from '../../../utils/typeAliases';
+import { promptbookFetch } from '../../../scrapers/_common/utils/promptbookFetch';
+import type { string_url } from '../../../types/typeAliases';
 import { ProcessorFactory } from './processors/ProcessorFactory';
 import type { KnowledgeChunk, KnowledgeSourceMetadata, RAGConfig, RetrievalResult } from './types';
 

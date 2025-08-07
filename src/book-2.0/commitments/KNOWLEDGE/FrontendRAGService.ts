@@ -1,5 +1,5 @@
+import type { string_url } from '../../../types/typeAliases';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import type { string_url } from '../../../utils/typeAliases';
 import type { KnowledgeChunk, RAGConfig, RetrievalResult } from './types';
 
 /**

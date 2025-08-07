@@ -1,4 +1,4 @@
-import type { string_url } from '../../../../utils/typeAliases';
+import type { string_url } from '../../../../types/typeAliases';
 import type { AgentModelRequirements } from '../../_misc/AgentModelRequirements';
 import { FrontendRAGService } from '../FrontendRAGService';
 

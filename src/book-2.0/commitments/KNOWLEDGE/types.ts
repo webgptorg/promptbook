@@ -1,4 +1,4 @@
-import type { string_url } from '../../../utils/typeAliases';
+import type { string_url } from '../../../types/typeAliases';
 
 /**
  * Supported knowledge source formats
@@ -57,7 +57,6 @@ export interface RAGConfig {
     readonly maxRetrievedChunks: number;
     readonly minRelevanceScore: number;
 }
-
 
 /**
  * [💞] Ignore a discrepancy between file name and entity name

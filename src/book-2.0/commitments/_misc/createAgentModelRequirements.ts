@@ -1,12 +1,7 @@
 import { parseAgentSource } from '../../agent-source/parseAgentSource';
 import type { string_agent_source } from '../../agent-source/string_agent_source';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import {
-    clearAgentModelRequirementsWithCommitmentsCache,
-    createAgentModelRequirementsWithCommitmentsCached,
-    getAgentModelRequirementsWithCommitmentsCacheSize,
-    invalidateAgentModelRequirementsWithCommitmentsCache,
-} from './createAgentModelRequirementsWithCommitments';
+import { clearAgentModelRequirementsWithCommitmentsCache, createAgentModelRequirementsWithCommitmentsCached, getAgentModelRequirementsWithCommitmentsCacheSize, invalidateAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
 
 // Cache for expensive createAgentModelRequirements calls
 const modelRequirementsCache = new Map<string, AgentModelRequirements>();

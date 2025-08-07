@@ -1,7 +1,6 @@
 import pdf from 'pdf-parse';
-import type { string_url } from '../../../../utils/typeAliases';
-import type { KnowledgeChunk } from '../types';
-import type { KnowledgeSourceMetadata } from '../types';
+import type { string_url } from '../../../../types/typeAliases';
+import type { KnowledgeChunk, KnowledgeSourceMetadata } from '../types';
 import { BaseKnowledgeProcessor } from './BaseKnowledgeProcessor';
 
 /**

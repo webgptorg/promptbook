@@ -1,4 +1,4 @@
-import type { string_url } from '../../../../utils/typeAliases';
+import type { string_url } from '../../../../types/typeAliases';
 import type { KnowledgeChunk } from '../types';
 import { BaseKnowledgeProcessor } from './BaseKnowledgeProcessor';
 

@@ -1,8 +1,8 @@
 import { spaceTrim } from '@promptbook/utils';
-import { generateGravatarUrl } from '../../../utils/profileImageUtils';
-import type { string_agent_name, string_url_image } from '../../../utils/typeAliases';
+import type { string_agent_name, string_url_image } from '../../../types/typeAliases';
 import type { AgentSourceBasicInformation } from '../../agent-source/parseAgentSource';
 import type { string_agent_source } from '../../agent-source/string_agent_source';
+import { generateGravatarUrl } from '../../utils/profileImageUtils';
 import { COMMITMENT_REGISTRY } from '../index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
 import type { ParsedCommitment } from './ParsedCommitment';

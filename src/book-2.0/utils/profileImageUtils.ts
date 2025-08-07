@@ -1,4 +1,4 @@
-import type { string_url_image } from './typeAliases';
+import type { string_url_image } from '../../types/typeAliases';
 
 /**
  * Extracts profile image URL from agent definition text and returns cleaned system message
