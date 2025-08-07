@@ -1,6 +1,19 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/types`
 
+import type { AgentSourceBasicInformation } from '../book-2.0/agent-source/parseAgentSource';
+import type { string_agent_source } from '../book-2.0/agent-source/string_agent_source';
+import type { BookCommitment } from '../book-2.0/commitments/_base/BookCommitment';
+import type { CommitmentDefinition } from '../book-2.0/commitments/_base/CommitmentDefinition';
+import type { AgentModelRequirements } from '../book-2.0/commitments/_misc/AgentModelRequirements';
+import type { AgentSourceParseResult } from '../book-2.0/commitments/_misc/AgentSourceParseResult';
+import type { ParsedCommitment } from '../book-2.0/commitments/_misc/ParsedCommitment';
+import type { KnowledgeSourceFormat } from '../book-2.0/commitments/KNOWLEDGE/types';
+import type { KnowledgeSourceMetadata } from '../book-2.0/commitments/KNOWLEDGE/types';
+import type { KnowledgeChunk } from '../book-2.0/commitments/KNOWLEDGE/types';
+import type { KnowledgeBase } from '../book-2.0/commitments/KNOWLEDGE/types';
+import type { RetrievalResult } from '../book-2.0/commitments/KNOWLEDGE/types';
+import type { RAGConfig } from '../book-2.0/commitments/KNOWLEDGE/types';
 import type { PipelineCollection } from '../collection/PipelineCollection';
 import type { Command } from '../commands/_common/types/Command';
 import type { CommandParser } from '../commands/_common/types/CommandParser';
@@ -180,6 +193,7 @@ import type { InputParameters } from '../types/typeAliases';
 import type { string_reserved_parameter_name } from '../types/typeAliases';
 import type { ReservedParameters } from '../types/typeAliases';
 import type { string_title } from '../types/typeAliases';
+import type { string_agent_name } from '../types/typeAliases';
 import type { string_persona_description } from '../types/typeAliases';
 import type { string_model_description } from '../types/typeAliases';
 import type { string_knowledge_source_content } from '../types/typeAliases';
@@ -307,6 +321,19 @@ import type { ExportJsonOptions } from '../utils/serialization/exportJson';
 import type { string_promptbook_version } from '../version';
 
 // Note: Entities of the `@promptbook/types`
+export type { AgentSourceBasicInformation };
+export type { string_agent_source };
+export type { BookCommitment };
+export type { CommitmentDefinition };
+export type { AgentModelRequirements };
+export type { AgentSourceParseResult };
+export type { ParsedCommitment };
+export type { KnowledgeSourceFormat };
+export type { KnowledgeSourceMetadata };
+export type { KnowledgeChunk };
+export type { KnowledgeBase };
+export type { RetrievalResult };
+export type { RAGConfig };
 export type { PipelineCollection };
 export type { Command };
 export type { CommandParser };
@@ -486,6 +513,7 @@ export type { InputParameters };
 export type { string_reserved_parameter_name };
 export type { ReservedParameters };
 export type { string_title };
+export type { string_agent_name };
 export type { string_persona_description };
 export type { string_model_description };
 export type { string_knowledge_source_content };

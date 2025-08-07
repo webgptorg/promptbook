@@ -2,6 +2,13 @@
 // `@promptbook/core`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { parseAgentSource } from '../book-2.0/agent-source/parseAgentSource';
+import { isAgentSource } from '../book-2.0/agent-source/string_agent_source';
+import { validateAgentSource } from '../book-2.0/agent-source/string_agent_source';
+import { createEmptyAgentModelRequirements } from '../book-2.0/commitments/_base/createEmptyAgentModelRequirements';
+import { createBasicAgentModelRequirements } from '../book-2.0/commitments/_base/createEmptyAgentModelRequirements';
+import { NotYetImplementedCommitmentDefinition } from '../book-2.0/commitments/_base/NotYetImplementedCommitmentDefinition';
+import { createAgentModelRequirements } from '../book-2.0/commitments/_misc/createAgentModelRequirements';
 import { collectionToJson } from '../collection/collectionToJson';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
@@ -157,6 +164,13 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/core`
+export { parseAgentSource };
+export { isAgentSource };
+export { validateAgentSource };
+export { createEmptyAgentModelRequirements };
+export { createBasicAgentModelRequirements };
+export { NotYetImplementedCommitmentDefinition };
+export { createAgentModelRequirements };
 export { collectionToJson };
 export { createCollectionFromJson };
 export { createCollectionFromPromise };
