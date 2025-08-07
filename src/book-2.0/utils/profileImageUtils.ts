@@ -120,3 +120,7 @@ export function generateGravatarUrl(name?: string | null): string {
     const avatarId = Math.abs(hash).toString();
     return `https://www.gravatar.com/avatar/${avatarId}?default=robohash&size=200&rating=x`;
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
