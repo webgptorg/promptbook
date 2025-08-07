@@ -1,4 +1,4 @@
-import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { TODO_any } from '../../../_packages/types.index';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -58,7 +58,7 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition {
                                 break;
                             case 'topp':
                             case 'top_p':
-                                (result as TOTODO_anyDO_any).topP = numValue;
+                                (result as TODO_any).topP = numValue;
                                 break;
                             case 'topk':
                             case 'top_k':
