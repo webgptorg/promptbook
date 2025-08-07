@@ -837,6 +837,10 @@ Promptbook server has (experimental) compatibility with OpenAI API
 
 ## In pre-release
 
+### `0.100.0` _(2025-08-)_
+
+Adding Book 2.0 features
+
 ## Upcoming
 
 ## `1.0.0` Release
