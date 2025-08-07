@@ -57,3 +57,8 @@ export interface RAGConfig {
     readonly maxRetrievedChunks: number;
     readonly minRelevanceScore: number;
 }
+
+
+/**
+ * [💞] Ignore a discrepancy between file name and entity name
+ */

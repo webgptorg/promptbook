@@ -63,3 +63,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the NOTE commitment definition
  */
 export const NoteCommitment = new NoteCommitmentDefinition();
+
+/**
+ * [💞] Ignore a discrepancy between file name and entity name
+ */

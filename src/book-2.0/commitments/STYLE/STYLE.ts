@@ -36,3 +36,7 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the STYLE commitment definition
  */
 export const StyleCommitment = new StyleCommitmentDefinition();
+
+/**
+ * [💞] Ignore a discrepancy between file name and entity name
+ */
