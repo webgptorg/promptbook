@@ -1,3 +1,4 @@
+import { TODO_any } from '../../../_packages/types.index';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -53,15 +54,15 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition {
                     if (!isNaN(numValue)) {
                         switch (key.toLowerCase()) {
                             case 'temperature':
-                                (result as any).temperature = numValue;
+                                (result as TODO_any).temperature = numValue;
                                 break;
                             case 'topp':
                             case 'top_p':
-                                (result as any).topP = numValue;
+                                (result as TOTODO_anyDO_any).topP = numValue;
                                 break;
                             case 'topk':
                             case 'top_k':
-                                (result as any).topK = Math.round(numValue);
+                                (result as TODO_any).topK = Math.round(numValue);
                                 break;
                         }
                     }

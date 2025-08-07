@@ -1,3 +1,4 @@
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -27,6 +28,8 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition {
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+        TODO_USE(content);
+
         // META LINK doesn't modify the system message or model requirements
         // It's handled separately in the parsing logic for profile link extraction
         // This method exists for consistency with the CommitmentDefinition interface

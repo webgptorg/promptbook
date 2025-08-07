@@ -1,3 +1,5 @@
+import { TODO_any } from "../../../_packages/types.index";
+
 /**
  * Model requirements for an agent
  *
@@ -38,6 +40,6 @@ export interface AgentModelRequirements {
      * Arbitrary metadata storage for commitments
      * Each commitment can store its own data here
      */
-    readonly metadata?: Record<string, any>;
+    readonly metadata?: Record<string, TODO_any>;
 }
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here

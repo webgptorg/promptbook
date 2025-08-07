@@ -169,7 +169,7 @@ export class RAGService {
     private calculateRelevanceScore(content: string, queryWords: string[]): number {
         const contentLower = content.toLowerCase();
         let score = 0;
-        let totalWords = queryWords.length;
+        const totalWords = queryWords.length;
 
         for (const word of queryWords) {
             // Count occurrences of each query word in the content

@@ -1,8 +1,7 @@
 import crypto from 'crypto';
+import { TODO_any } from '../../../../_packages/types.index';
 import type { string_url } from '../../../../types/typeAliases';
-import type { KnowledgeChunk } from '../types';
-import type { KnowledgeSourceFormat } from '../types';
-import type { RAGConfig } from '../types';
+import type { KnowledgeChunk, KnowledgeSourceFormat, RAGConfig } from '../types';
 
 /**
  * Base class for knowledge source processors
@@ -82,7 +81,7 @@ export abstract class BaseKnowledgeProcessor {
     protected createChunksFromText(
         text: string,
         sourceUrl: string_url,
-        additionalMetadata: Record<string, any> = {},
+        additionalMetadata: Record<string, TODO_any> = {},
     ): KnowledgeChunk[] {
         const chunks: KnowledgeChunk[] = [];
         const maxChunkSize = this.config.maxChunkSize;

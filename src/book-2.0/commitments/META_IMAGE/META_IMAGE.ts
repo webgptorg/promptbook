@@ -1,3 +1,4 @@
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -20,6 +21,8 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition {
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+        TODO_USE(content);
+
         // META IMAGE doesn't modify the system message or model requirements
         // It's handled separately in the parsing logic for profile image extraction
         // This method exists for consistency with the CommitmentDefinition interface
@@ -40,7 +43,6 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the META IMAGE commitment definition
  */
 export const MetaImageCommitment = new MetaImageCommitmentDefinition();
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
