@@ -1,0 +1,27 @@
+import type { BookCommitment } from '../_base/BookCommitment';
+
+/**
+ * Parsed commitment line from agent source
+ */
+
+export interface ParsedCommitment {
+    /**
+     * The commitment type (e.g., 'PERSONA', 'KNOWLEDGE')
+     */
+    type: BookCommitment;
+
+    /**
+     * The content part of the commitment
+     */
+    content: string;
+
+    /**
+     * The original line from the agent source
+     */
+    originalLine: string;
+
+    /**
+     * Line number in the agent source (1-based)
+     */
+    lineNumber: number;
+}
