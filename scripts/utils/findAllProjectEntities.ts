@@ -59,7 +59,7 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
 
             let isType = false;
 
-            if (['type', 'interface', 'enum'].includes(type)) {
+            if (['type', 'interface'].includes(type)) {
                 isType = true;
             }
 
