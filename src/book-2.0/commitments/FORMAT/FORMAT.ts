@@ -37,3 +37,8 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the FORMAT commitment definition
  */
 export const FormatCommitment = new FormatCommitmentDefinition();
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

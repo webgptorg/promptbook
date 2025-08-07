@@ -5,11 +5,11 @@ import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
+import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
+import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
 import { PersonaCommitmentDefinition } from './PERSONA/PERSONA';
-import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
-import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
 import { RuleCommitmentDefinition } from './RULE/RULE';
 import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
@@ -93,3 +93,7 @@ export function isCommitmentSupported(type: BookCommitment): boolean {
 export function createCustomCommitmentRegistry(enabledCommitments: BookCommitment[]): CommitmentDefinition[] {
     return COMMITMENT_REGISTRY.filter((def) => enabledCommitments.includes(def.type));
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

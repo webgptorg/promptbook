@@ -83,3 +83,8 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the KNOWLEDGE commitment definition
  */
 export const KnowledgeCommitment = new KnowledgeCommitmentDefinition();
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

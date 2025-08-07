@@ -37,3 +37,7 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition {
  */
 export const SampleCommitment = new SampleCommitmentDefinition('SAMPLE');
 export const ExampleCommitment = new SampleCommitmentDefinition('EXAMPLE');
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

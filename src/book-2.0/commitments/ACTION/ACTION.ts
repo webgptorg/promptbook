@@ -36,3 +36,7 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the ACTION commitment definition
  */
 export const ActionCommitment = new ActionCommitmentDefinition();
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

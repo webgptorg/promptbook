@@ -37,3 +37,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition {
  */
 export const RuleCommitment = new RuleCommitmentDefinition('RULE');
 export const RulesCommitment = new RuleCommitmentDefinition('RULES');
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

@@ -112,3 +112,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the PERSONA commitment definition
  */
 export const PersonaCommitment = new PersonaCommitmentDefinition();
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

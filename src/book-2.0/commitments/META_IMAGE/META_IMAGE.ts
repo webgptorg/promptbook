@@ -40,3 +40,8 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the META IMAGE commitment definition
  */
 export const MetaImageCommitment = new MetaImageCommitmentDefinition();
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

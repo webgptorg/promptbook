@@ -59,3 +59,7 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the META LINK commitment definition
  */
 export const MetaLinkCommitment = new MetaLinkCommitmentDefinition();
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

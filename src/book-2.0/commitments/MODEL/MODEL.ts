@@ -77,3 +77,9 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition {
  * Singleton instance of the MODEL commitment definition
  */
 export const ModelCommitment = new ModelCommitmentDefinition();
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
+
+
