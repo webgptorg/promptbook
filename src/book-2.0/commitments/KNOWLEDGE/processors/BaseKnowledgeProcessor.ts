@@ -1,7 +1,9 @@
 import crypto from 'crypto';
-import { TODO_any } from '../../../../_packages/types.index';
+import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import type { string_url } from '../../../../types/typeAliases';
-import type { KnowledgeChunk, KnowledgeSourceFormat, RAGConfig } from '../types';
+import type { KnowledgeChunk } from '../types';
+import type { KnowledgeSourceFormat } from '../types';
+import type { RAGConfig } from '../types';
 
 /**
  * Base class for knowledge source processors

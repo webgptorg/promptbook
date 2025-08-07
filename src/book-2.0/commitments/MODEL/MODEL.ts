@@ -1,4 +1,4 @@
-import { TODO_any } from '../../../_packages/types.index';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -82,5 +82,3 @@ export const ModelCommitment = new ModelCommitmentDefinition();
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */
-
-
