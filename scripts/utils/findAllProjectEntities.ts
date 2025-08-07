@@ -86,6 +86,36 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
         }
     }
 
+    // Note: Detect entities with duplicate names
+    let isDuplicateNameFound = false;
+    const reportedEntityNames = new Set<string>();
+    for (const entity of entitities) {
+        const duplicates = entitities.filter((e) => e.name === entity.name && e.filename !== entity.filename);
+
+        if (duplicates.length > 0) {
+            isDuplicateNameFound = true;
+
+            if (reportedEntityNames.has(entity.name)) {
+                // Note: Already reported this entity name, so we skip it
+                continue;
+            }
+
+            reportedEntityNames.add(entity.name);
+
+            console.error(
+                `Duplicate entity name "${entity.name}" found in files:\n${[
+                    entity.filename,
+                    ...duplicates.map((e) => e.filename),
+                ]
+                    .map((filename) => ` - ${filename}`)
+                    .join('\n')}`,
+            );
+        }
+    }
+    if (isDuplicateNameFound) {
+        throw new Error('Duplicate entity names found. Please resolve them before proceeding with the script.');
+    }
+
     //console.log(entitities.map(({ name }) => name));
     //process.exit(0);
 
