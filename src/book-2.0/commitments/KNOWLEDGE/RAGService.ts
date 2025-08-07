@@ -1,7 +1,10 @@
 import { promptbookFetch } from '../../../scrapers/_common/utils/promptbookFetch';
 import type { string_url } from '../../../types/typeAliases';
 import { ProcessorFactory } from './processors/ProcessorFactory';
-import type { KnowledgeChunk, KnowledgeSourceMetadata, RAGConfig, RetrievalResult } from './types';
+import type { KnowledgeChunk } from './types';
+import type { KnowledgeSourceMetadata } from './types';
+import type { RAGConfig } from './types';
+import type { RetrievalResult } from './types';
 
 /**
  * RAG (Retrieval-Augmented Generation) Service

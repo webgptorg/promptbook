@@ -1,5 +1,6 @@
 import type { string_url } from '../../../../types/typeAliases';
-import type { KnowledgeSourceFormat, RAGConfig } from '../types';
+import type { KnowledgeSourceFormat } from '../types';
+import type { RAGConfig } from '../types';
 import { BaseKnowledgeProcessor } from './BaseKnowledgeProcessor';
 import { PdfProcessor } from './PdfProcessor';
 import { TextProcessor } from './TextProcessor';
