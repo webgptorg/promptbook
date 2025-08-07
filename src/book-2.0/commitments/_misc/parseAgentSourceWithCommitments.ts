@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_agent_name } from '../../../types/typeAliases';
-import type { string_url_image } from '../../../types/typeAliases';
+import type { string_agent_name, string_url_image } from '../../../types/typeAliases';
 import type { AgentSourceBasicInformation } from '../../agent-source/parseAgentSource';
 import type { string_agent_source } from '../../agent-source/string_agent_source';
 import { generateGravatarUrl } from '../../utils/profileImageUtils';
@@ -11,6 +10,8 @@ import type { ParsedCommitment } from './ParsedCommitment';
 /**
  * Parses agent source using the new commitment system with multiline support
  * This function replaces the hardcoded commitment parsing in the original parseAgentSource
+ *
+ * @private
  */
 export function parseAgentSourceWithCommitments(agentSource: string_agent_source): AgentSourceParseResult {
     if (!agentSource || !agentSource.trim()) {
@@ -113,6 +114,8 @@ export function parseAgentSourceWithCommitments(agentSource: string_agent_source
 /**
  * Extracts basic information from agent source using the new commitment system
  * This maintains compatibility with the original parseAgentSource interface
+ *
+ * @private
  */
 export function parseAgentSourceBasicInfo(agentSource: string_agent_source): AgentSourceBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
@@ -144,6 +147,8 @@ export function parseAgentSourceBasicInfo(agentSource: string_agent_source): Age
 /**
  * Extracts META LINK commitments from agent source
  * Returns an array of all META LINK URLs found in the agent source
+ *
+ * @private
  */
 export function extractMetaLinks(agentSource: string_agent_source): string[] {
     const parseResult = parseAgentSourceWithCommitments(agentSource);

@@ -8,10 +8,13 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * This includes tone, writing style, formatting preferences, and communication patterns.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * STYLE Write in a professional but friendly tone, use bullet points for lists
  * STYLE Always provide code examples when explaining programming concepts
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class StyleCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -34,6 +37,8 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the STYLE commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const StyleCommitment = new StyleCommitmentDefinition();
 

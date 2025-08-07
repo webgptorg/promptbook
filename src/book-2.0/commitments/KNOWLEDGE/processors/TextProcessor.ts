@@ -5,6 +5,8 @@ import { BaseKnowledgeProcessor } from './BaseKnowledgeProcessor';
 /**
  * Text knowledge source processor
  * Handles plain text documents
+ *
+ * @private
  */
 export class TextProcessor extends BaseKnowledgeProcessor {
     readonly supportedFormat = 'text' as const;

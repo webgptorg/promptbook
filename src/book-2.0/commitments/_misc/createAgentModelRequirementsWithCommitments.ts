@@ -10,6 +10,8 @@ import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessa
  * Creates agent model requirements using the new commitment system
  * This function uses a reduce-like pattern where each commitment applies its changes
  * to build the final requirements starting from a basic empty model
+ *
+ * @private
  */
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_agent_source,
@@ -86,13 +88,20 @@ export async function createAgentModelRequirementsWithCommitments(
 
 /**
  * Cache for expensive createAgentModelRequirementsWithCommitments calls
+ * @private
  */
 const modelRequirementsCache = new Map<string, AgentModelRequirements>();
+
+/**
+ * @private - TODO: Maybe should be public
+ */
 const CACHE_SIZE_LIMIT = 100;
 
 /**
  * Cached version of createAgentModelRequirementsWithCommitments
  * This maintains the same caching behavior as the original function
+ *
+ * @private
  */
 export async function createAgentModelRequirementsWithCommitmentsCached(
     agentSource: string_agent_source,
@@ -125,6 +134,8 @@ export async function createAgentModelRequirementsWithCommitmentsCached(
 
 /**
  * Clears the cache for createAgentModelRequirementsWithCommitments
+ *
+ * @private
  */
 export function clearAgentModelRequirementsWithCommitmentsCache(): void {
     modelRequirementsCache.clear();
@@ -132,6 +143,8 @@ export function clearAgentModelRequirementsWithCommitmentsCache(): void {
 
 /**
  * Removes cache entries for a specific agent source
+ *
+ * @private
  */
 export function invalidateAgentModelRequirementsWithCommitmentsCache(agentSource: string_agent_source): void {
     const keysToDelete: string[] = [];
@@ -145,6 +158,8 @@ export function invalidateAgentModelRequirementsWithCommitmentsCache(agentSource
 
 /**
  * Gets the current cache size
+ *
+ * @private
  */
 export function getAgentModelRequirementsWithCommitmentsCacheSize(): number {
     return modelRequirementsCache.size;

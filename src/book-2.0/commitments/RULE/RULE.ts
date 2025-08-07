@@ -8,10 +8,13 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * These are specific instructions about what the agent should or shouldn't do.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * RULE Always ask for clarification if the user's request is ambiguous
  * RULES Never provide medical advice, always refer to healthcare professionals
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class RuleCommitmentDefinition extends BaseCommitmentDefinition {
     constructor(type: 'RULE' | 'RULES' = 'RULE') {
@@ -34,8 +37,16 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instances of the RULE commitment definitions
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const RuleCommitment = new RuleCommitmentDefinition('RULE');
+
+/**
+ * Singleton instances of the RULE commitment definitions
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
 export const RulesCommitment = new RuleCommitmentDefinition('RULES');
 
 /**

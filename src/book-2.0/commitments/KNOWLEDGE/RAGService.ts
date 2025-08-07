@@ -1,14 +1,13 @@
 import { promptbookFetch } from '../../../scrapers/_common/utils/promptbookFetch';
 import type { string_url } from '../../../types/typeAliases';
 import { ProcessorFactory } from './processors/ProcessorFactory';
-import type { KnowledgeChunk } from './types';
-import type { KnowledgeSourceMetadata } from './types';
-import type { RAGConfig } from './types';
-import type { RetrievalResult } from './types';
+import type { KnowledgeChunk, KnowledgeSourceMetadata, RAGConfig, RetrievalResult } from './types';
 
 /**
  * RAG (Retrieval-Augmented Generation) Service
  * Handles knowledge source processing and retrieval
+ *
+ * @private
  */
 export class RAGService {
     private knowledgeBase: {
@@ -198,3 +197,7 @@ export class RAGService {
         return hash.toString(36);
     }
 }
+
+/**
+ * TODO: !!!! use the already existing RAG instead of this
+ */

@@ -10,10 +10,13 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * but is handled separately in the parsing logic.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * META IMAGE https://example.com/avatar.jpg
  * META IMAGE /assets/agent-avatar.png
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -41,6 +44,8 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the META IMAGE commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const MetaImageCommitment = new MetaImageCommitmentDefinition();
 

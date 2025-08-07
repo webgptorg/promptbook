@@ -8,6 +8,8 @@ import { BaseKnowledgeProcessor } from './BaseKnowledgeProcessor';
 /**
  * PDF knowledge source processor
  * Handles extraction and chunking of PDF documents
+ *
+ * @private
  */
 export class PdfProcessor extends BaseKnowledgeProcessor {
     readonly supportedFormat = 'pdf' as const;
@@ -93,3 +95,7 @@ export class PdfProcessor extends BaseKnowledgeProcessor {
         });
     }
 }
+
+/**
+ * TODO: !!!! Implement this through standard knowledge scraper
+ */

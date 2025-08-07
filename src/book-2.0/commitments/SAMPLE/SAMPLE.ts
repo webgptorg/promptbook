@@ -8,10 +8,13 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * or behave in certain situations. These examples help guide the agent's responses.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * SAMPLE When asked about pricing, respond: "Our basic plan starts at $10/month..."
  * EXAMPLE For code questions, always include working code snippets
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class SampleCommitmentDefinition extends BaseCommitmentDefinition {
     constructor(type: 'SAMPLE' | 'EXAMPLE' = 'SAMPLE') {
@@ -34,8 +37,16 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instances of the SAMPLE commitment definitions
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const SampleCommitment = new SampleCommitmentDefinition('SAMPLE');
+
+/**
+ * Singleton instances of the SAMPLE commitment definitions
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
 export const ExampleCommitment = new SampleCommitmentDefinition('EXAMPLE');
 
 /**

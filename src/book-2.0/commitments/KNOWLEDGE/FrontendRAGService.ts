@@ -1,13 +1,13 @@
 import { promptbookFetch } from '../../../scrapers/_common/utils/promptbookFetch';
 import type { string_url } from '../../../types/typeAliases';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import type { KnowledgeChunk } from './types';
-import type { RAGConfig } from './types';
-import type { RetrievalResult } from './types';
+import type { KnowledgeChunk, RAGConfig, RetrievalResult } from './types';
 
 /**
  * Frontend RAG Service that uses backend APIs for processing
  * This avoids Node.js dependencies in the frontend
+ *
+ * @private - TODO: [🧠] Maybe should be public?
  */
 export class FrontendRAGService {
     private chunks: KnowledgeChunk[] = [];

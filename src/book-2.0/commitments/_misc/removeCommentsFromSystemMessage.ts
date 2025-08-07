@@ -5,6 +5,8 @@
  *
  * @param systemMessage The system message that may contain comment lines
  * @returns The system message with comment lines removed
+ *
+ * @private - TODO: [🧠] Maybe should be public?
  */
 export function removeCommentsFromSystemMessage(systemMessage: string): string {
     if (!systemMessage) {

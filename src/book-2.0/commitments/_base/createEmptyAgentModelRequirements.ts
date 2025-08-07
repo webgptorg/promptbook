@@ -4,6 +4,8 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * Creates an empty/basic agent model requirements object
  * This serves as the starting point for the reduce-like pattern
  * where each commitment applies its changes to build the final requirements
+ *
+ * @public exported from `@promptbook/core`
  */
 export function createEmptyAgentModelRequirements(): AgentModelRequirements {
     return {
@@ -18,6 +20,8 @@ export function createEmptyAgentModelRequirements(): AgentModelRequirements {
 /**
  * Creates a basic agent model requirements with just the agent name
  * This is used when we have an agent name but no commitments
+ *
+ * @public exported from `@promptbook/core`
  */
 export function createBasicAgentModelRequirements(agentName: string | null): AgentModelRequirements {
     const empty = createEmptyAgentModelRequirements();
@@ -27,3 +31,7 @@ export function createBasicAgentModelRequirements(agentName: string | null): Age
         systemMessage: `You are ${agentName || 'AI Agent'}`,
     };
 }
+
+/**
+ * TODO: !!!! Deduplicate model requirements
+ */

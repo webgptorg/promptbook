@@ -16,13 +16,16 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * - Comments (# NOTE) are removed from the final system message
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * NOTE This agent was designed for customer support scenarios
  * NOTE Remember to update the knowledge base monthly
  * NOTE Performance optimized for quick response times
  * ```
  *
  * The above notes will be stored in metadata but won't affect the agent's behavior.
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class NoteCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -61,6 +64,8 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the NOTE commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const NoteCommitment = new NoteCommitmentDefinition();
 

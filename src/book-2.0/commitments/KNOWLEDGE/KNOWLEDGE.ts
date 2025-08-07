@@ -12,11 +12,14 @@ import { FrontendRAGService } from './FrontendRAGService';
  * Supports both direct text knowledge and external sources like PDFs.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * KNOWLEDGE The company was founded in 2020 and specializes in AI-powered solutions
  * KNOWLEDGE https://example.com/company-handbook.pdf
  * KNOWLEDGE https://example.com/product-documentation.pdf
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition {
     private ragService: FrontendRAGService;
@@ -81,6 +84,8 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the KNOWLEDGE commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const KnowledgeCommitment = new KnowledgeCommitmentDefinition();
 

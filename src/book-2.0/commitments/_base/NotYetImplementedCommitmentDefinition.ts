@@ -7,6 +7,8 @@ import type { BookCommitment } from './BookCommitment';
  *
  * This commitment simply adds its content 1:1 into the system message,
  * preserving the original behavior until proper implementation is added.
+ *
+ * @public exported from `@promptbook/core`
  */
 export class NotYetImplementedCommitmentDefinition extends BaseCommitmentDefinition {
     constructor(type: BookCommitment) {

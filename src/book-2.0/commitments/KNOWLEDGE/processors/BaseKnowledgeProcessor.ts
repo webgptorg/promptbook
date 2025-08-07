@@ -8,6 +8,8 @@ import type { RAGConfig } from '../types';
 /**
  * Base class for knowledge source processors
  * Provides common functionality for all knowledge processors
+ *
+ * @private
  */
 export abstract class BaseKnowledgeProcessor {
     protected readonly config: RAGConfig;

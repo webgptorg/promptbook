@@ -14,12 +14,15 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * - Comments (# PERSONA) are removed from the final system message
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * PERSONA You are a helpful programming assistant with expertise in TypeScript and React
  * PERSONA You have deep knowledge of modern web development practices
  * ```
  *
  * The above will be merged into a single persona section at the beginning of the system message.
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class PersonaCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -110,6 +113,8 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the PERSONA commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const PersonaCommitment = new PersonaCommitmentDefinition();
 

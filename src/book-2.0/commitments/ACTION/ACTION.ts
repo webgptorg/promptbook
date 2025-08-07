@@ -8,10 +8,13 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * This helps define what the agent is capable of doing and how it should approach tasks.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * ACTION Can generate code snippets and explain programming concepts
  * ACTION Able to analyze data and provide insights
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class ActionCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -34,6 +37,8 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the ACTION commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const ActionCommitment = new ActionCommitmentDefinition();
 

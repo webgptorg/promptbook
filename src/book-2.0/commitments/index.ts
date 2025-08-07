@@ -19,6 +19,8 @@ import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplemented
  * Registry of all available commitment definitions
  * This array contains instances of all commitment definitions
  * This is the single source of truth for all commitments in the system
+ *
+ * @private TODO: Maybe should be public?
  */
 export const COMMITMENT_REGISTRY: Array<CommitmentDefinition> = [
     // Fully implemented commitments
@@ -53,6 +55,8 @@ export const COMMITMENT_REGISTRY: Array<CommitmentDefinition> = [
  * Gets a commitment definition by its type
  * @param type The commitment type to look up
  * @returns The commitment definition or undefined if not found
+ *
+ * @private TODO: Maybe should be public?
  */
 export function getCommitmentDefinition(type: BookCommitment): CommitmentDefinition | undefined {
     return COMMITMENT_REGISTRY.find((def) => def.type === type);
@@ -61,6 +65,8 @@ export function getCommitmentDefinition(type: BookCommitment): CommitmentDefinit
 /**
  * Gets all available commitment definitions
  * @returns Array of all commitment definitions
+ *
+ * @private TODO: Maybe should be public?
  */
 export function getAllCommitmentDefinitions(): CommitmentDefinition[] {
     return [...COMMITMENT_REGISTRY];
@@ -69,6 +75,8 @@ export function getAllCommitmentDefinitions(): CommitmentDefinition[] {
 /**
  * Gets all available commitment types
  * @returns Array of all commitment types
+ *
+ * @private TODO: Maybe should be public?
  */
 export function getAllCommitmentTypes(): BookCommitment[] {
     return COMMITMENT_REGISTRY.map((def) => def.type);
@@ -78,6 +86,8 @@ export function getAllCommitmentTypes(): BookCommitment[] {
  * Checks if a commitment type is supported
  * @param type The commitment type to check
  * @returns True if the commitment type is supported
+ *
+ * @private
  */
 export function isCommitmentSupported(type: BookCommitment): boolean {
     return COMMITMENT_REGISTRY.some((def) => def.type === type);
@@ -89,11 +99,14 @@ export function isCommitmentSupported(type: BookCommitment): boolean {
  *
  * @param enabledCommitments Array of commitment types to enable
  * @returns New registry with only the specified commitments
+ *
+ * @private
  */
 export function createCustomCommitmentRegistry(enabledCommitments: BookCommitment[]): CommitmentDefinition[] {
     return COMMITMENT_REGISTRY.filter((def) => enabledCommitments.includes(def.type));
 }
 
 /**
+ * TODO: !!!! Maybe create through standardized $register
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

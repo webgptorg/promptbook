@@ -1,5 +1,4 @@
-import type { string_agent_name } from '../../types/typeAliases';
-import type { string_url_image } from '../../types/typeAliases';
+import type { string_agent_name, string_url_image } from '../../types/typeAliases';
 import { parseAgentSourceBasicInfo } from '../commitments/_misc/parseAgentSourceWithCommitments';
 import type { string_agent_source } from './string_agent_source';
 
@@ -35,6 +34,8 @@ const parsedAgentSourceCache = new Map<string, AgentSourceBasicInformation>();
  * There are 2 similar functions:
  * - `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
  * - `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
+ *
+ * @public exported from `@promptbook/core`
  */
 export function parseAgentSource(agentSource: string_agent_source): AgentSourceBasicInformation {
     // Check if we already parsed this agent source

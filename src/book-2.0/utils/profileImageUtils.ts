@@ -4,6 +4,8 @@ import type { string_url_image } from '../../types/typeAliases';
  * Extracts profile image URL from agent definition text and returns cleaned system message
  * @param systemMessage The original system message that may contain META IMAGE line
  * @returns Object with profileImageUrl (if found) and cleanedSystemMessage (without META IMAGE line)
+ *
+ * @private - TODO: [🧠] Maybe should be public?
  */
 export function extractProfileImageFromSystemMessage(systemMessage: string): {
     profileImageUrl?: string_url_image;
@@ -41,6 +43,8 @@ export function extractProfileImageFromSystemMessage(systemMessage: string): {
  * Extracts persona, examples, and profile image from agent definition text
  * @param systemMessage The original system message that may contain PERSONA, EXAMPLE, and META IMAGE lines
  * @returns Object with extracted information and cleaned system message
+ *
+ * @private - TODO: [🧠] Maybe should be public?
  */
 export function extractAgentMetadata(systemMessage: string): {
     persona?: { name: string; description?: string };
@@ -105,6 +109,8 @@ export function extractAgentMetadata(systemMessage: string): {
  * Generates a gravatar URL based on agent name for fallback avatar
  * @param name The agent name to generate avatar for
  * @returns Gravatar URL
+ *
+ * @private - TODO: [🧠] Maybe should be public?
  */
 export function generateGravatarUrl(name?: string | null): string {
     // Use a default name if none provided

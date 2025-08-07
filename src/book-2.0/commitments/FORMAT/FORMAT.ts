@@ -9,10 +9,13 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * response templates, and structural requirements.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * FORMAT Always respond in JSON format with 'status' and 'data' fields
  * FORMAT Use markdown formatting for all code blocks
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class FormatCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -35,6 +38,8 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the FORMAT commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const FormatCommitment = new FormatCommitmentDefinition();
 

@@ -4,6 +4,8 @@ import { FrontendRAGService } from '../FrontendRAGService';
 
 /**
  * Helper utilities for RAG processing in chat systems
+ *
+ * @private
  */
 export class RAGHelper {
     /**

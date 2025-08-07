@@ -1,12 +1,18 @@
 import { parseAgentSource } from '../../agent-source/parseAgentSource';
 import type { string_agent_source } from '../../agent-source/string_agent_source';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import { clearAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
-import { createAgentModelRequirementsWithCommitmentsCached } from './createAgentModelRequirementsWithCommitments';
-import { getAgentModelRequirementsWithCommitmentsCacheSize } from './createAgentModelRequirementsWithCommitments';
-import { invalidateAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
+import {
+    clearAgentModelRequirementsWithCommitmentsCache,
+    createAgentModelRequirementsWithCommitmentsCached,
+    getAgentModelRequirementsWithCommitmentsCacheSize,
+    invalidateAgentModelRequirementsWithCommitmentsCache,
+} from './createAgentModelRequirementsWithCommitments';
 
-// Cache for expensive createAgentModelRequirements calls
+/**
+ *  Cache for expensive createAgentModelRequirements calls
+ *
+ *  @private
+ */
 const modelRequirementsCache = new Map<string, AgentModelRequirements>();
 
 // TODO: Remove or use:
@@ -19,6 +25,8 @@ const modelRequirementsCache = new Map<string, AgentModelRequirements>();
  * There are 2 similar functions:
  * - `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
  * - `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
+ *
+ * @public exported from `@promptbook/core`
  */
 export async function createAgentModelRequirements(
     agentSource: string_agent_source,
@@ -31,6 +39,8 @@ export async function createAgentModelRequirements(
 /**
  * Clears the cache for createAgentModelRequirements
  * Useful when agent sources are updated and cached results should be invalidated
+ *
+ * @private
  */
 export function clearAgentModelRequirementsCache(): void {
     modelRequirementsCache.clear();
@@ -40,6 +50,7 @@ export function clearAgentModelRequirementsCache(): void {
 /**
  * Removes cache entries for a specific agent source (all model variants)
  * @param agentSource The agent source to remove from cache
+ * @private
  */
 export function invalidateAgentModelRequirementsCache(agentSource: string_agent_source): void {
     // Remove all cache entries that start with this agent source
@@ -57,6 +68,8 @@ export function invalidateAgentModelRequirementsCache(agentSource: string_agent_
 
 /**
  * Gets the current cache size (for debugging/monitoring)
+ *
+ * @private
  */
 export function getAgentModelRequirementsCacheSize(): number {
     return modelRequirementsCache.size + getAgentModelRequirementsWithCommitmentsCacheSize();
@@ -67,6 +80,8 @@ export function getAgentModelRequirementsCacheSize(): number {
  *
  * @param agentSource The agent source string that may contain MCP lines
  * @returns Array of MCP server identifiers
+ *
+ * @private TODO: [🧠] Maybe should be public
  */
 export function extractMcpServers(agentSource: string_agent_source): string[] {
     if (!agentSource) {
@@ -91,6 +106,7 @@ export function extractMcpServers(agentSource: string_agent_source): string[] {
 /**
  * Creates a system message for an agent based on its source
  * @deprecated Use createAgentModelRequirements instead
+ * @private
  */
 export async function createAgentSystemMessage(agentSource: string_agent_source): Promise<string> {
     const modelRequirements = await createAgentModelRequirements(agentSource);
@@ -100,6 +116,7 @@ export async function createAgentSystemMessage(agentSource: string_agent_source)
 /**
  * Extracts the agent name from the first line of the agent source
  * @deprecated Use parseAgentSource instead
+ * @private
  */
 export function extractAgentName(agentSource: string_agent_source): string {
     const { agentName } = parseAgentSource(agentSource);
@@ -116,6 +133,7 @@ export function extractAgentName(agentSource: string_agent_source): string {
  * @param agentSource The agent source string that may contain META IMAGE line
  * @returns Profile image URL (from source or gravatar fallback)
  * @deprecated Use parseAgentSource instead
+ * @private
  */
 export function extractAgentProfileImage(agentSource: string_agent_source): string {
     const { profileImageUrl } = parseAgentSource(agentSource);

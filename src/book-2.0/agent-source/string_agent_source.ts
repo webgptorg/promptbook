@@ -12,6 +12,8 @@ export type string_agent_source = string & { readonly __brand: 'agent_source' };
 
 /**
  * Type guard to check if a string is a valid agent source
+ *
+ * @public exported from `@promptbook/core`
  */
 export function isAgentSource(value: string): value is string_agent_source {
     // Basic validation - agent source should have at least a name (first line)
@@ -22,6 +24,7 @@ export function isAgentSource(value: string): value is string_agent_source {
  * Creates a branded agent source string from a regular string
  * Performs basic validation to ensure the string is suitable as agent source
  *
+ * @private
  * @deprecated Use `validateAgentSource` instead - these functions are now equivalent
  */
 export function createAgentSource(source: string): string_agent_source {
@@ -33,6 +36,9 @@ export function createAgentSource(source: string): string_agent_source {
 
 /**
  * Safely converts a string to agent source with fallback
+ *
+ * @private
+ * @deprecated Use `validateAgentSource` instead - these functions are now equivalent
  */
 export function toAgentSource(source: string, fallback: string = 'Your Avatar'): string_agent_source {
     if (isAgentSource(source)) {
@@ -45,6 +51,8 @@ export function toAgentSource(source: string, fallback: string = 'Your Avatar'):
  * Validates and converts a string to agent source branded type
  * This function should be used when you have a string that you know represents agent source
  * but need to convert it to the branded type for type safety
+ *
+ * @public exported from `@promptbook/core`
  */
 export function validateAgentSource(source: string): string_agent_source {
     if (!isAgentSource(source)) {

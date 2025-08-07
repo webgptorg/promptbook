@@ -5,22 +5,26 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 /**
  * META LINK commitment definition
  *
- * The META LINK commitment represents the link to the person from whom the agent is created.
+ * The `META LINK` commitment represents the link to the person from whom the agent is created.
  * This commitment is special because it doesn't affect the system message,
  * but is handled separately in the parsing logic for profile display.
  *
  * Example usage in agent source:
+ *
  * ```
  * META LINK https://twitter.com/username
  * META LINK https://linkedin.com/in/profile
  * META LINK https://github.com/username
  * ```
  *
- * Multiple META LINK commitments can be used when there are multiple sources:
- * ```
+ * Multiple `META LINK` commitments can be used when there are multiple sources:
+ *
+ * ```book
  * META LINK https://twitter.com/username
  * META LINK https://linkedin.com/in/profile
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -60,6 +64,8 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the META LINK commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const MetaLinkCommitment = new MetaLinkCommitmentDefinition();
 

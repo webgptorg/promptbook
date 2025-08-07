@@ -7,6 +7,8 @@ import { TextProcessor } from './TextProcessor';
 
 /**
  * Factory for creating knowledge source processors
+ *
+ * @private
  */
 export class ProcessorFactory {
     /**

@@ -9,11 +9,14 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * model-specific parameters like temperature, topP, and topK.
  *
  * Example usage in agent source:
- * ```
+ *
+ * ```book
  * MODEL gpt-4
  * MODEL claude-3-opus temperature=0.3
  * MODEL gpt-3.5-turbo temperature=0.8 topP=0.9
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class ModelCommitmentDefinition extends BaseCommitmentDefinition {
     constructor() {
@@ -76,6 +79,8 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition {
 
 /**
  * Singleton instance of the MODEL commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export const ModelCommitment = new ModelCommitmentDefinition();
 
