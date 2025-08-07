@@ -1,6 +1,6 @@
 import type { string_agent_source } from '../../agent-source/string_agent_source';
-import { getCommitmentDefinition } from '../index';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
+import { getCommitmentDefinition } from '../index';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
