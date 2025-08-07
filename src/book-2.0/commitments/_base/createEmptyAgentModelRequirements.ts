@@ -1,4 +1,3 @@
-import { DEFAULT_MODEL_ID } from '../../../constants/models';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
 /**
@@ -9,7 +8,7 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 export function createEmptyAgentModelRequirements(): AgentModelRequirements {
     return {
         systemMessage: '',
-        modelName: DEFAULT_MODEL_ID,
+        modelName: '!!!!DEFAULT_MODEL_ID',
         temperature: 0.7,
         topP: 0.9,
         topK: 50,

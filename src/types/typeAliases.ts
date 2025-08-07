@@ -178,6 +178,13 @@ export type ReservedParameters = Record<string_reserved_parameter_name, string_p
 export type string_title = string;
 
 /**
+ * Semantic helper
+ *
+ * For example `"My AI Assistant"`
+ */
+export type string_agent_name = string;
+
+/**
  * Unstructured description of the persona
  *
  * For example `"Skilled copywriter"`

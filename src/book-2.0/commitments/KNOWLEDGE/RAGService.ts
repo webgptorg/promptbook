@@ -1,11 +1,7 @@
+import { promptbookFetch } from '../../../_packages/core.index';
 import type { string_url } from '../../../utils/typeAliases';
-import { fetchKnowledgeSource } from '../../../utils/scraping/fetchKnowledgeSource';
-import type { KnowledgeBase } from './types';
-import type { KnowledgeChunk } from './types';
-import type { KnowledgeSourceMetadata } from './types';
-import type { RAGConfig } from './types';
-import type { RetrievalResult } from './types';
 import { ProcessorFactory } from './processors/ProcessorFactory';
+import type { KnowledgeChunk, KnowledgeSourceMetadata, RAGConfig, RetrievalResult } from './types';
 
 /**
  * RAG (Retrieval-Augmented Generation) Service
@@ -48,7 +44,7 @@ export class RAGService {
             }
 
             // Fetch the content
-            const response = await fetchKnowledgeSource(url);
+            const response = await promptbookFetch(url); // <- fetchKnowledgeSource
             if (!response.ok) {
                 throw new Error(`Failed to fetch knowledge source: ${response.status} ${response.statusText}`);
             }

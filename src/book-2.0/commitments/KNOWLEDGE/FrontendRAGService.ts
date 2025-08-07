@@ -1,9 +1,6 @@
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import { promptbookStudioFetch } from '../../../utils/scraping/promptbookStudioFetch';
 import type { string_url } from '../../../utils/typeAliases';
-import type { KnowledgeChunk } from './types';
-import type { RAGConfig } from './types';
-import type { RetrievalResult } from './types';
+import type { KnowledgeChunk, RAGConfig, RetrievalResult } from './types';
 
 /**
  * Frontend RAG Service that uses backend APIs for processing
@@ -35,7 +32,7 @@ export class FrontendRAGService {
         }
 
         try {
-            const response = await promptbookStudioFetch('/api/knowledge/process-sources', {
+            const response = await promptbookFetch('/api/knowledge/process-sources', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -85,7 +82,7 @@ export class FrontendRAGService {
         }
 
         try {
-            const response = await promptbookStudioFetch('/api/knowledge/retrieve-context', {
+            const response = await promptbookFetch('/api/knowledge/retrieve-context', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -128,7 +125,7 @@ export class FrontendRAGService {
         }
 
         try {
-            const response = await promptbookStudioFetch('/api/knowledge/retrieve-context', {
+            const response = await promptbookFetch('/api/knowledge/retrieve-context', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -192,7 +189,7 @@ export class FrontendRAGService {
         }
 
         try {
-            const response = await promptbookStudioFetch('/api/knowledge/process-sources', {
+            const response = await promptbookFetch('/api/knowledge/process-sources', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

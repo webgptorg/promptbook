@@ -1,4 +1,3 @@
-import { DEFAULT_MODEL_ID } from '../../../constants/models';
 import { parseAgentSource } from '../../agent-source/parseAgentSource';
 import type { string_agent_source } from '../../agent-source/string_agent_source';
 import type { AgentModelRequirements } from './AgentModelRequirements';
@@ -23,7 +22,7 @@ const CACHE_SIZE_LIMIT = 100; // Prevent memory leaks by limiting cache size
  */
 export async function createAgentModelRequirements(
     agentSource: string_agent_source,
-    modelName: string = DEFAULT_MODEL_ID,
+    modelName: string = '!!!!DEFAULT_MODEL_ID',
 ): Promise<AgentModelRequirements> {
     // Use the new commitment-based system
     return createAgentModelRequirementsWithCommitmentsCached(agentSource, modelName);
