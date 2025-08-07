@@ -34,8 +34,8 @@ describe('parseAgentSource', () => {
                 Agent Name
                 PERSONA A helpful assistant
                 META IMAGE https://img.url/pic.png
-                This is a system message.
-                Another line.
+                NOTE This is a note
+                And another line of note
             `),
         );
         const result = parseAgentSource(agentSource);
@@ -94,12 +94,12 @@ describe('parseAgentSource', () => {
                 Agent Name
                 PERSONA
                 META IMAGE
-                System message.
+                NOTE Some random note
             `),
         );
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('Agent Name');
-        expect(result.personaDescription).toBe(null);
+        expect(result.personaDescription).toBe('');
         expect(result.profileImageUrl).toMatch(/gravatar/); // Should be a gravatar URL
     });
 });
