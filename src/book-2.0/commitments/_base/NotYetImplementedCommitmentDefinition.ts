@@ -1,6 +1,5 @@
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 import { BaseCommitmentDefinition } from './BaseCommitmentDefinition';
-import type { BookCommitment } from './BookCommitment';
 
 /**
  * Placeholder commitment definition for commitments that are not yet implemented
@@ -10,8 +9,10 @@ import type { BookCommitment } from './BookCommitment';
  *
  * @public exported from `@promptbook/core`
  */
-export class NotYetImplementedCommitmentDefinition extends BaseCommitmentDefinition {
-    constructor(type: BookCommitment) {
+export class NotYetImplementedCommitmentDefinition<
+    TBookCommitment extends string,
+> extends BaseCommitmentDefinition<TBookCommitment> {
+    constructor(type: TBookCommitment) {
         super(type);
     }
 

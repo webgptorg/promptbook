@@ -2,6 +2,7 @@ import type { BookCommitment } from './_base/BookCommitment';
 import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 
 // Import all commitment definition classes
+import { $deepFreeze } from '../../_packages/utils.index';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
@@ -20,9 +21,9 @@ import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplemented
  * This array contains instances of all commitment definitions
  * This is the single source of truth for all commitments in the system
  *
- * @private TODO: Maybe should be public?
+ * @private Use functions to access commitments instead of this array directly
  */
-export const COMMITMENT_REGISTRY: Array<CommitmentDefinition> = [
+export const COMMITMENT_REGISTRY = [
     // Fully implemented commitments
     new PersonaCommitmentDefinition(),
     new KnowledgeCommitmentDefinition(),
@@ -49,37 +50,37 @@ export const COMMITMENT_REGISTRY: Array<CommitmentDefinition> = [
     new NotYetImplementedCommitmentDefinition('GOAL'),
     new NotYetImplementedCommitmentDefinition('GOALS'),
     new NotYetImplementedCommitmentDefinition('CONTEXT'),
-];
+] as const satisfies Array<CommitmentDefinition>;
 
 /**
  * Gets a commitment definition by its type
  * @param type The commitment type to look up
- * @returns The commitment definition or undefined if not found
+ * @returns The commitment definition or null if not found
  *
- * @private TODO: Maybe should be public?
+ * @public exported from `@promptbook/core`
  */
-export function getCommitmentDefinition(type: BookCommitment): CommitmentDefinition | undefined {
-    return COMMITMENT_REGISTRY.find((def) => def.type === type);
+export function getCommitmentDefinition(type: BookCommitment): CommitmentDefinition | null {
+    return COMMITMENT_REGISTRY.find((commitmentDefinition) => commitmentDefinition.type === type) || null;
 }
 
 /**
  * Gets all available commitment definitions
  * @returns Array of all commitment definitions
  *
- * @private TODO: Maybe should be public?
+ * @public exported from `@promptbook/core`
  */
-export function getAllCommitmentDefinitions(): CommitmentDefinition[] {
-    return [...COMMITMENT_REGISTRY];
+export function getAllCommitmentDefinitions(): ReadonlyArray<CommitmentDefinition> {
+    return $deepFreeze([...COMMITMENT_REGISTRY]);
 }
 
 /**
  * Gets all available commitment types
  * @returns Array of all commitment types
  *
- * @private TODO: Maybe should be public?
+ * @public exported from `@promptbook/core`
  */
-export function getAllCommitmentTypes(): BookCommitment[] {
-    return COMMITMENT_REGISTRY.map((def) => def.type);
+export function getAllCommitmentTypes(): ReadonlyArray<BookCommitment> {
+    return $deepFreeze(COMMITMENT_REGISTRY.map((commitmentDefinition) => commitmentDefinition.type));
 }
 
 /**
@@ -87,23 +88,10 @@ export function getAllCommitmentTypes(): BookCommitment[] {
  * @param type The commitment type to check
  * @returns True if the commitment type is supported
  *
- * @private
+ * @public exported from `@promptbook/core`
  */
 export function isCommitmentSupported(type: BookCommitment): boolean {
-    return COMMITMENT_REGISTRY.some((def) => def.type === type);
-}
-
-/**
- * Creates a custom commitment registry with only specified commitments
- * This is useful for customers who want to disable certain commitments
- *
- * @param enabledCommitments Array of commitment types to enable
- * @returns New registry with only the specified commitments
- *
- * @private
- */
-export function createCustomCommitmentRegistry(enabledCommitments: BookCommitment[]): CommitmentDefinition[] {
-    return COMMITMENT_REGISTRY.filter((def) => enabledCommitments.includes(def.type));
+    return COMMITMENT_REGISTRY.some((commitmentDefinition) => commitmentDefinition.type === type);
 }
 
 /**

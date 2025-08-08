@@ -18,7 +18,7 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition {
+export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'META IMAGE'> {
     constructor() {
         super('META IMAGE');
     }

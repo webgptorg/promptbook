@@ -17,7 +17,7 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class FormatCommitmentDefinition extends BaseCommitmentDefinition {
+export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT'> {
     constructor() {
         super('FORMAT');
     }
@@ -42,7 +42,6 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition {
  * @private [🪔] Maybe export the commitments through some package
  */
 export const FormatCommitment = new FormatCommitmentDefinition();
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

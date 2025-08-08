@@ -21,7 +21,7 @@ import { FrontendRAGService } from './FrontendRAGService';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition {
+export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE'> {
     private ragService: FrontendRAGService;
 
     constructor() {

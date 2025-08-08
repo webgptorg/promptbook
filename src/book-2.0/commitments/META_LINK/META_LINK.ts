@@ -26,7 +26,7 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition {
+export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META LINK'> {
     constructor() {
         super('META LINK');
     }

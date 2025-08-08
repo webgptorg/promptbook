@@ -16,7 +16,7 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class ActionCommitmentDefinition extends BaseCommitmentDefinition {
+export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION'> {
     constructor() {
         super('ACTION');
     }

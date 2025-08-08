@@ -1,7 +1,5 @@
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
-import { createCommitmentRegex } from '../_misc/createCommitmentRegex';
-import { createCommitmentTypeRegex } from '../_misc/createCommitmentRegex';
-import type { BookCommitment } from './BookCommitment';
+import { createCommitmentRegex, createCommitmentTypeRegex } from '../_misc/createCommitmentRegex';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 
 /**
@@ -10,10 +8,10 @@ import type { CommitmentDefinition } from './CommitmentDefinition';
  *
  * @private
  */
-export abstract class BaseCommitmentDefinition implements CommitmentDefinition {
-    public readonly type: BookCommitment;
+export abstract class BaseCommitmentDefinition<TBookCommitment extends string> implements CommitmentDefinition {
+    public readonly type: TBookCommitment;
 
-    constructor(type: BookCommitment) {
+    constructor(type: TBookCommitment) {
         this.type = type;
     }
 
