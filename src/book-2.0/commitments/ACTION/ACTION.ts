@@ -21,6 +21,27 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
         super('ACTION');
     }
 
+    /**
+     * Markdown documentation for ACTION commitment.
+     */
+    get description(): string {
+        return [
+            '# ACTION',
+            '',
+            'Defines specific actions or capabilities that the agent can perform.',
+            '',
+            'Effects on system message:',
+            '- Appends a "Capability: ..." line to the system message.',
+            '',
+            'Examples:',
+            '```book',
+            'ACTION Can generate code snippets and explain programming concepts',
+            'ACTION Able to analyze data and provide insights',
+            '```',
+            '',
+        ].join('\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 

@@ -23,6 +23,28 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
         super('META IMAGE');
     }
 
+    /**
+     * Markdown documentation for META IMAGE commitment.
+     */
+    get description(): string {
+        return [
+            '# META IMAGE',
+            '',
+            "Sets the agent's avatar/profile image URL.",
+            '',
+            'Behavior:',
+            '- Does not modify the system message.',
+            '- Handled separately by parsing logic to extract and store a profile image URL.',
+            '',
+            'Examples:',
+            '```book',
+            'META IMAGE https://example.com/avatar.jpg',
+            'META IMAGE /assets/agent-avatar.png',
+            '```',
+            '',
+        ].join('\\n').replace(/\\\\n/g, '\\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         TODO_USE(content);
 

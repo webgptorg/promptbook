@@ -21,6 +21,27 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'>
         super('STYLE');
     }
 
+    /**
+     * Markdown documentation for STYLE commitment.
+     */
+    get description(): string {
+        return [
+            '# STYLE',
+            '',
+            'Defines how the agent should format and present its responses (tone, writing style, formatting).',
+            '',
+            'Effects on system message:',
+            '- Appends a "Style: ..." line to the system message.',
+            '',
+            'Examples:',
+            '```book',
+            'STYLE Write in a professional but friendly tone, use bullet points for lists',
+            'STYLE Always provide code examples when explaining programming concepts',
+            '```',
+            '',
+        ].join('\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 

@@ -16,6 +16,27 @@ export class NotYetImplementedCommitmentDefinition<
         super(type);
     }
 
+    /**
+     * Markdown documentation available at runtime.
+     */
+    get description(): string {
+        return [
+            `# ${this.type}`,
+            ``,
+            `This commitment is not yet fully implemented.`,
+            `Until it is, its content is appended 1:1 to the system message, preserving current behavior.`,
+            ``,
+            `- Status: Placeholder`,
+            `- Effect: Appends a line to the system message prefixed by the commitment type`,
+            ``,
+            `Example:`,
+            `\`\`\`book`,
+            `${this.type} Your content here`,
+            `\`\`\``,
+            ``,
+        ].join('\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 

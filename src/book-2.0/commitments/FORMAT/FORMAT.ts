@@ -22,6 +22,27 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
         super('FORMAT');
     }
 
+    /**
+     * Markdown documentation for FORMAT commitment.
+     */
+    get description(): string {
+        return [
+            '# FORMAT',
+            '',
+            'Defines the specific output structure and formatting for responses (data formats, templates, structure).',
+            '',
+            'Effects on system message:',
+            '- Appends an "Output Format: ..." line to the system message.',
+            '',
+            'Examples:',
+            '```book',
+            "FORMAT Always respond in JSON format with 'status' and 'data' fields",
+            'FORMAT Use markdown formatting for all code blocks',
+            '```',
+            '',
+        ].join('\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 

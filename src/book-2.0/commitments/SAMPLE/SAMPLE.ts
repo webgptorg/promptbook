@@ -21,6 +21,27 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
         super(type);
     }
 
+    /**
+     * Markdown documentation for SAMPLE/EXAMPLE commitment.
+     */
+    get description(): string {
+        return [
+            `# ${this.type}`,
+            '',
+            'Provides examples of how the agent should respond or behave in certain situations.',
+            '',
+            'Effects on system message:',
+            '- Appends an "Example: ..." line to the system message.',
+            '',
+            'Examples:',
+            '```book',
+            'SAMPLE When asked about pricing, respond: "Our basic plan starts at $10/month..."',
+            'EXAMPLE For code questions, always include working code snippets',
+            '```',
+            '',
+        ].join('\\n').replace(/\\\\n/g, '\\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 

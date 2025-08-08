@@ -32,6 +32,30 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
         super('NOTE');
     }
 
+    /**
+     * Markdown documentation for NOTE commitment.
+     */
+    get description(): string {
+        return [
+            '# NOTE',
+            '',
+            'Adds comments for documentation without changing system message or model requirements.',
+            '',
+            'Key behaviors:',
+            '- Makes no changes to the system message.',
+            '- Makes no changes to requirements.',
+            '- Aggregates multiple NOTE lines into metadata.NOTE.',
+            '',
+            'Examples:',
+            '```book',
+            'NOTE This agent was designed for customer support scenarios',
+            'NOTE Remember to update the knowledge base monthly',
+            'NOTE Performance optimized for quick response times',
+            '```',
+            '',
+        ].join('\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         // The NOTE commitment makes no changes to the system message or model requirements
         // It only stores the note content in metadata for documentation purposes

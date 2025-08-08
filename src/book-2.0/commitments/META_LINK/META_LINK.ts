@@ -31,6 +31,30 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
         super('META LINK');
     }
 
+    /**
+     * Markdown documentation for META LINK commitment.
+     */
+    get description(): string {
+        return [
+            '# META LINK',
+            '',
+            'Represents a profile or source link for the person the agent is modeled after.',
+            '',
+            'Behavior:',
+            '- Does not modify the system message.',
+            '- Parsing logic extracts and stores the link for profile display.',
+            '- Multiple META LINK lines are allowed when there are multiple sources.',
+            '',
+            'Examples:',
+            '```book',
+            'META LINK https://twitter.com/username',
+            'META LINK https://linkedin.com/in/profile',
+            'META LINK https://github.com/username',
+            '```',
+            '',
+        ].join('\\n').replace(/\\\\n/g, '\\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         TODO_USE(content);
 

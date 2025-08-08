@@ -21,6 +21,27 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
         super(type);
     }
 
+    /**
+     * Markdown documentation for RULE/RULES commitment.
+     */
+    get description(): string {
+        return [
+            `# ${this.type}`,
+            '',
+            'Adds behavioral constraints and guidelines that the agent must follow.',
+            '',
+            'Effects on system message:',
+            '- Appends a "Rule: ..." line to the system message.',
+            '',
+            'Examples:',
+            '```book',
+            'RULE Always ask for clarification if the user\'s request is ambiguous',
+            'RULES Never provide medical advice, always refer to healthcare professionals',
+            '```',
+            '',
+        ].join('\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 

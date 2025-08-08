@@ -23,6 +23,34 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'>
         super('MODEL');
     }
 
+    /**
+     * Markdown documentation for MODEL commitment.
+     */
+    get description(): string {
+        return [
+            '# MODEL',
+            '',
+            'Specifies which AI model to use and optional decoding parameters.',
+            '',
+            'Supported parameters:',
+            '- temperature: number',
+            '- topP (aka top_p): number',
+            '- topK (aka top_k): integer',
+            '',
+            'Effects on requirements:',
+            '- Sets modelName from the first token.',
+            '- Parses optional parameters and assigns them to requirements (temperature, topP, topK).',
+            '',
+            'Examples:',
+            '```book',
+            'MODEL gpt-4',
+            'MODEL claude-3-opus temperature=0.3',
+            'MODEL gpt-3.5-turbo temperature=0.8 topP=0.9',
+            '```',
+            '',
+        ].join('\n');
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 

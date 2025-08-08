@@ -18,6 +18,12 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     }
 
     /**
+     * Human-readable markdown documentation for this commitment, available at runtime.
+     * Must be implemented by each concrete commitment.
+     */
+    abstract get description(): string;
+
+    /**
      * Creates a regex pattern to match this commitment in agent source
      * Uses the existing createCommitmentRegex function as internal helper
      */

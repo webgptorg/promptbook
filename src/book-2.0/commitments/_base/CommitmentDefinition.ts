@@ -15,6 +15,13 @@ export interface CommitmentDefinition {
     readonly type: string;
 
     /**
+     * Human-readable markdown documentation for this commitment.
+     * Should explain what the commitment does and include example usage.
+     * This is available at runtime for UIs, docs, and tooling.
+     */
+    readonly description: string;
+
+    /**
      * Creates a regex pattern to match this commitment in agent source
      * This regex should capture the commitment content in a 'contents' named group
      *
