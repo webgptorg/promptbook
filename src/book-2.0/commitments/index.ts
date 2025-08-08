@@ -50,7 +50,7 @@ export const COMMITMENT_REGISTRY = [
     new NotYetImplementedCommitmentDefinition('GOAL'),
     new NotYetImplementedCommitmentDefinition('GOALS'),
     new NotYetImplementedCommitmentDefinition('CONTEXT'),
-] as const satisfies Array<CommitmentDefinition>;
+] as const satisfies ReadonlyArray<CommitmentDefinition>;
 
 /**
  * Gets a commitment definition by its type

@@ -1,5 +1,6 @@
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 import { createCommitmentRegex, createCommitmentTypeRegex } from '../_misc/createCommitmentRegex';
+import { BookCommitment } from './BookCommitment';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 
 /**
@@ -20,7 +21,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Uses the existing createCommitmentRegex function as internal helper
      */
     createRegex(): RegExp {
-        return createCommitmentRegex(this.type);
+        return createCommitmentRegex(this.type as BookCommitment);
     }
 
     /**
@@ -28,7 +29,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Uses the existing createCommitmentTypeRegex function as internal helper
      */
     createTypeRegex(): RegExp {
-        return createCommitmentTypeRegex(this.type);
+        return createCommitmentTypeRegex(this.type as BookCommitment);
     }
 
     /**

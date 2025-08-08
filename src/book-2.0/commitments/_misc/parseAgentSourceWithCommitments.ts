@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_agent_name } from '../../../types/typeAliases';
-import type { string_url_image } from '../../../types/typeAliases';
+import type { string_agent_name, string_url_image } from '../../../types/typeAliases';
 import type { AgentSourceBasicInformation } from '../../agent-source/parseAgentSource';
 import type { string_book } from '../../agent-source/string_book';
 import { generateGravatarUrl } from '../../utils/profileImageUtils';
 import { COMMITMENT_REGISTRY } from '../index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
 import type { ParsedCommitment } from './ParsedCommitment';
+import { BookCommitment } from '../_base/BookCommitment';
 
 /**
  * Parses agent source using the new commitment system with multiline support
@@ -59,7 +59,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Agent
                 if (currentCommitment) {
                     const fullContent = currentCommitment.contentLines.join('\n');
                     commitments.push({
-                        type: currentCommitment.type,
+                        type: currentCommitment.type as BookCommitment,
                         content: spaceTrim(fullContent),
                         originalLine: currentCommitment.originalStartLine,
                         lineNumber: currentCommitment.startLineNumber,
@@ -98,8 +98,8 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Agent
     if (currentCommitment) {
         const fullContent = currentCommitment.contentLines.join('\n');
         commitments.push({
-            type: currentCommitment.type,
-            content: spaceTrim(fullContent),
+            type: currentCommitment.type as BookCommitment,
+            content: spaceTrim(fullContent) as BookCommitment,
             originalLine: currentCommitment.originalStartLine,
             lineNumber: currentCommitment.startLineNumber,
         });
