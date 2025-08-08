@@ -2,7 +2,7 @@ import type { BookCommitment } from './_base/BookCommitment';
 import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 
 // Import all commitment definition classes
-import { $deepFreeze } from '../../_packages/utils.index';
+import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
