@@ -1,12 +1,10 @@
 import { parseAgentSource } from '../../agent-source/parseAgentSource';
 import type { string_book } from '../../agent-source/string_book';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import {
-    clearAgentModelRequirementsWithCommitmentsCache,
-    createAgentModelRequirementsWithCommitmentsCached,
-    getAgentModelRequirementsWithCommitmentsCacheSize,
-    invalidateAgentModelRequirementsWithCommitmentsCache,
-} from './createAgentModelRequirementsWithCommitments';
+import { clearAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
+import { createAgentModelRequirementsWithCommitmentsCached } from './createAgentModelRequirementsWithCommitments';
+import { getAgentModelRequirementsWithCommitmentsCacheSize } from './createAgentModelRequirementsWithCommitments';
+import { invalidateAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
 
 /**
  *  Cache for expensive createAgentModelRequirements calls
