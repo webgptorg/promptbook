@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { parseAgentSource } from './parseAgentSource';
-import { createAgentSource } from './string_agent_source';
+import { validateBook } from './string_book';
 
 describe('parseAgentSource', () => {
     it('parses minimal agent source (only name)', () => {
-        const agentSource = createAgentSource('Agent Name');
+        const agentSource = validateBook('Agent Name');
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('Agent Name');
         expect(result.personaDescription).toBe(null);
@@ -13,7 +13,7 @@ describe('parseAgentSource', () => {
     });
 
     it('parses agent with persona and profile image', () => {
-        const agentSource = createAgentSource(
+        const agentSource = validateBook(
             spaceTrim(`
                 Agent Name
                 PERSONA A helpful assistant
@@ -29,7 +29,7 @@ describe('parseAgentSource', () => {
     });
 
     it('parses agent with system message lines', () => {
-        const agentSource = createAgentSource(
+        const agentSource = validateBook(
             spaceTrim(`
                 Agent Name
                 PERSONA A helpful assistant
@@ -47,7 +47,7 @@ describe('parseAgentSource', () => {
     });
 
     it('parses agent with only system message', () => {
-        const agentSource = createAgentSource(
+        const agentSource = validateBook(
             spaceTrim(`
                 Agent Name
                 This is a system message.
@@ -60,12 +60,12 @@ describe('parseAgentSource', () => {
     });
 
     it('handles empty or whitespace input', () => {
-        expect(parseAgentSource(createAgentSource(''))).toEqual({
+        expect(parseAgentSource(validateBook(''))).toEqual({
             agentName: null,
             personaDescription: null,
             profileImageUrl: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
         });
-        expect(parseAgentSource(createAgentSource('   '))).toEqual({
+        expect(parseAgentSource(validateBook('   '))).toEqual({
             agentName: null,
             personaDescription: null,
             profileImageUrl: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
@@ -73,7 +73,7 @@ describe('parseAgentSource', () => {
     });
 
     it('handles blank lines in system message', () => {
-        const agentSource = createAgentSource(
+        const agentSource = validateBook(
             spaceTrim(`
                 Agent Name
 
@@ -89,7 +89,7 @@ describe('parseAgentSource', () => {
     });
 
     it('ignores malformed PERSONA and META IMAGE lines', () => {
-        const agentSource = createAgentSource(
+        const agentSource = validateBook(
             spaceTrim(`
                 Agent Name
                 PERSONA

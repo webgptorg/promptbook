@@ -1,10 +1,12 @@
 import { parseAgentSource } from '../../agent-source/parseAgentSource';
-import type { string_agent_source } from '../../agent-source/string_agent_source';
+import type { string_book } from '../../agent-source/string_book';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import { clearAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
-import { createAgentModelRequirementsWithCommitmentsCached } from './createAgentModelRequirementsWithCommitments';
-import { getAgentModelRequirementsWithCommitmentsCacheSize } from './createAgentModelRequirementsWithCommitments';
-import { invalidateAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
+import {
+    clearAgentModelRequirementsWithCommitmentsCache,
+    createAgentModelRequirementsWithCommitmentsCached,
+    getAgentModelRequirementsWithCommitmentsCacheSize,
+    invalidateAgentModelRequirementsWithCommitmentsCache,
+} from './createAgentModelRequirementsWithCommitments';
 
 /**
  *  Cache for expensive createAgentModelRequirements calls
@@ -27,7 +29,7 @@ const modelRequirementsCache = new Map<string, AgentModelRequirements>();
  * @public exported from `@promptbook/core`
  */
 export async function createAgentModelRequirements(
-    agentSource: string_agent_source,
+    agentSource: string_book,
     modelName: string = '!!!!DEFAULT_MODEL_ID',
 ): Promise<AgentModelRequirements> {
     // Use the new commitment-based system
@@ -50,7 +52,7 @@ export function clearAgentModelRequirementsCache(): void {
  * @param agentSource The agent source to remove from cache
  * @private
  */
-export function invalidateAgentModelRequirementsCache(agentSource: string_agent_source): void {
+export function invalidateAgentModelRequirementsCache(agentSource: string_book): void {
     // Remove all cache entries that start with this agent source
     const keysToDelete: string[] = [];
     for (const key of modelRequirementsCache.keys()) {
@@ -81,7 +83,7 @@ export function getAgentModelRequirementsCacheSize(): number {
  *
  * @private TODO: [🧠] Maybe should be public
  */
-export function extractMcpServers(agentSource: string_agent_source): string[] {
+export function extractMcpServers(agentSource: string_book): string[] {
     if (!agentSource) {
         return [];
     }
@@ -106,7 +108,7 @@ export function extractMcpServers(agentSource: string_agent_source): string[] {
  * @deprecated Use createAgentModelRequirements instead
  * @private
  */
-export async function createAgentSystemMessage(agentSource: string_agent_source): Promise<string> {
+export async function createAgentSystemMessage(agentSource: string_book): Promise<string> {
     const modelRequirements = await createAgentModelRequirements(agentSource);
     return modelRequirements.systemMessage;
 }
@@ -116,7 +118,7 @@ export async function createAgentSystemMessage(agentSource: string_agent_source)
  * @deprecated Use parseAgentSource instead
  * @private
  */
-export function extractAgentName(agentSource: string_agent_source): string {
+export function extractAgentName(agentSource: string_book): string {
     const { agentName } = parseAgentSource(agentSource);
 
     if (!agentName) {
@@ -133,7 +135,7 @@ export function extractAgentName(agentSource: string_agent_source): string {
  * @deprecated Use parseAgentSource instead
  * @private
  */
-export function extractAgentProfileImage(agentSource: string_agent_source): string {
+export function extractAgentProfileImage(agentSource: string_book): string {
     const { profileImageUrl } = parseAgentSource(agentSource);
     return profileImageUrl;
 }

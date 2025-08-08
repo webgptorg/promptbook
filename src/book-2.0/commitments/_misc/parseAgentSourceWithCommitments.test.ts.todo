@@ -2,12 +2,12 @@
 
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { createAgentSource } from '../../agent-source/string_agent_source';
+import { validateBook } from '../../agent-source/string_book';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 
 describe('parseAgentSourceWithCommitments with multiline support', () => {
     it('should parse single-line commitments correctly', () => {
-        const agentSource = createAgentSource(
+        const agentSource = validateBook(
             spaceTrim(`
             Test Agent
             PERSONA Some persona description
@@ -36,7 +36,7 @@ describe('parseAgentSourceWithCommitments with multiline support', () => {
     });
 
     it('should parse multiline commitments correctly', () => {
-        const agentSource = createAgentSource(
+        const agentSource = validateBook(
             spaceTrim(`
             Test Agent
             PERSONA Another persona description
@@ -104,7 +104,7 @@ describe('parseAgentSourceWithCommitments with multiline support', () => {
     });
 
     it('should handle the exact example from the requirements', () => {
-        const agentSource = createAgentSource(`Test Agent
+        const agentSource = validateBook(`Test Agent
 PERSONA Some persona description
 PERSONA Another persona description
 which is continued on the next line
@@ -190,7 +190,7 @@ and continued on the next line because the last keyword PERSONA was not at the s
     });
 
     it('should handle empty lines and preserve spacing in multiline content', () => {
-        const agentSource = createAgentSource(`Test Agent
+        const agentSource = validateBook(`Test Agent
 PERSONA First persona
 
 with empty line above
@@ -218,7 +218,7 @@ with empty line above`,
     });
 
     it('should handle commitments with no initial content on the same line', () => {
-        const agentSource = createAgentSource(`Test Agent
+        const agentSource = validateBook(`Test Agent
 PERSONA
 This is the content
 that continues on multiple lines
@@ -246,7 +246,7 @@ that continues on multiple lines`,
     });
 
     it('should handle non-commitment lines correctly', () => {
-        const agentSource = createAgentSource(`Test Agent
+        const agentSource = validateBook(`Test Agent
 This is not a commitment
 PERSONA Some persona
 Another line that is not a commitment

@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_agent_name } from '../../../types/typeAliases';
-import type { string_url_image } from '../../../types/typeAliases';
+import type { string_agent_name, string_url_image } from '../../../types/typeAliases';
 import type { AgentSourceBasicInformation } from '../../agent-source/parseAgentSource';
-import type { string_agent_source } from '../../agent-source/string_agent_source';
+import type { string_book } from '../../agent-source/string_book';
 import { generateGravatarUrl } from '../../utils/profileImageUtils';
 import { COMMITMENT_REGISTRY } from '../index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
@@ -14,7 +13,7 @@ import type { ParsedCommitment } from './ParsedCommitment';
  *
  * @private
  */
-export function parseAgentSourceWithCommitments(agentSource: string_agent_source): AgentSourceParseResult {
+export function parseAgentSourceWithCommitments(agentSource: string_book): AgentSourceParseResult {
     if (!agentSource || !agentSource.trim()) {
         return {
             agentName: null,
@@ -118,7 +117,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_agent_source
  *
  * @private
  */
-export function parseAgentSourceBasicInfo(agentSource: string_agent_source): AgentSourceBasicInformation {
+export function parseAgentSourceBasicInfo(agentSource: string_book): AgentSourceBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 
     // Find PERSONA and META IMAGE commitments
@@ -151,7 +150,7 @@ export function parseAgentSourceBasicInfo(agentSource: string_agent_source): Age
  *
  * @private
  */
-export function extractMetaLinks(agentSource: string_agent_source): string[] {
+export function extractMetaLinks(agentSource: string_book): string[] {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 
     const metaLinks: string[] = [];

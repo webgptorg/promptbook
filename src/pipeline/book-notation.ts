@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { isValidBook, string_book } from '../book-2.0/agent-source/string_book';
 import type { PipelineString } from './PipelineString';
 import { isValidPipelineString } from './isValidPipelineString';
 import { prompt } from './prompt-notation';
@@ -16,23 +17,36 @@ import { prompt } from './prompt-notation';
  * @returns the pipeline string
  * @public exported from `@promptbook/core`
  */
-export function book(strings: TemplateStringsArray, ...values: Array<string>): PipelineString {
-    const pipelineString = prompt(strings, ...values);
+export function book(strings: TemplateStringsArray, ...values: Array<string>): string_book & PipelineString {
+    const bookString = prompt(strings, ...values);
 
-    if (!isValidPipelineString(pipelineString)) {
+    if (!isValidPipelineString(bookString)) {
         // TODO: Make the CustomError for this
         throw new Error(
             spaceTrim(`
                 The string is not a valid pipeline string
 
                 book\`
-                    ${pipelineString}
+                    ${bookString}
                 \`
             `),
         );
     }
 
-    return pipelineString;
+    if (!isValidBook(bookString)) {
+        // TODO: Make the CustomError for this
+        throw new Error(
+            spaceTrim(`
+                The string is not a valid book
+
+                book\`
+                    ${bookString}
+                \`
+            `),
+        );
+    }
+
+    return bookString;
 }
 
 /**

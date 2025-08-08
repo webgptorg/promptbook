@@ -1,7 +1,6 @@
-import type { string_agent_name } from '../../types/typeAliases';
-import type { string_url_image } from '../../types/typeAliases';
+import type { string_agent_name, string_url_image } from '../../types/typeAliases';
 import { parseAgentSourceBasicInfo } from '../commitments/_misc/parseAgentSourceWithCommitments';
-import type { string_agent_source } from './string_agent_source';
+import type { string_book } from './string_book';
 
 export interface AgentSourceBasicInformation {
     /**
@@ -38,7 +37,7 @@ const parsedAgentSourceCache = new Map<string, AgentSourceBasicInformation>();
  *
  * @public exported from `@promptbook/core`
  */
-export function parseAgentSource(agentSource: string_agent_source): AgentSourceBasicInformation {
+export function parseAgentSource(agentSource: string_book): AgentSourceBasicInformation {
     // Check if we already parsed this agent source
     if (parsedAgentSourceCache.has(agentSource)) {
         return parsedAgentSourceCache.get(agentSource)!;

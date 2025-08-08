@@ -1,4 +1,4 @@
-import type { string_agent_source } from '../../agent-source/string_agent_source';
+import type { string_book } from '../../agent-source/string_book';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { getCommitmentDefinition } from '../index';
 import type { AgentModelRequirements } from './AgentModelRequirements';
@@ -14,7 +14,7 @@ import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessa
  * @private
  */
 export async function createAgentModelRequirementsWithCommitments(
-    agentSource: string_agent_source,
+    agentSource: string_book,
     modelName?: string,
 ): Promise<AgentModelRequirements> {
     // Parse the agent source to extract commitments
@@ -104,7 +104,7 @@ const CACHE_SIZE_LIMIT = 100;
  * @private
  */
 export async function createAgentModelRequirementsWithCommitmentsCached(
-    agentSource: string_agent_source,
+    agentSource: string_book,
     modelName?: string,
 ): Promise<AgentModelRequirements> {
     // Create cache key
@@ -146,7 +146,7 @@ export function clearAgentModelRequirementsWithCommitmentsCache(): void {
  *
  * @private
  */
-export function invalidateAgentModelRequirementsWithCommitmentsCache(agentSource: string_agent_source): void {
+export function invalidateAgentModelRequirementsWithCommitmentsCache(agentSource: string_book): void {
     const keysToDelete: string[] = [];
     for (const key of modelRequirementsCache.keys()) {
         if (key.startsWith(`${agentSource}|`)) {
