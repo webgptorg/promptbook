@@ -53,7 +53,7 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
      * Default model for chat variant.
      */
     protected getDefaultChatModel(): AvailableModel {
-        return this.getDefaultModel('gpt-4-turbo');
+        return this.getDefaultModel('gpt-5');
     }
 
     /**

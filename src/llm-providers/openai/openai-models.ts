@@ -14,6 +14,20 @@ import { pricing } from '../_common/utils/pricing';
 export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
     name: 'OPENAI_MODELS',
     value: [
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5',
+            modelName: 'gpt-5',
+            modelDescription:
+                "OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window. Features revolutionary improvements in complex problem-solving, scientific reasoning, and creative tasks. Demonstrates human-level performance across diverse domains with enhanced safety measures and alignment. Represents the next generation of AI with superior understanding, nuanced responses, and advanced multimodal capabilities.",
+            pricing: {
+                prompt: pricing(`$10.00 / 1M tokens`),
+                output: pricing(`$30.00 / 1M tokens`),
+            },
+        },
+        /**/
+
         /*/
           {
               modelTitle: 'dall-e-3',
