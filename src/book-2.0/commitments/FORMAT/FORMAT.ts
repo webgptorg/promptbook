@@ -23,6 +23,13 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
     }
 
     /**
+     * Short one-line description of FORMAT.
+     */
+    get description(): string {
+        return 'Specify output structure or formatting requirements.';
+    }
+
+    /**
      * Markdown documentation for FORMAT commitment.
      */
     get documentation(): string {

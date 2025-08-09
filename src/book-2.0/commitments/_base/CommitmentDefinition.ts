@@ -15,6 +15,12 @@ export interface CommitmentDefinition {
     readonly type: string;
 
     /**
+     * Short one-line markdown description of this commitment (no lists or code blocks).
+     * Keep it concise; may use inline markdown like **bold** or *italic*.
+     */
+    readonly description: string;
+
+    /**
      * Human-readable markdown documentation for this commitment.
      * Should explain what the commitment does and include example usage.
      * This is available at runtime for UIs, docs, and tooling.

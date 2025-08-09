@@ -22,6 +22,13 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
     }
 
     /**
+     * Short one-line description of ACTION.
+     */
+    get description(): string {
+        return 'Define agent capabilities and actions it can perform.';
+    }
+
+    /**
      * Markdown documentation for ACTION commitment.
      */
     get documentation(): string {

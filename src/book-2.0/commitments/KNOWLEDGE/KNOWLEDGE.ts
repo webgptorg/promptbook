@@ -30,6 +30,13 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
     }
 
     /**
+     * Short one-line description of KNOWLEDGE.
+     */
+    get description(): string {
+        return 'Add domain **knowledge** via direct text or external sources (RAG).';
+    }
+
+    /**
      * Markdown documentation for KNOWLEDGE commitment.
      */
     get documentation(): string {

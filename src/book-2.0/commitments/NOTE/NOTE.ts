@@ -33,6 +33,13 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
     }
 
     /**
+     * Short one-line description of NOTE.
+     */
+    get description(): string {
+        return 'Add developer-facing notes without changing behavior or output.';
+    }
+
+    /**
      * Markdown documentation for NOTE commitment.
      */
     get documentation(): string {

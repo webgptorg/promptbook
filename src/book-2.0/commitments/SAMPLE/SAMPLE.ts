@@ -22,6 +22,13 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
     }
 
     /**
+     * Short one-line description of SAMPLE/EXAMPLE.
+     */
+    get description(): string {
+        return 'Provide example responses to guide behavior.';
+    }
+
+    /**
      * Markdown documentation for SAMPLE/EXAMPLE commitment.
      */
     get documentation(): string {

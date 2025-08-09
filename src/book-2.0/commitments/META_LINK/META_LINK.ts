@@ -32,6 +32,13 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
     }
 
     /**
+     * Short one-line description of META LINK.
+     */
+    get description(): string {
+        return 'Provide profile/source links for the person the agent models.';
+    }
+
+    /**
      * Markdown documentation for META LINK commitment.
      */
     get documentation(): string {

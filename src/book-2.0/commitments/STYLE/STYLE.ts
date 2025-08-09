@@ -22,6 +22,13 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'>
     }
 
     /**
+     * Short one-line description of STYLE.
+     */
+    get description(): string {
+        return 'Control the tone and writing style of responses.';
+    }
+
+    /**
      * Markdown documentation for STYLE commitment.
      */
     get documentation(): string {

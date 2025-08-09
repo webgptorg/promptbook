@@ -30,6 +30,13 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
     }
 
     /**
+     * Short one-line description of PERSONA.
+     */
+    get description(): string {
+        return 'Define who the agent is: background, expertise, and personality.';
+    }
+
+    /**
      * Markdown documentation for PERSONA commitment.
      */
     get documentation(): string {

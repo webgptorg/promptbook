@@ -17,6 +17,13 @@ export class NotYetImplementedCommitmentDefinition<
     }
 
     /**
+     * Short one-line description of a placeholder commitment.
+     */
+    get description(): string {
+        return 'Placeholder commitment that appends content verbatim to the system message.';
+    }
+
+    /**
      * Markdown documentation available at runtime.
      */
     get documentation(): string {

@@ -24,6 +24,13 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'>
     }
 
     /**
+     * Short one-line description of MODEL.
+     */
+    get description(): string {
+        return 'Select the AI model and optional decoding parameters.';
+    }
+
+    /**
      * Markdown documentation for MODEL commitment.
      */
     get documentation(): string {

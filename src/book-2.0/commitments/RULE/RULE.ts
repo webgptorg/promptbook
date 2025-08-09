@@ -22,6 +22,13 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
     }
 
     /**
+     * Short one-line description of RULE/RULES.
+     */
+    get description(): string {
+        return 'Add behavioral rules the agent must follow.';
+    }
+
+    /**
      * Markdown documentation for RULE/RULES commitment.
      */
     get documentation(): string {

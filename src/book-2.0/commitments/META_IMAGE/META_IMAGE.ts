@@ -24,6 +24,13 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
     }
 
     /**
+     * Short one-line description of META IMAGE.
+     */
+    get description(): string {
+        return "Set the agent's profile image URL.";
+    }
+
+    /**
      * Markdown documentation for META IMAGE commitment.
      */
     get documentation(): string {

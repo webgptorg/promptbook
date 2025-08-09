@@ -17,6 +17,12 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     }
 
     /**
+     * Short one-line markdown description; concise, may use inline **markdown**.
+     * Must be implemented by each concrete commitment.
+     */
+    abstract get description(): string;
+
+    /**
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */
