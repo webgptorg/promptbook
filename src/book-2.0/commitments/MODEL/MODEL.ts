@@ -26,7 +26,7 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'>
     /**
      * Markdown documentation for MODEL commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# MODEL',
             '',

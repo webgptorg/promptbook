@@ -32,7 +32,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
     /**
      * Markdown documentation for PERSONA commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# PERSONA',
             '',

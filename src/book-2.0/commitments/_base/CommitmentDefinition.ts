@@ -19,7 +19,7 @@ export interface CommitmentDefinition {
      * Should explain what the commitment does and include example usage.
      * This is available at runtime for UIs, docs, and tooling.
      */
-    readonly description: string;
+    readonly documentation: string;
 
     /**
      * Creates a regex pattern to match this commitment in agent source

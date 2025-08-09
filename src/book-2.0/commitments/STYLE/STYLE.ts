@@ -24,7 +24,7 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'>
     /**
      * Markdown documentation for STYLE commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# STYLE',
             '',

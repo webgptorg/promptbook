@@ -24,7 +24,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
     /**
      * Markdown documentation for RULE/RULES commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             `# ${this.type}`,
             '',
@@ -35,7 +35,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
             '',
             'Examples:',
             '```book',
-            'RULE Always ask for clarification if the user\'s request is ambiguous',
+            "RULE Always ask for clarification if the user's request is ambiguous",
             'RULES Never provide medical advice, always refer to healthcare professionals',
             '```',
             '',

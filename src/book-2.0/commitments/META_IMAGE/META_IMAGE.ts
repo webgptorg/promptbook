@@ -26,7 +26,7 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
     /**
      * Markdown documentation for META IMAGE commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# META IMAGE',
             '',
@@ -42,7 +42,9 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
             'META IMAGE /assets/agent-avatar.png',
             '```',
             '',
-        ].join('\\n').replace(/\\\\n/g, '\\n');
+        ]
+            .join('\\n')
+            .replace(/\\\\n/g, '\\n');
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

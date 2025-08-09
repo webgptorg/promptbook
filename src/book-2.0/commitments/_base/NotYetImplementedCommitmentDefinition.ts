@@ -19,7 +19,7 @@ export class NotYetImplementedCommitmentDefinition<
     /**
      * Markdown documentation available at runtime.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             `# ${this.type}`,
             ``,

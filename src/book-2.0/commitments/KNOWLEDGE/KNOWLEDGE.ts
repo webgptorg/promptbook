@@ -32,7 +32,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
     /**
      * Markdown documentation for KNOWLEDGE commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# KNOWLEDGE',
             '',

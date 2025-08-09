@@ -34,7 +34,7 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
     /**
      * Markdown documentation for META LINK commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# META LINK',
             '',
@@ -52,7 +52,9 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
             'META LINK https://github.com/username',
             '```',
             '',
-        ].join('\\n').replace(/\\\\n/g, '\\n');
+        ]
+            .join('\\n')
+            .replace(/\\\\n/g, '\\n');
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

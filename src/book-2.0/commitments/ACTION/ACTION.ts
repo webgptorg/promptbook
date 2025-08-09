@@ -24,7 +24,7 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
     /**
      * Markdown documentation for ACTION commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# ACTION',
             '',

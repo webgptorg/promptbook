@@ -1,6 +1,5 @@
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
-import { createCommitmentRegex } from '../_misc/createCommitmentRegex';
-import { createCommitmentTypeRegex } from '../_misc/createCommitmentRegex';
+import { createCommitmentRegex, createCommitmentTypeRegex } from '../_misc/createCommitmentRegex';
 import type { BookCommitment } from './BookCommitment';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 
@@ -21,7 +20,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */
-    abstract get description(): string;
+    abstract get documentation(): string;
 
     /**
      * Creates a regex pattern to match this commitment in agent source

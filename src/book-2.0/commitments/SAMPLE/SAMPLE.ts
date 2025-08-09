@@ -24,7 +24,7 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
     /**
      * Markdown documentation for SAMPLE/EXAMPLE commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             `# ${this.type}`,
             '',
@@ -39,7 +39,9 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
             'EXAMPLE For code questions, always include working code snippets',
             '```',
             '',
-        ].join('\\n').replace(/\\\\n/g, '\\n');
+        ]
+            .join('\\n')
+            .replace(/\\\\n/g, '\\n');
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

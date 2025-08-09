@@ -35,7 +35,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
     /**
      * Markdown documentation for NOTE commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# NOTE',
             '',

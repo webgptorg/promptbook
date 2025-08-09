@@ -25,7 +25,7 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
     /**
      * Markdown documentation for FORMAT commitment.
      */
-    get description(): string {
+    get documentation(): string {
         return [
             '# FORMAT',
             '',
