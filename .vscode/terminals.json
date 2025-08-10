@@ -146,6 +146,13 @@
             "focus": true
         },
         {
+            "name": "🏭✨ Generate prompt boilerplates",
+            "command": "npm run generate-prompt-boilerplates",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭🩹 Fix imports",
             "commands": ["npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
             "execute": true,

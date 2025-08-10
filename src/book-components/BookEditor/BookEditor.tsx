@@ -5,6 +5,9 @@ import type { string_book } from '@promptbook/types';
 import { Libre_Baskerville } from 'next/font/google';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+/**
+ * @private within the BookEditor component
+ */
 const libreBaskerville = Libre_Baskerville({
     subsets: ['latin'],
     weight: ['400', '700'],
