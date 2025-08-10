@@ -16,5 +16,9 @@
         "modules/sdk/types/**": true,
         "*/**/node_modules/": true
     },
-    "grammarly.domain": "technical"
+    "grammarly.domain": "technical",
+    "markdown.copyFiles.destination": {
+        "prompts/*md": "${documentDirName}/screenshots/${documentBaseName}.png"
+    },
+    "explorer.copyRelativePathSeparator": "/"
 }

@@ -4,15 +4,15 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import { spaceTrim } from 'spacetrim';
 import chalk from 'chalk';
 import { writeFileSync } from 'fs';
 import glob from 'glob-promise';
 import { join } from 'path';
-import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
+import { spaceTrim } from 'spacetrim';
+import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from '../../src/utils/sets/difference';
-import { $shuffleItems } from './utils/$shuffleItems';
-import type { string_char_emoji } from '../../src/utils/typeAliasEmoji';
+import { $shuffleItems } from '../find-fresh-emoji-tag/utils/$shuffleItems';
+import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../find-fresh-emoji-tag/utils/emojis';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(chalk.red(`CWD must be root of the project`));
