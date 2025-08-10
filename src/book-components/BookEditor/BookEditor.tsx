@@ -29,6 +29,8 @@ interface BookEditorProps {
 
 /**
  * Escape HTML to safely render user text inside a <pre> with dangerouslySetInnerHTML.
+ *
+ * @private within the BookEditor component
  */
 function escapeHtml(input: string): string {
     return input.replaceAll(/&/g, '&amp;').replaceAll(/</g, '&lt;').replaceAll(/>/g, '&gt;');
@@ -36,6 +38,8 @@ function escapeHtml(input: string): string {
 
 /**
  * Escape text for safe use inside a RegExp pattern.
+ *
+ * @private within the BookEditor component
  */
 function escapeRegex(input: string): string {
     return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -52,6 +56,8 @@ function escapeRegex(input: string): string {
  * Note on highlighting:
  * A transparent textarea is overlaid on top of a highlighted <pre>.
  * We sync scroll positions so the highlight stays aligned with typed text.
+ *
+ * @public exported from `@promptbook/components`
  */
 export default function BookEditor(props: BookEditorProps) {
     const { className = '', value: controlledValue, onChange } = props;
@@ -100,9 +106,11 @@ export default function BookEditor(props: BookEditorProps) {
         measure();
 
         // Re-measure after fonts load (metrics can change once font renders)
-        const fontsReady: Promise<unknown> | undefined = (document as Document & {
-            fonts?: { ready?: Promise<unknown> };
-        }).fonts?.ready;
+        const fontsReady: Promise<unknown> | undefined = (
+            document as Document & {
+                fonts?: { ready?: Promise<unknown> };
+            }
+        ).fonts?.ready;
         if (fontsReady && typeof (fontsReady as Promise<unknown>).then === 'function') {
             fontsReady
                 .then(() => {
