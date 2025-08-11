@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
@@ -34,28 +35,27 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'>
      * Markdown documentation for MODEL commitment.
      */
     get documentation(): string {
-        return [
-            '# MODEL',
-            '',
-            'Specifies which AI model to use and optional decoding parameters.',
-            '',
-            'Supported parameters:',
-            '- temperature: number',
-            '- topP (aka top_p): number',
-            '- topK (aka top_k): integer',
-            '',
-            'Effects on requirements:',
-            '- Sets modelName from the first token.',
-            '- Parses optional parameters and assigns them to requirements (temperature, topP, topK).',
-            '',
-            'Examples:',
-            '```book',
-            'MODEL gpt-4',
-            'MODEL claude-3-opus temperature=0.3',
-            'MODEL gpt-3.5-turbo temperature=0.8 topP=0.9',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # MODEL
+
+            Specifies which AI model to use and optional decoding parameters.
+
+            Supported parameters:
+            - temperature: number
+            - topP (aka top_p): number
+            - topK (aka top_k): integer
+
+            Effects on requirements:
+            - Sets modelName from the first token.
+            - Parses optional parameters and assigns them to requirements (temperature, topP, topK).
+
+            Examples:
+            \`\`\`book
+            MODEL gpt-4
+            MODEL claude-3-opus temperature=0.3
+            MODEL gpt-3.5-turbo temperature=0.8 topP=0.9
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -40,32 +41,31 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
      * Markdown documentation for PERSONA commitment.
      */
     get documentation(): string {
-        return [
-            '# PERSONA',
-            '',
-            'Defines who the agent is, their background, expertise, and personality traits.',
-            '',
-            'Key behaviors:',
-            '- Multiple PERSONA commitments are merged together.',
-            '- The merged content is placed at the beginning of the system message.',
-            '- Original PERSONA lines are preserved in metadata.PERSONA.',
-            '- Comment lines (# PERSONA) are removed from the final system message.',
-            '',
-            'Effects on system message:',
-            '- Creates a section:',
-            '  ```',
-            '  # PERSONA',
-            '  You are {agentName}',
-            '  {merged persona content}',
-            '  ```',
-            '',
-            'Examples:',
-            '```book',
-            'PERSONA You are a helpful programming assistant with expertise in TypeScript and React',
-            'PERSONA You have deep knowledge of modern web development practices',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # PERSONA
+
+            Defines who the agent is, their background, expertise, and personality traits.
+
+            Key behaviors:
+            - Multiple PERSONA commitments are merged together.
+            - The merged content is placed at the beginning of the system message.
+            - Original PERSONA lines are preserved in metadata.PERSONA.
+            - Comment lines (# PERSONA) are removed from the final system message.
+
+            Effects on system message:
+            - Creates a section:
+              \`\`\`
+              # PERSONA
+              You are {agentName}
+              {merged persona content}
+              \`\`\`
+
+            Examples:
+            \`\`\`book
+            PERSONA You are a helpful programming assistant with expertise in TypeScript and React
+            PERSONA You have deep knowledge of modern web development practices
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 import { BaseCommitmentDefinition } from './BaseCommitmentDefinition';
 
@@ -27,21 +28,20 @@ export class NotYetImplementedCommitmentDefinition<
      * Markdown documentation available at runtime.
      */
     get documentation(): string {
-        return [
-            `# ${this.type}`,
-            ``,
-            `This commitment is not yet fully implemented.`,
-            `Until it is, its content is appended 1:1 to the system message, preserving current behavior.`,
-            ``,
-            `- Status: Placeholder`,
-            `- Effect: Appends a line to the system message prefixed by the commitment type`,
-            ``,
-            `Example:`,
-            `\`\`\`book`,
-            `${this.type} Your content here`,
-            `\`\`\``,
-            ``,
-        ].join('\n');
+        return spaceTrim(`
+            # ${this.type}
+
+            This commitment is not yet fully implemented.
+            Until it is, its content is appended 1:1 to the system message, preserving current behavior.
+
+            - Status: Placeholder
+            - Effect: Appends a line to the system message prefixed by the commitment type
+
+            Example:
+            \`\`\`book
+            ${this.type} Your content here
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

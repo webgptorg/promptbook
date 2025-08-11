@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -32,21 +33,20 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
      * Markdown documentation for RULE/RULES commitment.
      */
     get documentation(): string {
-        return [
-            `# ${this.type}`,
-            '',
-            'Adds behavioral constraints and guidelines that the agent must follow.',
-            '',
-            'Effects on system message:',
-            '- Appends a "Rule: ..." line to the system message.',
-            '',
-            'Examples:',
-            '```book',
-            "RULE Always ask for clarification if the user's request is ambiguous",
-            'RULES Never provide medical advice, always refer to healthcare professionals',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # ${this.type}
+
+            Adds behavioral constraints and guidelines that the agent must follow.
+
+            Effects on system message:
+            - Appends a "Rule: ..." line to the system message.
+
+            Examples:
+            \`\`\`book
+            RULE Always ask for clarification if the user's request is ambiguous
+            RULES Never provide medical advice, always refer to healthcare professionals
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

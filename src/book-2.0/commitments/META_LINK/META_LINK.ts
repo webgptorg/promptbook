@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
@@ -42,26 +43,23 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
      * Markdown documentation for META LINK commitment.
      */
     get documentation(): string {
-        return [
-            '# META LINK',
-            '',
-            'Represents a profile or source link for the person the agent is modeled after.',
-            '',
-            'Behavior:',
-            '- Does not modify the system message.',
-            '- Parsing logic extracts and stores the link for profile display.',
-            '- Multiple META LINK lines are allowed when there are multiple sources.',
-            '',
-            'Examples:',
-            '```book',
-            'META LINK https://twitter.com/username',
-            'META LINK https://linkedin.com/in/profile',
-            'META LINK https://github.com/username',
-            '```',
-            '',
-        ]
-            .join('\\n')
-            .replace(/\\\\n/g, '\\n');
+        return spaceTrim(`
+            # META LINK
+
+            Represents a profile or source link for the person the agent is modeled after.
+
+            Behavior:
+            - Does not modify the system message.
+            - Parsing logic extracts and stores the link for profile display.
+            - Multiple META LINK lines are allowed when there are multiple sources.
+
+            Examples:
+            \`\`\`book
+            META LINK https://twitter.com/username
+            META LINK https://linkedin.com/in/profile
+            META LINK https://github.com/username
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

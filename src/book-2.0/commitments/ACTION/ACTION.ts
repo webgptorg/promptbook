@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -32,21 +33,20 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
      * Markdown documentation for ACTION commitment.
      */
     get documentation(): string {
-        return [
-            '# ACTION',
-            '',
-            'Defines specific actions or capabilities that the agent can perform.',
-            '',
-            'Effects on system message:',
-            '- Appends a "Capability: ..." line to the system message.',
-            '',
-            'Examples:',
-            '```book',
-            'ACTION Can generate code snippets and explain programming concepts',
-            'ACTION Able to analyze data and provide insights',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # ACTION
+
+            Defines specific actions or capabilities that the agent can perform.
+
+            Effects on system message:
+            - Appends a "Capability: ..." line to the system message.
+
+            Examples:
+            \`\`\`book
+            ACTION Can generate code snippets and explain programming concepts
+            ACTION Able to analyze data and provide insights
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { string_url } from '../../../types/typeAliases';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
@@ -40,27 +41,26 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
      * Markdown documentation for KNOWLEDGE commitment.
      */
     get documentation(): string {
-        return [
-            '# KNOWLEDGE',
-            '',
-            'Adds specific knowledge, facts, or context to the agent using a RAG (Retrieval-Augmented Generation) approach for external sources.',
-            '',
-            'Two modes:',
-            '- Direct text knowledge: Appends a "Knowledge: ..." line to the system message.',
-            '- URL knowledge source: Stores the URL in metadata.knowledgeSources and a ragService for retrieval at chat time, and appends an informational line to the system message.',
-            '',
-            'Metadata effects when URL is used:',
-            '- metadata.ragService = FrontendRAGService instance',
-            '- metadata.knowledgeSources += [url]',
-            '',
-            'Examples:',
-            '```book',
-            'KNOWLEDGE The company was founded in 2020 and specializes in AI-powered solutions',
-            'KNOWLEDGE https://example.com/company-handbook.pdf',
-            'KNOWLEDGE https://example.com/product-documentation.pdf',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # KNOWLEDGE
+
+            Adds specific knowledge, facts, or context to the agent using a RAG (Retrieval-Augmented Generation) approach for external sources.
+
+            Two modes:
+            - Direct text knowledge: Appends a "Knowledge: ..." line to the system message.
+            - URL knowledge source: Stores the URL in metadata.knowledgeSources and a ragService for retrieval at chat time, and appends an informational line to the system message.
+
+            Metadata effects when URL is used:
+            - metadata.ragService = FrontendRAGService instance
+            - metadata.knowledgeSources += [url]
+
+            Examples:
+            \`\`\`book
+            KNOWLEDGE The company was founded in 2020 and specializes in AI-powered solutions
+            KNOWLEDGE https://example.com/company-handbook.pdf
+            KNOWLEDGE https://example.com/product-documentation.pdf
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

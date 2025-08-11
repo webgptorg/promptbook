@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -33,21 +34,20 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
      * Markdown documentation for FORMAT commitment.
      */
     get documentation(): string {
-        return [
-            '# FORMAT',
-            '',
-            'Defines the specific output structure and formatting for responses (data formats, templates, structure).',
-            '',
-            'Effects on system message:',
-            '- Appends an "Output Format: ..." line to the system message.',
-            '',
-            'Examples:',
-            '```book',
-            "FORMAT Always respond in JSON format with 'status' and 'data' fields",
-            'FORMAT Use markdown formatting for all code blocks',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # FORMAT
+
+            Defines the specific output structure and formatting for responses (data formats, templates, structure).
+
+            Effects on system message:
+            - Appends an "Output Format: ..." line to the system message.
+
+            Examples:
+            \`\`\`book
+            FORMAT Always respond in JSON format with 'status' and 'data' fields
+            FORMAT Use markdown formatting for all code blocks
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

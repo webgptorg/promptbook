@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -32,21 +33,20 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'>
      * Markdown documentation for STYLE commitment.
      */
     get documentation(): string {
-        return [
-            '# STYLE',
-            '',
-            'Defines how the agent should format and present its responses (tone, writing style, formatting).',
-            '',
-            'Effects on system message:',
-            '- Appends a "Style: ..." line to the system message.',
-            '',
-            'Examples:',
-            '```book',
-            'STYLE Write in a professional but friendly tone, use bullet points for lists',
-            'STYLE Always provide code examples when explaining programming concepts',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # STYLE
+
+            Defines how the agent should format and present its responses (tone, writing style, formatting).
+
+            Effects on system message:
+            - Appends a "Style: ..." line to the system message.
+
+            Examples:
+            \`\`\`book
+            STYLE Write in a professional but friendly tone, use bullet points for lists
+            STYLE Always provide code examples when explaining programming concepts
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

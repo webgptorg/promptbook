@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -43,24 +44,23 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
      * Markdown documentation for NOTE commitment.
      */
     get documentation(): string {
-        return [
-            '# NOTE',
-            '',
-            'Adds comments for documentation without changing system message or model requirements.',
-            '',
-            'Key behaviors:',
-            '- Makes no changes to the system message.',
-            '- Makes no changes to requirements.',
-            '- Aggregates multiple NOTE lines into metadata.NOTE.',
-            '',
-            'Examples:',
-            '```book',
-            'NOTE This agent was designed for customer support scenarios',
-            'NOTE Remember to update the knowledge base monthly',
-            'NOTE Performance optimized for quick response times',
-            '```',
-            '',
-        ].join('\n');
+        return spaceTrim(`
+            # NOTE
+
+            Adds comments for documentation without changing system message or model requirements.
+
+            Key behaviors:
+            - Makes no changes to the system message.
+            - Makes no changes to requirements.
+            - Aggregates multiple NOTE lines into metadata.NOTE.
+
+            Examples:
+            \`\`\`book
+            NOTE This agent was designed for customer support scenarios
+            NOTE Remember to update the knowledge base monthly
+            NOTE Performance optimized for quick response times
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {

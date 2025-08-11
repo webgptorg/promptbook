@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
@@ -32,23 +33,20 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
      * Markdown documentation for SAMPLE/EXAMPLE commitment.
      */
     get documentation(): string {
-        return [
-            `# ${this.type}`,
-            '',
-            'Provides examples of how the agent should respond or behave in certain situations.',
-            '',
-            'Effects on system message:',
-            '- Appends an "Example: ..." line to the system message.',
-            '',
-            'Examples:',
-            '```book',
-            'SAMPLE When asked about pricing, respond: "Our basic plan starts at $10/month..."',
-            'EXAMPLE For code questions, always include working code snippets',
-            '```',
-            '',
-        ]
-            .join('\\n')
-            .replace(/\\\\n/g, '\\n');
+        return spaceTrim(`
+            # ${this.type}
+
+            Provides examples of how the agent should respond or behave in certain situations.
+
+            Effects on system message:
+            - Appends an "Example: ..." line to the system message.
+
+            Examples:
+            \`\`\`book
+            SAMPLE When asked about pricing, respond: "Our basic plan starts at $10/month..."
+            EXAMPLE For code questions, always include working code snippets
+            \`\`\`
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
