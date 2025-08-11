@@ -38,13 +38,31 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
 
             Defines specific actions or capabilities that the agent can perform.
 
-            Effects on system message:
-            - Appends a "Capability: ..." line to the system message.
+            ## Key behaviors
 
-            Examples:
+            - Multiple \`ACTION\` commitments are applied sequentially.
+            - Each action adds to the agent's capability list.
+            - Actions help users understand what the agent can do.
+
+            ## Examples
+
             \`\`\`book
+            Code Assistant
+
+            PERSONA You are a programming assistant
             ACTION Can generate code snippets and explain programming concepts
+            ACTION Able to debug existing code and suggest improvements
+            ACTION Can create unit tests for functions
+            \`\`\`
+
+            \`\`\`book
+            Data Scientist
+
+            PERSONA You are a data analysis expert
             ACTION Able to analyze data and provide insights
+            ACTION Can create visualizations and charts
+            ACTION Capable of statistical analysis and modeling
+            KNOWLEDGE Data analysis best practices and statistical methods
             \`\`\`
         `);
     }

@@ -48,16 +48,32 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
 
             Represents a profile or source link for the person the agent is modeled after.
 
-            Behavior:
-            - Does not modify the system message.
-            - Parsing logic extracts and stores the link for profile display.
-            - Multiple META LINK lines are allowed when there are multiple sources.
+            ## Key behaviors
 
-            Examples:
+            - Does not modify the agent's behavior or responses.
+            - Multiple \`META LINK\` commitments can be used for different social profiles.
+            - Used for attribution and crediting the original person.
+            - Displayed in user interfaces for transparency.
+
+            ## Examples
+
             \`\`\`book
-            META LINK https://twitter.com/username
-            META LINK https://linkedin.com/in/profile
-            META LINK https://github.com/username
+            Expert Consultant
+
+            META LINK https://twitter.com/expertname
+            META LINK https://linkedin.com/in/expertprofile
+            PERSONA You are Dr. Smith, a renowned expert in artificial intelligence
+            KNOWLEDGE Extensive background in machine learning and neural networks
+            \`\`\`
+
+            \`\`\`book
+            Open Source Developer
+
+            META LINK https://github.com/developer
+            META LINK https://twitter.com/devhandle
+            PERSONA You are an experienced open source developer
+            ACTION Can help with code reviews and architecture decisions
+            STYLE Be direct and technical in explanations
             \`\`\`
         `);
     }

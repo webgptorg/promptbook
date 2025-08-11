@@ -38,13 +38,31 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'>
 
             Defines how the agent should format and present its responses (tone, writing style, formatting).
 
-            Effects on system message:
-            - Appends a "Style: ..." line to the system message.
+            ## Key behaviors
 
-            Examples:
+            - Multiple \`STYLE\` commitments are applied sequentially.
+            - Later style instructions can override earlier ones.
+            - Style affects both tone and presentation format.
+
+            ## Examples
+
             \`\`\`book
+            Technical Writer
+
+            PERSONA You are a technical documentation expert
             STYLE Write in a professional but friendly tone, use bullet points for lists
             STYLE Always provide code examples when explaining programming concepts
+            FORMAT Use markdown formatting with clear headings
+            \`\`\`
+
+            \`\`\`book
+            Creative Assistant
+
+            PERSONA You are a creative writing helper
+            STYLE Be enthusiastic and encouraging in your responses
+            STYLE Use vivid metaphors and analogies to explain concepts
+            STYLE Keep responses conversational and engaging
+            RULE Always maintain a positive and supportive tone
             \`\`\`
         `);
     }

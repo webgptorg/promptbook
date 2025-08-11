@@ -47,18 +47,35 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
         return spaceTrim(`
             # NOTE
 
-            Adds comments for documentation without changing system message or model requirements.
+            Adds comments for documentation without changing agent behavior.
 
-            Key behaviors:
-            - Makes no changes to the system message.
-            - Makes no changes to requirements.
-            - Aggregates multiple NOTE lines into metadata.NOTE.
+            ## Key behaviors
 
-            Examples:
+            - Does not modify the agent's behavior or responses.
+            - Multiple \`NOTE\` commitments are aggregated for debugging.
+            - Useful for documenting design decisions and reminders.
+            - Content is preserved in metadata for inspection.
+
+            ## Examples
+
             \`\`\`book
+            Customer Support Bot
+
             NOTE This agent was designed for customer support scenarios
             NOTE Remember to update the knowledge base monthly
+            PERSONA You are a helpful customer support representative
+            KNOWLEDGE Company policies and procedures
+            RULE Always be polite and professional
+            \`\`\`
+
+            \`\`\`book
+            Research Assistant
+
             NOTE Performance optimized for quick response times
+            NOTE Uses RAG for accessing latest research papers
+            PERSONA You are a knowledgeable research assistant
+            ACTION Can help with literature reviews and citations
+            STYLE Present information in academic format
             \`\`\`
         `);
     }

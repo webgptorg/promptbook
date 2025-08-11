@@ -40,14 +40,30 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
 
             Sets the agent's avatar/profile image URL.
 
-            Behavior:
-            - Does not modify the system message.
-            - Handled separately by parsing logic to extract and store a profile image URL.
+            ## Key behaviors
 
-            Examples:
+            - Does not modify the agent's behavior or responses.
+            - Only one \`META IMAGE\` should be used per agent.
+            - If multiple are specified, the last one takes precedence.
+            - Used for visual representation in user interfaces.
+
+            ## Examples
+
             \`\`\`book
-            META IMAGE https://example.com/avatar.jpg
-            META IMAGE /assets/agent-avatar.png
+            Professional Assistant
+
+            META IMAGE https://example.com/professional-avatar.jpg
+            PERSONA You are a professional business assistant
+            STYLE Maintain a formal and courteous tone
+            \`\`\`
+
+            \`\`\`book
+            Creative Helper
+
+            META IMAGE /assets/creative-bot-avatar.png
+            PERSONA You are a creative and inspiring assistant
+            STYLE Be enthusiastic and encouraging
+            ACTION Can help with brainstorming and ideation
             \`\`\`
         `);
     }

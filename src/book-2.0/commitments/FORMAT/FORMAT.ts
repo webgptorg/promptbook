@@ -39,13 +39,29 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
 
             Defines the specific output structure and formatting for responses (data formats, templates, structure).
 
-            Effects on system message:
-            - Appends an "Output Format: ..." line to the system message.
+            ## Key behaviors
 
-            Examples:
+            - Multiple \`FORMAT\` commitments are applied sequentially.
+            - If they are in conflict, the last one takes precedence.
+            - You can specify both data formats and presentation styles.
+
+            ## Examples
+
             \`\`\`book
+            Customer Support Bot
+
+            PERSONA You are a helpful customer support agent
             FORMAT Always respond in JSON format with 'status' and 'data' fields
             FORMAT Use markdown formatting for all code blocks
+            \`\`\`
+
+            \`\`\`book
+            Data Analyst
+
+            PERSONA You are a data analysis expert
+            FORMAT Present results in structured tables
+            FORMAT Include confidence scores for all predictions
+            STYLE Be concise and precise in explanations
             \`\`\`
         `);
     }

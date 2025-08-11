@@ -46,19 +46,38 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 
             Adds specific knowledge, facts, or context to the agent using a RAG (Retrieval-Augmented Generation) approach for external sources.
 
-            Two modes:
-            - Direct text knowledge: Appends a "Knowledge: ..." line to the system message.
-            - URL knowledge source: Stores the URL in metadata.knowledgeSources and a ragService for retrieval at chat time, and appends an informational line to the system message.
+            ## Key behaviors
 
-            Metadata effects when URL is used:
-            - metadata.ragService = FrontendRAGService instance
-            - metadata.knowledgeSources += [url]
+            - Multiple \`KNOWLEDGE\` commitments are applied sequentially.
+            - Supports both direct text knowledge and external URLs.
+            - External sources (PDFs, websites) are processed via RAG for context retrieval.
 
-            Examples:
+            ## Supported formats
+
+            - Direct text: Immediate knowledge incorporated into agent
+            - URLs: External documents processed for contextual retrieval
+            - Supported file types: PDF, text, markdown, HTML
+
+            ## Examples
+
             \`\`\`book
-            KNOWLEDGE The company was founded in 2020 and specializes in AI-powered solutions
+            Customer Support Bot
+
+            PERSONA You are a helpful customer support agent for TechCorp
+            KNOWLEDGE TechCorp was founded in 2020 and specializes in AI-powered solutions
             KNOWLEDGE https://example.com/company-handbook.pdf
             KNOWLEDGE https://example.com/product-documentation.pdf
+            RULE Always be polite and professional
+            \`\`\`
+
+            \`\`\`book
+            Research Assistant
+
+            PERSONA You are a knowledgeable research assistant
+            KNOWLEDGE Academic research requires careful citation and verification
+            KNOWLEDGE https://example.com/research-guidelines.pdf
+            ACTION Can help with literature reviews and data analysis
+            STYLE Present information in clear, academic format
             \`\`\`
         `);
     }

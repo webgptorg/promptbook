@@ -32,14 +32,27 @@ export class NotYetImplementedCommitmentDefinition<
             # ${this.type}
 
             This commitment is not yet fully implemented.
-            Until it is, its content is appended 1:1 to the system message, preserving current behavior.
 
-            - Status: Placeholder
-            - Effect: Appends a line to the system message prefixed by the commitment type
+            ## Key behaviors
 
-            Example:
+            - Content is appended directly to the system message.
+            - No special processing or validation is performed.
+            - Behavior preserved until proper implementation is added.
+
+            ## Status
+
+            - **Status:** Placeholder implementation
+            - **Effect:** Appends content prefixed by commitment type
+            - **Future:** Will be replaced with specialized logic
+
+            ## Examples
+
             \`\`\`book
+            Example Agent
+
+            PERSONA You are a helpful assistant
             ${this.type} Your content here
+            RULE Always be helpful
             \`\`\`
         `);
     }

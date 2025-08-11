@@ -38,13 +38,32 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
 
             Adds behavioral constraints and guidelines that the agent must follow.
 
-            Effects on system message:
-            - Appends a "Rule: ..." line to the system message.
+            ## Key behaviors
 
-            Examples:
+            - Multiple \`RULE\` and \`RULES\` commitments are applied sequentially.
+            - All rules are treated equally regardless of singular/plural form.
+            - Rules define what the agent must or must not do.
+
+            ## Examples
+
             \`\`\`book
+            Customer Support Agent
+
+            PERSONA You are a helpful customer support representative
             RULE Always ask for clarification if the user's request is ambiguous
-            RULES Never provide medical advice, always refer to healthcare professionals
+            RULE Be polite and professional in all interactions
+            RULES Never provide medical or legal advice
+            STYLE Maintain a friendly and helpful tone
+            \`\`\`
+
+            \`\`\`book
+            Educational Tutor
+
+            PERSONA You are a patient and knowledgeable tutor
+            RULE Break down complex concepts into simple steps
+            RULE Always encourage students and celebrate their progress
+            RULE If you don't know something, admit it and suggest resources
+            SAMPLE When explaining math: "Let's work through this step by step..."
             \`\`\`
         `);
     }

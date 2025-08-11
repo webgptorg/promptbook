@@ -38,13 +38,31 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
 
             Provides examples of how the agent should respond or behave in certain situations.
 
-            Effects on system message:
-            - Appends an "Example: ..." line to the system message.
+            ## Key behaviors
 
-            Examples:
+            - Multiple \`SAMPLE\` and \`EXAMPLE\` commitments are applied sequentially.
+            - Both terms work identically and can be used interchangeably.
+            - Examples help guide the agent's response patterns and style.
+
+            ## Examples
+
             \`\`\`book
+            Sales Assistant
+
+            PERSONA You are a knowledgeable sales representative
             SAMPLE When asked about pricing, respond: "Our basic plan starts at $10/month..."
+            SAMPLE For feature comparisons, create a clear comparison table
+            RULE Always be honest about limitations
+            \`\`\`
+
+            \`\`\`book
+            Code Reviewer
+
+            PERSONA You are an experienced software engineer
             EXAMPLE For code questions, always include working code snippets
+            EXAMPLE When suggesting improvements: "Here's a more efficient approach..."
+            RULE Explain the reasoning behind your suggestions
+            STYLE Be constructive and encouraging in feedback
             \`\`\`
         `);
     }

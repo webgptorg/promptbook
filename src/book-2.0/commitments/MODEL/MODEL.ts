@@ -40,20 +40,35 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'>
 
             Specifies which AI model to use and optional decoding parameters.
 
-            Supported parameters:
-            - temperature: number
-            - topP (aka top_p): number
-            - topK (aka top_k): integer
+            ## Key behaviors
 
-            Effects on requirements:
-            - Sets modelName from the first token.
-            - Parses optional parameters and assigns them to requirements (temperature, topP, topK).
+            - Only one \`MODEL\` commitment should be used per agent.
+            - If multiple are specified, the last one takes precedence.
+            - Parameters control the randomness and creativity of responses.
 
-            Examples:
+            ## Supported parameters
+
+            - \`temperature\`: Controls randomness (0.0 = deterministic, 1.0+ = creative)
+            - \`topP\` (aka \`top_p\`): Nucleus sampling parameter
+            - \`topK\` (aka \`top_k\`): Top-k sampling parameter
+
+            ## Examples
+
             \`\`\`book
-            MODEL gpt-4
-            MODEL claude-3-opus temperature=0.3
-            MODEL gpt-3.5-turbo temperature=0.8 topP=0.9
+            Precise Assistant
+
+            PERSONA You are a precise and accurate assistant
+            MODEL gpt-4 temperature=0.1
+            RULE Always provide factual information
+            \`\`\`
+
+            \`\`\`book
+            Creative Writer
+
+            PERSONA You are a creative writing assistant
+            MODEL claude-3-opus temperature=0.8 topP=0.9
+            STYLE Be imaginative and expressive
+            ACTION Can help with storytelling and character development
             \`\`\`
         `);
     }
