@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DEFAULT_BOOK, getAllCommitmentDefinitions, validateBook } from '../../_packages/core.index';
-import { string_book } from '../../_packages/types.index';
+import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
+import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
+import { validateBook } from '../../book-2.0/agent-source/string_book';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 
 /*/
 /**
