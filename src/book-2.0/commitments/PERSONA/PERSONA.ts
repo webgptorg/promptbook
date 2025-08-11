@@ -46,22 +46,17 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
 
             Defines who the agent is, their background, expertise, and personality traits.
 
-            Key behaviors:
-            - Multiple PERSONA commitments are merged together.
-            - The merged content is placed at the beginning of the system message.
-            - Original PERSONA lines are preserved in metadata.PERSONA.
-            - Comment lines (# PERSONA) are removed from the final system message.
+            ## Key behaviors
 
-            Effects on system message:
-            - Creates a section:
-              \`\`\`
-              # PERSONA
-              You are {agentName}
-              {merged persona content}
-              \`\`\`
+            - Multiple \`PERSONA\` commitments are merged together.
+            - If they are in conflict, the last one takes precedence.
+            - You can write persona content in multiple lines.
 
-            Examples:
+            ## Examples
+
             \`\`\`book
+            Programming Assistant
+
             PERSONA You are a helpful programming assistant with expertise in TypeScript and React
             PERSONA You have deep knowledge of modern web development practices
             \`\`\`
