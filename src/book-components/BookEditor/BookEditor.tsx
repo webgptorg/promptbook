@@ -1,23 +1,33 @@
 'use client';
 
-import { DEFAULT_BOOK, getAllCommitmentDefinitions, validateBook } from '@promptbook/core';
-import type { string_book } from '@promptbook/types';
-import { Libre_Baskerville } from 'next/font/google';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DEFAULT_BOOK, getAllCommitmentDefinitions, validateBook } from '../../_packages/core.index';
+import { string_book } from '../../_packages/types.index';
 
+/*/
 /**
  * @private within the BookEditor component
- */
+ * /
+[7]
+import { Libre_Baskerville } from 'next/font/google';
 const libreBaskerville = Libre_Baskerville({
     subsets: ['latin'],
     weight: ['400', '700'],
 });
+// <- TODO: !!!! Do not pass the font but use it directly in the component, fontClassName should be just optional
+/**/
 
-interface BookEditorProps {
+export interface BookEditorProps {
     /**
      * Additional CSS classes to apply to the editor container.
      */
     className?: string;
+
+    /**
+     * CSS className for a font (e.g. from next/font) to style the editor text.
+     * If omitted, defaults to system fonts.
+     */
+    fontClassName?: string;
 
     /**
      * The book which is being edited.
@@ -28,6 +38,12 @@ interface BookEditorProps {
      * Callback function to handle changes in the book content.
      */
     onChange?: (value: string_book) => void;
+
+    /**
+     * List of commitment keywords to highlight (case-insensitive).
+     * If not provided, a default set is used.
+     */
+    commitmentTypes?: string[];
 }
 
 /**
@@ -49,21 +65,12 @@ function escapeRegex(input: string): string {
 }
 
 /**
- * Renders a book editor component that allows users to edit a book's content.
- * - Uses Libre Baskerville font with larger readable sizing
- * - Lined paper look with a subtle center fold line
- * - Tall editor area
- * - Highlights commitment keywords (PERSONA, KNOWLEDGE, EXAMPLE, ...) using @promptbook/core helpers
- * - Tailwind CSS styling
- *
- * Note on highlighting:
- * A transparent textarea is overlaid on top of a highlighted <pre>.
- * We sync scroll positions so the highlight stays aligned with typed text.
+ * Renders a book editor
  *
  * @public exported from `@promptbook/components`
  */
-export default function BookEditor(props: BookEditorProps) {
-    const { className = '', value: controlledValue, onChange } = props;
+export function BookEditor(props: BookEditorProps) {
+    const { className = '', value: controlledValue, onChange, fontClassName = '', commitmentTypes } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -131,7 +138,7 @@ export default function BookEditor(props: BookEditorProps) {
         };
     }, []);
 
-    // Build the regex for commitment types using @promptbook/core
+    // Build the regex for commitment types
     const typeRegex = useMemo(() => {
         const allTypes = getAllCommitmentDefinitions().map(({ type }) => String(type));
         const pattern = `\\b(?:${allTypes.map((t) => escapeRegex(t)).join('|')})\\b`;
@@ -146,7 +153,7 @@ export default function BookEditor(props: BookEditorProps) {
         let lastIndex = 0;
         let out = '';
 
-        text.replace(r, (match, ...args) => {
+        text.replace(r, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number; // offset
             out += escapeHtml(text.slice(lastIndex, index));
             out += `<span class="text-indigo-700">${escapeHtml(match)}</span>`;
@@ -164,7 +171,8 @@ export default function BookEditor(props: BookEditorProps) {
                 className={[
                     'relative overflow-hidden rounded-2xl border border-gray-300/80 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-300/40',
                     'transition-shadow duration-200 hover:shadow-md',
-                    libreBaskerville.className,
+                    fontClassName,
+                    // [7] libreBaskerville.className,
                 ].join(' ')}
             >
                 {/* Lined paper background */}
@@ -192,6 +200,7 @@ export default function BookEditor(props: BookEditorProps) {
                         'pl-[46px] pr-[46px]',
                         // Ensure highlighted text sits below the textarea but remains visible
                         'z-10',
+                        fontClassName,
                     ].join(' ')}
                     style={{
                         lineHeight: `${lineHeight}px`,
@@ -219,7 +228,8 @@ export default function BookEditor(props: BookEditorProps) {
                         // Typography
                         'text-transparent caret-gray-900 selection:bg-indigo-200/60',
                         'text-lg md:text-xl',
-                        libreBaskerville.className,
+                        fontClassName,
+                        // [7] libreBaskerville.className,
                         // Layout and visuals
                         'bg-transparent outline-none resize-none',
                         'py-6 md:py-8',

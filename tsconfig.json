@@ -18,7 +18,8 @@
         "noEmit": true,
         "sourceMap": true,
         "declaration": true,
-        "outDir": "typings"
+        "outDir": "typings",
+        "jsx": "react-jsx"
     },
     "include": ["src", "books", "src/cli/test/ptbk.test.ts", "src/remote-server/other/index.umd.js"],
     "exclude": ["src/scrapers/pdf/lib/pdf2md"]

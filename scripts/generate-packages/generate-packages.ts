@@ -97,8 +97,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (!importPath.startsWith('.')) {
                 importPath = './' + importPath;
             }
-            if (importPath.endsWith('.ts')) {
-                importPath = importPath.slice(0, -3);
+            if (importPath.endsWith('.ts') || importPath.endsWith('.tsx')) {
+                importPath = importPath.replace(/\.(ts|tsx)$/, '');
             }
             const typePrefix = !isType ? '' : ' type';
 
@@ -610,7 +610,15 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             packageJson.typings = `./esm/typings/src/_packages/${packageBasename}.index.d.ts`;
         }
 
-        if (
+        if (packageFullname === '@promptbook/components') {
+            // React component library should rely on host app React versions
+            packageJson.peerDependencies = {
+                react: '>=17.0.0',
+                'react-dom': '>=17.0.0',
+            };
+            // Ensure no hard dependency on React to avoid duplicate installs/bundles
+            delete (packageJson as any).dependencies;
+        } else if (
             !['@promptbook/core', '@promptbook/utils', '@promptbook/cli', '@promptbook/markdown-utils'].includes(
                 packageFullname,
             )
@@ -666,6 +674,15 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             packageJson.bin = {
                 ptbk: 'bin/promptbook-cli-proxy.js',
             };
+        }
+
+        // Finalize dependencies for React component library: ensure React stays as peer only
+        if (packageFullname === '@promptbook/components' && (packageJson as any).dependencies) {
+            delete (packageJson as any).dependencies['react'];
+            delete (packageJson as any).dependencies['react-dom'];
+            if (Object.keys((packageJson as any).dependencies).length === 0) {
+                delete (packageJson as any).dependencies;
+            }
         }
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
