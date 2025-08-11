@@ -38,12 +38,6 @@ export interface BookEditorProps {
      * Callback function to handle changes in the book content.
      */
     onChange?: (value: string_book) => void;
-
-    /**
-     * List of commitment keywords to highlight (case-insensitive).
-     * If not provided, a default set is used.
-     */
-    commitmentTypes?: string[];
 }
 
 /**
@@ -70,7 +64,7 @@ function escapeRegex(input: string): string {
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
-    const { className = '', value: controlledValue, onChange, fontClassName = '', commitmentTypes } = props;
+    const { className = '', value: controlledValue, onChange, fontClassName = '' } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
