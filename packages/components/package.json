@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/components",
-    "version": "0.100.0-23",
+    "version": "0.100.0-24",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -93,5 +93,8 @@
     "peerDependencies": {
         "react": ">=17.0.0",
         "react-dom": ">=17.0.0"
+    },
+    "dependencies": {
+        "spacetrim": "0.11.59"
     }
 }
