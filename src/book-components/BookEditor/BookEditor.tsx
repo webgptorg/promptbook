@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
-import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
-import { validateBook } from '../../book-2.0/agent-source/string_book';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
+import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 
 /*/
 /**
@@ -182,7 +181,6 @@ export function BookEditor(props: BookEditorProps) {
                         backgroundImage: 'none',
                     }}
                 />
-
                 {/* Highlight layer */}
                 <pre
                     ref={highlightRef}
@@ -232,6 +230,7 @@ export function BookEditor(props: BookEditorProps) {
                         'pl-[46px] pr-[46px]',
                     ].join(' ')}
                     style={{ lineHeight: `${lineHeight}px` }}
+                    placeholder={DEFAULT_BOOK}
                     spellCheck={false}
                 />
             </div>
