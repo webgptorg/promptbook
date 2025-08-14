@@ -495,7 +495,7 @@ async function main() {
                                 loadComponent();
 
                                 // Poll for changes every 3 seconds
-                                const interval = setInterval(loadComponent, 3000);
+                                const interval = setInterval(loadComponent, /* 3000 */ 99999999);
 
                                 return () => {
                                     isMounted = false;
@@ -686,8 +686,7 @@ async function main() {
                     <div class="container">
                         <a href="/" class="back-link">← Back to Playground</a>
                         <h1>📝 BookEditor Component Preview</h1>
-                        <p><strong>🔥 This is the LIVE BookEditor component</strong> loaded directly from <code>src/book-components/BookEditor/BookEditor.tsx</code></p>
-                        <p>Changes to the source file will be reflected here automatically.</p>
+                        <p>Loaded from <code>src/book-components/BookEditor/BookEditor.tsx</code></p>
 
                         <div class="live-component-container">
                             <div id="book-editor-root">
@@ -758,7 +757,7 @@ async function main() {
                                 loadComponent();
 
                                 // Poll for changes every 3 seconds
-                                const interval = setInterval(loadComponent, 3000);
+                                const interval = setInterval(loadComponent, /* 3000 */ 99999999);
 
                                 return () => {
                                     isMounted = false;

@@ -163,7 +163,7 @@ export function BookEditor(props: BookEditorProps) {
     }, [value, typeRegex]);
 
     return (
-        <div className={`w-full ${className}`}>
+        <div className={`w-full ${className}`} data-book-component="BookEditor">
             <div
                 className={[
                     'relative overflow-hidden rounded-2xl border border-gray-300/80 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-300/40',
