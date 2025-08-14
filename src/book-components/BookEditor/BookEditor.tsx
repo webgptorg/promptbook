@@ -5,18 +5,12 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 
-/*/
 /**
+ * Default font class name for the BookEditor component
+ * In Next.js environments, you can override this by importing the font directly
  * @private within the BookEditor component
- * /
-[7]
-import { Libre_Baskerville } from 'next/font/google';
-const libreBaskerville = Libre_Baskerville({
-    subsets: ['latin'],
-    weight: ['400', '700'],
-});
-// <- TODO: !!!! Do not pass the font but use it directly in the component, fontClassName should be just optional
-/**/
+ */
+const DEFAULT_FONT_CLASS = 'font-serif';
 
 export interface BookEditorProps {
     /**
@@ -26,7 +20,7 @@ export interface BookEditorProps {
 
     /**
      * CSS className for a font (e.g. from next/font) to style the editor text.
-     * If omitted, defaults to system fonts.
+     * If omitted, defaults to system serif fonts.
      */
     fontClassName?: string;
 
@@ -67,10 +61,13 @@ function escapeRegex(input: string): string {
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
-    const { className = '', value: controlledValue, onChange, fontClassName = '' } = props;
+    const { className = '', value: controlledValue, onChange, fontClassName } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
+    
+    // Use provided fontClassName or fallback to default serif font
+    const effectiveFontClassName = fontClassName || DEFAULT_FONT_CLASS;
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const highlightRef = useRef<HTMLPreElement>(null);
@@ -168,8 +165,7 @@ export function BookEditor(props: BookEditorProps) {
                 className={[
                     'relative overflow-hidden rounded-2xl border border-gray-300/80 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-300/40',
                     'transition-shadow duration-200 hover:shadow-md',
-                    fontClassName,
-                    // [7] libreBaskerville.className,
+                    effectiveFontClassName,
                 ].join(' ')}
             >
                 {/* Lined paper background */}
@@ -196,7 +192,7 @@ export function BookEditor(props: BookEditorProps) {
                         'pl-[46px] pr-[46px]',
                         // Ensure highlighted text sits below the textarea but remains visible
                         'z-10',
-                        fontClassName,
+                        effectiveFontClassName,
                     ].join(' ')}
                     style={{
                         lineHeight: `${lineHeight}px`,
@@ -224,8 +220,7 @@ export function BookEditor(props: BookEditorProps) {
                         // Typography
                         'text-transparent caret-gray-900 selection:bg-indigo-200/60',
                         'text-lg md:text-xl',
-                        fontClassName,
-                        // [7] libreBaskerville.className,
+                        effectiveFontClassName,
                         // Layout and visuals
                         'bg-transparent outline-none resize-none',
                         'py-6 md:py-8',
