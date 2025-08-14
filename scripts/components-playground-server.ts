@@ -6,11 +6,93 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import express from 'express';
+import { readFile } from 'fs';
 import { createServer } from 'http';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import * as ts from 'typescript';
+import { promisify } from 'util';
 import { forEver } from 'waitasecond';
 import { assertsError } from '../src/errors/assertsError';
+
+const readFileAsync = promisify(readFile);
+
+/**
+ * Transpiles TypeScript/TSX code to JavaScript that can run in the browser
+ */
+function transpileComponent(sourceCode: string): string {
+    try {
+        // Remove imports and exports that won't work in browser
+        let processedCode = sourceCode
+            // Remove import statements
+            .replace(/import\s+.*?from\s+['"][^'"]*['"];?\s*/g, '')
+            // Remove 'use client' directive
+            .replace(/'use client';\s*/g, '')
+            // Remove export keyword from function
+            .replace(/export\s+function\s+BookEditor/g, 'function BookEditor')
+            // Remove export keyword from interface
+            .replace(/export\s+interface\s+BookEditorProps/g, 'interface BookEditorProps');
+
+        // Add dependencies as global variables at the top
+        const dependenciesCode = `
+            // Mock dependencies for browser environment
+            const DEFAULT_BOOK = \`# 🌟 Sample Book
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {topic}
+-   OUTPUT PARAMETER {article}
+
+## Write an Article
+
+-   PERSONA Jane, marketing specialist with prior experience in tech and AI writing
+-   KNOWLEDGE https://wikipedia.org/
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 5 Pages
+
+> Write an article about {topic}
+
+→ {article}\`;
+
+            function getAllCommitmentDefinitions() {
+                return [
+                    { type: 'PERSONA' }, { type: 'KNOWLEDGE' }, { type: 'STYLE' },
+                    { type: 'RULE' }, { type: 'RULES' }, { type: 'SAMPLE' },
+                    { type: 'EXAMPLE' }, { type: 'FORMAT' }, { type: 'MODEL' },
+                    { type: 'ACTION' }, { type: 'META IMAGE' }, { type: 'META LINK' },
+                    { type: 'NOTE' }, { type: 'EXPECT' }, { type: 'SCENARIO' },
+                    { type: 'SCENARIOS' }, { type: 'BEHAVIOUR' }, { type: 'BEHAVIOURS' },
+                    { type: 'AVOID' }, { type: 'AVOIDANCE' }, { type: 'GOAL' },
+                    { type: 'GOALS' }, { type: 'CONTEXT' }, { type: 'BOOK VERSION' },
+                    { type: 'INPUT PARAMETER' }, { type: 'OUTPUT PARAMETER' }
+                ];
+            }
+
+            function validateBook(content) {
+                return content; // Simplified validation for browser
+            }
+
+            // React imports (assuming React is loaded globally)
+            const { useState, useCallback, useEffect, useMemo, useRef } = React;
+        `;
+
+        processedCode = dependenciesCode + '\n' + processedCode;
+
+        // Use TypeScript compiler to transpile TSX to JS
+        const result = ts.transpile(processedCode, {
+            target: ts.ScriptTarget.ES2018,
+            module: ts.ModuleKind.None,
+            jsx: ts.JsxEmit.React,
+            jsxFactory: 'React.createElement',
+            allowSyntheticDefaultImports: true,
+            esModuleInterop: true,
+        });
+
+        return result;
+    } catch (error) {
+        console.error('Error transpiling component:', error);
+        throw error;
+    }
+}
 
 if (process.cwd() !== join(__dirname, '..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -41,6 +123,45 @@ async function main() {
 
     // Serve static files (for any CSS, JS, or assets we might need)
     app.use('/static', express.static(join(__dirname, '..', 'public')));
+
+    // Serve the actual BookEditor component source
+    app.get('/components/BookEditor/source', async (req, res) => {
+        try {
+            const componentPath = join(__dirname, '..', 'src', 'book-components', 'BookEditor', 'BookEditor.tsx');
+            const componentSource = await readFileAsync(componentPath, 'utf-8');
+
+            res.json({
+                name: 'BookEditor',
+                source: componentSource,
+                path: componentPath,
+                lastModified: new Date().toISOString(),
+            });
+        } catch (error) {
+            res.status(500).json({
+                error: 'Failed to read BookEditor component',
+                details: error instanceof Error ? error.message : String(error),
+            });
+        }
+    });
+
+    // Serve the transpiled BookEditor component for browser use
+    app.get('/components/BookEditor/transpiled', async (req, res) => {
+        try {
+            const componentPath = join(__dirname, '..', 'src', 'book-components', 'BookEditor', 'BookEditor.tsx');
+            const componentSource = await readFileAsync(componentPath, 'utf-8');
+
+            const transpiledCode = transpileComponent(componentSource);
+
+            res.set('Content-Type', 'application/javascript');
+            res.send(transpiledCode);
+        } catch (error) {
+            console.error('Error transpiling BookEditor:', error);
+            res.status(500).json({
+                error: 'Failed to transpile BookEditor component',
+                details: error instanceof Error ? error.message : String(error),
+            });
+        }
+    });
 
     // API endpoint to get component information
     app.get('/api/components', (req, res) => {
@@ -88,7 +209,7 @@ async function main() {
     // Main playground page
     app.get('/', (req, res) => {
         try {
-            // Create the full HTML page with inline React demo
+            // Create the full HTML page with live React demo
             const html = spaceTrim(`
                 <!DOCTYPE html>
                 <html lang="en">
@@ -166,30 +287,29 @@ async function main() {
                             margin-bottom: 20px;
                         }
 
-                        .demo-editor {
+                        .live-component-container {
                             border: 1px solid #ddd;
                             border-radius: 8px;
                             padding: 20px;
                             background: #f9f9f9;
                             margin: 20px 0;
-                            min-height: 200px;
-                            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+                            min-height: 300px;
                         }
 
-                        .api-info {
-                            background: #e3f2fd;
+                        .error-display {
+                            background: #fee;
+                            border: 1px solid #fcc;
                             padding: 15px;
                             border-radius: 8px;
-                            margin-top: 20px;
-                            border-left: 4px solid #2196f3;
+                            color: #c44;
+                            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+                            white-space: pre-wrap;
                         }
 
-                        .footer {
+                        .loading {
                             text-align: center;
-                            margin-top: 40px;
-                            padding-top: 20px;
-                            border-top: 1px solid #dee2e6;
-                            color: #6c757d;
+                            color: #666;
+                            padding: 40px;
                         }
 
                         .status-badge {
@@ -201,46 +321,78 @@ async function main() {
                             font-weight: bold;
                         }
 
-                        .code-preview {
-                            background: #2d3748;
-                            color: #e2e8f0;
-                            padding: 20px;
-                            border-radius: 8px;
-                            overflow-x: auto;
-                            margin: 20px 0;
-                        }
-
-                        .code-preview pre {
-                            margin: 0;
-                            white-space: pre-wrap;
-                        }
-
-                        .warning-banner {
-                            background: #fff3cd;
-                            border: 1px solid #ffeaa7;
-                            border-radius: 8px;
-                            padding: 15px;
-                            margin: 20px 0;
-                            color: #856404;
-                        }
-
-                        .feature-list {
-                            list-style: none;
-                            padding-left: 0;
-                        }
-
-                        .feature-list li {
-                            margin: 8px 0;
-                            padding-left: 20px;
-                            position: relative;
-                        }
-
-                        .feature-list li:before {
-                            content: '✓';
-                            position: absolute;
-                            left: 0;
-                            color: #28a745;
+                        .live-badge {
+                            background: #17a2b8;
+                            color: white;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
                             font-weight: bold;
+                            margin-left: 10px;
+                        }
+
+                        .footer {
+                            text-align: center;
+                            margin-top: 40px;
+                            padding-top: 20px;
+                            border-top: 1px solid #dee2e6;
+                            color: #6c757d;
+                        }
+
+                        /* BookEditor specific styles - comprehensive Tailwind CSS classes */
+                        .w-full { width: 100%; }
+                        .relative { position: relative; }
+                        .flex { display: flex; }
+                        .flex-col { flex-direction: column; }
+                        .gap-4 { gap: 1rem; }
+                        .mb-4 { margin-bottom: 1rem; }
+                        .resize-none { resize: none; }
+                        .outline-none { outline: none; }
+                        .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+                        .text-sm { font-size: 0.875rem; }
+                        .text-lg { font-size: 1.125rem; }
+                        .leading-relaxed { line-height: 1.625; }
+                        .p-4 { padding: 1rem; }
+                        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+                        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+                        .pl-\\[46px\\] { padding-left: 46px; }
+                        .pr-\\[46px\\] { padding-right: 46px; }
+                        .border { border-width: 1px; }
+                        .border-gray-300 { border-color: #d1d5db; }
+                        .border-gray-300\\/80 { border-color: rgba(209, 213, 219, 0.8); }
+                        .rounded-lg { border-radius: 0.5rem; }
+                        .rounded-2xl { border-radius: 1rem; }
+                        .bg-white { background-color: #ffffff; }
+                        .bg-transparent { background-color: transparent; }
+                        .text-transparent { color: transparent; }
+                        .text-gray-900 { color: #111827; }
+                        .text-gray-600 { color: #4b5563; }
+                        .caret-gray-900 { caret-color: #111827; }
+                        .absolute { position: absolute; }
+                        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+                        .z-10 { z-index: 10; }
+                        .z-20 { z-index: 20; }
+                        .pointer-events-none { pointer-events: none; }
+                        .overflow-auto { overflow: auto; }
+                        .overflow-hidden { overflow: hidden; }
+                        .whitespace-pre-wrap { white-space: pre-wrap; }
+                        .text-indigo-700 { color: #3730a3; }
+                        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+                        .hover\\:shadow-md:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+                        .transition-shadow { transition-property: box-shadow; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+                        .duration-200 { transition-duration: 200ms; }
+                        .focus-within\\:ring-2:focus-within { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000); }
+                        .focus-within\\:ring-indigo-300\\/40:focus-within { --tw-ring-color: rgba(165, 180, 252, 0.4); }
+                        .selection\\:bg-indigo-200\\/60 *::selection { background-color: rgba(199, 210, 254, 0.6); }
+                        .selection\\:bg-indigo-200\\/60::selection { background-color: rgba(199, 210, 254, 0.6); }
+                        .h-\\[28rem\\] { height: 28rem; }
+                        .h-\\[36rem\\] { height: 36rem; }
+
+                        /* Medium screens and up */
+                        @media (min-width: 768px) {
+                            .md\\:text-xl { font-size: 1.25rem; }
+                            .md\\:py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+                            .md\\:h-\\[36rem\\] { height: 36rem; }
                         }
                     </style>
                 </head>
@@ -250,6 +402,7 @@ async function main() {
                         <p class="subtitle">
                             Testing ground for <code>@promptbook/components</code> React components
                             <span class="status-badge">Server Running</span>
+                            <span class="live-badge">Live Component</span>
                         </p>
 
                         <div class="component-info">
@@ -259,133 +412,126 @@ async function main() {
                                 for promptbook files with syntax highlighting of commitment types like
                                 <strong>PERSONA</strong>, <strong>KNOWLEDGE</strong>, <strong>STYLE</strong>, etc.
                             </p>
-                            <ul class="feature-list">
-                                <li><strong>Location:</strong> <code>src/book-components/BookEditor/BookEditor.tsx</code></li>
-                                <li><strong>Package:</strong> <code>@promptbook/components</code></li>
-                                <li><strong>Framework:</strong> React 18+</li>
-                                <li><strong>TypeScript:</strong> Full type support</li>
-                                <li><strong>Styling:</strong> Tailwind-compatible classes</li>
-                            </ul>
-                        </div>
-
-                        <div class="warning-banner">
-                            <strong>⚠️ Note:</strong> This is a server-side rendering demo. The actual BookEditor component
-                            requires a browser environment with React. For real usage, install
-                            <code>@promptbook/components</code> in your React application.
+                            <p><strong>🔥 This is the LIVE component loaded directly from:</strong> <code>src/book-components/BookEditor/BookEditor.tsx</code></p>
                         </div>
 
                         <div class="playground-section">
-                            <h2>🎮 Component Preview</h2>
-                            <p>Here's what the BookEditor component looks like when rendered:</p>
+                            <h2>🎮 Live Component Preview</h2>
+                            <p>Here's the actual BookEditor component running live. Changes to the source file will be reflected here:</p>
 
-                            <div class="demo-editor">
-                                # 🌟 Sample Book
-
-                                -   BOOK VERSION 1.0.0
-                                -   INPUT PARAMETER {topic}
-                                -   OUTPUT PARAMETER {article}
-
-                                ## Write an Article
-
-                                -   PERSONA Jane, marketing specialist with prior experience in tech and AI writing
-                                -   KNOWLEDGE https://wikipedia.org/
-                                -   EXPECT MIN 1 Sentence
-                                -   EXPECT MAX 5 Pages
-
-                                > Write an article about {topic}
-
-                                → {article}
+                            <div class="live-component-container">
+                                <div id="book-editor-root">
+                                    <div class="loading">Loading BookEditor component...</div>
+                                </div>
                             </div>
-                            <p><em>📝 This is a static representation. The actual component includes syntax highlighting,
-                            real-time editing, and line numbering.</em></p>
-                        </div>
-
-                        <div class="playground-section">
-                            <h2>💻 Usage Example</h2>
-                            <div class="code-preview">
-<pre>
-import { BookEditor } from '@promptbook/components';
-import { validateBook } from '@promptbook/core';
-
-export default function MyApp() {
-  const [bookContent, setBookContent] = useState(validateBook(\`
-    # My First Book
-
-    -   PERSONA A helpful assistant
-    -   KNOWLEDGE Basic conversational skills
-
-    ## Greeting
-
-    > Hello! How can I help you today?
-
-    → {response}
-  \`));
-
-  return (
-    &lt;div className="p-6"&gt;
-      &lt;BookEditor
-        className="max-w-3xl mx-auto"
-        value={bookContent}
-        onChange={setBookContent}
-      /&gt;
-    &lt;/div&gt;
-  );
-}
-</pre>
-                            </div>
-                        </div>
-
-                        <div class="playground-section">
-                            <h2>🔧 Props Interface</h2>
-                            <div class="code-preview">
-<pre>
-interface BookEditorProps {
-  // Additional CSS classes for wrapper
-  className?: string;
-
-  // Optional font className (e.g. from next/font)
-  fontClassName?: string;
-
-  // Controlled value of the book text
-  value?: string_book;
-
-  // Controlled change handler
-  onChange?: (value: string_book) => void;
-}
-</pre>
-                            </div>
-                        </div>
-
-                        <div class="api-info">
-                            <h3>🔌 API Endpoints</h3>
-                            <ul>
-                                <li><strong>GET /api/components</strong> - Get component information and examples</li>
-                                <li><strong>GET /health</strong> - Health check endpoint</li>
-                                <li><strong>GET /components/BookEditor</strong> - BookEditor specific preview</li>
-                            </ul>
-                            <p>This playground server is running on <strong>localhost:4461</strong></p>
                         </div>
 
                         <div class="footer">
                             <p>
                                 Promptbook Components Playground Server •
                                 <a href="/api/components" target="_blank">View API</a> •
+                                <a href="/components/BookEditor/source" target="_blank">Component Source</a> •
                                 <a href="/health" target="_blank">Health Check</a> •
                                 <a href="https://github.com/webgptorg/promptbook" target="_blank">GitHub</a>
                             </p>
                         </div>
                     </div>
 
-                    <script>
-                        // Add some basic interactivity
-                        console.log('🧸 Promptbook Components Playground loaded');
-                        console.log('Components available:', ['BookEditor']);
-                        console.log('Server running on localhost:4461');
+                    <script type="text/babel">
+                        const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-                        // Simple demo functionality
-                        document.addEventListener('DOMContentLoaded', function() {
-                            console.log('✅ Playground initialized');
-                        });
+                        // Global component reference that will be set by the dynamically loaded component
+                        let DynamicBookEditor = null;
+
+                        // App component
+                        function App() {
+                            const [bookContent, setBookContent] = useState('');
+                            const [error, setError] = useState(null);
+                            const [componentSource, setComponentSource] = useState(null);
+                            const [componentLoaded, setComponentLoaded] = useState(false);
+
+                            // Load the actual component source and transpiled version
+                            useEffect(() => {
+                                let isMounted = true;
+
+                                async function loadComponent() {
+                                    try {
+                                        // Load component metadata
+                                        const sourceResponse = await fetch('/components/BookEditor/source');
+                                        if (!sourceResponse.ok) {
+                                            throw new Error(\`HTTP \${sourceResponse.status}: \${sourceResponse.statusText}\`);
+                                        }
+                                        const sourceData = await sourceResponse.json();
+
+                                        // Load transpiled component
+                                        const transpiledResponse = await fetch('/components/BookEditor/transpiled');
+                                        if (!transpiledResponse.ok) {
+                                            throw new Error(\`HTTP \${transpiledResponse.status}: \${transpiledResponse.statusText}\`);
+                                        }
+                                        const transpiledCode = await transpiledResponse.text();
+
+                                        if (isMounted) {
+                                            setComponentSource(sourceData);
+
+                                            // Execute the transpiled component code
+                                            try {
+                                                const script = new Function(transpiledCode + '; return BookEditor;');
+                                                DynamicBookEditor = script();
+                                                setComponentLoaded(true);
+                                                console.log('📝 Loaded and transpiled BookEditor from:', sourceData.path);
+                                            } catch (execError) {
+                                                console.error('❌ Error executing transpiled component:', execError);
+                                                setError(\`Failed to execute component: \${execError.message}\`);
+                                            }
+                                        }
+                                    } catch (err) {
+                                        if (isMounted) {
+                                            setError(\`Failed to load component: \${err.message}\`);
+                                            console.error('❌ Error loading component:', err);
+                                        }
+                                    }
+                                }
+
+                                loadComponent();
+
+                                // Poll for changes every 3 seconds
+                                const interval = setInterval(loadComponent, 3000);
+
+                                return () => {
+                                    isMounted = false;
+                                    clearInterval(interval);
+                                };
+                            }, []);
+
+                            if (error) {
+                                return React.createElement('div', { className: 'error-display' }, error);
+                            }
+
+                            if (!componentLoaded || !DynamicBookEditor) {
+                                return React.createElement('div', { className: 'loading' },
+                                    componentSource ?
+                                        \`🔄 Transpiling component from \${componentSource.path}...\` :
+                                        '⏳ Loading component source...'
+                                );
+                            }
+
+                            return React.createElement('div', { className: 'flex flex-col gap-4' },
+                                React.createElement('div', { className: 'mb-4' },
+                                    React.createElement('p', { className: 'text-sm text-gray-600' },
+                                        \`✅ Live component loaded from: \${componentSource.path} (last modified: \${new Date(componentSource.lastModified).toLocaleTimeString()})\`
+                                    )
+                                ),
+                                React.createElement(DynamicBookEditor, {
+                                    className: 'max-w-4xl mx-auto',
+                                    value: bookContent,
+                                    onChange: setBookContent
+                                })
+                            );
+                        }
+
+                        // Render the app
+                        const root = ReactDOM.createRoot(document.getElementById('book-editor-root'));
+                        root.render(React.createElement(App));
                     </script>
                 </body>
                 </html>
