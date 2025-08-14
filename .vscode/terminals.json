@@ -44,6 +44,13 @@
             "focus": false
         },
         {
+            "name": "🧸 Components Playground Server",
+            "command": "npx ts-node ./scripts/components-playground-server.ts",
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
             "name": "🧪 Spell check",
             "command": "npm run spellcheck",
             "execute": false,

@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨📶] Make some testing playground for `@promptbook/components`
 
