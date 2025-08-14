@@ -20,5 +20,12 @@
     "markdown.copyFiles.destination": {
         "prompts/*md": "${documentDirName}/screenshots/${documentBaseName}.png"
     },
-    "explorer.copyRelativePathSeparator": "/"
+    "explorer.copyRelativePathSeparator": "/",
+    "chat.agent.enabled": true,
+    "chat.tools.autoApprove": true,
+    "chat.tools.terminal.autoApprove": true,
+
+    "chat.tools.terminal.permissions": {
+        "rm": false
+    }
 }
