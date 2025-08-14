@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
+import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 
 /**
@@ -65,7 +66,7 @@ export function BookEditor(props: BookEditorProps) {
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
-    
+
     // Use provided fontClassName or fallback to default serif font
     const effectiveFontClassName = fontClassName || DEFAULT_FONT_CLASS;
 
