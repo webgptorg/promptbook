@@ -579,6 +579,9 @@ async function main() {
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>BookEditor Component Preview</title>
+                    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+                    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+                    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
                     <style>
                         body {
                             margin: 0;
@@ -587,22 +590,12 @@ async function main() {
                             background: #f5f5f5;
                         }
                         .container {
-                            max-width: 800px;
+                            max-width: 1000px;
                             margin: 0 auto;
                             background: white;
                             border-radius: 8px;
                             padding: 20px;
                             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                        }
-                        .editor-demo {
-                            border: 1px solid #ddd;
-                            border-radius: 8px;
-                            padding: 20px;
-                            background: #f9f9f9;
-                            font-family: 'SFMono-Regular', Consolas, monospace;
-                            white-space: pre-wrap;
-                            min-height: 200px;
-                            margin: 20px 0;
                         }
                         .back-link {
                             display: inline-block;
@@ -613,16 +606,196 @@ async function main() {
                         .back-link:hover {
                             text-decoration: underline;
                         }
+                        .live-component-container {
+                            margin: 20px 0;
+                            min-height: 400px;
+                        }
+                        .error-display {
+                            background: #fee;
+                            border: 1px solid #fcc;
+                            padding: 15px;
+                            border-radius: 8px;
+                            color: #c44;
+                            font-family: 'SFMono-Regular', Consolas, monospace;
+                            white-space: pre-wrap;
+                        }
+                        .loading {
+                            text-align: center;
+                            color: #666;
+                            padding: 40px;
+                        }
+
+                        /* BookEditor specific Tailwind CSS classes */
+                        .w-full { width: 100%; }
+                        .relative { position: relative; }
+                        .flex { display: flex; }
+                        .flex-col { flex-direction: column; }
+                        .gap-4 { gap: 1rem; }
+                        .mb-4 { margin-bottom: 1rem; }
+                        .resize-none { resize: none; }
+                        .outline-none { outline: none; }
+                        .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+                        .text-sm { font-size: 0.875rem; }
+                        .text-lg { font-size: 1.125rem; }
+                        .leading-relaxed { line-height: 1.625; }
+                        .p-4 { padding: 1rem; }
+                        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+                        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+                        .pl-\\[46px\\] { padding-left: 46px; }
+                        .pr-\\[46px\\] { padding-right: 46px; }
+                        .border { border-width: 1px; }
+                        .border-gray-300 { border-color: #d1d5db; }
+                        .border-gray-300\\/80 { border-color: rgba(209, 213, 219, 0.8); }
+                        .rounded-lg { border-radius: 0.5rem; }
+                        .rounded-2xl { border-radius: 1rem; }
+                        .bg-white { background-color: #ffffff; }
+                        .bg-transparent { background-color: transparent; }
+                        .text-transparent { color: transparent; }
+                        .text-gray-900 { color: #111827; }
+                        .text-gray-600 { color: #4b5563; }
+                        .caret-gray-900 { caret-color: #111827; }
+                        .absolute { position: absolute; }
+                        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+                        .z-10 { z-index: 10; }
+                        .z-20 { z-index: 20; }
+                        .pointer-events-none { pointer-events: none; }
+                        .overflow-auto { overflow: auto; }
+                        .overflow-hidden { overflow: hidden; }
+                        .whitespace-pre-wrap { white-space: pre-wrap; }
+                        .text-indigo-700 { color: #3730a3; }
+                        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+                        .hover\\:shadow-md:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+                        .transition-shadow { transition-property: box-shadow; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+                        .duration-200 { transition-duration: 200ms; }
+                        .focus-within\\:ring-2:focus-within { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000); }
+                        .focus-within\\:ring-indigo-300\\/40:focus-within { --tw-ring-color: rgba(165, 180, 252, 0.4); }
+                        .selection\\:bg-indigo-200\\/60 *::selection { background-color: rgba(199, 210, 254, 0.6); }
+                        .selection\\:bg-indigo-200\\/60::selection { background-color: rgba(199, 210, 254, 0.6); }
+                        .h-\\[28rem\\] { height: 28rem; }
+                        .h-\\[36rem\\] { height: 36rem; }
+
+                        /* Medium screens and up */
+                        @media (min-width: 768px) {
+                            .md\\:text-xl { font-size: 1.25rem; }
+                            .md\\:py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+                            .md\\:h-\\[36rem\\] { height: 36rem; }
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <a href="/" class="back-link">← Back to Playground</a>
-                        <h1>BookEditor Component Preview</h1>
-                        <p>This is a static representation of the BookEditor component with sample content:</p>
-                        <div class="editor-demo">${sampleContent}</div>
-                        <p><em>Note: The actual component includes syntax highlighting, real-time editing, and interactive features.</em></p>
+                        <h1>📝 BookEditor Component Preview</h1>
+                        <p><strong>🔥 This is the LIVE BookEditor component</strong> loaded directly from <code>src/book-components/BookEditor/BookEditor.tsx</code></p>
+                        <p>Changes to the source file will be reflected here automatically.</p>
+
+                        <div class="live-component-container">
+                            <div id="book-editor-root">
+                                <div class="loading">Loading BookEditor component...</div>
+                            </div>
+                        </div>
                     </div>
+
+                    <script type="text/babel">
+                        const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+                        // Global component reference that will be set by the dynamically loaded component
+                        let DynamicBookEditor = null;
+
+                        // App component
+                        function App() {
+                            const [bookContent, setBookContent] = useState(\`${sampleContent
+                                .replace(/\\/g, '\\\\')
+                                .replace(/`/g, '\\`')
+                                .replace(/\$/g, '\\$')
+                                .replace(/\r?\n/g, '\\n')}\`);
+                            const [error, setError] = useState(null);
+                            const [componentSource, setComponentSource] = useState(null);
+                            const [componentLoaded, setComponentLoaded] = useState(false);
+
+                            // Load the actual component source and transpiled version
+                            useEffect(() => {
+                                let isMounted = true;
+
+                                async function loadComponent() {
+                                    try {
+                                        // Load component metadata
+                                        const sourceResponse = await fetch('/components/BookEditor/source');
+                                        if (!sourceResponse.ok) {
+                                            throw new Error(\`HTTP \${sourceResponse.status}: \${sourceResponse.statusText}\`);
+                                        }
+                                        const sourceData = await sourceResponse.json();
+
+                                        // Load transpiled component
+                                        const transpiledResponse = await fetch('/components/BookEditor/transpiled');
+                                        if (!transpiledResponse.ok) {
+                                            throw new Error(\`HTTP \${transpiledResponse.status}: \${transpiledResponse.statusText}\`);
+                                        }
+                                        const transpiledCode = await transpiledResponse.text();
+
+                                        if (isMounted) {
+                                            setComponentSource(sourceData);
+
+                                            // Execute the transpiled component code
+                                            try {
+                                                const script = new Function(transpiledCode + '; return BookEditor;');
+                                                DynamicBookEditor = script();
+                                                setComponentLoaded(true);
+                                                console.log('📝 Loaded and transpiled BookEditor from:', sourceData.path);
+                                            } catch (execError) {
+                                                console.error('❌ Error executing transpiled component:', execError);
+                                                setError(\`Failed to execute component: \${execError.message}\`);
+                                            }
+                                        }
+                                    } catch (err) {
+                                        if (isMounted) {
+                                            setError(\`Failed to load component: \${err.message}\`);
+                                            console.error('❌ Error loading component:', err);
+                                        }
+                                    }
+                                }
+
+                                loadComponent();
+
+                                // Poll for changes every 3 seconds
+                                const interval = setInterval(loadComponent, 3000);
+
+                                return () => {
+                                    isMounted = false;
+                                    clearInterval(interval);
+                                };
+                            }, []);
+
+                            if (error) {
+                                return React.createElement('div', { className: 'error-display' }, error);
+                            }
+
+                            if (!componentLoaded || !DynamicBookEditor) {
+                                return React.createElement('div', { className: 'loading' },
+                                    componentSource ?
+                                        \`🔄 Transpiling component from \${componentSource.path}...\` :
+                                        '⏳ Loading component source...'
+                                );
+                            }
+
+                            return React.createElement('div', { className: 'flex flex-col gap-4' },
+                                React.createElement('div', { className: 'mb-4' },
+                                    React.createElement('p', { className: 'text-sm text-gray-600' },
+                                        \`✅ Live component loaded from: \${componentSource.path} (last modified: \${new Date(componentSource.lastModified).toLocaleTimeString()})\`
+                                    )
+                                ),
+                                React.createElement(DynamicBookEditor, {
+                                    className: 'w-full',
+                                    value: bookContent,
+                                    onChange: setBookContent
+                                })
+                            );
+                        }
+
+                        // Render the app
+                        const root = ReactDOM.createRoot(document.getElementById('book-editor-root'));
+                        root.render(React.createElement(App));
+                    </script>
                 </body>
                 </html>
             `);

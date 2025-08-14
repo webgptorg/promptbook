@@ -62,6 +62,8 @@ function escapeRegex(input: string): string {
 /**
  * Renders a book editor
  *
+ * 🔥 LIVE COMPONENT TEST: This component is being served live from the playground server!
+ *
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
@@ -230,7 +232,7 @@ export function BookEditor(props: BookEditorProps) {
                         'pl-[46px] pr-[46px]',
                     ].join(' ')}
                     style={{ lineHeight: `${lineHeight}px` }}
-                    placeholder={DEFAULT_BOOK}
+                    placeholder="🚀 LIVE COMPONENT TEST: Start writing your promptbook here... Any changes to this component will be reflected in the playground!"
                     spellCheck={false}
                 />
             </div>
