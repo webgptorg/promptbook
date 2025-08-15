@@ -4,20 +4,20 @@ import type { CompletionCreateParamsNonStreaming, MessageCreateParamsNonStreamin
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
-import { DEFAULT_MAX_REQUESTS_PER_MINUTE, MAX_TOKENS } from '../../config';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import { MAX_TOKENS } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { CompletionPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_title,
-} from '../../types/typeAliases';
+import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_model_name } from '../../types/typeAliases';
+import type { string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
