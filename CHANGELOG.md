@@ -845,7 +845,7 @@ Adding Book 2.0 features
 -   🚀 **GPT-5 Support** - Added OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window as the new default chat model
 -   Make package `@promptbook/components` with first component `<BookEditor/>`
 -   Enhance repoting of failed tasks
--   Increase max tokens default to 1M
+-   Remove max tokens default cap
 
 ## Upcoming
 

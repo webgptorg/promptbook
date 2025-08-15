@@ -4,21 +4,20 @@ import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
-import { MAX_TOKENS } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -133,7 +132,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
             model: modelName,
-            max_tokens: modelRequirements.maxTokens || MAX_TOKENS,
+            max_tokens: modelRequirements.maxTokens,
             temperature: modelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
@@ -245,7 +244,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const modelName = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
         const modelSettings = {
             model: modelName,
-            max_tokens: modelRequirements.maxTokens || MAX_TOKENS,
+            max_tokens: modelRequirements.maxTokens,
             temperature: modelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools

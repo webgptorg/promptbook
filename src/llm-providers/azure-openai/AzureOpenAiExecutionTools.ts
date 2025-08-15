@@ -3,7 +3,6 @@ import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { CONNECTION_TIMEOUT_MS } from '../../config';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
-import { MAX_TOKENS } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
@@ -125,7 +124,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         try {
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
-                maxTokens: modelRequirements.maxTokens || MAX_TOKENS,
+                maxTokens: modelRequirements.maxTokens ,
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
@@ -250,7 +249,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         try {
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
-                maxTokens: modelRequirements.maxTokens || MAX_TOKENS,
+                maxTokens: modelRequirements.maxTokens ,
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools

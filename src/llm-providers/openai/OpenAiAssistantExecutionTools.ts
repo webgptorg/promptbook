@@ -83,7 +83,6 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
             model: modelName,
-            max_tokens: MAX_TOKENS
 
             temperature: modelRequirements.temperature,
 

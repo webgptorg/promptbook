@@ -155,12 +155,6 @@ export const VALUE_STRINGS = {
     circular: '(circular JSON)',
 } as const;
 
-/**
- * Default cap for the number of tokens in a single request to the LLM
- *
- * @public exported from `@promptbook/utils`
- */
-export const MAX_TOKENS = 1_048_576;
 
 /**
  * Small number limit
