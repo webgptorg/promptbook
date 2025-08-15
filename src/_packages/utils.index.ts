@@ -3,6 +3,7 @@
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { VALUE_STRINGS } from '../config';
+import { MAX_TOKENS } from '../config';
 import { SMALL_NUMBER } from '../config';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { deserializeError } from '../errors/utils/deserializeError';
@@ -94,6 +95,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 // Note: Entities of the `@promptbook/utils`
 export { VALUE_STRINGS };
+export { MAX_TOKENS };
 export { SMALL_NUMBER };
 export { renderPromptbookMermaid };
 export { deserializeError };
