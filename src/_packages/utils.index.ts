@@ -94,7 +94,6 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 // Note: Entities of the `@promptbook/utils`
 export { VALUE_STRINGS };
-
 export { SMALL_NUMBER };
 export { renderPromptbookMermaid };
 export { deserializeError };
