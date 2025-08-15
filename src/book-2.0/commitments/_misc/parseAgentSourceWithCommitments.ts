@@ -1,13 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_agent_name } from '../../../types/typeAliases';
-import type { string_url_image } from '../../../types/typeAliases';
-import type { AgentSourceBasicInformation } from '../../agent-source/parseAgentSource';
+import type { string_agent_name, string_url_image } from '../../../types/typeAliases';
+import type { AgentBasicInformation } from '../../agent-source/parseAgentSource';
 import type { string_book } from '../../agent-source/string_book';
 import { generateGravatarUrl } from '../../utils/profileImageUtils';
+import type { BookCommitment } from '../_base/BookCommitment';
 import { COMMITMENT_REGISTRY } from '../index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
 import type { ParsedCommitment } from './ParsedCommitment';
-import type { BookCommitment } from '../_base/BookCommitment';
 
 /**
  * Parses agent source using the new commitment system with multiline support
@@ -119,7 +118,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Agent
  *
  * @private
  */
-export function parseAgentSourceBasicInfo(agentSource: string_book): AgentSourceBasicInformation {
+export function parseAgentSourceBasicInfo(agentSource: string_book): AgentBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 
     // Find PERSONA and META IMAGE commitments
