@@ -9,8 +9,11 @@ import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExec
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
-import type { Parameters, string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt } from '../../types/Prompt';
+import type { CompletionPrompt } from '../../types/Prompt';
+import type { Prompt } from '../../types/Prompt';
+import type { Parameters } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
@@ -455,8 +458,6 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             onProgress({
                 errors: [error],
             });
-
-
         } finally {
             if (
                 !isJokerAttempt &&
