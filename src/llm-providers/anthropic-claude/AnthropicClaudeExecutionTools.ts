@@ -1,6 +1,6 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
 import Anthropic from '@anthropic-ai/sdk';
-import type { CompletionCreateParamsNonStreaming, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
+import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
@@ -9,7 +9,7 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type {
     string_date_iso8601,
@@ -175,64 +175,6 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
                 rawRequest,
                 rawResponse,
                 // <- [🗯]
-            },
-        });
-    }
-
-    /**
-     * Calls Anthropic Claude API to use a completion model.
-     */
-    public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
-    ): Promise<CompletionPromptResult> {
-        if (this.options.isVerbose) {
-            console.info('🖋 Anthropic Claude callCompletionModel call');
-        }
-
-        const { content, parameters, modelRequirements } = prompt;
-        if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
-        }
-
-        const client = await this.getClient();
-        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
-        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
-        const rawRequest: CompletionCreateParamsNonStreaming = {
-            model: modelName,
-            max_tokens_to_sample: modelRequirements.maxTokens ,
-            temperature: modelRequirements.temperature,
-            prompt: rawPromptContent,
-        };
-        const start = $getCurrentDate();
-        const rawResponse = await this.limiter
-            .schedule(() => client.completions.create(rawRequest))
-            .catch((error) => {
-                if (this.options.isVerbose) {
-                    console.info(colors.bgRed('error'), error);
-                }
-                throw error;
-            });
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
-        }
-        if (!rawResponse.completion) {
-            throw new PipelineExecutionError('No completion from Anthropic Claude');
-        }
-        const resultContent = rawResponse.completion;
-        const complete = $getCurrentDate();
-        const usage = computeAnthropicClaudeUsage(rawPromptContent, resultContent, rawResponse);
-        return exportJson({
-            name: 'promptResult',
-            message: `Result of \`AnthropicClaudeExecutionTools.callCompletionModel\``,
-            order: [],
-            value: {
-                content: resultContent,
-                modelName: rawResponse.model || modelName,
-                timing: { start, complete },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse,
             },
         });
     }
