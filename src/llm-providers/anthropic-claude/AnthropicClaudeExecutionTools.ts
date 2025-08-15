@@ -110,7 +110,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: MessageCreateParamsNonStreaming = {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
-            max_tokens: modelRequirements.maxTokens,
+            max_tokens: modelRequirements.maxTokens || 8192,
             temperature: modelRequirements.temperature,
             system: modelRequirements.systemMessage,
             messages: [

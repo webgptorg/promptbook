@@ -60,6 +60,10 @@ async function playground() {
         content: `Write me something about Prague`,
         modelRequirements: {
             modelVariant: 'CHAT',
+            // modelName: 'claude-3-5-sonnet-latest',
+            // modelName: 'claude-3-7-sonnet-latest',
+            modelName: 'claude-4-sonnet-20250514',
+            // modelName: 'claude-4-opus-20250514',
             systemMessage: 'You are an assistant who only speaks in rhymes.',
             temperature: 1,
         },
