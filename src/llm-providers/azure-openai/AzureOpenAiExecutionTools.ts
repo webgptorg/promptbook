@@ -1,23 +1,23 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { CONNECTION_TIMEOUT_MS } from '../../config';
-import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import { CONNECTION_TIMEOUT_MS, DEFAULT_MAX_REQUESTS_PER_MINUTE, MAX_TOKENS } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -124,8 +124,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         try {
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
-                maxTokens: modelRequirements.maxTokens,
-                //                                      <- TODO: [🌾] Make some global max cap for maxTokens
+                maxTokens: modelRequirements.maxTokens || MAX_TOKENS,
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
@@ -250,8 +249,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         try {
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
-                maxTokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
-                //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
+                maxTokens: modelRequirements.maxTokens || MAX_TOKENS,
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools

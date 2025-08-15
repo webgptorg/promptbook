@@ -1,10 +1,7 @@
 import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_promptbook_server_url } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -154,6 +151,13 @@ export const VALUE_STRINGS = {
     unserializable: '(unserializable value)',
     circular: '(circular JSON)',
 } as const;
+
+/**
+ * Default cap for the number of tokens in a single request to the LLM
+ *
+ * @public exported from `@promptbook/utils`
+ */
+export const MAX_TOKENS = 1_048_576;
 
 /**
  * Small number limit
