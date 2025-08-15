@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { ReadonlyDeep, WritableDeep } from 'type-fest';
+import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { assertsError } from '../../errors/assertsError';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -9,11 +9,8 @@ import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExec
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
@@ -22,6 +19,7 @@ import type { TODO_string } from '../../utils/organization/TODO_string';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
+import { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { validatePromptResult } from '../utils/validatePromptResult';
 import type { $OngoingTaskResult } from './$OngoingTaskResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
@@ -77,6 +75,11 @@ export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
+     * Callback invoked with partial results as the execution progresses.
+     */
+    onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
+
+    /**
      * The execution report object, which is updated during execution.
      */
     readonly $executionReport: WritableDeep<ExecutionReportJson>;
@@ -114,6 +117,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         $executionReport,
         pipelineIdentification,
         maxExecutionAttempts,
+        onProgress,
     } = options;
 
     const $ongoingTaskResult: $OngoingTaskResult = {
@@ -446,6 +450,9 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 result: $ongoingTaskResult.$resultString,
                 error: error,
             });
+
+            // Note: Calling void function to signal progress (mutation of `$ongoingTaskResult`) - TODO: !!!! Is this working
+            onProgress({});
         } finally {
             if (
                 !isJokerAttempt &&
