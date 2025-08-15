@@ -77,22 +77,6 @@ async function playground() {
     /**/
 
     /*/
-    // TODO: [👏] Make Claude completion models work
-    const completionPrompt = {
-        title: 'Hello',
-        parameters: {},
-        content: `Hello, my name is Alice.`,
-        modelRequirements: {
-            modelVariant: 'COMPLETION',
-        },
-    } as const satisfies Prompt;
-    const completionPromptResult = await anthropicClaudeExecutionTools.callCompletionModel(completionPrompt);
-    console.info({ completionPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
-    /**/
-
-    /*/
     // TODO: Test Translations in playground
     /**/
 
