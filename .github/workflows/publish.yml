@@ -20,6 +20,16 @@ jobs:
                   registry-url: https://registry.npmjs.org/
             - name: 🔽 Install dependencies
               run: npm ci
+            - name: 👉 Pre-version tasks
+              run: |
+                npm run find-name-discrepancies
+                npm run make-promptbook-collection
+                npm run repair-imports
+                npm run spellcheck
+                npm run lint
+                npm test
+                npm run test-types
+                npm run test-package-generation
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
             - name: 🆚 Update version in Dockerfile
@@ -166,6 +176,15 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 👉 Post-version tasks
+              run: |
+                npm run update-version-in-config
+                npm run generate-examples-jsons
+                npm run generate-packages
+                npm run generate-documentation
+                npm run import-markdowns
+                npm run generate-openapi-types
+                npm run use-packages
     publish-docker:
         name: Publish Docker image to DockerHub
         needs: publish-npm

@@ -535,38 +535,16 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             // <- Note: Permissions are required with provenance statement @see https://docs.npmjs.com/generating-provenance-statements
                         },
                         steps: [
+                            { name: '🔽 Checkout', uses: 'actions/checkout@v4' },
+                            { name: '🔽 Setup Node.js', uses: 'actions/setup-node@v4', with: { 'node-version': 22, 'registry-url': 'https://registry.npmjs.org/' } },
+                            { name: '🔽 Install dependencies', run: 'npm ci' },
                             {
-                                name: '🔽 Checkout',
-                                uses: 'actions/checkout@v4',
+                                name: '👉 Pre-version tasks',
+                                run: 'npm run find-name-discrepancies && npm run make-promptbook-collection && npm run repair-imports && npm run spellcheck && npm run lint && npm test && npm run test-types && npm run test-package-generation',
                             },
-                            {
-                                name: '🔽 Setup Node.js',
-                                uses: 'actions/setup-node@v4',
-                                with: {
-                                    'node-version': 22,
-                                    'registry-url': 'https://registry.npmjs.org/',
-                                },
-                            },
-                            {
-                                name: '🔽 Install dependencies',
-                                run: 'npm ci',
-                            },
-                            {
-                                name: '🔽 Clone book submodule',
-                                run: 'git submodule update --init --recursive',
-                            },
-                            {
-                                name: '🆚 Update version in Dockerfile',
-                                run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
-                                // <- Note: Update version in Dockerfile before building the image
-                            },
-                            {
-                                name: '🏭 Build packages bundles',
-                                // Note: [🔙] Generate packages before publishing to put the recent version in each package.json
-                                // TODO: It will be better to have here just "npx rollup --config rollup.config.js" / "node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js" BUT it will not work because:
-                                //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
-                                run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
-                            },
+                            { name: '🔽 Clone book submodule', run: 'git submodule update --init --recursive' },
+                            { name: '🆚 Update version in Dockerfile', run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts' },
+                            { name: '🏭 Build packages bundles', run: `npx ts-node ./scripts/generate-packages/generate-packages.ts` },
                             ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                 name: `🔼 Publish ${packageFullname}`,
                                 'working-directory': `./packages/${packageBasename}`,
@@ -575,6 +553,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
                                 },
                             })),
+                            {
+                                name: '👉 Post-version tasks',
+                                run: 'npm run update-version-in-config && npm run generate-examples-jsons && npm run generate-packages && npm run generate-documentation && npm run import-markdowns && npm run generate-openapi-types && npm run use-packages',
+                            },
                         ],
                     },
                     // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
