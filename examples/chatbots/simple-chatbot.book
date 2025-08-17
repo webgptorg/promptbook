@@ -1,0 +1,11 @@
+# 🌟 Simple Chatbot Example
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {user_message}
+-   OUTPUT PARAMETER {bot_reply}
+
+# Chatbot Reply
+
+-   PERSONA Friendly AI assistant
+
+> Respond to the user message: {user_message}

@@ -1,0 +1,14 @@
+# 🌟 Function Calling Example
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {math_problem}
+-   OUTPUT PARAMETER {solution}
+
+# Solve with Function Call
+
+-   PERSONA Math AI, expert in calculations
+-   INSTRUMENT calculator
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 1 Paragraph
+
+> Solve the following math problem using the calculator tool if needed: {math_problem}

@@ -1,0 +1,14 @@
+# 🌟 Article Writer Example
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {topic}
+-   OUTPUT PARAMETER {article}
+
+# Write an Article
+
+-   PERSONA Jane, marketing specialist with prior experience in tech and AI writing
+-   KNOWLEDGE https://wikipedia.org/
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 5 Pages
+
+> Write an article about {topic}.

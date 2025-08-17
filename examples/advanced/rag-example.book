@@ -1,0 +1,15 @@
+# 🌟 RAG Example: Retrieval-Augmented Generation
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {query}
+-   OUTPUT PARAMETER {answer}
+
+# Retrieve and Answer
+
+-   PERSONA Researcher, expert in synthesizing information
+-   KNOWLEDGE https://en.wikipedia.org/wiki/Artificial_intelligence
+-   KNOWLEDGE ./local-knowledge.pdf
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 2 Paragraphs
+
+> Using the provided knowledge, answer the following question: {query}

@@ -1,0 +1,57 @@
+{
+    "name": "promptbook",
+    "displayName": "Promptbook",
+    "description": "VSCode extension for Promptbook language support",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.60.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets"
+    ],
+    "activationEvents": [
+        "onLanguage:book",
+        "onCommand:promptbook.validate"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "book",
+                "aliases": [
+                    "Promptbook",
+                    "book"
+                ],
+                "extensions": [
+                    ".book"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "book",
+                "scopeName": "source.book",
+                "path": "./syntaxes/book.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "promptbook.validate",
+                "title": "Validate Promptbook File"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.60.0",
+        "@types/node": "^16.11.7",
+        "typescript": "^4.5.5"
+    }
+}

@@ -1,0 +1,18 @@
+# 🌟 Multi-Step Workflow Example
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {topic}
+-   OUTPUT PARAMETER {translated_summary}
+
+# Research
+-   PERSONA Researcher
+-   KNOWLEDGE https://en.wikipedia.org/
+> Research the topic: {topic}
+
+# Summarize
+-   PERSONA Summarizer
+> Summarize the research findings in 3 sentences.
+
+# Translate
+-   PERSONA Translator, fluent in Spanish
+> Translate the summary into Spanish.

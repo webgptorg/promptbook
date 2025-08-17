@@ -1,11 +1,19 @@
 module.exports = {
-    transform: {
-        '(jsx?|tsx?)$': 'ts-jest',
+    preset: 'ts-jest',
+    testEnvironment: 'node',
+    roots: ['<rootDir>/src'],
+    testMatch: ['**/__tests__/**/*.test.ts'],
+    collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/**/__tests__/**', '!src/**/__mocks__/**'],
+    coverageThreshold: {
+        global: {
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80,
+        },
     },
-    testRegex: '(test)\\.(jsx?|tsx?)$',
-    setupFilesAfterEnv: ['./jest.setup.js'],
-    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-    coverageDirectory: './coverage/',
-    collectCoverage: true,
-    testTimeout: 5 /* minutes */ * 60 * 1000,
+    coverageReporters: ['text', 'lcov', 'html'],
+    setupFilesAfterEnv: ['<rootDir>/src/test-utils/setup.ts'],
+    testTimeout: 30000,
+    verbose: true,
 };

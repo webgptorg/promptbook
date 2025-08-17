@@ -107,3 +107,28 @@ When using Promptbook:
 -   Review our documentation for security recommendations
 
 <!--/Import ./SECURITY.md-->
+
+## Onboarding & Setup
+
+1. Clone the repository: `git clone <repo-url>`
+2. Install dependencies: `npm install`
+3. Build the project (if needed): `npm run build`
+
+## Running Tests
+
+-   Run all tests: `npm test`
+-   Run tests with coverage: `npm run test -- --coverage`
+-   Test files are named `*.test.ts` or `test.*.ts(x)` and are located throughout the codebase.
+
+## Adding Examples
+
+-   Add new Promptbook examples in the `examples/` directory.
+-   Use clear file and directory names (e.g., `examples/advanced/rag-example.book`).
+-   Add a short comment at the top of the file describing the example.
+
+## Pull Request Guidelines
+
+-   Ensure your code passes all tests and linter checks.
+-   Add or update documentation as needed.
+-   Reference related issues or TODOs in your PR description.
+-   Use clear, descriptive commit messages.

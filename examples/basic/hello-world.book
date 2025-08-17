@@ -1,0 +1,9 @@
+# 🌟 Hello World Book Example
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {name}
+-   OUTPUT PARAMETER {greeting}
+
+# Greet the User
+
+> Write a friendly greeting for {name}.
