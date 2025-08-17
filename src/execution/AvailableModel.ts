@@ -1,8 +1,5 @@
 import type { ModelVariant } from '../types/ModelVariant';
-import type { number_usd } from '../types/typeAliases';
-import type { string_model_description } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
+import type { number_usd, string_model_description, string_model_name, string_title } from '../types/typeAliases';
 
 /**
  * Represents a model that can be used for prompt execution
@@ -45,6 +42,11 @@ export type AvailableModel = {
         readonly prompt: number_usd;
         readonly output: number_usd;
     };
+
+    /**
+     * If the model is deprecated, it should not be used for new tasks
+     */
+    readonly isDeprecated?: boolean;
 };
 
 /**
