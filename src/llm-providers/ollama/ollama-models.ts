@@ -4,7 +4,7 @@ import { exportJson } from '../../utils/serialization/exportJson';
 /**
  * List of available models in Ollama library
  *
- * Note: Done at 2025-05-19
+ * Note: Synced with official API docs at 2025-08-17
  *
  * @see https://ollama.com/library
  * @public exported from `@promptbook/ollama`

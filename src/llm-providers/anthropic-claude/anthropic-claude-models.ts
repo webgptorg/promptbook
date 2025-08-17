@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Anthropic Claude models with pricing
  *
- * Note: Done at 2025-05-06
+ * Note: Synced with official API docs at 2025-08-17
  *
  * @see https://docs.anthropic.com/en/docs/models-overview
  * @public exported from `@promptbook/anthropic-claude`

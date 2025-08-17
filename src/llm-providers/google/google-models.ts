@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Google models with descriptions
  *
- * Note: Done at 2025-05-06
+ * Note: Synced with official API docs at 2025-08-17
  *
  * @see https://ai.google.dev/models/gemini
  * @public exported from `@promptbook/google`

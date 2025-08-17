@@ -5,7 +5,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available OpenAI models with pricing
  *
- * Note: Done at 2025-05-06
+ * Note: Synced with official API docs at 2025-08-17
  *
  * @see https://platform.openai.com/docs/models/
  * @see https://openai.com/api/pricing/
