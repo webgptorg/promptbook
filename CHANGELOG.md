@@ -847,7 +847,6 @@ Adding Book 2.0 features
 -   Enhance reporting of failed tasks
 -   Remove max tokens default cap
 -   Remove `AnthropicClaudeExecutionTools.callCompletionModel` _(to avoid unnecessary maintenance)_
--   Better logging practices
 
 ## Upcoming
 

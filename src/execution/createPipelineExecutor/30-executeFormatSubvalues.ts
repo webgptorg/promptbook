@@ -1,11 +1,12 @@
 import spaceTrim from 'spacetrim';
 import type { PartialDeep, Promisable } from 'type-fest';
-import { BIG_DATASET_TRESHOLD, FAILED_VALUE_PLACEHOLDER } from '../../config';
+import { BIG_DATASET_TRESHOLD } from '../../config';
+import { FAILED_VALUE_PLACEHOLDER } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import { getLogger } from '../../logging/logger';
-import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
@@ -164,7 +165,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                 );
 
                 if (length > BIG_DATASET_TRESHOLD) {
-                    getLogger().error('High level error in executeFormatSubvalues', { error: highLevelError });
+                    console.error(highLevelError);
                     return FAILED_VALUE_PLACEHOLDER;
                 }
 
@@ -193,14 +194,19 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                 return subresultString;
             } catch (error) {
                 if (length > BIG_DATASET_TRESHOLD) {
-                    getLogger().error('Error in FOREACH command when processing subvalue', {
-                        error,
-                        formatName: formatDefinition.formatName,
-                        subvalueName: subvalueParser.subvalueName,
-                        index: index + 1,
-                        length,
-                        pipelineIdentification,
-                    });
+                    console.error(
+                        spaceTrim(
+                            (block) => `
+                              ${(error as PipelineExecutionError).message}
+
+                              This is error in FOREACH command when processing ${formatDefinition.formatName} ${
+                                subvalueParser.subvalueName
+                            } data (${index + 1}/${length})
+
+                              ${block(pipelineIdentification)}
+                          `,
+                        ),
+                    );
                     return FAILED_VALUE_PLACEHOLDER;
                 }
                 throw error;

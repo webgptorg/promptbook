@@ -10,9 +10,5 @@ services:
         # TODO: [🧠][🐋] Make volume for `.promptbook` folder
         # volumes:
         #     - ./logs:/opt/chutoo/promptbook-module/
-        # Logging configuration:
-        # Set PROMPTBOOK_LOG_LEVEL to control log verbosity (debug, info, warn, error)
-        environment:
-            - PROMPTBOOK_LOG_LEVEL=info
         env_file: '.env'
         # <- TODO: Is this secure, isn't there some way how env variables leaks into dockerhub?

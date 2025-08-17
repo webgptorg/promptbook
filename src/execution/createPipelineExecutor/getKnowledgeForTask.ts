@@ -1,11 +1,12 @@
 import type { ReadonlyDeep } from 'type-fest';
 import { assertsError } from '../../errors/assertsError';
 import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExecutionTools';
-import { getLogger } from '../../logging/logger';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters, string_markdown, string_parameter_value } from '../../types/typeAliases';
+import type { Parameters } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
@@ -103,7 +104,7 @@ export async function getKnowledgeForTask(
         );
 
         /*
-        getLogger().info('`getKnowledgeForTask` Embedding', {
+        console.log('`getKnowledgeForTask` Embedding', {
             task,
             taskEmbeddingPrompt,
             taskEmbeddingResult,
@@ -119,7 +120,7 @@ export async function getKnowledgeForTask(
     } catch (error) {
         assertsError(error);
 
-        getLogger().error('Error in `getKnowledgeForTask`', { error });
+        console.error('Error in `getKnowledgeForTask`', error);
 
         // Note: If the LLM fails, just return all knowledge pieces
         return knowledgePiecesToString(preparedPipeline.knowledgePieces);
