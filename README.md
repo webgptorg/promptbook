@@ -1,5 +1,26 @@
 # ✨ Promptbook: AI apps in plain Language
 
+## Logging Configuration
+
+Promptbook uses a unified logger for all engine output. You can control log verbosity using the `PROMPTBOOK_LOG_LEVEL` environment variable.
+
+**Available log levels:** `debug`, `info`, `warn`, `error`
+
+Set the environment variable in your shell, `.env` file, or Docker configuration:
+
+```sh
+export PROMPTBOOK_LOG_LEVEL=debug
+```
+
+For Docker, add to your `docker-compose.yml`:
+
+```yaml
+environment:
+  - PROMPTBOOK_LOG_LEVEL=info
+```
+
+Logs are output in structured JSON format for easy parsing and analysis.
+
 Write AI applications using plain human language across multiple models and platforms.
 
 <!--Badges-->
