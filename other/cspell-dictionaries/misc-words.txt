@@ -291,4 +291,6 @@ numpages
 METALINK
 topp
 topk
-X
+x
+toggleable
+agentic
