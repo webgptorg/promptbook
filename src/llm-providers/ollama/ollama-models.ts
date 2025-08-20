@@ -4,7 +4,7 @@ import { exportJson } from '../../utils/serialization/exportJson';
 /**
  * List of available models in Ollama library
  *
- * Note: Synced with official API docs at 2025-08-17
+ * Note: Synced with official API docs at 2025-08-20
  *
  * @see https://ollama.com/library
  * @public exported from `@promptbook/ollama`
@@ -12,6 +12,27 @@ import { exportJson } from '../../utils/serialization/exportJson';
 export const OLLAMA_MODELS: ReadonlyArray<AvailableModel> = exportJson({
     name: 'OLLAMA_MODELS',
     value: [
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'llama3.3',
+            modelName: 'llama3.3',
+            modelDescription:
+                'Meta Llama 3.3 (70B parameters) with 128K context window. Latest generation foundation model with significantly enhanced reasoning, instruction following, and multilingual capabilities. Features improved performance on complex tasks and better factual accuracy compared to Llama 3.1.',
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'llama3.2',
+            modelName: 'llama3.2',
+            modelDescription:
+                'Meta Llama 3.2 (1B-90B parameters) with 128K context window. Enhanced model with improved reasoning capabilities, better instruction following, and multimodal support in larger variants. Features significant performance improvements over Llama 3.1 across diverse tasks.',
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'llama3.1',
+            modelName: 'llama3.1',
+            modelDescription:
+                'Meta Llama 3.1 (8B-405B parameters) with 128K context window. Advanced foundation model with enhanced reasoning, improved multilingual capabilities, and better performance on complex tasks. Features significant improvements in code generation and mathematical reasoning.',
+        },
         {
             modelVariant: 'CHAT',
             modelTitle: 'llama3',

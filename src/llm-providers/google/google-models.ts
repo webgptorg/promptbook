@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Google models with descriptions
  *
- * Note: Synced with official API docs at 2025-08-17
+ * Note: Synced with official API docs at 2025-08-20
  *
  * @see https://ai.google.dev/models/gemini
  * @public exported from `@promptbook/google`
@@ -25,12 +25,56 @@ export const GOOGLE_MODELS: ReadonlyArray<
         {
             modelVariant: 'CHAT',
             modelTitle: 'Gemini 2.5 Pro',
-            modelName: 'gemini-2.5-pro-preview-03-25',
+            modelName: 'gemini-2.5-pro',
             modelDescription:
-                'Latest advanced multimodal model with 1M token context window. Features exceptional reasoning across complex tasks, sophisticated function calling, and advanced image analysis (16MP resolution). Demonstrates superior performance in math, coding, and knowledge-intensive tasks with 30% improvement over Gemini 1.5 Pro. Ideal for enterprise applications requiring deep contextual understanding.',
+                'State-of-the-art thinking model with 1M token context window capable of reasoning over complex problems in code, math, and STEM. Features enhanced thinking capabilities, advanced multimodal understanding, and superior performance on analytical tasks. Ideal for complex enterprise applications requiring maximum intelligence and reasoning.',
             pricing: {
-                prompt: pricing(`$8.00 / 1M tokens`),
-                output: pricing(`$24.00 / 1M tokens`),
+                prompt: pricing(`$7.00 / 1M tokens`),
+                output: pricing(`$21.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Gemini 2.5 Flash',
+            modelName: 'gemini-2.5-flash',
+            modelDescription:
+                'Best model in terms of price-performance with 1M token context window offering well-rounded capabilities. Features adaptive thinking, cost efficiency, and enhanced reasoning for large-scale processing. Ideal for low-latency, high-volume tasks that require thinking and agentic use cases.',
+            pricing: {
+                prompt: pricing(`$0.35 / 1M tokens`),
+                output: pricing(`$1.05 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Gemini 2.5 Flash Lite',
+            modelName: 'gemini-2.5-flash-lite',
+            modelDescription:
+                'Cost-efficient Gemini 2.5 Flash model optimized for high throughput with 1M token context window. Features thinking capabilities while maintaining the most cost-efficient pricing. Perfect for real-time, low-latency use cases requiring good quality at scale.',
+            pricing: {
+                prompt: pricing(`$0.20 / 1M tokens`),
+                output: pricing(`$0.60 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Gemini 2.0 Flash',
+            modelName: 'gemini-2.0-flash',
+            modelDescription:
+                'Next-generation model with 1M token context window delivering improved capabilities, superior speed, and realtime streaming. Features enhanced function calling, code execution, and search capabilities. Ideal for applications requiring cutting-edge AI capabilities with fast response times.',
+            pricing: {
+                prompt: pricing(`$0.25 / 1M tokens`),
+                output: pricing(`$0.75 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Gemini 2.0 Flash Lite',
+            modelName: 'gemini-2.0-flash-lite',
+            modelDescription:
+                'Cost-efficient Gemini 2.0 Flash model optimized for low latency with 1M token context window. Balances performance and cost with enhanced efficiency for high-volume applications. Perfect for applications requiring good quality responses at minimal cost.',
+            pricing: {
+                prompt: pricing(`$0.15 / 1M tokens`),
+                output: pricing(`$0.45 / 1M tokens`),
             },
         },
         {

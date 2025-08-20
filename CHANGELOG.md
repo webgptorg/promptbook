@@ -847,7 +847,22 @@ Adding Book 2.0 features
 -   Enhance reporting of failed tasks
 -   Remove max tokens default cap
 -   Remove `AnthropicClaudeExecutionTools.callCompletionModel` _(to avoid unnecessary maintenance)_
--   Updated OpenAI models and pricing
+<details>
+<summary>
+
+-   🕕 Updated all LLM models and pricing\*\* - Comprehensive update of all model providers with latest models and current pricing
+</summary>
+
+-   &nbsp;
+    -   **OpenAI**: Added GPT-5 family (GPT-5, GPT-5 mini, GPT-5 nano), GPT-4.1 family (GPT-4.1, GPT-4.1 mini, GPT-4.1 nano), O3 family (o3, o3-pro, o4-mini), and deep research models (o3-deep-research, o4-mini-deep-research). Updated pricing for all models to reflect current rates.
+    -   **Anthropic**: Added Claude 4 family (Claude Opus 4.1, Claude Opus 4, Claude Sonnet 4) and Claude 3.7 models (Claude Sonnet 3.7, Claude Haiku 3.5, Claude 3.7 Haiku). Updated pricing to current rates.
+    -   **Google**: Added Gemini 2.5 family (Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.5 Flash Lite) and Gemini 2.0 family (Gemini 2.0 Flash, Gemini 2.0 Flash Lite). Updated pricing and model descriptions.
+    -   **DeepSeek**: Updated to latest DeepSeek V3, DeepSeek R1 (reasoning model), and DeepSeek Coder V2 with current pricing reflecting significant cost reductions.
+    -   **Ollama**: Added latest Llama 3.3, Llama 3.2, and Llama 3.1 models with enhanced capabilities and larger context windows.
+    -   All model descriptions updated with accurate context window sizes, capabilities, and performance characteristics
+    -   Deprecated models marked appropriately while maintaining backward compatibility
+    -   Pricing updated to reflect current market rates as of August 2025
+    </details>
 
 ## Upcoming
 

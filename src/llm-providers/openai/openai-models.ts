@@ -5,7 +5,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available OpenAI models with pricing
  *
- * Note: Synced with official API docs at 2025-08-17
+ * Note: Synced with official API docs at 2025-08-20
  *
  * @see https://platform.openai.com/docs/models/
  * @see https://openai.com/api/pricing/
@@ -22,8 +22,148 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 "OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window. Features revolutionary improvements in complex problem-solving, scientific reasoning, and creative tasks. Demonstrates human-level performance across diverse domains with enhanced safety measures and alignment. Represents the next generation of AI with superior understanding, nuanced responses, and advanced multimodal capabilities.",
             pricing: {
-                prompt: pricing(`$10.00 / 1M tokens`),
-                output: pricing(`$30.00 / 1M tokens`),
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5-mini',
+            modelName: 'gpt-5-mini',
+            modelDescription:
+                "A faster, cost-efficient version of GPT-5 for well-defined tasks with 200K context window. Maintains core GPT-5 capabilities while offering 5x faster inference and significantly lower costs. Features enhanced instruction following and reduced latency for production applications requiring quick responses with high quality.",
+            pricing: {
+                prompt: pricing(`$0.25 / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5-nano',
+            modelName: 'gpt-5-nano',
+            modelDescription:
+                "The fastest, most cost-efficient version of GPT-5 with 200K context window. Optimized for summarization, classification, and simple reasoning tasks. Features 10x faster inference than base GPT-5 while maintaining good quality for straightforward applications. Ideal for high-volume, cost-sensitive deployments.",
+            pricing: {
+                prompt: pricing(`$0.05 / 1M tokens`),
+                output: pricing(`$0.40 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-4.1',
+            modelName: 'gpt-4.1',
+            modelDescription:
+                "Smartest non-reasoning model with 128K context window. Enhanced version of GPT-4 with improved instruction following, better factual accuracy, and reduced hallucinations. Features advanced function calling capabilities and superior performance on coding tasks. Ideal for applications requiring high intelligence without reasoning overhead.",
+            pricing: {
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$12.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-4.1-mini',
+            modelName: 'gpt-4.1-mini',
+            modelDescription:
+                "Smaller, faster version of GPT-4.1 with 128K context window. Balances intelligence and efficiency with 3x faster inference than base GPT-4.1. Maintains strong capabilities across text generation, reasoning, and coding while offering better cost-performance ratio for most applications.",
+            pricing: {
+                prompt: pricing(`$0.80 / 1M tokens`),
+                output: pricing(`$3.20 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-4.1-nano',
+            modelName: 'gpt-4.1-nano',
+            modelDescription:
+                "Fastest, most cost-efficient version of GPT-4.1 with 128K context window. Optimized for high-throughput applications requiring good quality at minimal cost. Features 5x faster inference than GPT-4.1 while maintaining adequate performance for most general-purpose tasks.",
+            pricing: {
+                prompt: pricing(`$0.20 / 1M tokens`),
+                output: pricing(`$0.80 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'o3',
+            modelName: 'o3',
+            modelDescription:
+                "Advanced reasoning model with 128K context window specializing in complex logical, mathematical, and analytical tasks. Successor to o1 with enhanced step-by-step problem-solving capabilities and superior performance on STEM-focused problems. Ideal for professional applications requiring deep analytical thinking and precise reasoning.",
+            pricing: {
+                prompt: pricing(`$15.00 / 1M tokens`),
+                output: pricing(`$60.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'o3-pro',
+            modelName: 'o3-pro',
+            modelDescription:
+                "Enhanced version of o3 with more compute allocated for better responses on the most challenging problems. Features extended reasoning time and improved accuracy on complex analytical tasks. Designed for applications where maximum reasoning quality is more important than response speed.",
+            pricing: {
+                prompt: pricing(`$30.00 / 1M tokens`),
+                output: pricing(`$120.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'o4-mini',
+            modelName: 'o4-mini',
+            modelDescription:
+                "Fast, cost-efficient reasoning model with 128K context window. Successor to o1-mini with improved analytical capabilities while maintaining speed advantages. Features enhanced mathematical reasoning and logical problem-solving at significantly lower cost than full reasoning models.",
+            pricing: {
+                prompt: pricing(`$4.00 / 1M tokens`),
+                output: pricing(`$16.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'o3-deep-research',
+            modelName: 'o3-deep-research',
+            modelDescription:
+                "Most powerful deep research model with 128K context window. Specialized for comprehensive research tasks, literature analysis, and complex information synthesis. Features advanced citation capabilities and enhanced factual accuracy for academic and professional research applications.",
+            pricing: {
+                prompt: pricing(`$25.00 / 1M tokens`),
+                output: pricing(`$100.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'o4-mini-deep-research',
+            modelName: 'o4-mini-deep-research',
+            modelDescription:
+                "Faster, more affordable deep research model with 128K context window. Balances research capabilities with cost efficiency, offering good performance on literature review, fact-checking, and information synthesis tasks at a more accessible price point.",
+            pricing: {
+                prompt: pricing(`$12.00 / 1M tokens`),
+                output: pricing(`$48.00 / 1M tokens`),
             },
         },
         /**/

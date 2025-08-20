@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Deepseek models with descriptions
  *
- * Note: Synced with official API docs at 2025-08-17
+ * Note: Synced with official API docs at 2025-08-20
  *
  * @see https://www.deepseek.com/models
  * @public exported from `@promptbook/deepseek`
@@ -24,13 +24,35 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
     value: [
         {
             modelVariant: 'CHAT',
-            modelTitle: 'Deepseek Chat Pro',
-            modelName: 'deepseek-chat-pro',
+            modelTitle: 'DeepSeek V3',
+            modelName: 'deepseek-chat',
             modelDescription:
-                'Latest flagship general-purpose model with 256K context window. Enhanced from base Chat model with 40% improvement on complex reasoning tasks and specialized domain knowledge. Features advanced prompt optimization and improved contextual memory. Ideal for enterprise applications requiring highest quality responses.',
+                'Latest flagship general-purpose model with 128K context window. Features exceptional reasoning capabilities, advanced code generation, and strong performance across diverse domains. Offers competitive performance with leading models while maintaining cost efficiency. Ideal for complex reasoning, coding, and knowledge-intensive tasks.',
             pricing: {
-                prompt: pricing(`$1.20 / 1M tokens`),
-                output: pricing(`$2.40 / 1M tokens`),
+                prompt: pricing(`$0.14 / 1M tokens`),
+                output: pricing(`$0.28 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'DeepSeek R1',
+            modelName: 'deepseek-reasoner',
+            modelDescription:
+                'Advanced reasoning model with 128K context window specializing in complex problem-solving and analytical thinking. Features explicit reasoning chains, enhanced mathematical capabilities, and superior performance on STEM tasks. Designed for applications requiring deep analytical reasoning and step-by-step problem solving.',
+            pricing: {
+                prompt: pricing(`$0.55 / 1M tokens`),
+                output: pricing(`$2.19 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'DeepSeek Coder V2',
+            modelName: 'deepseek-coder',
+            modelDescription:
+                'Specialized coding model with 128K context window optimized for software development tasks. Features exceptional code generation, debugging, and refactoring capabilities across 40+ programming languages. Particularly strong in understanding complex codebases and implementing solutions based on natural language specifications.',
+            pricing: {
+                prompt: pricing(`$0.14 / 1M tokens`),
+                output: pricing(`$0.28 / 1M tokens`),
             },
         },
         {

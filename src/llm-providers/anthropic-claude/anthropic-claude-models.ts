@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Anthropic Claude models with pricing
  *
- * Note: Synced with official API docs at 2025-08-17
+ * Note: Synced with official API docs at 2025-08-20
  *
  * @see https://docs.anthropic.com/en/docs/models-overview
  * @public exported from `@promptbook/anthropic-claude`
@@ -23,13 +23,57 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
     value: [
         {
             modelVariant: 'CHAT',
-            modelTitle: 'Claude 3.5 Sonnet',
-            modelName: 'claude-3-5-sonnet-20240620',
+            modelTitle: 'Claude Opus 4.1',
+            modelName: 'claude-opus-4-1-20250805',
             modelDescription:
-                'Latest Claude model with 200K token context window. Features state-of-the-art reasoning capabilities, sophisticated code generation, and enhanced multilingual understanding. Offers superior accuracy with 30% fewer hallucinations than Claude 3 Sonnet. Provides exceptional performance for complex enterprise applications while maintaining fast response times.',
+                'Most powerful and capable Claude model with 200K token context window. Features superior reasoning capabilities, exceptional coding abilities, and advanced multimodal understanding. Sets new standards in complex reasoning and analytical tasks with enhanced safety measures. Ideal for the most demanding enterprise applications requiring maximum intelligence.',
             pricing: {
-                prompt: pricing(`$2.50 / 1M tokens`),
-                output: pricing(`$12.50 / 1M tokens`),
+                prompt: pricing(`$15.00 / 1M tokens`),
+                output: pricing(`$75.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Opus 4',
+            modelName: 'claude-opus-4-20250514',
+            modelDescription:
+                'Previous flagship Claude model with 200K token context window. Features very high intelligence and capability with exceptional performance across reasoning, coding, and creative tasks. Maintains strong safety guardrails while delivering sophisticated outputs for complex professional applications.',
+            pricing: {
+                prompt: pricing(`$15.00 / 1M tokens`),
+                output: pricing(`$75.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Sonnet 4',
+            modelName: 'claude-sonnet-4-20250514',
+            modelDescription:
+                'High-performance Claude model with exceptional reasoning capabilities and 200K token context window (1M context beta available). Features balanced intelligence and efficiency with enhanced multimodal understanding. Offers optimal performance for most enterprise applications requiring sophisticated AI capabilities.',
+            pricing: {
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$15.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Sonnet 3.7',
+            modelName: 'claude-3-7-sonnet-20250219',
+            modelDescription:
+                'High-performance Claude model with early extended thinking capabilities and 200K token context window. Features enhanced reasoning chains, improved factual accuracy, and toggleable extended thinking for complex problem-solving. Ideal for applications requiring deep analytical capabilities.',
+            pricing: {
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$15.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Haiku 3.5',
+            modelName: 'claude-3-5-haiku-20241022',
+            modelDescription:
+                'Fastest Claude model with 200K token context window optimized for intelligence at blazing speeds. Features enhanced reasoning and contextual understanding while maintaining sub-second response times. Perfect for real-time applications, customer-facing deployments, and high-throughput services.',
+            pricing: {
+                prompt: pricing(`$0.80 / 1M tokens`),
+                output: pricing(`$4.00 / 1M tokens`),
             },
         },
         {
