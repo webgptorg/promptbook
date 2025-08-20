@@ -5,6 +5,9 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 
+// Import CSS styles for the component (provides fallback when Tailwind CSS is not available)
+import './BookEditor.css';
+
 /**
  * Default font class name for the BookEditor component
  * In Next.js environments, you can override this by importing the font directly

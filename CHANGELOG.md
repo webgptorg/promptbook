@@ -844,6 +844,7 @@ Adding Book 2.0 features
 -   Adding features for Agent definition for Book 2.0
 -   🚀 **GPT-5 Support** - Added OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window as the new default chat model
 -   Make package `@promptbook/components` with first component `<BookEditor/>`
+-   **Fixed BookEditor component styling** - Added comprehensive CSS fallback for `@promptbook/components` package to ensure proper styling when Tailwind CSS is not available in consumer applications
 -   Enhance reporting of failed tasks
 -   Remove max tokens default cap
 -   Remove `AnthropicClaudeExecutionTools.callCompletionModel` _(to avoid unnecessary maintenance)_
