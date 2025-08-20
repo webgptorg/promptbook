@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-client",
-    "version": "0.100.0-30",
+    "version": "0.100.0-31",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -100,6 +100,13 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-client.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.100.0-30"
+        "@promptbook/core": "0.100.0-31"
+    },
+    "dependencies": {
+        "crypto": "1.0.1",
+        "crypto-js": "4.2.0",
+        "papaparse": "5.4.1",
+        "socket.io-client": "4.7.2",
+        "spacetrim": "0.11.59"
     }
 }

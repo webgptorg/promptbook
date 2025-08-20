@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/pdf",
-    "version": "0.100.0-30",
+    "version": "0.100.0-31",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -94,6 +94,16 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/pdf.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.100.0-30"
+        "@promptbook/core": "0.100.0-31"
+    },
+    "dependencies": {
+        "crypto": "1.0.1",
+        "crypto-js": "4.2.0",
+        "markitdown-ts": "0.0.4",
+        "papaparse": "5.4.1",
+        "prettier": "2.8.1",
+        "rxjs": "7.8.1",
+        "spacetrim": "0.11.59",
+        "waitasecond": "1.11.83"
     }
 }
