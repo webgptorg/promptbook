@@ -128,59 +128,7 @@ interface BookEditorProps {
 
 ## Styling
 
-The `BookEditor` component requires CSS styles to display correctly. You have two options:
-
-### Option 1: Use with Tailwind CSS (Recommended)
-
-If your project uses Tailwind CSS, the component will work out of the box using Tailwind's utility classes:
-
-```tsx
-import { BookEditor } from '@promptbook/components';
-
-function App() {
-  return (
-    <div className="p-6">
-      <BookEditor className="max-w-3xl mx-auto" />
-    </div>
-  );
-}
-```
-
-### Option 2: Import the provided CSS file
-
-If you're not using Tailwind CSS, import the provided CSS file to ensure proper styling:
-
-```tsx
-import { BookEditor } from '@promptbook/components';
-import '@promptbook/components/BookEditor.css';
-
-function App() {
-  return (
-    <div style={{ padding: 24 }}>
-      <BookEditor />
-    </div>
-  );
-}
-```
-
-The CSS file provides all necessary styles including:
-- Layout and positioning
-- Typography and fonts
-- Colors and shadows
-- Responsive design
-- Syntax highlighting for commitment types
-- Interactive states (hover, focus, selection)
-
-### Customization
-
-You can pass your own `className` and `fontClassName` to customize the appearance or integrate with your design system:
-
-```tsx
-<BookEditor 
-  className="my-custom-editor" 
-  fontClassName="font-mono" // or your custom font class
-/>
-```
+The editor ships with sensible, utility-class-based styles (works well with Tailwind) and a lined-paper background effect. You can pass your own `className` and `fontClassName` to customize its look or integrate with your design system.
 
 ## Compatibility
 
