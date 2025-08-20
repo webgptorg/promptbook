@@ -2,8 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
-import { validateBook } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 
 /**
@@ -56,8 +55,6 @@ function escapeRegex(input: string): string {
 
 /**
  * Renders a book editor
- *
- * 🔥 LIVE COMPONENT TEST: This component is being served live from the playground server!
  *
  * @public exported from `@promptbook/components`
  */
@@ -228,7 +225,7 @@ export function BookEditor(props: BookEditorProps) {
                         'pl-[46px] pr-[46px]',
                     ].join(' ')}
                     style={{ lineHeight: `${lineHeight}px` }}
-                    placeholder="🚀 LIVE COMPONENT TEST: Start writing your promptbook here... Any changes to this component will be reflected in the playground!"
+                    placeholder={DEFAULT_BOOK}
                     spellCheck={false}
                 />
             </div>
