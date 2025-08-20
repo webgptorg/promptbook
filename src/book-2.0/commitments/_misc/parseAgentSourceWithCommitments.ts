@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_agent_name, string_url_image } from '../../../types/typeAliases';
+import type { string_agent_name } from '../../../types/typeAliases';
+import type { string_url_image } from '../../../types/typeAliases';
 import type { AgentBasicInformation } from '../../agent-source/parseAgentSource';
 import type { string_book } from '../../agent-source/string_book';
 import { generateGravatarUrl } from '../../utils/profileImageUtils';
