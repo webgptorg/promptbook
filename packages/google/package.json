@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/google",
-    "version": "0.100.0-29",
+    "version": "0.100.0-30",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -95,12 +95,6 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/google.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.100.0-29"
-    },
-    "dependencies": {
-        "@ai-sdk/google": "1.0.5",
-        "colors": "1.4.0",
-        "crypto": "1.0.1",
-        "spacetrim": "0.11.59"
+        "@promptbook/core": "0.100.0-30"
     }
 }
