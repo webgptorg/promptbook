@@ -37,7 +37,13 @@ function App() {
 
 [ ]
 
-[✨🌇] bar
+[✨🌇] Use CSS modules
+
+-   In file `src/book-components/BookEditor/BookEditor.tsx`
+-   Keep the styles same but move them from `BOOK_EDITOR_STYLES` in `BookEditor.module.css`
+-   Remove `BOOK_EDITOR_STYLES` variable
+-   Update the build process to include CSS modules
+-   Update `./scripts/components-playground-server.ts`
 
 ---
 
