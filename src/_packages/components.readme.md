@@ -15,6 +15,7 @@ npm i react react-dom
 ```
 
 TypeScript projects (recommended dev types):
+
 ```bash
 npm i -D @types/react @types/react-dom
 ```
@@ -29,11 +30,11 @@ npm i -D @types/react @types/react-dom
 import { BookEditor } from '@promptbook/components';
 
 export default function Page() {
-  return (
-    <div className="p-6">
-      <BookEditor className="max-w-3xl mx-auto" />
-    </div>
-  );
+    return (
+        <div className="p-6">
+            <BookEditor className="max-w-3xl mx-auto" />
+        </div>
+    );
 }
 ```
 
@@ -45,11 +46,11 @@ Note: The component contains a top-level "use client" directive so it can be imp
 import { BookEditor } from '@promptbook/components';
 
 function App() {
-  return (
-    <div style={{ padding: 24 }}>
-      <BookEditor />
-    </div>
-  );
+    return (
+        <div style={{ padding: 24 }}>
+            <BookEditor />
+        </div>
+    );
 }
 
 export default App;
@@ -61,30 +62,30 @@ export default App;
 import type { BookEditorProps } from '@promptbook/components';
 
 interface BookEditorProps {
-  // Additional CSS classes for wrapper
-  className?: string;
+    // Additional CSS classes for wrapper
+    className?: string;
 
-  // Optional font className (e.g. from next/font)
-  fontClassName?: string;
+    // Optional font className (e.g. from next/font)
+    fontClassName?: string;
 
-  // Controlled value of the book text
-  value?: string;
+    // Controlled value of the book text
+    value?: string;
 
-  // Controlled change handler
-  onChange?: (value: string) => void;
+    // Controlled change handler
+    onChange?: (value: string) => void;
 
-  // Explicit list of commitment keywords to highlight (case-insensitive).
-  // If omitted, a default set (PERSONA, KNOWLEDGE, STYLE, RULE, RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, EXPECT, SCENARIO, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOAL, GOALS, CONTEXT) is used.
-  commitmentTypes?: string[];
+    // Explicit list of commitment keywords to highlight (case-insensitive).
+    // If omitted, a default set (PERSONA, KNOWLEDGE, STYLE, RULE, RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, EXPECT, SCENARIO, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOAL, GOALS, CONTEXT) is used.
+    commitmentTypes?: string[];
 }
 ```
 
 ## Styling
 
-The editor ships with sensible, utility-class-based styles (works well with Tailwind) and a lined-paper background effect. You can pass your own `className` and `fontClassName` to customize its look or integrate with your design system.
+The component comes with built-in styles. You can pass your own `className` and `fontClassName` to customize its look or integrate with your design system.
 
 ## Compatibility
 
-- Frameworks: Next.js, CRA, Vite, Remix, and other React apps
-- Rendering: Client-side
-- Bundles: ESM and UMD
+-   Frameworks: Next.js, CRA, Vite, Remix, and other React apps
+-   Rendering: Client-side
+-   Bundles: ESM and UMD

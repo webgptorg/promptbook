@@ -4,17 +4,12 @@
 
 Write AI applications using plain human language across multiple models and platforms.
 
-
-
-
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Build Status](https://github.com/webgptorg/promptbook/actions/workflows/ci.yml/badge.svg)](https://github.com/webgptorg/promptbook/actions)
 [![Coverage Status](https://coveralls.io/repos/github/webgptorg/promptbook/badge.svg?branch=main)](https://coveralls.io/github/webgptorg/promptbook?branch=main)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
-
-
 
 ## 🌟 New Features
 
@@ -24,16 +19,14 @@ Write AI applications using plain human language across multiple models and plat
 -   🔥 Native support for OpenAI `o3-mini`, GPT-4 and other leading LLMs
 -   🔍 DeepSeek integration for advanced knowledge search
 
-
-
 <blockquote style="color: #ff8811">
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
 </blockquote>
 
 ## 📦 Package `@promptbook/components`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/components` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/components` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -62,6 +55,7 @@ npm i react react-dom
 ```
 
 TypeScript projects (recommended dev types):
+
 ```bash
 npm i -D @types/react @types/react-dom
 ```
@@ -76,11 +70,11 @@ npm i -D @types/react @types/react-dom
 import { BookEditor } from '@promptbook/components';
 
 export default function Page() {
-  return (
-    <div className="p-6">
-      <BookEditor className="max-w-3xl mx-auto" />
-    </div>
-  );
+    return (
+        <div className="p-6">
+            <BookEditor className="max-w-3xl mx-auto" />
+        </div>
+    );
 }
 ```
 
@@ -92,11 +86,11 @@ Note: The component contains a top-level "use client" directive so it can be imp
 import { BookEditor } from '@promptbook/components';
 
 function App() {
-  return (
-    <div style={{ padding: 24 }}>
-      <BookEditor />
-    </div>
-  );
+    return (
+        <div style={{ padding: 24 }}>
+            <BookEditor />
+        </div>
+    );
 }
 
 export default App;
@@ -108,49 +102,43 @@ export default App;
 import type { BookEditorProps } from '@promptbook/components';
 
 interface BookEditorProps {
-  // Additional CSS classes for wrapper
-  className?: string;
+    // Additional CSS classes for wrapper
+    className?: string;
 
-  // Optional font className (e.g. from next/font)
-  fontClassName?: string;
+    // Optional font className (e.g. from next/font)
+    fontClassName?: string;
 
-  // Controlled value of the book text
-  value?: string;
+    // Controlled value of the book text
+    value?: string;
 
-  // Controlled change handler
-  onChange?: (value: string) => void;
+    // Controlled change handler
+    onChange?: (value: string) => void;
 
-  // Explicit list of commitment keywords to highlight (case-insensitive).
-  // If omitted, a default set (PERSONA, KNOWLEDGE, STYLE, RULE, RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, EXPECT, SCENARIO, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOAL, GOALS, CONTEXT) is used.
-  commitmentTypes?: string[];
+    // Explicit list of commitment keywords to highlight (case-insensitive).
+    // If omitted, a default set (PERSONA, KNOWLEDGE, STYLE, RULE, RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, EXPECT, SCENARIO, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOAL, GOALS, CONTEXT) is used.
+    commitmentTypes?: string[];
 }
 ```
 
 ## Styling
 
-The editor ships with sensible, utility-class-based styles (works well with Tailwind) and a lined-paper background effect. You can pass your own `className` and `fontClassName` to customize its look or integrate with your design system.
+The component comes with built-in styles. You can pass your own `className` and `fontClassName` to customize its look or integrate with your design system.
 
 ## Compatibility
 
-- Frameworks: Next.js, CRA, Vite, Remix, and other React apps
-- Rendering: Client-side
-- Bundles: ESM and UMD
-
+-   Frameworks: Next.js, CRA, Vite, Remix, and other React apps
+-   Rendering: Client-side
+-   Bundles: ESM and UMD
 
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-
-
 
 ## 🤍 The Book Abstract
 
 **It's time for a paradigm shift! The future of software is written in plain English, French, or Latin.**
 
 During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
-
-
 
 It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
 
@@ -160,11 +148,6 @@ This shift will happen whether we're ready or not. Our mission is to make it exc
 
 **Join us in this journey!**
 
-
-
-
-
-
 ## 🚀 Get started
 
 Take a look at the simple starter kit with books integrated into the **Hello World** sample applications:
@@ -172,11 +155,6 @@ Take a look at the simple starter kit with books integrated into the **Hello Wor
 -   [Hello Book](https://github.com/webgptorg/hello-world)
 -   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
-
-
-
-
-
 
 ## 💜 The Promptbook Project
 
@@ -268,16 +246,9 @@ Join our growing community of developers and users:
   </tbody>
 </table>
 
-
-
-
-
-
 ## 📘 Book Language Blueprint
 
 _A concise, Markdown-based DSL for crafting AI workflows and automations._
-
-
 
 ### Introduction
 
@@ -328,8 +299,6 @@ Personas can have access to different knowledge, tools and actions. They can als
 
 -   [PERSONA](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PERSONA.md)
 
-
-
 ### **3. How:** Knowledge, Instruments and Actions
 
 The resources used by the personas are used to do the work.
@@ -351,8 +320,6 @@ Books have two variants: flat — just a prompt without structure, and full — 
 As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
 
 But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
-
-
 
 ## 📚 Documentation
 
@@ -386,7 +353,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizard](https://www.npmjs.com/package/@promptbook/wizard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
@@ -407,11 +374,6 @@ Or you can install them separately:
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 -   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
 
-
-
-
-
-
 ## 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
@@ -428,8 +390,6 @@ The following glossary is used to clarify certain concepts:
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 _Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 ### 💯 Core concepts
 
@@ -489,8 +449,6 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 </table>
 
 <p align="center"><a href="https://github.com/webgptorg/promptbook/discussions/categories/concepts">🔍 View more concepts</a></p>
-
-
 
 ## 🚂 Promptbook Engine
 

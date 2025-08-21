@@ -220,7 +220,6 @@ async function main() {
                     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
                     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
                     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-                    <script src="https://cdn.tailwindcss.com"></script>
                     <style>
                         * {
                             margin: 0;
@@ -340,61 +339,7 @@ async function main() {
                             color: #6c757d;
                         }
 
-                        /* BookEditor specific styles - comprehensive Tailwind CSS classes */
-                        .w-full { width: 100%; }
-                        .relative { position: relative; }
-                        .flex { display: flex; }
-                        .flex-col { flex-direction: column; }
-                        .gap-4 { gap: 1rem; }
-                        .mb-4 { margin-bottom: 1rem; }
-                        .resize-none { resize: none; }
-                        .outline-none { outline: none; }
-                        .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
-                        .text-sm { font-size: 0.875rem; }
-                        .text-lg { font-size: 1.125rem; }
-                        .leading-relaxed { line-height: 1.625; }
-                        .p-4 { padding: 1rem; }
-                        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-                        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-                        .pl-\\[46px\\] { padding-left: 46px; }
-                        .pr-\\[46px\\] { padding-right: 46px; }
-                        .border { border-width: 1px; }
-                        .border-gray-300 { border-color: #d1d5db; }
-                        .border-gray-300\\/80 { border-color: rgba(209, 213, 219, 0.8); }
-                        .rounded-lg { border-radius: 0.5rem; }
-                        .rounded-2xl { border-radius: 1rem; }
-                        .bg-white { background-color: #ffffff; }
-                        .bg-transparent { background-color: transparent; }
-                        .text-transparent { color: transparent; }
-                        .text-gray-900 { color: #111827; }
-                        .text-gray-600 { color: #4b5563; }
-                        .caret-gray-900 { caret-color: #111827; }
-                        .absolute { position: absolute; }
-                        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-                        .z-10 { z-index: 10; }
-                        .z-20 { z-index: 20; }
-                        .pointer-events-none { pointer-events: none; }
-                        .overflow-auto { overflow: auto; }
-                        .overflow-hidden { overflow: hidden; }
-                        .whitespace-pre-wrap { white-space: pre-wrap; }
-                        .text-indigo-700 { color: #3730a3; }
-                        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-                        .hover\\:shadow-md:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-                        .transition-shadow { transition-property: box-shadow; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
-                        .duration-200 { transition-duration: 200ms; }
-                        .focus-within\\:ring-2:focus-within { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000); }
-                        .focus-within\\:ring-indigo-300\\/40:focus-within { --tw-ring-color: rgba(165, 180, 252, 0.4); }
-                        .selection\\:bg-indigo-200\\/60 *::selection { background-color: rgba(199, 210, 254, 0.6); }
-                        .selection\\:bg-indigo-200\\/60::selection { background-color: rgba(199, 210, 254, 0.6); }
-                        .h-\\[28rem\\] { height: 28rem; }
-                        .h-\\[36rem\\] { height: 36rem; }
 
-                        /* Medium screens and up */
-                        @media (min-width: 768px) {
-                            .md\\:text-xl { font-size: 1.25rem; }
-                            .md\\:py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-                            .md\\:h-\\[36rem\\] { height: 36rem; }
-                        }
                     </style>
                 </head>
                 <body>
@@ -583,7 +528,6 @@ async function main() {
                     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
                     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
                     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-                    <script src="https://cdn.tailwindcss.com"></script>
                     <style>
                         body {
                             margin: 0;
@@ -627,61 +571,6 @@ async function main() {
                             padding: 40px;
                         }
 
-                        /* BookEditor specific Tailwind CSS classes */
-                        .w-full { width: 100%; }
-                        .relative { position: relative; }
-                        .flex { display: flex; }
-                        .flex-col { flex-direction: column; }
-                        .gap-4 { gap: 1rem; }
-                        .mb-4 { margin-bottom: 1rem; }
-                        .resize-none { resize: none; }
-                        .outline-none { outline: none; }
-                        .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
-                        .text-sm { font-size: 0.875rem; }
-                        .text-lg { font-size: 1.125rem; }
-                        .leading-relaxed { line-height: 1.625; }
-                        .p-4 { padding: 1rem; }
-                        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-                        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-                        .pl-\\[46px\\] { padding-left: 46px; }
-                        .pr-\\[46px\\] { padding-right: 46px; }
-                        .border { border-width: 1px; }
-                        .border-gray-300 { border-color: #d1d5db; }
-                        .border-gray-300\\/80 { border-color: rgba(209, 213, 219, 0.8); }
-                        .rounded-lg { border-radius: 0.5rem; }
-                        .rounded-2xl { border-radius: 1rem; }
-                        .bg-white { background-color: #ffffff; }
-                        .bg-transparent { background-color: transparent; }
-                        .text-transparent { color: transparent; }
-                        .text-gray-900 { color: #111827; }
-                        .text-gray-600 { color: #4b5563; }
-                        .caret-gray-900 { caret-color: #111827; }
-                        .absolute { position: absolute; }
-                        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-                        .z-10 { z-index: 10; }
-                        .z-20 { z-index: 20; }
-                        .pointer-events-none { pointer-events: none; }
-                        .overflow-auto { overflow: auto; }
-                        .overflow-hidden { overflow: hidden; }
-                        .whitespace-pre-wrap { white-space: pre-wrap; }
-                        .text-indigo-700 { color: #3730a3; }
-                        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-                        .hover\\:shadow-md:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-                        .transition-shadow { transition-property: box-shadow; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
-                        .duration-200 { transition-duration: 200ms; }
-                        .focus-within\\:ring-2:focus-within { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000); }
-                        .focus-within\\:ring-indigo-300\\/40:focus-within { --tw-ring-color: rgba(165, 180, 252, 0.4); }
-                        .selection\\:bg-indigo-200\\/60 *::selection { background-color: rgba(199, 210, 254, 0.6); }
-                        .selection\\:bg-indigo-200\\/60::selection { background-color: rgba(199, 210, 254, 0.6); }
-                        .h-\\[28rem\\] { height: 28rem; }
-                        .h-\\[36rem\\] { height: 36rem; }
-
-                        /* Medium screens and up */
-                        @media (min-width: 768px) {
-                            .md\\:text-xl { font-size: 1.25rem; }
-                            .md\\:py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-                            .md\\:h-\\[36rem\\] { height: 36rem; }
-                        }
                     </style>
                 </head>
                 <body>
