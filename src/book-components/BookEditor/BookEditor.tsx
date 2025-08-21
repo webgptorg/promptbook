@@ -97,18 +97,7 @@ const BOOK_EDITOR_STYLES = `
     font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
-@media (min-width: 768px) {
-    .book-editor-highlight {
-        font-size: 1.25rem;
-        padding: 2rem 0;
-    }
 
-    .book-editor-textarea {
-        height: 36rem;
-        font-size: 1.25rem;
-        padding: 2rem 0;
-    }
-}
 `;
 
 /**
