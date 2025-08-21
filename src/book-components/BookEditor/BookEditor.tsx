@@ -7,11 +7,116 @@ import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 
 /**
+ * Internal CSS styles for the BookEditor component
+ * @private within the BookEditor component
+ */
+const BOOK_EDITOR_STYLES = `
+.book-editor-container {
+    width: 100%;
+}
+
+.book-editor-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid rgba(209, 213, 219, 0.8);
+    background-color: white;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.book-editor-wrapper:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.book-editor-wrapper:focus-within {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+}
+
+.book-editor-background {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.book-editor-highlight {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: auto;
+    pointer-events: none;
+    white-space: pre-wrap;
+    color: rgb(17, 24, 39);
+    font-size: 1.125rem;
+    padding: 1.5rem 0;
+    padding-left: 46px;
+    padding-right: 46px;
+    z-index: 10;
+    overflow-wrap: break-word;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.book-editor-highlight::-webkit-scrollbar {
+    display: none;
+}
+
+.book-editor-highlight .text-indigo-700 {
+    color: rgb(67, 56, 202);
+}
+
+.book-editor-textarea {
+    position: relative;
+    z-index: 20;
+    width: 100%;
+    height: 28rem;
+    color: transparent;
+    caret-color: rgb(17, 24, 39);
+    font-size: 1.125rem;
+    background-color: transparent;
+    outline: none;
+    resize: none;
+    padding: 1.5rem 0;
+    padding-left: 46px;
+    padding-right: 46px;
+    border: none;
+}
+
+.book-editor-textarea::selection {
+    background-color: rgba(99, 102, 241, 0.6);
+}
+
+.book-editor-serif {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+@media (min-width: 768px) {
+    .book-editor-highlight {
+        font-size: 1.25rem;
+        padding: 2rem 0;
+    }
+
+    .book-editor-textarea {
+        height: 36rem;
+        font-size: 1.25rem;
+        padding: 2rem 0;
+    }
+}
+`;
+
+/**
  * Default font class name for the BookEditor component
  * In Next.js environments, you can override this by importing the font directly
  * @private within the BookEditor component
  */
-const DEFAULT_FONT_CLASS = 'font-serif';
+const DEFAULT_FONT_CLASS = 'book-editor-serif';
 
 export interface BookEditorProps {
     /**
@@ -159,77 +264,49 @@ export function BookEditor(props: BookEditorProps) {
     }, [value, typeRegex]);
 
     return (
-        <div className={`w-full ${className}`} data-book-component="BookEditor">
-            <div
-                className={[
-                    'relative overflow-hidden rounded-2xl border border-gray-300/80 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-300/40',
-                    'transition-shadow duration-200 hover:shadow-md',
-                    effectiveFontClassName,
-                ].join(' ')}
-            >
-                {/* Lined paper background */}
-                <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0"
-                    // Two background layers:
-                    // 1) center fold line
-                    // 2) horizontal repeating lines (lined paper)
-                    style={{
-                        backgroundImage: 'none',
-                    }}
-                />
-                {/* Highlight layer */}
-                <pre
-                    ref={highlightRef}
-                    aria-hidden
-                    className={[
-                        'absolute inset-0 overflow-auto pointer-events-none',
-                        'whitespace-pre-wrap',
-                        'text-gray-900',
-                        'text-lg md:text-xl',
-                        'py-6 md:py-8',
-                        'pl-[46px] pr-[46px]',
-                        // Ensure highlighted text sits below the textarea but remains visible
-                        'z-10',
-                        effectiveFontClassName,
-                    ].join(' ')}
-                    style={{
-                        lineHeight: `${lineHeight}px`,
-                        backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
-                        backgroundAttachment: 'local',
-                        backgroundOrigin: 'padding-box, content-box',
-                        backgroundClip: 'padding-box, content-box',
-                        overflowWrap: 'break-word',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none',
-                    }}
-                    dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-                />
+        <>
+            <style dangerouslySetInnerHTML={{ __html: BOOK_EDITOR_STYLES }} />
+            <div className={`book-editor-container ${className}`} data-book-component="BookEditor">
+                <div className={`book-editor-wrapper ${effectiveFontClassName}`}>
+                    {/* Lined paper background */}
+                    <div
+                        aria-hidden
+                        className="book-editor-background"
+                        // Two background layers:
+                        // 1) center fold line
+                        // 2) horizontal repeating lines (lined paper)
+                        style={{
+                            backgroundImage: 'none',
+                        }}
+                    />
+                    {/* Highlight layer */}
+                    <pre
+                        ref={highlightRef}
+                        aria-hidden
+                        className={`book-editor-highlight ${effectiveFontClassName}`}
+                        style={{
+                            lineHeight: `${lineHeight}px`,
+                            backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
+                            backgroundAttachment: 'local',
+                            backgroundOrigin: 'padding-box, content-box',
+                            backgroundClip: 'padding-box, content-box',
+                        }}
+                        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                    />
 
-                {/* Editor (transparent text, visible caret) */}
-                <textarea
-                    ref={textareaRef}
-                    value={value}
-                    onChange={handleChange}
-                    onScroll={handleScroll}
-                    className={[
-                        'relative z-20 w-full',
-                        // Taller editor area
-                        'h-[28rem] md:h-[36rem]',
-                        // Typography
-                        'text-transparent caret-gray-900 selection:bg-indigo-200/60',
-                        'text-lg md:text-xl',
-                        effectiveFontClassName,
-                        // Layout and visuals
-                        'bg-transparent outline-none resize-none',
-                        'py-6 md:py-8',
-                        'pl-[46px] pr-[46px]',
-                    ].join(' ')}
-                    style={{ lineHeight: `${lineHeight}px` }}
-                    placeholder={DEFAULT_BOOK}
-                    spellCheck={false}
-                />
+                    {/* Editor (transparent text, visible caret) */}
+                    <textarea
+                        ref={textareaRef}
+                        value={value}
+                        onChange={handleChange}
+                        onScroll={handleScroll}
+                        className={`book-editor-textarea ${effectiveFontClassName}`}
+                        style={{ lineHeight: `${lineHeight}px` }}
+                        placeholder={DEFAULT_BOOK}
+                        spellCheck={false}
+                    />
+                </div>
             </div>
-        </div>
+        </>
     );
 }
