@@ -29,3 +29,10 @@
 -   [🔵] Code in this file should never be published outside of `@promptbook/browser`
 -   [🟡] Code in this file should never be published outside of `@promptbook/cli`
 -   [💞] Ignore a discrepancy between file name and entity name
+
+## Generated code
+
+Across the repository, there are several places where code has been generated automatically.
+Do not edit these places manually, as they will be overwritten by the code generation process. Edit the source files instead.
+
+> ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
