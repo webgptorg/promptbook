@@ -11,13 +11,13 @@
 
 [ ]
 
-[✨⤴️] foo
+[✨⤴️] Script `scripts/components-playground-server.ts` should be as simple as possible - remove the complicated design, it should only show the components and allow to switch between them and choose between light and dark mode.
 
 ---
 
 [ ]
 
-[✨⤴️] foo
+[✨⤴️] When testing `<BookEditor>` in `scripts/components-playground-server.ts` use `useState` for `value` of the component.
 
 ---
 
