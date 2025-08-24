@@ -121,20 +121,32 @@ async function main() {
                     }
 
                     .component-container {
+                        display: flex;
+                        gap: 20px;
+                        min-height: 500px;
+                    }
+
+                    .code-panel, .preview-panel {
+                        flex: 1;
                         border: 1px solid;
                         border-radius: 8px;
                         padding: 20px;
-                        min-height: 400px;
                     }
 
-                    .light .component-container {
+                    .light .code-panel, .light .preview-panel {
                         border-color: #e0e0e0;
                         background: #fafafa;
                     }
 
-                    .dark .component-container {
+                    .dark .code-panel, .dark .preview-panel {
                         border-color: #444;
                         background: #2a2a2a;
+                    }
+
+                    .code-panel h3, .preview-panel h3 {
+                        margin: 0 0 15px 0;
+                        font-size: 16px;
+                        font-weight: 600;
                     }
 
                     .loading {
@@ -142,13 +154,194 @@ async function main() {
                         padding: 40px;
                         opacity: 0.7;
                     }
+
+                    @media (max-width: 768px) {
+                        .component-container {
+                            flex-direction: column;
+                        }
+                    }
                 </style>
             </head>
             <body class="light">
                 <div id="root"></div>
 
                 <script type="text/babel">
-                    const { useState, useEffect } = React;
+                    const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+                    // Mock dependencies for BookEditor
+                    const DEFAULT_BOOK = \`# 🌟 Sample Book
+
+-   BOOK VERSION 1.0.0
+-   INPUT PARAMETER {topic}
+-   OUTPUT PARAMETER {article}
+
+## Write an Article
+
+-   PERSONA Jane, marketing specialist with prior experience in tech and AI writing
+-   KNOWLEDGE https://wikipedia.org/
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 5 Pages
+
+> Write an article about {topic}
+
+→ {article}\`;
+
+                    function getAllCommitmentDefinitions() {
+                        return [
+                            { type: 'PERSONA' }, { type: 'KNOWLEDGE' }, { type: 'STYLE' },
+                            { type: 'RULE' }, { type: 'RULES' }, { type: 'SAMPLE' },
+                            { type: 'EXAMPLE' }, { type: 'FORMAT' }, { type: 'MODEL' },
+                            { type: 'ACTION' }, { type: 'META IMAGE' }, { type: 'META LINK' },
+                            { type: 'NOTE' }, { type: 'EXPECT' }, { type: 'SCENARIO' },
+                            { type: 'SCENARIOS' }, { type: 'BEHAVIOUR' }, { type: 'BEHAVIOURS' },
+                            { type: 'AVOID' }, { type: 'AVOIDANCE' }, { type: 'GOAL' },
+                            { type: 'GOALS' }, { type: 'CONTEXT' }, { type: 'BOOK VERSION' },
+                            { type: 'INPUT PARAMETER' }, { type: 'OUTPUT PARAMETER' }
+                        ];
+                    }
+
+                    function validateBook(content) {
+                        return content; // Simplified validation for browser
+                    }
+
+                    // Simplified BookEditor component for browser preview (DRY principle)
+                    function SimplifiedBookEditor({ className = '', value, onChange, theme }) {
+                        const [internalValue, setInternalValue] = useState(DEFAULT_BOOK);
+                        const textareaRef = useRef(null);
+                        const highlightRef = useRef(null);
+
+                        const currentValue = value !== undefined ? value : internalValue;
+
+                        const handleChange = useCallback((event) => {
+                            const newValue = event.target.value;
+                            if (value !== undefined) {
+                                onChange?.(newValue);
+                            } else {
+                                setInternalValue(newValue);
+                            }
+                        }, [value, onChange]);
+
+                        const handleScroll = useCallback((event) => {
+                            const t = event.currentTarget;
+                            if (highlightRef.current) {
+                                highlightRef.current.scrollTop = t.scrollTop;
+                                highlightRef.current.scrollLeft = t.scrollLeft;
+                            }
+                        }, []);
+
+                        // Build highlighted HTML
+                        const highlightedHtml = useMemo(() => {
+                            const text = currentValue || '';
+                            const commitmentTypes = getAllCommitmentDefinitions().map(def => def.type);
+                            const pattern = '\\\\b(?:' + commitmentTypes.join('|') + ')\\\\b';
+                            const regex = new RegExp(pattern, 'gmi');
+
+                            let result = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            result = result.replace(regex, '<span style="color: #4f46e5; font-weight: 600;">$&</span>');
+                            return result;
+                        }, [currentValue]);
+
+                        const editorStyle = {
+                            position: 'relative',
+                            fontFamily: 'ui-serif, Georgia, serif',
+                            fontSize: '16px',
+                            lineHeight: '1.6',
+                            border: '1px solid ' + (theme === 'light' ? '#d1d5db' : '#4b5563'),
+                            borderRadius: '8px',
+                            background: theme === 'light' ? 'white' : '#1f2937',
+                            overflow: 'hidden'
+                        };
+
+                        const textareaStyle = {
+                            width: '100%',
+                            height: '300px',
+                            padding: '16px',
+                            border: 'none',
+                            outline: 'none',
+                            resize: 'none',
+                            fontFamily: 'inherit',
+                            fontSize: 'inherit',
+                            lineHeight: 'inherit',
+                            background: 'transparent',
+                            color: 'transparent',
+                            caretColor: theme === 'light' ? '#374151' : '#f3f4f6',
+                            zIndex: 2,
+                            position: 'relative'
+                        };
+
+                        const highlightStyle = {
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '300px',
+                            padding: '16px',
+                            margin: 0,
+                            border: 'none',
+                            fontFamily: 'inherit',
+                            fontSize: 'inherit',
+                            lineHeight: 'inherit',
+                            color: theme === 'light' ? '#374151' : '#f3f4f6',
+                            background: 'transparent',
+                            overflow: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word',
+                            pointerEvents: 'none',
+                            zIndex: 1
+                        };
+
+                        return (
+                            <div className={className} style={editorStyle}>
+                                <pre
+                                    ref={highlightRef}
+                                    style={highlightStyle}
+                                    dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                                />
+                                <textarea
+                                    ref={textareaRef}
+                                    style={textareaStyle}
+                                    value={currentValue}
+                                    onChange={handleChange}
+                                    onScroll={handleScroll}
+                                    placeholder="Enter your promptbook content here..."
+                                    spellCheck={false}
+                                />
+                            </div>
+                        );
+                    }
+
+                    function ComponentPreview({ componentName, source, theme }) {
+                        const [bookContent, setBookContent] = useState(DEFAULT_BOOK);
+
+                        if (componentName === 'BookEditor') {
+                            return (
+                                <div style={{
+                                    border: '1px solid ' + (theme === 'light' ? '#ddd' : '#555'),
+                                    borderRadius: '8px',
+                                    padding: '15px',
+                                    background: theme === 'light' ? '#fff' : '#222',
+                                    maxHeight: '450px',
+                                    overflow: 'auto'
+                                }}>
+                                    <SimplifiedBookEditor
+                                        value={bookContent}
+                                        onChange={setBookContent}
+                                        theme={theme}
+                                    />
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '40px',
+                                opacity: 0.7
+                            }}>
+                                Component preview not available
+                            </div>
+                        );
+                    }
 
                     function App() {
                         const [theme, setTheme] = useState('light');
@@ -212,20 +405,31 @@ async function main() {
                                     {loading ? (
                                         <div className="loading">Loading component...</div>
                                     ) : componentSource ? (
-                                        <div>
-                                            <h2>{componentSource.name}</h2>
-                                            <pre style={{
-                                                maxHeight: '400px',
-                                                overflow: 'auto',
-                                                background: theme === 'light' ? '#f5f5f5' : '#333',
-                                                padding: '15px',
-                                                borderRadius: '4px',
-                                                fontSize: '14px',
-                                                lineHeight: '1.4'
-                                            }}>
-                                                {componentSource.source}
-                                            </pre>
-                                        </div>
+                                        <>
+                                            <div className="code-panel">
+                                                <h3>📄 Source Code</h3>
+                                                <pre style={{
+                                                    maxHeight: '450px',
+                                                    overflow: 'auto',
+                                                    background: theme === 'light' ? '#f5f5f5' : '#333',
+                                                    padding: '15px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '12px',
+                                                    lineHeight: '1.4',
+                                                    margin: 0
+                                                }}>
+                                                    {componentSource.source}
+                                                </pre>
+                                            </div>
+                                            <div className="preview-panel">
+                                                <h3>🎮 Live Preview</h3>
+                                                <ComponentPreview
+                                                    componentName={selectedComponent}
+                                                    source={componentSource.source}
+                                                    theme={theme}
+                                                />
+                                            </div>
+                                        </>
                                     ) : (
                                         <div>Failed to load component</div>
                                     )}
