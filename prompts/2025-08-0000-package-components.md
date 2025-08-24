@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨⤴️] Make package `@promptbook/components`
 
