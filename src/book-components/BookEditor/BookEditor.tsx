@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
+import { DEFAULT_BOOK_TITLE } from '../../config';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Internal CSS styles for the BookEditor component
@@ -93,6 +95,15 @@ const BOOK_EDITOR_STYLES = `
 
 .book-editor-serif {
     font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+
+.book-editor-version{
+    font-size: 0.875rem;
+    color: rgba(17, 24, 39, 0.6);
+    padding: 0.5rem 1rem;
+    border-top: 1px solid rgba(209, 213, 219, 0.8);
+    background-color: rgba(99, 102, 241, 0.1);
 }
 
 
@@ -292,6 +303,28 @@ export function BookEditor(props: BookEditorProps) {
                         placeholder={DEFAULT_BOOK}
                         spellCheck={false}
                     />
+
+                    <div className={`book-editor-version`}>
+                        {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
+                        {' | '}
+                        <a
+                            href="https://github.com/webgptorg/book"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Book Language Version ${BOOK_LANGUAGE_VERSION}`}
+                        >
+                            📖 {BOOK_LANGUAGE_VERSION}
+                        </a>
+                        {' | '}
+                        <a
+                            href="https://github.com/webgptorg/promptbook"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Promptbook Engine Version ${PROMPTBOOK_ENGINE_VERSION}`}
+                        >
+                            🏭 {PROMPTBOOK_ENGINE_VERSION}
+                        </a>
+                    </div>
                 </div>
             </div>
         </>
