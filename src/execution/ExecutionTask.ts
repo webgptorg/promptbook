@@ -2,7 +2,7 @@ import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
 import { PartialDeep } from 'type-fest';
 import { assertsError } from '../errors/assertsError';
-import type { task_id } from '../types/typeAliases';
+import type { number_percent, task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import type { really_any } from '../utils/organization/really_any';
@@ -144,6 +144,51 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             return status;
             // <- Note: [1] --||--
         },
+        get tldr() {
+            // Derive a short progress summary from currentValue, status and any errors/warnings.
+            const cv: really_any = currentValue as really_any;
+
+            // Try several common places where a percent might be stored on the partial result
+            let percentRaw: unknown = cv?.tldr?.percent ?? cv?.usage?.percent ?? cv?.progress?.percent ?? cv?.percent;
+
+            // If we didn't find a numeric percent, infer from status
+            if (typeof percentRaw !== 'number') {
+                if (status === 'FINISHED') {
+                    percentRaw = 1;
+                } else if (status === 'ERROR') {
+                    percentRaw = 0;
+                } else {
+                    percentRaw = 0;
+                }
+            }
+
+            // Clamp to [0,1]
+            let percent = Number(percentRaw) || 0;
+            if (percent < 0) percent = 0;
+            if (percent > 1) percent = 1;
+
+            // Build a short message: prefer explicit tldr.message, then common summary/message fields, then errors/warnings, then status
+            const messageFromResult = cv?.tldr?.message ?? cv?.message ?? cv?.summary ?? cv?.statusMessage;
+            let message: string | undefined = messageFromResult;
+            if (!message) {
+                if (errors.length) {
+                    message = errors[errors.length - 1]!.message || 'Error';
+                } else if (warnings.length) {
+                    message = warnings[warnings.length - 1]!.message || 'Warning';
+                } else if (status === 'FINISHED') {
+                    message = 'Finished';
+                } else if (status === 'ERROR') {
+                    message = 'Error';
+                } else {
+                    message = 'Running';
+                }
+            }
+
+            return {
+                percent: percent as number_percent,
+                message,
+            };
+        },
         get createdAt() {
             return createdAt;
             // <- Note: [1] --||--
@@ -228,6 +273,21 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
      * Status of the task
      */
     readonly status: task_status;
+
+    /**
+     * Short summary of the task status for quick overview in the UI
+     */
+    readonly tldr: {
+        /**
+         * Progress in percentage from 0 to 1 (100%) that can be used to display a progress bar
+         */
+        readonly percent: number_percent;
+
+        /**
+         * Short summary message of the task status that can be displayed in the UI
+         */
+        readonly message: string;
+    };
 
     /**
      * Date when the task was created
