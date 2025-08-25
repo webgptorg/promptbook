@@ -11,8 +11,9 @@ const nextConfig: NextConfig = {
         root: path.join(__dirname, '..', '..'),
 
         resolveAlias: {
-            '@aaa': path.join(__dirname, '..', 'aaa'),
-            '@promptbook-local': path.join(__dirname, '..', '..', 'src'),
+            '@': path.resolve(__dirname, 'src'),
+            '@aaa': path.resolve(__dirname, '../../aaa'),
+            '@promptbook-local': path.resolve(__dirname, '../../src/_packages'),
         },
     },
 

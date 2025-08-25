@@ -22,9 +22,9 @@
         "paths": {
             "@/*": ["src/*"],
             "@aaa/*": ["../aaa/*"],
-            "@promptbook-local/*": ["../../src/*"]
+            "@promptbook-local/*": ["../../src/_packages/*.index"]
         }
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../src", "../aaa"],
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
     "exclude": ["node_modules"]
 }
