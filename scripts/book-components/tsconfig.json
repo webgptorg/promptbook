@@ -21,9 +21,10 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["src/*"],
+            "@aaa/*": ["../aaa/*"],
             "@promptbook-local/*": ["../../src/*"]
         }
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../src"],
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../src", "../aaa"],
     "exclude": ["node_modules"]
 }
