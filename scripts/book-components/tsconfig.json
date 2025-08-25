@@ -21,7 +21,6 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["src/*"],
-            "@aaa/*": ["../aaa/*"],
             "@promptbook-local/*": ["../../src/_packages/*.index"]
         }
     },

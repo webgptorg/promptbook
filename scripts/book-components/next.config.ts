@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
 
         resolveAlias: {
             '@': path.resolve(__dirname, 'src'),
-            '@aaa': path.resolve(__dirname, '../../aaa'),
             '@promptbook-local': path.resolve(__dirname, '../../src/_packages'),
         },
     },
