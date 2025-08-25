@@ -22,7 +22,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨📶] Playground should show the actual `<BookEditor />`
 

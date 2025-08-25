@@ -12,6 +12,7 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
 import { forEver } from 'waitasecond';
+import * as ts from 'typescript';
 import { assertsError } from '../src/errors/assertsError';
 
 const readFileAsync = promisify(readFile);
@@ -42,6 +43,50 @@ async function main() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
+    // TypeScript compilation helper
+    async function transpileComponent(componentPath: string): Promise<string> {
+        try {
+            const componentSource = await readFileAsync(componentPath, 'utf-8');
+
+            // Replace type imports and exports for browser compatibility
+            let browserCompatibleSource = componentSource
+                // Remove 'use client' directive
+                .replace("'use client';", '')
+                // Remove React import (it's already global in browser)
+                .replace(/import React.*?;/g, '')
+                // Remove type imports
+                .replace(/import type .+?;/g, '')
+                // Replace string_book type with string
+                .replace(/string_book/g, 'string')
+                // Handle default exports
+                .replace('export function BookEditor', 'function BookEditor')
+                // Replace specific imports with global references
+                .replace(/import { DEFAULT_BOOK } from '.*?';/g, 'const DEFAULT_BOOK = window.DEFAULT_BOOK;')
+                .replace(/import { validateBook } from '.*?';/g, 'const validateBook = window.validateBook;')
+                .replace(/import { getAllCommitmentDefinitions } from '.*?';/g, 'const getAllCommitmentDefinitions = window.getAllCommitmentDefinitions;')
+                // Remove any other imports
+                .replace(/import { .+? } from '.+?';/g, '// Import removed for browser compatibility');
+
+            // Add the final export
+            browserCompatibleSource += '\n\nwindow.BookEditor = BookEditor;';
+
+            // Transpile TypeScript to JavaScript
+            const result = ts.transpile(browserCompatibleSource, {
+                target: ts.ScriptTarget.ES2018,
+                module: ts.ModuleKind.None,
+                jsx: ts.JsxEmit.React,
+                esModuleInterop: true,
+                allowSyntheticDefaultImports: true,
+                skipLibCheck: true,
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Transpilation error:', error);
+            throw error;
+        }
+    }
+
     // Get component source
     app.get('/components/BookEditor/source', async (req, res) => {
         try {
@@ -50,6 +95,19 @@ async function main() {
             res.json({ name: 'BookEditor', source: componentSource });
         } catch (error) {
             res.status(500).json({ error: 'Failed to read component' });
+        }
+    });
+
+    // Get transpiled component for browser execution
+    app.get('/components/BookEditor/transpiled', async (req, res) => {
+        try {
+            const componentPath = join(__dirname, '..', 'src', 'book-components', 'BookEditor', 'BookEditor.tsx');
+            const transpiledCode = await transpileComponent(componentPath);
+            res.set('Content-Type', 'application/javascript');
+            res.send(transpiledCode);
+        } catch (error) {
+            console.error('Failed to transpile component:', error);
+            res.status(500).json({ error: 'Failed to transpile component' });
         }
     });
 
@@ -168,8 +226,8 @@ async function main() {
                 <script type="text/babel">
                     const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
-                    // Mock dependencies for BookEditor
-                    const DEFAULT_BOOK = \`# 🌟 Sample Book
+                    // Mock dependencies for BookEditor - these need to be available globally
+                    window.DEFAULT_BOOK = \`# 🌟 Sample Book
 
 -   BOOK VERSION 1.0.0
 -   INPUT PARAMETER {topic}
@@ -186,7 +244,7 @@ async function main() {
 
 → {article}\`;
 
-                    function getAllCommitmentDefinitions() {
+                    window.getAllCommitmentDefinitions = function() {
                         return [
                             { type: 'PERSONA' }, { type: 'KNOWLEDGE' }, { type: 'STYLE' },
                             { type: 'RULE' }, { type: 'RULES' }, { type: 'SAMPLE' },
@@ -198,122 +256,68 @@ async function main() {
                             { type: 'GOALS' }, { type: 'CONTEXT' }, { type: 'BOOK VERSION' },
                             { type: 'INPUT PARAMETER' }, { type: 'OUTPUT PARAMETER' }
                         ];
-                    }
+                    };
 
-                    function validateBook(content) {
+                    window.validateBook = function(content) {
                         return content; // Simplified validation for browser
-                    }
-
-                    // Simplified BookEditor component for browser preview (DRY principle)
-                    function SimplifiedBookEditor({ className = '', value, onChange, theme }) {
-                        const [internalValue, setInternalValue] = useState(DEFAULT_BOOK);
-                        const textareaRef = useRef(null);
-                        const highlightRef = useRef(null);
-
-                        const currentValue = value !== undefined ? value : internalValue;
-
-                        const handleChange = useCallback((event) => {
-                            const newValue = event.target.value;
-                            if (value !== undefined) {
-                                onChange?.(newValue);
-                            } else {
-                                setInternalValue(newValue);
-                            }
-                        }, [value, onChange]);
-
-                        const handleScroll = useCallback((event) => {
-                            const t = event.currentTarget;
-                            if (highlightRef.current) {
-                                highlightRef.current.scrollTop = t.scrollTop;
-                                highlightRef.current.scrollLeft = t.scrollLeft;
-                            }
-                        }, []);
-
-                        // Build highlighted HTML
-                        const highlightedHtml = useMemo(() => {
-                            const text = currentValue || '';
-                            const commitmentTypes = getAllCommitmentDefinitions().map(def => def.type);
-                            const pattern = '\\\\b(?:' + commitmentTypes.join('|') + ')\\\\b';
-                            const regex = new RegExp(pattern, 'gmi');
-
-                            let result = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                            result = result.replace(regex, '<span style="color: #4f46e5; font-weight: 600;">$&</span>');
-                            return result;
-                        }, [currentValue]);
-
-                        const editorStyle = {
-                            position: 'relative',
-                            fontFamily: 'ui-serif, Georgia, serif',
-                            fontSize: '16px',
-                            lineHeight: '1.6',
-                            border: '1px solid ' + (theme === 'light' ? '#d1d5db' : '#4b5563'),
-                            borderRadius: '8px',
-                            background: theme === 'light' ? 'white' : '#1f2937',
-                            overflow: 'hidden'
-                        };
-
-                        const textareaStyle = {
-                            width: '100%',
-                            height: '300px',
-                            padding: '16px',
-                            border: 'none',
-                            outline: 'none',
-                            resize: 'none',
-                            fontFamily: 'inherit',
-                            fontSize: 'inherit',
-                            lineHeight: 'inherit',
-                            background: 'transparent',
-                            color: 'transparent',
-                            caretColor: theme === 'light' ? '#374151' : '#f3f4f6',
-                            zIndex: 2,
-                            position: 'relative'
-                        };
-
-                        const highlightStyle = {
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '300px',
-                            padding: '16px',
-                            margin: 0,
-                            border: 'none',
-                            fontFamily: 'inherit',
-                            fontSize: 'inherit',
-                            lineHeight: 'inherit',
-                            color: theme === 'light' ? '#374151' : '#f3f4f6',
-                            background: 'transparent',
-                            overflow: 'auto',
-                            whiteSpace: 'pre-wrap',
-                            wordWrap: 'break-word',
-                            pointerEvents: 'none',
-                            zIndex: 1
-                        };
-
-                        return (
-                            <div className={className} style={editorStyle}>
-                                <pre
-                                    ref={highlightRef}
-                                    style={highlightStyle}
-                                    dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-                                />
-                                <textarea
-                                    ref={textareaRef}
-                                    style={textareaStyle}
-                                    value={currentValue}
-                                    onChange={handleChange}
-                                    onScroll={handleScroll}
-                                    placeholder="Enter your promptbook content here..."
-                                    spellCheck={false}
-                                />
-                            </div>
-                        );
-                    }
+                    };
 
                     function ComponentPreview({ componentName, source, theme }) {
-                        const [bookContent, setBookContent] = useState(DEFAULT_BOOK);
+                        const [bookContent, setBookContent] = useState(window.DEFAULT_BOOK);
+                        const [componentLoaded, setComponentLoaded] = useState(false);
+                        const [loadError, setLoadError] = useState(null);
+
+                        // Load the transpiled component
+                        useEffect(() => {
+                            if (componentName === 'BookEditor') {
+                                setComponentLoaded(false);
+                                setLoadError(null);
+
+                                // Create a script element to load the transpiled component
+                                const script = document.createElement('script');
+                                script.src = \`/components/\${componentName}/transpiled?t=\${Date.now()}\`;
+                                script.onload = () => {
+                                    setComponentLoaded(true);
+                                };
+                                script.onerror = (error) => {
+                                    console.error('Failed to load transpiled component:', error);
+                                    setLoadError('Failed to load component');
+                                };
+
+                                document.head.appendChild(script);
+
+                                return () => {
+                                    document.head.removeChild(script);
+                                };
+                            }
+                        }, [componentName]);
 
                         if (componentName === 'BookEditor') {
+                            if (loadError) {
+                                return (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '40px',
+                                        color: '#ef4444'
+                                    }}>
+                                        Error: {loadError}
+                                    </div>
+                                );
+                            }
+
+                            if (!componentLoaded || !window.BookEditor) {
+                                return (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '40px',
+                                        opacity: 0.7
+                                    }}>
+                                        Loading component...
+                                    </div>
+                                );
+                            }
+
+                            // Render the actual BookEditor component
                             return (
                                 <div style={{
                                     border: '1px solid ' + (theme === 'light' ? '#ddd' : '#555'),
@@ -323,11 +327,10 @@ async function main() {
                                     maxHeight: '450px',
                                     overflow: 'auto'
                                 }}>
-                                    <SimplifiedBookEditor
-                                        value={bookContent}
-                                        onChange={setBookContent}
-                                        theme={theme}
-                                    />
+                                    {React.createElement(window.BookEditor, {
+                                        value: bookContent,
+                                        onChange: setBookContent
+                                    })}
                                 </div>
                             );
                         }
