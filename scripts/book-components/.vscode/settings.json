@@ -1,0 +1,21 @@
+{
+    "jest.pathToConfig": "jest.config.ts",
+    "jestrunner.jestCommand": "npm run test-unit --",
+    "files.eol": "\n",
+    "editor.formatOnSave": true,
+    "prettier.configPath": ".prettierrc",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "html.autoClosingTags": false,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "[xml]": {
+        "editor.defaultFormatter": "redhat.vscode-xml"
+    },
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "markdown.copyFiles.destination": {
+        "prompts/*md": "${documentDirName}/screenshots/${documentBaseName}.png"
+    },
+    "explorer.copyRelativePathSeparator": "/"
+}

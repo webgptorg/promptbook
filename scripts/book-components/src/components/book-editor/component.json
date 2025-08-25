@@ -1,0 +1,51 @@
+{
+    "id": "book-editor",
+    "name": "Book Editor",
+    "description": "A simple textarea component optimized for book and long-form content editing with clean Tailwind styling.",
+    "category": "Form Controls",
+    "tags": ["textarea", "editor", "form", "input", "book", "writing"],
+    "author": "Promptbook Team",
+    "version": "1.0.0",
+    "repository": "https://github.com/webgptorg/promptbook-components",
+    "dependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "tailwindcss": "^3.0.0 || ^4.0.0",
+        "@promptbook/types": "^0.x.x"
+    },
+    "props": {
+        "className": {
+            "type": "string",
+            "default": "",
+            "description": "Additional CSS classes to apply to the textarea"
+        },
+        "value": {
+            "type": "PipelineString",
+            "description": "The book which is being edited (controlled value)"
+        },
+        "onChange": {
+            "type": "(value: PipelineString) => void",
+            "description": "Callback function to handle changes in the book content"
+        }
+    },
+    "features": [
+        "Clean, focused writing interface",
+        "Controlled and uncontrolled modes",
+        "Responsive design",
+        "Accessible keyboard navigation",
+        "Optimized for long-form content"
+    ],
+    "examples": [
+        {
+            "title": "Basic Usage",
+            "code": "<BookEditor />"
+        },
+        {
+            "title": "With Custom CSS Classes",
+            "code": "<BookEditor className=\"border-2 border-blue-500\" />"
+        },
+        {
+            "title": "Controlled Mode",
+            "code": "<BookEditor value={content} onChange={setContent} />"
+        }
+    ]
+}

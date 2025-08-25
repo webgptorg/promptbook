@@ -1,0 +1,33 @@
+{
+    "name": "book-components",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "npx kill-port 4022 && next dev -p 4022 --turbopack",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "lucide-react": "^0.536.0",
+        "mermaid": "^11.9.0",
+        "next": "15.4.5",
+        "ptbk": "0.100.0-33",
+        "react": "19.1.0",
+        "react-dom": "19.1.0",
+        "react-markdown": "^10.1.0"
+    },
+    "devDependencies": {
+        "@eslint/eslintrc": "^3",
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "autoprefixer": "^10.4.14",
+        "eslint": "^8.57.0",
+        "eslint-config-next": "15.4.5",
+        "postcss": "^8.4.24",
+        "tailwindcss": "^3.4.0",
+        "type-fest": "^4.41.0",
+        "typescript": "^5.4.5"
+    }
+}

@@ -1,0 +1,66 @@
+{
+  "id": "textarea-with-counter",
+  "name": "Textarea with Counter",
+  "description": "A textarea component with real-time word and character counting, perfect for forms with length limits.",
+  "category": "Form Controls",
+  "tags": ["textarea", "counter", "form", "input", "validation"],
+  "author": "Promptbook Team",
+  "version": "1.0.0",
+  "repository": "https://github.com/webgptorg/promptbook-components",
+  "dependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "tailwindcss": "^3.0.0 || ^4.0.0"
+  },
+  "props": {
+    "placeholder": {
+      "type": "string",
+      "default": "Start typing...",
+      "description": "Placeholder text for the textarea"
+    },
+    "maxLength": {
+      "type": "number",
+      "default": 500,
+      "description": "Maximum number of characters allowed"
+    },
+    "rows": {
+      "type": "number",
+      "default": 4,
+      "description": "Number of visible text lines"
+    },
+    "className": {
+      "type": "string",
+      "default": "",
+      "description": "Additional CSS classes"
+    },
+    "value": {
+      "type": "string",
+      "description": "Controlled value (optional)"
+    },
+    "onChange": {
+      "type": "(value: string) => void",
+      "description": "Callback when value changes (for controlled mode)"
+    }
+  },
+  "features": [
+    "Real-time word counting",
+    "Character limit enforcement",
+    "Visual feedback when approaching limit",
+    "Controlled and uncontrolled modes",
+    "Responsive design",
+    "Accessible keyboard navigation"
+  ],
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<TextareaWithCounter placeholder=\"Enter your message...\" />"
+    },
+    {
+      "title": "With Custom Limit",
+      "code": "<TextareaWithCounter maxLength={1000} rows={6} />"
+    },
+    {
+      "title": "Controlled Mode",
+      "code": "<TextareaWithCounter value={text} onChange={setText} />"
+    }
+  ]
+}

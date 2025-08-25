@@ -45,10 +45,10 @@
         },
         {
             "name": "🧸 Components Playground Server",
-            "command": "npx ts-node ./scripts/components-playground-server.ts",
-            "execute": false,
+            "commands": ["cd ./scripts/book-components/", "npm i", "npm run dev"],
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
         },
         {
             "name": "🧪 Spell check",
