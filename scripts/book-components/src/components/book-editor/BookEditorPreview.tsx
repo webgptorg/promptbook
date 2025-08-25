@@ -1,10 +1,10 @@
 'use client';
 
-import { BookEditor } from '@promptbook/components';
-import { DEFAULT_BOOK, getAllCommitmentDefinitions, parseAgentSource } from '@promptbook/core';
-import type { string_book } from '@promptbook/types';
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { DEFAULT_BOOK, getAllCommitmentDefinitions, parseAgentSource } from '../../../../../src/_packages/core.index';
+import type { string_book } from '../../../../../src/_packages/types.index';
+import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
 
 /**
  * Renders a preview of `<BookEditor />` component.

@@ -1,3 +1,1 @@
-TODO: There are two things which should be in different folders: 
-- Common project components (e.g. CopyButton)
-- Domain-specific Prompt components (e.g. BookEditor)
+TODO: !!!! Move files like preview and component.json to /src/book-components/.../.
