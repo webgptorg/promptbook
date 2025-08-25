@@ -24,10 +24,17 @@
 
 [ ]
 
-[✨📶] bar
+[✨📶] Playground should show the actual `<BookEditor />`
+
+Playground `/scripts/components-playground-server.ts` should render the `<BookEditor />` component which is located at `/src/book-components/BookEditor/BookEditor.tsx`
+Not some inlined version which is hardcoded in the source code of the playground server.
+
+-   Implement some internal transpilation
+-   Server should look at current source code of [BookEditor](/src/book-components/BookEditor/BookEditor.tsx) when user refreshed the page, current source code should be used for rendering.
+-   Do not implement the hotloading
 
 ---
 
 [ ]
 
-[✨📶] bar
+[✨📶] Playground should show the preview of the `<BookEditor />` and then the source code.
