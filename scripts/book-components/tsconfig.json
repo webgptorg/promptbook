@@ -20,7 +20,6 @@
         ],
         "paths": {
             "@/*": ["./src/*"],
-            "@promptbook-local/*": ["../../src"]
         }
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
