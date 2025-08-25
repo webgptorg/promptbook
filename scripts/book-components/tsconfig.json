@@ -20,9 +20,8 @@
         ],
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"],
-            "@promptbook-local/*": ["../../src/*"],
-            "@promptbook-local/book-components/*": ["../../src/book-components/*"]
+            "@/*": ["src/*"],
+            "@promptbook-local/*": ["../../src/*"]
         }
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../src"],
