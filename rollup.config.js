@@ -4,7 +4,7 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { version, dependencies } from './package.json';
+import { version } from './package.json';
 
 // Note: Note using raw imports via `rollup-plugin-raw` - it is not maintained and has security and compatibility issues
 
@@ -78,14 +78,6 @@ export default function () {
                 input: entryIndexFilePath,
                 output,
                 plugins,
-                external: (id) => {
-                    // Treat other @promptbook packages as external dependencies
-                    if (id.startsWith('@promptbook/') && id !== packageFullname) {
-                        return true;
-                    }
-                    // Keep external npm dependencies as external
-                    return Object.keys(dependencies).some(dep => id === dep || id.startsWith(dep + '/'));
-                },
             };
         });
 }
