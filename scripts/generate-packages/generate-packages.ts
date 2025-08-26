@@ -19,6 +19,7 @@ import { removeMarkdownComments } from '../../src/utils/markdown/removeMarkdownC
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { getPackagesMetadata } from './getPackagesMetadata';
+import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -638,6 +639,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 console.warn(colors.yellow(`Bundle file ${bundleName} does not exist`));
             }
 
+            // Check for external npm dependencies
             for (const dependencyName of Object.keys(allDependencies)) {
                 if (
                     indexContent.includes(`from '${dependencyName}'`) ||
@@ -654,6 +656,64 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     // <- Note: [🧃] Using only `dependencies` (not `devDependencies`)
                 }
             }
+        }
+
+        // Check for internal promptbook package dependencies by analyzing imported entities
+        const currentPackageMetadata = packagesMetadata.find(p => p.packageFullname === packageFullname);
+        if (currentPackageMetadata?.entities) {
+            const packageEntitiesSet = new Set(currentPackageMetadata.entities.map(entity => entity.name));
+            
+            for (const entity of currentPackageMetadata.entities) {
+                const entitySourceFile = await readFile(entity.filename, 'utf-8');
+                
+                // Find imports from other source files
+                const importMatches = entitySourceFile.matchAll(/import\s+(?:{[^}]+}|\*\s+as\s+\w+|\w+)\s+from\s+['"](\.\.\/[^'"]+)['"];?/g);
+                
+                for (const importMatch of importMatches) {
+                    const importPath = importMatch[1];
+                    
+                    // Skip relative imports within the same directory or subdirectories  
+                    if (importPath.startsWith('../')) {
+                        // Find all entities and check which package they belong to
+                        const entities = await findAllProjectEntities();
+                        
+                        for (const importedEntity of entities) {
+                            // Check if this entity is imported in the current file
+                            const importedEntityName = importedEntity.name;
+                            if (entitySourceFile.includes(`{ ${importedEntityName} }`) || 
+                                entitySourceFile.includes(`{${importedEntityName}}`) ||
+                                entitySourceFile.includes(`${importedEntityName},`) ||
+                                entitySourceFile.includes(`, ${importedEntityName}`) ||
+                                entitySourceFile.includes(`{ ${importedEntityName},`) ||
+                                entitySourceFile.includes(`,${importedEntityName}}`)) {
+                                
+                                // Find which package exports this entity
+                                for (const otherPackage of packagesMetadata) {
+                                    if (otherPackage.packageFullname === packageFullname) continue;
+                                    if (!otherPackage.entities) continue;
+                                    
+                                    const otherPackageEntitiesSet = new Set(otherPackage.entities.map(e => e.name));
+                                    if (otherPackageEntitiesSet.has(importedEntityName) && !packageEntitiesSet.has(importedEntityName)) {
+                                        // Add dependency
+                                        packageJson.dependencies = packageJson.dependencies || {};
+                                        packageJson.dependencies[otherPackage.packageFullname] = packageJson.version;
+                                        console.info(colors.blue(`📦 Added internal dependency: ${packageFullname} -> ${otherPackage.packageFullname} (for ${importedEntityName})`));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add specific known internal package dependencies
+        if (packageFullname === '@promptbook/core') {
+            // @promptbook/core uses $deepFreeze and other utilities from @promptbook/utils
+            packageJson.dependencies = packageJson.dependencies || {};
+            packageJson.dependencies['@promptbook/utils'] = packageJson.version;
+            console.info(colors.blue(`📦 Added internal dependency: ${packageFullname} -> @promptbook/utils`));
         }
 
         for (const dependencyName of additionalDependencies) {

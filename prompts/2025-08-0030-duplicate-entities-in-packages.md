@@ -1,6 +1,6 @@
-[ ]
+[x]
 
-[✨★] /deep-planning Lot of the code will end up duplicated in multiple published packages
+[✨★] Lot of the code will end up duplicated in multiple published packages
 
 For example `$deepFreeze` (`src/utils/serialization/$deepFreeze.ts`) is exported from `@promptbook/utils`
 but also used in `ZERO_USAGE` (`src/execution/utils/usage-constants.ts`) which is exported from `@promptbook/core`.
