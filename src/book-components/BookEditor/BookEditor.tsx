@@ -56,7 +56,7 @@ const BOOK_EDITOR_STYLES = `
     white-space: pre-wrap;
     color: rgb(17, 24, 39);
     font-size: 1.125rem;
-    padding: 1.5rem 0;
+    padding-top: 0;
     padding-left: 46px;
     padding-right: 46px;
     z-index: 10;
@@ -84,7 +84,7 @@ const BOOK_EDITOR_STYLES = `
     background-color: transparent;
     outline: none;
     resize: none;
-    padding: 1.5rem 0;
+    padding-top: 15px;
     padding-left: 46px;
     padding-right: 46px;
     border: none;
@@ -267,92 +267,103 @@ export function BookEditor(props: BookEditorProps) {
     const shadowRootRef = useRef<ShadowRoot | null>(null);
 
     useEffect(() => {
-        const host = hostRef.current;
-        if (!host) return;
-
-        // If shadow root not created yet, attach one
-        if (!shadowRootRef.current) {
-            try {
-                shadowRootRef.current = host.attachShadow({ mode: 'open' });
-            } catch (e) {
-                // If attachShadow fails (older browsers), leave shadowRootRef null and render normally
-                shadowRootRef.current = null;
-            }
+        if (hostRef.current === null) {
+            console.log('!!! 1');
+            return;
         }
-    }, []);
+
+        if (shadowRootRef.current !== null) {
+            console.log('!!! 2');
+            return;
+        }
+
+        const shadowDom = hostRef.current.attachShadow({ mode: 'open' });
+        shadowRootRef.current = shadowDom;
+
+        return () => {
+            // shadowRootRef.current?.host?.remove();
+            // shadowRootRef.current = null;
+        };
+    }, [hostRef.current]);
 
     // Build the internal editor JSX (this will be portalled into the shadow root if available)
-    const editorInner = (
-        <>
-            {/* Render styles inside shadow root so they are isolated from page CSS */}
-            <style dangerouslySetInnerHTML={{ __html: BOOK_EDITOR_STYLES }} />
-            <div className={`book-editor-container`} data-book-component="BookEditor">
-                <div className={`book-editor-wrapper ${effectiveFontClassName}`}>
-                    {/* Lined paper background */}
-                    <div aria-hidden className="book-editor-background" style={{ backgroundImage: 'none' }} />
-                    {/* Highlight layer */}
-                    <pre
-                        ref={highlightRef}
-                        aria-hidden
-                        className={`book-editor-highlight ${effectiveFontClassName}`}
-                        style={{
-                            lineHeight: `${lineHeight}px`,
-                            backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
-                            backgroundAttachment: 'local',
-                            backgroundOrigin: 'padding-box, content-box',
-                            backgroundClip: 'padding-box, content-box',
-                        }}
-                        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-                    />
+    const editorInner = useMemo(
+        () => (
+            <>
+                {/* Render styles inside shadow root so they are isolated from page CSS */}
+                <style dangerouslySetInnerHTML={{ __html: BOOK_EDITOR_STYLES }} />
+                <div className={`book-editor-container`}>
+                    <div className={`book-editor-wrapper ${effectiveFontClassName}`}>
+                        {/* Lined paper background */}
+                        <div aria-hidden className="book-editor-background" style={{ backgroundImage: 'none' }} />
+                        {/* Highlight layer */}
+                        <pre
+                            ref={highlightRef}
+                            aria-hidden
+                            className={`book-editor-highlight ${effectiveFontClassName}`}
+                            style={{
+                                lineHeight: `${lineHeight}px`,
+                                backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
+                                backgroundAttachment: 'local',
+                                backgroundOrigin: 'padding-box, content-box',
+                                backgroundClip: 'padding-box, content-box',
+                            }}
+                            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                        />
 
-                    {/* Editor (transparent text, visible caret) */}
-                    <textarea
-                        ref={textareaRef}
-                        value={value}
-                        onChange={handleChange}
-                        onScroll={handleScroll}
-                        className={`book-editor-textarea ${effectiveFontClassName}`}
-                        style={{ lineHeight: `${lineHeight}px` }}
-                        placeholder={DEFAULT_BOOK}
-                        spellCheck={false}
-                    />
+                        {/* Editor (transparent text, visible caret) */}
+                        <textarea
+                            id="book"
+                            ref={textareaRef}
+                            value={value}
+                            onChange={handleChange}
+                            onScroll={handleScroll}
+                            className={`book-editor-textarea ${effectiveFontClassName}`}
+                            style={{ lineHeight: `${lineHeight}px` }}
+                            placeholder={DEFAULT_BOOK}
+                            spellCheck={false}
+                        />
 
-                    <div className={`book-editor-version`}>
-                        {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
-                        {' | '}
-                        <a
-                            href="https://github.com/webgptorg/book"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={`Book Language Version ${BOOK_LANGUAGE_VERSION}`}
-                        >
-                            📖 {BOOK_LANGUAGE_VERSION}
-                        </a>
-                        {' | '}
-                        <a
-                            href="https://github.com/webgptorg/promptbook"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={`Promptbook Engine Version ${PROMPTBOOK_ENGINE_VERSION}`}
-                        >
-                            🏭 {PROMPTBOOK_ENGINE_VERSION}
-                        </a>
+                        <div className={`book-editor-version`}>
+                            {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
+                            {' | '}
+                            <a
+                                href="https://github.com/webgptorg/book"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`Book Language Version ${BOOK_LANGUAGE_VERSION}`}
+                            >
+                                📖 {BOOK_LANGUAGE_VERSION}
+                            </a>
+                            {' | '}
+                            <a
+                                href="https://github.com/webgptorg/promptbook"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`Promptbook Engine Version ${PROMPTBOOK_ENGINE_VERSION}`}
+                            >
+                                🏭 {PROMPTBOOK_ENGINE_VERSION}
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </>
+            </>
+        ),
+        [highlightedHtml, effectiveFontClassName, lineHeight],
     );
+
+    const [nonce, setNonce] = useState(0);
+
+    useEffect(() => {
+        console.log('!!! setting nonce');
+        setNonce(1);
+    }, []);
 
     // Render: host div stays in the light DOM (so page layout is preserved),
     // but the editor internals are portalled into the shadow root for isolation.
     return (
-        <div
-            ref={hostRef}
-            // keep outer width/layout identical to prior behavior
-            className={className}
-            style={{ width: '100%', height: 500 }}
-        >
-            {shadowRootRef.current ? createPortal(editorInner, shadowRootRef.current) : editorInner}
+        <div data-book-component="BookEditor" data-nonce={nonce} ref={hostRef} className={className}>
+            {shadowRootRef.current === null ? <>Loading...</> : createPortal(editorInner, shadowRootRef.current)}
         </div>
     );
 }
