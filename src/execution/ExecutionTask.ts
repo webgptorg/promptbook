@@ -11,6 +11,7 @@ import { $randomToken } from '../utils/random/$randomToken';
 import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
 import type { string_promptbook_version } from '../version';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
@@ -146,21 +147,37 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             // <- Note: [1] --||--
         },
         get tldr() {
-            // Derive a short progress summary from currentValue, status and any errors/warnings.
+            // Simulate progress based on elapsed time and subtasks
             const cv: really_any = currentValue as really_any;
 
-            // Try several common places where a percent might be stored on the partial result
+            // If explicit percent is provided, use it
             let percentRaw: unknown = cv?.tldr?.percent ?? cv?.usage?.percent ?? cv?.progress?.percent ?? cv?.percent;
 
-            // If we didn't find a numeric percent, infer from status
+            // Simulate progress if not provided
             if (typeof percentRaw !== 'number') {
-                if (status === 'FINISHED') {
-                    percentRaw = 1;
-                } else if (status === 'ERROR') {
-                    percentRaw = 0;
-                } else {
-                    percentRaw = 0;
-                }
+                // Simulate progress: evenly split across subtasks, based on elapsed time
+                const now = new Date();
+                const elapsedMs = now.getTime() - createdAt.getTime();
+                const totalMs = DEFAULT_TASK_SIMULATED_DURATION_MS;
+
+                // If subtasks are defined, split progress evenly
+                const subtaskCount = Array.isArray(cv?.subtasks) ? cv.subtasks.length : 1;
+                const completedSubtasks = Array.isArray(cv?.subtasks)
+                    ? cv.subtasks.filter(
+                          (s: { done?: boolean; completed?: boolean }) => s.done || s.completed,
+                      ).length
+                    : 0;
+
+                // Progress from completed subtasks
+                const subtaskProgress = subtaskCount > 0 ? completedSubtasks / subtaskCount : 0;
+
+                // Progress from elapsed time for current subtask
+                const timeProgress = Math.min(elapsedMs / totalMs, 1);
+
+                // Combine: completed subtasks + time progress for current subtask
+                percentRaw = Math.min(subtaskProgress + (1 / subtaskCount) * timeProgress, 1);
+                if (status === 'FINISHED') percentRaw = 1;
+                if (status === 'ERROR') percentRaw = 0;
             }
 
             // Clamp to [0,1]
@@ -172,16 +189,27 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             const messageFromResult = cv?.tldr?.message ?? cv?.message ?? cv?.summary ?? cv?.statusMessage;
             let message: string | undefined = messageFromResult;
             if (!message) {
-                if (errors.length) {
-                    message = errors[errors.length - 1]!.message || 'Error';
-                } else if (warnings.length) {
-                    message = warnings[warnings.length - 1]!.message || 'Warning';
-                } else if (status === 'FINISHED') {
-                    message = 'Finished';
-                } else if (status === 'ERROR') {
-                    message = 'Error';
-                } else {
-                    message = 'Running';
+                // If subtasks, show current subtask
+                if (Array.isArray(cv?.subtasks) && cv.subtasks.length > 0) {
+                    const current = cv.subtasks.find(
+                        (s: { done?: boolean; completed?: boolean; title?: string }) => !s.done && !s.completed,
+                    );
+                    if (current && current.title) {
+                        message = `Working on ${current.title}`;
+                    }
+                }
+                if (!message) {
+                    if (errors.length) {
+                        message = errors[errors.length - 1]!.message || 'Error';
+                    } else if (warnings.length) {
+                        message = warnings[warnings.length - 1]!.message || 'Warning';
+                    } else if (status === 'FINISHED') {
+                        message = 'Finished';
+                    } else if (status === 'ERROR') {
+                        message = 'Error';
+                    } else {
+                        message = 'Running';
+                    }
                 }
             }
 

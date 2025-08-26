@@ -359,6 +359,13 @@ export function SET_IS_VERBOSE(isVerbose: boolean): void {
 export const DEFAULT_IS_AUTO_INSTALLED = false;
 
 /**
+ * Default simulated duration for a task in milliseconds (used for progress reporting)
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_TASK_SIMULATED_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
  * Function name for generated function via `ptbk make` to get the pipeline collection
  *
  * @public exported from `@promptbook/core`
