@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
-import { validateBook } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 import { DEFAULT_BOOK_TITLE } from '../../config';
-import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
  * Internal CSS styles for the BookEditor component
@@ -263,22 +262,34 @@ export function BookEditor(props: BookEditorProps) {
         return out;
     }, [value, typeRegex]);
 
-    return (
+    // Host div that will get a shadow root
+    const hostRef = useRef<HTMLDivElement | null>(null);
+    const shadowRootRef = useRef<ShadowRoot | null>(null);
+
+    useEffect(() => {
+        const host = hostRef.current;
+        if (!host) return;
+
+        // If shadow root not created yet, attach one
+        if (!shadowRootRef.current) {
+            try {
+                shadowRootRef.current = host.attachShadow({ mode: 'open' });
+            } catch (e) {
+                // If attachShadow fails (older browsers), leave shadowRootRef null and render normally
+                shadowRootRef.current = null;
+            }
+        }
+    }, []);
+
+    // Build the internal editor JSX (this will be portalled into the shadow root if available)
+    const editorInner = (
         <>
+            {/* Render styles inside shadow root so they are isolated from page CSS */}
             <style dangerouslySetInnerHTML={{ __html: BOOK_EDITOR_STYLES }} />
-            <div className={`book-editor-container ${className}`} data-book-component="BookEditor">
+            <div className={`book-editor-container`} data-book-component="BookEditor">
                 <div className={`book-editor-wrapper ${effectiveFontClassName}`}>
                     {/* Lined paper background */}
-                    <div
-                        aria-hidden
-                        className="book-editor-background"
-                        // Two background layers:
-                        // 1) center fold line
-                        // 2) horizontal repeating lines (lined paper)
-                        style={{
-                            backgroundImage: 'none',
-                        }}
-                    />
+                    <div aria-hidden className="book-editor-background" style={{ backgroundImage: 'none' }} />
                     {/* Highlight layer */}
                     <pre
                         ref={highlightRef}
@@ -330,5 +341,18 @@ export function BookEditor(props: BookEditorProps) {
                 </div>
             </div>
         </>
+    );
+
+    // Render: host div stays in the light DOM (so page layout is preserved),
+    // but the editor internals are portalled into the shadow root for isolation.
+    return (
+        <div
+            ref={hostRef}
+            // keep outer width/layout identical to prior behavior
+            className={className}
+            style={{ width: '100%', height: 500 }}
+        >
+            {shadowRootRef.current ? createPortal(editorInner, shadowRootRef.current) : editorInner}
+        </div>
     );
 }
