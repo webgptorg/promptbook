@@ -100,13 +100,20 @@ const BOOK_EDITOR_STYLES = `
 
 
 .book-editor-version{
+
     font-size: 0.875rem;
     color: rgba(17, 24, 39, 0.6);
     padding: 0.5rem 1rem;
     border-top: 1px solid rgba(209, 213, 219, 0.8);
     background-color: rgba(99, 102, 241, 0.1);
+
+
 }
 
+.book-editor-version a {
+    color: unset;
+    text-decoration: none;
+}
 
 `;
 
