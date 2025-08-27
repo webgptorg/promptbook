@@ -848,6 +848,7 @@ Adding Book 2.0 features
 -   Remove max tokens default cap
 -   Remove `AnthropicClaudeExecutionTools.callCompletionModel` _(to avoid unnecessary maintenance)_
 -   Task contains `tldr` for displaying in UI
+-   Improve `tldr` progress estimation based on pipeline structure instead of fake simulation
 <details>
 <summary>
 

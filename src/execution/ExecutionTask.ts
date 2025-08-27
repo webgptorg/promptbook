@@ -45,6 +45,26 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
             },
         ) => void,
     ): Promise<TTaskResult>;
+
+    /**
+     * Optional callback to provide custom tldr information
+     * @param createdAt When the task was created
+     * @param status Current task status
+     * @param currentValue Current partial result
+     * @param errors Current errors
+     * @param warnings Current warnings
+     * @returns Custom tldr information
+     */
+    tldrProvider?(
+        createdAt: Date,
+        status: task_status,
+        currentValue: PartialDeep<TTaskResult>,
+        errors: Array<Error>,
+        warnings: Array<Error>,
+    ): {
+        readonly percent: number_percent;
+        readonly message: string;
+    };
 };
 
 /**
@@ -55,7 +75,7 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
 export function createTask<TTaskResult extends AbstractTaskResult>(
     options: CreateTaskOptions<TTaskResult>,
 ): AbstractTask<TTaskResult> {
-    const { taskType, taskProcessCallback } = options;
+    const { taskType, taskProcessCallback, tldrProvider } = options;
     let { title } = options;
 
     // TODO: [🐙] DRY
@@ -147,7 +167,12 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             // <- Note: [1] --||--
         },
         get tldr() {
-            // Simulate progress based on elapsed time and subtasks
+            // Use custom tldr provider if available
+            if (tldrProvider) {
+                return tldrProvider(createdAt, status, currentValue, errors, warnings);
+            }
+
+            // Fallback to default implementation
             const cv: really_any = currentValue as really_any;
 
             // If explicit percent is provided, use it
