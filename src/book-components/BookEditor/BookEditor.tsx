@@ -14,10 +14,10 @@ import { DEFAULT_BOOK_FONT_CLASS } from './config';
 
 /**
  * Props of `BookEditor`
- * 
+ *
  * @public exported from `@promptbook/components`
  */
-export interface BookEditorProps {
+export type BookEditorProps = {
     /**
      * Additional CSS classes to apply to the editor container.
      */
@@ -43,7 +43,7 @@ export interface BookEditorProps {
      * If true, logs verbose debug info to the console and shows additional visual cues
      */
     readonly isVerbose?: boolean;
-}
+};
 
 // <- TODO: !!! Is this exported also to `@promptbook/types`?
 
