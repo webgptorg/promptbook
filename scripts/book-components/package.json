@@ -5,7 +5,8 @@
         "dev": "npx kill-port 4022 && next dev -p 4022 --turbopack",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "postinstall": "cd ../../ && npm install"
     },
     "dependencies": {
         "lucide-react": "^0.536.0",
