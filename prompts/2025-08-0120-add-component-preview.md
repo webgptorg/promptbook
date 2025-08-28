@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🤣] Add `AvatarChip` component preview
 
