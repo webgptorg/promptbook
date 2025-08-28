@@ -13,6 +13,10 @@ declare const styles: {
   readonly bookEditorVersion: string;
 };
 
+
+/**
+ * @private !!!! remove this file and unhardcode the class names
+ */
 export default styles;
 
 
