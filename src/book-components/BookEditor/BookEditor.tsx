@@ -7,117 +7,14 @@ import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 import { DEFAULT_BOOK_TITLE } from '../../config';
 import { BOOK_LANGUAGE_VERSION } from '../../version';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
-
-/**
- * Internal CSS styles for the BookEditor component
- *
- * @private within the BookEditor component
- */
-const BOOK_EDITOR_STYLES = `
-.book-editor-container {
-    width: 100%;
-}
-
-.book-editor-wrapper {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid rgba(209, 213, 219, 0.8);
-    background-color: white;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s ease-in-out;
-}
-
-.book-editor-wrapper:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.book-editor-wrapper:focus-within {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
-}
-
-.book-editor-background {
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-}
-
-.book-editor-highlight {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    overflow: auto;
-    pointer-events: none;
-    white-space: pre-wrap;
-    color: rgb(17, 24, 39);
-    font-size: 1.125rem;
-    padding-top: 0;
-    padding-left: 46px;
-    padding-right: 46px;
-    z-index: 10;
-    overflow-wrap: break-word;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.book-editor-highlight::-webkit-scrollbar {
-    display: none;
-}
-
-.book-editor-highlight .text-indigo-700 {
-    color: rgb(67, 56, 202);
-}
-
-.book-editor-textarea {
-    position: relative;
-    z-index: 20;
-    width: 100%;
-    height: 28rem;
-    color: transparent;
-    caret-color: rgb(17, 24, 39);
-    font-size: 1.125rem;
-    background-color: transparent;
-    outline: none;
-    resize: none;
-    padding-top: 15px;
-    padding-left: 46px;
-    padding-right: 46px;
-    border: none;
-}
-
-.book-editor-textarea::selection {
-    background-color: rgba(99, 102, 241, 0.6);
-}
-
-.book-editor-serif {
-    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-}
-
-
-.book-editor-version{
-
-    font-size: 0.875rem;
-    color: rgba(17, 24, 39, 0.6);
-    padding: 0.5rem 1rem;
-    border-top: 1px solid rgba(209, 213, 219, 0.8);
-    background-color: rgba(99, 102, 241, 0.1);
-
-
-}
-
-.book-editor-version a {
-    color: unset;
-    text-decoration: none;
-}
-
-`;
+import {
+    BookEditorContainer,
+    BookEditorWrapper,
+    BookEditorBackground,
+    BookEditorHighlight,
+    BookEditorTextarea,
+    BookEditorVersion,
+} from './BookEditor.styles';
 
 /**
  * Default font class name for the BookEditor component
@@ -127,25 +24,9 @@ const BOOK_EDITOR_STYLES = `
 const DEFAULT_FONT_CLASS = 'book-editor-serif';
 
 export interface BookEditorProps {
-    /**
-     * Additional CSS classes to apply to the editor container.
-     */
     className?: string;
-
-    /**
-     * CSS className for a font (e.g. from next/font) to style the editor text.
-     * If omitted, defaults to system serif fonts.
-     */
     fontClassName?: string;
-
-    /**
-     * The book which is being edited.
-     */
     value?: string_book;
-
-    /**
-     * Callback function to handle changes in the book content.
-     */
     onChange?: (value: string_book) => void;
 }
 
@@ -155,7 +36,7 @@ export interface BookEditorProps {
  * @private within the BookEditor component
  */
 function escapeHtml(input: string): string {
-    return input.replaceAll(/&/g, '&amp;').replaceAll(/</g, '&lt;').replaceAll(/>/g, '&gt;');
+    return input.replaceAll(/&/g, '&').replaceAll(/</g, '<').replaceAll(/>/g, '>');
 }
 
 /**
@@ -277,12 +158,10 @@ export function BookEditor(props: BookEditorProps) {
 
     useEffect(() => {
         if (hostRef.current === null) {
-            console.log('!!! 1');
             return;
         }
 
         if (shadowRootRef.current !== null) {
-            console.log('!!! 2');
             return;
         }
 
@@ -298,73 +177,57 @@ export function BookEditor(props: BookEditorProps) {
     // Build the internal editor JSX (this will be portalled into the shadow root if available)
     const editorInner = useMemo(
         () => (
-            <>
-                {/* Render styles inside shadow root so they are isolated from page CSS */}
-                <style dangerouslySetInnerHTML={{ __html: BOOK_EDITOR_STYLES }} />
-                <div className={`book-editor-container`}>
-                    <div className={`book-editor-wrapper ${effectiveFontClassName}`}>
-                        {/* Lined paper background */}
-                        <div aria-hidden className="book-editor-background" style={{ backgroundImage: 'none' }} />
-                        {/* Highlight layer */}
-                        <pre
-                            ref={highlightRef}
-                            aria-hidden
-                            className={`book-editor-highlight ${effectiveFontClassName}`}
-                            style={{
-                                lineHeight: `${lineHeight}px`,
-                                backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
-                                backgroundAttachment: 'local',
-                                backgroundOrigin: 'padding-box, content-box',
-                                backgroundClip: 'padding-box, content-box',
-                            }}
-                            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-                        />
-
-                        {/* Editor (transparent text, visible caret) */}
-                        <textarea
-                            id="book"
-                            ref={textareaRef}
-                            value={value}
-                            onChange={handleChange}
-                            onScroll={handleScroll}
-                            className={`book-editor-textarea ${effectiveFontClassName}`}
-                            style={{ lineHeight: `${lineHeight}px` }}
-                            placeholder={DEFAULT_BOOK}
-                            spellCheck={false}
-                        />
-
-                        <div className={`book-editor-version`}>
-                            {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
-                            {' | '}
-                            <a
-                                href="https://github.com/webgptorg/book"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={`Book Language Version ${BOOK_LANGUAGE_VERSION}`}
-                            >
-                                📖 {BOOK_LANGUAGE_VERSION}
-                            </a>
-                            {' | '}
-                            <a
-                                href="https://github.com/webgptorg/promptbook"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={`Promptbook Engine Version ${PROMPTBOOK_ENGINE_VERSION}`}
-                            >
-                                🏭 {PROMPTBOOK_ENGINE_VERSION}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </>
+            <BookEditorContainer>
+                <BookEditorWrapper fontClassName={effectiveFontClassName}>
+                    <BookEditorBackground aria-hidden style={{ backgroundImage: 'none' }} />
+                    <BookEditorHighlight
+                        ref={highlightRef}
+                        aria-hidden
+                        lineHeight={lineHeight}
+                        fontClassName={effectiveFontClassName}
+                        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                    />
+                    <BookEditorTextarea
+                        id="book"
+                        ref={textareaRef}
+                        value={value}
+                        onChange={handleChange}
+                        onScroll={handleScroll}
+                        lineHeight={lineHeight}
+                        fontClassName={effectiveFontClassName}
+                        placeholder={DEFAULT_BOOK}
+                        spellCheck={false}
+                    />
+                    <BookEditorVersion>
+                        {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
+                        {' | '}
+                        <a
+                            href="https://github.com/webgptorg/book"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Book Language Version ${BOOK_LANGUAGE_VERSION}`}
+                        >
+                            📖 {BOOK_LANGUAGE_VERSION}
+                        </a>
+                        {' | '}
+                        <a
+                            href="https://github.com/webgptorg/promptbook"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Promptbook Engine Version ${PROMPTBOOK_ENGINE_VERSION}`}
+                        >
+                            🏭 {PROMPTBOOK_ENGINE_VERSION}
+                        </a>
+                    </BookEditorVersion>
+                </BookEditorWrapper>
+            </BookEditorContainer>
         ),
-        [highlightedHtml, effectiveFontClassName, lineHeight],
+        [highlightedHtml, effectiveFontClassName, lineHeight, value],
     );
 
     const [nonce, setNonce] = useState(0);
 
     useEffect(() => {
-        console.log('!!! setting nonce');
         setNonce(1);
     }, []);
 
