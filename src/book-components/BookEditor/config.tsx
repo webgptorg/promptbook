@@ -9,3 +9,7 @@ import styles from './BookEditor.module.css';
 export const DEFAULT_BOOK_FONT_CLASS = styles.bookEditorSerif;
 
 // <- TODO: !!! What is value of this in published package?!
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
