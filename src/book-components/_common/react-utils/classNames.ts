@@ -1,4 +1,4 @@
-import { string_css_class } from '../../../types/typeAliases';
+import type { string_css_class } from '../../../types/typeAliases';
 
 /**
  * Utility function for joining multiple truthy class names into one string
