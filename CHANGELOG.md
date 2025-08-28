@@ -844,6 +844,7 @@ Adding Book 2.0 features
 -   Adding features for Agent definition for Book 2.0
 -   🚀 **GPT-5 Support** - Added OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window as the new default chat model
 -   Make package `@promptbook/components` with first component `<BookEditor/>`
+-   Convert `BookEditor` component to use CSS modules instead of inline styles for better maintainability and package distribution
 -   Enhance reporting of failed tasks
 -   Remove max tokens default cap
 -   Remove `AnthropicClaudeExecutionTools.callCompletionModel` _(to avoid unnecessary maintenance)_

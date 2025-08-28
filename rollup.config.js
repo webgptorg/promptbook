@@ -3,6 +3,7 @@ import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
+import postcss from 'rollup-plugin-postcss';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { version } from './package.json';
 
@@ -38,6 +39,18 @@ export default function () {
             ];
 
             const packageFullname = `@promptbook/${packageBasename}`;
+
+            // Add CSS module support for components package
+            if (packageFullname === '@promptbook/components') {
+                plugins.push(
+                    postcss({
+                        modules: true,
+                        extract: false, // Inline CSS in JS bundle
+                        minimize: true,
+                        sourceMap: true,
+                    }),
+                );
+            }
             if (
                 // TODO: [💚] DRY
                 packageFullname !== '@promptbook/node' &&

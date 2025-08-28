@@ -8,122 +8,11 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version'
 import styles from './BookEditor.module.css';
 
 /**
- * Internal CSS styles for the BookEditor component
- *
- * @private within the BookEditor component
- */
-const BOOK_EDITOR_STYLES = `
-.book-editor-container {
-    width: 100%;
-}
-
-.book-editor-wrapper {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid rgba(209, 213, 219, 0.8);
-    background-color: white;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s ease-in-out;
-}
-
-.book-editor-wrapper:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.book-editor-wrapper:focus-within {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
-}
-
-.book-editor-background {
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-}
-
-.book-editor-highlight {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    overflow: auto;
-    pointer-events: none;
-    white-space: pre-wrap;
-    color: rgb(17, 24, 39);
-    font-size: 1.125rem;
-    padding-top: 0;
-    padding-left: 46px;
-    padding-right: 46px;
-    z-index: 10;
-    overflow-wrap: break-word;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.book-editor-highlight::-webkit-scrollbar {
-    display: none;
-}
-
-.book-editor-highlight .text-indigo-700 {
-    color: rgb(67, 56, 202);
-}
-
-.book-editor-textarea {
-    position: relative;
-    z-index: 20;
-    width: 100%;
-    height: 28rem;
-    color: transparent;
-    caret-color: rgb(17, 24, 39);
-    font-size: 1.125rem;
-    background-color: transparent;
-    outline: none;
-    resize: none;
-    padding-top: 15px;
-    padding-left: 46px;
-    padding-right: 46px;
-    border: none;
-}
-
-.book-editor-textarea::selection {
-    background-color: rgba(99, 102, 241, 0.6);
-}
-
-.book-editor-serif {
-    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-}
-
-
-.book-editor-version{
-
-    font-size: 0.875rem;
-    color: rgba(17, 24, 39, 0.6);
-    padding: 0.5rem 1rem;
-    border-top: 1px solid rgba(209, 213, 219, 0.8);
-    background-color: rgba(99, 102, 241, 0.1);
-
-
-}
-
-.book-editor-version a {
-    color: unset;
-    text-decoration: none;
-}
-
-`;
-
-/**
  * Default font class name for the BookEditor component
  * In Next.js environments, you can override this by importing the font directly
  * @private within the BookEditor component
  */
-const DEFAULT_FONT_CLASS = 'book-editor-serif';
+const DEFAULT_FONT_CLASS = styles.bookEditorSerif;
 
 // TODO: Split into folders
 
@@ -191,9 +80,6 @@ function injectCssModuleIntoShadowRoot(shadowRoot: ShadowRoot) {
         for (const cn of classNames) {
             cssParts.push(...collectCssTextsForClass(cn));
         }
-
-        // Always include the local inline styles defined for the editor as a fallback
-        cssParts.push(BOOK_EDITOR_STYLES);
 
         const styleEl = document.createElement('style');
         styleEl.setAttribute('data-from', 'BookEditor.module');
@@ -382,18 +268,15 @@ export function BookEditor(props: BookEditorProps) {
     const editorInner = useMemo(
         () => (
             <>
-                {/* Render styles inside shadow root so they are isolated from page CSS */}
-                <div className={styles.xxx}>xxx</div>
-                <style dangerouslySetInnerHTML={{ __html: BOOK_EDITOR_STYLES }} />
-                <div className={`book-editor-container`}>
-                    <div className={`book-editor-wrapper ${effectiveFontClassName}`}>
+                <div className={styles.bookEditorContainer}>
+                    <div className={`${styles.bookEditorWrapper} ${effectiveFontClassName}`}>
                         {/* Lined paper background */}
-                        <div aria-hidden className="book-editor-background" style={{ backgroundImage: 'none' }} />
+                        <div aria-hidden className={styles.bookEditorBackground} style={{ backgroundImage: 'none' }} />
                         {/* Highlight layer */}
                         <pre
                             ref={highlightRef}
                             aria-hidden
-                            className={`book-editor-highlight ${effectiveFontClassName}`}
+                            className={`${styles.bookEditorHighlight} ${effectiveFontClassName}`}
                             style={{
                                 lineHeight: `${lineHeight}px`,
                                 backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
@@ -411,13 +294,13 @@ export function BookEditor(props: BookEditorProps) {
                             value={value}
                             onChange={handleChange}
                             onScroll={handleScroll}
-                            className={`book-editor-textarea ${effectiveFontClassName}`}
+                            className={`${styles.bookEditorTextarea} ${effectiveFontClassName}`}
                             style={{ lineHeight: `${lineHeight}px` }}
                             placeholder={DEFAULT_BOOK}
                             spellCheck={false}
                         />
 
-                        <div className={`book-editor-version`}>
+                        <div className={styles.bookEditorVersion}>
                             {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
                             {' | '}
                             <a
@@ -455,11 +338,8 @@ export function BookEditor(props: BookEditorProps) {
     // Render: host div stays in the light DOM (so page layout is preserved),
     // but the editor internals are portalled into the shadow root for isolation.
     return (
-        <>
-            <div className={styles.xxx}>xxx</div>
-            <div data-book-component="BookEditor" data-nonce={nonce} ref={hostRef} className={className}>
-                {shadowRootRef.current === null ? <>Loading...</> : createPortal(editorInner, shadowRootRef.current)}
-            </div>
-        </>
+        <div data-book-component="BookEditor" data-nonce={nonce} ref={hostRef} className={className}>
+            {shadowRootRef.current === null ? <>Loading...</> : createPortal(editorInner, shadowRootRef.current)}
+        </div>
     );
 }
