@@ -321,8 +321,9 @@
             "focus": true
         },
         {
-            "name": "🗑️ Kill all node.js instances",
-            "commands": ["killall node", "taskkill -f -im node.exe"],
+            "name": "🔪 Kill all Node.js processes",
+            "command": "taskkill /F /IM node.exe",
+            "shellPath": "C:\\Windows\\System32\\cmd.exe",
             "onlySingle": true,
             "focus": true
         },
