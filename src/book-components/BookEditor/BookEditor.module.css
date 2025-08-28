@@ -2,6 +2,10 @@
     width: 100%;
 }
 
+.isVerbose {
+    outline: 2px dotted rgb(255 117 38);
+}
+
 .bookEditorWrapper {
     position: relative;
     overflow: hidden;
@@ -81,7 +85,7 @@
 }
 
 .bookEditorSerif {
-    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
 }
 
 .bookEditorVersion {

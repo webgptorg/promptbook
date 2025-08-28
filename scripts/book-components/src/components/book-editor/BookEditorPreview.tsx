@@ -5,6 +5,7 @@ import { DEFAULT_BOOK, getAllCommitmentDefinitions, parseAgentSource } from '@pr
 import type { string_book } from '@promptbook-local/types';
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import styles from './BookEditorPreview.module.css';
 
 /**
  * Renders a preview of `<BookEditor />` component.
@@ -23,7 +24,7 @@ export default function BookEditorPreview() {
 
     return (
         <div className={`w-full`}>
-            <BookEditor value={book} onChange={setBook} />
+            <BookEditor value={book} onChange={setBook} className={styles.BookEditor} />
 
             <h2 className="text-lg font-semibold mt-6 mb-2">Parsed Book Content</h2>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">

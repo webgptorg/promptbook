@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
-import { DEFAULT_BOOK_TITLE } from '../../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE } from '../../config';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 
 /**
@@ -95,23 +96,28 @@ export interface BookEditorProps {
     /**
      * Additional CSS classes to apply to the editor container.
      */
-    className?: string;
+    readonly className?: string;
 
     /**
      * CSS className for a font (e.g. from next/font) to style the editor text.
      * If omitted, defaults to system serif fonts.
      */
-    fontClassName?: string;
+    readonly fontClassName?: string;
 
     /**
      * The book which is being edited.
      */
-    value?: string_book;
+    readonly value?: string_book;
 
     /**
      * Callback function to handle changes in the book content.
      */
-    onChange?: (value: string_book) => void;
+    onChange?(value: string_book): void;
+
+    /**
+     * If true, logs verbose debug info to the console and shows additional visual cues
+     */
+    readonly isVerbose?: boolean;
 }
 
 /**
@@ -138,7 +144,7 @@ function escapeRegex(input: string): string {
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
-    const { className = '', value: controlledValue, onChange, fontClassName } = props;
+    const { className = '', value: controlledValue, onChange, fontClassName, isVerbose = DEFAULT_IS_VERBOSE } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -242,12 +248,10 @@ export function BookEditor(props: BookEditorProps) {
 
     useEffect(() => {
         if (hostRef.current === null) {
-            console.log('!!! 1');
             return;
         }
 
         if (shadowRootRef.current !== null) {
-            console.log('!!! 2');
             return;
         }
 
@@ -268,7 +272,7 @@ export function BookEditor(props: BookEditorProps) {
     const editorInner = useMemo(
         () => (
             <>
-                <div className={styles.bookEditorContainer}>
+                <div className={classNames(styles.bookEditorContainer, styles.isVerbose, className)}>
                     <div className={`${styles.bookEditorWrapper} ${effectiveFontClassName}`}>
                         {/* Lined paper background */}
                         <div aria-hidden className={styles.bookEditorBackground} style={{ backgroundImage: 'none' }} />
@@ -331,14 +335,21 @@ export function BookEditor(props: BookEditorProps) {
     const [nonce, setNonce] = useState(0);
 
     useEffect(() => {
-        console.log('!!! setting nonce');
+        if (isVerbose) {
+            console.info('BookEditor: Setting nonce');
+        }
         setNonce(1);
     }, []);
 
     // Render: host div stays in the light DOM (so page layout is preserved),
     // but the editor internals are portalled into the shadow root for isolation.
     return (
-        <div data-book-component="BookEditor" data-nonce={nonce} ref={hostRef} className={className}>
+        <div
+            data-book-component="BookEditor"
+            data-nonce={nonce}
+            ref={hostRef}
+            className={classNames(className, styles.isVerbose)}
+        >
             {shadowRootRef.current === null ? <>Loading...</> : createPortal(editorInner, shadowRootRef.current)}
         </div>
     );
