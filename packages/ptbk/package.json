@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.100.0-37",
+    "version": "0.100.0-38",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -88,10 +88,10 @@
         "npm": ">=8.0.0"
     },
     "peerDependencies": {
-        "@promptbook/core": "0.100.0-37"
+        "@promptbook/core": "0.100.0-38"
     },
     "dependencies": {
-        "promptbook": "0.100.0-37"
+        "promptbook": "0.100.0-38"
     },
     "bin": {
         "ptbk": "bin/promptbook-cli-proxy.js"
