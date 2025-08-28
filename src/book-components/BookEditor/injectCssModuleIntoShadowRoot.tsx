@@ -30,5 +30,5 @@ export function injectCssModuleIntoShadowRoot(shadowRoot: ShadowRoot) {
 }
 
 /**
- * TODO: Make some utility functions for working with CSS modules in shadow DOM indipendent of `BookEditor.module.css`
+ * TODO: Make some utility functions for working with CSS modules in shadow DOM independent of `BookEditor.module.css`
  */
