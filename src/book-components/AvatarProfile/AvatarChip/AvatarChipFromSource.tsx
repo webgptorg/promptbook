@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { string_book } from '../../../_packages/types.index';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
-import { AvatarChip, AvatarChipProps } from './AvatarChip';
+import { AvatarChip } from './AvatarChip';
+import type { AvatarChipProps } from './AvatarChip';
 
 /**
  * Props of `AvatarChipFromSource`
