@@ -1,3 +1,8 @@
+
+
+/**
+ * @private !!!! remove this file and unhardcode the class names
+ */
 declare const styles: {
   readonly bookEditorContainer: string;
   readonly bookEditorWrapper: string;
