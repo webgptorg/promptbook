@@ -1,5 +1,5 @@
-import styles from '*.module.css';
-import { collectCssTextsForClass } from './collectCssTextsForClass';
+import { collectCssTextsForClass } from '../_common/react-utils/collectCssTextsForClass';
+import styles from './BookEditor.module.css';
 
 /**
  * Inject the CSS module rules (derived from imported `styles`) into the provided shadow root.
@@ -28,3 +28,7 @@ export function injectCssModuleIntoShadowRoot(shadowRoot: ShadowRoot) {
         // console.error('Failed to inject CSS module into shadow root', e);
     }
 }
+
+/**
+ * TODO: Make some utility functions for working with CSS modules in shadow DOM indipendent of `BookEditor.module.css`
+ */

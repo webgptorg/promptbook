@@ -8,9 +8,9 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version'
 import { classNames } from '../_common/react-utils/classNames';
 import { escapeHtml } from '../_common/react-utils/escapeHtml';
 import { escapeRegex } from '../_common/react-utils/escapeRegex';
-import { injectCssModuleIntoShadowRoot } from '../_common/react-utils/injectCssModuleIntoShadowRoot';
 import styles from './BookEditor.module.css';
 import { DEFAULT_BOOK_FONT_CLASS } from './config';
+import { injectCssModuleIntoShadowRoot } from './injectCssModuleIntoShadowRoot';
 
 /**
  * Props of `BookEditor`

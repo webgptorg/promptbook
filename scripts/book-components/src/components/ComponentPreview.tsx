@@ -13,6 +13,9 @@ const MermaidSocialGraph = dynamic(() => import('@/components/mermaid-social-gra
 const BookEditorPreview = dynamic(() => import('@/components/book-editor/BookEditorPreview'), {
     ssr: false,
 });
+const AvatarChipPreview = dynamic(() => import('@/components/avatar-chip/AvatarChipPreview'), {
+    ssr: false,
+});
 
 interface ComponentPreviewProps {
     componentId: string;
@@ -53,6 +56,12 @@ export default function ComponentPreview({ componentId }: ComponentPreviewProps)
                 return (
                     <div className="p-6">
                         <BookEditorPreview />
+                    </div>
+                );
+            case 'avatar-chip':
+                return (
+                    <div className="p-6">
+                        <AvatarChipPreview />
                     </div>
                 );
 

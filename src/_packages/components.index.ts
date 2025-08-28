@@ -2,7 +2,12 @@
 // `@promptbook/components`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import type { AvatarChipProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
+import { AvatarChip } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
+import type { AvatarChipFromSource } from '../book-components/AvatarProfile/AvatarChip/AvatarChipFromSource';
+import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
+import { DEFAULT_BOOK_FONT_CLASS } from '../book-components/BookEditor/config';
 
 
 // Note: Exporting version from each package
@@ -10,4 +15,9 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/components`
+export type { AvatarChipProps };
+export { AvatarChip };
+export type { AvatarChipFromSource };
+export type { BookEditorProps };
 export { BookEditor };
+export { DEFAULT_BOOK_FONT_CLASS };

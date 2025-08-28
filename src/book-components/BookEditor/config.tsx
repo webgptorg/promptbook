@@ -1,4 +1,4 @@
-import styles from '*.module.css';
+import styles from './BookEditor.module.css';
 
 /**
  * Default font class name for the BookEditor component

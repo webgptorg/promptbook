@@ -1,0 +1,60 @@
+{
+    "id": "avatar-chip",
+    "name": "Avatar Chip",
+    "description": "Displays an avatar chip with image, name, and template label. Supports selection and click handling.",
+    "category": "Display",
+    "tags": ["avatar", "chip", "profile", "user", "select"],
+    "author": "Promptbook Team",
+    "version": "1.0.0",
+    "repository": "https://github.com/webgptorg/promptbook-components",
+    "dependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "tailwindcss": "^3.0.0 || ^4.0.0",
+        "@promptbook/types": "^0.x.x"
+    },
+    "props": {
+        "avatarBasicInformation": {
+            "type": "AgentBasicInformation",
+            "description": "Basic information about the avatar (name, image, description)"
+        },
+        "isTemplate": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this chip is a template avatar"
+        },
+        "className": {
+            "type": "string",
+            "default": "",
+            "description": "Optional CSS class name for the root element"
+        },
+        "onSelect": {
+            "type": "(avatar: AgentBasicInformation) => void",
+            "description": "Callback when chip is clicked"
+        },
+        "isSelected": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this chip is selected"
+        }
+    },
+    "features": [
+        "Displays avatar image and name",
+        "Template label support",
+        "Selectable state",
+        "Click handler"
+    ],
+    "examples": [
+        {
+            "title": "Basic Usage",
+            "code": "<AvatarChip avatarBasicInformation={avatar} />"
+        },
+        {
+            "title": "Template Avatar",
+            "code": "<AvatarChip avatarBasicInformation={avatar} isTemplate />"
+        },
+        {
+            "title": "Selectable",
+            "code": "<AvatarChip avatarBasicInformation={avatar} isSelected onSelect={handleSelect} />"
+        }
+    ]
+}
