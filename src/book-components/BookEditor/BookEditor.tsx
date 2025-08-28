@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
-import { validateBook } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 import { DEFAULT_BOOK_TITLE } from '../../config';
-import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import styles from './BookEditor.module.css';
 
 /**
  * Internal CSS styles for the BookEditor component
@@ -126,6 +125,86 @@ const BOOK_EDITOR_STYLES = `
  */
 const DEFAULT_FONT_CLASS = 'book-editor-serif';
 
+// TODO: Split into folders
+
+/**
+ * Collect matching CSS texts from document stylesheets for a given class.
+ * This will skip cross-origin stylesheets (they throw when accessed).
+ *
+ * @private within the promptbook components <- TODO: Maybe make promptbook util from this
+ */
+function collectCssTextsForClass(className: string): string[] {
+    const selector = `.${className}`;
+    const out: string[] = [];
+
+    for (const sheet of Array.from(document.styleSheets)) {
+        try {
+            const rules = (sheet as CSSStyleSheet).cssRules;
+            for (const r of Array.from(rules)) {
+                // STYLE_RULE
+                if (r && (r as CSSStyleRule).selectorText) {
+                    const sel = (r as CSSStyleRule).selectorText || '';
+                    if (sel.indexOf(selector) !== -1) {
+                        out.push((r as CSSStyleRule).cssText);
+                    }
+                } else if ((r as CSSMediaRule).cssRules && (r as CSSMediaRule).conditionText) {
+                    // MEDIA_RULE - search inside
+                    const media = r as CSSMediaRule;
+                    const inner: string[] = [];
+                    for (const ir of Array.from(media.cssRules)) {
+                        if (
+                            ir &&
+                            (ir as CSSStyleRule).selectorText &&
+                            (ir as CSSStyleRule).selectorText.indexOf(selector) !== -1
+                        ) {
+                            inner.push((ir as CSSStyleRule).cssText);
+                        }
+                    }
+                    if (inner.length) {
+                        out.push(`@media ${media.conditionText} { ${inner.join('\n')} }`);
+                    }
+                }
+            }
+        } catch (err) {
+            // Could be a cross-origin stylesheet; ignore it.
+            // console.debug('skipping stylesheet', err);
+        }
+    }
+
+    return out;
+}
+
+/**
+ * Inject the CSS module rules (derived from imported `styles`) into the provided shadow root.
+ * This allows CSS modules (which are normally emitted into the document head) to be
+ * available inside the component's shadow DOM.
+ *
+ * @private within the promptbook components <- TODO: Maybe make promptbook util from this
+ */
+function injectCssModuleIntoShadowRoot(shadowRoot: ShadowRoot) {
+    try {
+        const classNames = Object.values(styles)
+            .flatMap((s) => String(s).split(/\s+/))
+            .filter(Boolean);
+
+        const cssParts: string[] = [];
+        for (const cn of classNames) {
+            cssParts.push(...collectCssTextsForClass(cn));
+        }
+
+        // Always include the local inline styles defined for the editor as a fallback
+        cssParts.push(BOOK_EDITOR_STYLES);
+
+        const styleEl = document.createElement('style');
+        styleEl.setAttribute('data-from', 'BookEditor.module');
+        styleEl.textContent = cssParts.join('\n\n');
+        shadowRoot.appendChild(styleEl);
+    } catch (e) {
+        // best-effort: don't crash the component if injection fails
+        // console.error('Failed to inject CSS module into shadow root', e);
+    }
+}
+
 export interface BookEditorProps {
     /**
      * Additional CSS classes to apply to the editor container.
@@ -152,7 +231,7 @@ export interface BookEditorProps {
 /**
  * Escape HTML to safely render user text inside a <pre> with dangerouslySetInnerHTML.
  *
- * @private within the BookEditor component
+ * @private within the promptbook components <- TODO: Maybe make promptbook util from this
  */
 function escapeHtml(input: string): string {
     return input.replaceAll(/&/g, '&amp;').replaceAll(/</g, '&lt;').replaceAll(/>/g, '&gt;');
@@ -161,7 +240,7 @@ function escapeHtml(input: string): string {
 /**
  * Escape text for safe use inside a RegExp pattern.
  *
- * @private within the BookEditor component
+ * @private within the promptbook components <- TODO: Maybe make promptbook util from this
  */
 function escapeRegex(input: string): string {
     return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -289,6 +368,10 @@ export function BookEditor(props: BookEditorProps) {
         const shadowDom = hostRef.current.attachShadow({ mode: 'open' });
         shadowRootRef.current = shadowDom;
 
+        // Inject CSS module rules into the shadow root so classes from the module
+        // remain available inside the Shadow DOM.
+        injectCssModuleIntoShadowRoot(shadowDom);
+
         return () => {
             // shadowRootRef.current?.host?.remove();
             // shadowRootRef.current = null;
@@ -300,6 +383,7 @@ export function BookEditor(props: BookEditorProps) {
         () => (
             <>
                 {/* Render styles inside shadow root so they are isolated from page CSS */}
+                <div className={styles.xxx}>xxx</div>
                 <style dangerouslySetInnerHTML={{ __html: BOOK_EDITOR_STYLES }} />
                 <div className={`book-editor-container`}>
                     <div className={`book-editor-wrapper ${effectiveFontClassName}`}>
@@ -371,8 +455,11 @@ export function BookEditor(props: BookEditorProps) {
     // Render: host div stays in the light DOM (so page layout is preserved),
     // but the editor internals are portalled into the shadow root for isolation.
     return (
-        <div data-book-component="BookEditor" data-nonce={nonce} ref={hostRef} className={className}>
-            {shadowRootRef.current === null ? <>Loading...</> : createPortal(editorInner, shadowRootRef.current)}
-        </div>
+        <>
+            <div className={styles.xxx}>xxx</div>
+            <div data-book-component="BookEditor" data-nonce={nonce} ref={hostRef} className={className}>
+                {shadowRootRef.current === null ? <>Loading...</> : createPortal(editorInner, shadowRootRef.current)}
+            </div>
+        </>
     );
 }
