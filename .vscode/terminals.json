@@ -44,53 +44,74 @@
             "focus": false
         },
         {
-            "name": "👨‍💻🧸 Book Components Server",
+            "name": "👨‍💻🔠 Book Components Server",
             "commands": ["cd ./scripts/book-components/", "npm i", "npm run dev"],
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪🧪 Test all",
+            "commands": ["npm run test"],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test Unit",
+            "command": "npm run test-unit",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test Types",
+            "command": "npm run test-types",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test Spell check",
+            "command": "npm run test-spellcheck",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test Lint",
+            "command": "npm run test-lint",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test Package generation",
+            "command": "npm run test-package-generation",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test name discrepancies",
+            "command": "npm run test-name-discrepancies",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 (examples) Test lint ",
+            "command": "npx eslint examples",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧪 Spell check",
-            "command": "npm run spellcheck",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🧪 Lint",
-            "command": "npm run lint",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🧪 Lint (examples)",
-            "command": "npx eslint examples",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🧪 Lint (scripts)",
+            "name": "🧪 (scripts) Test Lint",
             "command": "npx eslint scripts",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🧪 Unit Test",
-            "command": "npm run test",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🧪 Test types",
-            "command": "npm run test-types",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🤪 Find fresh emoji tag",
@@ -141,9 +162,9 @@
             "commands": [
                 "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book' --ignore 'examples/pipelines/errors/**/*.book'"
             ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🏭📖 Generate reports .report.json -> .report.md",

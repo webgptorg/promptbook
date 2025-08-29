@@ -7,8 +7,7 @@ Thank you for considering contributing to Promptbook! Here are some guidelines t
 1. **Fork the repository** and create your branch from `main`.
 2. **Write clear, concise commit messages**.
 3. **Add changes in CHANGELOG**
-4. **Test your changes** to ensure they work as expected, use `npm test`, `npm run lint` and `npm run test-types`
-5. **Submit a pull request** with a detailed description of your changes.
+4. **Test your changes** to ensure they work as expected, use `npm test`
 
 ## Reporting Issues
 

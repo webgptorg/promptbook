@@ -1,7 +1,7 @@
 ## How to Contribute
 
 -   **Add changes in CHANGELOG**
--   **Test your changes** to ensure they work as expected, use `npm test`, `npm run lint` and `npm run test-types`
+-   **Test your changes** to ensure they work as expected, use `npm test`
 
 ## Code Style
 
