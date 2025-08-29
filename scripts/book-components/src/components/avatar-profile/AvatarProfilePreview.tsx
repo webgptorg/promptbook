@@ -1,5 +1,6 @@
-import { AvatarProfileFromSource } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
+import { book } from '@promptbook-local/core';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
+import { AvatarProfileFromSource } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 
 export default function AvatarProfilePreview() {
     return (
@@ -12,22 +13,24 @@ export default function AvatarProfilePreview() {
         >
             <AvatarProfileFromSource
                 agentSource={
-                    `
-          CzechGPT
-          PERSONA
-          You are a large language model, trained by Google.
-          META IMAGE https://www.reshot.com/preview-assets/icons/GE9N5D2B3A/robot-GE9N5D2B3A.svg
-        ` as string_book
+                    book`
+
+                        AI Avatar
+
+                        PERSONA A friendly AI assistant that helps you with your tasks
+
+                    ` as string_book
                 }
             />
             <AvatarProfileFromSource
                 agentSource={
-                    `
-          CharacterGenius
-          PERSONA
-          I can generate characters for your stories.
-          META IMAGE https://www.reshot.com/preview-assets/icons/GE9N5D2B3A/robot-GE9N5D2B3A.svg
-        ` as string_book
+                    book`
+
+                        AI Avatar
+
+                        PERSONA A friendly AI assistant that helps you with your tasks
+
+                    ` as string_book
                 }
             />
         </div>
