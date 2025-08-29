@@ -16,6 +16,9 @@ const BookEditorPreview = dynamic(() => import('@/components/book-editor/BookEdi
 const AvatarChipPreview = dynamic(() => import('@/components/avatar-chip/AvatarChipPreview'), {
     ssr: false,
 });
+const AvatarProfilePreview = dynamic(() => import('@/components/avatar-profile/AvatarProfilePreview'), {
+    ssr: false,
+});
 
 interface ComponentPreviewProps {
     componentId: string;
@@ -62,6 +65,12 @@ export default function ComponentPreview({ componentId }: ComponentPreviewProps)
                 return (
                     <div className="p-6">
                         <AvatarChipPreview />
+                    </div>
+                );
+            case 'avatar-profile':
+                return (
+                    <div className="p-6">
+                        <AvatarProfilePreview />
                     </div>
                 );
 

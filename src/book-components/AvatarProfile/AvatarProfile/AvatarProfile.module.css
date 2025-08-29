@@ -1,0 +1,42 @@
+.AvatarProfile {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+    border-radius: 8px;
+    background: #f0f4f8;
+    border: 1px solid #e0e7ef;
+}
+
+.Avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.AgentInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.AgentName {
+    margin: 0;
+    font-size: 1.25em;
+    font-weight: 600;
+    color: #2a3b4d;
+}
+
+.AgentTitle {
+    margin: 4px 0 0 0;
+    font-size: 1em;
+    font-weight: 500;
+    color: #5a6b7d;
+}
+
+.AgentDescription {
+    margin: 8px 0 0 0;
+    font-size: 0.9em;
+    color: #5a6b7d;
+}

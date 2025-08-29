@@ -57,6 +57,7 @@ export function getAllComponents(): ComponentMetadata[] {
                 componentData.version = componentData.version || PROMPTBOOK_ENGINE_VERSION;
                 componentData.repository = componentData.repository || 'https://github.com/webgptorg/promptbook';
                 componentData.author = componentData.author || 'Promptbook Team';
+                componentData.tags = componentData.tags || [];
                 componentData.dependencies = componentData.dependencies || {
                     react: '^18.0.0 || ^19.0.0', // <- TODO: Is this correct?
                     '@promptbook/components': PROMPTBOOK_ENGINE_VERSION,

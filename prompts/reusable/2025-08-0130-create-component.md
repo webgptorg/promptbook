@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💞] Create component `AvatarProfile` and `AvatarProfileFromSource`
 
@@ -11,6 +11,7 @@ Its bit similar to the `<AvatarChip />` component but larger and with bit more d
 -   Make both `.tsx` and `.module.css` files
 -   Make preview component
     -   Look at folder `/scripts/book-components/src/components`
+    -   The `component.json` should look like other `component.json`s
     -   Look how other previews are made
         -   Make a preview component
         -   Also a `component.json` file

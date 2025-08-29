@@ -1,0 +1,34 @@
+{
+    "id": "avatar-profile",
+    "name": "Avatar Profile",
+    "description": "Shows a box with user avatar, name and description. It can be used directly or by parsing an agent source string.",
+    "category": "Avatar",
+    "tags": ["avatar", "profile", "user", "agent", "display"],
+    "props": {
+        "agent": {
+            "type": "AgentBasicInformation & { agentTitle?: string; agentDescription?: string }",
+            "description": "The agent object to display. Used in `AvatarProfile`."
+        },
+        "agentSource": {
+            "type": "string_book",
+            "description": "The agent source string to parse and display. Used in `AvatarProfileFromSource`."
+        },
+        "className": {
+            "type": "string",
+            "default": "",
+            "description": "Additional CSS classes to apply to the root element."
+        }
+    },
+    "features": [
+        "Displays agent's avatar, name, title, and description",
+        "Can parse agent information from a string source",
+        "Responsive design",
+        "Customizable with CSS classes"
+    ],
+    "examples": [
+        {
+            "title": "Basic Usage with Source",
+            "code": "<AvatarProfileFromSource agentSource={`CzechGPT\\nPERSONA\\nYou are a large language model, trained by Google.\\nMETA IMAGE https://example.com/avatar.svg`} />"
+        }
+    ]
+}
