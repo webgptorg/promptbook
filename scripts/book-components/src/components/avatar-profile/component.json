@@ -1,0 +1,8 @@
+{
+    "id": "avatar-profile",
+    "name": "AvatarProfile",
+    "description": "Shows a larger box with user avatar and name. Includes AvatarProfile and AvatarProfileFromSource variants.",
+    "preview": "avatar-profile/AvatarProfilePreview.tsx",
+    "category": "User",
+    "tags": ["avatar", "profile", "user", "identity"]
+}
