@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:03:09.819Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The prefix \"fra1\" typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This indicates the specific data center where the operation is being processed."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Fraud, Frankfurt, Germany, geographic region, server, data center, operation, processed, prefix",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:03:02.070Z",
+            "complete": "2025-08-29T04:03:09.818Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 80
+                },
+                "charactersCount": {
+                    "value": 401
+                },
+                "wordsCount": {
+                    "value": 57
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 20
+                },
+                "charactersCount": {
+                    "value": 95
+                },
+                "wordsCount": {
+                    "value": 11
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The prefix \"fra1\" typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This indicates the specific data center where the operation is being processed.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The prefix \"fra1\" typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This indicates the specific data center where the operation is being processed."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Fraud, Frankfurt, Germany, geographic region, server, data center, operation, processed, prefix",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 80,
+                "completionTokens": 20
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 80
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The prefix \"fra1\" typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This indicates the specific data center where the operation is being processed."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "976927f24c8774d3-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:03:00 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=Mmf.VMA.mwBdafijOH8ImUrcoRE3iHbjoN7gOmt9s6Q-1756440180-1.0.1.1-tzvRGa_N2mRfQw59q8yFoIOBQJjCiQgTDbtsjHXs_a.48He43Dg1o5uHHHNi4kV6_T2Ec70l.BG1uETD.ueZwp.g_Y90E5SwNk3Y8.AufW4; path=/; expires=Fri, 29-Aug-25 04:33:00 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "b8ac455d83ac1c65209828f14d6231b0"
+                }
+            },
+            "response": {
+                "id": "98ebdf53-b9ee-45a5-ad7c-a9e70a7a20af",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:03:00.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The prefix \\\"fra1\\\" typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This indicates the specific data center where the operation is being processed.\"}]}"
+            }
+        }
+    }
+}

@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:02:32.781Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "fra1, identifier, session ID, request ID, deployment ID, Vercel, logging, security tracking, Frankfurt, Germany, server region",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:02:23.511Z",
+            "complete": "2025-08-29T04:02:32.780Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 113
+                },
+                "charactersCount": {
+                    "value": 453
+                },
+                "wordsCount": {
+                    "value": 65
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 29
+                },
+                "charactersCount": {
+                    "value": 126
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "fra1, identifier, session ID, request ID, deployment ID, Vercel, logging, security tracking, Frankfurt, Germany, server region",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 113,
+                "completionTokens": 29
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 113
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "976927015afd1033-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:02:21 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=CkBFGdaBqeuiWFq0SxBIbDmNzaspE6ne_vHdY6t6s1E-1756440141-1.0.1.1-teHnT49.bQ8CAREx96gXcwNOruxoxMNS37m4kc0bbNIVanQ4vunwD.GhzlkqUKhWRf0xfz5xjFbWx8W6ksAaf7UebDN5smcDWDsyFIQr7rg; path=/; expires=Fri, 29-Aug-25 04:32:21 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "a6ec87b1accc9a1f331143f0c300aa3b"
+                }
+            },
+            "response": {
+                "id": "d04f1c56-6fea-4f7b-8775-5d758b7f1922",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:02:21.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \\\"fra1\\\" prefix typically denotes the Frankfurt, Germany server region.\"}]}"
+            }
+        }
+    }
+}

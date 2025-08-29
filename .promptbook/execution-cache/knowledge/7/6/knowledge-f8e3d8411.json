@@ -1,0 +1,153 @@
+{
+    "date": "2025-08-29T04:02:23.271Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Vercel Internal Identifier Breakdown",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:02:16.352Z",
+            "complete": "2025-08-29T04:02:23.271Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 117
+                },
+                "charactersCount": {
+                    "value": 435
+                },
+                "wordsCount": {
+                    "value": 65
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 6
+                },
+                "charactersCount": {
+                    "value": 36
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel Internal Identifier Breakdown",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 117,
+                "completionTokens": 6
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 117
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "976926d4d97c1033-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:02:14 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=hbVsWunnULZ99MlZMxGB6S5r.oh4WjGJ627xGWw7Bb0-1756440134-1.0.1.1-gmCd5R7Pk2wi7UZw9xnXM11WnLQveVyCA.kls9biy_y5NmZTRSvtiV8By9NEVRkBdgYPzfES8KINOhF0jRlPAOtWUa0JBP5hTJs8VPGBvo0; path=/; expires=Fri, 29-Aug-25 04:32:14 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "7518f2f9ad478d50998a95c515bd8853"
+                }
+            },
+            "response": {
+                "id": "6565fde4-ebcb-4769-90a4-e13689a03ae5",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:02:14.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> The identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \\\"fra1\\\" prefix typically denotes the Frankfurt, Germany server region.\"}]}"
+            }
+        }
+    }
+}

@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:03:12.805Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n\n---"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Vercel, serverless function, invocation, deployment, unique identifier, authenticate, track, cryptographically secure, random token, alphanumeric sequence, region code, security, unauthorized access, infrastructure",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:03:03.071Z",
+            "complete": "2025-08-29T04:03:12.805Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 97
+                },
+                "charactersCount": {
+                    "value": 511
+                },
+                "wordsCount": {
+                    "value": 68
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 40
+                },
+                "charactersCount": {
+                    "value": 214
+                },
+                "wordsCount": {
+                    "value": 21
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 4
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n> \n> ---",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n> \n> ---"
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel, serverless function, invocation, deployment, unique identifier, authenticate, track, cryptographically secure, random token, alphanumeric sequence, region code, security, unauthorized access, infrastructure",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 97,
+                "completionTokens": 40
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 97
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n> \n> ---"
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "976927f88b2d2783-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:03:00 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=ESpNHp_v.MByjnK45HseSsia3f55JQdDoKDVvAkYn3o-1756440180-1.0.1.1-.y4YIX9cV1ac0PnOfHfDr0yG5uWV8qPkIma2hvXuAMtDAJEHQmbnCaJkP.bP_sSGeIEzR128dFZWEzeiv58WQwSQHEutT1DPK9j5YifU0Uc; path=/; expires=Fri, 29-Aug-25 04:33:00 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "f76689968e1ca61f8f9d889bd798d9de"
+                }
+            },
+            "response": {
+                "id": "03e5d438-0256-424c-9d7a-f74c3d18619e",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:03:00.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\\n> \\n> ---\"}]}"
+            }
+        }
+    }
+}

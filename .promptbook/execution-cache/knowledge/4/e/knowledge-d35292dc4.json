@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:02:53.922Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": " Vercel Security Checkpoint \\| fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN "
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "The provided text appears to be a security checkpoint or access token from Vercel, a cloud platform for frontend frameworks. The string \"fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN\" is likely a unique, auto-generated identifier for a specific deployment, build process, or serverless function instance.\n\n---\n\nThe prefix \"fra1\" typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This indicates the specific data center where the operation is being processed.\n\n---\n\nThe long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n\n---",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:02:36.020Z",
+            "complete": "2025-08-29T04:02:53.921Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 135
+                },
+                "charactersCount": {
+                    "value": 545
+                },
+                "wordsCount": {
+                    "value": 69
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 15
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 175
+                },
+                "charactersCount": {
+                    "value": 842
+                },
+                "wordsCount": {
+                    "value": 120
+                },
+                "sentencesCount": {
+                    "value": 7
+                },
+                "linesCount": {
+                    "value": 17
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Vercel Security Checkpoint \\| fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN ",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Vercel Security Checkpoint \\| fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN "
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "The provided text appears to be a security checkpoint or access token from Vercel, a cloud platform for frontend frameworks. The string \"fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN\" is likely a unique, auto-generated identifier for a specific deployment, build process, or serverless function instance.\n\n---\n\nThe prefix \"fra1\" typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This indicates the specific data center where the operation is being processed.\n\n---\n\nThe long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n\n---",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 135,
+                "completionTokens": 175
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 64,
+                    "promptCacheMissTokens": 71
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Vercel Security Checkpoint \\| fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN "
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "9769274f8ea0269b-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:02:33 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=bcgqnJNfV84jPoru1qscQYNlu.drtlwRgcs5d3l7wVw-1756440153-1.0.1.1-VOFyqnclVGJMjt9hkUVftGi6fs7foC7a8E79qXG8ewDbDrB89XPkj76GMvabl0dMyrXRmsIA_gnHvJXDpORfcCK0lJy9HV1_d74GP34gMY4; path=/; expires=Fri, 29-Aug-25 04:32:33 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "f3875b2d568a6b7f698e5328ee1cf319"
+                }
+            },
+            "response": {
+                "id": "8c0a61b2-20d7-425d-a7df-61c869c70428",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:02:33.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, extract the important knowledge from the document.\\n\\n# Rules\\n\\n-   Make pieces of information concise, clear, and easy to understand\\n-   One piece of information should be approximately 1 paragraph\\n-   Divide the paragraphs by markdown horizontal lines ---\\n-   Omit irrelevant information\\n-   Group redundant information\\n-   Write just extracted information, nothing else\\n\\n# The document\\n\\nTake information from this document:\\n\\n>  Vercel Security Checkpoint \\\\| fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN \"}]}"
+            }
+        }
+    }
+}

@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:02:15.084Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": " Vercel Security Checkpoint \\| fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA "
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Based on the provided text, the only identifiable piece of information is a unique identifier string associated with a Vercel security checkpoint.\n\n---\n\nThe identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region.",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:01:54.949Z",
+            "complete": "2025-08-29T04:02:15.083Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 134
+                },
+                "charactersCount": {
+                    "value": 545
+                },
+                "wordsCount": {
+                    "value": 70
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 15
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 99
+                },
+                "charactersCount": {
+                    "value": 412
+                },
+                "wordsCount": {
+                    "value": 61
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 3
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Vercel Security Checkpoint \\| fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA ",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Vercel Security Checkpoint \\| fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA "
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Based on the provided text, the only identifiable piece of information is a unique identifier string associated with a Vercel security checkpoint.\n\n---\n\nThe identifier `fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA` appears to be a session, request, or deployment ID, likely for internal Vercel logging and security tracking purposes. The \"fra1\" prefix typically denotes the Frankfurt, Germany server region.",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 134,
+                "completionTokens": 99
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 134
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Vercel Security Checkpoint \\| fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA "
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "976926502f4fb605-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:01:52 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=UwxaMlE1.Si8XQCWdxHoNr1DqXo4sqwWCyoFKJMP7kA-1756440112-1.0.1.1-xaP.YHLsxm6e7g1r6QkreK2371yJ7CnSBn7C4Asynyz_qOn0snC9QOAkn7I7ecVGbYJ9iI_0lTU.j5VBOuEF9zMELn6OhQ7mGF6oyXdg_eA; path=/; expires=Fri, 29-Aug-25 04:31:52 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "8f25bd80bd0232265660b047d9f23a0c"
+                }
+            },
+            "response": {
+                "id": "9febd31d-b2a9-4e5f-a296-24ff1168a39f",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:01:52.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, extract the important knowledge from the document.\\n\\n# Rules\\n\\n-   Make pieces of information concise, clear, and easy to understand\\n-   One piece of information should be approximately 1 paragraph\\n-   Divide the paragraphs by markdown horizontal lines ---\\n-   Omit irrelevant information\\n-   Group redundant information\\n-   Write just extracted information, nothing else\\n\\n# The document\\n\\nTake information from this document:\\n\\n>  Vercel Security Checkpoint \\\\| fra1::1756440111-oaawqTsP20Jd3azJov3QUhrwjQZoGFmA \"}]}"
+            }
+        }
+    }
+}

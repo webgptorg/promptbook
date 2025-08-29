@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:03:10.420Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The provided text appears to be a security checkpoint or access token from Vercel, a cloud platform for frontend frameworks. The string \"fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN\" is likely a unique, auto-generated identifier for a specific deployment, build process, or serverless function instance."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Vercel, security checkpoint, access token, cloud platform, frontend frameworks, unique identifier, auto-generated, deployment, build process, serverless function, instance",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:03:01.054Z",
+            "complete": "2025-08-29T04:03:10.419Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 122
+                },
+                "charactersCount": {
+                    "value": 502
+                },
+                "wordsCount": {
+                    "value": 73
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 33
+                },
+                "charactersCount": {
+                    "value": 171
+                },
+                "wordsCount": {
+                    "value": 19
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The provided text appears to be a security checkpoint or access token from Vercel, a cloud platform for frontend frameworks. The string \"fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN\" is likely a unique, auto-generated identifier for a specific deployment, build process, or serverless function instance.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The provided text appears to be a security checkpoint or access token from Vercel, a cloud platform for frontend frameworks. The string \"fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN\" is likely a unique, auto-generated identifier for a specific deployment, build process, or serverless function instance."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel, security checkpoint, access token, cloud platform, frontend frameworks, unique identifier, auto-generated, deployment, build process, serverless function, instance",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 122,
+                "completionTokens": 33
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 122
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The provided text appears to be a security checkpoint or access token from Vercel, a cloud platform for frontend frameworks. The string \"fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN\" is likely a unique, auto-generated identifier for a specific deployment, build process, or serverless function instance."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "976927ebf9ff269b-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:02:58 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=kW1uMUc1.StykER2hRKe6PsvPIq_6KR4kEVYHVZKKRs-1756440178-1.0.1.1-8CQN.w2JEyITeZQPtal_JEPYmoQ1KUboxE1.vB_vTg1pNzaiIqYuNF43CFhKrsupzgpvUYcab.E2hcT2PV3hYnvk1EzmHJA7mTgP4793TnA; path=/; expires=Fri, 29-Aug-25 04:32:58 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "41f6a10b848f689a84122bbba1cc8986"
+                }
+            },
+            "response": {
+                "id": "3f112ac7-ac48-4823-b58f-5d4c8c818201",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:02:58.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The provided text appears to be a security checkpoint or access token from Vercel, a cloud platform for frontend frameworks. The string \\\"fra1::1756440153-Vd5IMsoxnB5p1aHN3vysuYO5pRCZuKFN\\\" is likely a unique, auto-generated identifier for a specific deployment, build process, or serverless function instance.\"}]}"
+            }
+        }
+    }
+}

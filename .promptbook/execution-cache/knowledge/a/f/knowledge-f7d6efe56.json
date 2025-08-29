@@ -1,0 +1,153 @@
+{
+    "date": "2025-08-29T04:03:02.592Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n\n---"
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Vercel Secure Invocation Authentication",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:02:56.131Z",
+            "complete": "2025-08-29T04:03:02.591Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 101
+                },
+                "charactersCount": {
+                    "value": 493
+                },
+                "wordsCount": {
+                    "value": 68
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 7
+                },
+                "charactersCount": {
+                    "value": 39
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n> \n> ---",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n> \n> ---"
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel Secure Invocation Authentication",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 101,
+                "completionTokens": 7
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 101
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\n> \n> ---"
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "976927cd486d2783-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:02:53 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=YEK9.mfVrIH3_5FrhqxiuwCEE1HofWRhmrwSvlOHPFA-1756440173-1.0.1.1-ax1w.FkXtCyrpROMCLNHsSYLS5Ua4mU98YgnuYIaeLyuPcCjRPtASdvLsAtRdRtpfznVdoz8CKj3Rms7slD.I_m4TJs7DXrcIe0q.P_m3Yk; path=/; expires=Fri, 29-Aug-25 04:32:53 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "78084a66933f1ba4d115faaf0d00606f"
+                }
+            },
+            "response": {
+                "id": "489a2cd9-d6ab-46c6-b76d-9e3da408c2fb",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:02:53.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> The long alphanumeric sequence following the region code is a cryptographically secure, random token. It serves as a unique identifier to authenticate and track a specific serverless function invocation or deployment event within Vercel's infrastructure, ensuring security and preventing unauthorized access.\\n> \\n> ---\"}]}"
+            }
+        }
+    }
+}
