@@ -1,3 +1,5 @@
+import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../../_packages/types.index';
 import type { ChatMessage } from '../interfaces/ChatMessage';
 
 export type ExportFormat = 'pdf' | 'txt' | 'md' | 'html' | 'json';
@@ -22,18 +24,6 @@ function addUtmParamsToUrl(baseUrl: string, format: ExportFormat): string {
     params.set('utm_content', format);
     urlObj.search = params.toString();
     return urlObj.toString();
-}
-
-/**
- * Utility: generate a shortcode for ptbk.io
- */
-function generateShortCode(length = 7): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
 }
 
 /**
@@ -63,10 +53,7 @@ const PROMPTBOOK_LOGO_URL = 'https://promptbook.studio/logos/logo-blue-white-256
  * Simple HTML escape to safely render injected text in HTML exports
  */
 function escapeHtml(text: string): string {
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /**
@@ -82,7 +69,7 @@ function messagesToText(
     const header = headerMarkdown ? `${headerMarkdown}\n\n` : '';
     const content = messages
         .map((message) => {
-            const from = (message as any).from as string;
+            const from = (message as TODO_any).from as string;
             const sender =
                 (participants && participants[from]?.name) ||
                 (from === 'USER' || from === 'AGENT_user' ? 'You' : 'Assistant');
@@ -116,7 +103,7 @@ function messagesToMarkdown(
 
     const content = messages
         .map((message) => {
-            const from = (message as any).from as string;
+            const from = (message as TODO_any).from as string;
             const name =
                 (participants && participants[from]?.name) ||
                 (from === 'USER' || from === 'AGENT_user' ? 'You' : 'Assistant');
@@ -127,7 +114,9 @@ function messagesToMarkdown(
         })
         .join('\n---\n\n');
 
-    return `${headerParts.join('\n')}\n${headerMarkdown ? headerMarkdown + '\n\n' : ''}# Chat History\n\n${branding}${content}`;
+    return `${headerParts.join('\n')}\n${
+        headerMarkdown ? headerMarkdown + '\n\n' : ''
+    }# Chat History\n\n${branding}${content}`;
 }
 
 /**
@@ -144,11 +133,10 @@ function messagesToHtml(
     const customHeaderHtml = headerMarkdown ? `<div class="customHeader">${escapeHtml(headerMarkdown)}</div>` : '';
     const content = messages
         .map((message) => {
-            const from = (message as any).from as string;
+            const from = (message as TODO_any).from as string;
             const isUser = from === 'USER' || (typeof from === 'string' && from.toLowerCase() === 'agent_user');
             const senderClass = isUser ? 'user' : 'assistant';
-            const name =
-                (participants && participants[from]?.name) || (isUser ? 'You' : 'Assistant');
+            const name = (participants && participants[from]?.name) || (isUser ? 'You' : 'Assistant');
             const avatar = participants && participants[from]?.avatarUrl;
             const messageContent = message.content
                 .replace(/&/g, '&amp;')
@@ -168,144 +156,146 @@ function messagesToHtml(
         })
         .join('');
 
-    return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat History - Promptbook Studio</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
-            padding: 16px;
-            background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
-            color: white;
-            border-radius: 12px;
-        }
-        .brand {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 8px;
-        }
-        .brand-logo {
-            height: 48px;
-            width: auto;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.9);
-            padding: 6px;
-        }
-        .share {
-            text-align: center;
-            margin: 8px 0;
-            font-size: 14px;
-        }
-        .share a {
-            color: #0b6cff;
-            text-decoration: underline;
-            word-break: break-all;
-        }
-        .qr {
-            text-align: center;
-            margin: 8px 0 16px 0;
-        }
-        .qr img {
-            width: 160px;
-            height: 160px;
-            image-rendering: pixelated;
-            background: white;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #e1e5e9;
-        }
-        .customHeader {
-            white-space: pre-wrap;
-            margin: 8px auto 0 auto;
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.95);
-            color: #222;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e1e5e9;
-        }
-        .branding {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-            text-align: center;
-            white-space: pre-line;
-        }
-        .message {
-            margin-bottom: 20px;
-            padding: 16px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .message.user {
-            background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
-            color: white;
-            margin-left: 20%;
-        }
-        .message.assistant {
-            background: white;
-            border: 1px solid #e1e5e9;
-            margin-right: 20%;
-        }
-        .senderRow {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid #e1e5e9;
-            background: white;
-        }
-        .sender {
-            font-weight: 600;
-        }
-        .content {
-            line-height: 1.5;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="brand">
-            <a href="${shareUrl}" target="_blank" rel="noopener">
-                <img class="brand-logo" src="${PROMPTBOOK_LOGO_URL}" alt="Promptbook logo"/>
-            </a>
-        </div>
-        <div class="share">
-            <a href="${shareUrl}" target="_blank" rel="noopener">${shareUrl}</a>
-        </div>
-        ${qrDataUrl ? `<div class="qr"><img src="${qrDataUrl}" alt="Chat QR code"/></div>` : ''}
-        ${customHeaderHtml}
-        <h1>Chat History</h1>
-        <p>Exported from Promptbook Studio</p>
-    </div>
-    <div class="branding">${branding}</div>
-    <div class="messages">
-        ${content}
-    </div>
-</body>
-</html>
-    `.trim();
+    return spaceTrim(
+        (block) => `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Chat History - Promptbook Studio</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        line-height: 1.6;
+                        max-width: 900px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        background-color: #f8f9fa;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 24px;
+                        padding: 16px;
+                        background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+                        color: white;
+                        border-radius: 12px;
+                    }
+                    .brand {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 16px;
+                        margin-bottom: 8px;
+                    }
+                    .brand-logo {
+                        height: 48px;
+                        width: auto;
+                        border-radius: 8px;
+                        background: rgba(255,255,255,0.9);
+                        padding: 6px;
+                    }
+                    .share {
+                        text-align: center;
+                        margin: 8px 0;
+                        font-size: 14px;
+                    }
+                    .share a {
+                        color: #0b6cff;
+                        text-decoration: underline;
+                        word-break: break-all;
+                    }
+                    .qr {
+                        text-align: center;
+                        margin: 8px 0 16px 0;
+                    }
+                    .qr img {
+                        width: 160px;
+                        height: 160px;
+                        image-rendering: pixelated;
+                        background: white;
+                        padding: 8px;
+                        border-radius: 8px;
+                        border: 1px solid #e1e5e9;
+                    }
+                    .customHeader {
+                        white-space: pre-wrap;
+                        margin: 8px auto 0 auto;
+                        max-width: 800px;
+                        background: rgba(255, 255, 255, 0.95);
+                        color: #222;
+                        padding: 12px;
+                        border-radius: 8px;
+                        border: 1px solid #e1e5e9;
+                    }
+                    .branding {
+                        font-size: 14px;
+                        color: #666;
+                        margin-bottom: 20px;
+                        text-align: center;
+                        white-space: pre-line;
+                    }
+                    .message {
+                        margin-bottom: 20px;
+                        padding: 16px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    }
+                    .message.user {
+                        background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+                        color: white;
+                        margin-left: 20%;
+                    }
+                    .message.assistant {
+                        background: white;
+                        border: 1px solid #e1e5e9;
+                        margin-right: 20%;
+                    }
+                    .senderRow {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 8px;
+                    }
+                    .avatar {
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        border: 1px solid #e1e5e9;
+                        background: white;
+                    }
+                    .sender {
+                        font-weight: 600;
+                    }
+                    .content {
+                        line-height: 1.5;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="brand">
+                        <a href="${shareUrl}" target="_blank" rel="noopener">
+                            <img class="brand-logo" src="${PROMPTBOOK_LOGO_URL}" alt="Promptbook logo"/>
+                        </a>
+                    </div>
+                    <div class="share">
+                        <a href="${shareUrl}" target="_blank" rel="noopener">${shareUrl}</a>
+                    </div>
+                    ${qrDataUrl ? `<div class="qr"><img src="${qrDataUrl}" alt="Chat QR code"/></div>` : ''}
+                    ${block(customHeaderHtml)}
+                    <h1>Chat History</h1>
+                    <p>Exported from Promptbook Studio</p>
+                </div>
+                <div class="branding">${branding}</div>
+                <div class="messages">
+                    ${block(content)}
+                </div>
+            </body>
+            </html>
+            `,
+    );
 }
 
 /**
@@ -325,8 +315,8 @@ function messagesToJson(messages: ChatMessage[], shareUrl: string): string {
             from: message.from,
             content: message.content,
             isComplete: message.isComplete,
-            timestamp: new Date().toISOString() // Note: Real timestamp would come from message data
-        }))
+            timestamp: new Date().toISOString(), // Note: Real timestamp would come from message data
+        })),
     };
 
     return JSON.stringify(exportData, null, 2);
@@ -340,7 +330,7 @@ function generatePdfContent(
     shareUrl: string,
     qrDataUrl?: string | null,
     headerMarkdown?: string,
-    participants?: Record<string, { name: string; avatarUrl?: string }>
+    participants?: Record<string, { name: string; avatarUrl?: string }>,
 ): void {
     const htmlContent = messagesToHtml(messages, shareUrl, qrDataUrl, headerMarkdown, participants);
 
@@ -388,7 +378,7 @@ export async function exportChatHistory(
     messages: ChatMessage[],
     format: ExportFormat,
     headerMarkdown?: string,
-    participants?: Record<string, { name: string; avatarUrl?: string }>
+    participants?: Record<string, { name: string; avatarUrl?: string }>,
 ): Promise<void> {
     const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const baseFilename = `chat-history-${timestamp}`;
@@ -405,7 +395,7 @@ export async function exportChatHistory(
             downloadFile(
                 messagesToText(messages, shareUrl, headerMarkdown, participants),
                 `${baseFilename}.txt`,
-                'text/plain'
+                'text/plain',
             );
             break;
 
@@ -413,7 +403,7 @@ export async function exportChatHistory(
             downloadFile(
                 messagesToMarkdown(messages, shareUrl, qrDataUrl, headerMarkdown, participants),
                 `${baseFilename}.md`,
-                'text/markdown'
+                'text/markdown',
             );
             break;
 
@@ -421,16 +411,12 @@ export async function exportChatHistory(
             downloadFile(
                 messagesToHtml(messages, shareUrl, qrDataUrl, headerMarkdown, participants),
                 `${baseFilename}.html`,
-                'text/html'
+                'text/html',
             );
             break;
 
         case 'json':
-            downloadFile(
-                messagesToJson(messages, shareUrl),
-                `${baseFilename}.json`,
-                'application/json'
-            );
+            downloadFile(messagesToJson(messages, shareUrl), `${baseFilename}.json`, 'application/json');
             break;
 
         case 'pdf':
