@@ -45,7 +45,16 @@ examples:
           />'
     - title: From Book
       code: |-
-          <AvatarChipFromSource source={book`
-            My Agent
-            PERSONA  Helpfull AI Assistant
-          `} isSelected onSelect={handleSelect} />
+          import { book } from '@promptbook/utils';
+          import { AvatarChipFromSource } from '@promptbook/components';
+
+          <AvatarChipFromSource
+              source={book`
+        AI Avatar
+
+        PERSONA A friendly AI assistant that helps you with your tasks
+
+              `}
+              isSelected
+              onSelect={handleSelect}
+          />
