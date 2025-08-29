@@ -295,3 +295,9 @@ toggleable
 agentic
 unhardcode 
 interlinguistics
+miniapp
+aipp
+supabase
+noopener
+noreferrer
+Segoe

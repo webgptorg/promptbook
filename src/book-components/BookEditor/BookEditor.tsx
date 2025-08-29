@@ -1,5 +1,6 @@
 'use client';
-// <- Note: This is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case, this would not be here because the `@promptbook/components` package shold be React library indipendent of Next.js specifics
+// <- Note: This is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
+//          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
