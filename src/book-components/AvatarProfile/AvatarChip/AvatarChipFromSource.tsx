@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
-import { AvatarChip } from './AvatarChip';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { AvatarChipProps } from './AvatarChip';
+import { AvatarChip } from './AvatarChip';
 
 /**
  * Props of `AvatarChipFromSource`
  *
  * @public exported from `@promptbook/components`
  */
-export type AvatarChipFromSource = Omit<AvatarChipProps, 'avatarBasicInformation'> & {
+export type AvatarChipFromSourceProps = Omit<AvatarChipProps, 'avatarBasicInformation'> & {
     /**
      * Avatar to be shown
      */
@@ -23,7 +23,7 @@ export type AvatarChipFromSource = Omit<AvatarChipProps, 'avatarBasicInformation
  *
  * @public exported from `@promptbook/components`
  */
-export function AvatarChipFromSource(props: AvatarChipFromSource) {
+export function AvatarChipFromSource(props: AvatarChipFromSourceProps) {
     const { source } = props;
 
     const avatarBasicInformation = useMemo(() => {
