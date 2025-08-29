@@ -10,14 +10,7 @@
 
 [ ]
 
-[✨🕜] Refactor components
-
--   Props type
--   Example components
--   `component.yaml` files
--   Keep in mind DRY (Don't Repeat Yourself) principle
-
----
+## [✨🕜]
 
 [ ]
 
