@@ -1,13 +1,13 @@
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../../_packages/types.index';
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
+import { escapeHtml } from '../../_common/react-utils/escapeHtml';
 import type { ChatMessage } from '../interfaces/ChatMessage';
-import { escapeHtml } from './escapeHtml';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
  * Converts chat messages to HTML format
- * 
+ *
  * @private utility of `<Chat/>` component
  */
 export function messagesToHtml(
