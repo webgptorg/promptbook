@@ -3,6 +3,7 @@
 ## [Unreleased]
 - Refactored BookEditor: split into outer and inner components, with the inner rendered inside the shadow DOM.
 - BookEditor now highlights the first line in the editor.
+- Removed nonce workaround from BookEditor; rendering is now stable without nonce.
 - Added AvatarChip component preview and registration in ComponentPreview.tsx.
 
 ## Released versions

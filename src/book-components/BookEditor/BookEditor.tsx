@@ -53,6 +53,7 @@ export function BookEditor(props: BookEditorProps) {
     // Host div that will get a shadow root
     const hostRef = useRef<HTMLDivElement | null>(null);
     const shadowRootRef = useRef<ShadowRoot | null>(null);
+    const [shadowReady, setShadowReady] = useState(false);
 
     useEffect(() => {
         if (hostRef.current === null) {
@@ -69,6 +70,8 @@ export function BookEditor(props: BookEditorProps) {
         // Inject CSS module rules into the shadow root so classes from the module
         // remain available inside the Shadow DOM.
         injectCssModuleIntoShadowRoot(shadowDom);
+
+        setShadowReady(true);
 
         return () => {
             // shadowRootRef.current?.host?.remove();
@@ -87,25 +90,18 @@ export function BookEditor(props: BookEditorProps) {
         />
     );
 
-    const [nonce, setNonce] = useState(0);
-
-    useEffect(() => {
-        if (isVerbose) {
-            console.info('BookEditor: Setting nonce');
-        }
-        setNonce(1);
-    }, []);
 
     // Render: host div stays in the light DOM (so page layout is preserved),
     // but the editor internals are portalled into the shadow root for isolation.
     return (
         <div
             data-book-component="BookEditor"
-            data-nonce={nonce}
             ref={hostRef}
             className={classNames(className, isVerbose && styles.isVerbose)}
         >
-            {shadowRootRef.current === null ? <>Loading...</> : createPortal(editorInner, shadowRootRef.current)}
+            {shadowReady && shadowRootRef.current
+                ? createPortal(editorInner, shadowRootRef.current)
+                : <>Loading...</>}
         </div>
     );
 }
