@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../interfaces/ChatMessage';
 import styles from './Chat.module.css';
 
@@ -305,9 +306,6 @@ export function Chat(props: ChatProps) {
         }
     };
 
-    const classNames = (...classes: (string | undefined | null)[]) => {
-        return classes.filter(Boolean).join(' ');
-    };
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
