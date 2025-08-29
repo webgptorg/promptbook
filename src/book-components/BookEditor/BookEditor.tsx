@@ -1,3 +1,6 @@
+'use client';
+// <- Note: This is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case, this would not be here because the `@promptbook/components` package shold be React library indipendent of Next.js specifics
+
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
