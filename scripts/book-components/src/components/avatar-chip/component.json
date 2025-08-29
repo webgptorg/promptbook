@@ -42,6 +42,10 @@
         {
             "title": "Selectable",
             "code": "<AvatarChip avatarBasicInformation={avatar} isSelected onSelect={handleSelect} />"
+        },
+        {
+            "title": "From Book",
+            "code": "<AvatarChipFromSource source={book`\n  My Agent\n  PERSONA  Helpfull AI Assistant\n`} isSelected onSelect={handleSelect} />"
         }
     ]
 }
