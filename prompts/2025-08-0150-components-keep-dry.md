@@ -32,7 +32,15 @@ For example BookEditor:
 There should be ONE place where each component is defined, with all its variations and usages derived from that definition.
 This can be referenced in some index file, but in this index file should be simple single reference, not the whole component again like in `ComponentPreview.tsx` now.
 
-Do a refactoring to fix this.
+Some ideas what to do:
+
+-   Each component should be in one folder component + preview, adding new component will became just copying this folder and registering it in index
+-   In this folder there will be subfolder `examples` with example usages of the component, this will be used both instead of examples in `component.yaml` and for the component preview
+-   There will be one README.md file that explains the component and its usage and this will be taken as description instead of description in `component.yaml`
+-   Props which are described in `component.yaml` should be taken from the props type of the component itself
+-   You can process theese information in runtime (for example in `getAllComponents()`) or generate it via script
+
+Now do this refactoring
 
 ---
 
