@@ -1,0 +1,153 @@
+{
+    "date": "2025-08-29T04:05:59.866Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The identifier is `fra1::1756440332-zJ9hwLHOlt3tXMhTOOMOsjKQ9Lkx4bu3`. The `fra1` prefix likely denotes the server region, which is Frankfurt, Germany."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Fra1 Server Region Identifier",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:05:53.531Z",
+            "complete": "2025-08-29T04:05:59.866Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 98
+                },
+                "charactersCount": {
+                    "value": 327
+                },
+                "wordsCount": {
+                    "value": 49
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 5
+                },
+                "charactersCount": {
+                    "value": 29
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The identifier is `fra1::1756440332-zJ9hwLHOlt3tXMhTOOMOsjKQ9Lkx4bu3`. The `fra1` prefix likely denotes the server region, which is Frankfurt, Germany.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The identifier is `fra1::1756440332-zJ9hwLHOlt3tXMhTOOMOsjKQ9Lkx4bu3`. The `fra1` prefix likely denotes the server region, which is Frankfurt, Germany."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Fra1 Server Region Identifier",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 98,
+                "completionTokens": 5
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 98
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The identifier is `fra1::1756440332-zJ9hwLHOlt3tXMhTOOMOsjKQ9Lkx4bu3`. The `fra1` prefix likely denotes the server region, which is Frankfurt, Germany."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "97692c220e858a52-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:05:51 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=rFVPnizjfXzGsIN6NTGFt4UXmZxHqynFL2JF.5yNrJE-1756440351-1.0.1.1-p0uZy1URutOLZwlgIdBuV_LMw1QNcTpOpb4eVY2Ec00MEmfR4EoQ7lMHjKTbx8VWSjzQ0NtPisrAz4kf8BJwzq661VD.91NE3JGXAgze8I4; path=/; expires=Fri, 29-Aug-25 04:35:51 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "fd6065077ff21972241e51c3e776a263"
+                }
+            },
+            "response": {
+                "id": "bc73dc68-89ee-431d-a71e-c589159032af",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:05:51.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> The identifier is `fra1::1756440332-zJ9hwLHOlt3tXMhTOOMOsjKQ9Lkx4bu3`. The `fra1` prefix likely denotes the server region, which is Frankfurt, Germany.\"}]}"
+            }
+        }
+    }
+}
