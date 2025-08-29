@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:07:31.889Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Based on the provided document, the following information can be extracted:\n\nThe document is a security checkpoint log from Vercel, a cloud platform for frontend frameworks. The log entry was generated in the Frankfurt (fra1) region."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Vercel, security checkpoint log, cloud platform, frontend frameworks, Frankfurt, fra1, region",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:07:23.903Z",
+            "complete": "2025-08-29T04:07:31.889Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 91
+                },
+                "charactersCount": {
+                    "value": 431
+                },
+                "wordsCount": {
+                    "value": 62
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 21
+                },
+                "charactersCount": {
+                    "value": 93
+                },
+                "wordsCount": {
+                    "value": 11
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Based on the provided document, the following information can be extracted:\n> \n> The document is a security checkpoint log from Vercel, a cloud platform for frontend frameworks. The log entry was generated in the Frankfurt (fra1) region.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Based on the provided document, the following information can be extracted:\n> \n> The document is a security checkpoint log from Vercel, a cloud platform for frontend frameworks. The log entry was generated in the Frankfurt (fra1) region."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel, security checkpoint log, cloud platform, frontend frameworks, Frankfurt, fra1, region",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 91,
+                "completionTokens": 21
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 91
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Based on the provided document, the following information can be extracted:\n> \n> The document is a security checkpoint log from Vercel, a cloud platform for frontend frameworks. The log entry was generated in the Frankfurt (fra1) region."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "97692e56ba80a0f5-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:07:21 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=RdG_XIBtfqyxZXEXEXIpBu.qTNdyIVN4GAsgWtEj7ig-1756440441-1.0.1.1-0yJiguprdhSpLWzyi4.8WKPjvogtzOsNtJzURKcuvfu1OJYSViG3uVXWLY5bzS2VYr2xvQGD5yMgMTQ2PZvnh.Ce66ihEymrLGWYhHAJuRA; path=/; expires=Fri, 29-Aug-25 04:37:21 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "f9425541a059b35c0e1194027133344a"
+                }
+            },
+            "response": {
+                "id": "a9e10af0-5cd0-49ef-bfda-8a3b9c24ad74",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:07:21.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> Based on the provided document, the following information can be extracted:\\n> \\n> The document is a security checkpoint log from Vercel, a cloud platform for frontend frameworks. The log entry was generated in the Frankfurt (fra1) region.\"}]}"
+            }
+        }
+    }
+}

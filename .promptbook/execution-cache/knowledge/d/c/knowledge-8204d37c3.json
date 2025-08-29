@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:08:11.870Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n\n---"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Vercel, token, infrastructure, security validation, request routing, logging, opaque identifier",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:08:04.032Z",
+            "complete": "2025-08-29T04:08:11.869Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 92
+                },
+                "charactersCount": {
+                    "value": 444
+                },
+                "wordsCount": {
+                    "value": 65
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 18
+                },
+                "charactersCount": {
+                    "value": 95
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n> \n> ---",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n> \n> ---"
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel, token, infrastructure, security validation, request routing, logging, opaque identifier",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 92,
+                "completionTokens": 18
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 92
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n> \n> ---"
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "97692f518bc8cd2b-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:08:01 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=5RRDMSq0xz8HuRLnw5cQ7S1PfKZs2F26utMwvO_Q8I0-1756440481-1.0.1.1-lID_ldLHwTZOk4CZwikUqCGQYA30wMQDxa7gWSxIFHFxqn4eRUSM2kprgf__15FZJk6OxBmoNv0Gtus93rkTLY8vRMI0sr7C30KkMKjoIHk; path=/; expires=Fri, 29-Aug-25 04:38:01 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "ced6cd04218ff6cfff2c599aaab1ce92"
+                }
+            },
+            "response": {
+                "id": "c716ada5-39c8-434d-ab85-000f7ecf38d0",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:08:01.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\\n> \\n> ---\"}]}"
+            }
+        }
+    }
+}

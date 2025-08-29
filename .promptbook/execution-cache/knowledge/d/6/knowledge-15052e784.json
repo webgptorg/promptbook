@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:07:34.330Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The log entry contains a unique identifier: `1756440415-EZ9TcZGSaPXyhPXj6vx3Jwo8pCy0ksUN`. This string likely serves as a transaction or event ID for tracking and auditing purposes within Vercel's systems."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "unique identifier, log entry, transaction ID, event ID, tracking, auditing, Vercel, systems",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:07:24.876Z",
+            "complete": "2025-08-29T04:07:34.330Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 100
+                },
+                "charactersCount": {
+                    "value": 399
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 21
+                },
+                "charactersCount": {
+                    "value": 91
+                },
+                "wordsCount": {
+                    "value": 12
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The log entry contains a unique identifier: `1756440415-EZ9TcZGSaPXyhPXj6vx3Jwo8pCy0ksUN`. This string likely serves as a transaction or event ID for tracking and auditing purposes within Vercel's systems.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The log entry contains a unique identifier: `1756440415-EZ9TcZGSaPXyhPXj6vx3Jwo8pCy0ksUN`. This string likely serves as a transaction or event ID for tracking and auditing purposes within Vercel's systems."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "unique identifier, log entry, transaction ID, event ID, tracking, auditing, Vercel, systems",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 100,
+                "completionTokens": 21
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 100
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The log entry contains a unique identifier: `1756440415-EZ9TcZGSaPXyhPXj6vx3Jwo8pCy0ksUN`. This string likely serves as a transaction or event ID for tracking and auditing purposes within Vercel's systems."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "97692e5cc80671ef-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:07:22 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=MKbA8Gs.9iTy88FP_tLPfZhPsJ5EqNYKY0wpNCdCN5k-1756440442-1.0.1.1-I6Rta1hOSpo6ETYr0XXwY9pQWGsJeLfSnYSIND479N4dUf5mffh2sA1S50FxQUP9dKBylkG5z5I3xhObFvxXLz_N0y8Sp_a_7SCljRtufi0; path=/; expires=Fri, 29-Aug-25 04:37:22 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "2a27e4236fb3ddbd9b504c6ae728c1b7"
+                }
+            },
+            "response": {
+                "id": "8b1fcf4d-12bf-401e-93c6-69c6d61ab252",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:07:22.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The log entry contains a unique identifier: `1756440415-EZ9TcZGSaPXyhPXj6vx3Jwo8pCy0ksUN`. This string likely serves as a transaction or event ID for tracking and auditing purposes within Vercel's systems.\"}]}"
+            }
+        }
+    }
+}

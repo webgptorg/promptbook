@@ -1,0 +1,153 @@
+{
+    "date": "2025-08-29T04:08:03.470Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n\n---"
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Vercel's Internal Infrastructure Token",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:07:56.847Z",
+            "complete": "2025-08-29T04:08:03.470Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 96
+                },
+                "charactersCount": {
+                    "value": 426
+                },
+                "wordsCount": {
+                    "value": 65
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 7
+                },
+                "charactersCount": {
+                    "value": 38
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n> \n> ---",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n> \n> ---"
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel's Internal Infrastructure Token",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 96,
+                "completionTokens": 7
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 96
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\n> \n> ---"
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "97692f24a8e9cd2b-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:07:54 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=Qba3w4rsRPqHw0ZEULmwU1OdUrG3DwkIU8rVgh_ZFVI-1756440474-1.0.1.1-1YTsaI3lNOrUnc2rfUcYdFaNVWXXLHgz5.3hc.h69p9JKAhukEnXcCcvyWWkfYVERDMXKMBfHLKfuLg7xO2BWS1Jr.Ibnq.wlSv_2yGaVAU; path=/; expires=Fri, 29-Aug-25 04:37:54 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "25a4c762f79029a1164270ba757c2f34"
+                }
+            },
+            "response": {
+                "id": "acb1868f-64bf-4806-8bfa-3358eb4b0d07",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:07:54.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> This type of token is used internally by Vercel's infrastructure for security validation, request routing, and logging. It is not intended for user interaction and is an opaque identifier with no inherent meaning outside of Vercel's systems.\\n> \\n> ---\"}]}"
+            }
+        }
+    }
+}
