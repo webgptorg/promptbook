@@ -1,19 +1,21 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS } from '../../config';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_AUTO_INSTALLED } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import {
+    DEFAULT_CSV_SETTINGS,
+    DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+    DEFAULT_IS_AUTO_INSTALLED,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_EXECUTION_ATTEMPTS,
+    DEFAULT_MAX_PARALLEL_COUNT,
+    DEFAULT_SCRAPE_CACHE_DIRNAME,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 
 import { assertsError } from '../../errors/assertsError';
 import { serializeError } from '../../errors/utils/serializeError';
-import type { InputParameters } from '../../types/typeAliases';
+import type { InputParameters, number_percent } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { ExecutionTask } from '../ExecutionTask';
 import { createTask } from '../ExecutionTask';
@@ -141,88 +143,74 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         createTask<PipelineExecutorResult>({
             taskType: 'EXECUTION',
             title: pipeline.title,
-            taskProcessCallback(updateOngoingResult: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => void) {
+            taskProcessCallback(
+                updateOngoingResult: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => void,
+                updateTldr: (tldrInfo: { readonly percent: number_percent; readonly message: string }) => void,
+            ) {
                 return pipelineExecutorWithCallback(inputParameters, async (newOngoingResult) => {
                     updateOngoingResult(newOngoingResult);
-                });
-            },
-            tldrProvider(createdAt, status, currentValue, errors) {
-                // Better progress estimation based on pipeline structure
-                const cv = currentValue as PartialDeep<PipelineExecutorResult>;
 
-                // Handle finished/error states
-                if (status === 'FINISHED') {
-                    return {
-                        percent: 1,
-                        message: 'Finished',
-                    };
-                }
+                    // Calculate and update tldr based on pipeline progress
+                    const cv = newOngoingResult as PartialDeep<PipelineExecutorResult>;
 
-                if (status === 'ERROR') {
-                    const errorMessage = errors.length > 0 ? errors[errors.length - 1]!.message : 'Error';
-                    return {
-                        percent: 0,
-                        message: errorMessage,
-                    };
-                }
+                    // Calculate progress based on pipeline tasks
+                    const totalTasks = pipeline.tasks.length;
+                    let completedTasks = 0;
+                    let currentTaskName = '';
 
-                // Calculate progress based on pipeline tasks
-                const totalTasks = pipeline.tasks.length;
-                let completedTasks = 0;
-                let currentTaskName = '';
+                    // Check execution report for completed tasks
+                    if (cv?.executionReport?.promptExecutions) {
+                        const executedTaskTitles = new Set(
+                            cv.executionReport.promptExecutions.map((execution) => execution.prompt.title),
+                        );
 
-                // Check execution report for completed tasks
-                if (cv?.executionReport?.promptExecutions) {
-                    const executedTaskTitles = new Set(
-                        cv.executionReport.promptExecutions.map((execution) => execution.prompt.title)
-                    );
+                        // Count completed tasks by matching titles
+                        const completedTasksByTitle = pipeline.tasks.filter((task) =>
+                            executedTaskTitles.has(task.title),
+                        );
+                        completedTasks = completedTasksByTitle.length;
 
-                    // Count completed tasks by matching titles
-                    const completedTasksByTitle = pipeline.tasks.filter(task =>
-                        executedTaskTitles.has(task.title)
-                    );
-                    completedTasks = completedTasksByTitle.length;
-
-                    // Find current task being executed (first task not yet completed)
-                    const remainingTasks = pipeline.tasks.filter(task => !executedTaskTitles.has(task.title));
-                    if (remainingTasks.length > 0) {
-                        currentTaskName = remainingTasks[0]!.name;
+                        // Find current task being executed (first task not yet completed)
+                        const remainingTasks = pipeline.tasks.filter((task) => !executedTaskTitles.has(task.title));
+                        if (remainingTasks.length > 0) {
+                            currentTaskName = remainingTasks[0]!.name;
+                        }
                     }
-                }
 
-                // Calculate progress percentage
-                let percent = totalTasks > 0 ? completedTasks / totalTasks : 0;
+                    // Calculate progress percentage
+                    let percent = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
-                // Add time-based progress for current task (assuming 5 minutes total)
-                if (completedTasks < totalTasks) {
-                    const elapsedMs = new Date().getTime() - createdAt.getTime();
-                    const totalMs = 5 * 60 * 1000; // 5 minutes
-                    const timeProgress = Math.min(elapsedMs / totalMs, 1);
+                    // Add time-based progress for current task (assuming 5 minutes total)
+                    if (completedTasks < totalTasks) {
+                        const elapsedMs = new Date().getTime() - new Date().getTime(); // Will be overridden by actual elapsed time in task
+                        const totalMs = 5 * 60 * 1000; // 5 minutes
+                        const timeProgress = Math.min(elapsedMs / totalMs, 1);
 
-                    // Add partial progress for current task
-                    percent += (1 / totalTasks) * timeProgress;
-                }
+                        // Add partial progress for current task
+                        percent += (1 / totalTasks) * timeProgress;
+                    }
 
-                // Clamp to [0,1]
-                percent = Math.min(Math.max(percent, 0), 1);
+                    // Clamp to [0,1]
+                    percent = Math.min(Math.max(percent, 0), 1);
 
-                // Generate message
-                let message = '';
-                if (currentTaskName) {
-                    // Find the task to get its title
-                    const currentTask = pipeline.tasks.find(task => task.name === currentTaskName);
-                    const taskTitle = currentTask?.title || currentTaskName;
-                    message = `Working on task ${taskTitle}`;
-                } else if (completedTasks === 0) {
-                    message = 'Starting pipeline execution';
-                } else {
-                    message = `Processing pipeline (${completedTasks}/${totalTasks} tasks completed)`;
-                }
+                    // Generate message
+                    let message = '';
+                    if (currentTaskName) {
+                        // Find the task to get its title
+                        const currentTask = pipeline.tasks.find((task) => task.name === currentTaskName);
+                        const taskTitle = currentTask?.title || currentTaskName;
+                        message = `Working on task ${taskTitle}`;
+                    } else if (completedTasks === 0) {
+                        message = 'Starting pipeline execution';
+                    } else {
+                        message = `Processing pipeline (${completedTasks}/${totalTasks} tasks completed)`;
+                    }
 
-                return {
-                    percent,
-                    message,
-                };
+                    updateTldr({
+                        percent: percent as number_percent,
+                        message,
+                    });
+                });
             },
         }) as ExecutionTask;
     //        <- TODO: Make types such as there is no need to do `as` for `createTask`

@@ -1,9 +1,9 @@
 import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
 import { PartialDeep } from 'type-fest';
+import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import { assertsError } from '../errors/assertsError';
-import type { number_percent } from '../types/typeAliases';
-import type { task_id } from '../types/typeAliases';
+import type { number_percent, task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import type { really_any } from '../utils/organization/really_any';
@@ -11,7 +11,6 @@ import { $randomToken } from '../utils/random/$randomToken';
 import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
 import type { string_promptbook_version } from '../version';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
-import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import { assertsTaskSuccessful } from './assertsTaskSuccessful';
@@ -32,7 +31,8 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
 
     /**
      * Callback that processes the task and updates the ongoing result
-     * @param ongoingResult The partial result of the task processing
+     * @param updateOngoingResult Function to update the partial result of the task processing
+     * @param updateTldr Function to update tldr progress information
      * @returns The final task result
      */
     taskProcessCallback(
@@ -44,27 +44,8 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
                 readonly title?: AbstractTask<TTaskResult>['title'];
             },
         ) => void,
+        updateTldr: (tldrInfo: { readonly percent: number_percent; readonly message: string }) => void,
     ): Promise<TTaskResult>;
-
-    /**
-     * Optional callback to provide custom tldr information
-     * @param createdAt When the task was created
-     * @param status Current task status
-     * @param currentValue Current partial result
-     * @param errors Current errors
-     * @param warnings Current warnings
-     * @returns Custom tldr information
-     */
-    tldrProvider?(
-        createdAt: Date,
-        status: task_status,
-        currentValue: PartialDeep<TTaskResult>,
-        errors: Array<Error>,
-        warnings: Array<Error>,
-    ): {
-        readonly percent: number_percent;
-        readonly message: string;
-    };
 };
 
 /**
@@ -75,7 +56,7 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
 export function createTask<TTaskResult extends AbstractTaskResult>(
     options: CreateTaskOptions<TTaskResult>,
 ): AbstractTask<TTaskResult> {
-    const { taskType, taskProcessCallback, tldrProvider } = options;
+    const { taskType, taskProcessCallback } = options;
     let { title } = options;
 
     // TODO: [🐙] DRY
@@ -89,20 +70,27 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     const errors: Array<Error> = [];
     const warnings: Array<Error> = [];
     let currentValue = {} as PartialDeep<TTaskResult>;
+    let customTldr: { readonly percent: number_percent; readonly message: string } | null = null;
     const partialResultSubject = new Subject<PartialDeep<TTaskResult>>();
     // <- Note: Not using `BehaviorSubject` because on error we can't access the last value
 
-    const finalResultPromise = /* not await */ taskProcessCallback((newOngoingResult) => {
-        if (newOngoingResult.title) {
-            title = newOngoingResult.title;
-        }
+    const finalResultPromise = /* not await */ taskProcessCallback(
+        (newOngoingResult) => {
+            if (newOngoingResult.title) {
+                title = newOngoingResult.title;
+            }
 
-        updatedAt = new Date();
+            updatedAt = new Date();
 
-        Object.assign(currentValue, newOngoingResult);
-        // <- TODO: assign deep
-        partialResultSubject.next(newOngoingResult);
-    });
+            Object.assign(currentValue, newOngoingResult);
+            // <- TODO: assign deep
+            partialResultSubject.next(newOngoingResult);
+        },
+        (tldrInfo) => {
+            customTldr = tldrInfo;
+            updatedAt = new Date();
+        },
+    );
 
     finalResultPromise
         .catch((error) => {
@@ -167,9 +155,9 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             // <- Note: [1] --||--
         },
         get tldr() {
-            // Use custom tldr provider if available
-            if (tldrProvider) {
-                return tldrProvider(createdAt, status, currentValue, errors, warnings);
+            // Use custom tldr if available
+            if (customTldr) {
+                return customTldr;
             }
 
             // Fallback to default implementation
@@ -188,9 +176,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
                 // If subtasks are defined, split progress evenly
                 const subtaskCount = Array.isArray(cv?.subtasks) ? cv.subtasks.length : 1;
                 const completedSubtasks = Array.isArray(cv?.subtasks)
-                    ? cv.subtasks.filter(
-                          (s: { done?: boolean; completed?: boolean }) => s.done || s.completed,
-                      ).length
+                    ? cv.subtasks.filter((s: { done?: boolean; completed?: boolean }) => s.done || s.completed).length
                     : 0;
 
                 // Progress from completed subtasks
