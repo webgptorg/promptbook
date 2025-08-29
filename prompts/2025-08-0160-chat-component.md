@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💬] Bring `<Chat />` component into this project
 
