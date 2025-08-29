@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
-import { validateBook } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
-import { DEFAULT_BOOK_TITLE } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE } from '../../config';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { classNames } from '../_common/react-utils/classNames';
 import { escapeHtml } from '../_common/react-utils/escapeHtml';
 import { escapeRegex } from '../_common/react-utils/escapeRegex';
@@ -151,7 +148,13 @@ export function BookEditor(props: BookEditorProps) {
         });
 
         out += escapeHtml(text.slice(lastIndex));
-        return out;
+
+        // Highlight the first line
+        const lines = out.split('\n');
+        if (lines.length > 0) {
+            lines[0] = `<span style="background:rgba(255,255,0,0.9);" class="first-line-highlight">${lines[0]}</span>`;
+        }
+        return lines.join('\n');
     }, [value, typeRegex]);
 
     // Host div that will get a shadow root

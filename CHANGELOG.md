@@ -1,6 +1,7 @@
 # 📅 Changelog
 
 ## [Unreleased]
+- BookEditor now highlights the first line in the editor.
 - Added AvatarChip component preview and registration in ComponentPreview.tsx.
 
 ## Released versions
