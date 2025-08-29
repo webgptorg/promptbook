@@ -1,0 +1,73 @@
+id: avatar-chip
+name: Avatar Chip
+description: Displays an avatar chip with image, name, and template label. Supports selection and click handling.
+category: Avatar
+tags:
+    - agent
+    - avatar
+    - chip
+    - profile
+    - user
+    - select
+props:
+    avatarBasicInformation:
+        type: AgentBasicInformation
+        description: Basic information about the avatar (name, image, description)
+    isTemplate:
+        type: boolean
+        default: false
+        description: Whether this chip is a template avatar
+    className:
+        type: string
+        default: ''
+        description: Optional CSS class name for the root element
+    onSelect:
+        type: '(avatar: AgentBasicInformation) => void'
+        description: Callback when chip is clicked
+    isSelected:
+        type: boolean
+        default: false
+        description: Whether this chip is selected
+features:
+    - Displays avatar image and name
+    - Template label support
+    - Selectable state
+    - Click handler
+examples:
+    - title: Basic Usage
+      code: |
+        <AvatarChip
+            avatarBasicInformation={{
+                name: 'John Doe',
+                image: 'https://example.com/avatar.png',
+            }}
+        />
+    - title: Template Avatar
+      code: |
+        <AvatarChip
+            avatarBasicInformation={{
+                name: 'Template Agent',
+                image: 'https://example.com/template.png',
+            }}
+            isTemplate
+        />
+    - title: Selectable
+      code: |
+        <AvatarChip
+            avatarBasicInformation={{
+                name: 'Jane Smith',
+                image: 'https://example.com/avatar2.png',
+            }}
+            isSelected
+            onSelect={(avatar) => console.log('Selected:', avatar)}
+        />
+    - title: From Book
+      code: |
+        <AvatarChipFromSource
+            source={book`
+                My Agent
+                PERSONA Helpfull AI Assistant
+            `}
+            isSelected
+            onSelect={(avatar) => console.log('Selected:', avatar)}
+        />

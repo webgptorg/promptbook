@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🕜] Change `component.json`s in `scripts/book-components` to use YAML format
 

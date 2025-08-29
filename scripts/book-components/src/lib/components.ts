@@ -1,5 +1,6 @@
 import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/components';
 import fs from 'fs';
+import yaml from 'js-yaml';
 import path from 'path';
 
 export interface ComponentMetadata {
@@ -49,24 +50,52 @@ export function getAllComponents(): ComponentMetadata[] {
 
     for (const folder of componentFolders) {
         const componentJsonPath = path.join(componentsDir, folder, 'component.json');
+        const componentYamlPath = path.join(componentsDir, folder, 'component.yml');
+        const componentYamlPath2 = path.join(componentsDir, folder, 'component.yaml');
 
-        if (fs.existsSync(componentJsonPath)) {
+        let componentData: Partial<ComponentMetadata>;
+
+        if (fs.existsSync(componentYamlPath)) {
             try {
-                const componentData = JSON.parse(fs.readFileSync(componentJsonPath, 'utf-8'));
-
-                componentData.version = componentData.version || PROMPTBOOK_ENGINE_VERSION;
-                componentData.repository = componentData.repository || 'https://github.com/webgptorg/promptbook';
-                componentData.author = componentData.author || 'Promptbook Team';
-                componentData.tags = componentData.tags || [];
-                componentData.dependencies = componentData.dependencies || {
-                    react: '^18.0.0 || ^19.0.0', // <- TODO: Is this correct?
-                    '@promptbook/components': PROMPTBOOK_ENGINE_VERSION,
-                };
-
-                components.push(componentData);
+                componentData = yaml.load(fs.readFileSync(componentYamlPath, 'utf-8')) as Partial<ComponentMetadata>;
             } catch (error) {
                 console.error(`Error loading component metadata for ${folder}:`, error);
+                continue;
             }
+        } else if (fs.existsSync(componentYamlPath2)) {
+            try {
+                componentData = yaml.load(fs.readFileSync(componentYamlPath2, 'utf-8')) as Partial<ComponentMetadata>;
+            } catch (error) {
+                console.error(`Error loading component metadata for ${folder}:`, error);
+                continue;
+            }
+        } else if (fs.existsSync(componentJsonPath)) {
+            try {
+                componentData = JSON.parse(
+                    fs.readFileSync(componentJsonPath, 'utf-8'),
+                ) as Partial<ComponentMetadata>;
+            } catch (error) {
+                console.error(`Error loading component metadata for ${folder}:`, error);
+                continue;
+            }
+        } else {
+            continue;
+        }
+
+        try {
+            componentData.version = componentData.version || PROMPTBOOK_ENGINE_VERSION;
+            componentData.repository =
+                componentData.repository || 'https://github.com/webgptorg/promptbook';
+            componentData.author = componentData.author || 'Promptbook Team';
+            componentData.tags = componentData.tags || [];
+            componentData.dependencies = componentData.dependencies || {
+                react: '^18.0.0 || ^19.0.0', // <- TODO: Is this correct?
+                '@promptbook/components': PROMPTBOOK_ENGINE_VERSION,
+            };
+
+            components.push(componentData as ComponentMetadata);
+        } catch (error) {
+            console.error(`Error loading component metadata for ${folder}:`, error);
         }
     }
 
