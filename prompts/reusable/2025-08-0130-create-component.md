@@ -1,4 +1,4 @@
-[x]
+[ ]
 
 [✨💞] Create component `AvatarProfile` and `AvatarProfileFromSource`
 

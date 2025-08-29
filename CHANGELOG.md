@@ -1,9 +1,6 @@
 # 📅 Changelog
 
 ## [Unreleased]
-- Added `AvatarProfile` and `AvatarProfileFromSource` components under `/src/book-components/AvatarProfile/AvatarProfile`
-- Added `AvatarProfilePreview` and `component.json` under `/scripts/book-components/src/components/avatar-profile`
-- Registered preview in `ComponentPreview.tsx`
 - Refactored BookEditor: split into outer and inner components, with the inner rendered inside the shadow DOM.
 - BookEditor now highlights the first line in the editor.
 - Removed nonce workaround from BookEditor; rendering is now stable without nonce.
