@@ -142,7 +142,7 @@ export function BookEditor(props: BookEditorProps) {
         text.replace(r, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number; // offset
             out += escapeHtml(text.slice(lastIndex, index));
-            out += `<span class="text-indigo-700">${escapeHtml(match)}</span>`;
+            out += `<span class="book-highlight-keyword">${escapeHtml(match)}</span>`;
             lastIndex = index + match.length;
             return match;
         });
@@ -152,7 +152,7 @@ export function BookEditor(props: BookEditorProps) {
         // Highlight the first line
         const lines = out.split('\n');
         if (lines.length > 0) {
-            lines[0] = `<span style="background:rgba(255,255,0,0.9);" class="first-line-highlight">${lines[0]}</span>`;
+            lines[0] = `<span class="book-highlight-title">${lines[0]}</span>`;
         }
         return lines.join('\n');
     }, [value, typeRegex]);

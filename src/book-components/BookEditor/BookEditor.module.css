@@ -49,6 +49,7 @@
     padding-top: 0;
     padding-left: 46px;
     padding-right: 46px;
+    margin-bottom: 50px;
     z-index: 10;
     overflow-wrap: break-word;
     scrollbar-width: none;
@@ -57,10 +58,6 @@
 
 .bookEditorHighlight::-webkit-scrollbar {
     display: none;
-}
-
-.bookEditorHighlight :global(.text-indigo-700) {
-    color: rgb(67, 56, 202);
 }
 
 .bookEditorTextarea {
@@ -99,4 +96,15 @@
 .bookEditorVersion a {
     color: unset;
     text-decoration: none;
+}
+
+/* --- Book syntax highlighting */
+
+.bookEditorHighlight :global(.book-highlight-title) {
+    color: #30a8bd;
+    text-decoration: underline;
+}
+
+.bookEditorHighlight :global(.book-highlight-keyword) {
+    color: #30a8bd;
 }
