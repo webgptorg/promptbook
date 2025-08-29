@@ -21,9 +21,21 @@ Its bit similar to the `<AvatarChip />` component but larger and with bit more d
 
 [ ]
 
-[✨💞] qux
+[✨💞] Create component `TeamGraph`
 
-mermaid-social-graph
+This should show multiple avatars and their relationships in the graph
+
+-   Take inspiration from other components here `/src/book-components/`
+    -   Especially `mermaid-social-graph` it should be based on this mermaid graph
+-   Put in under `/src/book-components/AvatarProfile/AvatarProfile`
+-   Make both `.tsx` and `.module.css` files
+-   Make preview component
+    -   Look at folder `/scripts/book-components/src/components`
+    -   Look how other previews are made
+        -   Make a preview component
+        -   Also a `component.json` file
+        -   Register it in `/scripts/book-components/src/components/ComponentPreview.tsx`
+-   Keep in mind DRY (Don't Repeat Yourself) principle
 
 ---
 
