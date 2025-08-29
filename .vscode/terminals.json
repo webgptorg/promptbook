@@ -44,7 +44,7 @@
             "focus": false
         },
         {
-            "name": "🧸 Components Playground Server",
+            "name": "👨‍💻🧸 Book Components Server",
             "commands": ["cd ./scripts/book-components/", "npm i", "npm run dev"],
             "execute": true,
             "onlySingle": true,

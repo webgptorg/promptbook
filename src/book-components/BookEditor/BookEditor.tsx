@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BookEditorInner } from './BookEditorInner';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { BookEditorInner } from './BookEditorInner';
 import { injectCssModuleIntoShadowRoot } from './injectCssModuleIntoShadowRoot';
 
 /**
@@ -79,7 +79,7 @@ export function BookEditor(props: BookEditorProps) {
         };
     }, [hostRef.current]);
 
-        // Build the internal editor JSX (this will be portalled into the shadow root if available)
+    // Build the internal editor JSX (this will be portalled into the shadow root if available)
     const editorInner = (
         <BookEditorInner
             className={className}
@@ -90,7 +90,6 @@ export function BookEditor(props: BookEditorProps) {
         />
     );
 
-
     // Render: host div stays in the light DOM (so page layout is preserved),
     // but the editor internals are portalled into the shadow root for isolation.
     return (
@@ -99,9 +98,7 @@ export function BookEditor(props: BookEditorProps) {
             ref={hostRef}
             className={classNames(className, isVerbose && styles.isVerbose)}
         >
-            {shadowReady && shadowRootRef.current
-                ? createPortal(editorInner, shadowRootRef.current)
-                : <>Loading...</>}
+            {shadowReady && shadowRootRef.current ? createPortal(editorInner, shadowRootRef.current) : <>Loading...</>}
         </div>
     );
 }

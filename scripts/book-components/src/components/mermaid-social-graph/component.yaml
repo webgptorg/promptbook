@@ -1,6 +1,8 @@
+---
 id: mermaid-social-graph
 name: Mermaid Social Graph
-description: A dynamic social network graph visualization using Mermaid.js, perfect for displaying relationships between people, organizations, and groups.
+description: A dynamic social network graph visualization using Mermaid.js, perfect
+    for displaying relationships between people, organizations, and groups.
 category: Internal
 tags:
     - mermaid
@@ -50,25 +52,8 @@ features:
     - Built on Mermaid.js for reliability
 examples:
     - title: Basic Usage
-      code: |
-        <MermaidSocialGraph
-            nodes={[
-                { id: '1', label: 'Alice', type: 'person' },
-                { id: '2', label: 'Bob', type: 'person' },
-            ]}
-            edges={[{ from: '1', to: '2', label: 'Friend' }]}
-        />
+      code: '<MermaidSocialGraph nodes={nodes} edges={edges} />'
     - title: With Custom Theme
-      code: |
-        <MermaidSocialGraph
-            nodes={nodes}
-            edges={edges}
-            theme="dark"
-        />
+      code: <MermaidSocialGraph nodes={nodes} edges={edges} theme="dark" />
     - title: Horizontal Layout
-      code: |
-        <MermaidSocialGraph
-            nodes={nodes}
-            edges={edges}
-            direction="LR"
-        />
+      code: <MermaidSocialGraph nodes={nodes} edges={edges} direction="LR" />

@@ -71,9 +71,7 @@ export function getAllComponents(): ComponentMetadata[] {
             }
         } else if (fs.existsSync(componentJsonPath)) {
             try {
-                componentData = JSON.parse(
-                    fs.readFileSync(componentJsonPath, 'utf-8'),
-                ) as Partial<ComponentMetadata>;
+                componentData = JSON.parse(fs.readFileSync(componentJsonPath, 'utf-8')) as Partial<ComponentMetadata>;
             } catch (error) {
                 console.error(`Error loading component metadata for ${folder}:`, error);
                 continue;
@@ -84,8 +82,7 @@ export function getAllComponents(): ComponentMetadata[] {
 
         try {
             componentData.version = componentData.version || PROMPTBOOK_ENGINE_VERSION;
-            componentData.repository =
-                componentData.repository || 'https://github.com/webgptorg/promptbook';
+            componentData.repository = componentData.repository || 'https://github.com/webgptorg/promptbook';
             componentData.author = componentData.author || 'Promptbook Team';
             componentData.tags = componentData.tags || [];
             componentData.dependencies = componentData.dependencies || {

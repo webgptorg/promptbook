@@ -1,6 +1,8 @@
+---
 id: avatar-chip
 name: Avatar Chip
-description: Displays an avatar chip with image, name, and template label. Supports selection and click handling.
+description: Displays an avatar chip with image, name, and template label. Supports
+    selection and click handling.
 category: Avatar
 tags:
     - agent
@@ -35,39 +37,15 @@ features:
     - Click handler
 examples:
     - title: Basic Usage
-      code: |
-        <AvatarChip
-            avatarBasicInformation={{
-                name: 'John Doe',
-                image: 'https://example.com/avatar.png',
-            }}
-        />
+      code: '<AvatarChip avatarBasicInformation={avatar} />'
     - title: Template Avatar
-      code: |
-        <AvatarChip
-            avatarBasicInformation={{
-                name: 'Template Agent',
-                image: 'https://example.com/template.png',
-            }}
-            isTemplate
-        />
+      code: '<AvatarChip avatarBasicInformation={avatar} isTemplate />'
     - title: Selectable
-      code: |
-        <AvatarChip
-            avatarBasicInformation={{
-                name: 'Jane Smith',
-                image: 'https://example.com/avatar2.png',
-            }}
-            isSelected
-            onSelect={(avatar) => console.log('Selected:', avatar)}
-        />
+      code: '<AvatarChip avatarBasicInformation={avatar} isSelected onSelect={handleSelect}
+          />'
     - title: From Book
-      code: |
-        <AvatarChipFromSource
-            source={book`
-                My Agent
-                PERSONA Helpfull AI Assistant
-            `}
-            isSelected
-            onSelect={(avatar) => console.log('Selected:', avatar)}
-        />
+      code: |-
+          <AvatarChipFromSource source={book`
+            My Agent
+            PERSONA  Helpfull AI Assistant
+          `} isSelected onSelect={handleSelect} />
