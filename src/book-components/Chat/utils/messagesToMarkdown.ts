@@ -1,11 +1,11 @@
-import { TODO_any } from '../../../_packages/types.index';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import type { ChatMessage } from '../interfaces/ChatMessage';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
  * Converts chat messages to Markdown format
- * 
+ *
  * @private utility of `<Chat/>` component
  */
 export function messagesToMarkdown(

@@ -2,7 +2,7 @@ import type { ChatMessage } from '../interfaces/ChatMessage';
 import { addUtmParamsToUrl } from './addUtmParamsToUrl';
 import { createShortLinkForChat } from './createShortLinkForChat';
 import { downloadFile } from './downloadFile';
-import { ExportFormat } from './ExportFormat';
+import type { ExportFormat } from './ExportFormat';
 import { generatePdfContent } from './generatePdfContent';
 import { generateQrDataUrl } from './generateQrDataUrl';
 import { messagesToHtml } from './messagesToHtml';

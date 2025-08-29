@@ -1,6 +1,7 @@
 import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import { AvatarProfile, AvatarProfileProps } from './AvatarProfile';
+import { AvatarProfile } from './AvatarProfile';
+import type { AvatarProfileProps } from './AvatarProfile';
 
 /**
  * Props of `AvatarProfileFromSource`

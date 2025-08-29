@@ -1,4 +1,4 @@
-import { ExportFormat } from './ExportFormat';
+import type { ExportFormat } from './ExportFormat';
 
 /**
  * Utility: add UTM parameters to a URL for tracking

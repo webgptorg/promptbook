@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { TODO_any } from '../../../_packages/types.index';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import { escapeHtml } from '../../_common/react-utils/escapeHtml';
 import type { ChatMessage } from '../interfaces/ChatMessage';

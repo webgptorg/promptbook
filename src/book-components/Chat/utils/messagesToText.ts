@@ -1,4 +1,4 @@
-import { TODO_any } from '../../../_packages/types.index';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { ChatMessage } from '../interfaces/ChatMessage';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
