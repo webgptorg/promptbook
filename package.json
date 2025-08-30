@@ -181,11 +181,12 @@
         }
     ],
     "scripts": {
-        "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-package-generation && npm run test-unit",
+        "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-package-generation && npm run test-unit",
         "test-unit": "jest",
         "test-types": "tsc",
         "test-lint": "eslint src",
         "test-spellcheck": "cspell \"src/**/*.{ts,tsx,js,jsx,md,json}\"",
+        "test-books": "npx ts-node ./src/cli/test/ptbk.ts test --provider BRING_YOUR_OWN_KEYS --no-prepare \"./**/*.book\" --ignore \"./book/**/*,./examples/pipelines/errors/**/*\" --verbose",
         "test-package-generation": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
         "test-name-discrepancies": "ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts",
         "preversion": "git pull && npm run make-promptbook-collection && npm run repair-imports && npm run test && npm run pregenerate-packages",

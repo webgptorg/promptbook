@@ -31,7 +31,7 @@ jobs:
               #>     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
               #>     ANTHROPIC_CLAUDE_API_KEY: ${{ secrets.ANTHROPIC_CLAUDE_API_KEY }}
               #>     GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
-              run: npx ts-node ./src/cli/test/ptbk.ts test --provider BRING_YOUR_OWN_KEYS --no-prepare "./**/*.book" --ignore "./book/**/*,./examples/pipelines/errors/**/*" --verbose
+              run: npm run test-books
 
     test-types:
         name: 🧪 Test types
@@ -61,7 +61,7 @@ jobs:
               run: npm ci
 
             - name: Lint
-              run: npm run test-unit-lint
+              run: npm run test-lint
 
     spell-check:
         name: 🧪 Spell check
@@ -121,3 +121,18 @@ jobs:
 
             - name: Find name discrepancies
               run: npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
+
+    test-package-generation:
+        name: 🧪 Test Package generation
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Test Package generation
+              run: npm run test-package-generation

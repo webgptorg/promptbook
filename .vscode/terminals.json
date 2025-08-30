@@ -85,6 +85,13 @@
             "onlySingle": false,
             "focus": false
         },
+             {
+            "name": "🧪 Test Books",
+            "command": "npm run test-books",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
         {
             "name": "🧪 Test Package generation",
             "command": "npm run test-package-generation",
