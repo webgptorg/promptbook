@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
+import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 import { DEFAULT_BOOK_TITLE } from '../../config';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { BOOK_LANGUAGE_VERSION } from '../../version';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { classNames } from '../_common/react-utils/classNames';
 import { escapeHtml } from '../_common/react-utils/escapeHtml';
 import { escapeRegex } from '../_common/react-utils/escapeRegex';
