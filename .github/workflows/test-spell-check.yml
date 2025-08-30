@@ -1,4 +1,4 @@
-name: Tests - Lint
+name: 🧪 Spell check
 
 on:
     push:
@@ -9,8 +9,8 @@ on:
             - main
 
 jobs:
-    lint:
-        name: 🧪 Lint
+    spell-check:
+        name: 🧪 Spell check
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -21,5 +21,5 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Lint
-              run: npm run test-lint
+            - name: Spell check
+              run: npm run test-unit-spellcheck

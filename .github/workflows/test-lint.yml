@@ -1,4 +1,4 @@
-name: Tests - Find name discrepancies
+name: 🧪 Lint
 
 on:
     push:
@@ -9,8 +9,8 @@ on:
             - main
 
 jobs:
-    name-discrepancies:
-        name: 🔎 Find name discrepancies
+    lint:
+        name: 🧪 Lint
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
                   node-version: 22
 
             - name: Install dependencies
-              run: npm ci --only=production
+              run: npm ci
 
-            - name: Find name discrepancies
-              run: npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
+            - name: Lint
+              run: npm run test-lint

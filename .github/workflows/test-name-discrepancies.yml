@@ -1,4 +1,4 @@
-name: Tests - Spell check
+name: 🧪 Find name discrepancies
 
 on:
     push:
@@ -9,8 +9,8 @@ on:
             - main
 
 jobs:
-    spell-check:
-        name: 🧪 Spell check
+    name-discrepancies:
+        name: 🔎 Find name discrepancies
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
                   node-version: 22
 
             - name: Install dependencies
-              run: npm ci
+              run: npm ci --only=production
 
-            - name: Spell check
-              run: npm run test-unit-spellcheck
+            - name: Find name discrepancies
+              run: npx ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
