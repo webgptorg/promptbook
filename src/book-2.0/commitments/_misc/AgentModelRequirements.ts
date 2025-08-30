@@ -1,4 +1,4 @@
-import { TODO_any } from '../../../utils/organization/TODO_any';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 /**
  * Model requirements for an agent

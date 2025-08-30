@@ -3,7 +3,8 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import { CONNECTION_RETRIES_LIMIT } from '../../config';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
@@ -454,7 +455,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      */
     private async makeRequestWithRetry<T>(requestFn: () => Promise<T>): Promise<T> {
         let lastError: Error;
-        
+
         for (let attempt = 1; attempt <= CONNECTION_RETRIES_LIMIT; attempt++) {
             try {
                 return await requestFn();
@@ -464,13 +465,13 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                 // Check if this is a retryable network error
                 const isRetryableError = this.isRetryableNetworkError(error);
-                
+
                 if (!isRetryableError || attempt === CONNECTION_RETRIES_LIMIT) {
                     if (this.options.isVerbose) {
                         console.info(
                             colors.bgRed('Final error after retries'),
                             `Attempt ${attempt}/${CONNECTION_RETRIES_LIMIT}:`,
-                            error
+                            error,
                         );
                     }
                     throw error;
@@ -486,15 +487,15 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     console.info(
                         colors.bgYellow('Retrying request'),
                         `Attempt ${attempt}/${CONNECTION_RETRIES_LIMIT}, waiting ${Math.round(totalDelay)}ms:`,
-                        error.message
+                        error.message,
                     );
                 }
 
                 // Wait before retrying
-                await new Promise(resolve => setTimeout(resolve, totalDelay));
+                await new Promise((resolve) => setTimeout(resolve, totalDelay));
             }
         }
-        
+
         throw lastError!;
     }
 
@@ -504,38 +505,38 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     private isRetryableNetworkError(error: Error): boolean {
         const errorMessage = error.message.toLowerCase();
         const errorCode = (error as Error & { code?: string }).code;
-        
+
         // Network connection errors that should be retried
         const retryableErrors = [
             'econnreset',
             'enotfound',
-            'econnrefused', 
+            'econnrefused',
             'etimedout',
             'socket hang up',
             'network error',
             'fetch failed',
             'connection reset',
             'connection refused',
-            'timeout'
+            'timeout',
         ];
-        
+
         // Check error message
-        if (retryableErrors.some(retryableError => errorMessage.includes(retryableError))) {
+        if (retryableErrors.some((retryableError) => errorMessage.includes(retryableError))) {
             return true;
         }
-        
+
         // Check error code
         if (errorCode && retryableErrors.includes(errorCode.toLowerCase())) {
             return true;
         }
-        
+
         // Check for specific HTTP status codes that are retryable
         const errorWithStatus = error as Error & { status?: number; statusCode?: number };
         const httpStatus = errorWithStatus.status || errorWithStatus.statusCode;
         if (httpStatus && [429, 500, 502, 503, 504].includes(httpStatus)) {
             return true;
         }
-        
+
         return false;
     }
 }

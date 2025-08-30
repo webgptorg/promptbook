@@ -1,4 +1,5 @@
-import type { string_name, string_url_image } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
+import type { string_url_image } from '../../../types/typeAliases';
 
 /**
  * A participant in the chat
