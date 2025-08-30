@@ -381,6 +381,22 @@ export const DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME = `getPipelineCollect
 export const DEFAULT_MAX_REQUESTS_PER_MINUTE = 60;
 
 /**
+ * API request timeout in milliseconds
+ * Can be overridden via API_REQUEST_TIMEOUT environment variable
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const API_REQUEST_TIMEOUT = parseInt(process.env.API_REQUEST_TIMEOUT || '90000');
+
+/**
+ * API connection timeout in milliseconds  
+ * Can be overridden via API_CONNECT_TIMEOUT environment variable
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const API_CONNECT_TIMEOUT = parseInt(process.env.API_CONNECT_TIMEOUT || '15000');
+
+/**
  * URL of the Promptbook logo
  *
  * @public exported from `@promptbook/core`

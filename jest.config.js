@@ -8,4 +8,8 @@ module.exports = {
     coverageDirectory: './coverage/',
     collectCoverage: true,
     testTimeout: 5 /* minutes */ * 60 * 1000,
+    // Limit concurrency to reduce ECONNRESET issues with network-heavy tests
+    maxWorkers: 1,
+    // Prevent test interference
+    maxConcurrency: 1,
 };

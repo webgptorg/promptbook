@@ -3,7 +3,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { CONNECTION_RETRIES_LIMIT } from '../../config';
+import { API_CONNECT_TIMEOUT, API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT } from '../../config';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -65,7 +65,19 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             delete openAiOptions.isVerbose;
             delete openAiOptions.userId;
 
-            this.client = new OpenAI(openAiOptions as ClientOptions);
+            // Enhanced configuration for better ECONNRESET handling
+            const enhancedOptions = {
+                ...openAiOptions,
+                timeout: API_REQUEST_TIMEOUT,
+                maxRetries: CONNECTION_RETRIES_LIMIT,
+                defaultHeaders: {
+                    'Connection': 'keep-alive',
+                    'Keep-Alive': 'timeout=30, max=100',
+                    ...openAiOptions.defaultHeaders,
+                },
+            };
+
+            this.client = new OpenAI(enhancedOptions as ClientOptions);
         }
 
         return this.client;
