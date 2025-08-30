@@ -138,8 +138,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         });
     };
 
-    const pipelineExecutor: PipelineExecutor = (inputParameters: InputParameters): ExecutionTask =>
-        createTask<PipelineExecutorResult>({
+    const pipelineExecutor: PipelineExecutor = (inputParameters: InputParameters): ExecutionTask => {
+        const startTime = new Date().getTime();
+        
+        return createTask<PipelineExecutorResult>({
             taskType: 'EXECUTION',
             title: pipeline.title,
             taskProcessCallback(
@@ -152,41 +154,44 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     // Calculate and update tldr based on pipeline progress
                     const cv = newOngoingResult as PartialDeep<PipelineExecutorResult>;
 
-                    // Calculate progress based on pipeline tasks
-                    const totalTasks = pipeline.tasks.length;
-                    let completedTasks = 0;
-                    let currentTaskName = '';
+                    // Calculate progress based on parameters resolved vs total parameters
+                    const totalParameters = pipeline.parameters.filter(p => !p.isInput).length;
+                    let resolvedParameters = 0;
+                    let currentTaskTitle = '';
 
-                    // Check execution report for completed tasks
-                    if (cv?.executionReport?.promptExecutions) {
-                        const executedTaskTitles = new Set(
-                            cv.executionReport.promptExecutions.map((execution) => execution.prompt.title),
-                        );
+                    // Get the resolved parameters from output parameters
+                    if (cv?.outputParameters) {
+                        // Count how many output parameters have non-empty values
+                        resolvedParameters = Object.values(cv.outputParameters).filter(
+                            value => value !== undefined && value !== null && String(value).trim() !== ''
+                        ).length;
+                    }
 
-                        // Count completed tasks by matching titles
-                        const completedTasksByTitle = pipeline.tasks.filter((task) =>
-                            executedTaskTitles.has(task.title),
-                        );
-                        completedTasks = completedTasksByTitle.length;
-
-                        // Find current task being executed (first task not yet completed)
-                        const remainingTasks = pipeline.tasks.filter((task) => !executedTaskTitles.has(task.title));
-                        if (remainingTasks.length > 0) {
-                            currentTaskName = remainingTasks[0]!.name;
+                    // Try to determine current task from execution report
+                    if (cv?.executionReport?.promptExecutions && cv.executionReport.promptExecutions.length > 0) {
+                        const lastExecution = cv.executionReport.promptExecutions[cv.executionReport.promptExecutions.length - 1];
+                        if (lastExecution?.prompt?.title) {
+                            currentTaskTitle = lastExecution.prompt.title;
                         }
                     }
 
-                    // Calculate progress percentage
-                    let percent = totalTasks > 0 ? completedTasks / totalTasks : 0;
+                    // Calculate base progress percentage
+                    let percent = totalParameters > 0 ? resolvedParameters / totalParameters : 0;
 
-                    // Add time-based progress for current task (assuming 5 minutes total)
-                    if (completedTasks < totalTasks) {
-                        const elapsedMs = new Date().getTime() - new Date().getTime(); // Will be overridden by actual elapsed time in task
-                        const totalMs = 5 * 60 * 1000; // 5 minutes
-                        const timeProgress = Math.min(elapsedMs / totalMs, 1);
+                    // Add time-based progress for current task if we haven't completed all parameters
+                    if (resolvedParameters < totalParameters) {
+                        const elapsedMs = new Date().getTime() - startTime;
+                        const estimatedTotalMs = totalParameters * 30 * 1000; // Estimate 30 seconds per parameter
+                        const timeProgress = Math.min(elapsedMs / estimatedTotalMs, 0.9); // Cap at 90% for time-based progress
 
-                        // Add partial progress for current task
-                        percent += (1 / totalTasks) * timeProgress;
+                        // If we have time progress but no parameter progress, show time progress
+                        if (percent === 0 && timeProgress > 0) {
+                            percent = Math.min(timeProgress, 0.1); // Show some progress but not more than 10%
+                        } else if (percent < 1) {
+                            // Add partial progress for current task
+                            const taskProgress = totalParameters > 0 ? (1 / totalParameters) * 0.5 : 0; // 50% of task progress
+                            percent = Math.min(percent + taskProgress, 0.95); // Cap at 95% until fully complete
+                        }
                     }
 
                     // Clamp to [0,1]
@@ -194,15 +199,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                     // Generate message
                     let message = '';
-                    if (currentTaskName) {
-                        // Find the task to get its title
-                        const currentTask = pipeline.tasks.find((task) => task.name === currentTaskName);
-                        const taskTitle = currentTask?.title || currentTaskName;
-                        message = `Working on task ${taskTitle}`;
-                    } else if (completedTasks === 0) {
+                    if (currentTaskTitle) {
+                        message = `Executing: ${currentTaskTitle}`;
+                    } else if (resolvedParameters === 0) {
                         message = 'Starting pipeline execution';
+                    } else if (resolvedParameters < totalParameters) {
+                        message = `Processing pipeline (${resolvedParameters}/${totalParameters} parameters resolved)`;
                     } else {
-                        message = `Processing pipeline (${completedTasks}/${totalTasks} tasks completed)`;
+                        message = 'Completing pipeline execution';
                     }
 
                     updateTldr({
@@ -212,6 +216,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 });
             },
         }) as ExecutionTask;
+    };
     //        <- TODO: Make types such as there is no need to do `as` for `createTask`
 
     return pipelineExecutor;
