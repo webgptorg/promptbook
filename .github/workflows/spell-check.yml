@@ -1,0 +1,25 @@
+name: Tests - Spell check
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    spell-check:
+        name: 🧪 Spell check
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Spell check
+              run: npm run test-unit-spellcheck

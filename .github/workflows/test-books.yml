@@ -1,0 +1,30 @@
+name: Tests - Test Books
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    test-books:
+        name: 🧪✨ Test Books
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Test Books
+              #  TODO: [🐯] In future maybe remove `--no-prepare`
+              #        There is also an issue with full `test` that following error occures:
+              #        >  ./src/cli/test/ptbk.ts test "./**/*.book" --provider BRING_YOUR_OWN_KEYS
+              #        > Pipeline is not valid ./book/examples/27-document-knowledge.book
+              #        > EnvironmentMismatchError: Can not import file knowledge in non-file pipeline
+              run: npm run test-books
