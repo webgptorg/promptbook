@@ -1,22 +1,15 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import spaceTrim from 'spacetrim';
+import type { Promisable } from 'type-fest';
+import { countLines } from '../../../_packages/utils.index';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../interfaces/ChatMessage';
 import styles from './Chat.module.css';
 
-// Local utility functions
-function countLines(text: string): number {
-    return text.split('\n').length;
-}
-
-function spaceTrim(text: string): string {
-    return text.trim().replace(/\s+/g, ' ');
-}
-
-type Promisable<T> = T | Promise<T>;
-
 /**
  * @deprecated use `isComplete` instead
+ * @private util of `<Chat />`
  */
 export const LOADING_INTERACTIVE_IMAGE = 'Loading...';
 
@@ -143,25 +136,25 @@ interface ChatProps {
 // Simple placeholder components for missing dependencies
 const ArrowIcon = ({ direction, size }: { direction: string; size: number }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-        <path d={direction === 'DOWN' ? "M7 10l5 5 5-5z" : "M7 14l5-5 5 5z"} />
+        <path d={direction === 'DOWN' ? 'M7 10l5 5 5-5z' : 'M7 14l5-5 5 5z'} />
     </svg>
 );
 
 const SendIcon = ({ size }: { size: number }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
     </svg>
 );
 
 const ResetIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4c-4.42,0 -7.99,3.58 -7.99,8s3.57,8 7.99,8c3.73,0 6.84,-2.55 7.73,-6h-2.08c-0.82,2.33 -3.04,4 -5.65,4 -3.31,0 -6,-2.69 -6,-6s2.69,-6 6,-6c1.66,0 3.14,0.69 4.22,1.78L13,11h7V4L17.65,6.35z"/>
+        <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4c-4.42,0 -7.99,3.58 -7.99,8s3.57,8 7.99,8c3.73,0 6.84,-2.55 7.73,-6h-2.08c-0.82,2.33 -3.04,4 -5.65,4 -3.31,0 -6,-2.69 -6,-6s2.69,-6 6,-6c1.66,0 3.14,0.69 4.22,1.78L13,11h7V4L17.65,6.35z" />
     </svg>
 );
 
 const TemplateIcon = ({ size }: { size: number }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
     </svg>
 );
 
@@ -182,6 +175,8 @@ const TemplateIcon = ({ size }: { size: number }) => (
  * - <ModelAwareChat/> wrapper around <Chat/> that provides model-aware avatars
  *
  * Use <WorkerChat/> or <SignalChat/> in most cases.
+ *
+ * @public exported from `@promptbook/components`
  */
 export function Chat(props: ChatProps) {
     const {
@@ -305,7 +300,6 @@ export function Chat(props: ChatProps) {
             }
         }
     };
-
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 

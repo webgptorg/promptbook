@@ -1,10 +1,7 @@
 import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_promptbook_server_url } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -381,6 +378,13 @@ export const DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME = `getPipelineCollect
 export const DEFAULT_MAX_REQUESTS_PER_MINUTE = 60;
 
 /**
+ * URL of the Promptbook logo
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PROMPTBOOK_LOGO_URL = 'https://promptbook.studio/logos/logo-blue-white-256.png';
+
+/**
  * Indicates whether pipeline logic validation is enabled. When true, the pipeline logic is checked for consistency.
  *
  * @private within the repository
@@ -421,7 +425,6 @@ export const IS_COST_PREVENTED: boolean = just(
     // [🔑] Temporarily **disable** cost-prevention
     // [🔒] **Enable** cost-prevention
 );
-export const PROMPTBOOK_LOGO_URL = 'https://promptbook.studio/logos/logo-blue-white-256.png';
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
