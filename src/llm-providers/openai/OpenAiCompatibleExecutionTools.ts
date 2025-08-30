@@ -3,7 +3,9 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { API_CONNECT_TIMEOUT, API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT } from '../../config';
+import { API_CONNECT_TIMEOUT } from '../../config';
+import { API_REQUEST_TIMEOUT } from '../../config';
+import { CONNECTION_RETRIES_LIMIT } from '../../config';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -71,7 +73,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 timeout: API_REQUEST_TIMEOUT,
                 maxRetries: CONNECTION_RETRIES_LIMIT,
                 defaultHeaders: {
-                    'Connection': 'keep-alive',
+                    Connection: 'keep-alive',
                     'Keep-Alive': 'timeout=30, max=100',
                     ...openAiOptions.defaultHeaders,
                 },
