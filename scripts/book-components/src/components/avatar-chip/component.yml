@@ -50,9 +50,10 @@ examples:
 
           <AvatarChipFromSource
               source={book`
-        AI Avatar
+              
+                  AI Avatar
 
-        PERSONA A friendly AI assistant that helps you with your tasks
+                  PERSONA A friendly AI assistant that helps you with your tasks
 
               `}
               isSelected

@@ -301,3 +301,4 @@ supabase
 noopener
 noreferrer
 Segoe
+retryable
