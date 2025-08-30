@@ -1,31 +1,16 @@
-export type ChatMessage = UserChatMessage | PromptbookPersonaChatMessage /* <- TODO: Extract commons */;
-
-export interface UserChatMessage {
-    id: string;
-    date: Date /* <- TODO: Rename+split into created+modified */;
-    from: 'USER';
-    content: string /*_markdown*/;
-    isComplete: boolean;
-    expectedAnswer?: string;
-    isVoiceCall?: boolean;
-}
-
-export interface PromptbookPersonaChatMessage {
-    id: string;
-    // TODO: gptMessageId: string;
-    date: Date /* <- TODO: Rename+split into created+modified */;
-    from: 'PROMPTBOOK_PERSONA';
-    avatar?: string | { src: string; width?: number; height?: number }; // Simplified StaticImageData type
-    content: string /*_markdown*/;
-    isComplete: boolean;
-    expectedAnswer?: string;
-    isVoiceCall?: boolean;
-}
-
-export interface CompleteChatMessage {
-    isComplete: true;
-}
+import { string_markdown, string_name } from '../../../types/typeAliases';
 
 /**
- * TODO: [🧠] ACRY Rename PROMPTBOOK_PERSONA + USER, Teacher, teacher to sth else
+ * A message in the chat
+ *
+ * @public exported from `@promptbook/components`
  */
+export type ChatMessage = {
+    id: string;
+    date: Date /* <- TODO: Rename+split into created+modified */;
+    from: string_name;
+    content: string_markdown;
+    isComplete?: boolean;
+    expectedAnswer?: string;
+    isVoiceCall?: boolean;
+};

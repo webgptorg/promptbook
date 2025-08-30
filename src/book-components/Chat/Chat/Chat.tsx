@@ -6,6 +6,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
+import { string_name, string_url_image } from '../../../types/typeAliases';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../interfaces/ChatMessage';
@@ -26,11 +27,11 @@ interface ChatProps {
      * Optional callback to create a new agent from the template.
      * If provided, renders the [Use this template] button.
      */
-    onUseTemplate?: () => void;
+    onUseTemplate?(): void;
     /**
      * Messages to render - they are rendered as they are
      */
-    readonly messages: Array<ChatMessage>;
+    readonly messages: ReadonlyArray<ChatMessage>;
 
     /**
      * Called every time the user types or dictated a message
@@ -58,11 +59,6 @@ interface ChatProps {
      * The language code to use for voice recognition
      */
     readonly voiceLanguage?: string;
-
-    /**
-     * Avatars for each user
-     */
-    readonly avatars?: Partial<Record<ChatMessage['from'], string>>;
 
     /**
      * Optional placeholder message for the textarea
@@ -134,7 +130,7 @@ interface ChatProps {
      * Optional mapping of participant IDs (message.from) to display metadata for exports.
      * Keys should match ChatMessage.from values (e.g., 'USER', 'AGENT_{id}', etc.)
      */
-    readonly participants?: Record<string, { name: string; avatarUrl?: string }>;
+    readonly participants?: ReadonlyArray<{ name: string_name; avatarUrl?: string_url_image }>;
 }
 
 // Simple placeholder components for missing dependencies
@@ -190,11 +186,6 @@ export function Chat(props: ChatProps) {
         onReset,
         // isVoiceRecognitionButtonShown,
         // voiceLanguage = 'en-US',
-        avatars = {
-            PROMPTBOOK_PERSONA:
-                'https://gravatar.com/avatar/10bceb8965947164502b4e7b3314733d?size=256&cache=1726149227450',
-            // <- TODO: [🕚] Unhardcode
-        },
         placeholderMessageContent,
         defaultMessage,
         // tasksProgress,
@@ -206,7 +197,7 @@ export function Chat(props: ChatProps) {
         // isExperimental = false,
         // isSaveButtonEnabled = false,
         // exportHeaderMarkdown,
-        // participants,
+        participants = [],
     } = props;
 
     const { onUseTemplate } = props;
@@ -442,108 +433,115 @@ export function Chat(props: ChatProps) {
                             setAutoScrolling(element.scrollTop + element.clientHeight > element.scrollHeight - 100);
                         }}
                     >
-                        {messages.map((message, i) => (
-                            <div
-                                key={i}
-                                className={classNames(
-                                    styles.chatMessage,
-                                    !message.isComplete && styles.isPending,
-                                    message.from === 'USER' && styles.user,
-                                    message.from === 'PROMPTBOOK_PERSONA' && styles.promptbookPersona,
-                                    message.from === 'USER' && userClassName,
-                                    message.from === 'PROMPTBOOK_PERSONA' && promptbookPersonaClassName,
-                                )}
-                                onClick={() => {
-                                    console.group(message);
-                                    console.info('message.content', message.content);
-                                    console.info('message', message);
-                                    console.groupEnd();
-                                }}
-                            >
-                                {avatars[message.from] && (
-                                    <div className={styles.avatar}>
-                                        <img
-                                            width={256}
-                                            height={256}
-                                            src={avatars[message.from]!}
-                                            alt={`Avatar of ${message.from.toLocaleLowerCase()}`}
-                                        />
-                                    </div>
-                                )}
+                        {messages.map((message, i) => {
+                            const participant = participants.find((participant) => participant.name === message.from);
+                            const avatarUrl = (participant && participant.avatarUrl) || '';
 
-                                <div className={styles.messageText}>
-                                    {message.isVoiceCall && (
-                                        <div className={styles.voiceCallIndicator}>
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-                                            </svg>
+                            return (
+                                <div
+                                    key={i}
+                                    className={classNames(
+                                        styles.chatMessage,
+                                        !message.isComplete && styles.isPending,
+                                        message.from === 'USER' && styles.user,
+                                        message.from === 'PROMPTBOOK_PERSONA' && styles.promptbookPersona,
+                                        message.from === 'USER' && userClassName,
+                                        message.from === 'PROMPTBOOK_PERSONA' && promptbookPersonaClassName,
+                                    )}
+                                    onClick={() => {
+                                        console.group(message);
+                                        console.info('message.content', message.content);
+                                        console.info('message', message);
+                                        console.groupEnd();
+                                    }}
+                                >
+                                    {avatarUrl && (
+                                        <div className={styles.avatar}>
+                                            <img
+                                                width={256}
+                                                height={256}
+                                                src={avatarUrl}
+                                                alt={`Avatar of ${message.from.toLocaleLowerCase()}`}
+                                            />
                                         </div>
                                     )}
 
-                                    {message.content === LOADING_INTERACTIVE_IMAGE ? (
-                                        <>
-                                            {/* Loading Case: B */}
-                                            {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
-                                        </>
-                                    ) : (
-                                        <div dangerouslySetInnerHTML={{ __html: message.content }} />
-                                    )}
+                                    <div className={styles.messageText}>
+                                        {message.isVoiceCall && (
+                                            <div className={styles.voiceCallIndicator}>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                </svg>
+                                            </div>
+                                        )}
 
-                                    {message.from.includes('PROMPTBOOK_PERSONA') && message.isComplete && (
-                                        <div
-                                            className={styles.rating}
-                                            onMouseEnter={() => setExpandedMessageId(message.id)}
-                                            onMouseLeave={() => {
-                                                setExpandedMessageId(null);
-                                                setHoveredRating(0);
-                                            }}
-                                        >
-                                            {expandedMessageId === message.id ? (
-                                                [1, 2, 3, 4, 5].map((star) => (
+                                        {message.content === LOADING_INTERACTIVE_IMAGE ? (
+                                            <>
+                                                {/* Loading Case: B */}
+                                                {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
+                                            </>
+                                        ) : (
+                                            <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                                        )}
+
+                                        {message.from.includes('PROMPTBOOK_PERSONA') && message.isComplete && (
+                                            <div
+                                                className={styles.rating}
+                                                onMouseEnter={() => setExpandedMessageId(message.id)}
+                                                onMouseLeave={() => {
+                                                    setExpandedMessageId(null);
+                                                    setHoveredRating(0);
+                                                }}
+                                            >
+                                                {expandedMessageId === message.id ? (
+                                                    [1, 2, 3, 4, 5].map((star) => (
+                                                        <span
+                                                            key={star}
+                                                            onClick={() => handleRating(message, star)}
+                                                            onMouseEnter={() => setHoveredRating(star)}
+                                                            style={{
+                                                                cursor: 'pointer',
+                                                                fontSize: '20px',
+                                                                color:
+                                                                    star <=
+                                                                    (hoveredRating ||
+                                                                        messageRatings.get(message.id) ||
+                                                                        0)
+                                                                        ? '#FFD700'
+                                                                        : mode === 'LIGHT'
+                                                                        ? '#ccc'
+                                                                        : '#555',
+                                                                transition: 'color 0.2s',
+                                                            }}
+                                                        >
+                                                            ⭐
+                                                        </span>
+                                                    ))
+                                                ) : (
                                                     <span
-                                                        key={star}
-                                                        onClick={() => handleRating(message, star)}
-                                                        onMouseEnter={() => setHoveredRating(star)}
+                                                        onClick={() =>
+                                                            handleRating(message, messageRatings.get(message.id) || 1)
+                                                        }
                                                         style={{
                                                             cursor: 'pointer',
                                                             fontSize: '20px',
-                                                            color:
-                                                                star <=
-                                                                (hoveredRating || messageRatings.get(message.id) || 0)
-                                                                    ? '#FFD700'
-                                                                    : mode === 'LIGHT'
-                                                                    ? '#ccc'
-                                                                    : '#555',
+                                                            color: messageRatings.get(message.id)
+                                                                ? '#FFD700'
+                                                                : mode === 'LIGHT'
+                                                                ? '#888'
+                                                                : '#666',
                                                             transition: 'color 0.2s',
                                                         }}
                                                     >
                                                         ⭐
                                                     </span>
-                                                ))
-                                            ) : (
-                                                <span
-                                                    onClick={() =>
-                                                        handleRating(message, messageRatings.get(message.id) || 1)
-                                                    }
-                                                    style={{
-                                                        cursor: 'pointer',
-                                                        fontSize: '20px',
-                                                        color: messageRatings.get(message.id)
-                                                            ? '#FFD700'
-                                                            : mode === 'LIGHT'
-                                                            ? '#888'
-                                                            : '#666',
-                                                        transition: 'color 0.2s',
-                                                    }}
-                                                >
-                                                    ⭐
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     <div className={classNames(styles.chatInput, useChatCssClassName('chatInput'))}>
