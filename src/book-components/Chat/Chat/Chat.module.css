@@ -223,7 +223,6 @@
     padding: 16px 20px;
     border-radius: 20px;
     border-bottom-left-radius: 6px;
-    background-color: var(--chat-promptbook-persona-message-background-color);
     border: 1px solid rgba(125, 125, 125, 0.1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
@@ -273,12 +272,6 @@
     }
 }
 
-.chatMainFlow .chatMessage.user {
-    align-items: flex-end;
-    flex-direction: row-reverse;
-    justify-content: flex-start;
-}
-
 /* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
     width: 40px;
@@ -286,10 +279,6 @@
     margin: 0 12px 4px;
     flex-shrink: 0;
     position: relative;
-}
-
-.chatMainFlow .chatMessage.user .avatar {
-    margin: 0 0 4px 12px;
 }
 
 .chatMainFlow .chatMessage .avatar img {
@@ -315,8 +304,6 @@
     max-width: min(70%, 600px);
     text-align: left;
     margin-bottom: 4px;
-    background-color: var(--chat-promptbook-persona-message-background-color);
-    color: var(--chat-promptbook-persona-message-text-color);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     line-height: 1.5;
     word-wrap: break-word;
@@ -328,26 +315,6 @@
 .chatMainFlow .chatMessage .messageText:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
-}
-
-/* Message from user */
-.chatMainFlow .chatMessage.user .messageText {
-    background: linear-gradient(135deg, var(--chat-user-message-background-color) 0%, #0066cc 100%);
-    color: var(--chat-user-message-text-color);
-    border-bottom-right-radius: 6px;
-    box-shadow: 0 2px 12px rgba(0, 132, 255, 0.3);
-}
-
-.chatMainFlow .chatMessage.user .messageText:hover {
-    box-shadow: 0 4px 20px rgba(0, 132, 255, 0.4);
-}
-
-/* Message from AI */
-.chatMainFlow .chatMessage.promptbookPersona .messageText {
-    background-color: var(--chat-promptbook-persona-message-background-color);
-    color: var(--chat-promptbook-persona-message-text-color);
-    border-bottom-left-radius: 6px;
-    border: 1px solid rgba(125, 125, 125, 0.1);
 }
 
 /* Rating system */

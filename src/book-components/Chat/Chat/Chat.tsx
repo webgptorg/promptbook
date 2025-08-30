@@ -298,9 +298,6 @@ export function Chat(props: ChatProps) {
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
-    const userClassName = useChatCssClassName('user');
-    const promptbookPersonaClassName = useChatCssClassName('promptbookPersona');
-
     const chatBarCssClassName = useChatCssClassName('chatBar');
     const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
 
@@ -442,16 +439,9 @@ export function Chat(props: ChatProps) {
                                 <div
                                     key={i}
                                     style={{
-                                      backgroundColor: color,
+                                        backgroundColor: color,
                                     }}
-                                    className={classNames(
-                                        styles.chatMessage,
-                                        !message.isComplete && styles.isPending,
-                                        message.from === 'USER' && styles.user,
-                                        message.from === 'PROMPTBOOK_PERSONA' && styles.promptbookPersona,
-                                        message.from === 'USER' && userClassName,
-                                        message.from === 'PROMPTBOOK_PERSONA' && promptbookPersonaClassName,
-                                    )}
+                                    className={classNames(styles.chatMessage, !message.isComplete && styles.isPending)}
                                     onClick={() => {
                                         console.group(message);
                                         console.info('message.content', message.content);
