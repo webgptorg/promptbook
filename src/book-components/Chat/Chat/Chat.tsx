@@ -6,10 +6,10 @@ import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { string_name, string_url_image } from '../../../types/typeAliases';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../interfaces/ChatMessage';
+import { ChatParticipant } from '../interfaces/ChatParticipant';
 import styles from './Chat.module.css';
 
 /**
@@ -130,7 +130,7 @@ interface ChatProps {
      * Optional mapping of participant IDs (message.from) to display metadata for exports.
      * Keys should match ChatMessage.from values (e.g., 'USER', 'AGENT_{id}', etc.)
      */
-    readonly participants?: ReadonlyArray<{ name: string_name; avatarUrl?: string_url_image }>;
+    readonly participants?: ReadonlyArray<ChatParticipant>;
 }
 
 // Simple placeholder components for missing dependencies
@@ -436,10 +436,14 @@ export function Chat(props: ChatProps) {
                         {messages.map((message, i) => {
                             const participant = participants.find((participant) => participant.name === message.from);
                             const avatarUrl = (participant && participant.avatarUrl) || '';
+                            const color = (participant && participant.color) || '#ccc';
 
                             return (
                                 <div
                                     key={i}
+                                    style={{
+                                      backgroundColor: color,
+                                    }}
                                     className={classNames(
                                         styles.chatMessage,
                                         !message.isComplete && styles.isPending,
