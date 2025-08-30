@@ -9,7 +9,7 @@ import type { Promisable } from 'type-fest';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../interfaces/ChatMessage';
-import { ChatParticipant } from '../interfaces/ChatParticipant';
+import type { ChatParticipant } from '../interfaces/ChatParticipant';
 import styles from './Chat.module.css';
 
 /**
