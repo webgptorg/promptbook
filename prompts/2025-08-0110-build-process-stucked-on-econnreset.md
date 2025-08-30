@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😀] Build process sometimes fails on `ECONNRESET`
 

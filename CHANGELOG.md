@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 -   **New:** Created `AvatarProfile` and `AvatarProfileFromSource` components
+-   **Fixed:** Intermittent `ECONNRESET` build failures in tests by implementing retry logic with exponential backoff for network errors in LLM API calls
 - Refactored BookEditor: split into outer and inner components, with the inner rendered inside the shadow DOM.
 - BookEditor now highlights the first line in the editor.
 - Removed nonce workaround from BookEditor; rendering is now stable without nonce.
