@@ -14,6 +14,8 @@ import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
 import { DEFAULT_BOOK_FONT_CLASS } from '../book-components/BookEditor/config';
 import { Chat } from '../book-components/Chat/Chat/Chat';
+import type { ChatMessage } from '../book-components/Chat/interfaces/ChatMessage';
+import type { ChatParticipant } from '../book-components/Chat/interfaces/ChatParticipant';
 
 
 // Note: Exporting version from each package
@@ -33,3 +35,5 @@ export type { BookEditorProps };
 export { BookEditor };
 export { DEFAULT_BOOK_FONT_CLASS };
 export { Chat };
+export type { ChatMessage };
+export type { ChatParticipant };
