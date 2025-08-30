@@ -1,4 +1,4 @@
-name: Publish new version
+name: 🔼 Publish new version
 on:
     push:
         tags:
