@@ -20,7 +20,7 @@ export function $preserve(...value: Array<really_any>): void {
 /**
  * DO NOT USE THIS FUNCTION
  * Only purpose of this function is to trick the compiler and javascript engine
- * that `_preserved` array can be used in the future and shouldnt be garbage collected
+ * that `_preserved` array can be used in the future and should not be garbage collected
  *
  * @private internal for `preserve`
  */
