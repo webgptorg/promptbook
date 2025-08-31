@@ -19,13 +19,13 @@ import { normalizeWhitespaces as _normalizeWhitespaces } from '../../utils/norma
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../utils/normalization/removeDiacritics';
 import { TODO_any } from '../../utils/organization/TODO_any';
+import { $preserve } from '../../utils/organization/preserve';
 import { removeEmojis as _removeEmojis } from '../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../utils/removeQuotes';
 import { trimCodeBlock as _trimCodeBlock } from '../../utils/trimCodeBlock';
 import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../utils/trimEndOfCodeBlock';
 import { unwrapResult as _unwrapResult } from '../../utils/unwrapResult';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
-import { preserve } from './utils/preserve';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -59,33 +59,33 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
 
         const spaceTrim = (_: TODO_any) => _spaceTrim(_);
-        preserve(spaceTrim);
+        $preserve(spaceTrim);
 
         const removeQuotes = _removeQuotes;
-        preserve(removeQuotes);
+        $preserve(removeQuotes);
 
         const unwrapResult = _unwrapResult;
-        preserve(unwrapResult);
+        $preserve(unwrapResult);
 
         const trimEndOfCodeBlock = _trimEndOfCodeBlock;
-        preserve(trimEndOfCodeBlock);
+        $preserve(trimEndOfCodeBlock);
 
         const trimCodeBlock = _trimCodeBlock;
-        preserve(trimCodeBlock);
+        $preserve(trimCodeBlock);
 
         // TODO: DRY [🍯]
         const trim = (str: string) => str.trim();
-        preserve(trim);
+        $preserve(trim);
 
         // TODO: DRY [🍯]
         const reverse = (str: string) => str.split('').reverse().join('');
-        preserve(reverse);
+        $preserve(reverse);
 
         const removeEmojis = _removeEmojis;
-        preserve(removeEmojis);
+        $preserve(removeEmojis);
 
         const prettifyMarkdown = _prettifyMarkdown;
-        preserve(prettifyMarkdown);
+        $preserve(prettifyMarkdown);
 
         //-------[n12:]---
         const capitalize = _capitalize;
@@ -104,18 +104,18 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 ', ',
             ); /* <- TODO: [🧠] What is the best format comma list, bullet list,...? */
         const normalizeTo_SCREAMING_CASE = _normalizeTo_SCREAMING_CASE;
-        preserve(capitalize);
-        preserve(decapitalize);
-        preserve(nameToUriPart);
-        preserve(nameToUriParts);
-        preserve(removeDiacritics);
-        preserve(normalizeWhitespaces);
-        preserve(normalizeToKebabCase);
-        preserve(normalizeTo_camelCase);
-        preserve(normalizeTo_snake_case);
-        preserve(normalizeTo_PascalCase);
-        preserve(parseKeywords);
-        preserve(normalizeTo_SCREAMING_CASE);
+        $preserve(capitalize);
+        $preserve(decapitalize);
+        $preserve(nameToUriPart);
+        $preserve(nameToUriParts);
+        $preserve(removeDiacritics);
+        $preserve(normalizeWhitespaces);
+        $preserve(normalizeToKebabCase);
+        $preserve(normalizeTo_camelCase);
+        $preserve(normalizeTo_snake_case);
+        $preserve(normalizeTo_PascalCase);
+        $preserve(parseKeywords);
+        $preserve(normalizeTo_SCREAMING_CASE);
         //-------[/n12]---
 
         if (!script.includes('return')) {
