@@ -174,6 +174,16 @@ export default function ChatPreview() {
                 },
             ],
         },
+        longThread: {
+            name: 'Looooooong Thread',
+            messages: Array.from({ length: 50 }, (_, i) => ({
+                id: (i + 1).toString(),
+                date: new Date(),
+                from: i % 2 === 0 ? 'USER' : 'ASSISTANT_1',
+                content: `This is message number ${i + 1}`,
+                isComplete: true,
+            })),
+        },
     };
 
     const handleScenarioChange = (newScenario: string) => {
