@@ -438,9 +438,6 @@ export function Chat(props: ChatProps) {
                             return (
                                 <div
                                     key={i}
-                                    style={{
-                                        backgroundColor: color,
-                                    }}
                                     className={classNames(styles.chatMessage, !message.isComplete && styles.isPending)}
                                     onClick={() => {
                                         console.group(message);
@@ -456,11 +453,19 @@ export function Chat(props: ChatProps) {
                                                 height={256}
                                                 src={avatarSrc}
                                                 alt={`Avatar of ${message.from.toLocaleLowerCase()}`}
+                                                style={{
+                                                    backgroundColor: color,
+                                                }}
                                             />
                                         </div>
                                     )}
 
-                                    <div className={styles.messageText}>
+                                    <div
+                                        className={styles.messageText}
+                                        style={{
+                                            backgroundColor: color,
+                                        }}
+                                    >
                                         {message.isVoiceCall && (
                                             <div className={styles.voiceCallIndicator}>
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
