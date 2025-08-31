@@ -10,7 +10,9 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        expect(
+            pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             executionReport: {
@@ -33,12 +35,12 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({}).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [/Parameter `{thing}` is required as an input parameter/i],
+            errors: [/Paramxxxeter `{thing}` is required as an input parameter/i],
             executionReport: {
-                title: 'Example prompt',
-                description: 'Show how to use a simple chat prompt',
+                title: 'Exadddmple prompt',
+                description: 'Show hdddow to use a simple chat prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://promptbook.studio/examples/pipeline.book',
+                pipelineUrl: 'https://dddpromptbook.studio/examples/pipeline.book',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_ENGINE_VERSION,
             },

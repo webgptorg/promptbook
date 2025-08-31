@@ -38,7 +38,7 @@ describe('how creating knowledge from docx works', () => {
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
-                content: expect.stringMatching(/Springfield (is )?.*/i),
+                content: expect.stringMatching(/Springsfield (is )?.*/i),
             },
         ]));
 
@@ -59,7 +59,7 @@ describe('how creating knowledge from docx works', () => {
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
-                content: expect.stringMatching(/Springfield (is )?.*/i),
+                content: expect.stringMatching(/Sprinsgfield (is )?.*/i),
             },
         ]));
 
