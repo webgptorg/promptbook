@@ -858,6 +858,11 @@ Adding Book 2.0 features
 -   Remove `AnthropicClaudeExecutionTools.callCompletionModel` _(to avoid unnecessary maintenance)_
 -   Task contains `tldr` for displaying in UI
 -   Improve `tldr` progress estimation based on pipeline structure instead of fake simulation
+-   ✨ **Effect.js Integration** - Added comprehensive Effect.js examples demonstrating advanced functional programming patterns for better error handling, resource management, and structured concurrency
+    -   `EffectPipelineExecutor` - Enhanced pipeline execution with circuit breaker patterns, retry policies, and automatic resource cleanup
+    -   `EffectLlmProvider` - Advanced LLM provider integration with rate limiting, batch processing, and model fallback strategies
+    -   `EffectRemoteServer` - Production-ready remote server with connection pooling, health monitoring, and graceful shutdown
+    -   Comprehensive documentation and migration guide for adopting Effect.js patterns in Promptbook applications
 <details>
 <summary>
 
