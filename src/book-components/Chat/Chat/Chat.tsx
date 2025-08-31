@@ -438,7 +438,11 @@ export function Chat(props: ChatProps) {
                             return (
                                 <div
                                     key={i}
-                                    className={classNames(styles.chatMessage, !message.isComplete && styles.isPending)}
+                                    className={classNames(
+                                        styles.chatMessage,
+                                        participant?.isMe && styles.isMe,
+                                        !message.isComplete && styles.isPending,
+                                    )}
                                     onClick={() => {
                                         console.group(message);
                                         console.info('message.content', message.content);

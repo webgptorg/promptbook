@@ -272,6 +272,12 @@
     }
 }
 
+.chatMainFlow .chatMessage.isMe {
+    align-items: flex-end;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}
+
 /* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
     width: 40px;
