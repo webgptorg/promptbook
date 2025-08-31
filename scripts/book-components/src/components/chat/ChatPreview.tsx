@@ -1,122 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-
-// Local type definitions based on the actual Chat component interfaces
-type ChatMessage = {
-    id: string;
-    date: Date;
-    from: string;
-    content: string;
-    isComplete?: boolean;
-    expectedAnswer?: string;
-    isVoiceCall?: boolean;
-};
-
-type ChatParticipant = {
-    name: string;
-    fullname: string;
-    isMe?: boolean;
-    avatarSrc?: string;
-    color: string;
-};
-
-// Mock Chat component since we can't import the actual one directly
-interface ChatProps {
-    messages: ReadonlyArray<ChatMessage>;
-    participants: ReadonlyArray<ChatParticipant>;
-    onMessage: (content: string) => Promise<void>;
-    onReset?: () => Promise<void>;
-    placeholderMessageContent?: string;
-}
-
-function MockChat({ messages, participants, onMessage, onReset, placeholderMessageContent }: ChatProps) {
-    const [inputValue, setInputValue] = useState('');
-    
-    return (
-        <div className="border rounded-lg h-96 flex flex-col bg-white">
-            {/* Chat header */}
-            <div className="p-3 border-b bg-gray-50 rounded-t-lg">
-                <h4 className="font-medium text-gray-800">Chat Preview</h4>
-                {onReset && (
-                    <button 
-                        onClick={() => onReset()}
-                        className="text-xs text-blue-600 hover:text-blue-800 mt-1"
-                    >
-                        Reset Chat
-                    </button>
-                )}
-            </div>
-            
-            {/* Messages area */}
-            <div className="flex-1 p-3 overflow-y-auto space-y-3">
-                {messages.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">
-                        <p>No messages yet. Start a conversation!</p>
-                    </div>
-                ) : (
-                    messages.map((message, i) => {
-                        const participant = participants.find(p => p.name === message.from);
-                        const isUser = participant?.isMe;
-                        
-                        return (
-                            <div 
-                                key={i} 
-                                className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                            >
-                                <div className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
-                                    isUser 
-                                        ? 'bg-blue-500 text-white' 
-                                        : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                    {!isUser && (
-                                        <div className="text-xs font-medium mb-1" style={{ color: participant?.color || '#666' }}>
-                                            {participant?.fullname || message.from}
-                                        </div>
-                                    )}
-                                    <div dangerouslySetInnerHTML={{ __html: message.content }} />
-                                    {!message.isComplete && (
-                                        <div className="text-xs opacity-70 mt-1">Typing...</div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-            
-            {/* Input area */}
-            <div className="p-3 border-t bg-gray-50 rounded-b-lg">
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={placeholderMessageContent || "Type a message..."}
-                        className="flex-1 px-3 py-2 border rounded-md text-sm"
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && inputValue.trim()) {
-                                onMessage(inputValue);
-                                setInputValue('');
-                            }
-                        }}
-                    />
-                    <button
-                        onClick={() => {
-                            if (inputValue.trim()) {
-                                onMessage(inputValue);
-                                setInputValue('');
-                            }
-                        }}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-                    >
-                        Send
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
+import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
+import type { ChatMessage } from '../../../../../src/book-components/Chat/interfaces/ChatMessage';
+import type { ChatParticipant } from '../../../../../src/book-components/Chat/interfaces/ChatParticipant';
 
 export default function ChatPreview() {
     const [scenario, setScenario] = useState<string>('empty');
@@ -342,7 +229,7 @@ export default function ChatPreview() {
                 </select>
             </div>
             
-            <MockChat
+            <Chat
                 messages={messages}
                 participants={participants}
                 onMessage={handleMessage}
