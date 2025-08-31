@@ -4,6 +4,14 @@ import { useState } from 'react';
 import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/interfaces/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/interfaces/ChatParticipant';
+import {
+    emptyScenario,
+    simpleScenario,
+    multiParticipantScenario,
+    assistantsOnlyScenario,
+    loadingScenario,
+    longThreadScenario,
+} from './scenarios';
 
 export default function ChatPreview() {
     const [scenario, setScenario] = useState<string>('empty');
@@ -38,152 +46,12 @@ export default function ChatPreview() {
     ];
 
     const scenarios = {
-        empty: {
-            name: 'Empty Chat',
-            messages: [],
-        },
-        simple: {
-            name: 'Simple User-Assistant Chat',
-            messages: [
-                {
-                    id: '1',
-                    date: new Date(),
-                    from: 'USER',
-                    content: 'Hello! How can you help me today?',
-                    isComplete: true,
-                },
-                {
-                    id: '2',
-                    date: new Date(),
-                    from: 'ASSISTANT_1',
-                    content:
-                        "Hi there! I'm here to help you with any questions or tasks you have. What would you like to work on?",
-                    isComplete: true,
-                },
-                {
-                    id: '3',
-                    date: new Date(),
-                    from: 'USER',
-                    content: 'Can you help me understand React components?',
-                    isComplete: true,
-                },
-                {
-                    id: '4',
-                    date: new Date(),
-                    from: 'ASSISTANT_1',
-                    content:
-                        "Absolutely! React components are the building blocks of React applications. They're reusable pieces of code that return JSX...",
-                    isComplete: true,
-                },
-            ],
-        },
-        multiParticipant: {
-            name: 'Multi-Participant with User',
-            messages: [
-                {
-                    id: '1',
-                    date: new Date(),
-                    from: 'USER',
-                    content: 'I need help with both coding and writing. Can you both assist?',
-                    isComplete: true,
-                },
-                {
-                    id: '2',
-                    date: new Date(),
-                    from: 'ASSISTANT_2',
-                    content: "I'll help with the coding aspects! What programming language are you working with?",
-                    isComplete: true,
-                },
-                {
-                    id: '3',
-                    date: new Date(),
-                    from: 'ASSISTANT_3',
-                    content: 'And I can assist with any writing tasks you have. Documentation, content creation, etc.',
-                    isComplete: true,
-                },
-                {
-                    id: '4',
-                    date: new Date(),
-                    from: 'USER',
-                    content:
-                        "Perfect! I'm working on a JavaScript project and need to write some technical documentation for it.",
-                    isComplete: true,
-                },
-                {
-                    id: '5',
-                    date: new Date(),
-                    from: 'ASSISTANT_2',
-                    content:
-                        'Great! For JavaScript, I recommend starting with clear function and class documentation using JSDoc comments...',
-                    isComplete: true,
-                },
-            ],
-        },
-        assistantsOnly: {
-            name: 'Assistants Discussion (No User)',
-            messages: [
-                {
-                    id: '1',
-                    date: new Date(),
-                    from: 'ASSISTANT_1',
-                    content: 'I think the best approach for this optimization would be to implement caching.',
-                    isComplete: true,
-                },
-                {
-                    id: '2',
-                    date: new Date(),
-                    from: 'ASSISTANT_2',
-                    content:
-                        'Good point! We could use Redis for caching. Here\'s a code example:<br/><pre><code>const cache = require("redis").createClient();</code></pre>',
-                    isComplete: true,
-                },
-                {
-                    id: '3',
-                    date: new Date(),
-                    from: 'ASSISTANT_3',
-                    content:
-                        "Don't forget to document this properly. The documentation should explain:<br/>• Why caching was implemented<br/>• How to configure it<br/>• Performance benefits",
-                    isComplete: true,
-                },
-                {
-                    id: '4',
-                    date: new Date(),
-                    from: 'ASSISTANT_1',
-                    content:
-                        'Excellent suggestions from both of you. This collaborative approach will give the user the best solution.',
-                    isComplete: true,
-                },
-            ],
-        },
-        loading: {
-            name: 'Chat with Loading Message',
-            messages: [
-                {
-                    id: '1',
-                    date: new Date(),
-                    from: 'USER',
-                    content: "What's the weather like today?",
-                    isComplete: true,
-                },
-                {
-                    id: '2',
-                    date: new Date(),
-                    from: 'ASSISTANT_1',
-                    content: 'Let me check the current weather conditions for you...',
-                    isComplete: false,
-                },
-            ],
-        },
-        longThread: {
-            name: 'Looooooong Thread',
-            messages: Array.from({ length: 50 }, (_, i) => ({
-                id: (i + 1).toString(),
-                date: new Date(),
-                from: i % 2 === 0 ? 'USER' : 'ASSISTANT_1',
-                content: `This is message number ${i + 1}`,
-                isComplete: true,
-            })),
-        },
+        empty: emptyScenario,
+        simple: simpleScenario,
+        multiParticipant: multiParticipantScenario,
+        assistantsOnly: assistantsOnlyScenario,
+        loading: loadingScenario,
+        longThread: longThreadScenario,
     };
 
     const handleScenarioChange = (newScenario: string) => {
