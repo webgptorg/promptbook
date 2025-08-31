@@ -85,7 +85,7 @@
             "onlySingle": false,
             "focus": false
         },
-             {
+        {
             "name": "🧪 Test Books",
             "command": "npm run test-books",
             "execute": false,
@@ -210,6 +210,12 @@
         {
             "name": "🧸 Playground (💸)",
             "command": "npx ts-node ./src/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸🔴 Playground error handling",
+            "command": " npx ts-node ./src/playground/permanent/error-handling-playground.ts",
             "onlySingle": true,
             "focus": true
         },
