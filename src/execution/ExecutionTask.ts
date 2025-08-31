@@ -346,7 +346,7 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
         /**
          * Do the task throws on error
          *
-         * - If `true` when error occures the returned promise will rejects
+         * - If `true` when error occurs the returned promise will rejects
          * - If `false` the promise will resolve with object with all listed errors and warnings and partial result
          *
          * @default true
