@@ -1,6 +1,7 @@
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { ChatMessage } from '../interfaces/ChatMessage';
+import { ChatParticipant } from '../interfaces/ChatParticipant';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -13,7 +14,7 @@ export function messagesToMarkdown(
     shareUrl: string,
     qrDataUrl?: string | null,
     headerMarkdown?: string,
-    participants?: Record<string, { name: string; avatarUrl?: string }>,
+    participants?: ReadonlyArray<ChatParticipant>
 ): string {
     const branding = getPromptbookBranding(shareUrl);
     const headerParts: string[] = [];
@@ -28,13 +29,12 @@ export function messagesToMarkdown(
 
     const content = messages
         .map((message) => {
-            const from = (message as TODO_any).from as string;
-            const name =
-                (participants && participants[from]?.name) ||
-                (from === 'USER' || from === 'AGENT_user' ? 'You' : 'Assistant');
-            const avatar = participants && participants[from]?.avatarUrl;
-            const senderMd = `**${name}**`;
-            const avatarMd = avatar ? `![${name}](${avatar}) ` : '';
+            const participant = (participants || []).find(participant => participant.name === message.from);
+
+            const fullname = participant?.fullname || message.from;
+            const avatarSrc = participant?.avatarSrc;
+            const senderMd = `**${fullname}**`;
+            const avatarMd = avatarSrc ? `![${fullname}](${avatarSrc}) ` : '';
             return `${avatarMd}${senderMd}:\n\n${message.content}\n`;
         })
         .join('\n---\n\n');

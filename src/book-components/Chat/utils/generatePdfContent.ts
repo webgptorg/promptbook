@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../interfaces/ChatMessage';
+import { ChatParticipant } from '../interfaces/ChatParticipant';
 import { messagesToHtml } from './messagesToHtml';
 
 /**
@@ -11,7 +12,7 @@ export function generatePdfContent(
     shareUrl: string,
     qrDataUrl?: string | null,
     headerMarkdown?: string,
-    participants?: Record<string, { name: string; avatarUrl?: string }>,
+    participants?:  ReadonlyArray<ChatParticipant>
 ): void {
     const htmlContent = messagesToHtml(messages, shareUrl, qrDataUrl, headerMarkdown, participants);
 

@@ -1,8 +1,8 @@
 import spaceTrim from 'spacetrim';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import { escapeHtml } from '../../_common/react-utils/escapeHtml';
 import type { ChatMessage } from '../interfaces/ChatMessage';
+import { ChatParticipant } from '../interfaces/ChatParticipant';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -15,17 +15,17 @@ export function messagesToHtml(
     shareUrl: string,
     qrDataUrl?: string | null,
     headerMarkdown?: string,
-    participants?: Record<string, { name: string; avatarUrl?: string }>,
+    participants?: ReadonlyArray<ChatParticipant>,
 ): string {
     const branding = getPromptbookBranding(shareUrl);
     const customHeaderHtml = headerMarkdown ? `<div class="customHeader">${escapeHtml(headerMarkdown)}</div>` : '';
     const content = messages
         .map((message) => {
-            const from = (message as TODO_any).from as string;
-            const isUser = from === 'USER' || (typeof from === 'string' && from.toLowerCase() === 'agent_user');
+            const participant = (participants || []).find((participant) => participant.name === message.from);
+            const isUser = participant?.isMe || false;
             const senderClass = isUser ? 'user' : 'assistant';
-            const name = (participants && participants[from]?.name) || (isUser ? 'You' : 'Assistant');
-            const avatar = participants && participants[from]?.avatarUrl;
+            const name = participant?.fullname || message.from;
+            const avatarSrc = participant?.avatarSrc;
             const messageContent = message.content
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
@@ -35,7 +35,7 @@ export function messagesToHtml(
             return spaceTrim(`
                 <div class="message ${senderClass}">
                     <div class="senderRow">
-                        ${avatar ? `<img class="avatar" src="${avatar}" alt="${escapeHtml(name)}"/>` : ''}
+                        ${avatarSrc ? `<img class="avatar" src="${avatarSrc}" alt="${escapeHtml(name)}"/>` : ''}
                         <div class="sender">${escapeHtml(name)}:</div>
                     </div>
                     <div class="content">${messageContent}</div>

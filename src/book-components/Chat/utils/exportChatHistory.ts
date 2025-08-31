@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../interfaces/ChatMessage';
+import { ChatParticipant } from '../interfaces/ChatParticipant';
 import { addUtmParamsToUrl } from './addUtmParamsToUrl';
 import { createShortLinkForChat } from './createShortLinkForChat';
 import { downloadFile } from './downloadFile';
@@ -19,7 +20,7 @@ export async function exportChatHistory(
     messages: ChatMessage[],
     format: ExportFormat,
     headerMarkdown?: string,
-    participants?: Record<string, { name: string; avatarUrl?: string }>,
+    participants?:  ReadonlyArray<ChatParticipant>
 ): Promise<void> {
     const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const baseFilename = `chat-history-${timestamp}`;

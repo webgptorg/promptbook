@@ -1,5 +1,5 @@
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { ChatMessage } from '../interfaces/ChatMessage';
+import { ChatParticipant } from '../interfaces/ChatParticipant';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -11,17 +11,17 @@ export function messagesToText(
     messages: ChatMessage[],
     shareUrl: string,
     headerMarkdown?: string,
-    participants?: Record<string, { name: string; avatarUrl?: string }>,
+    participants?:  ReadonlyArray<ChatParticipant>
 ): string {
     const branding = getPromptbookBranding(shareUrl);
     const header = headerMarkdown ? `${headerMarkdown}\n\n` : '';
     const content = messages
         .map((message) => {
-            const from = (message as TODO_any).from as string;
-            const sender =
-                (participants && participants[from]?.name) ||
-                (from === 'USER' || from === 'AGENT_user' ? 'You' : 'Assistant');
-            return `${sender}:\n${message.content}\n`;
+
+          const participant = (participants||[]).find(participant => participant.name === message.from);
+
+            const fullname = participant?.fullname || message.from;
+            return `${fullname}:\n${message.content}\n`;
         })
         .join('\n');
 

@@ -432,7 +432,7 @@ export function Chat(props: ChatProps) {
                     >
                         {messages.map((message, i) => {
                             const participant = participants.find((participant) => participant.name === message.from);
-                            const avatarUrl = (participant && participant.avatarUrl) || '';
+                            const avatarSrc = (participant && participant.avatarSrc) || '';
                             const color = (participant && participant.color) || '#ccc';
 
                             return (
@@ -449,12 +449,12 @@ export function Chat(props: ChatProps) {
                                         console.groupEnd();
                                     }}
                                 >
-                                    {avatarUrl && (
+                                    {avatarSrc && (
                                         <div className={styles.avatar}>
                                             <img
                                                 width={256}
                                                 height={256}
-                                                src={avatarUrl}
+                                                src={avatarSrc}
                                                 alt={`Avatar of ${message.from.toLocaleLowerCase()}`}
                                             />
                                         </div>
