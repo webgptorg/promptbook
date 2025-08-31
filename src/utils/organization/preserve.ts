@@ -27,3 +27,7 @@ export function $preserve(...value: Array<really_any>): void {
 export function __DO_NOT_USE_getPreserved(): Array<really_any> {
     return _preserved;
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
