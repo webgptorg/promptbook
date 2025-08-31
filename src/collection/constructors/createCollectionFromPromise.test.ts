@@ -41,7 +41,7 @@ describe('createCollectionFromPromise', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const pipelineFromCollection = await collection.getPipelineByUrl(
-            'xhttps://promptbook.studio/examples/pipeline.book',
+            'https://promptbook.studio/examples/pipeline.book',
         );
         expect(pipelineFromCollection).toEqual(await compilePipeline(pipeline));
     });

@@ -1,5 +1,7 @@
 {
     "files.eol": "\n",
+    "jestrunner.jestCommand": "npx jest",
+    "jest.jestCommandLine": "npx jest",
     "editor.formatOnSave": true,
     "prettier.configPath": ".prettierrc",
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -26,7 +28,6 @@
     "chat.tools.terminal.permissions": {
         "rm": false
     },
-    "jest.jestCommandLine": "node -v && npx jest --verbose",
     "jest.runMode": {
         "type": "on-demand"
     },
@@ -35,6 +36,5 @@
         "revealWithFocus": "test-results",
         "clearOnRun": "none"
     },
-    "testing.automaticallyOpenTestResults": "openOnTestStart",
-    "jest.rootPath": "/"
+    "testing.automaticallyOpenTestResults": "openOnTestStart"
 }

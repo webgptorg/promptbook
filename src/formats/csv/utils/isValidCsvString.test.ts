@@ -2,7 +2,7 @@ import { isValidCsvString } from './isValidCsvString';
 
 describe('isValidCsvString', () => {
     it('should return true for valid CSV strings', () => {
-        const validCsv = 'naohn,30,New York';
+        const validCsv = 'name,age,city\nJohn,30,New York';
         expect(isValidCsvString(validCsv)).toBe(true);
     });
 

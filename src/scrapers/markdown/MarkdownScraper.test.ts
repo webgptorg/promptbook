@@ -57,7 +57,7 @@ describe('how creating knowledge from markdown works', () => {
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
-                content: expect.not.stringMatching(/Lonsdon (is )?.*/i),
+                content: expect.not.stringMatching(/London (is )?.*/i),
             },
         ]));
 });

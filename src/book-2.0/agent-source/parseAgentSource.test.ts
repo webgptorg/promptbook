@@ -5,7 +5,7 @@ import { validateBook } from './string_book';
 
 describe('parseAgentSource', () => {
     it('parses minimal agent source (only name)', () => {
-        const agentSource = validateBook('xAgent Name');
+        const agentSource = validateBook('Agent Name');
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('Agent Name');
         expect(result.personaDescription).toBe(null);
@@ -15,7 +15,7 @@ describe('parseAgentSource', () => {
     it('parses agent with persona and profile image', () => {
         const agentSource = validateBook(
             spaceTrim(`
-                Agent Nxame
+                Agent Name
                 PERSONA A helpful assistant
                 META IMAGE https://img.url/pic.png
             `),

@@ -51,7 +51,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 parameters: {
                     animal: '"cat"',
                 },
-                script: 'retusrn removeQuotes(animal)',
+                script: 'return removeQuotes(animal)',
             }),
         ).resolves.toEqual('cat');
 
