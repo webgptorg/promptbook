@@ -21,7 +21,7 @@ export default function Home() {
                             />
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">Promptbook Components</h1>
-                                <p className="text-gray-600">A curated gallery of React components for developers</p>
+                                <p className="text-gray-600">A gallery of React components for developers</p>
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
@@ -42,10 +42,9 @@ export default function Home() {
             {/* Hero Section */}
             <section className="py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h2 className="text-4xl font-bold text-gray-900 mb-4">Build Faster with Ready-to-Use Components</h2>
+                    <h2 className="text-4xl font-bold text-gray-900 mb-4">Build with Promptbook Components</h2>
                     <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-                        Discover, preview, and copy high-quality React components built with Tailwind CSS. Each
-                        component is self-contained and ready to integrate into your project.
+                        Discover Promptbook components ready to integrate into your project.
                     </p>
                     <div className="flex justify-center">
                         <div className="relative max-w-md w-full">

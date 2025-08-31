@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🤣] Add `Chat` component preview
 

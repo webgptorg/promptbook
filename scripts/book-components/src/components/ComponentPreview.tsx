@@ -19,6 +19,9 @@ const AvatarChipPreview = dynamic(() => import('@/components/avatar-chip/AvatarC
 const AvatarProfilePreview = dynamic(() => import('@/components/avatar-profile/AvatarProfilePreview'), {
     ssr: false,
 });
+const ChatPreview = dynamic(() => import('@/components/chat/ChatPreview'), {
+    ssr: false,
+});
 
 interface ComponentPreviewProps {
     componentId: string;
@@ -71,6 +74,12 @@ export default function ComponentPreview({ componentId }: ComponentPreviewProps)
                 return (
                     <div className="p-6">
                         <AvatarProfilePreview />
+                    </div>
+                );
+            case 'chat':
+                return (
+                    <div className="p-6">
+                        <ChatPreview />
                     </div>
                 );
 
