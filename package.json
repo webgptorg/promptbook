@@ -182,7 +182,8 @@
     ],
     "scripts": {
         "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-package-generation && npm run test-unit",
-        "test-unit": "jest",
+        "test-unit": "jest --forceExit",
+        "_TODO-1":"           <- TODO: Remove `--forceExit` flag, now its present to ensure return code 0 when all tests ",
         "test-types": "tsc",
         "test-lint": "eslint src",
         "test-spellcheck": "cspell \"src/**/*.{ts,tsx,js,jsx,md,json}\"",
