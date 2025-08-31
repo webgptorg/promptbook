@@ -182,8 +182,7 @@
     ],
     "scripts": {
         "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-package-generation && npm run test-unit",
-        "test-unit": "echo \"TODO: !!!! test-unit has been commented out because it passes all the tests but exits with code 1\"",
-        "TODO: !!!! test-unit": "jest",
+        "test-unit": "jest",
         "test-types": "tsc",
         "test-lint": "eslint src",
         "test-spellcheck": "cspell \"src/**/*.{ts,tsx,js,jsx,md,json}\"",
