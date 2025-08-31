@@ -101,8 +101,6 @@
     "dependencies": {
         "crypto": "1.0.1",
         "lorem-ipsum": "2.0.8",
-        "prettier": "2.8.1",
-        "spacetrim": "0.11.59",
-        "waitasecond": "1.11.83"
+        "spacetrim": "0.11.59"
     }
 }
