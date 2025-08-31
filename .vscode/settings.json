@@ -24,9 +24,17 @@
     "explorer.copyRelativePathSeparator": "/",
     "chat.agent.enabled": true,
     "chat.tools.autoApprove": true,
-    "chat.tools.terminal.autoApprove": true,
 
     "chat.tools.terminal.permissions": {
         "rm": false
-    }
+    },
+    "jest.runMode": {
+        "type": "on-demand"
+    },
+    "jest.outputConfig": {
+        "revealOn": "run",
+        "revealWithFocus": "test-results",
+        "clearOnRun": "none"
+    },
+    "testing.automaticallyOpenTestResults": "openOnTestStart"
 }
