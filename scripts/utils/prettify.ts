@@ -1,6 +1,9 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import prettier from 'prettier';
+import parserHtml from 'prettier/parser-html';
+import parserMarkdown from 'prettier/parser-markdown';
+import parserTypescript from 'prettier/parser-typescript';
+import { format } from 'prettier/standalone';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { TODO_any } from '../../src/utils/organization/TODO_any';
@@ -14,9 +17,14 @@ import { TODO_any } from '../../src/utils/organization/TODO_any';
  */
 export async function prettify(fileContents: string, parser = 'typescript'): Promise<string> {
     try {
-        return prettier.format(fileContents, {
+        return format(fileContents, {
             parser,
             ...(JSON.parse(await readFile(join(process.cwd(), '.prettierrc'), 'utf-8')) as TODO_any),
+            plugins: [
+                parserMarkdown,
+                parserHtml,
+                parserTypescript /* <- TODO: Maybe add more parsers like `parserBabel` */,
+            ],
         });
     } catch (error) {
         assertsError(error);

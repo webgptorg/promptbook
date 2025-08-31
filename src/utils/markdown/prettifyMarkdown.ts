@@ -1,5 +1,6 @@
-import { format } from 'prettier';
 import parserHtml from 'prettier/parser-html';
+import parserMarkdown from 'prettier/parser-markdown';
+import { format } from 'prettier/standalone';
 import type { string_html } from '../../types/typeAliases';
 
 /**
@@ -13,7 +14,7 @@ export function prettifyMarkdown<TContent extends string_html>(content: TContent
     try {
         return format(content, {
             parser: 'markdown',
-            plugins: [parserHtml],
+            plugins: [parserMarkdown, parserHtml],
 
             // TODO: DRY - make some import or auto-copy of .prettierrc
             endOfLine: 'lf',
