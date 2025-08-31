@@ -1,6 +1,7 @@
 {
     "files.eol": "\n",
     "jestrunner.jestCommand": "npx jest",
+    "jest.jestCommandLine": "npx jest",
     "editor.formatOnSave": true,
     "prettier.configPath": ".prettierrc",
     "editor.defaultFormatter": "esbenp.prettier-vscode",
