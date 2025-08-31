@@ -63,8 +63,8 @@ describe('createPipelineExecutor + missing custom function', () => {
 
     it('should throw error when custom postprocessing function does not exist', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(() => pipelineExecutor({ yourName: 'Matthew' }).asPromise()).rejects.toThrowError(
-            /Function addHello\(\) is not defined/,
-        );
+        expect(() =>
+            pipelineExecutor({ yourName: 'Matthew' }).asPromise({ isCrashedOnError: true }),
+        ).rejects.toThrowError(/Function addHello\(\) is not defined/);
     });
 });

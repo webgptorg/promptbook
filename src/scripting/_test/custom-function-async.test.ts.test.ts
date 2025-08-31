@@ -11,7 +11,9 @@ import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools
 describe('createPipelineExecutor + custom async function ', () => {
     it('should use custom postprocessing function', () => {
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Matthew' }).asPromise()),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'Matthew' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -21,7 +23,9 @@ describe('createPipelineExecutor + custom async function ', () => {
         });
 
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Mark' }).asPromise()),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'Mark' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -31,7 +35,9 @@ describe('createPipelineExecutor + custom async function ', () => {
         });
 
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Luke' }).asPromise()),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'Luke' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -41,7 +47,9 @@ describe('createPipelineExecutor + custom async function ', () => {
         });
 
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'John' }).asPromise()),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],

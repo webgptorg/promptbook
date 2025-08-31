@@ -11,10 +11,12 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type {
+    InputParameters,
+    string_filename,
+    string_parameter_value,
+    string_pipeline_url,
+} from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
@@ -74,7 +76,7 @@ class Wizard {
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result = await pipelineExecutor(inputParameters).asPromise();
+        const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
         const { outputParameters } = result;
         const outputParametersLength = Object.keys(outputParameters).length;
@@ -99,7 +101,9 @@ class Wizard {
      *
      * @param options
      */
-    public async getExecutionTools(options: WizardOptions = {}): Promise<Required<Pick<ExecutionTools, 'fs' | 'fetch'>>> {
+    public async getExecutionTools(
+        options: WizardOptions = {},
+    ): Promise<Required<Pick<ExecutionTools, 'fs' | 'fetch'>>> {
         if (this.executionTools !== null) {
             return this.executionTools;
         }

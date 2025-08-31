@@ -132,7 +132,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
                 userMessage,
             };
 
-            const result = await pipelineExecutor(inputParameters).asPromise();
+            const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
             console.info(`\n`);
             console.info(

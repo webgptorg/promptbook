@@ -10,7 +10,9 @@ import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools
 describe('createPipelineExecutor + executing scripts in promptbook', () => {
     it('should work when every INPUT  PARAMETER defined', () => {
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ thing: 'apple' }).asPromise()),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ thing: 'apple' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -20,7 +22,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         });
         expect(
             getPipelineExecutor().then((pipelineExecutor) =>
-                pipelineExecutor({ thing: 'a cup of coffee' }).asPromise(),
+                pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
             ),
         ).resolves.toMatchObject({
             isSuccessful: true,
@@ -33,7 +35,9 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({}).asPromise()),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({}).asPromise({ isCrashedOnError: false }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: false,
             /*
@@ -59,7 +63,9 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         });
 
         expect(() =>
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({}).asPromise()),
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({}).asPromise({ isCrashedOnError: true }),
+            ),
         ).rejects.toThrowError(/Parameter `\{thing\}` is required as an input parameter/);
     });
 });

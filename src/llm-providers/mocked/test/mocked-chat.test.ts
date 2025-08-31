@@ -10,7 +10,7 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise()).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             executionReport: {
@@ -31,7 +31,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({}).asPromise()).resolves.toMatchObject({
+        expect(pipelineExecutor({}).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
             isSuccessful: false,
             errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {

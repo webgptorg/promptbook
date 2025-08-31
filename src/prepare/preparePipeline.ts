@@ -107,7 +107,7 @@ export async function preparePipeline(
 
         const result = await prepareTitleExecutor({
             book: sources.map(({ content }) => content).join('\n\n'),
-        }).asPromise();
+        }).asPromise({ isCrashedOnError: true });
 
         const { outputParameters } = result;
         const { title: titleRaw } = outputParameters;

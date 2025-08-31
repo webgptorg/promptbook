@@ -52,7 +52,7 @@ export async function preparePersona(
     const result = await preparePersonaExecutor({
         availableModels /* <- Note: Passing as JSON */,
         personaDescription,
-    }).asPromise();
+    }).asPromise({ isCrashedOnError: true });
 
     const { outputParameters } = result;
     const { modelsRequirements: modelsRequirementsJson } = outputParameters;

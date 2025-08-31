@@ -13,7 +13,7 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
     it('should use custom postprocessing function', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(pipelineExecutor({ yourName: 'Matthew' }).asPromise()).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'Matthew' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -21,7 +21,7 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'Mark' }).asPromise()).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'Mark' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -29,7 +29,7 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'Luke' }).asPromise()).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'Luke' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -37,7 +37,7 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'John' }).asPromise()).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
