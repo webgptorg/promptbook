@@ -215,7 +215,7 @@
         },
         {
             "name": "🧸🔴 Playground error handling",
-            "command": " npx ts-node ./src/playground/permanent/error-handling-playground.ts",
+            "command": "npx ts-node ./src/playground/permanent/error-handling-playground.ts",
             "onlySingle": true,
             "focus": true
         },
