@@ -22,7 +22,7 @@ export type ChatProps = {
      * Called every time the user types or dictated a message
      */
     onChange?(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): void;
-    // <- TODO: [🖱] `LlmChatProps.onChange` and `ChatProps.onChange` arent the same, unite them or distinct by name
+    // <- TODO: [🖱] `LlmChatProps.onChange` and `ChatProps.onChange` are not the same, unite them or distinct by name
 
     /**
      * Called when user sends a message

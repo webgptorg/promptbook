@@ -20,5 +20,5 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * Called when the chat state changes (messages, participants, etc.)
      */
     onChange?(messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>): void;
-    // <- TODO: [🖱] `LlmChatProps.onChange` and `ChatProps.onChange` arent the same, unite them or distinct by name
+    // <- TODO: [🖱] `LlmChatProps.onChange` and `ChatProps.onChange` are not the same, unite them or distinct by name
 };
