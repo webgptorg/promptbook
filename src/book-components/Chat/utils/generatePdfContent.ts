@@ -1,10 +1,10 @@
 import type { ChatMessage } from '../interfaces/ChatMessage';
-import { ChatParticipant } from '../interfaces/ChatParticipant';
+import type { ChatParticipant } from '../interfaces/ChatParticipant';
 import { messagesToHtml } from './messagesToHtml';
 
 /**
  * Generates PDF content using HTML and triggers print dialog
- * 
+ *
  * @private utility of `<Chat/>` component
  */
 export function generatePdfContent(
@@ -12,7 +12,7 @@ export function generatePdfContent(
     shareUrl: string,
     qrDataUrl?: string | null,
     headerMarkdown?: string,
-    participants?:  ReadonlyArray<ChatParticipant>
+    participants?: ReadonlyArray<ChatParticipant>,
 ): void {
     const htmlContent = messagesToHtml(messages, shareUrl, qrDataUrl, headerMarkdown, participants);
 

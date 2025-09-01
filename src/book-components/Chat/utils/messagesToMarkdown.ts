@@ -1,7 +1,7 @@
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { ChatMessage } from '../interfaces/ChatMessage';
-import { ChatParticipant } from '../interfaces/ChatParticipant';
+import type { ChatParticipant } from '../interfaces/ChatParticipant';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -14,7 +14,7 @@ export function messagesToMarkdown(
     shareUrl: string,
     qrDataUrl?: string | null,
     headerMarkdown?: string,
-    participants?: ReadonlyArray<ChatParticipant>
+    participants?: ReadonlyArray<ChatParticipant>,
 ): string {
     const branding = getPromptbookBranding(shareUrl);
     const headerParts: string[] = [];
@@ -29,7 +29,7 @@ export function messagesToMarkdown(
 
     const content = messages
         .map((message) => {
-            const participant = (participants || []).find(participant => participant.name === message.from);
+            const participant = (participants || []).find((participant) => participant.name === message.from);
 
             const fullname = participant?.fullname || message.from;
             const avatarSrc = participant?.avatarSrc;

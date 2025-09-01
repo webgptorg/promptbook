@@ -1,5 +1,5 @@
 import type { ChatMessage } from '../interfaces/ChatMessage';
-import { ChatParticipant } from '../interfaces/ChatParticipant';
+import type { ChatParticipant } from '../interfaces/ChatParticipant';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -11,14 +11,13 @@ export function messagesToText(
     messages: ChatMessage[],
     shareUrl: string,
     headerMarkdown?: string,
-    participants?:  ReadonlyArray<ChatParticipant>
+    participants?: ReadonlyArray<ChatParticipant>,
 ): string {
     const branding = getPromptbookBranding(shareUrl);
     const header = headerMarkdown ? `${headerMarkdown}\n\n` : '';
     const content = messages
         .map((message) => {
-
-          const participant = (participants||[]).find(participant => participant.name === message.from);
+            const participant = (participants || []).find((participant) => participant.name === message.from);
 
             const fullname = participant?.fullname || message.from;
             return `${fullname}:\n${message.content}\n`;
