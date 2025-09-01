@@ -4,203 +4,66 @@ import { useEffect, useMemo, useState } from 'react';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
-import type { LlmExecutionTools } from '../../../../../src/execution/LlmExecutionTools';
-import { $llmToolsMetadataRegister } from '../../../../../src/llm-providers/_common/register/$llmToolsMetadataRegister';
-import { $llmToolsRegister } from '../../../../../src/llm-providers/_common/register/$llmToolsRegister';
-import type { LlmToolsMetadata } from '../../../../../src/llm-providers/_common/register/LlmToolsMetadata';
 import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedEchoLlmExecutionTools';
+import { OpenAiExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiExecutionTools';
 
-const PROVIDER_CONFIG_STORAGE_KEY_PREFIX = 'llm-chat-preview-config-';
-
-interface ProviderConfig {
-    [key: string]: string;
-}
-
-interface ScenarioDefinition {
-    name: string;
-    description: string;
-    llmTools: LlmExecutionTools | null;
-    metadata?: LlmToolsMetadata;
-    configFields?: Array<{
-        key: string;
-        label: string;
-        type: 'text' | 'password';
-        placeholder?: string;
-        required?: boolean;
-    }>;
-}
+const OPENAI_API_KEY_STORAGE_KEY = 'llm-chat-preview-openai-api-key';
 
 export default function LlmChatPreview() {
     const [scenario, setScenario] = useState<string>('mock-basic');
-    const [providerConfigs, setProviderConfigs] = useState<Record<string, ProviderConfig>>({});
+    const [openaiApiKey, setOpenaiApiKey] = useState<string>('');
 
-    // Load provider configurations from localStorage on component mount
+    // Load API key from localStorage on component mount
     useEffect(() => {
-        const configs: Record<string, ProviderConfig> = {};
-        const availableProviders = $llmToolsMetadataRegister.list();
-
-        for (const provider of availableProviders) {
-            const storageKey = `${PROVIDER_CONFIG_STORAGE_KEY_PREFIX}${provider.packageName}-${provider.className}`;
-            const savedConfig = localStorage.getItem(storageKey);
-            if (savedConfig) {
-                try {
-                    configs[`${provider.packageName}-${provider.className}`] = JSON.parse(savedConfig);
-                } catch (error) {
-                    console.warn(`Failed to parse saved config for ${provider.title}:`, error);
-                }
-            }
+        const savedApiKey = localStorage.getItem(OPENAI_API_KEY_STORAGE_KEY);
+        if (savedApiKey) {
+            setOpenaiApiKey(savedApiKey);
         }
-        setProviderConfigs(configs);
     }, []);
 
-    // Save provider configuration to localStorage
-    const saveProviderConfig = (providerId: string, config: ProviderConfig) => {
-        const storageKey = `${PROVIDER_CONFIG_STORAGE_KEY_PREFIX}${providerId}`;
-        localStorage.setItem(storageKey, JSON.stringify(config));
-        setProviderConfigs((prev) => ({ ...prev, [providerId]: config }));
-    };
+    // Save API key to localStorage whenever it changes
+    useEffect(() => {
+        if (openaiApiKey) {
+            localStorage.setItem(OPENAI_API_KEY_STORAGE_KEY, openaiApiKey);
+        } else {
+            localStorage.removeItem(OPENAI_API_KEY_STORAGE_KEY);
+        }
+    }, [openaiApiKey]);
 
-    // Create LLM tools from provider configuration
-    const createLlmTools = (metadata: LlmToolsMetadata, config: ProviderConfig): LlmExecutionTools | null => {
-        try {
-            // Find the constructor in the register
-            const constructors = $llmToolsRegister.list();
-            const constructor = constructors.find(
-                (c) => c.packageName === metadata.packageName && c.className === metadata.className,
-            );
+    const mockedLlmTools = useMemo(() => new MockedEchoLlmExecutionTools({ isVerbose: true }), []);
 
-            if (!constructor) {
-                console.warn(`No constructor found for ${metadata.title}`);
-                return null;
-            }
-
-            // Create options object based on boilerplate configuration and user config
-            const boilerplate = metadata.getBoilerplateConfiguration();
-            const options = { ...boilerplate.options } as Record<string, unknown>;
-
-            // Override with user configuration
-            for (const [key, value] of Object.entries(config)) {
-                if (value.trim()) {
-                    options[key] = value;
-                }
-            }
-
-            // Add browser-specific options if needed
-            if (
-                metadata.className === 'OpenAiExecutionTools' ||
-                metadata.className === 'OpenAiCompatibleExecutionTools'
-            ) {
-                options.dangerouslyAllowBrowser = true;
-            }
-
-            return constructor(options);
-        } catch (error) {
-            console.error(`Failed to create LLM tools for ${metadata.title}:`, error);
+    const openaiLlmTools = useMemo(() => {
+        if (!openaiApiKey) {
             return null;
         }
+        try {
+            return new OpenAiExecutionTools({
+                apiKey: openaiApiKey,
+                dangerouslyAllowBrowser: true,
+            });
+        } catch (error) {
+            console.error('Failed to create OpenAI tools:', error);
+            return null;
+        }
+    }, [openaiApiKey]);
+
+    const scenarios = {
+        'mock-basic': {
+            name: 'Mocked Chat (No storage)',
+            description: 'Simple chat with mocked echo LLM',
+            llmTools: mockedLlmTools,
+        },
+        'mock-persistent': {
+            name: 'Mocked Chat (Persistent)',
+            description: 'Chat with mocked LLM and localStorage persistence - messages survive page refresh',
+            llmTools: mockedLlmTools,
+        },
+        openai: {
+            name: 'OpenAI Chat',
+            description: 'Chat with OpenAI GPT models',
+            llmTools: openaiLlmTools,
+        },
     };
-
-    // Get configuration fields for a provider
-    const getConfigFields = (metadata: LlmToolsMetadata) => {
-        const fields: Array<{
-            key: string;
-            label: string;
-            type: 'text' | 'password';
-            placeholder?: string;
-            required?: boolean;
-        }> = [];
-
-        // Get boilerplate to understand what fields are needed
-        const boilerplate = metadata.getBoilerplateConfiguration();
-        const options = boilerplate.options as Record<string, unknown>;
-
-        // Common field mappings
-        if ('apiKey' in options) {
-            fields.push({
-                key: 'apiKey',
-                label: 'API Key',
-                type: 'password',
-                placeholder: (options.apiKey as string) || 'Enter your API key...',
-                required: true,
-            });
-        }
-
-        if ('baseURL' in options && metadata.className === 'OpenAiCompatibleExecutionTools') {
-            fields.push({
-                key: 'baseURL',
-                label: 'Base URL',
-                type: 'text',
-                placeholder: (options.baseURL as string) || 'https://api.openai.com/v1',
-                required: false,
-            });
-        }
-
-        if ('assistantId' in options) {
-            fields.push({
-                key: 'assistantId',
-                label: 'Assistant ID',
-                type: 'text',
-                placeholder: (options.assistantId as string) || 'asst_...',
-                required: true,
-            });
-        }
-
-        return fields;
-    };
-
-    // Build scenarios dynamically
-    const scenarios = useMemo((): Record<string, ScenarioDefinition> => {
-        const mockedLlmTools = new MockedEchoLlmExecutionTools({ isVerbose: true });
-
-        const scenarios: Record<string, ScenarioDefinition> = {
-            'mock-basic': {
-                name: 'Mocked Chat (No storage)',
-                description: 'Simple chat with mocked echo LLM',
-                llmTools: mockedLlmTools,
-            },
-            'mock-persistent': {
-                name: 'Mocked Chat (Persistent)',
-                description: 'Chat with mocked LLM and localStorage persistence - messages survive page refresh',
-                llmTools: mockedLlmTools,
-            },
-        };
-
-        // Add scenarios for each registered provider
-        const availableProviders = $llmToolsMetadataRegister.list();
-        for (const metadata of availableProviders) {
-            const providerId = `${metadata.packageName}-${metadata.className}`;
-            const config = providerConfigs[providerId] || {};
-            const configFields = getConfigFields(metadata);
-
-            // Check if all required fields are filled
-            const hasRequiredConfig = configFields.every(
-                (field) => !field.required || (config[field.key] && config[field.key].trim()),
-            );
-
-            const llmTools = hasRequiredConfig ? createLlmTools(metadata, config) : null;
-
-            scenarios[providerId] = {
-                name: metadata.title,
-                description: `Chat with ${metadata.title} models`,
-                llmTools,
-                metadata,
-                configFields,
-            };
-
-            // Add persistent version if tools are available
-            if (llmTools) {
-                scenarios[`${providerId}-persistent`] = {
-                    name: `${metadata.title} (Persistent)`,
-                    description: `Chat with ${metadata.title} models with localStorage persistence`,
-                    llmTools,
-                    metadata,
-                    configFields,
-                };
-            }
-        }
-
-        return scenarios;
-    }, [providerConfigs]);
 
     const handleChange = (messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>) => {
         console.log('Chat state changed:', { messages: messages.length, participants: participants.length });
@@ -210,47 +73,12 @@ export default function LlmChatPreview() {
         setScenario(newScenario);
     };
 
-    const handleConfigChange = (providerId: string, field: string, value: string) => {
-        const currentConfig = providerConfigs[providerId] || {};
-        const newConfig = { ...currentConfig, [field]: value };
-        saveProviderConfig(providerId, newConfig);
-    };
-
-    const renderConfigFields = (scenarioData: ScenarioDefinition) => {
-        if (!scenarioData.metadata || !scenarioData.configFields) {
-            return null;
-        }
-
-        const providerId = `${scenarioData.metadata.packageName}-${scenarioData.metadata.className}`;
-        const config = providerConfigs[providerId] || {};
-
-        return (
-            <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-700">Configuration for {scenarioData.metadata.title}:</h4>
-                {scenarioData.configFields.map((field) => (
-                    <div key={field.key}>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            {field.label}:{field.required && <span className="text-red-500 ml-1">*</span>}
-                            <span className="text-xs text-gray-500 ml-1">(stored in localStorage)</span>
-                        </label>
-                        <input
-                            type={field.type}
-                            value={config[field.key] || ''}
-                            onChange={(e) => handleConfigChange(providerId, field.key, e.target.value)}
-                            placeholder={field.placeholder}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                        />
-                        {field.required && (!config[field.key] || !config[field.key].trim()) && (
-                            <p className="text-xs text-red-600 mt-1">{field.label} is required</p>
-                        )}
-                    </div>
-                ))}
-            </div>
-        );
+    const handleApiKeyChange = (newApiKey: string) => {
+        setOpenaiApiKey(newApiKey);
     };
 
     const renderChat = () => {
-        const currentScenario = scenarios[scenario];
+        const currentScenario = scenarios[scenario as keyof typeof scenarios];
 
         if (!currentScenario) {
             return <div className="text-red-600">Invalid scenario selected</div>;
@@ -259,10 +87,8 @@ export default function LlmChatPreview() {
         if (!currentScenario.llmTools) {
             return (
                 <div className="text-red-600 p-4 border border-red-300 rounded-md bg-red-50">
-                    <p className="font-medium">Configuration Required</p>
-                    <p className="text-sm mt-1">
-                        Please configure the required settings above to use {currentScenario.name}.
-                    </p>
+                    <p className="font-medium">OpenAI API Key Required</p>
+                    <p className="text-sm mt-1">Please enter your OpenAI API key above to use OpenAI chat scenarios.</p>
                 </div>
             );
         }
@@ -273,29 +99,36 @@ export default function LlmChatPreview() {
             style: { height: '600px' },
         };
 
-        const isPersistent = scenario.includes('persistent');
-        const persistenceKey = isPersistent ? `demo-${scenario.replace('-persistent', '')}-chat` : undefined;
-
-        return (
-            <LlmChat
-                {...commonProps}
-                persistenceKey={persistenceKey}
-                placeholderMessageContent={
-                    isPersistent
-                        ? `This ${currentScenario.name} chat persists in localStorage - try refreshing the page!`
-                        : `Ask ${currentScenario.name} anything...`
-                }
-            />
-        );
+        switch (scenario) {
+            case 'mock-basic':
+                return <LlmChat {...commonProps} placeholderMessageContent="Ask the mocked echo LLM anything..." />;
+            case 'mock-persistent':
+                return (
+                    <LlmChat
+                        {...commonProps}
+                        persistenceKey="demo-mock-chat"
+                        placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
+                    />
+                );
+            case 'openai':
+                return (
+                    <LlmChat
+                        {...commonProps}
+                        persistenceKey="demo-openai-chat"
+                        placeholderMessageContent="This OpenAI chat persists in localStorage - try refreshing the page!"
+                    />
+                );
+            default:
+                return <div className="text-red-600">Unknown scenario</div>;
+        }
     };
 
-    const currentScenario = scenarios[scenario];
-    const needsConfiguration =
-        currentScenario?.metadata && currentScenario.configFields && currentScenario.configFields.length > 0;
+    const currentScenario = scenarios[scenario as keyof typeof scenarios];
+    const isOpenAiScenario = scenario.startsWith('openai-');
 
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">LLM Chat Scenario:</label>
                     <select
@@ -303,17 +136,30 @@ export default function LlmChatPreview() {
                         onChange={(e) => handleScenarioChange(e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
                     >
-                        {Object.entries(scenarios).map(([key, scenarioData]) => (
+                        {Object.entries(scenarios).map(([key, { name }]) => (
                             <option key={key} value={key}>
-                                {scenarioData.name}
+                                {name}
                             </option>
                         ))}
                     </select>
                 </div>
 
-                {needsConfiguration && (
-                    <div className="p-4 border border-gray-200 rounded-md bg-gray-50">
-                        {renderConfigFields(currentScenario)}
+                {isOpenAiScenario && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            OpenAI API Key:
+                            <span className="text-xs text-gray-500 ml-1">(stored in localStorage)</span>
+                        </label>
+                        <input
+                            type="password"
+                            value={openaiApiKey}
+                            onChange={(e) => handleApiKeyChange(e.target.value)}
+                            placeholder="sk-..."
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        />
+                        {!openaiApiKey && (
+                            <p className="text-xs text-red-600 mt-1">API key is required for OpenAI scenarios</p>
+                        )}
                     </div>
                 )}
             </div>
@@ -341,8 +187,8 @@ export default function LlmChatPreview() {
                         {scenario.startsWith('mock-') && (
                             <li>• Uses MockedEchoLlmExecutionTools which echoes back your input</li>
                         )}
-                        {!scenario.startsWith('mock-') && currentScenario?.metadata && (
-                            <li>• Uses {currentScenario.metadata.title} for intelligent responses</li>
+                        {scenario.startsWith('openai-') && (
+                            <li>• Uses real OpenAI GPT models for intelligent responses</li>
                         )}
                         <li>• Shows loading states and task progress during LLM calls</li>
                         <li>• Automatically generates participants from LLM tools</li>
@@ -355,9 +201,9 @@ export default function LlmChatPreview() {
                                 <li>• Use the Reset button to clear both UI and localStorage</li>
                             </>
                         )}
-                        {needsConfiguration && (
+                        {scenario.startsWith('openai-') && (
                             <li>
-                                • <strong>Security:</strong> Configuration is stored locally in your browser
+                                • <strong>Security:</strong> API key is stored locally in your browser
                             </li>
                         )}
                     </ul>
