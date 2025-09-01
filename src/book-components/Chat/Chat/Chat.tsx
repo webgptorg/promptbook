@@ -10,7 +10,7 @@ import { countLines } from '../../../utils/expectation-counters/countLines';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
-import { ChatProps } from './ChatProps';
+import type { ChatProps } from './ChatProps';
 
 /**
  * @deprecated use `isComplete` instead
@@ -330,7 +330,7 @@ export function Chat(props: ChatProps) {
                                         console.group('💬', message.content);
                                         console.info('message', message);
                                         console.info('participant', participant);
-                                         console.info('participants', participants);
+                                        console.info('participants', participants);
                                         console.info('participant avatarSrc', avatarSrc);
                                         console.info('participant color', { color, colorOfText });
                                         console.groupEnd();

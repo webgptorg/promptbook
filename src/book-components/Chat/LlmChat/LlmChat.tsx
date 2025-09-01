@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { string_markdown, string_name } from '../../../types/typeAliases';
+import type { string_markdown } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { LlmChatProps } from './LlmChatProps';
+import type { LlmChatProps } from './LlmChatProps';
 
 /**
  * LlmChat component that provides chat functionality with LLM integration
