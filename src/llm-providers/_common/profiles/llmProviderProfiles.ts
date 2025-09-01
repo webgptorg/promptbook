@@ -5,7 +5,7 @@ import type { string_name } from '../../../types/typeAliases';
  * Predefined profiles for LLM providers to maintain consistency across the application
  * These profiles represent each provider as a virtual persona in chat interfaces
  *
- * @public exported from `@promptbook/core`
+ * @private !!!!
  */
 export const LLM_PROVIDER_PROFILES = {
     OPENAI: {
@@ -78,6 +78,8 @@ export const LLM_PROVIDER_PROFILES = {
 
 /**
  * Helper function to get a profile by provider name with fallback
+ *
+ * @private util !!!!
  */
 export function getLlmProviderProfile(providerKey: keyof typeof LLM_PROVIDER_PROFILES): ChatParticipant {
     return LLM_PROVIDER_PROFILES[providerKey];

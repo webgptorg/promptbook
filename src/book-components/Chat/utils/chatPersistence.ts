@@ -10,6 +10,8 @@ type SerializableChatMessage = Omit<ChatMessage, 'date'> & {
 
 /**
  * Utility functions for persisting chat conversations in localStorage
+ *
+ * @private util of `LlmChat`
  */
 export class ChatPersistence {
     private static readonly STORAGE_PREFIX = 'promptbook_chat_';
