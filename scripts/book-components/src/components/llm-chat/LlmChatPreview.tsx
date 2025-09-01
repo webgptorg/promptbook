@@ -39,7 +39,7 @@ export default function LlmChatPreview() {
         try {
             return new OpenAiExecutionTools({
                 apiKey: openaiApiKey,
-                dangerouslyAllowBrowser: true
+                dangerouslyAllowBrowser: true,
             });
         } catch (error) {
             console.error('Failed to create OpenAI tools:', error);
@@ -49,23 +49,18 @@ export default function LlmChatPreview() {
 
     const scenarios = {
         'mock-basic': {
-            name: 'Mock Chat',
+            name: 'Mocked Chat (No storage)',
             description: 'Simple chat with mocked echo LLM',
             llmTools: mockedLlmTools,
         },
         'mock-persistent': {
-            name: 'Mock Chat (Persistent)',
+            name: 'Mocked Chat (Persistent)',
             description: 'Chat with mocked LLM and localStorage persistence - messages survive page refresh',
             llmTools: mockedLlmTools,
         },
-        'openai-basic': {
+        openai: {
             name: 'OpenAI Chat',
-            description: 'Chat with real OpenAI GPT models',
-            llmTools: openaiLlmTools,
-        },
-        'openai-persistent': {
-            name: 'OpenAI Chat (Persistent)',
-            description: 'Chat with OpenAI GPT models and localStorage persistence',
+            description: 'Chat with OpenAI GPT models',
             llmTools: openaiLlmTools,
         },
     };
@@ -115,9 +110,7 @@ export default function LlmChatPreview() {
                         placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
                     />
                 );
-            case 'openai-basic':
-                return <LlmChat {...commonProps} placeholderMessageContent="Ask OpenAI GPT anything..." />;
-            case 'openai-persistent':
+            case 'openai':
                 return (
                     <LlmChat
                         {...commonProps}
@@ -165,9 +158,7 @@ export default function LlmChatPreview() {
                             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                         />
                         {!openaiApiKey && (
-                            <p className="text-xs text-red-600 mt-1">
-                                API key is required for OpenAI scenarios
-                            </p>
+                            <p className="text-xs text-red-600 mt-1">API key is required for OpenAI scenarios</p>
                         )}
                     </div>
                 )}
@@ -184,7 +175,8 @@ export default function LlmChatPreview() {
                 </p>
                 {currentScenario?.llmTools && (
                     <p>
-                        <strong>LLM Provider:</strong> {currentScenario.llmTools.title} - {currentScenario.llmTools.description}
+                        <strong>LLM Provider:</strong> {currentScenario.llmTools.title} -{' '}
+                        {currentScenario.llmTools.description}
                     </p>
                 )}
                 <div className="bg-blue-50 p-3 rounded-md">
@@ -202,13 +194,17 @@ export default function LlmChatPreview() {
                         <li>• Automatically generates participants from LLM tools</li>
                         {scenario.includes('persistent') && (
                             <>
-                                <li>• <strong>Persistence:</strong> Messages are saved to localStorage</li>
+                                <li>
+                                    • <strong>Persistence:</strong> Messages are saved to localStorage
+                                </li>
                                 <li>• Try refreshing the page - your conversation will be restored!</li>
                                 <li>• Use the Reset button to clear both UI and localStorage</li>
                             </>
                         )}
                         {scenario.startsWith('openai-') && (
-                            <li>• <strong>Security:</strong> API key is stored locally in your browser</li>
+                            <li>
+                                • <strong>Security:</strong> API key is stored locally in your browser
+                            </li>
                         )}
                     </ul>
                 </div>
