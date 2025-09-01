@@ -1,7 +1,7 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/interfaces/ChatMessage';
 
 export const assistantsOnlyScenario = {
-    name: 'Avatars discussing together (wi)',
+    name: 'AI Avatars discussing together (without user)',
     messages: [
         {
             id: '1',

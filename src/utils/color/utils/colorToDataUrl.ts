@@ -2,7 +2,7 @@ import { Color } from '../Color';
 
 /**
  * Makes data url from color
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function colorToDataUrl(color: Color): string /*_dataurl*/ {
@@ -11,19 +11,19 @@ export function colorToDataUrl(color: Color): string /*_dataurl*/ {
 
 /**
  * Pixel GIF code adapted from https://stackoverflow.com/a/33919020/266535
- * 
+ *
  * @private util of `colorToDataUrl`
  */
 const keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
 /**
- * Generates a base64-encoded triplet string 
+ * Generates a base64-encoded triplet string
  *
  * @param e1 - The first element in the triplet.
  * @param e2 - The second element in the triplet.
  * @param e3 - The third element in the triplet.
  * @returns The base64-encoded triplet string.
- * 
+ *
  * @private util of `colorToDataUrl`
  */
 const triplet = (e1: number, e2: number, e3: number) =>
@@ -39,8 +39,8 @@ const triplet = (e1: number, e2: number, e3: number) =>
  * @param g - The green channel value.
  * @param b - The blue channel value.
  * @returns The RGB data URL string.
- * 
- * @private util of `@promptbook/color`
+ *
+ * @private util of `colorToDataUrl`
  */
 const rgbDataURL = (r: number, g: number, b: number) =>
     `data:image/gif;base64,R0lGODlhAQABAPAA${

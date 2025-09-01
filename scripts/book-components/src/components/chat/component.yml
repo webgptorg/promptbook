@@ -2,7 +2,7 @@
 id: chat
 name: Chat
 description: Interactive chat component that displays messages between multiple participants with support for user input, message history, and various chat scenarios.
-category: Communication
+category: Chat
 tags:
     - chat
     - messaging

@@ -1,7 +1,7 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/interfaces/ChatMessage';
 
 export const multiParticipantScenario = {
-    name: 'Multi-Participant with User',
+    name: 'Chat with multiple AI Avatars',
     messages: [
         {
             id: '1',

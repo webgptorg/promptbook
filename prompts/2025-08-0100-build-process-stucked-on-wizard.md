@@ -6,6 +6,8 @@
     command `ts-node ./scripts/generate-packages/generate-packages.ts --commit`
     in step `4️⃣  Generate bundle for each package`
 -   It only happens sometimes. The next build is okay, and the build process ends successfully.
+-   Even when it doesnt stuck it takes **up to hour** on a local machine
+-   On Github Action `Publish new version` -> `Publish on NPM package registry` -> `🏭 Build packages bundles` -> `npx ts-node ./scripts/generate-packages/generate-packages.ts` it takes just about 5 ~ 6 minutes _(see the screenshot)_
 -   Analyze the problem and try to fix it.
 -   If you cannot fix it, list possible reasons for the problem.
 
@@ -1180,7 +1182,10 @@ src/scripting/javascript/JavascriptEvalExecutionTools.ts
 created ./packages/wizard/esm/index.es.js, ./packages/wizard/umd/index.umd.js in 25.6s
 ```
 
-## ![shell](screenshots/2025-08-0100-build-process-stucked-on-wizard.png)
+![shell](screenshots/2025-08-0100-build-process-stucked-on-wizard.png)
+![Build on Github Action](screenshots/2025-08-0100-build-process-stucked-on-wizard-1.png)
+
+---
 
 [ ]
 
