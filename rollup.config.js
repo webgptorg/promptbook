@@ -38,6 +38,31 @@ export default function () {
                 }),
             ];
 
+            // External dependencies to reduce bundle size and prevent issues
+            const external = [
+                // Node.js built-ins
+                'fs', 'fs/promises', 'path', 'crypto', 'http', 'https', 'url', 'stream',
+                'child_process', 'os', 'util', 'events', 'buffer', 'querystring',
+                
+                // Common external dependencies that should not be bundled
+                'spacetrim', 'colors', 'waitasecond', 'moment', 'rxjs', 'prettier',
+                'papaparse', 'crypto-js', 'crypto-js/enc-hex', 'crypto-js/sha256',
+                'mime-types', 'jszip', 'dotenv', 'bottleneck',
+                
+                // LLM provider SDKs
+                '@anthropic-ai/sdk', '@azure/openai', 'openai', '@ai-sdk/openai',
+                '@ai-sdk/google', '@ai-sdk/deepseek',
+                
+                // Heavy dependencies for specific packages
+                'jsdom', '@mozilla/readability', 'showdown', 'express',
+                'socket.io', 'socket.io-client', 'swagger-ui-express',
+                'express-openapi-validator', 'prompts', 'commander',
+                'glob-promise', 'lorem-ipsum', 'markitdown-ts',
+                
+                // React dependencies (for components package)
+                'react', 'react-dom', 'react/jsx-runtime'
+            ];
+
             const packageFullname = `@promptbook/${packageBasename}`;
 
             // Add CSS module support for components package
@@ -91,6 +116,7 @@ export default function () {
                 input: entryIndexFilePath,
                 output,
                 plugins,
+                external,
             };
         });
 }

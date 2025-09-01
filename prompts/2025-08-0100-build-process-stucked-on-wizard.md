@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🤯] Build process sometimes freezes during the `@promptbook/wizard` package
 

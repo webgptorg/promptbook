@@ -488,10 +488,26 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         console.info(colors.yellow(`Skipping the bundler`));
     } else {
         await forTime(1000 * 60 * 60 * 0);
-        await $execCommand({
-            isVerbose: true,
-            command: `node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
-        });
+        
+        // Add timeout and reduce memory allocation to prevent freezing
+        const buildTimeout = setTimeout(() => {
+            console.error(colors.red('Build process timed out after 15 minutes'));
+            process.exit(1);
+        }, 15 * 60 * 1000); // 15 minute timeout
+
+        try {
+            await $execCommand({
+                isVerbose: true,
+                // Reduced memory allocation from 32GB to 8GB to prevent GC thrashing
+                command: `node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+            });
+            
+            clearTimeout(buildTimeout);
+            console.info(colors.green('Build completed successfully'));
+        } catch (error) {
+            clearTimeout(buildTimeout);
+            throw error;
+        }
     }
 
     // ==============================
