@@ -19,7 +19,7 @@ export class ChatPersistence {
      */
     static saveMessages(persistenceKey: string, messages: ReadonlyArray<ChatMessage>): void {
         try {
-            const serializableMessages: SerializableChatMessage[] = messages.map(message => ({
+            const serializableMessages: SerializableChatMessage[] = messages.map((message) => ({
                 ...message,
                 date: message.date.toISOString(),
             }));
@@ -46,7 +46,7 @@ export class ChatPersistence {
             const serializableMessages: SerializableChatMessage[] = JSON.parse(stored);
 
             // Convert date strings back to Date objects
-            return serializableMessages.map(message => ({
+            return serializableMessages.map((message) => ({
                 ...message,
                 date: new Date(message.date),
             }));
