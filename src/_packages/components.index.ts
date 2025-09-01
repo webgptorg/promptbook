@@ -17,6 +17,8 @@ import type { ChatProps } from '../book-components/Chat/Chat/Chat';
 import { Chat } from '../book-components/Chat/Chat/Chat';
 import type { ChatMessage } from '../book-components/Chat/interfaces/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/interfaces/ChatParticipant';
+import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChat';
+import { LlmChat } from '../book-components/Chat/LlmChat/LlmChat';
 
 
 // Note: Exporting version from each package
@@ -39,3 +41,5 @@ export type { ChatProps };
 export { Chat };
 export type { ChatMessage };
 export type { ChatParticipant };
+export type { LlmChatProps };
+export { LlmChat };
