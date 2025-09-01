@@ -70,4 +70,4 @@ This should show same chat as [Chat component](/src/book-components/Chat/Chat/Ch
 
 [ ]
 
-[✨💞] qux
+[✨💞] Add `isPersistent` prop to `LlmChat`
