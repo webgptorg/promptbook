@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
@@ -8,7 +8,7 @@ import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mo
 
 export default function LlmChatPreview() {
     const [scenario, setScenario] = useState<string>('basic');
-    const [llmTools] = useState(() => new MockedEchoLlmExecutionTools({ isVerbose: true }));
+    const mockedEchoLlmExecutionTools = useMemo(() => new MockedEchoLlmExecutionTools({ isVerbose: true }),[]);
 
     const scenarios = {
         basic: {
@@ -39,7 +39,7 @@ export default function LlmChatPreview() {
 
     const renderChat = () => {
         const commonProps = {
-            llmTools,
+            llmTools: mockedEchoLlmExecutionTools,
             onChange: handleChange,
             style: { height: '600px' },
         };

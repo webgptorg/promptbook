@@ -11,18 +11,11 @@ import { LlmChatProps } from './LlmChatProps';
  * LlmChat component that provides chat functionality with LLM integration
  *
  * This component internally manages messages, participants, and task progress,
- * and uses the provided LLM tools to generate responses via callChatModel.
+ * and uses the provided LLM tools to generate responses via `LlmExecutionTools.callChatModel`.
  *
  * Note: There are multiple chat components:
- * - <Chat/> renders chat as it is without any logic
- * - <SimpleChat/> with callback function after each message 🔵->🟢->🔵->🟢->🔵->🟢->...
- * - <WorkerChat/> with continuously running worker function on background which binds on dialogues queue  🔵->🟢->🔵->🟢->🔵->🟢->...
- * - <SignalChat/> fully controlled by signal that is passed in 🔵->🟢->🟢->🟢->🔵->🟢->...
- * - <LlmChat/> connected to LLM Execution Tools of Promptbook
- * - <AgentChat/> direct OpenAI API integration with streaming responses and model selection
- * - <ChatbotMiniapp/> Fully working chatbot miniapp created from book
- * - <AssistantChatPage/> page for assistant chat with welcome message and avatar
- * - <ModelAwareChat/> wrapper around <Chat/> that provides model-aware avatars
+ * - `<Chat/>` renders chat as it is without any logic
+ * - `<LlmChat/>` connected to LLM Execution Tools of Promptbook
  *
  * @public exported from `@promptbook/components`
  */
