@@ -1,6 +1,6 @@
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import type { ChatMessage } from '../interfaces/ChatMessage';
-import { ChatParticipant } from '../interfaces/ChatParticipant';
+import type { ChatParticipant } from '../interfaces/ChatParticipant';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
