@@ -46,6 +46,11 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/color
+              working-directory: ./packages/color
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/components
               working-directory: ./packages/components
               run: npm publish --provenance --access public

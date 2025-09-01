@@ -1,12 +1,13 @@
 # 📅 Changelog
 
 ## [Unreleased]
+
 -   **New:** Created `AvatarProfile` and `AvatarProfileFromSource` components
 -   **Fixed:** Intermittent `ECONNRESET` build failures in tests by implementing retry logic with exponential backoff for network errors in LLM API calls
-- Refactored BookEditor: split into outer and inner components, with the inner rendered inside the shadow DOM.
-- BookEditor now highlights the first line in the editor.
-- Removed nonce workaround from BookEditor; rendering is now stable without nonce.
-- Added AvatarChip component preview and registration in ComponentPreview.tsx.
+-   Refactored BookEditor: split into outer and inner components, with the inner rendered inside the shadow DOM.
+-   BookEditor now highlights the first line in the editor.
+-   Removed nonce workaround from BookEditor; rendering is now stable without nonce.
+-   Added AvatarChip component preview and registration in ComponentPreview.tsx.
 
 ## Released versions
 
@@ -858,6 +859,7 @@ Adding Book 2.0 features
 -   Remove `AnthropicClaudeExecutionTools.callCompletionModel` _(to avoid unnecessary maintenance)_
 -   Task contains `tldr` for displaying in UI
 -   Improve `tldr` progress estimation based on pipeline structure instead of fake simulation
+-   Create `@promptbook/color` package
 <details>
 <summary>
 

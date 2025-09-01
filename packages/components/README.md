@@ -405,6 +405,7 @@ Or you can install them separately:
 -   **[@promptbook/editable](https://www.npmjs.com/package/@promptbook/editable)** - Editable book as native javascript object with imperative object API
 -   **[@promptbook/templates](https://www.npmjs.com/package/@promptbook/templates)** - Useful templates and examples of books which can be used as a starting point
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
+-   **[@promptbook/color](https://www.npmjs.com/package/@promptbook/color)** - Just typescript types used in the library
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 -   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
 

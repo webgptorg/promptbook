@@ -13,6 +13,7 @@ import { AvatarProfileFromSource } from '../book-components/AvatarProfile/Avatar
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
 import { DEFAULT_BOOK_FONT_CLASS } from '../book-components/BookEditor/config';
+import type { ChatProps } from '../book-components/Chat/Chat/Chat';
 import { Chat } from '../book-components/Chat/Chat/Chat';
 import type { ChatMessage } from '../book-components/Chat/interfaces/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/interfaces/ChatParticipant';
@@ -34,6 +35,7 @@ export { AvatarProfileFromSource };
 export type { BookEditorProps };
 export { BookEditor };
 export { DEFAULT_BOOK_FONT_CLASS };
+export type { ChatProps };
 export { Chat };
 export type { ChatMessage };
 export type { ChatParticipant };

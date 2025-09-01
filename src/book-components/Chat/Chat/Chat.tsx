@@ -6,6 +6,8 @@ import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
+import { Color } from '../../../utils/color/Color';
+import { textColor } from '../../../utils/color/operators/furthest';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../interfaces/ChatMessage';
@@ -22,7 +24,10 @@ export const LOADING_INTERACTIVE_IMAGE = 'Loading...';
 // const ArrowIcon = dynamic(() => import('../../icons/ArrowIcon/ArrowIcon').then((mod) => mod.ArrowIcon), { ssr: false });
 // const SendIcon = dynamic(() => import('../../icons/SendIcon/SendIcon').then((mod) => mod.SendIcon), { ssr: false });
 
-interface ChatProps {
+/**
+ * @public exported from `@promptbook/components`
+ */
+export interface ChatProps {
     /**
      * Optional callback to create a new agent from the template.
      * If provided, renders the [Use this template] button.
@@ -433,7 +438,8 @@ export function Chat(props: ChatProps) {
                         {messages.map((message, i) => {
                             const participant = participants.find((participant) => participant.name === message.from);
                             const avatarSrc = (participant && participant.avatarSrc) || '';
-                            const color = (participant && participant.color) || '#ccc';
+                            const color = Color.from((participant && participant.color) || '#ccc');
+                            const colorOfText = color.then(textColor);
 
                             return (
                                 <div
@@ -458,7 +464,7 @@ export function Chat(props: ChatProps) {
                                                 src={avatarSrc}
                                                 alt={`Avatar of ${message.from.toLocaleLowerCase()}`}
                                                 style={{
-                                                    backgroundColor: color,
+                                                    backgroundColor: color.toHex(),
                                                 }}
                                             />
                                         </div>
@@ -467,7 +473,8 @@ export function Chat(props: ChatProps) {
                                     <div
                                         className={styles.messageText}
                                         style={{
-                                            backgroundColor: color,
+                                            backgroundColor: color.toHex(),
+                                            color: colorOfText.toHex(),
                                         }}
                                     >
                                         {message.isVoiceCall && (

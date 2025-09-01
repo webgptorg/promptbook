@@ -95,6 +95,7 @@
         "@promptbook/azure-openai": "0.100.0-47",
         "@promptbook/browser": "0.100.0-47",
         "@promptbook/cli": "0.100.0-47",
+        "@promptbook/color": "0.100.0-47",
         "@promptbook/components": "0.100.0-47",
         "@promptbook/core": "0.100.0-47",
         "@promptbook/deepseek": "0.100.0-47",

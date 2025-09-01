@@ -1,6 +1,5 @@
-import type { string_name } from '../../../types/typeAliases';
-import type { string_person_fullname } from '../../../types/typeAliases';
-import type { string_url_image } from '../../../types/typeAliases';
+import type { string_color, string_name, string_person_fullname, string_url_image } from '../../../types/typeAliases';
+import { Color } from '../../../utils/color/Color';
 
 /**
  * A participant in the chat
@@ -31,5 +30,6 @@ export type ChatParticipant = {
     /**
      * Color associated with the participant
      */
-    color: string /*_color */;
+    color: string_color | Color;
+    //                     <- TODO: Here should be just interface of the Color not the class itselfs
 };

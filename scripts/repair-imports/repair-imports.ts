@@ -64,6 +64,7 @@ async function repairImports({
 
     const allEntities = await findAllProjectEntities();
     const files = await readAllProjectFiles();
+    const unfoundEntities: Array<{ entity: string; filePath: string }> = [];
 
     for (const file of files) {
         if (file.path === join(__dirname, '../../src/index.tsx').split('\\').join('/')) {
@@ -120,39 +121,66 @@ async function repairImports({
                 .map((importedEntity) => spaceTrim(importedEntity))
                 .filter((entity) => entity !== '');
 
-            file.content = file.content.replace(
-                match[0]!,
-                importedEntities
-                    .map((importedEntity: string) => {
-                        const entity = allEntities.find(({ name }) => name === importedEntity);
+            const validImports: string[] = [];
+            let hasUnfoundEntities = false;
 
-                        if (!entity) {
-                            console.info(
-                                colors.blue(allEntities.map(({ type, name }) => `- ${type} ${name}`).join('\n')),
-                            );
+            for (const importedEntity of importedEntities) {
+                const entity = allEntities.find(({ name }) => name === importedEntity);
 
-                            throw new Error(
-                                `Can not find in which file is entity "${importedEntity}" imported by file "${file.path}".`,
-                            );
-                        }
+                if (!entity) {
+                    unfoundEntities.push({ entity: importedEntity, filePath: file.path });
+                    hasUnfoundEntities = true;
+                } else {
+                    let importFrom = relative(dirname(file.path), entity.filename)
+                        // Note: Changing Windows path to Unix path (\ to /)
+                        .split('\\')
+                        .join('/')
+                        // Note: Removing extension
+                        .split(/\.(?:tsx?|jsx?)$/)
+                        .join('');
 
-                        let importFrom = relative(dirname(file.path), entity.filename)
-                            // Note: Changing Windows path to Unix path (\ to /)
-                            .split('\\')
-                            .join('/')
-                            // Note: Removing extension
-                            .split(/\.(?:tsx?|jsx?)$/)
-                            .join('');
+                    if (!importFrom.startsWith('.')) {
+                        importFrom = './' + importFrom;
+                    }
 
-                        if (!importFrom.startsWith('.')) {
-                            importFrom = './' + importFrom;
-                        }
+                    validImports.push(
+                        `import ${!entity.isType ? `` : `type `}{ ${importedEntity} } from '${importFrom}';`,
+                    );
+                }
+            }
 
-                        return `import ${!entity.isType ? `` : `type `}{ ${importedEntity} } from '${importFrom}';`;
-                    })
-                    .join('\n'),
-            );
+            // Only replace if we have valid imports and no unfound entities in this match
+            if (validImports.length > 0 && !hasUnfoundEntities) {
+                file.content = file.content.replace(match[0]!, validImports.join('\n'));
+            }
         }
+    }
+
+    // Report all unfound entities
+    if (unfoundEntities.length > 0) {
+        console.info(colors.red(`\n❌ Found ${unfoundEntities.length} unfound entities:`));
+
+        // Group by file for better readability
+        const entitiesByFile = unfoundEntities.reduce((acc, { entity, filePath }) => {
+            if (!acc[filePath]) {
+                acc[filePath] = [];
+            }
+            acc[filePath].push(entity);
+            return acc;
+        }, {} as Record<string, string[]>);
+
+        console.info(colors.blue(`\n📋 Available entities:`));
+        console.info(colors.blue(allEntities.map(({ type, name }) => `   • ${type} ${name}`).join('\n')));
+        console.info(colors.blue(`\n📋 Available entities ↑`));
+
+        for (const [filePath, entities] of Object.entries(entitiesByFile)) {
+            console.info(colors.yellow(`\n📁 ${relative(process.cwd(), filePath).split('\\').join('/')}`));
+            for (const entity of entities) {
+                console.info(colors.red(`   • ${entity}`));
+            }
+        }
+
+        throw new Error(`Cannot repair imports: ${unfoundEntities.length} entities not found in project.`);
     }
 
     await writeAllProjectFiles(files, isOrganized);
