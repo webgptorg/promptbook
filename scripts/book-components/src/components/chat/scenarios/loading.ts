@@ -1,7 +1,7 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/interfaces/ChatMessage';
 
 export const loadingScenario = {
-    name: 'Chat with Loading Message',
+    name: 'Loading Message',
     messages: [
         {
             id: '1',

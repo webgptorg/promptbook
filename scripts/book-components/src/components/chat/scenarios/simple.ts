@@ -1,7 +1,7 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/interfaces/ChatMessage';
 
 export const simpleScenario = {
-    name: 'Simple User-Assistant Chat',
+    name: 'Simple Chat',
     messages: [
         {
             id: '1',

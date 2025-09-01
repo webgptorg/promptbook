@@ -5,12 +5,12 @@ import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/interfaces/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/interfaces/ChatParticipant';
 import {
-    emptyScenario,
-    simpleScenario,
-    multiParticipantScenario,
     assistantsOnlyScenario,
+    emptyScenario,
     loadingScenario,
     longThreadScenario,
+    multiParticipantScenario,
+    simpleScenario,
 } from './scenarios';
 
 export default function ChatPreview() {
@@ -115,6 +115,7 @@ export default function ChatPreview() {
             </div>
 
             <Chat
+                style={{ height: '800px' }}
                 messages={messages}
                 participants={participants}
                 onMessage={handleMessage}
@@ -122,6 +123,7 @@ export default function ChatPreview() {
                 placeholderMessageContent="Try typing a message to interact with the chat..."
             />
 
+            {/*
             <div className="text-sm text-gray-600">
                 <p>
                     <strong>Current scenario:</strong> {scenarios[scenario as keyof typeof scenarios].name}
@@ -134,6 +136,7 @@ export default function ChatPreview() {
                         .join(', ') || 'None'}
                 </p>
             </div>
+            */}
         </div>
     );
 }
