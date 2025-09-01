@@ -8,7 +8,7 @@ import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mo
 
 export default function LlmChatPreview() {
     const [scenario, setScenario] = useState<string>('basic');
-    const mockedEchoLlmExecutionTools = useMemo(() => new MockedEchoLlmExecutionTools({ isVerbose: true }),[]);
+    const llmTools = useMemo(() => new MockedEchoLlmExecutionTools({ isVerbose: true }), []);
 
     const scenarios = {
         basic: {
@@ -39,7 +39,7 @@ export default function LlmChatPreview() {
 
     const renderChat = () => {
         const commonProps = {
-            llmTools: mockedEchoLlmExecutionTools,
+            llmTools,
             onChange: handleChange,
             style: { height: '600px' },
         };

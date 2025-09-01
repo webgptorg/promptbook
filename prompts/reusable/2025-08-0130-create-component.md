@@ -71,3 +71,18 @@ This should show same chat as [Chat component](/src/book-components/Chat/Chat/Ch
 [ ]
 
 [✨💞] Add `isPersistent` prop to `LlmChat`
+
+---
+
+[ ]
+
+[✨💞] In [`LlmChatPreview`](/scripts/book-components/src/components/llm-chat/LlmChatPreview.tsx) allow to chat with `OpenAiExecutionTools`
+
+-   In the "LLM Chat Scenario:" allow to pick between mock chat and openai chat
+-   Add field for api key
+
+---
+
+[ ]
+
+[✨💞] In [`LlmChatPreview`](/scripts/book-components/src/components/llm-chat/LlmChatPreview.tsx) allow to chat with various LLM providers
