@@ -3,11 +3,16 @@
 ## [Unreleased]
 
 -   **New:** Created `AvatarProfile` and `AvatarProfileFromSource` components
+-   **New:** Added `profile` property to `LlmExecutionTools` type for chat interface integration
+-   **New:** Created shared LLM provider profiles utility with predefined visual identities for all major providers
+-   **New:** Updated `LlmChat` component to use provider profiles for consistent branding and visual representation
 -   **Fixed:** Intermittent `ECONNRESET` build failures in tests by implementing retry logic with exponential backoff for network errors in LLM API calls
 -   Refactored BookEditor: split into outer and inner components, with the inner rendered inside the shadow DOM.
 -   BookEditor now highlights the first line in the editor.
 -   Removed nonce workaround from BookEditor; rendering is now stable without nonce.
 -   Added AvatarChip component preview and registration in ComponentPreview.tsx.
+-   Enhanced chat interfaces with provider-specific visual identities including colors, names, and avatars
+-   Added comprehensive test suite for LLM provider profiles
 
 ## Released versions
 

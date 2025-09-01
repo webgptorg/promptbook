@@ -58,14 +58,14 @@ export function LlmChat(props: LlmChatProps) {
                 isMe: true,
                 color: '#3b82f6',
             },
-            {
+            // Use the profile from llmTools if available, otherwise fallback to default
+            llmTools.profile || {
                 name: 'ASSISTANT' as string_name,
                 fullname: llmTools.title || 'AI Assistant',
                 color: '#10b981',
-                // Note: Could add avatar based on llmTools if available
             },
         ],
-        [],
+        [llmTools.profile, llmTools.title],
     );
 
     // Handle user messages and LLM responses

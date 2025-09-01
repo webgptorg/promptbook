@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
 import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
@@ -25,6 +26,10 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
 
     public get description(): string_markdown {
         return 'What you say is whay you get - just for testing';
+    }
+
+    public get profile() {
+        return LLM_PROVIDER_PROFILES.MOCKED_ECHO;
     }
 
     /**

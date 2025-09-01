@@ -4,6 +4,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../execution/PromptResult';
@@ -52,7 +53,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                 return spaceTrim(
                     (block) => `
                         ${headLine}
-                        
+
                           ${/* <- Note: Indenting the description: */ block(description)}
                     `,
                 );
@@ -66,6 +67,10 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                 ${block(innerModelsTitlesAndDescriptions)}
             `,
         );
+    }
+
+    public get profile() {
+        return LLM_PROVIDER_PROFILES.MULTIPLE;
     }
 
     /**
@@ -119,21 +124,19 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
 
         llm: for (const llmExecutionTools of this.llmExecutionTools) {
             try {
-                variant: switch (prompt.modelRequirements.modelVariant) {
+                switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
                         if (llmExecutionTools.callChatModel === undefined) {
                             continue llm;
                         }
 
                         return await llmExecutionTools.callChatModel(prompt);
-                        break variant;
                     case 'COMPLETION':
                         if (llmExecutionTools.callCompletionModel === undefined) {
                             continue llm;
                         }
 
                         return await llmExecutionTools.callCompletionModel(prompt);
-                        break variant;
 
                     case 'EMBEDDING':
                         if (llmExecutionTools.callEmbeddingModel === undefined) {
@@ -141,7 +144,6 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                         }
 
                         return await llmExecutionTools.callEmbeddingModel(prompt);
-                        break variant;
 
                     // <- case [🤖]:
 

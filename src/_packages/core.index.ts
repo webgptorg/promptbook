@@ -293,6 +293,7 @@ export { limitTotalUsage };
 export { joinLlmExecutionTools };
 export { MultipleLlmExecutionTools };
 export { _AnthropicClaudeMetadataRegistration };
+export { LLM_PROVIDER_PROFILES, getLlmProviderProfile, createCustomLlmProfile } from '../llm-providers/_common/profiles/llmProviderProfiles';
 export { _AzureOpenAiMetadataRegistration };
 export { _DeepseekMetadataRegistration };
 export { _GoogleMetadataRegistration };

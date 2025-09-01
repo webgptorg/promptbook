@@ -1,4 +1,5 @@
 import type { Promisable } from 'type-fest';
+import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { Prompt } from '../types/Prompt';
 import type { string_markdown } from '../types/typeAliases';
 import type { string_markdown_text } from '../types/typeAliases';
@@ -29,6 +30,14 @@ export type LlmExecutionTools = {
      * @example "Use all models from OpenAI"
      */
     readonly description?: string_markdown;
+
+    /**
+     * Profile representing the model as a virtual persona for chat interfaces
+     * This includes visual identity like avatar, colors, and display information
+     *
+     * @example { name: 'OPENAI', fullname: 'OpenAI GPT', color: '#10a37f', avatarSrc: '/openai-logo.png' }
+     */
+    readonly profile?: ChatParticipant;
 
     /**
      * Check comfiguration

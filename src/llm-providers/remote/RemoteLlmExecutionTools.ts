@@ -1,6 +1,7 @@
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../execution/PromptResult';
@@ -45,6 +46,10 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
 
     public get description(): string_markdown {
         return `Models from Promptbook remote server ${this.options.remoteServerUrl}`;
+    }
+
+    public get profile() {
+        return LLM_PROVIDER_PROFILES.REMOTE;
     }
 
     /**
