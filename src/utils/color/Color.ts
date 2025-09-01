@@ -1,4 +1,5 @@
-import type { string_color, string_url_image } from '../../types/typeAliases';
+import type { string_color } from '../../types/typeAliases';
+import type { string_url_image } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
 import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';

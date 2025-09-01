@@ -1,4 +1,7 @@
-import type { string_color, string_name, string_person_fullname, string_url_image } from '../../../types/typeAliases';
+import type { string_color } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
+import type { string_person_fullname } from '../../../types/typeAliases';
+import type { string_url_image } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 
 /**

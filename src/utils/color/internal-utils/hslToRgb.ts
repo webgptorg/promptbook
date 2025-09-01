@@ -1,4 +1,6 @@
-import type { number_integer, number_percent, number_positive } from '../../../types/typeAliases';
+import type { number_integer } from '../../../types/typeAliases';
+import type { number_percent } from '../../../types/typeAliases';
+import type { number_positive } from '../../../types/typeAliases';
 
 /**
  * Converts HSL values to RGB values
