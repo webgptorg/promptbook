@@ -40,7 +40,7 @@ This should show multiple avatars and their relationships in the graph
 
 ---
 
-[ ]
+[x]
 
 [✨💞] Create component `LlmChat` component
 
