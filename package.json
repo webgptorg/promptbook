@@ -1,6 +1,6 @@
 {
     "name": "promptbook-engine",
-    "version": "0.100.0-46",
+    "version": "0.100.0-47",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -183,7 +183,7 @@
     "scripts": {
         "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-package-generation && npm run test-unit",
         "test-unit": "jest --forceExit",
-        "_TODO-1":"           <- TODO: Remove `--forceExit` flag, now its present to ensure return code 0 when all tests ",
+        "_TODO-1": "           <- TODO: Remove `--forceExit` flag, now its present to ensure return code 0 when all tests ",
         "test-types": "tsc",
         "test-lint": "eslint src",
         "test-spellcheck": "cspell \"src/**/*.{ts,tsx,js,jsx,md,json}\"",
