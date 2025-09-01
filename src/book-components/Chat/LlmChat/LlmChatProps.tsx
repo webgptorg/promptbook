@@ -17,6 +17,12 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     readonly llmTools: LlmExecutionTools;
 
     /**
+     * Optional key for persisting conversation in localStorage
+     * When provided, the conversation will be saved and restored from localStorage
+     */
+    readonly persistenceKey?: string;
+
+    /**
      * Called when the chat state changes (messages, participants, etc.)
      */
     onChange?(messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>): void;

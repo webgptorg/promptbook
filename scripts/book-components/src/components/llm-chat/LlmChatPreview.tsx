@@ -15,6 +15,10 @@ export default function LlmChatPreview() {
             name: 'Mock Chat',
             description: 'Simple chat with mocked echo LLM',
         },
+        persistent: {
+            name: 'Persistent Chat',
+            description: 'Chat with localStorage persistence - messages survive page refresh',
+        },
     };
 
     const handleChange = (messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>) => {
@@ -36,8 +40,14 @@ export default function LlmChatPreview() {
         switch (scenario) {
             case 'basic':
                 return <LlmChat {...commonProps} placeholderMessageContent="Ask the mocked echo LLM anything..." />;
-
-           
+            case 'persistent':
+                return (
+                    <LlmChat
+                        {...commonProps}
+                        persistenceKey="demo-chat"
+                        placeholderMessageContent="This chat persists in localStorage - try refreshing the page!"
+                    />
+                );
             default:
                 return <></>;
         }
@@ -80,6 +90,13 @@ export default function LlmChatPreview() {
                         <li>• Uses MockedEchoLlmExecutionTools which echoes back your input</li>
                         <li>• Shows loading states and task progress during LLM calls</li>
                         <li>• Automatically generates participants from LLM tools</li>
+                        {scenario === 'persistent' && (
+                            <>
+                                <li>• <strong>Persistence:</strong> Messages are saved to localStorage</li>
+                                <li>• Try refreshing the page - your conversation will be restored!</li>
+                                <li>• Use the Reset button to clear both UI and localStorage</li>
+                            </>
+                        )}
                     </ul>
                 </div>
             </div>

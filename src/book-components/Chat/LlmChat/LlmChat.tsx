@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { string_markdown } from '../../../types/typeAliases';
 import type { string_name } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { ChatPersistence } from '../utils/chatPersistence';
 import type { LlmChatProps } from './LlmChatProps';
 
 /**
@@ -21,11 +22,32 @@ import type { LlmChatProps } from './LlmChatProps';
  * @public exported from `@promptbook/components`
  */
 export function LlmChat(props: LlmChatProps) {
-    const { llmTools, onChange, onReset, ...restProps } = props;
+    const { llmTools, persistenceKey, onChange, onReset, ...restProps } = props;
 
     // Internal state management
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
+
+    // Load persisted messages on component mount
+    useEffect(() => {
+        if (persistenceKey && ChatPersistence.isAvailable()) {
+            const persistedMessages = ChatPersistence.loadMessages(persistenceKey);
+            if (persistedMessages.length > 0) {
+                setMessages(persistedMessages);
+                // Notify about loaded messages
+                if (onChange) {
+                    onChange(persistedMessages, participants);
+                }
+            }
+        }
+    }, [persistenceKey]); // Only depend on persistenceKey, not participants or onChange to avoid infinite loops
+
+    // Save messages to localStorage whenever messages change (and persistence is enabled)
+    useEffect(() => {
+        if (persistenceKey && ChatPersistence.isAvailable() && messages.length > 0) {
+            ChatPersistence.saveMessages(persistenceKey, messages);
+        }
+    }, [messages, persistenceKey]);
 
     // Generate participants from llmTools
     const participants = useMemo<Array<ChatParticipant>>(
@@ -158,6 +180,11 @@ export function LlmChat(props: LlmChatProps) {
         setMessages([]);
         setTasksProgress([]);
 
+        // Clear persisted messages if persistence is enabled
+        if (persistenceKey && ChatPersistence.isAvailable()) {
+            ChatPersistence.clearMessages(persistenceKey);
+        }
+
         if (onReset) {
             await onReset();
         }
@@ -166,7 +193,7 @@ export function LlmChat(props: LlmChatProps) {
         if (onChange) {
             onChange([], participants);
         }
-    }, [onReset, onChange, participants]);
+    }, [persistenceKey, onReset, onChange, participants]);
 
     return (
         <Chat

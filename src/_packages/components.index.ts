@@ -1,6 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/components`
 
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { AvatarChipProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import { AvatarChip } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import type { AvatarChipFromSourceProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChipFromSource';
@@ -18,30 +19,27 @@ import { LlmChat } from '../book-components/Chat/LlmChat/LlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+
 
 // Note: Exporting version from each package
 export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
+
 // Note: Entities of the `@promptbook/components`
-export {
-    AvatarChip,
-    AvatarChipFromSource,
-    AvatarProfile,
-    AvatarProfileFromSource,
-    BookEditor,
-    Chat,
-    DEFAULT_BOOK_FONT_CLASS,
-    LlmChat,
-};
-export type {
-    AvatarChipFromSourceProps,
-    AvatarChipProps,
-    AvatarProfileFromSourceProps,
-    AvatarProfileProps,
-    BookEditorProps,
-    ChatMessage,
-    ChatParticipant,
-    ChatProps,
-    LlmChatProps,
-};
+export type { AvatarChipProps };
+export { AvatarChip };
+export type { AvatarChipFromSourceProps };
+export { AvatarChipFromSource };
+export type { AvatarProfileProps };
+export { AvatarProfile };
+export type { AvatarProfileFromSourceProps };
+export { AvatarProfileFromSource };
+export type { BookEditorProps };
+export { BookEditor };
+export { DEFAULT_BOOK_FONT_CLASS };
+export { Chat };
+export type { ChatProps };
+export { LlmChat };
+export type { LlmChatProps };
+export type { ChatMessage };
+export type { ChatParticipant };
