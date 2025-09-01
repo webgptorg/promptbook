@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { LlmChatProps } from './LlmChat';
+import type { LlmChatProps } from './LlmChatProps';
 
 describe('LlmChat', () => {
     const mockLlmTools = new MockedEchoLlmExecutionTools({ isVerbose: false });

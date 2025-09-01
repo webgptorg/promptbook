@@ -1,7 +1,6 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/components`
 
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { AvatarChipProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import { AvatarChip } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import type { AvatarChipFromSourceProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChipFromSource';
@@ -13,33 +12,36 @@ import { AvatarProfileFromSource } from '../book-components/AvatarProfile/Avatar
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
 import { DEFAULT_BOOK_FONT_CLASS } from '../book-components/BookEditor/config';
-import type { ChatProps } from '../book-components/Chat/Chat/Chat';
 import { Chat } from '../book-components/Chat/Chat/Chat';
-import type { ChatMessage } from '../book-components/Chat/interfaces/ChatMessage';
-import type { ChatParticipant } from '../book-components/Chat/interfaces/ChatParticipant';
-import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChat';
+import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import { LlmChat } from '../book-components/Chat/LlmChat/LlmChat';
-
+import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
+import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
+import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 
 // Note: Exporting version from each package
 export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
-
 // Note: Entities of the `@promptbook/components`
-export type { AvatarChipProps };
-export { AvatarChip };
-export type { AvatarChipFromSourceProps };
-export { AvatarChipFromSource };
-export type { AvatarProfileProps };
-export { AvatarProfile };
-export type { AvatarProfileFromSourceProps };
-export { AvatarProfileFromSource };
-export type { BookEditorProps };
-export { BookEditor };
-export { DEFAULT_BOOK_FONT_CLASS };
-export type { ChatProps };
-export { Chat };
-export type { ChatMessage };
-export type { ChatParticipant };
-export type { LlmChatProps };
-export { LlmChat };
+export {
+    AvatarChip,
+    AvatarChipFromSource,
+    AvatarProfile,
+    AvatarProfileFromSource,
+    BookEditor,
+    Chat,
+    DEFAULT_BOOK_FONT_CLASS,
+    LlmChat,
+};
+export type {
+    AvatarChipFromSourceProps,
+    AvatarChipProps,
+    AvatarProfileFromSourceProps,
+    AvatarProfileProps,
+    BookEditorProps,
+    ChatMessage,
+    ChatParticipant,
+    ChatProps,
+    LlmChatProps,
+};

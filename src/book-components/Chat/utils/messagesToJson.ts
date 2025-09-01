@@ -1,8 +1,8 @@
-import type { ChatMessage } from '../interfaces/ChatMessage';
+import type { ChatMessage } from '../types/ChatMessage';
 
 /**
  * Converts chat messages to JSON format
- * 
+ *
  * @private utility of `<Chat/>` component
  */
 export function messagesToJson(messages: ChatMessage[], shareUrl: string): string {

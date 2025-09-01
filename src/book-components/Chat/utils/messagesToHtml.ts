@@ -1,8 +1,8 @@
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import { escapeHtml } from '../../_common/react-utils/escapeHtml';
-import type { ChatMessage } from '../interfaces/ChatMessage';
-import type { ChatParticipant } from '../interfaces/ChatParticipant';
+import type { ChatMessage } from '../types/ChatMessage';
+import type { ChatParticipant } from '../types/ChatParticipant';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**

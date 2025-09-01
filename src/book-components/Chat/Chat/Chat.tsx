@@ -2,17 +2,15 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
-import type { Promisable } from 'type-fest';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { classNames } from '../../_common/react-utils/classNames';
-import type { ChatMessage } from '../interfaces/ChatMessage';
-import type { ChatParticipant } from '../interfaces/ChatParticipant';
+import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
+import { ChatProps } from './ChatProps';
 
 /**
  * @deprecated use `isComplete` instead
@@ -23,120 +21,6 @@ export const LOADING_INTERACTIVE_IMAGE = 'Loading...';
 // Note: These would need to be implemented within this project
 // const ArrowIcon = dynamic(() => import('../../icons/ArrowIcon/ArrowIcon').then((mod) => mod.ArrowIcon), { ssr: false });
 // const SendIcon = dynamic(() => import('../../icons/SendIcon/SendIcon').then((mod) => mod.SendIcon), { ssr: false });
-
-/**
- * @public exported from `@promptbook/components`
- */
-export interface ChatProps {
-    /**
-     * Optional callback to create a new agent from the template.
-     * If provided, renders the [Use this template] button.
-     */
-    onUseTemplate?(): void;
-    /**
-     * Messages to render - they are rendered as they are
-     */
-    readonly messages: ReadonlyArray<ChatMessage>;
-
-    /**
-     * Called every time the user types or dictated a message
-     */
-    onChange?(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): void;
-
-    /**
-     * Called when user sends a message
-     *
-     * Note: You must handle the message yourself and add it to the `messages` array
-     */
-    onMessage(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): Promisable<void>;
-
-    /**
-     * Optional callback, when set, button for resetting chat will be shown
-     */
-    onReset?(): Promisable<void>;
-
-    /**
-     * Determines whether the voice recognition button is rendered
-     */
-    readonly isVoiceRecognitionButtonShown?: boolean;
-
-    /**
-     * The language code to use for voice recognition
-     */
-    readonly voiceLanguage?: string;
-
-    /**
-     * Optional placeholder message for the textarea
-     *
-     * @default "Write a message"
-     */
-    readonly placeholderMessageContent?: string;
-
-    /**
-     * Optional preset message in chat
-     */
-    readonly defaultMessage?: string;
-
-    /**
-     * List of tasks that are currently in progress that should be displayed
-     */
-    readonly tasksProgress?: Array<{ id: string; name: string; progress?: number }>; // Simplified task progress type
-
-    /**
-     * Content to be shown inside the chat bar in head
-     * If not provided, the chat bar will not be rendered
-     */
-    readonly children?: ReactNode;
-
-    /**
-     * Optional CSS class name which will be added to root <div/> element
-     */
-    readonly className?: string;
-
-    /**
-     * Optional CSS style which will be added to root <div/> element
-     */
-    readonly style?: CSSProperties;
-
-    /**
-     * Voice call props - when provided, voice call button will be shown
-     */
-    readonly voiceCallProps?: {
-        selectedModel: string;
-        providerClients: Map<string, unknown>;
-        currentPersonaContent?: string;
-        onVoiceMessage?: (content: string, isVoiceCall: boolean) => void;
-        onAssistantVoiceResponse?: (content: string, isVoiceCall: boolean) => void;
-        onVoiceCallStateChange?: (isVoiceCalling: boolean) => void;
-    };
-
-    /**
-     * Indicates whether a voice call is currently active
-     */
-    readonly isVoiceCalling?: boolean;
-
-    /**
-     * Whether experimental features are enabled (required for voice calling)
-     */
-    readonly isExperimental?: boolean;
-
-    /**
-     * Whether the save button is enabled and shown
-     */
-    readonly isSaveButtonEnabled?: boolean;
-
-    /**
-     * Optional markdown header to include at the top of exported files.
-     * Example: "## Discussion Topic\n\nSome topic here"
-     */
-    readonly exportHeaderMarkdown?: string;
-
-    /**
-     * Optional mapping of participant IDs (message.from) to display metadata for exports.
-     * Keys should match ChatMessage.from values (e.g., 'USER', 'AGENT_{id}', etc.)
-     */
-    readonly participants?: ReadonlyArray<ChatParticipant>;
-}
 
 // Simple placeholder components for missing dependencies
 const ArrowIcon = ({ direction, size }: { direction: string; size: number }) => (
@@ -450,9 +334,12 @@ export function Chat(props: ChatProps) {
                                         !message.isComplete && styles.isPending,
                                     )}
                                     onClick={() => {
-                                        console.group(message);
-                                        console.info('message.content', message.content);
+                                        console.group('💬', message.content);
                                         console.info('message', message);
+                                        console.info('participant', participant);
+                                         console.info('participants', participants);
+                                        console.info('participant avatarSrc', avatarSrc);
+                                        console.info('participant color', { color, colorOfText });
                                         console.groupEnd();
                                     }}
                                 >

@@ -2,7 +2,7 @@
 id: llm-chat
 name: LLM Chat
 description: Interactive chat component that connects to LLM Execution Tools for AI-powered conversations. Internally manages messages, participants, and task progress while using the provided LLM tools to generate responses.
-category: Communication
+category: Chat
 tags:
     - chat
     - llm

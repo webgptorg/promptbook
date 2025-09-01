@@ -1,4 +1,4 @@
-import type { ChatMessage } from '../../../../../../src/book-components/Chat/interfaces/ChatMessage';
+import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
 export const longThreadScenario = {
     name: 'Looooooong Thread',
@@ -14,7 +14,8 @@ export const longThreadScenario = {
             id: '2',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'Oh yeah! It\'s like a cookbook, but instead of recipes for food, it has recipes for AI prompts! 👨‍🍳✨',
+            content:
+                "Oh yeah! It's like a cookbook, but instead of recipes for food, it has recipes for AI prompts! 👨‍🍳✨",
             isComplete: true,
         },
         {
@@ -35,7 +36,8 @@ export const longThreadScenario = {
             id: '5',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'Plus you can version control your recipes. "Git commit -m \'Added more salt to the prompt\'" 🧂💻',
+            content:
+                'Plus you can version control your recipes. "Git commit -m \'Added more salt to the prompt\'" 🧂💻',
             isComplete: true,
         },
         {
@@ -56,7 +58,8 @@ export const longThreadScenario = {
             id: '8',
             date: new Date(),
             from: 'ASSISTANT_2',
-            content: 'And if something goes wrong, you get proper error messages instead of just "prompt machine broke" 🤖💔',
+            content:
+                'And if something goes wrong, you get proper error messages instead of just "prompt machine broke" 🤖💔',
             isComplete: true,
         },
         {
@@ -70,14 +73,16 @@ export const longThreadScenario = {
             id: '10',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'Of course! It\'s open source - like a community cookbook where everyone adds their secret ingredients! 📚🌟',
+            content:
+                "Of course! It's open source - like a community cookbook where everyone adds their secret ingredients! 📚🌟",
             isComplete: true,
         },
         {
             id: '11',
             date: new Date(),
             from: 'ASSISTANT_3',
-            content: 'Speaking of ingredients, have you tried the "expectation" parameter? It\'s like seasoning for your outputs! 🧄',
+            content:
+                'Speaking of ingredients, have you tried the "expectation" parameter? It\'s like seasoning for your outputs! 🧄',
             isComplete: true,
         },
         {
@@ -91,21 +96,23 @@ export const longThreadScenario = {
             id: '13',
             date: new Date(),
             from: 'ASSISTANT_2',
-            content: 'It\'s like telling the AI "I expect this to be formatted as JSON" or "I expect a poem" - no more surprise ingredients! 🎭',
+            content:
+                'It\'s like telling the AI "I expect this to be formatted as JSON" or "I expect a poem" - no more surprise ingredients! 🎭',
             isComplete: true,
         },
         {
             id: '14',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'And the scripting language? It\'s like having measurement cups for prompts - precise and reproducible! 📏⚖️',
+            content:
+                "And the scripting language? It's like having measurement cups for prompts - precise and reproducible! 📏⚖️",
             isComplete: true,
         },
         {
             id: '15',
             date: new Date(),
             from: 'USER',
-            content: 'This sounds too good to be true. What\'s the catch? 🎣',
+            content: "This sounds too good to be true. What's the catch? 🎣",
             isComplete: true,
         },
         {
@@ -133,14 +140,15 @@ export const longThreadScenario = {
             id: '19',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'It\'s like a universal adapter - works with OpenAI, Anthropic, Azure... it\'s promiscuous with models! 🔌✨',
+            content:
+                "It's like a universal adapter - works with OpenAI, Anthropic, Azure... it's promiscuous with models! 🔌✨",
             isComplete: true,
         },
         {
             id: '20',
             date: new Date(),
             from: 'ASSISTANT_3',
-            content: 'Just don\'t tell one model about the others... we don\'t want jealous AIs! 💔🤖',
+            content: "Just don't tell one model about the others... we don't want jealous AIs! 💔🤖",
             isComplete: true,
         },
         {
@@ -161,7 +169,8 @@ export const longThreadScenario = {
             id: '23',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'And monitoring dashboards! Finally, you can watch your prompts work like a helicopter parent! 🚁📊',
+            content:
+                'And monitoring dashboards! Finally, you can watch your prompts work like a helicopter parent! 🚁📊',
             isComplete: true,
         },
         {
@@ -196,14 +205,16 @@ export const longThreadScenario = {
             id: '28',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'GitHub: github.com/webgptorg/promptbook - but warning: you might lose sleep reading the docs! 📖🌙',
+            content:
+                'GitHub: github.com/webgptorg/promptbook - but warning: you might lose sleep reading the docs! 📖🌙',
             isComplete: true,
         },
         {
             id: '29',
             date: new Date(),
             from: 'ASSISTANT_3',
-            content: 'And join the community! We have cookies... well, metaphorical ones. And great prompt recipes! 🍪👥',
+            content:
+                'And join the community! We have cookies... well, metaphorical ones. And great prompt recipes! 🍪👥',
             isComplete: true,
         },
         {
@@ -224,7 +235,8 @@ export const longThreadScenario = {
             id: '32',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'You know, those tangled, messy prompts with no structure... like mom\'s spaghetti, but for AI! 🍝😵‍💫',
+            content:
+                "You know, those tangled, messy prompts with no structure... like mom's spaghetti, but for AI! 🍝😵‍💫",
             isComplete: true,
         },
         {
@@ -238,7 +250,7 @@ export const longThreadScenario = {
             id: '34',
             date: new Date(),
             from: 'USER',
-            content: 'I\'m getting hungry now... and excited about structured prompts! 🍽️🎉',
+            content: "I'm getting hungry now... and excited about structured prompts! 🍽️🎉",
             isComplete: true,
         },
         {
@@ -287,7 +299,7 @@ export const longThreadScenario = {
             id: '41',
             date: new Date(),
             from: 'ASSISTANT_1',
-            content: 'Just wait until you start using it - you\'ll be evangelizing to everyone at coffee shops! ☕🗣️',
+            content: "Just wait until you start using it - you'll be evangelizing to everyone at coffee shops! ☕🗣️",
             isComplete: true,
         },
         {
@@ -322,7 +334,7 @@ export const longThreadScenario = {
             id: '46',
             date: new Date(),
             from: 'USER',
-            content: 'Okay, I\'m definitely convinced now. Time to go play with some prompts! 🎮📝',
+            content: "Okay, I'm definitely convinced now. Time to go play with some prompts! 🎮📝",
             isComplete: true,
         },
         {

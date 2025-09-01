@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
+import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
+import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { ChatMessage } from '../../../../../src/book-components/Chat/interfaces/ChatMessage';
-import type { ChatParticipant } from '../../../../../src/book-components/Chat/interfaces/ChatParticipant';
 
 export default function LlmChatPreview() {
     const [scenario, setScenario] = useState<string>('basic');
@@ -46,19 +46,11 @@ export default function LlmChatPreview() {
 
         switch (scenario) {
             case 'basic':
-                return (
-                    <LlmChat
-                        {...commonProps}
-                        placeholderMessageContent="Ask the mocked echo LLM anything..."
-                    />
-                );
+                return <LlmChat {...commonProps} placeholderMessageContent="Ask the mocked echo LLM anything..." />;
 
             case 'verbose':
                 return (
-                    <LlmChat
-                        {...commonProps}
-                        placeholderMessageContent="Chat with verbose logging (check console)..."
-                    >
+                    <LlmChat {...commonProps} placeholderMessageContent="Chat with verbose logging (check console)...">
                         <div className="text-sm text-gray-600 p-2">
                             <strong>Verbose Mode:</strong> Check browser console for detailed logs
                         </div>
@@ -75,12 +67,7 @@ export default function LlmChatPreview() {
                 );
 
             default:
-                return (
-                    <LlmChat
-                        {...commonProps}
-                        placeholderMessageContent="Default LLM chat..."
-                    />
-                );
+                return <LlmChat {...commonProps} placeholderMessageContent="Default LLM chat..." />;
         }
     };
 

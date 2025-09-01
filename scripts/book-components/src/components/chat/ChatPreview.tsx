@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
-import type { ChatMessage } from '../../../../../src/book-components/Chat/interfaces/ChatMessage';
-import type { ChatParticipant } from '../../../../../src/book-components/Chat/interfaces/ChatParticipant';
+import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
+import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import {
     assistantsOnlyScenario,
     emptyScenario,
