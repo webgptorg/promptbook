@@ -173,7 +173,7 @@ export function LlmChat(props: LlmChatProps) {
             {...restProps}
             {...{ messages, onReset, tasksProgress, participants }}
             onMessage={handleMessage}
-            onReset={onReset ? handleReset : undefined}
+            onReset={handleReset}
         />
     );
 }

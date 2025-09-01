@@ -12,16 +12,8 @@ export default function LlmChatPreview() {
 
     const scenarios = {
         basic: {
-            name: 'Basic LLM Chat',
+            name: 'Mock Chat',
             description: 'Simple chat with mocked echo LLM',
-        },
-        verbose: {
-            name: 'Verbose LLM Chat',
-            description: 'Chat with verbose logging enabled',
-        },
-        withReset: {
-            name: 'Chat with Reset',
-            description: 'Chat with reset functionality',
         },
     };
 
@@ -29,9 +21,6 @@ export default function LlmChatPreview() {
         console.log('Chat state changed:', { messages: messages.length, participants: participants.length });
     };
 
-    const handleReset = async () => {
-        console.log('Chat reset requested');
-    };
 
     const handleScenarioChange = (newScenario: string) => {
         setScenario(newScenario);
@@ -48,26 +37,9 @@ export default function LlmChatPreview() {
             case 'basic':
                 return <LlmChat {...commonProps} placeholderMessageContent="Ask the mocked echo LLM anything..." />;
 
-            case 'verbose':
-                return (
-                    <LlmChat {...commonProps} placeholderMessageContent="Chat with verbose logging (check console)...">
-                        <div className="text-sm text-gray-600 p-2">
-                            <strong>Verbose Mode:</strong> Check browser console for detailed logs
-                        </div>
-                    </LlmChat>
-                );
-
-            case 'withReset':
-                return (
-                    <LlmChat
-                        {...commonProps}
-                        onReset={handleReset}
-                        placeholderMessageContent="Chat with reset button enabled..."
-                    />
-                );
-
+           
             default:
-                return <LlmChat {...commonProps} placeholderMessageContent="Default LLM chat..." />;
+                return <></>;
         }
     };
 

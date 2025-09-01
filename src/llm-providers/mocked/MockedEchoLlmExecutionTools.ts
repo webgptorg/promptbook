@@ -2,16 +2,14 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
+import { forTime } from 'waitasecond';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -66,6 +64,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         if (this.options.isVerbose) {
             console.info('💬 Mocked callChatModel call');
         }
+
+        await forTime((1 + Math.random() * 4) * 1000);
 
         const modelName = 'mocked-echo';
         const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
