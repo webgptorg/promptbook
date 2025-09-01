@@ -79,7 +79,7 @@ export const LLM_PROVIDER_PROFILES = {
 /**
  * Helper function to get a profile by provider name with fallback
  *
- * @private util !!!!
+ * @private !!!!
  */
 export function getLlmProviderProfile(providerKey: keyof typeof LLM_PROVIDER_PROFILES): ChatParticipant {
     return LLM_PROVIDER_PROFILES[providerKey];
@@ -87,6 +87,8 @@ export function getLlmProviderProfile(providerKey: keyof typeof LLM_PROVIDER_PRO
 
 /**
  * Creates a custom profile based on a provider profile but with custom properties
+ *
+ * @private !!!!
  */
 export function createCustomLlmProfile(
     baseProfile: ChatParticipant,
