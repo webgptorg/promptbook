@@ -2,7 +2,8 @@ import { MockedEchoLlmExecutionTools } from '../../../mocked/MockedEchoLlmExecut
 import { MultipleLlmExecutionTools } from '../../../_multiple/MultipleLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../../openai/OpenAiExecutionTools';
 import { RemoteLlmExecutionTools } from '../../../remote/RemoteLlmExecutionTools';
-import { LLM_PROVIDER_PROFILES, getLlmProviderProfile } from '../llmProviderProfiles';
+import { LLM_PROVIDER_PROFILES } from '../llmProviderProfiles';
+import { getLlmProviderProfile } from '../llmProviderProfiles';
 
 describe('LLM Provider Profiles', () => {
     it('should have predefined profiles for all major providers', () => {
@@ -67,7 +68,7 @@ describe('LLM Provider Profiles', () => {
             remoteServerUrl: 'http://localhost:3000',
             identification: {
                 isAnonymous: true,
-                llmToolsConfiguration: []
+                llmToolsConfiguration: [],
             },
         });
 
