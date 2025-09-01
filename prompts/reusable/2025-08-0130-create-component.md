@@ -42,24 +42,27 @@ This should show multiple avatars and their relationships in the graph
 
 [ ]
 
-[✨💞] Create component `LlmChat`
+[✨💞] Create component `LlmChat` component
 
 This should show same chat as [Chat component](/src/book-components/Chat/Chat/Chat.tsx) but allow to chat with LLM modal
 
+-   Put in under `/src/book-components/Chat/LlmChat/LlmChat.tsx`
 -   Use [Chat component](/src/book-components/Chat/Chat/Chat.tsx) internally
 -   Derive `LlmChatProps` from `ChatProps`
 -   You wont pass `messages`, `onMessage`, `tasksProgress` and `participants`
     -   `messages` and `onMessage`
     -   `onChange` will be still present `LlmChatProps` will report the changes to callback
     -   `tasksProgress` will be handled internally
-    -   !!!!
--   Put in under `/src/book-components/AvatarProfile/AvatarProfile`
--   Make both `.tsx` and `.module.css` files
--   Make preview component
+    -   `participants` will be generated from `llmTools`
+    -   There will be `llmTools` prop
+-   Internally in the component you will use `useState` to manage `messages` and `tasksProgress` and show them via `Chat` component
+-   You are chatting with the LLM passed via `llmTools`, chatting via method `callChatModel`
+-   Make also the preview component `LlmChatPreview`
+    -   Use `MockedEchoLlmExecutionTools` in the preview
     -   Look at folder `/scripts/book-components/src/components`
     -   Look how other previews are made
         -   Make a preview component
-        -   Also a `component.json` file
+        -   Also a `component.yaml` file
         -   Register it in `/scripts/book-components/src/components/ComponentPreview.tsx`
 -   Keep in mind DRY (Don't Repeat Yourself) principle
 
