@@ -34,5 +34,5 @@ export type ChatParticipant = {
      * Color associated with the participant
      */
     color: string_color | Color;
-    //                     <- TODO: Here should be just interface of the Color not the class itselfs
+    //                     <- TODO: Here should be just interface of the Color not the class itself 
 };
