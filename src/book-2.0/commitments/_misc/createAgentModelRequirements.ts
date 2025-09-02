@@ -1,10 +1,12 @@
 import { parseAgentSource } from '../../agent-source/parseAgentSource';
 import type { string_book } from '../../agent-source/string_book';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import { clearAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
-import { createAgentModelRequirementsWithCommitmentsCached } from './createAgentModelRequirementsWithCommitments';
-import { getAgentModelRequirementsWithCommitmentsCacheSize } from './createAgentModelRequirementsWithCommitments';
-import { invalidateAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
+import {
+    clearAgentModelRequirementsWithCommitmentsCache,
+    createAgentModelRequirementsWithCommitmentsCached,
+    getAgentModelRequirementsWithCommitmentsCacheSize,
+    invalidateAgentModelRequirementsWithCommitmentsCache,
+} from './createAgentModelRequirementsWithCommitments';
 
 /**
  *  Cache for expensive createAgentModelRequirements calls
@@ -28,7 +30,7 @@ const modelRequirementsCache = new Map<string, AgentModelRequirements>();
  */
 export async function createAgentModelRequirements(
     agentSource: string_book,
-    modelName: string = '!!!!DEFAULT_MODEL_ID',
+    modelName: string,
 ): Promise<AgentModelRequirements> {
     // Use the new commitment-based system
     return createAgentModelRequirementsWithCommitmentsCached(agentSource, modelName);

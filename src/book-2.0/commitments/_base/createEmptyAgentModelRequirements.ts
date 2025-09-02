@@ -10,7 +10,7 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 export function createEmptyAgentModelRequirements(): AgentModelRequirements {
     return {
         systemMessage: '',
-        modelName: '!!!!DEFAULT_MODEL_ID',
+        modelName: 'gpt-5',
         temperature: 0.7,
         topP: 0.9,
         topK: 50,
@@ -33,5 +33,5 @@ export function createBasicAgentModelRequirements(agentName: string | null): Age
 }
 
 /**
- * TODO: !!!! Deduplicate model requirements
+ * TODO: !!! Deduplicate `AgentModelRequirements` and `ModelRequirements` model requirements
  */

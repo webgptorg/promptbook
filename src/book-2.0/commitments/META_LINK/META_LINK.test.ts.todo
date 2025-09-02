@@ -1,4 +1,4 @@
-// TODO: !!!! Uncomment this test
+// TODO: Uncomment the test
 
 import { describe, expect, it } from '@jest/globals';
 import { MetaLinkCommitmentDefinition } from './META_LINK';

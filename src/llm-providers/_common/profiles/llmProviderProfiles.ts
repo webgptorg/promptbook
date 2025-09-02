@@ -101,6 +101,7 @@ export function createCustomLlmProfile(
 }
 
 /**
- * TODO: !!!! Refactor this
+ * TODO: Refactor this - each profile must be alongside the provider definition
+ * TODO: Unite `AvatarProfileProps` and `ChatParticipant`
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

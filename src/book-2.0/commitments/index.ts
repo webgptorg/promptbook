@@ -95,6 +95,6 @@ export function isCommitmentSupported(type: BookCommitment): boolean {
 }
 
 /**
- * TODO: !!!! Maybe create through standardized $register
+ * TODO: [🧠] Maybe create through standardized $register
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

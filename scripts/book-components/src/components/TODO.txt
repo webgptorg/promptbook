@@ -1,1 +1,1 @@
-TODO: !!!! Move files like preview and component.json to /src/book-components/.../.
+TODO: [✨🕳] Move files like preview and component.json to /src/book-components/.../.

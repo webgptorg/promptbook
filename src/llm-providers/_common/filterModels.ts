@@ -95,7 +95,3 @@ export function filterModels<TLlmTools extends LlmExecutionTools>(
 
     return filteredTools;
 }
-
-/**
- * TODO: !!! [models] Test that this is working
- */

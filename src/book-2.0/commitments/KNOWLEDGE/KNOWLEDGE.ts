@@ -2,7 +2,6 @@ import { spaceTrim } from 'spacetrim';
 import type { string_url } from '../../../types/typeAliases';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
-import { FrontendRAGService } from './FrontendRAGService';
 
 /**
  * KNOWLEDGE commitment definition
@@ -23,11 +22,8 @@ import { FrontendRAGService } from './FrontendRAGService';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE'> {
-    private ragService: FrontendRAGService;
-
     constructor() {
         super('KNOWLEDGE');
-        this.ragService = new FrontendRAGService();
     }
 
     /**
@@ -96,7 +92,6 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
                 ...requirements,
                 metadata: {
                     ...requirements.metadata,
-                    ragService: this.ragService,
                     knowledgeSources: [
                         ...(requirements.metadata?.knowledgeSources || []),
                         trimmedContent as string_url,
@@ -125,13 +120,6 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
         } catch {
             return false;
         }
-    }
-
-    /**
-     * Get RAG service instance for retrieving context during chat
-     */
-    getRagService(): FrontendRAGService {
-        return this.ragService;
     }
 }
 
