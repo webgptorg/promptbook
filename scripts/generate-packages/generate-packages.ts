@@ -707,6 +707,81 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     // ==============================
     console.info(colors.cyan(`8️⃣  Make publishing instructions for Github Actions`));
 
+    /**
+     * Here are spreaded all the commands from `npm run test-without-package-generation-and-unit`
+     *
+     * TODO: [⛎] Automatically sync with `test-without-package-generation-and-unit`
+     */
+    const testSteps = [
+        {
+            name: '🧪 Test | Name discrepancies',
+            run: `npm run test-name-discrepancies`,
+        },
+        {
+            name: '🧪 Test | Spellcheck',
+            run: `npm run test-spellcheck`,
+        },
+        {
+            name: '🧪 Test | Lint',
+            run: `npm run test-lint`,
+        },
+        {
+            name: '🧪 Test | Types',
+            run: `npm run test-types`,
+        },
+        {
+            name: '🧪 Test | Books',
+            run: `npm run test-books`,
+            env: {
+                OPENAI_API_KEY: '${{secrets.OPENAI_API_KEY}}',
+                // <- TODO: Add all api keys
+            },
+        },
+    ];
+
+    /**
+     * Here are spreaded all the commands from `npm run make`
+     *
+     * TODO: [⛎] Automatically sync with `make`
+     */
+    const makeSteps = [
+        {
+            name: '🏭 Make | Promptbook Collection',
+            run: `npm run make-promptbook-collection`,
+            env: {
+                OPENAI_API_KEY: '${{secrets.OPENAI_API_KEY}}',
+                // <- TODO: Add all api keys
+            },
+        },
+        {
+            name: '🏭 Make | 🆚 Update Version in Config',
+            run: `npm run update-version-in-config`,
+        },
+        {
+            name: '🏭 Make | Generate Packages',
+            run: `npm run generate-packages`,
+        },
+        {
+            name: '🏭 Make | Generate Examples JSONs',
+            run: `npm run generate-examples-jsons`,
+        },
+        {
+            name: '🏭 Make | Generate Documentation',
+            run: `npm run generate-documentation`,
+            env: {
+                GITHUB_TOKEN: '${{secrets.GITHUB_TOKEN}}',
+            },
+        },
+        {
+            name: '🏭 Make | Import Markdowns',
+            run: `npm run import-markdowns`,
+        },
+        {
+            name: '🏭 Make | Generate OpenAPI Types',
+            run: `npm run generate-openapi-types`,
+        },
+    ];
+
     await writeFile(
         `./.github/workflows/publish.yml`,
         '# ' +
@@ -750,20 +825,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     name: '🔽 Clone book submodule',
                                     run: 'git submodule update --init --recursive',
                                 },
-                                {
-                                    name: '🧪 Test',
-                                    run: 'npm run test-without-package-generation-and-unit',
-                                    // <- [🦑] Bring back unit tests on Github Actions
-                                },
-                                {
-                                    name: '🏭 Make & Build the project',
-                                    run: `npm run make`,
-                                    // <- TODO: Spread each sumcommand in `make` here as multiple steps
-                                    env: {
-                                        OPENAI_API_KEY: '${{secrets.OPENAI_API_KEY}}',
-                                        // <- TODO: Add all api keys
-                                    },
-                                },
+                                ...testSteps,
+                                ...makeSteps,
                                 ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                     name: `🔼 Publish ${packageFullname}`,
                                     'working-directory': `./packages/${packageBasename}`,

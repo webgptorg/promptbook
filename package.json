@@ -194,7 +194,6 @@
         "test-name-discrepancies": "ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts",
         "preversion": "git pull && git pull --tags && npm run test-without-package-generation && echo \"<- Note: In next command the packages are generated\" && npm run generate-publish-yml-commit",
         "postversion": "git push && git push --tags && npm run update-version-in-config-commit && npm run use-packages",
-        "_TODO-1": "                              <- TODO: !!! update-version-in-config-commit",
         "make": "npm run make-promptbook-collection && npm run update-version-in-config && npm run generate-packages && npm run generate-examples-jsons && npm run generate-documentation && npm run import-markdowns && npm run generate-openapi-types",
         "make-commit": "echo: \"TODO: !!! Either use make-commit in postversion or clean all generated things out of the repository together with -commit variants of scripts\"",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts",
@@ -215,7 +214,9 @@
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts",
         "update-version-in-config-commit": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
-        "components-playground": "cd ./scripts/book-components/ && npm run dev"
+        "components-playground": "cd ./scripts/book-components/ && npm run dev",
+        "_TODO-1": "<- TODO: Remove all unused scripts",
+        "_TODO-2": "<- TODO: [⛎] Automatically sync commands to generate-packages.ts"
     },
     "engines": {
         "node": ">=16.0.0",
