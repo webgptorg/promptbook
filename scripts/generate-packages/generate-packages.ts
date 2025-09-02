@@ -752,7 +752,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 },
                                 {
                                     name: '🧪 Test',
-                                    run: 'test-without-package-generation-and-unit',
+                                    run: 'npm run test-without-package-generation-and-unit',
                                     // <- [🦑] Bring back unit tests on Github Actions
                                 },
                                 {
