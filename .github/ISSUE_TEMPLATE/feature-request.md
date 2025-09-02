@@ -1,10 +1,9 @@
 ---
-name: "✨ Feature request"
+name: '✨ Feature request'
 about: Suggest an feature for Promptbook
 title: ''
 labels: enhancement
 assignees: hejny
-
 ---
 
 **Is your feature request related to a problem? Please describe.**
