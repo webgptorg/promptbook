@@ -1,6 +1,5 @@
+# ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 name: Publish new version
-note: "⚠️ WARNING: This code has been generated so that any manual changes will
-    be overwritten"
 on:
     push:
         tags:
