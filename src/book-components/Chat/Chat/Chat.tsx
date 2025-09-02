@@ -76,6 +76,7 @@ export function Chat(props: ChatProps) {
         style,
         // voiceCallProps,
         isVoiceCalling = false,
+        isFocusedOnLoad,
         // isExperimental = false,
         // isSaveButtonEnabled = false,
         // exportHeaderMarkdown,
@@ -122,8 +123,10 @@ export function Chat(props: ChatProps) {
                 return;
             }
 
-            // Only auto-focus on desktop to prevent mobile keyboard from popping up
-            if (!isMobile) {
+            // Note: By default, only auto-focus on desktop to prevent mobile keyboard from popping up
+            const isFocused = isFocusedOnLoad ?? !isMobile;
+
+            if (isFocused) {
                 textareaRef.current.focus();
             }
         },

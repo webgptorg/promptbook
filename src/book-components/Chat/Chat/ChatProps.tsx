@@ -107,6 +107,13 @@ export type ChatProps = {
     readonly isSaveButtonEnabled?: boolean;
 
     /**
+     * Is the writing textarea automatically focused?
+     *
+     * @default true on Desktop false on mobile (to prevent mobile keyboard from popping up)
+     */
+    readonly isFocusedOnLoad?: boolean;
+
+    /**
      * Optional markdown header to include at the top of exported files.
      * Example: "## Discussion Topic\n\nSome topic here"
      */
