@@ -43,16 +43,22 @@ jobs:
               run: npm run update-version-in-config
             - name: 🏭 Make | Generate Packages
               run: npm run generate-packages
-            - name: 🏭 Make | Generate Examples JSONs
+            - name: 🏭 Make | Generate .bookc from Examples
               run: npm run generate-examples-bookc
+              continue-on-error: true
+              env:
+                  OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
             - name: 🏭 Make | Generate Documentation
               run: npm run generate-documentation
+              continue-on-error: true
               env:
                   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
             - name: 🏭 Make | Import Markdowns
               run: npm run import-markdowns
+              continue-on-error: true
             - name: 🏭 Make | Generate OpenAPI Types
               run: npm run generate-openapi-types
+              continue-on-error: true
             - name: 🔼 Publish @promptbook/anthropic-claude
               working-directory: ./packages/anthropic-claude
               run: npm publish --provenance --access public
