@@ -402,3 +402,4 @@ whitesmoke
 yellowgreen
 rmean
 satulightion
+grayscale
