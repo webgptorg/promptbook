@@ -1,4 +1,4 @@
-import { string_model_name } from '../../../types/typeAliases';
+import type { string_model_name } from '../../../types/typeAliases';
 import type { string_book } from '../../agent-source/string_book';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { getCommitmentDefinition } from '../index';
