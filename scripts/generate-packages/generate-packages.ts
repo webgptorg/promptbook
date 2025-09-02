@@ -709,10 +709,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
     await writeFile(
         `./.github/workflows/publish.yml`,
+        '# '+GENERATOR_WARNING+'\n'
         YAML.stringify(
             {
                 name: 'Publish new version',
-                note: GENERATOR_WARNING,
                 on: {
                     push: {
                         tags: ['v*'],
@@ -751,6 +751,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             {
                                 name: '🏭 Make & Build the project',
                                 run: `npm run make`,
+                                // <- TODO: Spread each sumcommand in `make` here as multiple steps
                             },
                             ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                 name: `🔼 Publish ${packageFullname}`,
