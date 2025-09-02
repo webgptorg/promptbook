@@ -6,7 +6,7 @@ import type { string_name } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { ChatPersistence } from '../utils/ChatPersistence';
+import { ChatPersistence } from '../utils/xChatPersistence';
 import type { LlmChatProps } from './LlmChatProps';
 
 /**
