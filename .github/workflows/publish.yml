@@ -24,7 +24,7 @@ jobs:
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
             - name: 🧪 Test
-              run: test-without-package-generation-and-unit
+              run: npm run test-without-package-generation-and-unit
             - name: 🏭 Make & Build the project
               run: npm run make
               env:
