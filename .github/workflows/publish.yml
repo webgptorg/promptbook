@@ -23,8 +23,12 @@ jobs:
               run: npm ci
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
+            - name: 🧪 Test
+              run: test-without-package-generation-and-unit
             - name: 🏭 Make & Build the project
               run: npm run make
+              env:
+                  OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
             - name: 🔼 Publish @promptbook/anthropic-claude
               working-directory: ./packages/anthropic-claude
               run: npm publish --provenance --access public
