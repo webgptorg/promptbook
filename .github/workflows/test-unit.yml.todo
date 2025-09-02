@@ -1,4 +1,4 @@
-name: 🧪 Unit tests <- TODO: Re-enable unit tests in Github Actions
+name: 🧪 Unit tests <- TODO: [🦑] Re-enable unit tests in Github Actions
 
 # TODO: Unit tests are failing on Github Actions with the following error, fix it:
 #       "Jest worker encountered 4 child process exceptions"

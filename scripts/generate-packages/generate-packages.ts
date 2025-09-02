@@ -751,9 +751,18 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     run: 'git submodule update --init --recursive',
                                 },
                                 {
+                                    name: '🧪 Test',
+                                    run: 'test-without-package-generation-and-unit',
+                                    // <- [🦑] Bring back unit tests on Github Actions
+                                },
+                                {
                                     name: '🏭 Make & Build the project',
                                     run: `npm run make`,
                                     // <- TODO: Spread each sumcommand in `make` here as multiple steps
+                                    env: {
+                                        OPENAI_API_KEY: '${{secrets.OPENAI_API_KEY}}',
+                                        // <- TODO: Add all api keys
+                                    },
                                 },
                                 ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                     name: `🔼 Publish ${packageFullname}`,
