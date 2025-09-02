@@ -491,10 +491,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         // Note: Every minute report a time
         let minutesCount = 0;
-        const timeReportingInterval = setTimeout(() => {
+        const timeReportingInterval = setInterval(() => {
             minutesCount++;
-            console.error(colors.yellow(`!!! Building ${minutesCount}minutes`));
-            // <- TODO: !!! Update the issue
+            console.error(colors.yellow(`⏹ Building ${minutesCount} minutes`));
         }, 60 * 1000);
 
         try {
@@ -503,10 +502,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 command: `node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
             });
 
-            clearTimeout(timeReportingInterval);
             console.info(colors.green('Build completed successfully'));
         } finally {
-            clearTimeout(timeReportingInterval);
+            clearInterval(timeReportingInterval);
         }
     }
 
