@@ -1,3 +1,4 @@
+import { string_model_name } from '../../../types/typeAliases';
 import type { string_book } from '../../agent-source/string_book';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { getCommitmentDefinition } from '../index';
@@ -15,7 +16,7 @@ import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessa
  */
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_book,
-    modelName?: string,
+    modelName?: string_model_name,
 ): Promise<AgentModelRequirements> {
     // Parse the agent source to extract commitments
     const parseResult = parseAgentSourceWithCommitments(agentSource);
@@ -105,7 +106,7 @@ const CACHE_SIZE_LIMIT = 100;
  */
 export async function createAgentModelRequirementsWithCommitmentsCached(
     agentSource: string_book,
-    modelName?: string,
+    modelName?: string_model_name,
 ): Promise<AgentModelRequirements> {
     // Create cache key
     const cacheKey = `${agentSource}|${modelName || 'default'}`;

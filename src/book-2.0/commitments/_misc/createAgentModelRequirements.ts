@@ -1,3 +1,4 @@
+import { string_model_name } from '../../../types/typeAliases';
 import { parseAgentSource } from '../../agent-source/parseAgentSource';
 import type { string_book } from '../../agent-source/string_book';
 import type { AgentModelRequirements } from './AgentModelRequirements';
@@ -30,7 +31,7 @@ const modelRequirementsCache = new Map<string, AgentModelRequirements>();
  */
 export async function createAgentModelRequirements(
     agentSource: string_book,
-    modelName: string,
+    modelName?: string_model_name,
 ): Promise<AgentModelRequirements> {
     // Use the new commitment-based system
     return createAgentModelRequirementsWithCommitmentsCached(agentSource, modelName);
