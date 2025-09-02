@@ -789,7 +789,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             '\n' +
             YAML.stringify(
                 {
-                    name: 'Publish new version',
+                    name: '🔼 Publish new version',
                     on: {
                         push: {
                             tags: ['v*'],
