@@ -1,4 +1,6 @@
 name: Publish new version
+note: "⚠️ WARNING: This code has been generated so that any manual changes will
+    be overwritten"
 on:
     push:
         tags:
@@ -22,10 +24,8 @@ jobs:
               run: npm ci
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
-            - name: 🆚 Update version in Dockerfile
-              run: npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts
-            - name: 🏭 Build packages bundles
-              run: npx ts-node ./scripts/generate-packages/generate-packages.ts
+            - name: 🏭 Make & Build the project
+              run: npm run make
             - name: 🔼 Publish @promptbook/anthropic-claude
               working-directory: ./packages/anthropic-claude
               run: npm publish --provenance --access public
