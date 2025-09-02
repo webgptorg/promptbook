@@ -709,126 +709,128 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
     await writeFile(
         `./.github/workflows/publish.yml`,
-        '# '+GENERATOR_WARNING+'\n'
-        YAML.stringify(
-            {
-                name: 'Publish new version',
-                on: {
-                    push: {
-                        tags: ['v*'],
-                    },
-                },
-                jobs: {
-                    'publish-npm': {
-                        name: 'Publish on NPM package registry',
-                        'runs-on': 'ubuntu-latest',
-                        permissions: {
-                            contents: 'read',
-                            'id-token': 'write',
-                            // <- Note: Permissions are required with provenance statement @see https://docs.npmjs.com/generating-provenance-statements
+        '# ' +
+            GENERATOR_WARNING +
+            '\n' +
+            YAML.stringify(
+                {
+                    name: 'Publish new version',
+                    on: {
+                        push: {
+                            tags: ['v*'],
                         },
-                        steps: [
-                            {
-                                name: '🔽 Checkout',
-                                uses: 'actions/checkout@v4',
-                            },
-                            {
-                                name: '🔽 Setup Node.js',
-                                uses: 'actions/setup-node@v4',
-                                with: {
-                                    'node-version': 22,
-                                    'registry-url': 'https://registry.npmjs.org/',
-                                },
-                            },
-                            {
-                                name: '🔽 Install dependencies',
-                                run: 'npm ci',
-                            },
-                            {
-                                name: '🔽 Clone book submodule',
-                                run: 'git submodule update --init --recursive',
-                            },
-                            {
-                                name: '🏭 Make & Build the project',
-                                run: `npm run make`,
-                                // <- TODO: Spread each sumcommand in `make` here as multiple steps
-                            },
-                            ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
-                                name: `🔼 Publish ${packageFullname}`,
-                                'working-directory': `./packages/${packageBasename}`,
-                                run: 'npm publish --provenance --access public',
-                                env: {
-                                    NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
-                                },
-                            })),
-                        ],
                     },
-                    // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
-                    'publish-docker': {
-                        name: 'Publish Docker image to DockerHub',
-                        needs: 'publish-npm',
-                        'runs-on': 'ubuntu-latest',
-                        steps: [
-                            {
-                                name: '🔽 Checkout',
-                                uses: 'actions/checkout@v4',
+                    jobs: {
+                        'publish-npm': {
+                            name: 'Publish on NPM package registry',
+                            'runs-on': 'ubuntu-latest',
+                            permissions: {
+                                contents: 'read',
+                                'id-token': 'write',
+                                // <- Note: Permissions are required with provenance statement @see https://docs.npmjs.com/generating-provenance-statements
                             },
-                            {
-                                name: '🔑 Login to DockerHub',
-                                uses: 'docker/login-action@v2',
-                                with: {
-                                    username: '${{ secrets.DOCKERHUB_USER }}',
-                                    password: '${{ secrets.DOCKERHUB_TOKEN }}',
+                            steps: [
+                                {
+                                    name: '🔽 Checkout',
+                                    uses: 'actions/checkout@v4',
                                 },
-                            },
-                            {
-                                name: '🔽 Setup Node.js',
-                                uses: 'actions/setup-node@v4',
-                                with: {
-                                    'node-version': 22,
-                                    'registry-url': 'https://registry.npmjs.org/',
+                                {
+                                    name: '🔽 Setup Node.js',
+                                    uses: 'actions/setup-node@v4',
+                                    with: {
+                                        'node-version': 22,
+                                        'registry-url': 'https://registry.npmjs.org/',
+                                    },
                                 },
-                            },
-                            {
-                                name: '🔽 Install dependencies',
-                                run: 'npm ci',
-                            },
-                            {
-                                name: '🔽 Clone book submodule',
-                                run: 'git submodule update --init --recursive',
-                            },
-                            {
-                                name: '🆚 Update version in Dockerfile',
-                                run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
-                                // <- Note: Update version in Dockerfile before building the image
-                            },
-                            {
-                                name: '🆚 Load current version into the environment',
-                                run: 'echo "VERSION=$(node -p \'require(`./package.json`).version\')" >> $GITHUB_ENV',
-                            },
-                            {
-                                name: '👁‍🗨 Log version from previous step',
-                                run: 'echo $VERSION',
-                            },
-                            {
-                                name: '👁‍🗨 Log contents of the Dockerfile',
-                                run: 'cat Dockerfile',
-                            },
-                            {
-                                name: '🏭🔼 Build and Push Docker Image',
-                                uses: 'docker/build-push-action@v2',
-                                with: {
-                                    context: '.',
-                                    push: true,
-                                    tags: 'hejny/promptbook:${{ env.VERSION }}',
+                                {
+                                    name: '🔽 Install dependencies',
+                                    run: 'npm ci',
                                 },
-                            },
-                        ],
+                                {
+                                    name: '🔽 Clone book submodule',
+                                    run: 'git submodule update --init --recursive',
+                                },
+                                {
+                                    name: '🏭 Make & Build the project',
+                                    run: `npm run make`,
+                                    // <- TODO: Spread each sumcommand in `make` here as multiple steps
+                                },
+                                ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
+                                    name: `🔼 Publish ${packageFullname}`,
+                                    'working-directory': `./packages/${packageBasename}`,
+                                    run: 'npm publish --provenance --access public',
+                                    env: {
+                                        NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
+                                    },
+                                })),
+                            ],
+                        },
+                        // TODO: Maybe share build steps between `publish-npm` and `publish-docker`
+                        'publish-docker': {
+                            name: 'Publish Docker image to DockerHub',
+                            needs: 'publish-npm',
+                            'runs-on': 'ubuntu-latest',
+                            steps: [
+                                {
+                                    name: '🔽 Checkout',
+                                    uses: 'actions/checkout@v4',
+                                },
+                                {
+                                    name: '🔑 Login to DockerHub',
+                                    uses: 'docker/login-action@v2',
+                                    with: {
+                                        username: '${{ secrets.DOCKERHUB_USER }}',
+                                        password: '${{ secrets.DOCKERHUB_TOKEN }}',
+                                    },
+                                },
+                                {
+                                    name: '🔽 Setup Node.js',
+                                    uses: 'actions/setup-node@v4',
+                                    with: {
+                                        'node-version': 22,
+                                        'registry-url': 'https://registry.npmjs.org/',
+                                    },
+                                },
+                                {
+                                    name: '🔽 Install dependencies',
+                                    run: 'npm ci',
+                                },
+                                {
+                                    name: '🔽 Clone book submodule',
+                                    run: 'git submodule update --init --recursive',
+                                },
+                                {
+                                    name: '🆚 Update version in Dockerfile',
+                                    run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
+                                    // <- Note: Update version in Dockerfile before building the image
+                                },
+                                {
+                                    name: '🆚 Load current version into the environment',
+                                    run: 'echo "VERSION=$(node -p \'require(`./package.json`).version\')" >> $GITHUB_ENV',
+                                },
+                                {
+                                    name: '👁‍🗨 Log version from previous step',
+                                    run: 'echo $VERSION',
+                                },
+                                {
+                                    name: '👁‍🗨 Log contents of the Dockerfile',
+                                    run: 'cat Dockerfile',
+                                },
+                                {
+                                    name: '🏭🔼 Build and Push Docker Image',
+                                    uses: 'docker/build-push-action@v2',
+                                    with: {
+                                        context: '.',
+                                        push: true,
+                                        tags: 'hejny/promptbook:${{ env.VERSION }}',
+                                    },
+                                },
+                            ],
+                        },
                     },
                 },
-            },
-            { indent: 4 },
-        ),
+                { indent: 4 },
+            ),
     );
     // <- Note: All changes affects up to version folowing the next one, so it is safe to run "🏭📦 Generate packages" script to affect the next version
     // <- TODO: Add GENERATOR_WARNING to publish.yml
