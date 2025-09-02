@@ -1,5 +1,5 @@
 # ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
-name: Publish new version
+name: 🔼 Publish new version
 on:
     push:
         tags:
@@ -23,12 +23,36 @@ jobs:
               run: npm ci
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
-            - name: 🧪 Test
-              run: npm run test-without-package-generation-and-unit
-            - name: 🏭 Make & Build the project
-              run: npm run make
+            - name: 🧪 Test | Name discrepancies
+              run: npm run test-name-discrepancies
+            - name: 🧪 Test | Spellcheck
+              run: npm run test-spellcheck
+            - name: 🧪 Test | Lint
+              run: npm run test-lint
+            - name: 🧪 Test | Types
+              run: npm run test-types
+            - name: 🧪 Test | Books
+              run: npm run test-books
               env:
                   OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
+            - name: 🏭 Make | Promptbook Collection
+              run: npm run make-promptbook-collection
+              env:
+                  OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
+            - name: 🏭 Make | 🆚 Update Version in Config
+              run: npm run update-version-in-config
+            - name: 🏭 Make | Generate Packages
+              run: npm run generate-packages
+            - name: 🏭 Make | Generate Examples JSONs
+              run: npm run generate-examples-jsons
+            - name: 🏭 Make | Generate Documentation
+              run: npm run generate-documentation
+              env:
+                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+            - name: 🏭 Make | Import Markdowns
+              run: npm run import-markdowns
+            - name: 🏭 Make | Generate OpenAPI Types
+              run: npm run generate-openapi-types
             - name: 🔼 Publish @promptbook/anthropic-claude
               working-directory: ./packages/anthropic-claude
               run: npm publish --provenance --access public
