@@ -493,8 +493,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         let minutesCount = 0;
         const timeReportingInterval = setTimeout(() => {
             minutesCount++;
-            console.error(colors.yellow(`!!!! Building ${minutesCount}minutes`));
-            // <- TODO: Update the issur
+            console.error(colors.yellow(`!!! Building ${minutesCount}minutes`));
+            // <- TODO: !!! Update the issue
         }, 60 * 1000);
 
         try {
