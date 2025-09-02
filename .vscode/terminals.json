@@ -158,7 +158,7 @@
             "name": "🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
+                "npx ts-node ./scripts/generate-examples-bookc/generate-examples-bookc.ts --verbose"
             ],
             "execute": false,
             "onlySingle": false,

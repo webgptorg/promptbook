@@ -1,5 +1,5 @@
 #!/usr/bin/env ts-node
-// generate-examples-jsons.ts
+// generate-examples-bookc.ts
 
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
@@ -39,7 +39,7 @@ program.option('--verbose', `Is verbose`, false);
 program.parse(process.argv);
 const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } = program.opts();
 
-generateExampleJsons({ isCommited, isCacheReloaded, isVerbose })
+generateExampleBookc({ isCommited, isCacheReloaded, isVerbose })
     .catch((error) => {
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
@@ -49,7 +49,7 @@ generateExampleJsons({ isCommited, isCacheReloaded, isVerbose })
         process.exit(0);
     });
 
-async function generateExampleJsons({
+async function generateExampleBookc({
     isCommited,
     isCacheReloaded,
     isVerbose,

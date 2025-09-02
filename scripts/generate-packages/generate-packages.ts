@@ -762,8 +762,12 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             run: `npm run generate-packages`,
         },
         {
-            name: '🏭 Make | Generate Examples JSONs',
-            run: `npm run generate-examples-jsons`,
+            name: '🏭 Make | Generate .bookc from Examples',
+            run: `npm run generate-examples-bookc`,
+            env: {
+                OPENAI_API_KEY: '${{secrets.OPENAI_API_KEY}}',
+                // <- TODO: Add all api keys
+            },
         },
         {
             name: '🏭 Make | Generate Documentation',

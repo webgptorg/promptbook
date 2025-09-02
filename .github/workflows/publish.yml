@@ -44,7 +44,7 @@ jobs:
             - name: 🏭 Make | Generate Packages
               run: npm run generate-packages
             - name: 🏭 Make | Generate Examples JSONs
-              run: npm run generate-examples-jsons
+              run: npm run generate-examples-bookc
             - name: 🏭 Make | Generate Documentation
               run: npm run generate-documentation
               env:
