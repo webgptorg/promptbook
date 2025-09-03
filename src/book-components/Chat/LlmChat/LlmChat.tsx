@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { string_markdown } from '../../../types/typeAliases';
 import type { string_name } from '../../../types/typeAliases';
+import type { ChatThread } from '../../../execution/ChatThread';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -27,9 +28,16 @@ export function LlmChat(props: LlmChatProps) {
     // Internal state management
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
+    const [chatThread, setChatThread] = useState<ChatThread | null>(null);
 
-    // Load persisted messages on component mount
+    // Initialize chat thread and load persisted messages on component mount
     useEffect(() => {
+        // Create initial thread if LLM tools support threading
+        if (llmTools.createChatThread) {
+            const initialThread = llmTools.createChatThread();
+            setChatThread(initialThread);
+        }
+
         if (persistenceKey && ChatPersistence.isAvailable()) {
             const persistedMessages = ChatPersistence.loadMessages(persistenceKey);
             if (persistedMessages.length > 0) {
@@ -40,7 +48,7 @@ export function LlmChat(props: LlmChatProps) {
                 }
             }
         }
-    }, [persistenceKey]); // Only depend on persistenceKey, not participants or onChange to avoid infinite loops
+    }, [persistenceKey, llmTools]); // Only depend on persistenceKey and llmTools
 
     // Save messages to localStorage whenever messages change (and persistence is enabled)
     useEffect(() => {
@@ -105,22 +113,51 @@ export function LlmChat(props: LlmChatProps) {
             setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 0 }]);
 
             try {
-                // Call LLM using callChatModel
-                if (!llmTools.callChatModel) {
-                    throw new Error('LLM tools do not support chat model calls');
-                }
-
                 // Update task progress
                 setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 50 }]);
 
-                const result = await llmTools.callChatModel({
-                    title: 'User Message',
-                    content: messageContent as string_markdown,
-                    parameters: {},
-                    modelRequirements: {
-                        modelVariant: 'CHAT',
-                    },
-                });
+                let result;
+
+                // Use thread-based chat if available, otherwise fallback to regular chat
+                if (llmTools.callChatModelWithThread && chatThread && llmTools.addMessageToThread) {
+                    // Add user message to thread
+                    const updatedThread = llmTools.addMessageToThread(chatThread, {
+                        role: 'user',
+                        content: messageContent as string_markdown,
+                        name: 'USER',
+                    });
+                    setChatThread(updatedThread);
+
+                    // Call LLM with thread context
+                    result = await llmTools.callChatModelWithThread({
+                        title: 'User Message',
+                        content: messageContent as string_markdown,
+                        parameters: {},
+                        modelRequirements: {
+                            modelVariant: 'CHAT',
+                        },
+                    }, updatedThread);
+
+                    // Add assistant response to thread
+                    const finalThread = llmTools.addMessageToThread(updatedThread, {
+                        role: 'assistant',
+                        content: result.content as string_markdown,
+                        name: 'ASSISTANT',
+                    });
+                    setChatThread(finalThread);
+                } else if (llmTools.callChatModel) {
+                    // Fallback to regular chat model call
+                    result = await llmTools.callChatModel({
+                        title: 'User Message',
+                        content: messageContent as string_markdown,
+                        parameters: {},
+                        modelRequirements: {
+                            modelVariant: 'CHAT',
+                        },
+                    });
+                } else {
+                    throw new Error('LLM tools do not support chat model calls');
+                }
 
                 // Update task progress to complete
                 setTasksProgress([{ id: taskId, name: 'Response generated', progress: 100 }]);
@@ -180,6 +217,12 @@ export function LlmChat(props: LlmChatProps) {
         setMessages([]);
         setTasksProgress([]);
 
+        // Reset chat thread
+        if (llmTools.createChatThread) {
+            const newThread = llmTools.createChatThread();
+            setChatThread(newThread);
+        }
+
         // Clear persisted messages if persistence is enabled
         if (persistenceKey && ChatPersistence.isAvailable()) {
             ChatPersistence.clearMessages(persistenceKey);
@@ -193,7 +236,7 @@ export function LlmChat(props: LlmChatProps) {
         if (onChange) {
             onChange([], participants);
         }
-    }, [persistenceKey, onReset, onChange, participants]);
+    }, [persistenceKey, onReset, onChange, participants, llmTools]);
 
     return (
         <Chat
