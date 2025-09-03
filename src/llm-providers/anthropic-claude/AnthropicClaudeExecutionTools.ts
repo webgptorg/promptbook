@@ -20,7 +20,7 @@ import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { ANTHROPIC_CLAUDE_PROFILE } from './anthropic-claude-profile';
+import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsNonProxiedOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
@@ -59,7 +59,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
     }
 
     public get profile() {
-        return ANTHROPIC_CLAUDE_PROFILE;
+        return LLM_PROVIDER_PROFILES.ANTHROPIC;
     }
 
     public async getClient(): Promise<Anthropic> {

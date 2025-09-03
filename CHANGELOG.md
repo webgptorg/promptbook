@@ -2,7 +2,6 @@
 
 ## [Unreleased]
 
--   **Refactor LLM provider profiles** - Each profile is now located alongside its provider definition instead of centralized in `llmProviderProfiles.ts`
 
 
 ## Released versions

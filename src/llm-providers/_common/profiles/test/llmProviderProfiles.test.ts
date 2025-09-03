@@ -2,39 +2,36 @@ import { MockedEchoLlmExecutionTools } from '../../../mocked/MockedEchoLlmExecut
 import { MultipleLlmExecutionTools } from '../../../_multiple/MultipleLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../../openai/OpenAiExecutionTools';
 import { RemoteLlmExecutionTools } from '../../../remote/RemoteLlmExecutionTools';
-import { OPENAI_PROFILE } from '../../../openai/openai-profile';
-import { ANTHROPIC_CLAUDE_PROFILE } from '../../../anthropic-claude/anthropic-claude-profile';
-import { AZURE_OPENAI_PROFILE } from '../../../azure-openai/azure-openai-profile';
-import { GOOGLE_PROFILE } from '../../../google/google-profile';
-import { DEEPSEEK_PROFILE } from '../../../deepseek/deepseek-profile';
-import { OLLAMA_PROFILE } from '../../../ollama/ollama-profile';
-import { REMOTE_PROFILE } from '../../../remote/remote-profile';
-import { MOCKED_ECHO_PROFILE, MOCKED_FAKE_PROFILE } from '../../../mocked/mocked-profiles';
-import { VERCEL_PROFILE } from '../../../vercel/vercel-profile';
-import { MULTIPLE_PROFILE } from '../../../_multiple/multiple-profile';
+import { LLM_PROVIDER_PROFILES } from '../llmProviderProfiles';
+import { getLlmProviderProfile } from '../llmProviderProfiles';
 
 describe('LLM Provider Profiles', () => {
     it('should have predefined profiles for all major providers', () => {
-        expect(OPENAI_PROFILE).toBeDefined();
-        expect(ANTHROPIC_CLAUDE_PROFILE).toBeDefined();
-        expect(AZURE_OPENAI_PROFILE).toBeDefined();
-        expect(GOOGLE_PROFILE).toBeDefined();
-        expect(DEEPSEEK_PROFILE).toBeDefined();
-        expect(OLLAMA_PROFILE).toBeDefined();
-        expect(REMOTE_PROFILE).toBeDefined();
-        expect(MOCKED_ECHO_PROFILE).toBeDefined();
-        expect(MOCKED_FAKE_PROFILE).toBeDefined();
-        expect(VERCEL_PROFILE).toBeDefined();
-        expect(MULTIPLE_PROFILE).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.OPENAI).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.ANTHROPIC).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.AZURE_OPENAI).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.GOOGLE).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.DEEPSEEK).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.OLLAMA).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.REMOTE).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.MOCKED_ECHO).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.MOCKED_FAKE).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.VERCEL).toBeDefined();
+        expect(LLM_PROVIDER_PROFILES.MULTIPLE).toBeDefined();
     });
 
     it('should have proper structure for each profile', () => {
-        const profile = OPENAI_PROFILE;
+        const profile = LLM_PROVIDER_PROFILES.OPENAI;
 
         expect(profile.name).toBe('OPENAI');
         expect(profile.fullname).toBe('OpenAI GPT');
         expect(profile.color).toBe('#10a37f');
         expect('isMe' in profile).toBe(false); // Should not be set for LLM providers
+    });
+
+    it('should provide helper function to get profiles', () => {
+        const openaiProfile = getLlmProviderProfile('OPENAI');
+        expect(openaiProfile).toEqual(LLM_PROVIDER_PROFILES.OPENAI);
     });
 
     it('should have profile property in OpenAI execution tools', () => {
@@ -79,24 +76,8 @@ describe('LLM Provider Profiles', () => {
         expect(remoteTools.profile.name).toBe('REMOTE');
         expect(remoteTools.profile.fullname).toBe('Remote Server');
         expect(remoteTools.profile.color).toBe('#6b7280');
-    });
-
-    it('should have valid hex colors for all profiles', () => {
-        const profiles = [
-            OPENAI_PROFILE,
-            ANTHROPIC_CLAUDE_PROFILE,
-            AZURE_OPENAI_PROFILE,
-            GOOGLE_PROFILE,
-            DEEPSEEK_PROFILE,
-            OLLAMA_PROFILE,
-            REMOTE_PROFILE,
-            MOCKED_ECHO_PROFILE,
-            MOCKED_FAKE_PROFILE,
-            VERCEL_PROFILE,
-            MULTIPLE_PROFILE,
-        ];
-
-        profiles.forEach((profile) => {
+        // Test that colors are valid hex colors
+        Object.values(LLM_PROVIDER_PROFILES).forEach((profile) => {
             expect(profile.color).toMatch(/^#[0-9a-f]{6}$/i);
         });
     });
