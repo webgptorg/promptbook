@@ -2,27 +2,6 @@
 
 ## [Unreleased]
 
-### Chat Threads Implementation
-
--   **New:** Implemented comprehensive chat thread support in `LlmExecutionTools`
-    -   Added `ChatThread`, `ChatThreadMessage` types for managing conversation history
-    -   Added `CreateChatThreadOptions`, `AddMessageToChatThreadOptions` for thread configuration
-    -   Created utility functions for thread management: `createChatThread`, `addMessageToChatThread`, `convertThreadToOpenAIMessages`
--   **Enhanced:** Extended `LlmExecutionTools` interface with thread-specific methods:
-    -   `callChatModelWithThread()` - Execute chat models with full conversation context
-    -   `createChatThread()` - Create new conversation threads
-    -   `addMessageToThread()` - Add messages to existing threads
--   **Enhanced:** Updated `LlmChat` component to automatically use thread-based conversations when available
-    -   Maintains backward compatibility with non-thread LLM tools
-    -   Automatically manages conversation context and history
-    -   Seamless fallback to regular chat model calls when threading is not supported
--   **New:** Created `LlmExecutionToolsWithThreading` base class for DRY implementation across providers
--   **Enhanced:** Updated `OpenAiCompatibleExecutionTools` to support thread-based conversations
-    -   Automatically converts thread messages to OpenAI API format
-    -   Maintains conversation context across multiple exchanges
--   **New:** Added comprehensive test suite for chat thread functionality
--   **Fixed:** Proper UUID type handling in thread message IDs
--   **Documentation:** Updated CHANGELOG with thread implementation details
 
 
 ## Released versions

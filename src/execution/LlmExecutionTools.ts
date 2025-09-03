@@ -8,9 +8,6 @@ import type { AvailableModel } from './AvailableModel';
 import type { ChatPromptResult } from './PromptResult';
 import type { CompletionPromptResult } from './PromptResult';
 import type { EmbeddingPromptResult } from './PromptResult';
-import type { ChatThread } from './ChatThread';
-import type { CreateChatThreadOptions } from './ChatThread';
-import type { AddMessageToChatThreadOptions } from './ChatThread';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -59,21 +56,6 @@ export type LlmExecutionTools = {
      * Calls a chat model
      */
     callChatModel?(prompt: Prompt): Promise<ChatPromptResult>;
-
-    /**
-     * Calls a chat model with thread context
-     */
-    callChatModelWithThread?(prompt: Prompt, thread: ChatThread): Promise<ChatPromptResult>;
-
-    /**
-     * Creates a new chat thread
-     */
-    createChatThread?(options?: CreateChatThreadOptions): ChatThread;
-
-    /**
-     * Adds a message to an existing chat thread
-     */
-    addMessageToThread?(thread: ChatThread, messageOptions: AddMessageToChatThreadOptions): ChatThread;
 
     /**
      * Calls a completion model

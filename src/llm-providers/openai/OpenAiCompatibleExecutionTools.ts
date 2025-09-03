@@ -20,24 +20,19 @@ import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_model_name } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import type { ChatThread } from '../../execution/ChatThread';
-import type { CreateChatThreadOptions } from '../../execution/ChatThread';
-import type { AddMessageToChatThreadOptions } from '../../execution/ChatThread';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
-import { LlmExecutionToolsWithThreading } from '../_common/threading/LlmExecutionToolsWithThreading';
-import { convertThreadToOpenAIMessages } from '../../execution/utils/chatThreadUtils';
 
 /**
  * Execution Tools for calling OpenAI API or other OpenAI compatible provider
  *
  * @public exported from `@promptbook/openai`
  */
-export abstract class OpenAiCompatibleExecutionTools extends LlmExecutionToolsWithThreading implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
+export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
      * OpenAI API client.
      */
@@ -54,7 +49,6 @@ export abstract class OpenAiCompatibleExecutionTools extends LlmExecutionToolsWi
      * @param options which are relevant are directly passed to the OpenAI compatible client
      */
     public constructor(protected readonly options: OpenAiCompatibleExecutionToolsNonProxiedOptions) {
-        super();
         // TODO: Allow configuring rate limits via options
         this.limiter = new Bottleneck({
             minTime: 60_000 / (this.options.maxRequestsPerMinute || DEFAULT_MAX_REQUESTS_PER_MINUTE),
@@ -225,115 +219,6 @@ export abstract class OpenAiCompatibleExecutionTools extends LlmExecutionToolsWi
         return exportJson({
             name: 'promptResult',
             message: `Result of \`OpenAiCompatibleExecutionTools.callChatModel\``,
-            order: [],
-            value: {
-                content: resultContent,
-                modelName: rawResponse.model || modelName,
-                timing: {
-                    start,
-                    complete,
-                },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse,
-                // <- [🗯]
-            },
-        });
-    }
-
-    /**
-     * Calls OpenAI compatible API to use a chat model with thread context.
-     */
-    public async callChatModelWithThread(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
-        thread: ChatThread,
-    ): Promise<ChatPromptResult> {
-        if (this.options.isVerbose) {
-            console.info(`💬 ${this.title} callChatModelWithThread call`, { prompt, thread });
-        }
-
-        const { content, parameters, modelRequirements, format } = prompt;
-
-        const client = await this.getClient();
-
-        // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new PipelineExecutionError('Use callChatModelWithThread only for CHAT variant');
-        }
-
-        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
-        const modelSettings = {
-            model: modelName,
-            max_tokens: modelRequirements.maxTokens,
-            temperature: modelRequirements.temperature,
-
-            // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
-            // <- Note: [🧆]
-        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
-
-        if (format === 'JSON') {
-            modelSettings.response_format = {
-                type: 'json_object',
-            };
-        }
-
-        // Convert thread messages to OpenAI format
-        const threadMessages = convertThreadToOpenAIMessages(thread);
-        
-        // Add the new user message from the prompt
-        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
-        const newUserMessage = {
-            role: 'user' as const,
-            content: rawPromptContent,
-        };
-
-        const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
-            ...modelSettings,
-            messages: [
-                ...threadMessages,
-                newUserMessage,
-            ],
-            user: this.options.userId?.toString(),
-        };
-        const start: string_date_iso8601 = $getCurrentDate();
-
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
-        }
-        const rawResponse = await this.limiter
-            .schedule(() => this.makeRequestWithRetry(() => client.chat.completions.create(rawRequest)))
-            .catch((error) => {
-                assertsError(error);
-                if (this.options.isVerbose) {
-                    console.info(colors.bgRed('error'), error);
-                }
-                throw error;
-            });
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
-        }
-        const complete: string_date_iso8601 = $getCurrentDate();
-
-        if (!rawResponse.choices[0]) {
-            throw new PipelineExecutionError(`No choises from ${this.title}`);
-        }
-
-        if (rawResponse.choices.length > 1) {
-            // TODO: This should be maybe only warning
-            throw new PipelineExecutionError(`More than one choise from ${this.title}`);
-        }
-
-        const resultContent = rawResponse.choices[0].message.content;
-        const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
-
-        if (resultContent === null) {
-            throw new PipelineExecutionError(`No response message from ${this.title}`);
-        }
-
-        return exportJson({
-            name: 'promptResult',
-            message: `Result of \`OpenAiCompatibleExecutionTools.callChatModelWithThread\``,
             order: [],
             value: {
                 content: resultContent,
