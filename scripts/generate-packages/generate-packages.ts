@@ -764,7 +764,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         {
             name: '🏭 Make | Generate .bookc from Examples',
             run: `npm run generate-examples-bookc`,
-            'continue-on-error': true, // <- TODO: !!! Remove
+
             env: {
                 OPENAI_API_KEY: '${{secrets.OPENAI_API_KEY}}',
                 // <- TODO: Add all api keys
@@ -773,7 +773,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         {
             name: '🏭 Make | Generate Documentation',
             run: `npm run generate-documentation`,
-            'continue-on-error': true, // <- TODO: !!! Remove
+
             env: {
                 GITHUB_TOKEN: '${{secrets.GITHUB_TOKEN}}',
             },
@@ -781,12 +781,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         {
             name: '🏭 Make | Import Markdowns',
             run: `npm run import-markdowns`,
-            'continue-on-error': true, // <- TODO: !!! Remove
         },
         {
             name: '🏭 Make | Generate OpenAPI Types',
             run: `npm run generate-openapi-types`,
-            'continue-on-error': true, // <- TODO: !!! Remove
         },
     ];
 
