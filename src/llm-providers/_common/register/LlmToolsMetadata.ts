@@ -1,7 +1,5 @@
-import { MODEL_ORDERS } from '../../../constants';
-import { MODEL_TRUST_LEVELS } from '../../../constants';
-import type { string_name } from '../../../types/typeAliases';
-import type { string_title } from '../../../types/typeAliases';
+import { MODEL_ORDERS, MODEL_TRUST_LEVELS } from '../../../constants';
+import type { string_name, string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
@@ -59,6 +57,7 @@ export type LlmToolsMetadata = Registered & {
 };
 
 /**
+ * TODO: [🕛] Extend this
  * TODO: Add configuration schema and maybe some documentation link
  * TODO: Maybe constrain LlmToolsConfiguration[number] by generic to ensure that `createConfigurationFromEnv` and `getBoilerplateConfiguration` always create same `packageName` and `className`
  * TODO: [®] DRY Register logic

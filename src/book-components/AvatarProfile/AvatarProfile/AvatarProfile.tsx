@@ -40,3 +40,7 @@ export function AvatarProfile(props: AvatarProfileProps) {
         </div>
     );
 }
+
+/**
+ * TODO: [🕛] Unite `AvatarProfileProps`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
+ */

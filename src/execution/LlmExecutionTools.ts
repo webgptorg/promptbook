@@ -1,13 +1,9 @@
 import type { Promisable } from 'type-fest';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { Prompt } from '../types/Prompt';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_markdown_text } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../types/typeAliases';
 import type { AvailableModel } from './AvailableModel';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -69,6 +65,7 @@ export type LlmExecutionTools = {
 };
 
 /**
+ * TODO: [🕛] Extend this from sth class
  * TODO: [🍚] Implement destroyable pattern to free resources
  * TODO: [🏳] Add `callTranslationModel`
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
