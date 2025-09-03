@@ -278,6 +278,10 @@
     justify-content: flex-start;
 }
 
+.chatMainFlow .chatMessage.isMe .messageText {
+    border-bottom-right-radius: 6px;
+}
+
 /* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
     width: 40px;

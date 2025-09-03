@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type { string_markdown, string_name } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -56,7 +55,7 @@ export function LlmChat(props: LlmChatProps) {
                 name: 'USER' as string_name,
                 fullname: 'You',
                 isMe: true,
-                color: '#3b82f6',
+                color: '#1D4ED8',
             },
             // Use the profile from llmTools if available, otherwise fallback to default
             llmTools.profile || {

@@ -124,7 +124,7 @@ export default function LlmChatPreview() {
     };
 
     const currentScenario = scenarios[scenario as keyof typeof scenarios];
-    const isOpenAiScenario = scenario.startsWith('openai-');
+    const isOpenAiScenario = scenario.startsWith('openai');
 
     return (
         <div className="space-y-4">
