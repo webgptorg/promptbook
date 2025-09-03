@@ -1,7 +1,7 @@
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
+import { REMOTE_PROFILE } from './remote-profile';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../execution/PromptResult';
@@ -49,7 +49,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
     }
 
     public get profile() {
-        return LLM_PROVIDER_PROFILES.REMOTE;
+        return REMOTE_PROFILE;
     }
 
     /**

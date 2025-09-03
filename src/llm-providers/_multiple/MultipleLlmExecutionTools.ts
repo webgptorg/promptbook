@@ -4,7 +4,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
+import { MULTIPLE_PROFILE } from './multiple-profile';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../execution/PromptResult';
@@ -70,7 +70,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
     }
 
     public get profile() {
-        return LLM_PROVIDER_PROFILES.MULTIPLE;
+        return MULTIPLE_PROFILE;
     }
 
     /**

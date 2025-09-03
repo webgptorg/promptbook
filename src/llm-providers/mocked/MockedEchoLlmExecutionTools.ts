@@ -2,7 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
+import { MOCKED_ECHO_PROFILE } from './mocked-profiles';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
@@ -32,7 +32,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
     }
 
     public get profile() {
-        return LLM_PROVIDER_PROFILES.MOCKED_ECHO;
+        return MOCKED_ECHO_PROFILE;
     }
 
     /**

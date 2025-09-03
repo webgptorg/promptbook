@@ -3,7 +3,7 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
+import { OPENAI_PROFILE } from './openai-profile';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
@@ -24,7 +24,7 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
     }
 
     public get profile() {
-        return LLM_PROVIDER_PROFILES.OPENAI;
+        return OPENAI_PROFILE;
     }
 
     /*
