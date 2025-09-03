@@ -1,5 +1,4 @@
-import type { string_color } from '../../types/typeAliases';
-import type { string_url_image } from '../../types/typeAliases';
+import type { string_color, string_url_image } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
 import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';
@@ -89,7 +88,7 @@ export class Color {
      * @returns Color object
      */
     public static async fromImage(image: string_url_image): Promise<Color> {
-        // TODO: Implement + Add samples here [👠]
+        // TODO: Implement + Add samples here
         TODO_USE(image);
         return Color.fromHex(`#009edd`);
     }
@@ -169,8 +168,54 @@ export class Color {
      * @returns Color object
      */
     public static fromHsl(hsl: string_color): WithTake<Color> {
-        // TODO: Implement + Add samples here [👠]
-        throw new Error(`Can not create a new Color instance from supposed hsl formatted string "${hsl}".`);
+        const match = hsl.match(/^hsl\(\s*([0-9.]+)\s*,\s*([0-9.]+)%\s*,\s*([0-9.]+)%\s*\)$/);
+        if (!match) {
+            throw new Error(`Invalid hsl string format: "${hsl}"`);
+        }
+
+        const h = parseFloat(match[1]!);
+        const s = parseFloat(match[2]!) / 100;
+        const l = parseFloat(match[3]!) / 100;
+
+        // HSL to RGB conversion
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+        const m = l - c / 2;
+
+        let r1 = 0,
+            g1 = 0,
+            b1 = 0;
+        if (h >= 0 && h < 60) {
+            r1 = c;
+            g1 = x;
+            b1 = 0;
+        } else if (h >= 60 && h < 120) {
+            r1 = x;
+            g1 = c;
+            b1 = 0;
+        } else if (h >= 120 && h < 180) {
+            r1 = 0;
+            g1 = c;
+            b1 = x;
+        } else if (h >= 180 && h < 240) {
+            r1 = 0;
+            g1 = x;
+            b1 = c;
+        } else if (h >= 240 && h < 300) {
+            r1 = x;
+            g1 = 0;
+            b1 = c;
+        } else if (h >= 300 && h < 360) {
+            r1 = c;
+            g1 = 0;
+            b1 = x;
+        }
+
+        const r = Math.round((r1 + m) * 255);
+        const g = Math.round((g1 + m) * 255);
+        const b = Math.round((b1 + m) * 255);
+
+        return take(new Color(r, g, b));
     }
 
     /**
@@ -180,9 +225,27 @@ export class Color {
      * @returns Color object
      */
     public static fromRgbString(rgb: string_color): WithTake<Color> {
-        // TODO: [0] Should be fromRgbString and fromRgbaString one or two functions
-        // TODO: Implement + Add samples here [👠]
-        throw new Error(`Can not create a new Color instance from supposed rgb formatted string "${rgb}".`);
+        const match = rgb.match(/^rgb\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/);
+        if (!match) {
+            throw new Error(`Invalid rgb string format: "${rgb}"`);
+        }
+
+        const parseChannel = (value: string): number => {
+            if (value.endsWith('%')) {
+                // Percentage value
+                const percent = parseFloat(value);
+                return Math.round((percent / 100) * 255);
+            } else {
+                // Numeric value
+                return Math.round(parseFloat(value));
+            }
+        };
+
+        const r = parseChannel(match[1]!);
+        const g = parseChannel(match[2]!);
+        const b = parseChannel(match[3]!);
+
+        return take(new Color(r, g, b));
     }
 
     /**
@@ -192,9 +255,41 @@ export class Color {
      * @returns Color object
      */
     public static fromRgbaString(rgba: string_color): WithTake<Color> {
-        // TODO: [0] Should be fromRgbString and fromRgbaString one or two functions
-        // TODO: Implement + Add samples here [👠]
-        throw new Error(`Can not create a new Color instance from supposed rgba formatted string "${rgba}".`);
+        const match = rgba.match(/^rgba\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/);
+        if (!match) {
+            throw new Error(`Invalid rgba string format: "${rgba}"`);
+        }
+
+        const parseChannel = (value: string): number => {
+            if (value.endsWith('%')) {
+                const percent = parseFloat(value);
+                return Math.round((percent / 100) * 255);
+            } else {
+                return Math.round(parseFloat(value));
+            }
+        };
+
+        const parseAlpha = (value: string): number => {
+            if (value.endsWith('%')) {
+                const percent = parseFloat(value);
+                return Math.round((percent / 100) * 255);
+            } else {
+                const alphaFloat = parseFloat(value);
+                // If alpha is between 0 and 1, treat as float
+                if (alphaFloat <= 1) {
+                    return Math.round(alphaFloat * 255);
+                }
+                // Otherwise, treat as 0-255
+                return Math.round(alphaFloat);
+            }
+        };
+
+        const r = parseChannel(match[1]!);
+        const g = parseChannel(match[2]!);
+        const b = parseChannel(match[3]!);
+        const a = parseAlpha(match[4]!);
+
+        return take(new Color(r, g, b, a));
     }
 
     /**
