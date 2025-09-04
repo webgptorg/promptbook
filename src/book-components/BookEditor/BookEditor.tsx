@@ -2,6 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
+import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
@@ -105,7 +106,7 @@ export function BookEditor(props: BookEditorProps) {
         <div
             data-book-component="BookEditor"
             ref={hostRef}
-            className={classNames(styles.BookEditor, isVerbose && styles.isVerbose,className)}
+            className={classNames(styles.BookEditor, isVerbose && styles.isVerbose, className)}
             style={style}
         >
             {shadowReady && shadowRootRef.current ? createPortal(editorInner, shadowRootRef.current) : <>Loading...</>}
