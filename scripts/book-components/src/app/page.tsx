@@ -1,6 +1,7 @@
 import { getAllComponents, getComponentsByCategory } from '@/lib/components';
 import { ExternalLink, Package, Search, Tag, User } from 'lucide-react';
 import Link from 'next/link';
+import ComponentCardPreview from '@/components/ComponentCardPreview';
 
 export default function Home() {
     const components = getAllComponents();
@@ -98,6 +99,9 @@ export default function Home() {
                                         className="group block"
                                     >
                                         <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden border border-gray-200">
+                                            {/* Component Preview */}
+                                            <ComponentCardPreview componentId={component.id} />
+                                            
                                             <div className="p-6">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <h4 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
