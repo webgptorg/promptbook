@@ -40,7 +40,7 @@ export default function ComponentCardPreview({ componentId }: ComponentCardPrevi
                             placeholder="Try typing something here..."
                             maxLength={100}
                             rows={2}
-                            disabled
+                            // disabled
                         />
                     </div>
                 );
@@ -113,9 +113,7 @@ export default function ComponentCardPreview({ componentId }: ComponentCardPrevi
 
     return (
         <div className="bg-gray-50 rounded-t-lg overflow-hidden h-32 relative">
-            <div className="absolute inset-0 overflow-hidden">
-                {renderComponentPreview()}
-            </div>
+            <div className="absolute inset-0 overflow-hidden">{renderComponentPreview()}</div>
             {/* Overlay to prevent interaction */}
             <div className="absolute inset-0 bg-transparent cursor-pointer" />
         </div>
