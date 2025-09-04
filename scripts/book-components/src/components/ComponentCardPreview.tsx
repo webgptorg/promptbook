@@ -40,7 +40,6 @@ export default function ComponentCardPreview({ componentId }: ComponentCardPrevi
                             placeholder="Try typing something here..."
                             maxLength={100}
                             rows={2}
-                            // disabled
                         />
                     </div>
                 );

@@ -23,6 +23,11 @@ export type BookEditorProps = {
     readonly className?: string;
 
     /**
+     * Optional CSS style which will be added to root <div/> element
+     */
+    readonly style?: CSSProperties;
+
+    /**
      * CSS className for a font (e.g. from next/font) to style the editor text.
      * If omitted, defaults to system serif fonts.
      */
@@ -52,7 +57,7 @@ export type BookEditorProps = {
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
-    const { className = '', value, onChange, fontClassName, isVerbose = DEFAULT_IS_VERBOSE } = props;
+    const { className, style, value, onChange, fontClassName, isVerbose = DEFAULT_IS_VERBOSE } = props;
 
     // Host div that will get a shadow root
     const hostRef = useRef<HTMLDivElement | null>(null);
@@ -100,7 +105,8 @@ export function BookEditor(props: BookEditorProps) {
         <div
             data-book-component="BookEditor"
             ref={hostRef}
-            className={classNames(className, isVerbose && styles.isVerbose)}
+            className={classNames(styles.BookEditor, isVerbose && styles.isVerbose,className)}
+            style={style}
         >
             {shadowReady && shadowRootRef.current ? createPortal(editorInner, shadowRootRef.current) : <>Loading...</>}
         </div>

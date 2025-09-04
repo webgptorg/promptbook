@@ -1,5 +1,18 @@
+.BookEditor {
+    height: 450px;
+    width: 100%;
+}
+
 .bookEditorContainer {
     width: 100%;
+    height: 100%;
+}
+
+.bookEditorContainer.isVerbose {
+    /**/
+    background-color: rgba(0, 0, 0, 0.05);
+    outline: 1px dotted rgba(0, 0, 0, 0.5);
+    /**/
 }
 
 .isVerbose {
@@ -7,6 +20,9 @@
 }
 
 .bookEditorWrapper {
+    width: 100%;
+    height: 100%;
+
     position: relative;
     overflow: hidden;
     border-radius: 1rem;
@@ -14,6 +30,11 @@
     background-color: white;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.2s ease-in-out;
+}
+.isVerbose .bookEditorWrapper {
+    /**/
+    overflow: visible;
+    /**/
 }
 
 .bookEditorWrapper:hover {
@@ -36,24 +57,36 @@
 }
 
 .bookEditorHighlight {
+    /* TODO: DRY */
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
+
     overflow: auto;
     pointer-events: none;
-    white-space: pre-wrap;
+
     color: rgb(17, 24, 39);
-    font-size: 1.125rem;
+    font-size: 1.125rem; /* TODO: DRY */
     padding-top: 0;
     padding-left: 46px;
     padding-right: 46px;
     margin-bottom: 50px;
     z-index: 10;
-    overflow-wrap: break-word;
+
     scrollbar-width: none;
     -ms-overflow-style: none;
+
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.isVerbose .bookEditorHighlight {
+    /**/
+    opacity: 0.5;
+    outline: 1px dotted rgba(255, 0, 0, 0.5);
+    /**/
 }
 
 .bookEditorHighlight::-webkit-scrollbar {
@@ -61,20 +94,33 @@
 }
 
 .bookEditorTextarea {
-    position: relative;
-    z-index: 20;
-    width: 100%;
-    height: 28rem;
+    /* TODO: DRY */
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
     color: transparent;
     caret-color: rgb(17, 24, 39);
-    font-size: 1.125rem;
+    font-size: 1.125rem; /* TODO: DRY */
     background-color: transparent;
     outline: none;
     resize: none;
-    padding-top: 15px;
+    padding-top: 18px;
     padding-left: 46px;
     padding-right: 46px;
     border: none;
+
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.isVerbose .bookEditorTextarea {
+    /**/
+    color: rgba(255, 255, 0, 0.5);
+    outline: 1px dotted rgba(255, 255, 0, 0.5);
+    /**/
 }
 
 .bookEditorTextarea::selection {
@@ -85,7 +131,12 @@
     font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
 }
 
-.bookEditorVersion {
+.bookEditorBar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
     font-size: 0.875rem;
     color: rgba(17, 24, 39, 0.6);
     padding: 0.5rem 1rem;
@@ -93,7 +144,7 @@
     background-color: rgba(99, 102, 241, 0.1);
 }
 
-.bookEditorVersion a {
+.bookEditorBar a {
     color: unset;
     text-decoration: none;
 }

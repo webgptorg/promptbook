@@ -25,12 +25,10 @@ export default function BookEditorPreview() {
     return (
         <div className={`w-full`}>
             <BookEditor value={book} onChange={setBook} className={styles.BookEditor} isVerbose={false} />
-
             <h2 className="text-lg font-semibold mt-6 mb-2">Parsed Book Content</h2>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
                 <code>{JSON.stringify(bookParsed, null, 4)}</code>
             </pre>
-
             <h2 className="text-lg font-semibold mt-6 mb-2">Commitment Definitions (Manual)</h2>
             <div className="flex gap-4">
                 {/* Navigation list */}
@@ -172,6 +170,20 @@ export default function BookEditorPreview() {
                     )}
                 </div>
             </div>
+            <h2 className="text-lg font-semibold mt-6 mb-2">Horizontal Book Editor</h2>``
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={(styles.BookEditor, styles.BookEditorHorizontal)}
+                isVerbose={false}
+            />
+            <h2 className="text-lg font-semibold mt-6 mb-2">Vertical Book Editor</h2>``
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={(styles.BookEditor, styles.BookEditorVertical)}
+                isVerbose={false}
+            />
         </div>
     );
 }

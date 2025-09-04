@@ -7,3 +7,13 @@
     transform: rotate(10deg);
     */
 }
+
+.BookEditorVertical {
+    width: 200px;
+    height: 700px;
+}
+
+.BookEditorHorizontal {
+    width: 100%;
+    height: 200px;
+}
