@@ -34,6 +34,55 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     readonly port: number;
 
     /**
+     * OAuth configuration for social login providers
+     * 
+     * Note: These are optional and only needed if you want to enable OAuth login
+     */
+    readonly oauthConfig?: {
+        /**
+         * Session secret for cookie encryption
+         */
+        readonly sessionSecret: string;
+        
+        /**
+         * Base URL for OAuth callbacks (e.g., "https://yourdomain.com")
+         */
+        readonly baseUrl: string;
+        
+        /**
+         * Facebook OAuth configuration
+         */
+        readonly facebook?: {
+            readonly clientId: string;
+            readonly clientSecret: string;
+        };
+        
+        /**
+         * Google OAuth configuration
+         */
+        readonly google?: {
+            readonly clientId: string;
+            readonly clientSecret: string;
+        };
+        
+        /**
+         * LinkedIn OAuth configuration
+         */
+        readonly linkedin?: {
+            readonly clientId: string;
+            readonly clientSecret: string;
+        };
+        
+        /**
+         * GitHub OAuth configuration
+         */
+        readonly github?: {
+            readonly clientId: string;
+            readonly clientSecret: string;
+        };
+    };
+
+    /**
      * Creates execution tools the client
      *
      * This is relevant also in anonymous mode in opposition to `createLlmExecutionTools`
@@ -126,6 +175,41 @@ export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
 };
 
 /**
+ * OAuth profile information from social login providers
+ */
+export type OAuthProfile = {
+    /**
+     * OAuth provider name
+     */
+    readonly provider: 'facebook' | 'google' | 'linkedin' | 'github';
+    
+    /**
+     * User ID from the OAuth provider
+     */
+    readonly id: string;
+    
+    /**
+     * User's display name
+     */
+    readonly displayName?: string;
+    
+    /**
+     * User's email address
+     */
+    readonly email?: string;
+    
+    /**
+     * User's profile photo URL
+     */
+    readonly photoUrl?: string;
+    
+    /**
+     * Raw profile data from the OAuth provider
+     */
+    readonly raw: any;
+};
+
+/**
  * Login request for the application mode
  */
 export type LoginRequest = {
@@ -145,6 +229,13 @@ export type LoginRequest = {
      * Password of the user
      */
     readonly password: string_password;
+    
+    /**
+     * OAuth profile information (when using social login)
+     * 
+     * Note: When this is provided, username/password are ignored
+     */
+    readonly oauthProfile?: OAuthProfile;
 
     /**
      * Request object from express if you want to access some request data for example headers, IP address, etc.
