@@ -22,3 +22,8 @@ svět
 dětí
 názvu
 návrh
+archiv
+stav
+místnost
+náhradního
+zdroje
