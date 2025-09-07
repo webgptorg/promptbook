@@ -1,7 +1,8 @@
+import ComponentCardPreview from '@/components/ComponentCardPreview';
 import { getAllComponents, getComponentsByCategory } from '@/lib/components';
 import { ExternalLink, Package, Search, Tag, User } from 'lucide-react';
 import Link from 'next/link';
-import ComponentCardPreview from '@/components/ComponentCardPreview';
+import { classNames } from '../../../../src/book-components/_common/react-utils/classNames';
 
 export default function Home() {
     const components = getAllComponents();
@@ -86,7 +87,10 @@ export default function Home() {
             <section className="py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {Object.entries(componentsByCategory).map(([category, categoryComponents]) => (
-                        <div key={category} className="mb-12">
+                        <div
+                            key={category}
+                            className={classNames('mb-12', category === 'Internal' ? 'opacity-50' : '')}
+                        >
                             <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                                 <Package className="h-6 w-6 mr-2 text-blue-600" />
                                 {category}
@@ -100,8 +104,13 @@ export default function Home() {
                                     >
                                         <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden border border-gray-200">
                                             {/* Component Preview */}
+                                            {/*
+                                                Wrap ComponentCardPreview so that previews in the
+                                                "Internal" category render at 50% opacity.
+                                            */}
+
                                             <ComponentCardPreview componentId={component.id} />
-                                            
+
                                             <div className="p-6">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <h4 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
