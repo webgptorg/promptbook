@@ -1,6 +1,6 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
-import { dirname, join } from 'path';
+import { dirname, isAbsolute, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
@@ -60,7 +60,7 @@ export async function makeKnowledgeSourceHandler(
         const url = knowledgeSourceContent;
 
         if (isVerbose) {
-            console.info(`📄 "${name}" is available at "${url}"`);
+            console.info(`📄 [1] "${name}" is available at "${url}"`);
         }
 
         const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
@@ -68,7 +68,7 @@ export async function makeKnowledgeSourceHandler(
 
         if (tools.fs === undefined || !url.endsWith('.pdf' /* <- TODO: [💵] */)) {
             if (isVerbose) {
-                console.info(`📄 "${name}" tools.fs is not available or URL is not a PDF.`);
+                console.info(`📄 [2] "${name}" tools.fs is not available or URL is not a PDF.`);
             }
 
             return {
@@ -117,7 +117,7 @@ export async function makeKnowledgeSourceHandler(
             await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
         } catch (error) {
             if (isVerbose) {
-                console.info(`📄 "${name}" error creating cache directory`);
+                console.info(`📄 [3] "${name}" error creating cache directory`);
             }
 
             // Note: If we can't create cache directory, we'll handle it when trying to write the file
@@ -152,7 +152,7 @@ export async function makeKnowledgeSourceHandler(
             await tools.fs!.writeFile(join(rootDirname, filepath), fileContent);
         } catch (error) {
             if (isVerbose) {
-                console.info(`📄 "${name}" error writing cache file`);
+                console.info(`📄 [4] "${name}" error writing cache file`);
             }
 
             // Note: If we can't write to cache, we'll process the file directly from memory
@@ -188,7 +188,7 @@ export async function makeKnowledgeSourceHandler(
         // TODO: [🧹][🧠] Delete the file after the scraping is done
 
         if (isVerbose) {
-            console.info(`📄 "${name}" cached at "${join(rootDirname, filepath)}"`);
+            console.info(`📄 [5] "${name}" cached at "${join(rootDirname, filepath)}"`);
         }
 
         return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, {
@@ -206,10 +206,12 @@ export async function makeKnowledgeSourceHandler(
             //          <- TODO: [🧠] What is the best error type here`
         }
 
-        const filename = join(rootDirname, knowledgeSourceContent).split('\\').join('/');
+        const filename = isAbsolute(knowledgeSourceContent)
+            ? knowledgeSourceContent
+            : join(rootDirname, knowledgeSourceContent).split('\\').join('/');
 
         if (isVerbose) {
-            console.info(`📄 "${name}" is a valid file "${filename}"`);
+            console.info(`📄 [6] "${name}" is a valid file "${filename}"`);
         }
 
         const fileExtension = getFileExtension(filename);
@@ -260,7 +262,10 @@ export async function makeKnowledgeSourceHandler(
         };
     } else {
         if (isVerbose) {
-            console.info(`📄 "${name}" is just a explicit string text with a knowledge source`);
+            console.info(`📄 [7] "${name}" is just a explicit string text with a knowledge source`);
+            console.info('---');
+            console.info(knowledgeSourceContent);
+            console.info('---');
         }
 
         return {

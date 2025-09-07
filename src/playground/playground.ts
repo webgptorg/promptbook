@@ -5,8 +5,9 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import { copyFile, rm } from 'fs/promises';
 import glob from 'glob-promise';
-import { join } from 'path';
+import { basename, join } from 'path';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../scrapers/_common/utils/makeKnowledgeSourceHandler';
@@ -45,22 +46,33 @@ async function playground() {
             executables,
         },
         {
-            isVerbose: true,
+            isVerbose: false,
         },
     );
 
     for (const documentFile of documentFiles) {
+        // const markdownFile = documentFile.replace(/\.docx$/i, '.md');
+        const markdownFile = join('other/p13-converted', basename(documentFile).replace(/\.docx$/i, '.md'));
+
+        if (markdownFile === documentFile) {
+            throw new Error(`Unexpected same filename markdownFile===documentFile==="${markdownFile}"`);
+        }
+
         const sourceHandler = await makeKnowledgeSourceHandler(
             { knowledgeSourceContent: documentFile },
             { fs },
-            { rootDirname: process.cwd(), isVerbose: true },
+            { rootDirname: process.cwd(), isVerbose: false },
         );
 
-        console.info('documentFile', documentFile);
-        console.info('sourceHandler', sourceHandler);
+        // console.info('documentFile', documentFile);
+        // console.info('sourceHandler', sourceHandler);
 
         const converted = await documentScraper.$convert(sourceHandler);
-        console.info(colors.green(`📄  ${converted.filename}`));
+
+        console.info(colors.green(`✅ ${converted.filename}`));
+
+        await copyFile(converted.filename, markdownFile);
+        await rm(converted.filename);
     }
 
     //========================================/
