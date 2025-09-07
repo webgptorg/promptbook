@@ -122,6 +122,7 @@ export default function ChatPreview() {
                 onReset={handleReset}
                 placeholderMessageContent="Try typing a message to interact with the chat..."
                 isFocusedOnLoad={false}
+                isSaveButtonEnabled={true}
             />
 
             {/*

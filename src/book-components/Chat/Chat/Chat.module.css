@@ -487,11 +487,10 @@
     align-items: center;
     border: none;
     outline: none;
-    background: rgba(0 0 0 / 0.47);
-    backdrop-filter: blur(10px);
+    background: rgba(0 0 0 / 0.5);
+    backdrop-filter: blur(3px);
     border-radius: 50%;
     font-weight: bold;
-    font-size: 30px;
     color: white;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;

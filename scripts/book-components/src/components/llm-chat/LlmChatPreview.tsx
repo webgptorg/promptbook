@@ -106,6 +106,7 @@ export default function LlmChatPreview() {
                         {...commonProps}
                         placeholderMessageContent="Ask the mocked echo LLM anything..."
                         isFocusedOnLoad={false}
+                        isSaveButtonEnabled={true}
                     />
                 );
             case 'mock-persistent':
@@ -115,6 +116,7 @@ export default function LlmChatPreview() {
                         persistenceKey="demo-mock-chat"
                         placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
                         isFocusedOnLoad={false}
+                        isSaveButtonEnabled={true}
                     />
                 );
             case 'openai':
@@ -124,6 +126,7 @@ export default function LlmChatPreview() {
                         persistenceKey="demo-openai-chat"
                         placeholderMessageContent="This OpenAI chat persists in localStorage - try refreshing the page!"
                         isFocusedOnLoad={false}
+                        isSaveButtonEnabled={true}
                     />
                 );
             default:

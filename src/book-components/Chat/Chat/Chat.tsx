@@ -78,7 +78,7 @@ export function Chat(props: ChatProps) {
         isVoiceCalling = false,
         isFocusedOnLoad,
         // isExperimental = false,
-        // isSaveButtonEnabled = false,
+        // TODO: !!!!> isSaveButtonEnabled = false,
         // exportHeaderMarkdown,
         participants = [],
     } = props;
@@ -264,7 +264,7 @@ export function Chat(props: ChatProps) {
                                     }
                                 }}
                             >
-                                <ArrowIcon direction="DOWN" size={20} />
+                                <ArrowIcon direction="DOWN" size={33} />
                             </button>
                         </div>
                     )}
