@@ -36,11 +36,7 @@ export default function ComponentCardPreview({ componentId }: ComponentCardPrevi
             case 'textarea-with-counter':
                 return (
                     <div className="p-3 scale-75 origin-top-left transform">
-                        <TextareaWithCounter
-                            placeholder="Try typing something here..."
-                            maxLength={100}
-                            rows={2}
-                        />
+                        <TextareaWithCounter placeholder="Try typing something here..." maxLength={100} rows={2} />
                     </div>
                 );
             case 'mermaid-social-graph':

@@ -101,13 +101,20 @@ export default function LlmChatPreview() {
 
         switch (scenario) {
             case 'mock-basic':
-                return <LlmChat {...commonProps} placeholderMessageContent="Ask the mocked echo LLM anything..." />;
+                return (
+                    <LlmChat
+                        {...commonProps}
+                        placeholderMessageContent="Ask the mocked echo LLM anything..."
+                        isFocusedOnLoad={false}
+                    />
+                );
             case 'mock-persistent':
                 return (
                     <LlmChat
                         {...commonProps}
                         persistenceKey="demo-mock-chat"
                         placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
+                        isFocusedOnLoad={false}
                     />
                 );
             case 'openai':
@@ -116,6 +123,7 @@ export default function LlmChatPreview() {
                         {...commonProps}
                         persistenceKey="demo-openai-chat"
                         placeholderMessageContent="This OpenAI chat persists in localStorage - try refreshing the page!"
+                        isFocusedOnLoad={false}
                     />
                 );
             default:
