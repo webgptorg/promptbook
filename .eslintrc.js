@@ -20,5 +20,6 @@ module.exports = {
         // Note: There are places I want to use ${variable} in strings but not using yet
         // quotes: ['error', 'single'],
         semi: ['error', 'always'],
+        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
     },
 };

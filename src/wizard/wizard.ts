@@ -21,7 +21,7 @@ import { $getCompiledBook } from './$getCompiledBook';
 /**
  * Options for wizard methods
  */
-interface WizardOptions {
+type WizardOptions = {
     /**
      * Whether to enable verbose logging
      */

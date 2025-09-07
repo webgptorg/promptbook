@@ -4,7 +4,7 @@ import type { ParsedCommitment } from './ParsedCommitment';
  * Result of parsing agent source for commitments
  */
 
-export interface AgentSourceParseResult {
+export type AgentSourceParseResult = {
     /**
      * The agent name (first line)
      */

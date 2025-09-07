@@ -5,7 +5,7 @@ import type { TODO_any } from '../../../utils/organization/TODO_any';
  *
  * This is like "compiled" version of agent source
  */
-export interface AgentModelRequirements {
+export type AgentModelRequirements = {
     /**
      * The system message that defines the agent's behavior and personality
      */

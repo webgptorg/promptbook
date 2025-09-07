@@ -4,7 +4,7 @@ import type { BookCommitment } from '../_base/BookCommitment';
  * Parsed commitment line from agent source
  */
 
-export interface ParsedCommitment {
+export type ParsedCommitment = {
     /**
      * The commitment type (e.g., 'PERSONA', 'KNOWLEDGE')
      */

@@ -12,7 +12,7 @@ import { checkExpectations } from './checkExpectations';
 /**
  * Options for validating a prompt result
  */
-export interface ValidatePromptResultOptions {
+export type ValidatePromptResultOptions = {
     /**
      * The result string to validate
      */
@@ -38,7 +38,7 @@ export interface ValidatePromptResultOptions {
 /**
  * Result of prompt result validation
  */
-export interface ValidatePromptResultResult {
+export type ValidatePromptResultResult = {
     /**
      * Whether the result is valid (passes all expectations and format checks)
      */

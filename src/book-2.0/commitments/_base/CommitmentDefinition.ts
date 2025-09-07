@@ -8,7 +8,7 @@ import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
  * - Applying its effects to agent model requirements
  */
 
-export interface CommitmentDefinition {
+export type CommitmentDefinition = {
     /**
      * The type/name of this commitment (e.g., 'PERSONA', 'KNOWLEDGE', etc.)
      */

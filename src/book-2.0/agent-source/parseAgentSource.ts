@@ -3,7 +3,7 @@ import type { string_url_image } from '../../types/typeAliases';
 import { parseAgentSourceBasicInfo } from '../commitments/_misc/parseAgentSourceWithCommitments';
 import type { string_book } from './string_book';
 
-export interface AgentBasicInformation {
+export type AgentBasicInformation = {
     /**
      * Name of the agent
      * This is the first line of the agent source

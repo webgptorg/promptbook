@@ -8,7 +8,7 @@ import type { Takeable } from './Takeable';
  */
 export type WithTake<TValue extends Takeable> = TValue & ITakeChain<TValue>;
 
-export interface ITakeChain<TValue extends Takeable> {
+export type ITakeChain<TValue extends Takeable> = {
     readonly value: TValue;
     then<TResultValue extends Takeable>(callback: (value: TValue) => TResultValue): WithTake<TResultValue>;
 
