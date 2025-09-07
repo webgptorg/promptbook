@@ -188,7 +188,14 @@
             "focus": true
         },
         {
-            "name": "🏭🩹 Fix imports",
+            "name": "🏭🩹 Fix Lint",
+            "command": "npx eslint src --fix",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🩹 Fix Imports",
             "commands": ["npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
             "execute": true,
             "onlySingle": true,
