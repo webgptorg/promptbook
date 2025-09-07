@@ -239,6 +239,36 @@ export function Chat(props: ChatProps) {
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatBar, chatBarCssClassName)}>{children}</div>}
 
+                    {!isAutoScrolling && (
+                        <div className={styles.scrollToBottomContainer}>
+                            <button
+                                data-button-type="custom"
+                                className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
+                                onClick={() => {
+                                    const chatMessagesElement = chatMessagesRef.current;
+
+                                    if (chatMessagesElement === null) {
+                                        return;
+                                    }
+
+                                    // Mobile-optimized scroll to bottom
+                                    if (isMobile) {
+                                        chatMessagesElement.scrollTo({
+                                            top: chatMessagesElement.scrollHeight,
+                                            behavior: 'smooth',
+                                        });
+                                    } else {
+                                        chatMessagesElement.style.scrollBehavior = 'smooth';
+                                        chatMessagesElement.scrollBy(0, 10000);
+                                        chatMessagesElement.style.scrollBehavior = 'auto';
+                                    }
+                                }}
+                            >
+                                <ArrowIcon direction="DOWN" size={20} />
+                            </button>
+                        </div>
+                    )}
+
                     {isVoiceCalling && (
                         <div className={styles.voiceCallIndicatorBar}>
                             <div className={styles.voiceCallIndicator}>
@@ -482,34 +512,6 @@ export function Chat(props: ChatProps) {
                         </button>
                     </div>
                 </div>
-
-                {!isAutoScrolling && (
-                    <button
-                        data-button-type="custom"
-                        className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
-                        onClick={() => {
-                            const chatMessagesElement = chatMessagesRef.current;
-
-                            if (chatMessagesElement === null) {
-                                return;
-                            }
-
-                            // Mobile-optimized scroll to bottom
-                            if (isMobile) {
-                                chatMessagesElement.scrollTo({
-                                    top: chatMessagesElement.scrollHeight,
-                                    behavior: 'smooth',
-                                });
-                            } else {
-                                chatMessagesElement.style.scrollBehavior = 'smooth';
-                                chatMessagesElement.scrollBy(0, 10000);
-                                chatMessagesElement.style.scrollBehavior = 'auto';
-                            }
-                        }}
-                    >
-                        <ArrowIcon direction="DOWN" size={20} />
-                    </button>
-                )}
             </div>
 
             {ratingModalOpen && selectedMessage && (

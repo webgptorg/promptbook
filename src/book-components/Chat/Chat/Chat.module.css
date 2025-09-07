@@ -370,6 +370,7 @@
 
 /* Chat input area */
 .chatMainFlow .chatInput {
+    z-index: 10;
     grid-area: 📝;
     width: 100%;
     padding: 20px;
@@ -458,11 +459,27 @@
 }
 
 /* Scroll to bottom button */
-.scrollToBottom {
-    position: absolute;
-    top: calc(100% - 180px);
-    left: 50%;
-    transform: translate(-50%, 0);
+
+.scrollToBottomContainer {
+    /*/
+    outline: 1px dotted red;
+    /**/
+
+    z-index: 20;
+    grid-area: 📝;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    pointer-events: none;
+}
+
+.scrollToBottomContainer .scrollToBottom {
+    pointer-events: all;
+
+    transform: translate(-50%, -150%);
     width: 48px;
     height: 48px;
     display: flex;
@@ -470,13 +487,12 @@
     align-items: center;
     border: none;
     outline: none;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(20px);
+    background: rgba(0 0 0 / 0.47);
+    backdrop-filter: blur(10px);
     border-radius: 50%;
     font-weight: bold;
-    font-size: 20px;
-    color: var(--call-to-action-button-text-color);
-    opacity: 0.9;
+    font-size: 30px;
+    color: white;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -498,55 +514,11 @@
 }
 
 .scrollToBottom:hover {
-    opacity: 1;
-    transform: translate(-50%, -4px) scale(1.05);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translate(-50%, -160%) scale(1.05);
 }
 
 .scrollToBottom:active {
-    transform: translate(-50%, 0) scale(0.95);
-    transition: transform 0.1s ease;
-}
-
-/* Scroll to top button */
-.scrollToTop {
-    position: absolute;
-    top: 80px;
-    left: 50%;
-    transform: translate(-50%, 0);
-    width: 48px;
-    height: 48px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: none;
-    outline: none;
-    background: linear-gradient(135deg, rgba(0, 132, 255, 0.9) 0%, rgba(0, 102, 204, 0.9) 100%);
-    backdrop-filter: blur(20px);
-    border-radius: 50%;
-    font-weight: bold;
-    font-size: 20px;
-    color: white;
-    opacity: 0.9;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    user-select: none;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 4px 16px rgba(0, 132, 255, 0.3);
-    animation: scrollButtonSlideIn 0.3s ease-out;
-    border: 1px solid rgba(125, 125, 125, 0.2);
-}
-
-.scrollToTop:hover {
-    opacity: 1;
-    transform: translate(-50%, -4px) scale(1.05);
-    box-shadow: 0 8px 24px rgba(0, 132, 255, 0.4);
-    background: linear-gradient(135deg, rgba(0, 132, 255, 1) 0%, rgba(0, 102, 204, 1) 100%);
-}
-
-.scrollToTop:active {
-    transform: translate(-50%, 0) scale(0.95);
+    transform: translate(-50%, -160%) scale(0.95);
     transition: transform 0.1s ease;
 }
 
