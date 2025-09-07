@@ -5,8 +5,12 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import OpenAI from 'openai';
+import glob from 'glob-promise';
 import { join } from 'path';
+import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
+import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
+import { makeKnowledgeSourceHandler } from '../scrapers/_common/utils/makeKnowledgeSourceHandler';
+import { DocumentScraper } from '../scrapers/document/DocumentScraper';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -29,38 +33,35 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const dictionary = `C:/Users/me/Documents/p13`;
+    const documentFiles = await glob(`${dictionary}/**/*.docx`);
 
-    const stream = await openai.chat.completions.create({
-        // model: 'gpt-4o-mini',
-        model: 'gpt-4.1',
-        messages: [
-            {
-                role: 'system',
-                content: 'You are a Pavol Hejný, author of Promptbook',
-            },
-            {
-                role: 'user',
-                content: 'Who are you?',
-            },
-        ],
-        temperature: 0.7,
-        top_p: 0.9,
-        stream: true,
-    });
+    const fs = $provideFilesystemForNode();
+    const executables = await $provideExecutablesForNode();
 
-    let fullResponse = '';
-    for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        fullResponse += content;
+    const documentScraper = new DocumentScraper(
+        {
+            fs,
+            executables,
+        },
+        {
+            isVerbose: true,
+        },
+    );
 
-        // process.stdout.clearLine(0);
-        process.stdout.cursorTo(0);
-        process.stdout.write(colors.grey(fullResponse));
+    for (const documentFile of documentFiles) {
+        const sourceHandler = await makeKnowledgeSourceHandler(
+            { knowledgeSourceContent: documentFile },
+            { fs },
+            { rootDirname: process.cwd(), isVerbose: true },
+        );
+
+        console.info('documentFile', documentFile);
+        console.info('sourceHandler', sourceHandler);
+
+        const converted = await documentScraper.$convert(sourceHandler);
+        console.info(colors.green(`📄  ${converted.filename}`));
     }
-
-    console.info('\n---\n');
-    console.info(colors.green(fullResponse));
 
     //========================================/
 }

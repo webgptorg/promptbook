@@ -16,14 +16,17 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
         return false;
     }
 
+    // Reject strings that look like sentences (informational text)
+    // Heuristic: contains multiple spaces and ends with a period, or contains typical sentence punctuation
     if (
-        filename.split(' ').length >
-        5 /* <- TODO: [🧠][🈷] Make some better non-arbitrary way how to distinct filenames from informational texts */
+        filename.trim().length > 60 && // long enough to be a sentence
+        /[.!?]/.test(filename) && // contains sentence punctuation
+        filename.split(' ').length > 8 // has many words
     ) {
         return false;
     }
 
-    const filenameSlashes = filename.split('\\').join('/');
+    const filenameSlashes = filename.replace(/\\/g, '/');
 
     // Absolute Unix path: /hello.txt
     if (/^(\/)/i.test(filenameSlashes)) {
@@ -31,8 +34,8 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
         return true;
     }
 
-    // Absolute Windows path: /hello.txt
-    if (/^([A-Z]{1,2}:\/?)\//i.test(filenameSlashes)) {
+    // Absolute Windows path: C:/ or C:\ (allow spaces in filename)
+    if (/^[A-Z]:\/.+/i.test(filenameSlashes)) {
         // console.log(filename, 'Absolute Windows path: /hello.txt');
         return true;
     }

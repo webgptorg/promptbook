@@ -4,10 +4,12 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { knowledgeSourceContentToName } from '../../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
-import { DEFAULT_DOWNLOAD_CACHE_DIRNAME } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { DEFAULT_MAX_FILE_SIZE } from '../../../config';
-import { MAX_FILENAME_LENGTH } from '../../../config';
+import {
+    DEFAULT_DOWNLOAD_CACHE_DIRNAME,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_FILE_SIZE,
+    MAX_FILENAME_LENGTH,
+} from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { LimitReachedError } from '../../../errors/LimitReachedError';
 import { NotFoundError } from '../../../errors/NotFoundError';
@@ -22,7 +24,6 @@ import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { mimeTypeToExtension } from '../../../utils/files/mimeTypeToExtension';
 import { titleToName } from '../../../utils/normalization/titleToName';
-import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceHandler } from '../Scraper';
@@ -51,18 +52,25 @@ export async function makeKnowledgeSourceHandler(
         isVerbose = DEFAULT_IS_VERBOSE,
     } = options || {};
 
-    TODO_USE(isVerbose);
-
     if (!name) {
         name = knowledgeSourceContentToName(knowledgeSourceContent);
     }
 
     if (isValidUrl(knowledgeSourceContent)) {
         const url = knowledgeSourceContent;
+
+        if (isVerbose) {
+            console.info(`📄 "${name}" is available at "${url}"`);
+        }
+
         const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
         const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
 
         if (tools.fs === undefined || !url.endsWith('.pdf' /* <- TODO: [💵] */)) {
+            if (isVerbose) {
+                console.info(`📄 "${name}" tools.fs is not available or URL is not a PDF.`);
+            }
+
             return {
                 source: name,
                 filename: null,
@@ -108,15 +116,20 @@ export async function makeKnowledgeSourceHandler(
         try {
             await tools.fs!.mkdir(dirname(join(rootDirname, filepath)), { recursive: true });
         } catch (error) {
+            if (isVerbose) {
+                console.info(`📄 "${name}" error creating cache directory`);
+            }
+
             // Note: If we can't create cache directory, we'll handle it when trying to write the file
             //       This handles read-only filesystems, permission issues, and missing parent directories
-            if (error instanceof Error && (
-                error.message.includes('EROFS') ||
-                error.message.includes('read-only') ||
-                error.message.includes('EACCES') ||
-                error.message.includes('EPERM') ||
-                error.message.includes('ENOENT')
-            )) {
+            if (
+                error instanceof Error &&
+                (error.message.includes('EROFS') ||
+                    error.message.includes('read-only') ||
+                    error.message.includes('EACCES') ||
+                    error.message.includes('EPERM') ||
+                    error.message.includes('ENOENT'))
+            ) {
                 // Continue - we'll handle the error when trying to write the file
             } else {
                 // Re-throw other unexpected errors
@@ -138,15 +151,20 @@ export async function makeKnowledgeSourceHandler(
         try {
             await tools.fs!.writeFile(join(rootDirname, filepath), fileContent);
         } catch (error) {
+            if (isVerbose) {
+                console.info(`📄 "${name}" error writing cache file`);
+            }
+
             // Note: If we can't write to cache, we'll process the file directly from memory
             //       This handles read-only filesystems like Vercel
-            if (error instanceof Error && (
-                error.message.includes('EROFS') ||
-                error.message.includes('read-only') ||
-                error.message.includes('EACCES') ||
-                error.message.includes('EPERM') ||
-                error.message.includes('ENOENT')
-            )) {
+            if (
+                error instanceof Error &&
+                (error.message.includes('EROFS') ||
+                    error.message.includes('read-only') ||
+                    error.message.includes('EACCES') ||
+                    error.message.includes('EPERM') ||
+                    error.message.includes('ENOENT'))
+            ) {
                 // Return a handler that works directly with the downloaded content
                 return {
                     source: name,
@@ -169,6 +187,10 @@ export async function makeKnowledgeSourceHandler(
         // TODO: [💵] Check the file security
         // TODO: [🧹][🧠] Delete the file after the scraping is done
 
+        if (isVerbose) {
+            console.info(`📄 "${name}" cached at "${join(rootDirname, filepath)}"`);
+        }
+
         return makeKnowledgeSourceHandler({ name, knowledgeSourceContent: filepath }, tools, {
             ...options,
             rootDirname,
@@ -185,6 +207,11 @@ export async function makeKnowledgeSourceHandler(
         }
 
         const filename = join(rootDirname, knowledgeSourceContent).split('\\').join('/');
+
+        if (isVerbose) {
+            console.info(`📄 "${name}" is a valid file "${filename}"`);
+        }
+
         const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
 
@@ -232,6 +259,10 @@ export async function makeKnowledgeSourceHandler(
             },
         };
     } else {
+        if (isVerbose) {
+            console.info(`📄 "${name}" is just a explicit string text with a knowledge source`);
+        }
+
         return {
             source: name,
             filename: null,
