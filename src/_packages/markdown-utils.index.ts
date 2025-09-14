@@ -20,10 +20,17 @@ import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocks
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
+import { humanizeAiText } from '../utils/markdown/humanizeAiText';
+import { humanizeAiTextEllipsis } from '../utils/markdown/humanizeAiTextEllipsis';
+import { humanizeAiTextEmdashed } from '../utils/markdown/humanizeAiTextEmdashed';
+import { humanizeAiTextQuotes } from '../utils/markdown/humanizeAiTextQuotes';
+import { humanizeAiTextWhitespace } from '../utils/markdown/humanizeAiTextWhitespace';
 import type { MarkdownSection } from '../utils/markdown/parseMarkdownSection';
 import { parseMarkdownSection } from '../utils/markdown/parseMarkdownSection';
+import { promptbookifyAiText } from '../utils/markdown/promptbookifyAiText';
 import { removeMarkdownComments } from '../utils/markdown/removeMarkdownComments';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
+import { removeMarkdownLinks } from '../utils/markdown/removeMarkdownLinks';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 
 
@@ -50,8 +57,15 @@ export { extractAllBlocksFromMarkdown };
 export { extractAllListItemsFromMarkdown };
 export { extractOneBlockFromMarkdown };
 export { flattenMarkdown };
+export { humanizeAiText };
+export { humanizeAiTextEllipsis };
+export { humanizeAiTextEmdashed };
+export { humanizeAiTextQuotes };
+export { humanizeAiTextWhitespace };
 export type { MarkdownSection };
 export { parseMarkdownSection };
+export { promptbookifyAiText };
 export { removeMarkdownComments };
 export { removeMarkdownFormatting };
+export { removeMarkdownLinks };
 export { splitMarkdownIntoSections };
