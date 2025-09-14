@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 -   Remove cache from `parseAgentSource` and `createAgentModelRequirements` <!-- <- TODO: !!!! -->
--   Export `removeMarkdownLinks` markdown utility from `@promptbook/markdown-utils` <!-- <- TODO: !!!! -->
+-   Export `removeMarkdownLinks` markdown utility from `@promptbook/markdown-utils`
 -   Export `cleanupAiText` utility from `@promptbook/markdown-utils` <!-- <- TODO: !!!! -->
 -   Add `<Chat isAiTextCleaned>` property to `<Chat>` component <!-- <- TODO: !!!! -->
 -   Add markdown support to `<Chat>` component <!-- <- TODO: !!!! -->
