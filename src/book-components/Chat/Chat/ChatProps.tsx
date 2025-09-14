@@ -92,6 +92,13 @@ export type ChatProps = {
     };
 
     /**
+     * Indicates whether a the text is AI-generated and should be humanized
+     *
+     * @default true
+     */
+    readonly isAiTextHumanized?: boolean;
+
+    /**
      * Indicates whether a voice call is currently active
      */
     readonly isVoiceCalling?: boolean;

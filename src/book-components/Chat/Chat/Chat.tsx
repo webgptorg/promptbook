@@ -2,11 +2,12 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { countLines } from '../../../utils/expectation-counters/countLines';
+import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
@@ -75,6 +76,7 @@ export function Chat(props: ChatProps) {
         className,
         style,
         // voiceCallProps,
+        isAiTextHumanized = true,
         isVoiceCalling = false,
         isFocusedOnLoad,
         // isExperimental = false,
@@ -231,6 +233,16 @@ export function Chat(props: ChatProps) {
         ? styles.actions + ' ' + styles.left
         : styles.actions + ' ' + styles.right;
 
+    const postprocessedMessages = useMemo<ReadonlyArray<ChatMessage>>(() => {
+        if (!isAiTextHumanized) {
+            return messages;
+        }
+
+        return messages.map((message) => {
+            return { ...message, content: humanizeAiText(message.content) };
+        });
+    }, [messages, isAiTextHumanized]);
+
     return (
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
@@ -282,7 +294,7 @@ export function Chat(props: ChatProps) {
                     )}
 
                     <div className={classNames(actionsAlignmentClass)}>
-                        {onReset && messages.length !== 0 && (
+                        {onReset && postprocessedMessages.length !== 0 && (
                             <button
                                 className={classNames(styles.resetButton)}
                                 onClick={() => {
@@ -345,7 +357,7 @@ export function Chat(props: ChatProps) {
                             setAutoScrolling(element.scrollTop + element.clientHeight > element.scrollHeight - 100);
                         }}
                     >
-                        {messages.map((message, i) => {
+                        {postprocessedMessages.map((message, i) => {
                             const participant = participants.find((participant) => participant.name === message.from);
                             const avatarSrc = (participant && participant.avatarSrc) || '';
                             const color = Color.from((participant && participant.color) || '#ccc');
@@ -556,9 +568,9 @@ export function Chat(props: ChatProps) {
                             readOnly
                             value={(() => {
                                 // Try to find the user's message before the selectedMessage
-                                const idx = messages.findIndex((m) => m.id === selectedMessage.id);
+                                const idx = postprocessedMessages.findIndex((m) => m.id === selectedMessage.id);
                                 if (idx > 0) {
-                                    const prev = messages[idx - 1];
+                                    const prev = postprocessedMessages[idx - 1];
 
                                     if (prev!.from === 'USER') {
                                         return prev!.content;
