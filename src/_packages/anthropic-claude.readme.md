@@ -1,4 +1,26 @@
-`@promptbook/anthropic-claude` integrates [Anthropic's Claude API](https://console.anthropic.com/) with [Promptbook](https://github.com/webgptorg/promptbook). It allows to execute Promptbooks with OpenAI Claude 2 and 3 models.
+`@promptbook/anthropic-claude` integrates [Anthropic's Claude API](https://console.anthropic.com/) with [Promptbook](https://github.com/webgptorg/promptbook). It provides execution tools for Anthropic's Claude models, enabling seamless integration with the Promptbook ecosystem.
+
+## 🎯 Purpose and Motivation
+
+This package bridges the gap between Promptbook's unified pipeline execution system and Anthropic's powerful Claude language models. It provides a standardized interface for accessing Claude's capabilities while maintaining compatibility with Promptbook's execution framework.
+
+## 🔧 High-Level Functionality
+
+The package offers direct integration with Anthropic's Claude API:
+- **Claude Models**: Support for Claude 2, Claude 3 (Haiku, Sonnet, Opus), and future Claude models
+- **Advanced Reasoning**: Leverage Claude's strong reasoning and analysis capabilities
+- **Long Context**: Take advantage of Claude's extended context window
+- **Safety Features**: Built-in safety and alignment features from Anthropic
+
+## ✨ Key Features
+
+- 🧠 **Advanced AI Models** - Access to Claude's state-of-the-art language models
+- 🔄 **Seamless Integration** - Easy integration with other LLM providers in Promptbook
+- 📏 **Long Context Support** - Handle large documents and complex conversations
+- 🛡️ **Built-in Safety** - Anthropic's constitutional AI approach for safer outputs
+- 📊 **Usage Tracking** - Monitor token usage and costs
+- 🔧 **Flexible Configuration** - Support for custom endpoints and parameters
+- 🚀 **Performance Optimization** - Efficient request handling and caching
 
 ## 🧡 Usage
 
@@ -192,5 +214,28 @@ See the other model integrations:
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
 
 <!--/Import ./content/providers.md-->
+
+## 📦 Exported Entities
+
+### Version Information
+- `BOOK_LANGUAGE_VERSION` - Current book language version
+- `PROMPTBOOK_ENGINE_VERSION` - Current engine version
+
+### Model Information
+- `ANTHROPIC_CLAUDE_MODELS` - Available Anthropic Claude models configuration
+
+### Execution Tools Creation Function
+- `createAnthropicClaudeExecutionTools` - Create Anthropic Claude execution tools
+
+### Execution Tools Class
+- `AnthropicClaudeExecutionTools` - Anthropic Claude execution tools class
+
+### Configuration Types
+- `AnthropicClaudeExecutionToolsOptions` - Configuration options for Anthropic Claude tools (type)
+- `AnthropicClaudeExecutionToolsNonProxiedOptions` - Non-proxied configuration options (type)
+- `AnthropicClaudeExecutionToolsProxiedOptions` - Proxied configuration options (type)
+
+### Provider Registration
+- `_AnthropicClaudeRegistration` - Anthropic Claude provider registration
 
 <!-- TODO: [👩‍🚒] Should be this package named `@promptbook/anthropic-claude` or just `@promptbook/anthropic` -->

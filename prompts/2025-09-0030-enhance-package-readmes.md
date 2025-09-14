@@ -1,4 +1,4 @@
-[ ]
+[x]
 `
 [✨🚒] Enhance package readmes
 

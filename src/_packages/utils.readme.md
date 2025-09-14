@@ -136,12 +136,128 @@ unwrapResult('Best greeting for the user is "Hi Pavol!"'); // 'Hi Pavol!'
 
 ## Misc
 
+## 📦 Complete List of Exported Entities
+
+### Version Information
+- `BOOK_LANGUAGE_VERSION` - Current book language version
+- `PROMPTBOOK_ENGINE_VERSION` - Current engine version
+
+### Configuration Constants
+- `VALUE_STRINGS` - Standard value strings
+- `SMALL_NUMBER` - Small number constant
+
+### Visualization
+- `renderPromptbookMermaid` - Render promptbook as Mermaid diagram
+
+### Error Handling
+- `deserializeError` - Deserialize error objects
+- `serializeError` - Serialize error objects
+
+### Async Utilities
+- `forEachAsync` - Async forEach implementation
+
+### Format Validation
+- `isValidCsvString` - Validate CSV string format
+- `isValidJsonString` - Validate JSON string format
+- `jsonParse` - Safe JSON parsing
+- `isValidXmlString` - Validate XML string format
+
+### Template Functions
+- `prompt` - Template tag for secure prompt formatting
+- `promptTemplate` - Alias for prompt template tag
+
+### Environment Detection
+- `$getCurrentDate` - Get current date (side effect)
+- `$isRunningInBrowser` - Check if running in browser
+- `$isRunningInJest` - Check if running in Jest
+- `$isRunningInNode` - Check if running in Node.js
+- `$isRunningInWebWorker` - Check if running in Web Worker
+
+### Text Counting and Analysis
+- `CHARACTERS_PER_STANDARD_LINE` - Characters per standard line constant
+- `LINES_PER_STANDARD_PAGE` - Lines per standard page constant
+- `countCharacters` - Count characters in text
+- `countLines` - Count lines in text
+- `countPages` - Count pages in text
+- `countParagraphs` - Count paragraphs in text
+- `splitIntoSentences` - Split text into sentences
+- `countSentences` - Count sentences in text
+- `countWords` - Count words in text
+- `CountUtils` - Utility object with all counting functions
+
+### Text Normalization
+- `capitalize` - Capitalize first letter
+- `decapitalize` - Decapitalize first letter
+- `DIACRITIC_VARIANTS_LETTERS` - Diacritic variants mapping
+- `string_keyword` - Keyword string type
+- `Keywords` - Keywords type
+- `isValidKeyword` - Validate keyword format
+- `nameToUriPart` - Convert name to URI part
+- `nameToUriParts` - Convert name to URI parts
+- `string_kebab_case` - Kebab case string type
+- `normalizeToKebabCase` - Convert to kebab-case
+- `string_camelCase` - Camel case string type
+- `normalizeTo_camelCase` - Convert to camelCase
+- `string_PascalCase` - Pascal case string type
+- `normalizeTo_PascalCase` - Convert to PascalCase
+- `string_SCREAMING_CASE` - Screaming case string type
+- `normalizeTo_SCREAMING_CASE` - Convert to SCREAMING_CASE
+- `normalizeTo_snake_case` - Convert to snake_case
+- `normalizeWhitespaces` - Normalize whitespace characters
+- `orderJson` - Order JSON object properties
+- `parseKeywords` - Parse keywords from input
+- `parseKeywordsFromString` - Parse keywords from string
+- `removeDiacritics` - Remove diacritic marks
+- `searchKeywords` - Search within keywords
+- `suffixUrl` - Add suffix to URL
+- `titleToName` - Convert title to name format
+
+### Text Organization
+- `spaceTrim` - Trim spaces while preserving structure
+
+### Parameter Processing
+- `extractParameterNames` - Extract parameter names from template
+- `numberToString` - Convert number to string
+- `templateParameters` - Replace template parameters
+- `valueToString` - Convert value to string
+
+### Parsing Utilities
+- `parseNumber` - Parse number from string
+
+### Text Processing
+- `removeEmojis` - Remove emoji characters
+- `removeQuotes` - Remove quote characters
+
+### Serialization
+- `$deepFreeze` - Deep freeze object (side effect)
+- `checkSerializableAsJson` - Check if serializable as JSON
+- `clonePipeline` - Clone pipeline object
+- `deepClone` - Deep clone object
+- `exportJson` - Export object as JSON
+- `isSerializableAsJson` - Check if object is JSON serializable
+- `jsonStringsToJsons` - Convert JSON strings to objects
+
+### Set Operations
+- `difference` - Set difference operation
+- `intersection` - Set intersection operation
+- `union` - Set union operation
+
+### Code Processing
+- `trimCodeBlock` - Trim code block formatting
+- `trimEndOfCodeBlock` - Trim end of code block
+- `unwrapResult` - Extract result from wrapped output
+
+### Validation
+- `isValidEmail` - Validate email address format
+- `isRootPath` - Check if path is root path
+- `isValidFilePath` - Validate file path format
+- `isValidJavascriptName` - Validate JavaScript identifier
+- `isValidPromptbookVersion` - Validate promptbook version
+- `isValidSemanticVersion` - Validate semantic version
+- `isHostnameOnPrivateNetwork` - Check if hostname is on private network
+- `isUrlOnPrivateNetwork` - Check if URL is on private network
+- `isValidPipelineUrl` - Validate pipeline URL format
+- `isValidUrl` - Validate URL format
+- `isValidUuid` - Validate UUID format
+
 See also the documentation for all the functions in the `@promptbook/utils` package, every function is documented by jsdoc, typed by typescript and tested by jest.
-
-<!-- TODO: Describe -->
-
--   `checkExpectations`,
--   `executionReportJsonToString`,
--   `isPassingExpectations`,
--   `isValidJsonString`,
--   `parseNumber` <!-- <- [🌻] -->
