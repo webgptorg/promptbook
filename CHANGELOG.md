@@ -2,8 +2,12 @@
 
 ## [Unreleased]
 
--   Remove cache from `parseAgentSource`
--   Export misc markdown and text utilities from `@promptbook/utils`
+-   Remove cache from `parseAgentSource` and `createAgentModelRequirements` <!-- <- TODO: !!!! -->
+-   Export `removeMarkdownLinks` markdown utility from `@promptbook/markdown-utils` <!-- <- TODO: !!!! -->
+-   Export `cleanupAiText` utility from `@promptbook/markdown-utils` <!-- <- TODO: !!!! -->
+-   Add `<Chat isAiTextCleaned>` property to `<Chat>` component <!-- <- TODO: !!!! -->
+-   Add markdown support to `<Chat>` component <!-- <- TODO: !!!! -->
+-   Allow feedback in `<Chat>` component
 -   Allow to create Avatar profile pictures via `generatePlaceholderAgentProfileImageUrl`
 
 ## Released versions
