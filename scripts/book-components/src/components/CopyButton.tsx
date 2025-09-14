@@ -2,11 +2,11 @@
 
 import { Copy } from 'lucide-react';
 
-interface CopyButtonProps {
+type CopyButtonProps = {
     text: string;
     className?: string;
     children?: React.ReactNode;
-}
+};
 
 export default function CopyButton({ text, className = '', children }: CopyButtonProps) {
     const copyToClipboard = (textToCopy: string) => {

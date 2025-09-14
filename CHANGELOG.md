@@ -10,6 +10,7 @@
 -   Add markdown support to `<Chat>` component <!-- <- TODO: !!!! -->
 -   Allow feedback in `<Chat>` component <!-- <- TODO: !!!! -->
 -   Allow to create Avatar profile pictures via `generatePlaceholderAgentProfileImageUrl`
+-   **Refactor:** Convert all `interface` declarations to `type` across the codebase for consistency and better TypeScript practices
 
 ## Released versions
 

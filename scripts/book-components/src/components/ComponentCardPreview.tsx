@@ -26,9 +26,9 @@ const LlmChatPreview = dynamic(() => import('@/components/llm-chat/LlmChatPrevie
     ssr: false,
 });
 
-interface ComponentCardPreviewProps {
+type ComponentCardPreviewProps = {
     componentId: string;
-}
+};
 
 export default function ComponentCardPreview({ componentId }: ComponentCardPreviewProps) {
     const renderComponentPreview = () => {

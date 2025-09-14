@@ -5,11 +5,11 @@ import { ArrowLeft, Code, Download, ExternalLink, Eye, Settings, Tag, User } fro
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-interface ComponentPageProps {
+type ComponentPageProps = {
     params: Promise<{
         id: string;
     }>;
-}
+};
 
 export default async function ComponentPage({ params }: ComponentPageProps) {
     const { id } = await params;

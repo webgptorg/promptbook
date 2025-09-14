@@ -3,7 +3,7 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import path from 'path';
 
-export interface ComponentMetadata {
+export type ComponentMetadata = {
     id: string;
     name: string;
     description: string;
@@ -32,7 +32,7 @@ export interface ComponentMetadata {
         title: string;
         code: string;
     }>;
-}
+};
 
 export function getAllComponents(): ComponentMetadata[] {
     const componentsDir = path.join(process.cwd(), 'src/components');

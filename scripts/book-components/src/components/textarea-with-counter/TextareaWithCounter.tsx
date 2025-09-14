@@ -2,14 +2,14 @@
 
 import React, { useCallback, useState } from 'react';
 
-interface TextareaWithCounterProps {
+type TextareaWithCounterProps = {
   placeholder?: string;
   maxLength?: number;
   rows?: number;
   className?: string;
   value?: string;
   onChange?: (value: string) => void;
-}
+};
 
 export default function TextareaWithCounter({
   placeholder = "Start typing...",
@@ -20,9 +20,9 @@ export default function TextareaWithCounter({
   onChange
 }: TextareaWithCounterProps) {
   const [internalValue, setInternalValue] = useState('');
-  
+
   const value = controlledValue !== undefined ? controlledValue : internalValue;
-  
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     if (newValue.length <= maxLength) {

@@ -3,26 +3,26 @@
 import mermaid from 'mermaid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface Node {
+type Node = {
     id: string;
     label: string;
     type?: 'person' | 'organization' | 'group';
-}
+};
 
-interface Edge {
+type Edge = {
     from: string;
     to: string;
     label?: string;
     type?: 'friend' | 'colleague' | 'family' | 'follows' | 'member';
-}
+};
 
-interface MermaidSocialGraphProps {
+type MermaidSocialGraphProps = {
     nodes: Node[];
     edges: Edge[];
     className?: string;
     theme?: 'default' | 'dark' | 'forest' | 'neutral';
     direction?: 'TB' | 'TD' | 'BT' | 'RL' | 'LR';
-}
+};
 
 const defaultNodes: Node[] = [
     { id: 'alice', label: 'Alice', type: 'person' },
