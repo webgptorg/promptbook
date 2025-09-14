@@ -1,7 +1,7 @@
 import type { string_url_image } from '../../../types/typeAliases';
 import type { AgentBasicInformation } from '../../agent-source/AgentBasicInformation';
 import type { string_book } from '../../agent-source/string_book';
-import { generateGravatarUrl } from '../../utils/profileImageUtils';
+import { generateGravatarUrl } from '../../utils/generateGravatarUrl';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 
 /**
@@ -40,8 +40,6 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         profileImageUrl,
     };
 }
-
-
 
 /**
  * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
