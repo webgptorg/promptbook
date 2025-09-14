@@ -2,10 +2,9 @@
 
 ## [Unreleased]
 
-
-- Remove cache from `parseAgentSource`
-- Export misc markdown and text utilities from `@promptbook/utils`
-- Allow to create Avatar profile pictures
+-   Remove cache from `parseAgentSource`
+-   Export misc markdown and text utilities from `@promptbook/utils`
+-   Allow to create Avatar profile pictures via `generatePlaceholderAgentProfileImageUrl`
 
 ## Released versions
 

@@ -6,7 +6,7 @@ import { string_agent_name } from '../../types/typeAliases';
  * @param agentName The agent name to generate avatar for
  * @returns Gravatar URL
  *
- * @private Usage of 
+ * @private - [🤹] The fact that profile image is Gravatar is just implementation detail which should be hidden for consumer
  */
 export function generateGravatarUrl(agentName?: string_agent_name): string {
     // Use a default name if none provided
@@ -21,18 +21,4 @@ export function generateGravatarUrl(agentName?: string_agent_name): string {
     }
     const avatarId = Math.abs(hash).toString();
     return `https://www.gravatar.com/avatar/${avatarId}?default=robohash&size=200&rating=x`;
-}
-
-
-/**
- * Generates a gravatar URL based on agent name for fallback avatar
- *
- * @param agentName The agent name to generate avatar for
- * @returns Gravatar URL
- *
- * @private - TODO: [🧠] Maybe should be public?
- */
-export function generateAgentProfileImageUrl(agentName?: string_agent_name): string {
-
-   return generateGravatarUrl(agentName);
 }
