@@ -1,9 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { string_agent_name } from '../../../types/typeAliases';
-import type { string_url_image } from '../../../types/typeAliases';
-import type { AgentBasicInformation } from '../../agent-source/parseAgentSource';
 import type { string_book } from '../../agent-source/string_book';
-import { generateGravatarUrl } from '../../utils/profileImageUtils';
 import type { BookCommitment } from '../_base/BookCommitment';
 import { COMMITMENT_REGISTRY } from '../index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
@@ -13,7 +10,7 @@ import type { ParsedCommitment } from './ParsedCommitment';
  * Parses agent source using the new commitment system with multiline support
  * This function replaces the hardcoded commitment parsing in the original parseAgentSource
  *
- * @private
+ * @private internal utility of `parseAgentSource`
  */
 export function parseAgentSourceWithCommitments(agentSource: string_book): AgentSourceParseResult {
     if (!agentSource || !agentSource.trim()) {
@@ -111,60 +108,4 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Agent
         commitments,
         nonCommitmentLines,
     };
-}
-
-/**
- * Extracts basic information from agent source using the new commitment system
- * This maintains compatibility with the original parseAgentSource interface
- *
- * @private
- */
-export function parseAgentSourceBasicInfo(agentSource: string_book): AgentBasicInformation {
-    const parseResult = parseAgentSourceWithCommitments(agentSource);
-
-    // Find PERSONA and META IMAGE commitments
-    let personaDescription: string | null = null;
-    let profileImageUrl: string_url_image | undefined;
-
-    for (const commitment of parseResult.commitments) {
-        if (commitment.type === 'PERSONA' && !personaDescription) {
-            personaDescription = commitment.content;
-        } else if (commitment.type === 'META IMAGE' && !profileImageUrl) {
-            profileImageUrl = commitment.content as string_url_image;
-        }
-    }
-
-    // Generate gravatar fallback if no profile image specified
-    if (!profileImageUrl) {
-        profileImageUrl = generateGravatarUrl(parseResult.agentName) as string_url_image;
-    }
-
-    return {
-        agentName: parseResult.agentName,
-        personaDescription,
-        profileImageUrl,
-    };
-}
-
-/**
- * Extracts META LINK commitments from agent source
- * Returns an array of all META LINK URLs found in the agent source
- *
- * @private
- */
-export function extractMetaLinks(agentSource: string_book): string[] {
-    const parseResult = parseAgentSourceWithCommitments(agentSource);
-
-    const metaLinks: string[] = [];
-
-    for (const commitment of parseResult.commitments) {
-        if (commitment.type === 'META LINK') {
-            const link = commitment.content.trim();
-            if (link) {
-                metaLinks.push(link);
-            }
-        }
-    }
-
-    return metaLinks;
 }

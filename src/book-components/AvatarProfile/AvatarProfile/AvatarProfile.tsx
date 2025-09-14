@@ -1,4 +1,4 @@
-import type { AgentBasicInformation } from '../../../book-2.0/agent-source/parseAgentSource';
+import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_css_class } from '../../../types/typeAliases';
 import { classNames } from '../../_common/react-utils/classNames';
 import styles from './AvatarProfile.module.css';
