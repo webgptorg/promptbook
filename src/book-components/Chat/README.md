@@ -1,5 +1,7 @@
 # 💬 Chat components
 
+<!-- TODO: !!!! Remove READMEs alongsite components or make some system for it in the previews -->
+
 The Chat component now supports full markdown rendering for messages, allowing rich text formatting in chat conversations.
 
 ## Features
