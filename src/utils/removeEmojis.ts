@@ -1,6 +1,8 @@
 /**
  * Removes emojis from a string and fix whitespaces
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @param text with emojis
  * @returns text without emojis
  * @public exported from `@promptbook/utils`

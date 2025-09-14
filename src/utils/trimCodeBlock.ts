@@ -3,6 +3,7 @@ import { spaceTrim } from 'spacetrim';
 /**
  * Function trimCodeBlock will trim starting and ending code block from the string if it is present.
  *
+ * Note: [🔂] This function is idempotent.
  * Note: This is useful for post-processing of the result of the chat LLM model
  *       when the model wraps the result in the (markdown) code block.
  *

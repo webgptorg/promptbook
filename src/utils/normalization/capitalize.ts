@@ -1,6 +1,8 @@
 /**
  * Makes first letter of a string uppercase
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function capitalize(word: string): string {

@@ -15,6 +15,8 @@ type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 /**
  * Normalizes a text string to SCREAMING_CASE (all uppercase with underscores).
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @param text The text string to be converted to SCREAMING_CASE format.
  * @returns The normalized text in SCREAMING_CASE format.
  * @example 'HELLO_WORLD'

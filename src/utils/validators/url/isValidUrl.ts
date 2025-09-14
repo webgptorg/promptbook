@@ -5,6 +5,7 @@ import type { really_unknown } from '../../organization/really_unknown';
 /**
  * Tests if given string is valid URL.
  *
+ * Note: [🔂] This function is idempotent.
  * Note: Dataurl are considered perfectly valid.
  * Note: There are two similar functions:
  * - `isValidUrl` which tests any URL

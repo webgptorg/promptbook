@@ -3,6 +3,7 @@ import type { WritableDeep } from 'type-fest';
 /**
  * Creates a deep clone of the given object
  *
+ * Note: [🔂] This function is idempotent.
  * Note: This method only works for objects that are fully serializable to JSON and do not contain functions, Dates, or special types.
  *
  * @param objectValue The object to clone.

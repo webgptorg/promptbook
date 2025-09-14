@@ -11,6 +11,8 @@ export type string_snake_case = string;
 /**
  * Normalizes a text string to snake_case format.
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @param text The text string to be converted to snake_case format.
  * @returns The normalized text in snake_case format.
  * @example 'hello_world'

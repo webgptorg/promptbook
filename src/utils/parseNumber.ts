@@ -3,6 +3,7 @@ import { ParseError } from '../errors/ParseError';
 /**
  * Function parseNumber will parse number from string
  *
+ * Note: [🔂] This function is idempotent.
  * Unlike Number.parseInt, Number.parseFloat it will never ever result in NaN
  * Note: it also works only with decimal numbers
  *

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🔂] Mark all idempotent functions across the codebase
 

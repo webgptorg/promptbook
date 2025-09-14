@@ -3,6 +3,8 @@ import { DIACRITIC_VARIANTS_LETTERS } from './DIACRITIC_VARIANTS_LETTERS';
 /**
  * Removes diacritic marks (accents) from characters in a string.
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @param input The string containing diacritics to be normalized.
  * @returns The string with diacritics removed or normalized.
  * @public exported from `@promptbook/utils`

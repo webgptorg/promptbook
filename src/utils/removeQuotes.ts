@@ -1,6 +1,7 @@
 /**
  * Removes quotes from a string
  *
+ * Note: [🔂] This function is idempotent.
  * Tip: This is very useful for post-processing of the result of the LLM model
  * Note: This function removes only the same quotes from the beginning and the end of the string
  * Note: There are two similar functions:
