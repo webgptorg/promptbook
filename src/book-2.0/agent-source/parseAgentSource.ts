@@ -52,3 +52,8 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
     return result;
 }
+
+
+/**
+ * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
+ */

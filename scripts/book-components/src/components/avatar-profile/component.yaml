@@ -12,8 +12,7 @@ tags:
     - display
 props:
     agent:
-        type: 'AgentBasicInformation & { agentTitle?: string; agentDescription?: string
-            }'
+        type: 'AgentBasicInformation'
         description: The agent object to display. Used in `AvatarProfile`.
     agentSource:
         type: string_book

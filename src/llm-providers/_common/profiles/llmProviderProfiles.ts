@@ -102,6 +102,6 @@ export function createCustomLlmProfile(
 
 /**
  * TODO: Refactor this - each profile must be alongside the provider definition
- * TODO: [🕛] Unite `AvatarProfileProps`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
+ * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

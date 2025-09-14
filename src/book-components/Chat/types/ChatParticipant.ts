@@ -35,5 +35,5 @@ export type ChatParticipant = {
 };
 
 /**
- * TODO: [🕛] Unite `AvatarProfileProps`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
+ * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
  */

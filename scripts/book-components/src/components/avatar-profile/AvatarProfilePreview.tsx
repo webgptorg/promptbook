@@ -15,9 +15,9 @@ export default function AvatarProfilePreview() {
                 agentSource={
                     book`
 
-                        AI Avatar
+                        Paul
 
-                        PERSONA A friendly AI assistant that helps you with your tasks
+                        PERSONA A friendly AI assistant that develops and maintains software
 
                     ` as string_book
                 }
@@ -26,9 +26,9 @@ export default function AvatarProfilePreview() {
                 agentSource={
                     book`
 
-                        AI Avatar
+                        George
 
-                        PERSONA A friendly AI assistant that helps you with your tasks
+                        PERSONA A friendly AI assistant that helps you with your social media posts
 
                     ` as string_book
                 }

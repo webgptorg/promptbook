@@ -12,7 +12,7 @@ export type AvatarProfileProps = {
     /**
      * Agent to be shown
      */
-    readonly agent: AgentBasicInformation & { agentTitle?: string; agentDescription?: string };
+    readonly agent: AgentBasicInformation;
 
     /**
      * Optional CSS class name which will be added to root <div> element
@@ -27,20 +27,15 @@ export type AvatarProfileProps = {
  */
 export function AvatarProfile(props: AvatarProfileProps) {
     const { agent, className } = props;
-    const { agentName, agentTitle, agentDescription, profileImageUrl } = agent;
+    const { agentName, personaDescription, profileImageUrl } = agent;
 
     return (
         <div className={classNames(styles.AvatarProfile, className)}>
             <img src={profileImageUrl} alt={agentName || ''} className={styles.Avatar} />
             <div className={styles.AgentInfo}>
                 <h2 className={styles.AgentName}>{agentName}</h2>
-                <h3 className={styles.AgentTitle}>{agentTitle}</h3>
-                <p className={styles.AgentDescription}>{agentDescription}</p>
+                <p className={styles.AgentDescription}>{personaDescription}</p>
             </div>
         </div>
     );
 }
-
-/**
- * TODO: [🕛] Unite `AvatarProfileProps`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
