@@ -1,4 +1,4 @@
-import type { BookCommitment } from '../_base/BookCommitment';
+import type { BookCommitment } from '../commitments/_base/BookCommitment';
 
 /**
  * Generates a regex pattern to match a specific commitment
@@ -6,7 +6,7 @@ import type { BookCommitment } from '../_base/BookCommitment';
  * Note: It always creates new Regex object
  * Note: Uses word boundaries to ensure only full words are matched (e.g., "PERSONA" matches but "PERSONALITY" does not)
  *
- * @private
+ * @private - TODO: [🧠] Maybe should be public?
  */
 export function createCommitmentRegex(commitment: BookCommitment): RegExp {
     const escapedCommitment = commitment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

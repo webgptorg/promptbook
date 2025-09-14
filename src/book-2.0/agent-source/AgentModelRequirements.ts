@@ -1,4 +1,4 @@
-import type { TODO_any } from '../../../utils/organization/TODO_any';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * Model requirements for an agent
@@ -41,5 +41,5 @@ export type AgentModelRequirements = {
      * Each commitment can store its own data here
      */
     readonly metadata?: Record<string, TODO_any>;
-}
+};
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here

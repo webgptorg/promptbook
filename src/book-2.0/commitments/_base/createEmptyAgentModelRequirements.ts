@@ -1,4 +1,4 @@
-import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
+import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
 
 /**
  * Creates an empty/basic agent model requirements object

@@ -1,13 +1,12 @@
-import type { string_book } from '../../agent-source/string_book';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
+import type { string_book } from './string_book';
 
 /**
  * Extracts META LINK commitments from agent source
  * Returns an array of all META LINK URLs found in the agent source
  *
- * @private
+ * @private - TODO: [🧠] Maybe should be public?
  */
-
 export function extractMetaLinks(agentSource: string_book): string[] {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 

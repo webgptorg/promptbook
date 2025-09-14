@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
+import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
 /**
  * NOTE commitment definition

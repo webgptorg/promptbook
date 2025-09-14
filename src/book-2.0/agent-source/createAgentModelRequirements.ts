@@ -1,15 +1,18 @@
-import type { string_model_name } from '../../../types/typeAliases';
-import { parseAgentSource } from '../../agent-source/parseAgentSource';
-import type { string_book } from '../../agent-source/string_book';
+import type { string_model_name } from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import { clearAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
-import { createAgentModelRequirementsWithCommitmentsCached } from './createAgentModelRequirementsWithCommitments';
-import { getAgentModelRequirementsWithCommitmentsCacheSize } from './createAgentModelRequirementsWithCommitments';
-import { invalidateAgentModelRequirementsWithCommitmentsCache } from './createAgentModelRequirementsWithCommitments';
+import {
+    clearAgentModelRequirementsWithCommitmentsCache,
+    createAgentModelRequirementsWithCommitmentsCached,
+    getAgentModelRequirementsWithCommitmentsCacheSize,
+    invalidateAgentModelRequirementsWithCommitmentsCache,
+} from './createAgentModelRequirementsWithCommitments';
+import { parseAgentSource } from './parseAgentSource';
+import type { string_book } from './string_book';
 
 /**
  *  Cache for expensive createAgentModelRequirements calls
  *
+ *  TODO: !!!! Remove caching
  *  @private
  */
 const modelRequirementsCache = new Map<string, AgentModelRequirements>();

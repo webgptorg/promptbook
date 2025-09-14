@@ -1,18 +1,18 @@
-import type { string_model_name } from '../../../types/typeAliases';
-import type { string_book } from '../../agent-source/string_book';
-import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
-import { getCommitmentDefinition } from '../index';
+import type { string_model_name } from '../../types/typeAliases';
+import { createBasicAgentModelRequirements } from '../commitments/_base/createEmptyAgentModelRequirements';
+import { getCommitmentDefinition } from '../commitments/index';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
+import type { string_book } from './string_book';
 
 /**
  * Creates agent model requirements using the new commitment system
  * This function uses a reduce-like pattern where each commitment applies its changes
  * to build the final requirements starting from a basic empty model
  *
- * @private
+ * @private - TODO: [🧠] Maybe should be public?
  */
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_book,

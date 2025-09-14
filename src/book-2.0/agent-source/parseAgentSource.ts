@@ -1,8 +1,8 @@
-import type { string_url_image } from '../../../types/typeAliases';
-import type { AgentBasicInformation } from '../../agent-source/AgentBasicInformation';
-import type { string_book } from '../../agent-source/string_book';
-import { generateGravatarUrl } from '../../utils/generateGravatarUrl';
+import type { string_url_image } from '../../types/typeAliases';
+import { generateGravatarUrl } from '../utils/generateGravatarUrl';
+import type { AgentBasicInformation } from './AgentBasicInformation';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
+import type { string_book } from './string_book';
 
 /**
  * Parses basic information from agent source
@@ -13,7 +13,6 @@ import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitmen
  *
  * @public exported from `@promptbook/core`
  */
-
 export function parseAgentSource(agentSource: string_book): AgentBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 

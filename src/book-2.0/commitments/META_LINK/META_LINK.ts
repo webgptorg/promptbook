@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
+import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
 
 /**
  * META LINK commitment definition

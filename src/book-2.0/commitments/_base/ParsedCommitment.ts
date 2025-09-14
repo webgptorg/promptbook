@@ -1,4 +1,4 @@
-import type { BookCommitment } from '../_base/BookCommitment';
+import type { BookCommitment } from './BookCommitment';
 
 /**
  * Parsed commitment line from agent source
@@ -24,4 +24,4 @@ export type ParsedCommitment = {
      * Line number in the agent source (1-based)
      */
     lineNumber: number;
-}
+};

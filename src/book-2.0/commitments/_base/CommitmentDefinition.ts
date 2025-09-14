@@ -1,4 +1,4 @@
-import type { AgentModelRequirements } from '../_misc/AgentModelRequirements';
+import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
 
 /**
  * Definition of a commitment that can be applied to agent model requirements
@@ -52,4 +52,4 @@ export type CommitmentDefinition = {
      * @returns Updated agent model requirements
      */
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements;
-}
+};

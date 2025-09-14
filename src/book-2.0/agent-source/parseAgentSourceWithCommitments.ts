@@ -1,10 +1,10 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_agent_name } from '../../../types/typeAliases';
-import type { string_book } from '../../agent-source/string_book';
-import type { BookCommitment } from '../_base/BookCommitment';
-import { COMMITMENT_REGISTRY } from '../index';
+import type { string_agent_name } from '../../types/typeAliases';
+import type { BookCommitment } from '../commitments/_base/BookCommitment';
+import type { ParsedCommitment } from '../commitments/_base/ParsedCommitment';
+import { COMMITMENT_REGISTRY } from '../commitments/index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
-import type { ParsedCommitment } from './ParsedCommitment';
+import type { string_book } from './string_book';
 
 /**
  * Parses agent source using the new commitment system with multiline support

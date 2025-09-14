@@ -2,12 +2,12 @@
 // `@promptbook/types`
 
 import type { AgentBasicInformation } from '../book-2.0/agent-source/AgentBasicInformation';
+import type { AgentModelRequirements } from '../book-2.0/agent-source/AgentModelRequirements';
+import type { AgentSourceParseResult } from '../book-2.0/agent-source/AgentSourceParseResult';
 import type { string_book } from '../book-2.0/agent-source/string_book';
 import type { BookCommitment } from '../book-2.0/commitments/_base/BookCommitment';
 import type { CommitmentDefinition } from '../book-2.0/commitments/_base/CommitmentDefinition';
-import type { AgentModelRequirements } from '../book-2.0/commitments/_misc/AgentModelRequirements';
-import type { AgentSourceParseResult } from '../book-2.0/commitments/_misc/AgentSourceParseResult';
-import type { ParsedCommitment } from '../book-2.0/commitments/_misc/ParsedCommitment';
+import type { ParsedCommitment } from '../book-2.0/commitments/_base/ParsedCommitment';
 import type { AvatarChipProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import type { AvatarChipFromSourceProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChipFromSource';
 import type { AvatarProfileProps } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfile';
