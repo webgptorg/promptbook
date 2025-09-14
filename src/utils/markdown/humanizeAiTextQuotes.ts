@@ -1,11 +1,11 @@
 /**
  * Change smart quotes to regular quotes
  *
- * Tip: If you want to do the full cleanup, look for `cleanupAiText` exported `@promptbook/markdown-utils`
+ * Tip: If you want to do the full cleanup, look for `humanizeAiText` exported `@promptbook/markdown-utils`
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function cleanupAiTextQuotes(aiText: string): string {
+export function humanizeAiTextQuotes(aiText: string): string {
     return aiText
         .replace(/[“”]/g, '"')
         .replace(/[‚‘’]/g, "'")
@@ -17,5 +17,5 @@ export function cleanupAiTextQuotes(aiText: string): string {
 }
 
 /**
- * Note: [🏂] This function isnt tested by itself but together with other cleanup functions with `cleanupAiText`
+ * Note: [🏂] This function isnt tested by itself but together with other cleanup functions with `humanizeAiText`
  */

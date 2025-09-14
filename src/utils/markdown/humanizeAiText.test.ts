@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { just } from '../organization/just';
-import { cleanupAiText } from './cleanupAiText';
+import { humanizeAiText } from './humanizeAiText';
 
-describe('how `cleanupAiText` works', () => {
+describe('how `humanizeAiText` works', () => {
     it('should cleanup AI text', () =>
         expect(
-            cleanupAiText(
+            humanizeAiText(
                 spaceTrim(`
                     This is an example of AI-generated text — it may contain some “smart quotes” and unprintable hard spaces.
 
@@ -25,7 +25,7 @@ describe('how `cleanupAiText` works', () => {
 
     it('should keep the text which is already clean', () =>
         expect(
-            cleanupAiText(
+            humanizeAiText(
                 spaceTrim(`
                     This text is already clean.
 
