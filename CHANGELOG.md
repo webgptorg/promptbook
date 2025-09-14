@@ -7,7 +7,7 @@
 -   Export `humanizeAiText` utility from `@promptbook/markdown-utils`
 -   Export `promptbookifyAiText` utility from `@promptbook/markdown-utils`
 -   Add `<Chat isAiTextCleaned>` property to `<Chat>` component
--   Add markdown support to `<Chat>` component <!-- <- TODO: !!!! -->
+-   Add markdown support to `<Chat>` component
 -   Allow feedback in `<Chat>` component <!-- <- TODO: !!!! -->
 -   Allow to create Avatar profile pictures via `generatePlaceholderAgentProfileImageUrl`
 -   **Refactor:** Convert all `interface` declarations to `type` across the codebase for consistency and better TypeScript practices

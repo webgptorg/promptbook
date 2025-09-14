@@ -10,6 +10,7 @@ import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
+import { renderMarkdown } from '../utils/renderMarkdown';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 
@@ -416,7 +417,7 @@ export function Chat(props: ChatProps) {
                                                 {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
                                             </>
                                         ) : (
-                                            <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                                            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
                                         )}
 
                                         {message.from.includes('PROMPTBOOK_PERSONA') && message.isComplete && (

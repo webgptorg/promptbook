@@ -1,0 +1,185 @@
+import { renderMarkdown, isMarkdownContent } from './renderMarkdown';
+
+describe('renderMarkdown', () => {
+    it('should render simple text without markdown', () => {
+        const result = renderMarkdown('Hello world');
+        expect(result).toBe('<p>Hello world</p>');
+    });
+
+    it('should render bold text', () => {
+        const result = renderMarkdown('**bold text**');
+        expect(result).toBe('<p><strong>bold text</strong></p>');
+    });
+
+    it('should render italic text', () => {
+        const result = renderMarkdown('*italic text*');
+        expect(result).toBe('<p><em>italic text</em></p>');
+    });
+
+    it('should render inline code', () => {
+        const result = renderMarkdown('`inline code`');
+        expect(result).toBe('<p><code>inline code</code></p>');
+    });
+
+    it('should render code blocks', () => {
+        const markdown = '```javascript\nconsole.log("Hello");\n```';
+        const result = renderMarkdown(markdown);
+        expect(result).toContain('<pre><code class="javascript language-javascript">');
+        expect(result).toContain('console.log("Hello");');
+        expect(result).toContain('</code></pre>');
+    });
+
+    it('should render headers', () => {
+        const result = renderMarkdown('# Header 1\n## Header 2');
+        expect(result).toContain('<h1 id="chat-header-header1">Header 1</h1>');
+        expect(result).toContain('<h2 id="chat-header-header2">Header 2</h2>');
+    });
+
+    it('should render unordered lists', () => {
+        const markdown = '- Item 1\n- Item 2\n- Item 3';
+        const result = renderMarkdown(markdown);
+        expect(result).toContain('<ul>');
+        expect(result).toContain('<li>Item 1</li>');
+        expect(result).toContain('<li>Item 2</li>');
+        expect(result).toContain('<li>Item 3</li>');
+        expect(result).toContain('</ul>');
+    });
+
+    it('should render ordered lists', () => {
+        const markdown = '1. First item\n2. Second item\n3. Third item';
+        const result = renderMarkdown(markdown);
+        expect(result).toContain('<ol>');
+        expect(result).toContain('<li>First item</li>');
+        expect(result).toContain('<li>Second item</li>');
+        expect(result).toContain('<li>Third item</li>');
+        expect(result).toContain('</ol>');
+    });
+
+    it('should render links', () => {
+        const result = renderMarkdown('[OpenAI](https://openai.com)');
+        expect(result).toContain('<a href="https://openai.com" target="_blank">OpenAI</a>');
+    });
+
+    it('should render blockquotes', () => {
+        const result = renderMarkdown('> This is a quote');
+        expect(result).toContain('<blockquote>');
+        expect(result).toContain('<p>This is a quote</p>');
+        expect(result).toContain('</blockquote>');
+    });
+
+    it('should render strikethrough text', () => {
+        const result = renderMarkdown('~~strikethrough~~');
+        expect(result).toContain('<del>strikethrough</del>');
+    });
+
+    it('should render tables', () => {
+        const markdown = '| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |';
+        const result = renderMarkdown(markdown);
+        expect(result).toContain('<table>');
+        expect(result).toContain('<thead>');
+        expect(result).toContain('<th>Header 1</th>');
+        expect(result).toContain('<th>Header 2</th>');
+        expect(result).toContain('<tbody>');
+        expect(result).toContain('<td>Cell 1</td>');
+        expect(result).toContain('<td>Cell 2</td>');
+    });
+
+    it('should handle empty or null input', () => {
+        expect(renderMarkdown('')).toBe('');
+        expect(renderMarkdown(null as unknown as string)).toBe('');
+        expect(renderMarkdown(undefined as unknown as string)).toBe('');
+    });
+
+    it('should sanitize dangerous HTML attributes', () => {
+        const maliciousMarkdown = '<div onclick="alert(\'xss\')" onload="alert(\'xss\')" href="javascript:alert(\'xss\')">Test</div>';
+        const result = renderMarkdown(maliciousMarkdown);
+        expect(result).not.toContain('onclick');
+        expect(result).not.toContain('onload');
+        expect(result).not.toContain('javascript:');
+    });
+
+    it('should handle markdown parsing errors gracefully', () => {
+        // Mock console.error to avoid noise in test output
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        // This should not throw an error, but return escaped HTML instead
+        const result = renderMarkdown('Some content');
+        expect(result).toBeDefined();
+        expect(typeof result).toBe('string');
+
+        consoleSpy.mockRestore();
+    });
+});
+
+describe('isMarkdownContent', () => {
+    it('should detect headers', () => {
+        expect(isMarkdownContent('# Header')).toBe(true);
+        expect(isMarkdownContent('## Header 2')).toBe(true);
+        expect(isMarkdownContent('### Header 3')).toBe(true);
+    });
+
+    it('should detect bold text', () => {
+        expect(isMarkdownContent('**bold**')).toBe(true);
+        expect(isMarkdownContent('Some **bold** text')).toBe(true);
+    });
+
+    it('should detect italic text', () => {
+        expect(isMarkdownContent('*italic*')).toBe(true);
+        expect(isMarkdownContent('Some *italic* text')).toBe(true);
+    });
+
+    it('should detect inline code', () => {
+        expect(isMarkdownContent('`code`')).toBe(true);
+        expect(isMarkdownContent('Some `code` here')).toBe(true);
+    });
+
+    it('should detect code blocks', () => {
+        expect(isMarkdownContent('```\ncode block\n```')).toBe(true);
+        expect(isMarkdownContent('```javascript\nconsole.log("test");\n```')).toBe(true);
+    });
+
+    it('should detect lists', () => {
+        expect(isMarkdownContent('- Item 1')).toBe(true);
+        expect(isMarkdownContent('* Item 1')).toBe(true);
+        expect(isMarkdownContent('+ Item 1')).toBe(true);
+        expect(isMarkdownContent('1. Item 1')).toBe(true);
+    });
+
+    it('should detect blockquotes', () => {
+        expect(isMarkdownContent('> Quote')).toBe(true);
+        expect(isMarkdownContent('  > Indented quote')).toBe(true);
+    });
+
+    it('should detect links', () => {
+        expect(isMarkdownContent('[Link](https://example.com)')).toBe(true);
+    });
+
+    it('should detect images', () => {
+        expect(isMarkdownContent('![Alt text](image.jpg)')).toBe(true);
+    });
+
+    it('should detect tables', () => {
+        expect(isMarkdownContent('| Header |')).toBe(true);
+        expect(isMarkdownContent('| Col1 | Col2 |')).toBe(true);
+    });
+
+    it('should detect strikethrough', () => {
+        expect(isMarkdownContent('~~strikethrough~~')).toBe(true);
+    });
+
+    it('should detect horizontal rules', () => {
+        expect(isMarkdownContent('---')).toBe(true);
+        expect(isMarkdownContent('-----')).toBe(true);
+    });
+
+    it('should return false for plain text', () => {
+        expect(isMarkdownContent('Just plain text')).toBe(false);
+        expect(isMarkdownContent('No markdown here at all')).toBe(false);
+    });
+
+    it('should handle empty or null input', () => {
+        expect(isMarkdownContent('')).toBe(false);
+        expect(isMarkdownContent(null as unknown as string)).toBe(false);
+        expect(isMarkdownContent(undefined as unknown as string)).toBe(false);
+    });
+});

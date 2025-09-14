@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐔] The `<Chat` component of the project should support markdown rendering for messages.
 
