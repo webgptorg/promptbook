@@ -1,5 +1,4 @@
 import type { string_url_image } from '../../types/typeAliases';
-import { generateGravatarUrl } from '../utils/generateGravatarUrl';
 import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
@@ -31,7 +30,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
     // Generate gravatar fallback if no profile image specified
     if (!profileImageUrl) {
-        profileImageUrl = generatePlaceholderAgentProfileImageUrl(parseResult.agentName);
+        profileImageUrl = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
     }
 
     return {

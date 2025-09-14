@@ -5,7 +5,7 @@ import { generateGravatarUrl } from './generateGravatarUrl';
  * Generates an image for the agent to use as profile image
  *
  * @param agentName The agent name to generate avatar for
- * @returns The paceholder profile image URL for the agent
+ * @returns The placeholder profile image URL for the agent
  *
  * @public exported from `@promptbook/core`
  */

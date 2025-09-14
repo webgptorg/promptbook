@@ -1,4 +1,4 @@
-import { string_markdown } from "../../types/typeAliases";
+import { string_markdown } from '../../types/typeAliases';
 
 /**
  * Change unprintable hard spaces to regular spaces
@@ -12,5 +12,5 @@ export function humanizeAiTextWhitespace(aiText: string_markdown): string_markdo
 }
 
 /**
- * Note: [🏂] This function isnt tested by itself but together with other cleanup functions with `humanizeAiText`
+ * Note: [🏂] This function is not tested by itself but together with other cleanup functions with `humanizeAiText`
  */

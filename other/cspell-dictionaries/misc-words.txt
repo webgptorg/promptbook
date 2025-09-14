@@ -403,3 +403,9 @@ yellowgreen
 rmean
 satulightion
 grayscale
+promptbookify
+Promptbookified
+Promptbookification
+Emdashed
+guillemet
+guillemets

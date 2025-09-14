@@ -5,6 +5,7 @@ import { humanizeAiText } from './humanizeAiText';
 
 describe('how `humanizeAiText` works', () => {
     it('should cleanup AI text', () =>
+        /* eslint-disable no-irregular-whitespace */
         expect(
             humanizeAiText(
                 spaceTrim(`
