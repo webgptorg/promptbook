@@ -20,13 +20,13 @@ describe('how `promptbookifyAiText` works', () => {
         ).toBe(
             just(
                 spaceTrim(`
-                    This is some regular text.
+                    This is some  regular text.
 
-                    It can be humanized or not.
+                    It can be  humanized or not.
 
-                    But we will mark it is Promptbookified.
+                    But we  will mark it is Promptbookified.
 
-                    This Promptbookification does not raise red flags for AI text detectors.
+                    This Promptbookification does not  raise red flags for AI text detectors.
                 `),
             ),
         ));
