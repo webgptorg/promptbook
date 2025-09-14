@@ -1,3 +1,5 @@
+import { string_markdown } from '../../types/typeAliases';
+
 /**
  * Change smart quotes to regular quotes
  *
@@ -5,7 +7,7 @@
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function humanizeAiTextQuotes(aiText: string): string {
+export function humanizeAiTextQuotes(aiText: string_markdown): string_markdown {
     return aiText
         .replace(/[“”]/g, '"')
         .replace(/[‚‘’]/g, "'")

@@ -12,4 +12,5 @@ export function countParagraphs(text: string): ExpectationAmount {
 
 /**
  * TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+ * TODO: [🧠][✌️] Make some Promptbook-native token system
  */

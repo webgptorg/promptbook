@@ -16,7 +16,8 @@ export function countWords(text: string): ExpectationAmount {
     return text.split(/[^a-zа-я0-9]+/i).filter((word) => word.length > 0).length;
 }
 
-
 /**
  * TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+ * TODO: [🧠][✌️] Make some Promptbook-native token system
+ * TODO: [✌️] `countWords` should be just `splitWords(...).length`, and all other counters should use this pattern as well
  */

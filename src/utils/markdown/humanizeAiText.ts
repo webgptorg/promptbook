@@ -1,3 +1,4 @@
+import { string_markdown } from '../../types/typeAliases';
 import { humanizeAiTextEllipsis } from './humanizeAiTextEllipsis';
 import { humanizeAiTextEmdashed } from './humanizeAiTextEmdashed';
 import { humanizeAiTextQuotes } from './humanizeAiTextQuotes';
@@ -10,7 +11,7 @@ import { humanizeAiTextWhitespace } from './humanizeAiTextWhitespace';
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function humanizeAiText(aiText: string): string {
+export function humanizeAiText(aiText: string_markdown): string_markdown {
     let cleanedText = aiText;
 
     cleanedText = humanizeAiTextEllipsis(cleanedText);
@@ -20,3 +21,7 @@ export function humanizeAiText(aiText: string): string {
 
     return cleanedText;
 }
+
+/**
+ * TODO: [🔂] !!! Use this across the project where AI text is involved
+ */

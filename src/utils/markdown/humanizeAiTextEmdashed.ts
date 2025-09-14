@@ -1,3 +1,5 @@
+import { string_markdown } from "../../types/typeAliases";
+
 /**
  * Change em-dashes to regular dashes `—` -> `-`
  *
@@ -5,7 +7,7 @@
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function humanizeAiTextEmdashed(aiText: string): string {
+export function humanizeAiTextEmdashed(aiText: string_markdown): string_markdown {
     return aiText.replace(/—/g, '-');
 }
 
