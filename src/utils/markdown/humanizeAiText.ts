@@ -23,5 +23,5 @@ export function humanizeAiText(aiText: string_markdown): string_markdown {
 }
 
 /**
- * TODO: [🔂] !!! Use this across the project where AI text is involved
+ * TODO: [🅾️] !!! Use this across the project where AI text is involved
  */
