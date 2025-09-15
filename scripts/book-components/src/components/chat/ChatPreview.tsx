@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
@@ -54,9 +54,29 @@ export default function ChatPreview() {
         longThread: longThreadScenario,
     };
 
+    // Read scenario from URL parameter on component mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const scenarioParam = urlParams.get('scenario');
+
+            if (scenarioParam && scenarios[scenarioParam as keyof typeof scenarios]) {
+                setScenario(scenarioParam);
+                setMessages([...scenarios[scenarioParam as keyof typeof scenarios].messages]);
+            }
+        }
+    }, []);
+
     const handleScenarioChange = (newScenario: string) => {
         setScenario(newScenario);
         setMessages([...scenarios[newScenario as keyof typeof scenarios].messages]);
+
+        // Update URL parameter
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.set('scenario', newScenario);
+            window.history.replaceState({}, '', url.toString());
+        }
     };
 
     const handleMessage = async (content: string) => {
@@ -95,6 +115,13 @@ export default function ChatPreview() {
     const handleReset = async () => {
         setMessages([]);
         setScenario('empty');
+
+        // Update URL parameter to empty scenario
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.set('scenario', 'empty');
+            window.history.replaceState({}, '', url.toString());
+        }
     };
 
     return (
