@@ -13,6 +13,7 @@ export type ChatProps = {
      * If provided, renders the [Use this template] button.
      */
     onUseTemplate?(): void;
+
     /**
      * Messages to render - they are rendered as they are
      */
@@ -28,11 +29,17 @@ export type ChatProps = {
      * Called when user sends a message
      *
      * Note: You must handle the message yourself and add it to the `messages` array
+     *
+     * - When set, the send textarea and button will be shown
+     * - When undefined, the chat has no input and is read-only showing only the messages
      */
-    onMessage(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): Promisable<void>;
+    onMessage?(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): Promisable<void>;
 
     /**
-     * Optional callback, when set, button for resetting chat will be shown
+     * Optional callback
+     *
+     * - When set, button for resetting chat will be shown
+     * - When undefined, no reset button will be shown
      */
     onReset?(): Promisable<void>;
 

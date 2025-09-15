@@ -2,22 +2,22 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { classNames } from '../../_common/react-utils/classNames';
-import type { ChatMessage } from '../types/ChatMessage';
-import { renderMarkdown } from '../utils/renderMarkdown';
 import { ArrowIcon } from '../../icons/ArrowIcon';
-import styles from './Chat.module.css';
-import type { ChatProps } from './ChatProps';
-import { LOADING_INTERACTIVE_IMAGE } from './constants';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import type { ChatMessage } from '../types/ChatMessage';
+import { renderMarkdown } from '../utils/renderMarkdown';
+import styles from './Chat.module.css';
+import type { ChatProps } from './ChatProps';
+import { LOADING_INTERACTIVE_IMAGE } from './constants';
 
 /**
  * Renders a chat with messages and input for new messages
@@ -106,7 +106,11 @@ export function Chat(props: ChatProps) {
         [textareaRef, isMobile],
     );
 
-    const handleSend = async () => {
+    const handleSend = useCallback(async () => {
+        if (!onMessage) {
+            throw new Error(`Can not find onMessage callback`);
+        }
+
         const textareaElement = textareaRef.current;
         const buttonSendElement = buttonSendRef.current;
 
@@ -152,7 +156,7 @@ export function Chat(props: ChatProps) {
                 textareaElement.focus();
             }
         }
-    };
+    }, [onMessage]);
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
@@ -165,7 +169,7 @@ export function Chat(props: ChatProps) {
         setRatingModalOpen(true);
     };
 
-    const submitRating = async () => {
+    const submitRating = useCallback(async () => {
         if (!selectedMessage) return;
         const currentRating = messageRatings.get(selectedMessage.id);
         if (!currentRating) return;
@@ -186,7 +190,7 @@ export function Chat(props: ChatProps) {
         setSelectedMessage(null);
         setRatingConfirmation('Thank you for your feedback!');
         setTimeout(() => setRatingConfirmation(null), 3000);
-    };
+    }, [selectedMessage, messageRatings, textRating, messages]);
 
     // Prevent body scroll when modal is open (mobile)
     useEffect(() => {
@@ -452,50 +456,62 @@ export function Chat(props: ChatProps) {
                         })}
                     </div>
 
-                    <div className={classNames(styles.chatInput, useChatCssClassName('chatInput'))}>
-                        <textarea
-                            ref={(element) => {
-                                textareaRef.current = element;
-                            }}
-                            style={{
-                                height:
-                                    Math.max(
-                                        countLines(textareaRef.current?.value || defaultMessage || ''),
-                                        (textareaRef.current?.value || defaultMessage || '').split('\n').length,
-                                        3,
-                                    ) *
-                                        25 +
-                                    10,
-                            }}
-                            defaultValue={defaultMessage}
-                            placeholder={placeholderMessageContent || 'Write a message'}
-                            onKeyDown={(event) => {
-                                if (event.shiftKey) {
-                                    return;
-                                }
-                                if (event.key !== 'Enter') {
-                                    return;
-                                }
+                    {onMessage && (
+                        <div className={classNames(styles.chatInput, useChatCssClassName('chatInput'))}>
+                            <textarea
+                                ref={(element) => {
+                                    textareaRef.current = element;
+                                }}
+                                style={{
+                                    height:
+                                        Math.max(
+                                            countLines(textareaRef.current?.value || defaultMessage || ''),
+                                            (textareaRef.current?.value || defaultMessage || '').split('\n').length,
+                                            3,
+                                        ) *
+                                            25 +
+                                        10,
+                                }}
+                                defaultValue={defaultMessage}
+                                placeholder={placeholderMessageContent || 'Write a message'}
+                                onKeyDown={(event) => {
+                                    if (!onMessage) {
+                                        return;
+                                    }
+                                    if (event.shiftKey) {
+                                        return;
+                                    }
+                                    if (event.key !== 'Enter') {
+                                        return;
+                                    }
 
-                                event.preventDefault();
-                                /* not await */ handleSend();
-                            }}
-                            onKeyUp={() => {
-                                if (!onChange) {
-                                    return;
-                                }
+                                    event.preventDefault();
+                                    /* not await */ handleSend();
+                                }}
+                                onKeyUp={() => {
+                                    if (!onChange) {
+                                        return;
+                                    }
 
-                                onChange(textareaRef.current?.value || '');
-                            }}
-                        />
-                        <button
-                            data-button-type="call-to-action"
-                            ref={buttonSendRef}
-                            onClick={/* not await */ handleSend}
-                        >
-                            <SendIcon size={25} />
-                        </button>
-                    </div>
+                                    onChange(textareaRef.current?.value || '');
+                                }}
+                            />
+                            <button
+                                data-button-type="call-to-action"
+                                ref={buttonSendRef}
+                                onClick={(event) => {
+                                    if (!onMessage) {
+                                        return;
+                                    }
+
+                                    event.preventDefault();
+                                    /* not await */ handleSend();
+                                }}
+                            >
+                                <SendIcon size={25} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
