@@ -19,6 +19,8 @@ import { LlmChat } from '../book-components/Chat/LlmChat/LlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
+import { renderMarkdown } from '../book-components/Chat/utils/renderMarkdown';
+import { isMarkdownContent } from '../book-components/Chat/utils/renderMarkdown';
 
 
 // Note: Exporting version from each package
@@ -43,3 +45,5 @@ export { LlmChat };
 export type { LlmChatProps };
 export type { ChatMessage };
 export type { ChatParticipant };
+export { renderMarkdown };
+export { isMarkdownContent };

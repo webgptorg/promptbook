@@ -39,7 +39,7 @@ function createChatMarkdownConverter(): ShowdownConverter {
         smoothLivePreview: true,
         smartIndentationFix: true,
         disableForced4SpacesIndentedSublists: false,
-        encodeEmails: true
+        encodeEmails: true,
     });
 }
 
@@ -52,7 +52,8 @@ const chatMarkdownConverter = createChatMarkdownConverter();
  * @param markdown - The markdown content to convert
  * @returns HTML string ready for rendering
  *
- * @public exported from Chat utils
+ * @public exported from `@promptbook/components`
+ *         <- TODO: [🧠] Maybe export from `@promptbook/markdown-utils`
  */
 export function renderMarkdown(markdown: string_markdown): string_html {
     if (!markdown || typeof markdown !== 'string') {
@@ -81,7 +82,7 @@ export function renderMarkdown(markdown: string_markdown): string_html {
                 '>': '&gt;',
                 '&': '&amp;',
                 '"': '&quot;',
-                "'": '&#39;'
+                "'": '&#39;',
             };
             return entities[char] || char;
         }) as string_html;
@@ -94,7 +95,8 @@ export function renderMarkdown(markdown: string_markdown): string_html {
  * @param content - Content to check
  * @returns true if content appears to contain markdown syntax
  *
- * @public exported from Chat utils
+ * @public exported from `@promptbook/components`
+ *         <- TODO: [🧠] Maybe export from `@promptbook/markdown-utils`
  */
 export function isMarkdownContent(content: string): boolean {
     if (!content || typeof content !== 'string') {
@@ -118,5 +120,5 @@ export function isMarkdownContent(content: string): boolean {
         /^\s*---+\s*$/m, // Horizontal rules
     ];
 
-    return markdownPatterns.some(pattern => pattern.test(content));
+    return markdownPatterns.some((pattern) => pattern.test(content));
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -15,6 +15,8 @@ import type { ChatParticipant } from '../types/ChatParticipant';
  * - Blockquotes
  * - Tables
  * - Strikethrough text
+ *
+ * @private temporary for testing purposes
  */
 export function ChatMarkdownDemo() {
     const [messages, setMessages] = useState<ChatMessage[]>([
@@ -119,7 +121,7 @@ You can use inline math like \`E = mc²\` or block equations.
 
 The chat component now fully supports GitHub-flavored markdown! 🚀`,
             isComplete: true,
-        }
+        },
     ]);
 
     const participants: ChatParticipant[] = [
@@ -146,7 +148,7 @@ The chat component now fully supports GitHub-flavored markdown! 🚀`,
             isComplete: true,
         };
 
-        setMessages(prev => [...prev, newMessage]);
+        setMessages((prev) => [...prev, newMessage]);
 
         // Simulate assistant response
         setTimeout(() => {
@@ -171,7 +173,7 @@ The markdown has been rendered properly! Try more markdown features like:
                 isComplete: true,
             };
 
-            setMessages(prev => [...prev, assistantMessage]);
+            setMessages((prev) => [...prev, assistantMessage]);
         }, 1000);
     };
 
