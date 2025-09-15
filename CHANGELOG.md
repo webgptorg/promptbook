@@ -11,6 +11,7 @@
 -   Allow feedback in `<Chat>` component <!-- <- TODO: !!!! -->
 -   Allow to create Avatar profile pictures via `generatePlaceholderAgentProfileImageUrl`
 -   **Refactor:** Convert all `interface` declarations to `type` across the codebase for consistency and better TypeScript practices
+-   **Fixed:** Resolve Next.js bundling crash with "Module not found: Can't resolve 'prettier/parser-html'" by using dynamic imports and browser environment detection in `prettifyMarkdown` utility
 
 ## Released versions
 

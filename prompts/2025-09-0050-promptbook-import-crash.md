@@ -1,8 +1,6 @@
-[ ]
+[x]
 
-[✨🎡] foo
-
-When I am using Promptbook in other (Next.js) project, it crashes on the error:
+[✨🎡] When I am using Promptbook in other (Next.js) project, it crashes on the error:
 
 ```
 Module not found: Can't resolve 'prettier/parser-html'
