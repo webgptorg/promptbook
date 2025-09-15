@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😹] "Chat Scenario:" in http://localhost:4022/component/chat should be saved in GET parameter
 
