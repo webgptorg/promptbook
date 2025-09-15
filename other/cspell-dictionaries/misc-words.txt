@@ -409,3 +409,6 @@ Promptbookification
 Emdashed
 guillemet
 guillemets
+strikethrough
+sublist
+sublists
