@@ -21,6 +21,10 @@ import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import { renderMarkdown } from '../book-components/Chat/utils/renderMarkdown';
 import { isMarkdownContent } from '../book-components/Chat/utils/renderMarkdown';
+import { ArrowIcon } from '../book-components/icons/ArrowIcon';
+import { ResetIcon } from '../book-components/icons/ResetIcon';
+import { SendIcon } from '../book-components/icons/SendIcon';
+import { TemplateIcon } from '../book-components/icons/TemplateIcon';
 
 
 // Note: Exporting version from each package
@@ -47,3 +51,7 @@ export type { ChatMessage };
 export type { ChatParticipant };
 export { renderMarkdown };
 export { isMarkdownContent };
+export { ArrowIcon };
+export { ResetIcon };
+export { SendIcon };
+export { TemplateIcon };
