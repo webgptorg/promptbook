@@ -38,6 +38,7 @@ export function Chat(props: ChatProps) {
         onChange,
         onMessage,
         onReset,
+        onFeedback,
         // isVoiceRecognitionButtonShown,
         // voiceLanguage = 'en-US',
         placeholderMessageContent,
@@ -177,20 +178,40 @@ export function Chat(props: ChatProps) {
         // Build chatThread: all messages separated by \n\n---\n\n
         const chatThread = messages.map((msg) => `${msg.content}`).join('\n\n---\n\n');
 
-        console.info('Rating submitted:', {
-            rating: '⭐'.repeat(currentRating),
+        const feedbackData = {
+            message: selectedMessage,
+            rating: currentRating,
             textRating: textRating,
             chatThread,
             expectedAnswer: selectedMessage.expectedAnswer || selectedMessage.content || null,
             url: window.location.href,
-        });
+        };
+
+        // If onFeedback callback is provided, use it; otherwise, log to console
+        if (onFeedback) {
+            try {
+                await onFeedback(feedbackData);
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                alert('Failed to submit feedback. Please try again.');
+                return;
+            }
+        } else {
+            console.info('Rating submitted:', {
+                rating: '⭐'.repeat(currentRating),
+                textRating: textRating,
+                chatThread,
+                expectedAnswer: selectedMessage.expectedAnswer || selectedMessage.content || null,
+                url: window.location.href,
+            });
+        }
 
         setRatingModalOpen(false);
         setTextRating('');
         setSelectedMessage(null);
         setRatingConfirmation('Thank you for your feedback!');
         setTimeout(() => setRatingConfirmation(null), 3000);
-    }, [selectedMessage, messageRatings, textRating, messages]);
+    }, [selectedMessage, messageRatings, textRating, messages, onFeedback]);
 
     // Prevent body scroll when modal is open (mobile)
     useEffect(() => {

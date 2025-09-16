@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐑] Allow to pass `ChatProps.onFeedback` to `<Chat>`
 

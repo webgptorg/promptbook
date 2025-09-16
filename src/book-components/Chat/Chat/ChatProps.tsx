@@ -138,4 +138,25 @@ export type ChatProps = {
      * Keys should match ChatMessage.from values (e.g., 'USER', 'AGENT_{id}', etc.)
      */
     readonly participants?: ReadonlyArray<ChatParticipant>;
+
+    /**
+     * Optional callback for handling user feedback on messages
+     * When provided, star rating buttons (1-5 stars) will be displayed next to each message
+     *
+     * @param feedback - Object containing the feedback data
+     * @param feedback.message - The message being rated
+     * @param feedback.rating - Star rating from 1 to 5
+     * @param feedback.textRating - Optional text feedback/note from user
+     * @param feedback.chatThread - Complete chat thread as string
+     * @param feedback.expectedAnswer - Optional expected answer provided by user
+     * @param feedback.url - Current page URL where feedback was given
+     */
+    onFeedback?(feedback: {
+        message: ChatMessage;
+        rating: number;
+        textRating: string;
+        chatThread: string;
+        expectedAnswer: string | null;
+        url: string;
+    }): Promisable<void>;
 };
