@@ -48,29 +48,34 @@ npm i ptbk
 npm install @promptbook/components
 ```
 
-# `@promptbook/components`
+Reusable React components for the Promptbook ecosystem, providing a comprehensive set of UI components for building promptbook-powered applications.
 
-Reusable React components for the Promptbook ecosystem.
+## 🎯 Purpose and Motivation
 
-This first release ships the `<BookEditor />` component — a styled, client-side book editor with inline highlighting of Promptbook commitment types (PERSONA, KNOWLEDGE, STYLE, …).
+The components package provides ready-to-use React components that integrate seamlessly with the Promptbook ecosystem. It eliminates the need to build UI components from scratch when creating promptbook-powered applications, offering everything from book editors to chat interfaces and avatar components.
 
-## Install
+## 🔧 High-Level Functionality
 
-Install this package (and React if you don’t have it yet):
+This package provides a complete set of React components for promptbook applications:
 
-```bash
-npm i @promptbook/components
-# peer/runtime dependencies you almost certainly already have in your app:
-npm i react react-dom
-```
+-   **Book Editor**: Styled editor with syntax highlighting for promptbook commitment types
+-   **Chat Components**: Full-featured chat interfaces for LLM interactions
+-   **Avatar Components**: Profile and chip components for user representation
+-   **Icon Library**: Consistent iconography for promptbook applications
+-   **Markdown Rendering**: Utilities for rendering markdown content in chat contexts
 
-TypeScript projects (recommended dev types):
+## ✨ Key Features
 
-```bash
-npm i -D @types/react @types/react-dom
-```
+-   🎨 **Styled Components** - Pre-styled components that work out of the box
+-   💬 **Chat Interface** - Complete chat UI with LLM integration support
+-   ✏️ **Book Editor** - Syntax-highlighted editor for promptbook files
+-   👤 **Avatar System** - Flexible avatar components with profile support
+-   🎯 **TypeScript Support** - Full TypeScript definitions for all components
+-   📱 **Responsive Design** - Components work across different screen sizes
+-   🔧 **Customizable** - Easy to customize with CSS classes and props
+-   ⚡ **Performance Optimized** - Efficient rendering and minimal bundle size
 
-## Usage
+## Example Usage
 
 ### Next.js (App Router)
 
@@ -139,6 +144,55 @@ The component comes with built-in styles. You can pass your own `className` and 
 -   Frameworks: Next.js, CRA, Vite, Remix, and other React apps
 -   Rendering: Client-side
 -   Bundles: ESM and UMD
+
+
+
+## 📦 Exported Entities
+
+### Version Information
+
+-   `BOOK_LANGUAGE_VERSION` - Current book language version
+-   `PROMPTBOOK_ENGINE_VERSION` - Current engine version
+
+### Avatar Components
+
+-   `AvatarChip` - Compact avatar display component
+-   `AvatarChipProps` - Props interface for AvatarChip (type)
+-   `AvatarChipFromSource` - Avatar chip with source-based loading
+-   `AvatarChipFromSourceProps` - Props interface for AvatarChipFromSource (type)
+-   `AvatarProfile` - Full avatar profile component
+-   `AvatarProfileProps` - Props interface for AvatarProfile (type)
+-   `AvatarProfileFromSource` - Avatar profile with source-based loading
+-   `AvatarProfileFromSourceProps` - Props interface for AvatarProfileFromSource (type)
+
+### Book Editor Components
+
+-   `BookEditor` - Main book editor component with syntax highlighting
+-   `BookEditorProps` - Props interface for BookEditor (type)
+-   `DEFAULT_BOOK_FONT_CLASS` - Default font class for book editor
+
+### Chat Components
+
+-   `Chat` - Basic chat interface component
+-   `ChatProps` - Props interface for Chat component (type)
+-   `LlmChat` - Enhanced chat component with LLM integration
+-   `LlmChatProps` - Props interface for LlmChat component (type)
+
+### Chat Types and Utilities
+
+-   `ChatMessage` - Type definition for chat messages (type)
+-   `ChatParticipant` - Type definition for chat participants (type)
+-   `renderMarkdown` - Utility function for rendering markdown content
+-   `isMarkdownContent` - Utility to check if content is markdown
+
+### Icon Components
+
+-   `ArrowIcon` - Arrow icon component
+-   `ResetIcon` - Reset/refresh icon component
+-   `SendIcon` - Send message icon component
+-   `TemplateIcon` - Template/document icon component
+
+> 💡 This package provides React components for promptbook applications. For the core functionality, see [@promptbook/core](#-packages) or install all packages with `npm i ptbk`
 
 
 ---
