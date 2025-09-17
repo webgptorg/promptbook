@@ -33,13 +33,20 @@ return <BookEditor onFileUpload={async (file) => `foo`} />;
 
 [ ]
 
-[✨🥰] quux
+[✨🥰] Update file uploading in `<BookEditor>`
+
+Now the `onFileUpload` are inserted where the last cursor position is
+We want to insert it where the file was dropped and select the inserted text
 
 ---
 
 [ ]
 
-[✨🥰] quux
+[✨🥰] Make file uploading in `<BookEditor>` smarter
+
+1. ...
+
+2. When the return of `onFileUpload` is multiline, ...
 
 ---
 
