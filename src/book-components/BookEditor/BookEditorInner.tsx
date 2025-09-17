@@ -19,13 +19,14 @@ export type BookEditorInnerProps = {
     value?: string_book;
     onChange?(value: string_book): void;
     isVerbose?: boolean;
+    isBorderRadiusDisabled?: boolean;
 };
 
 /**
  * @private util of `<BookEditor />`
  */
 export function BookEditorInner(props: BookEditorInnerProps) {
-    const { className = '', value: controlledValue, onChange, fontClassName, isVerbose = false } = props;
+    const { className = '', value: controlledValue, onChange, fontClassName, isVerbose = false, isBorderRadiusDisabled = false } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -124,7 +125,11 @@ export function BookEditorInner(props: BookEditorInnerProps) {
     return (
         <div className={classNames(styles.bookEditorContainer, isVerbose && styles.isVerbose, className)}>
             <div
-                className={`${styles.bookEditorWrapper} ${effectiveFontClassName}` /* <- TODO: Use `classNames` ACRY */}
+                className={classNames(
+                    styles.bookEditorWrapper,
+                    effectiveFontClassName,
+                    isBorderRadiusDisabled && styles.isBorderRadiusDisabled
+                )}
             >
                 <div aria-hidden className={styles.bookEditorBackground} style={{ backgroundImage: 'none' }} />
                 <pre

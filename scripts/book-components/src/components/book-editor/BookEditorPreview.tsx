@@ -184,6 +184,14 @@ export default function BookEditorPreview() {
                 className={(styles.BookEditor, styles.BookEditorVertical)}
                 isVerbose={false}
             />
+            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor with Sharp Corners (isBorderRadiusDisabled)</h2>
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={styles.BookEditor}
+                isVerbose={false}
+                isBorderRadiusDisabled={true}
+            />
         </div>
     );
 }

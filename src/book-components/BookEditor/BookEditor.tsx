@@ -48,6 +48,11 @@ export type BookEditorProps = {
      * If true, logs verbose debug info to the console and shows additional visual cues
      */
     readonly isVerbose?: boolean;
+
+    /**
+     * If true, disables border radius making the editor have sharp corners
+     */
+    readonly isBorderRadiusDisabled?: boolean;
 };
 
 // <- TODO: !!! Is this exported also to `@promptbook/types`?
@@ -58,7 +63,7 @@ export type BookEditorProps = {
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
-    const { className, style, value, onChange, fontClassName, isVerbose = DEFAULT_IS_VERBOSE } = props;
+    const { className, style, value, onChange, fontClassName, isVerbose = DEFAULT_IS_VERBOSE, isBorderRadiusDisabled = false } = props;
 
     // Host div that will get a shadow root
     const hostRef = useRef<HTMLDivElement | null>(null);
@@ -97,6 +102,7 @@ export function BookEditor(props: BookEditorProps) {
             value={value}
             onChange={onChange}
             isVerbose={isVerbose}
+            isBorderRadiusDisabled={isBorderRadiusDisabled}
         />
     );
 

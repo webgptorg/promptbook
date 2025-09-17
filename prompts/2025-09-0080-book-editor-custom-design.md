@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😏] Implement `<BookEditor isBorderRadiusDisabled />`
 

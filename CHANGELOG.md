@@ -13,6 +13,7 @@
 -   **Refactor:** Convert all `interface` declarations to `type` across the codebase for consistency and better TypeScript practices
 -   **Fixed:** Resolve Next.js bundling crash with "Module not found: Can't resolve 'prettier/parser-html'" by using dynamic imports and browser environment detection in `prettifyMarkdown` utility
 -   `<Chat/>` can be read-only
+-   Add `isBorderRadiusDisabled` prop to `<BookEditor>` component to allow sharp corners when set to `true`
 
 ## Released versions
 
