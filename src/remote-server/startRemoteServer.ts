@@ -1,7 +1,13 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import express from 'express';
+import session from 'express-session';
 import * as OpenApiValidator from 'express-openapi-validator';
 import http from 'http';
+import passport from 'passport';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
+import { Strategy as GitHubStrategy } from 'passport-github2';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import swaggerUi from 'swagger-ui-express';
@@ -43,7 +49,15 @@ import type { PromptbookServer_PreparePipeline_Response } from './socket-types/p
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
 import type { LoginResponse } from './types/RemoteServerOptions';
+import type { OAuthProfile } from './types/RemoteServerOptions';
 import type { RemoteServerOptions } from './types/RemoteServerOptions';
+
+// Extend Express Request to include user property for OAuth
+declare global {
+    namespace Express {
+        interface User extends OAuthProfile {}
+    }
+}
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -140,6 +154,111 @@ export function startRemoteServer<TCustomOptions = undefined>(
     const app = express();
 
     app.use(express.json());
+    
+    // Configure OAuth if provided
+    if (options.oauthConfig) {
+        const { oauthConfig } = options;
+        
+        // Session configuration
+        app.use(session({
+            secret: oauthConfig.sessionSecret,
+            resave: false,
+            saveUninitialized: false,
+            cookie: { secure: false } // Set to true in production with HTTPS
+        }));
+        
+        // Initialize Passport
+        app.use(passport.initialize());
+        app.use(passport.session());
+        
+        // Passport user serialization
+        passport.serializeUser((user: any, done: any) => {
+            done(null, user);
+        });
+        
+        passport.deserializeUser((user: any, done: any) => {
+            done(null, user);
+        });
+        
+        // Configure Facebook OAuth
+        if (oauthConfig.facebook) {
+            passport.use(new FacebookStrategy({
+                clientID: oauthConfig.facebook.clientId,
+                clientSecret: oauthConfig.facebook.clientSecret,
+                callbackURL: `${oauthConfig.baseUrl}/auth/facebook/callback`,
+                profileFields: ['id', 'displayName', 'email', 'picture']
+            }, (accessToken: string, refreshToken: string, profile: any, done: any) => {
+                const oauthProfile: OAuthProfile = {
+                    provider: 'facebook',
+                    id: profile.id,
+                    displayName: profile.displayName,
+                    email: profile.emails?.[0]?.value,
+                    photoUrl: profile.photos?.[0]?.value,
+                    raw: profile
+                };
+                done(null, oauthProfile);
+            }));
+        }
+        
+        // Configure Google OAuth
+        if (oauthConfig.google) {
+            passport.use(new GoogleStrategy({
+                clientID: oauthConfig.google.clientId,
+                clientSecret: oauthConfig.google.clientSecret,
+                callbackURL: `${oauthConfig.baseUrl}/auth/google/callback`
+            }, (accessToken: string, refreshToken: string, profile: any, done: any) => {
+                const oauthProfile: OAuthProfile = {
+                    provider: 'google',
+                    id: profile.id,
+                    displayName: profile.displayName,
+                    email: profile.emails?.[0]?.value,
+                    photoUrl: profile.photos?.[0]?.value,
+                    raw: profile
+                };
+                done(null, oauthProfile);
+            }));
+        }
+        
+        // Configure LinkedIn OAuth
+        if (oauthConfig.linkedin) {
+            passport.use(new LinkedInStrategy({
+                clientID: oauthConfig.linkedin.clientId,
+                clientSecret: oauthConfig.linkedin.clientSecret,
+                callbackURL: `${oauthConfig.baseUrl}/auth/linkedin/callback`,
+                scope: ['r_emailaddress', 'r_liteprofile']
+            }, (accessToken: string, refreshToken: string, profile: any, done: any) => {
+                const oauthProfile: OAuthProfile = {
+                    provider: 'linkedin',
+                    id: profile.id,
+                    displayName: profile.displayName,
+                    email: profile.emails?.[0]?.value,
+                    photoUrl: profile.photos?.[0]?.value,
+                    raw: profile
+                };
+                done(null, oauthProfile);
+            }));
+        }
+        
+        // Configure GitHub OAuth
+        if (oauthConfig.github) {
+            passport.use(new GitHubStrategy({
+                clientID: oauthConfig.github.clientId,
+                clientSecret: oauthConfig.github.clientSecret,
+                callbackURL: `${oauthConfig.baseUrl}/auth/github/callback`
+            }, (accessToken: string, refreshToken: string, profile: any, done: any) => {
+                const oauthProfile: OAuthProfile = {
+                    provider: 'github',
+                    id: profile.id,
+                    displayName: profile.displayName,
+                    email: profile.emails?.[0]?.value,
+                    photoUrl: profile.photos?.[0]?.value,
+                    raw: profile
+                };
+                done(null, oauthProfile);
+            }));
+        }
+    }
+    
     app.use(function (request, response, next) {
         response.setHeader('X-Powered-By', 'Promptbook engine');
         next();
@@ -354,6 +473,197 @@ export function startRemoteServer<TCustomOptions = undefined>(
             response.status(400).send({ error: serializeError(error) });
         }
     });
+
+    // OAuth routes
+    if (options.oauthConfig) {
+        // OAuth initiation routes
+        if (options.oauthConfig.facebook) {
+            app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+            app.get('/auth/facebook/callback', 
+                passport.authenticate('facebook', { failureRedirect: '/login' }),
+                async (request, response) => {
+                    try {
+                        if (!login) {
+                            response.redirect('/auth/error?message=Login not configured');
+                            return;
+                        }
+                        
+                        const oauthProfile = request.user as OAuthProfile;
+                        const appId = request.query.appId as string || null;
+                        
+                        const { isSuccess, error, message, identification } = await login({
+                            username: oauthProfile.email || oauthProfile.id,
+                            password: '', // Not used for OAuth
+                            appId,
+                            oauthProfile,
+                            rawRequest: request,
+                            rawResponse: response,
+                        });
+                        
+                        // Redirect to success page with login status
+                        if (isSuccess) {
+                            response.redirect(`/auth/success?message=${encodeURIComponent(message || 'Login successful')}`);
+                        } else {
+                            response.redirect(`/auth/error?message=${encodeURIComponent(message || 'Login failed')}`);
+                        }
+                    } catch (error) {
+                        console.error('Facebook OAuth callback error:', error);
+                        response.redirect('/auth/error?message=Authentication failed');
+                    }
+                }
+            );
+        }
+        
+        if (options.oauthConfig.google) {
+            app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+            app.get('/auth/google/callback',
+                passport.authenticate('google', { failureRedirect: '/login' }),
+                async (request, response) => {
+                    try {
+                        if (!login) {
+                            response.redirect('/auth/error?message=Login not configured');
+                            return;
+                        }
+                        
+                        const oauthProfile = request.user as OAuthProfile;
+                        const appId = request.query.appId as string || null;
+                        
+                        const { isSuccess, error, message, identification } = await login({
+                            username: oauthProfile.email || oauthProfile.id,
+                            password: '', // Not used for OAuth
+                            appId,
+                            oauthProfile,
+                            rawRequest: request,
+                            rawResponse: response,
+                        });
+                        
+                        if (isSuccess) {
+                            response.redirect(`/auth/success?message=${encodeURIComponent(message || 'Login successful')}`);
+                        } else {
+                            response.redirect(`/auth/error?message=${encodeURIComponent(message || 'Login failed')}`);
+                        }
+                    } catch (error) {
+                        console.error('Google OAuth callback error:', error);
+                        response.redirect('/auth/error?message=Authentication failed');
+                    }
+                }
+            );
+        }
+        
+        if (options.oauthConfig.linkedin) {
+            app.get('/auth/linkedin', passport.authenticate('linkedin'));
+            app.get('/auth/linkedin/callback',
+                passport.authenticate('linkedin', { failureRedirect: '/login' }),
+                async (request, response) => {
+                    try {
+                        if (!login) {
+                            response.redirect('/auth/error?message=Login not configured');
+                            return;
+                        }
+                        
+                        const oauthProfile = request.user as OAuthProfile;
+                        const appId = request.query.appId as string || null;
+                        
+                        const { isSuccess, error, message, identification } = await login({
+                            username: oauthProfile.email || oauthProfile.id,
+                            password: '', // Not used for OAuth
+                            appId,
+                            oauthProfile,
+                            rawRequest: request,
+                            rawResponse: response,
+                        });
+                        
+                        if (isSuccess) {
+                            response.redirect(`/auth/success?message=${encodeURIComponent(message || 'Login successful')}`);
+                        } else {
+                            response.redirect(`/auth/error?message=${encodeURIComponent(message || 'Login failed')}`);
+                        }
+                    } catch (error) {
+                        console.error('LinkedIn OAuth callback error:', error);
+                        response.redirect('/auth/error?message=Authentication failed');
+                    }
+                }
+            );
+        }
+        
+        if (options.oauthConfig.github) {
+            app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
+            app.get('/auth/github/callback',
+                passport.authenticate('github', { failureRedirect: '/login' }),
+                async (request, response) => {
+                    try {
+                        if (!login) {
+                            response.redirect('/auth/error?message=Login not configured');
+                            return;
+                        }
+                        
+                        const oauthProfile = request.user as OAuthProfile;
+                        const appId = request.query.appId as string || null;
+                        
+                        const { isSuccess, error, message, identification } = await login({
+                            username: oauthProfile.email || oauthProfile.id,
+                            password: '', // Not used for OAuth
+                            appId,
+                            oauthProfile,
+                            rawRequest: request,
+                            rawResponse: response,
+                        });
+                        
+                        if (isSuccess) {
+                            response.redirect(`/auth/success?message=${encodeURIComponent(message || 'Login successful')}`);
+                        } else {
+                            response.redirect(`/auth/error?message=${encodeURIComponent(message || 'Login failed')}`);
+                        }
+                    } catch (error) {
+                        console.error('GitHub OAuth callback error:', error);
+                        response.redirect('/auth/error?message=Authentication failed');
+                    }
+                }
+            );
+        }
+        
+        // OAuth success/error pages
+        app.get('/auth/success', (request, response) => {
+            const message = request.query.message || 'Login successful';
+            response.send(`
+                <html>
+                    <head><title>Login Successful</title></head>
+                    <body>
+                        <h1>✅ Login Successful</h1>
+                        <p>${message}</p>
+                        <p>You can now close this window and return to the application.</p>
+                        <script>
+                            // Try to close the window if it was opened as a popup
+                            if (window.opener) {
+                                window.opener.postMessage({type: 'oauth_success', message: '${message}'}, '*');
+                                window.close();
+                            }
+                        </script>
+                    </body>
+                </html>
+            `);
+        });
+        
+        app.get('/auth/error', (request, response) => {
+            const message = request.query.message || 'Login failed';
+            response.send(`
+                <html>
+                    <head><title>Login Failed</title></head>
+                    <body>
+                        <h1>❌ Login Failed</h1>
+                        <p>${message}</p>
+                        <p>Please try again or contact support.</p>
+                        <script>
+                            if (window.opener) {
+                                window.opener.postMessage({type: 'oauth_error', message: '${message}'}, '*');
+                                window.close();
+                            }
+                        </script>
+                    </body>
+                </html>
+            `);
+        });
+    }
 
     app.get(`/books`, async (request, response) => {
         if (collection === null) {
