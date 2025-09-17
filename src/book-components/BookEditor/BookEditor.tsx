@@ -5,8 +5,10 @@
 import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
+import { string_knowledge_source_content } from '../../types/typeAliases';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorInner } from './BookEditorInner';
@@ -47,7 +49,7 @@ export type BookEditorProps = {
     /**
      * returns the URL of the uploaded file on CDN or storage
      */
-    onFileUpload?(file: File): Promise<string>;
+    onFileUpload?(file: File): Promisable<string_knowledge_source_content>;
 
     /**
      * If true, logs verbose debug info to the console and shows additional visual cues
@@ -68,7 +70,16 @@ export type BookEditorProps = {
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
-    const { className, style, value, onChange, onFileUpload, fontClassName, isVerbose = DEFAULT_IS_VERBOSE, isBorderRadiusDisabled = false } = props;
+    const {
+        className,
+        style,
+        value,
+        onChange,
+        onFileUpload,
+        fontClassName,
+        isVerbose = DEFAULT_IS_VERBOSE,
+        isBorderRadiusDisabled = false,
+    } = props;
 
     // Host div that will get a shadow root
     const hostRef = useRef<HTMLDivElement | null>(null);

@@ -24,7 +24,15 @@ export default function BookEditorPreview() {
 
     return (
         <div className={`w-full`}>
-            <BookEditor value={book} onChange={setBook} className={styles.BookEditor} isVerbose={false} />
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={styles.BookEditor}
+                isVerbose={false}
+                onFileUpload={(file) => {
+                    return `[${file.name}]`;
+                }}
+            />
             <h2 className="text-lg font-semibold mt-6 mb-2">Parsed Book Content</h2>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
                 <code>{JSON.stringify(bookParsed, null, 4)}</code>
