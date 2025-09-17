@@ -45,6 +45,11 @@ export type BookEditorProps = {
     onChange?(value: string_book): void;
 
     /**
+     * returns the URL of the uploaded file on CDN or storage
+     */
+    onFileUpload?(file: File): Promise<string>;
+
+    /**
      * If true, logs verbose debug info to the console and shows additional visual cues
      */
     readonly isVerbose?: boolean;
@@ -63,7 +68,7 @@ export type BookEditorProps = {
  * @public exported from `@promptbook/components`
  */
 export function BookEditor(props: BookEditorProps) {
-    const { className, style, value, onChange, fontClassName, isVerbose = DEFAULT_IS_VERBOSE, isBorderRadiusDisabled = false } = props;
+    const { className, style, value, onChange, onFileUpload, fontClassName, isVerbose = DEFAULT_IS_VERBOSE, isBorderRadiusDisabled = false } = props;
 
     // Host div that will get a shadow root
     const hostRef = useRef<HTMLDivElement | null>(null);
@@ -101,6 +106,7 @@ export function BookEditor(props: BookEditorProps) {
             fontClassName={fontClassName}
             value={value}
             onChange={onChange}
+            onFileUpload={onFileUpload}
             isVerbose={isVerbose}
             isBorderRadiusDisabled={isBorderRadiusDisabled}
         />

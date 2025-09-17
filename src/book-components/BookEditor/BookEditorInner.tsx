@@ -18,6 +18,7 @@ export type BookEditorInnerProps = {
     fontClassName?: string;
     value?: string_book;
     onChange?(value: string_book): void;
+    onFileUpload?(file: File): Promise<string>;
     isVerbose?: boolean;
     isBorderRadiusDisabled?: boolean;
 };
@@ -26,7 +27,7 @@ export type BookEditorInnerProps = {
  * @private util of `<BookEditor />`
  */
 export function BookEditorInner(props: BookEditorInnerProps) {
-    const { className = '', value: controlledValue, onChange, fontClassName, isVerbose = false, isBorderRadiusDisabled = false } = props;
+    const { className = '', value: controlledValue, onChange, onFileUpload, fontClassName, isVerbose = false, isBorderRadiusDisabled = false } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -36,6 +37,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
     const highlightRef = useRef<HTMLPreElement>(null);
 
     const [lineHeight, setLineHeight] = useState<number>(32);
+    const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
     const handleChange = useCallback(
         (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -48,6 +50,73 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         },
         [controlledValue, onChange],
     );
+
+    const insertTextAtCursor = useCallback((textToInsert: string) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const currentValue = value || '';
+
+        const newValue = currentValue.slice(0, start) + textToInsert + currentValue.slice(end);
+
+        if (controlledValue !== undefined) {
+            onChange?.(validateBook(newValue));
+        } else {
+            setInternalValue(validateBook(newValue));
+        }
+
+        // Restore cursor position after the inserted text
+        setTimeout(() => {
+            const newCursorPosition = start + textToInsert.length;
+            textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+            textarea.focus();
+        }, 0);
+    }, [value, controlledValue, onChange]);
+
+    const handleDrop = useCallback(
+        async (event: React.DragEvent<HTMLTextAreaElement>) => {
+            event.preventDefault();
+            setIsDragOver(false);
+
+            if (!onFileUpload) return;
+
+            const files = Array.from(event.dataTransfer.files);
+            if (files.length === 0) return;
+
+            try {
+                // Handle multiple files in parallel
+                const uploadPromises = files.map((file) => onFileUpload(file));
+                const urls = await Promise.all(uploadPromises);
+
+                // Insert all URLs separated by spaces at cursor position
+                const urlsText = urls.join(' ');
+                insertTextAtCursor(urlsText);
+            } catch (error) {
+                console.error('File upload failed:', error);
+            }
+        },
+        [onFileUpload, insertTextAtCursor],
+    );
+
+    const handleDragOver = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {
+        event.preventDefault();
+        setIsDragOver(true);
+    }, []);
+
+    const handleDragEnter = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {
+        event.preventDefault();
+        setIsDragOver(true);
+    }, []);
+
+    const handleDragLeave = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {
+        event.preventDefault();
+        // Only set drag over to false if we're leaving the textarea itself, not a child element
+        if (event.currentTarget === event.target) {
+            setIsDragOver(false);
+        }
+    }, []);
 
     const handleScroll = useCallback((event: React.UIEvent<HTMLTextAreaElement>) => {
         const t = event.currentTarget;
@@ -151,7 +220,11 @@ export function BookEditorInner(props: BookEditorInnerProps) {
                     value={value}
                     onChange={handleChange}
                     onScroll={handleScroll}
-                    className={`${styles.bookEditorTextarea} ${effectiveFontClassName}`}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    className={`${styles.bookEditorTextarea} ${effectiveFontClassName}${isDragOver ? ' ' + styles.isDragOver : ''}`}
                     style={{ lineHeight: `${lineHeight}px` }}
                     placeholder={DEFAULT_BOOK}
                     spellCheck={false}
