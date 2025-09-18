@@ -31,7 +31,7 @@ return <BookEditor onFileUpload={async (file) => `foo`} />;
 
 ---
 
-[ ]
+[x]
 
 [✨🥰] Update file uploading in `<BookEditor>`
 

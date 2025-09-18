@@ -51,15 +51,13 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         [controlledValue, onChange],
     );
 
-    const insertTextAtCursor = useCallback((textToInsert: string) => {
+
+    const insertTextAtPosition = useCallback((textToInsert: string, position: number) => {
         const textarea = textareaRef.current;
         if (!textarea) return;
 
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
         const currentValue = value || '';
-
-        const newValue = currentValue.slice(0, start) + textToInsert + currentValue.slice(end);
+        const newValue = currentValue.slice(0, position) + textToInsert + currentValue.slice(position);
 
         if (controlledValue !== undefined) {
             onChange?.(validateBook(newValue));
@@ -67,13 +65,74 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             setInternalValue(validateBook(newValue));
         }
 
-        // Restore cursor position after the inserted text
+        // Select the inserted text
         setTimeout(() => {
-            const newCursorPosition = start + textToInsert.length;
-            textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+            textarea.setSelectionRange(position, position + textToInsert.length);
             textarea.focus();
         }, 0);
     }, [value, controlledValue, onChange]);
+
+    const getPositionFromCoordinates = useCallback((clientX: number, clientY: number): number => {
+        const textarea = textareaRef.current;
+        if (!textarea) return 0;
+
+        const rect = textarea.getBoundingClientRect();
+        const relativeX = clientX - rect.left;
+        const relativeY = clientY - rect.top;
+
+        // Account for scrolling
+        const scrollLeft = textarea.scrollLeft;
+        const scrollTop = textarea.scrollTop;
+
+        const adjustedX = relativeX + scrollLeft;
+        const adjustedY = relativeY + scrollTop;
+
+        // Get computed styles to calculate character dimensions
+        const computedStyle = window.getComputedStyle(textarea);
+        const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
+        const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
+
+        // Adjust for padding
+        const textX = Math.max(0, adjustedX - paddingLeft);
+        const textY = Math.max(0, adjustedY - paddingTop);
+
+        // Estimate line and column based on font metrics
+        const lineNumber = Math.floor(textY / lineHeight);
+
+        // Create a temporary span to measure character width
+        const span = document.createElement('span');
+        span.style.font = computedStyle.font;
+        span.style.fontSize = computedStyle.fontSize;
+        span.style.fontFamily = computedStyle.fontFamily;
+        span.style.position = 'absolute';
+        span.style.visibility = 'hidden';
+        span.textContent = 'W'; // Use a typical character for width estimation
+        document.body.appendChild(span);
+        const charWidth = span.getBoundingClientRect().width;
+        document.body.removeChild(span);
+
+        const columnNumber = Math.round(textX / charWidth);
+
+        // Convert line and column to character position
+        const lines = (value || '').split('\n');
+        let position = 0;
+
+        for (let i = 0; i < Math.min(lineNumber, lines.length); i++) {
+            if (i === lineNumber) {
+                position += Math.min(columnNumber, lines[i].length);
+                break;
+            } else {
+                position += lines[i].length + 1; // +1 for newline character
+            }
+        }
+
+        // If we're beyond the last line, position at the end
+        if (lineNumber >= lines.length) {
+            position = (value || '').length;
+        }
+
+        return Math.max(0, Math.min(position, (value || '').length));
+    }, [value, lineHeight]);
 
     const handleDrop = useCallback(
         async (event: React.DragEvent<HTMLTextAreaElement>) => {
@@ -85,19 +144,22 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             const files = Array.from(event.dataTransfer.files);
             if (files.length === 0) return;
 
+            // Get the drop position from coordinates
+            const dropPosition = getPositionFromCoordinates(event.clientX, event.clientY);
+
             try {
                 // Handle multiple files in parallel
                 const uploadPromises = files.map((file) => onFileUpload(file));
                 const urls = await Promise.all(uploadPromises);
 
-                // Insert all URLs separated by spaces at cursor position
+                // Insert all URLs separated by spaces at drop position
                 const urlsText = urls.join(' ');
-                insertTextAtCursor(urlsText);
+                insertTextAtPosition(urlsText, dropPosition);
             } catch (error) {
                 console.error('File upload failed:', error);
             }
         },
-        [onFileUpload, insertTextAtCursor],
+        [onFileUpload, insertTextAtPosition, getPositionFromCoordinates],
     );
 
     const handleDragOver = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {

@@ -24,5 +24,6 @@ export function humanizeAiText(aiText: string_markdown): string_markdown {
 }
 
 /**
+ * TODO: [🧠] Maybe this should be exported from `@promptbook/utils` not `@promptbook/markdown-utils`
  * TODO: [🅾️] !!! Use this across the project where AI text is involved
  */
