@@ -46,9 +46,10 @@ We want to insert it where the file was dropped and select the inserted text
 
 Now the `onFileUpload` are inserted where the file(s) was dropped.
 
-It working perfectly accept one case: when the file is dropped at the end of the text, the cursor is not placed where the file was dropped, but at the end of the text. Which can be several lines below the drop point.
+It working perfectly accept one case:
+When the file is dropped bellow the end of the text, the string is not placed on the line where the file was dropped, but at the end of the text. Which can be several lines below the drop point.
 
-When user drops the file below the text, we want to insert newlines and spaces so that the cursor is placed exactly where the file was dropped.
+When user drops the file below the text, we want to insert newlines such as the cursor is placed exactly on the row where the file was dropped.
 
 ---
 
