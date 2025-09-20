@@ -72,9 +72,9 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         }, 0);
     }, [value, controlledValue, onChange]);
 
-    const getPositionFromCoordinates = useCallback((clientX: number, clientY: number): number => {
+    const getPositionFromCoordinates = useCallback((clientX: number, clientY: number): { position: number; needsPadding: string } => {
         const textarea = textareaRef.current;
-        if (!textarea) return 0;
+        if (!textarea) return { position: 0, needsPadding: '' };
 
         const rect = textarea.getBoundingClientRect();
         const relativeX = clientX - rect.left;
@@ -116,6 +116,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         // Convert line and column to character position
         const lines = (value || '').split('\n');
         let position = 0;
+        let needsPadding = '';
 
         for (let i = 0; i < Math.min(lineNumber, lines.length); i++) {
             if (i === lineNumber) {
@@ -126,12 +127,29 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             }
         }
 
-        // If we're beyond the last line, position at the end
+        // If we're beyond the last line, calculate padding needed
         if (lineNumber >= lines.length) {
             position = (value || '').length;
+
+            // Add newlines to reach the target line
+            const newlinesToAdd = lineNumber - lines.length + 1;
+            needsPadding = '\n'.repeat(newlinesToAdd);
+
+            // Add spaces to reach the target column on the new line
+            if (columnNumber > 0) {
+                needsPadding += ' '.repeat(columnNumber);
+            }
+        } else if (lineNumber < lines.length && columnNumber > lines[lineNumber].length) {
+            // If we're beyond the end of an existing line, add spaces
+            const spacesToAdd = columnNumber - lines[lineNumber].length;
+            position += lines[lineNumber].length;
+            needsPadding = ' '.repeat(spacesToAdd);
         }
 
-        return Math.max(0, Math.min(position, (value || '').length));
+        return {
+            position: Math.max(0, position),
+            needsPadding
+        };
     }, [value, lineHeight]);
 
     const handleDrop = useCallback(
@@ -145,7 +163,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             if (files.length === 0) return;
 
             // Get the drop position from coordinates
-            const dropPosition = getPositionFromCoordinates(event.clientX, event.clientY);
+            const { position: dropPosition, needsPadding } = getPositionFromCoordinates(event.clientX, event.clientY);
 
             try {
                 // Handle multiple files in parallel
@@ -154,7 +172,10 @@ export function BookEditorInner(props: BookEditorInnerProps) {
 
                 // Insert all URLs separated by spaces at drop position
                 const urlsText = urls.join(' ');
-                insertTextAtPosition(urlsText, dropPosition);
+
+                // If padding is needed (dropped beyond existing text), add it before the content
+                const textToInsert = needsPadding + urlsText;
+                insertTextAtPosition(textToInsert, dropPosition);
             } catch (error) {
                 console.error('File upload failed:', error);
             }
