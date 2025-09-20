@@ -4,8 +4,12 @@ import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 // Import all commitment definition classes
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
+import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
+import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
+import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
+import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
 import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
@@ -13,6 +17,7 @@ import { NoteCommitmentDefinition } from './NOTE/NOTE';
 import { PersonaCommitmentDefinition } from './PERSONA/PERSONA';
 import { RuleCommitmentDefinition } from './RULE/RULE';
 import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
+import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
@@ -27,6 +32,7 @@ export const COMMITMENT_REGISTRY = [
     // Fully implemented commitments
     new PersonaCommitmentDefinition(),
     new KnowledgeCommitmentDefinition(),
+    new MemoryCommitmentDefinition(),
     new StyleCommitmentDefinition(),
     new RuleCommitmentDefinition('RULE'),
     new RuleCommitmentDefinition('RULES'),
@@ -38,16 +44,21 @@ export const COMMITMENT_REGISTRY = [
     new MetaImageCommitmentDefinition(),
     new MetaLinkCommitmentDefinition(),
     new NoteCommitmentDefinition(),
+    new GoalCommitmentDefinition(),
+    new MessageCommitmentDefinition(),
+    new ScenarioCommitmentDefinition(),
+    new DeleteCommitmentDefinition('DELETE'),
+    new DeleteCommitmentDefinition('CANCEL'),
+    new DeleteCommitmentDefinition('DISCARD'),
+    new DeleteCommitmentDefinition('REMOVE'),
 
     // Not yet implemented commitments (using placeholder)
     new NotYetImplementedCommitmentDefinition('EXPECT'),
-    new NotYetImplementedCommitmentDefinition('SCENARIO'),
     new NotYetImplementedCommitmentDefinition('SCENARIOS'),
     new NotYetImplementedCommitmentDefinition('BEHAVIOUR'),
     new NotYetImplementedCommitmentDefinition('BEHAVIOURS'),
     new NotYetImplementedCommitmentDefinition('AVOID'),
     new NotYetImplementedCommitmentDefinition('AVOIDANCE'),
-    new NotYetImplementedCommitmentDefinition('GOAL'),
     new NotYetImplementedCommitmentDefinition('GOALS'),
     new NotYetImplementedCommitmentDefinition('CONTEXT'),
 ] as const satisfies ReadonlyArray<CommitmentDefinition>;

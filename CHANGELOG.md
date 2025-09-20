@@ -15,6 +15,12 @@
 -   **Fixed:** Resolve Next.js bundling crash with "Module not found: Can't resolve 'prettier/parser-html'" by using dynamic imports and browser environment detection in `prettifyMarkdown` utility
 -   `<Chat/>` can be read-only
 -   Add `isBorderRadiusDisabled` prop to `<BookEditor>` component to allow sharp corners when set to `true`
+-   **New commitment types:** Add syntax highlighting and full implementation for new commitment types:
+    -   `GOAL` - Define main goals the AI assistant should achieve, with later goals having higher priority
+    -   `MEMORY` - Remember past interactions and user preferences for personalized responses  
+    -   `MESSAGE` - Include actual messages the AI assistant has sent during conversation history
+    -   `SCENARIO` - Define specific situations or contexts for AI responses, with later scenarios having higher priority
+    -   `DELETE` (`CANCEL`, `DISCARD`, `REMOVE`) - Remove or disregard certain information, context, or previous commitments
 
 ## Released versions
 

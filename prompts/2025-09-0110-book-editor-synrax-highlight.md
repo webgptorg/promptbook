@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐬] Syntax highlighting in `<BookEditor/>` should highlight more commitments:
 
