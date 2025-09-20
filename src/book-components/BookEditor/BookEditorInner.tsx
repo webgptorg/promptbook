@@ -134,6 +134,91 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         return Math.max(0, Math.min(position, (value || '').length));
     }, [value, lineHeight]);
 
+    /**
+     * Checks if the drop position is at the beginning of a line
+     */
+    const smartInsertIsAtLineStart = useCallback((position: number, textContent: string): boolean => {
+        if (position === 0) return true;
+
+        // Check if the character before the position is a newline
+        return textContent[position - 1] === '\n';
+    }, []);
+
+    /**
+     * Checks if any of the upload results contains multiple lines
+     */
+    const smartInsertHasMultilineContent = useCallback((results: string[]): boolean => {
+        return results.some(result => result.includes('\n'));
+    }, []);
+
+    /**
+     * Handles smart insertion for inline drops (middle of text)
+     * - If all results are single-line: insert separated by spaces
+     * - If any result is multiline: behave like line-start insertion
+     */
+    const smartInsertInlineContent = useCallback((results: string[], position: number): void => {
+        const hasMultiline = smartInsertHasMultilineContent(results);
+
+        if (hasMultiline) {
+            // If any result is multiline, treat as line-start insertion
+            smartInsertAtLineStart(results, position);
+            return;
+        }
+
+        // All results are single-line: insert separated by spaces
+        const textToInsert = results.join(' ');
+        insertTextAtPosition(textToInsert, position);
+    }, [smartInsertHasMultilineContent, insertTextAtPosition]);
+
+    /**
+     * Handles smart insertion for line-start drops
+     * Each result gets its own line with "KNOWLEDGE " prefix
+     */
+    const smartInsertAtLineStart = useCallback((results: string[], position: number): void => {
+        const lines: string[] = [];
+
+        // Process each upload result
+        results.forEach(result => {
+            if (result.includes('\n')) {
+                // Multiline content: add "KNOWLEDGE" prefix only to first line
+                const resultLines = result.split('\n');
+                lines.push(`KNOWLEDGE ${resultLines[0]}`);
+                // Add remaining lines without prefix
+                lines.push(...resultLines.slice(1));
+            } else {
+                // Single-line content: add with "KNOWLEDGE " prefix
+                lines.push(`KNOWLEDGE ${result}`);
+            }
+        });
+
+        // Join all lines and ensure proper spacing
+        const textToInsert = lines.join('\n');
+
+        // If we're not at position 0 and the previous character isn't already a newline,
+        // add a newline before our content
+        const textContent = value || '';
+        const needsLeadingNewline = position > 0 && textContent[position - 1] !== '\n';
+        const finalTextToInsert = needsLeadingNewline ? '\n' + textToInsert : textToInsert;
+
+        insertTextAtPosition(finalTextToInsert, position);
+    }, [value, insertTextAtPosition]);
+
+    /**
+     * Main smart insertion logic that determines insertion strategy based on drop position
+     */
+    const smartInsertUploadedContent = useCallback((results: string[], dropPosition: number): void => {
+        const textContent = value || '';
+        const isAtLineStart = smartInsertIsAtLineStart(dropPosition, textContent);
+
+        if (isAtLineStart) {
+            // Scenario 2: Drop at line start - use formatted insertion
+            smartInsertAtLineStart(results, dropPosition);
+        } else {
+            // Scenario 1: Drop inline - check content type and insert accordingly
+            smartInsertInlineContent(results, dropPosition);
+        }
+    }, [value, smartInsertIsAtLineStart, smartInsertAtLineStart, smartInsertInlineContent]);
+
     const handleDrop = useCallback(
         async (event: React.DragEvent<HTMLTextAreaElement>) => {
             event.preventDefault();
@@ -144,59 +229,22 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             const files = Array.from(event.dataTransfer.files);
             if (files.length === 0) return;
 
-            // Get the drop coordinates and calculate position
-            const textarea = textareaRef.current;
-            if (!textarea) return;
-
-            const rect = textarea.getBoundingClientRect();
-            const relativeY = event.clientY - rect.top;
-
-            // Account for scrolling
-            const scrollTop = textarea.scrollTop;
-            const adjustedY = relativeY + scrollTop;
-
-            // Get computed styles to calculate character dimensions
-            const computedStyle = window.getComputedStyle(textarea);
-            const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
-
-            // Adjust for padding
-            const textY = Math.max(0, adjustedY - paddingTop);
-
-            // Estimate target line number based on font metrics
-            const targetLineNumber = Math.floor(textY / lineHeight);
-
-            const lines = (value || '').split('\n');
-            const currentLastLine = lines.length - 1;
-
-            let dropPosition: number;
-            let textToInsert: string;
-
             try {
-                // Handle multiple files in parallel
+                // Upload all files in parallel
                 const uploadPromises = files.map((file) => onFileUpload(file));
-                const urls = await Promise.all(uploadPromises);
+                const uploadResults = await Promise.all(uploadPromises);
 
-                // Insert all URLs separated by spaces
-                const urlsText = urls.join(' ');
+                // Calculate drop position based on coordinates
+                const dropPosition = getPositionFromCoordinates(event.clientX, event.clientY);
 
-                if (targetLineNumber <= currentLastLine) {
-                    // Dropping within existing text - use normal position calculation
-                    dropPosition = getPositionFromCoordinates(event.clientX, event.clientY);
-                    textToInsert = urlsText;
-                } else {
-                    // Dropping below existing text - add newlines to reach target line
-                    const linesToAdd = targetLineNumber - currentLastLine;
-                    const newlines = '\n'.repeat(linesToAdd);
-                    dropPosition = (value || '').length;
-                    textToInsert = newlines + urlsText;
-                }
+                // Use smart insertion logic to handle the uploaded content
+                smartInsertUploadedContent(uploadResults, dropPosition);
 
-                insertTextAtPosition(textToInsert, dropPosition);
             } catch (error) {
                 console.error('File upload failed:', error);
             }
         },
-        [onFileUpload, insertTextAtPosition, getPositionFromCoordinates, value, lineHeight],
+        [onFileUpload, getPositionFromCoordinates, smartInsertUploadedContent],
     );
 
     const handleDragOver = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {

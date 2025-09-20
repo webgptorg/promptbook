@@ -53,7 +53,7 @@ When user drops the file below the text, we want to insert newlines such as the 
 
 ---
 
-[ ]
+[x]
 
 [✨🥰] Make file uploading in `<BookEditor>` smarter
 
