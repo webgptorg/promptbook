@@ -35,6 +35,7 @@
 -   Keep in mind that some plurals are not just adding `s` at the end, for example `PERSONA` and `PERSONAE`.
 -   Make some system for this change, aliases, etc.
 -   Look at existing commitment definitions for the reference
+-   Reflect this change into the `/CHANGELOG.md`
 -   Keep in mind DRY principle, do not repeat yourself.
 
 ---
@@ -58,6 +59,7 @@ EXAMPLE of @Something
 ```
 
 -   You are now implementing syntax highlighting not entire parsing logic, implement everything needed for highlighting and keep room with comments for future parsing logic when needed.
+-   But reflect this principle into the `/CHANGELOG.md` with note that its in progress and not fully implemented yet.
 -   Look at existing highlighting of the first word of the book and highlighting of commitments for the reference
 -   Keep in mind DRY principle, do not repeat yourself.
 
@@ -71,6 +73,7 @@ EXAMPLE of @Something
 -   It doesnt matter if its uppercase or lowercase, only commitments which are in the beginning of the line are commitments, words with the same name in the middle of the line are not commitments.
 -   Update both syntax highlighting and parsing logic to reflect this change
 -   Look at existing commitment definitions and highlighting for the reference
+-   Reflect this change into the `/CHANGELOG.md`
 -   Keep in mind DRY principle, do not repeat yourself.
 
 For example valid commitment `KNOWLEDGE` which should (and is) highlighted:
@@ -98,3 +101,4 @@ Foo bar knowledge baz
 [✨🐬] Implement the functionality of `DELETE` commitment
 
 -   When user adds `DELETE @Foo` or `DELETE {Foo}` it should invalidate all `@Foo` and `{Foo}` commitments in the book above the `DELETE` commitment.
+-   Reflect this change into the `/CHANGELOG.md`
