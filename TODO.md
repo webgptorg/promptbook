@@ -37,7 +37,7 @@ There are a lot of TODOs in the repository, in the future there will probably be
 -   [ ] [🍓] System to bundle up Preprocessing + Postprocessing + Expectations - like `USE ceaserCipher`
 -   [ ] Integrate ceaser-cipher to auto preprocess some and postprocess templates
 -   [ ] [🍓][🧠] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
--   [ ] Make VSCode extension for validation/syntax highlite (and for other editors)
+-   [ ] Make VSCode extension for validation/syntax highlight (and for other editors)
 -   [ ] Use `kleur` instead of `chalk` and `colors` _(or something else but unite what is used across the entire project)_
 -   [ ][main] !!3 Backup GitHub [discussions](https://github.com/webgptorg/promptbook/discussions/), issues, PRs, etc. into commited markdown files
 -   [ ] [🍛] Use shortcuts or not "Config" vs "configuration", "Env" vs "Environment"

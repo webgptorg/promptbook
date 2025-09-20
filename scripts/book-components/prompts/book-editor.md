@@ -58,7 +58,7 @@ Implement intellisense in `BookEditor` component.
 
 [ ]
 
-Implement hover on highlited commitment in `BookEditor`
+Implement hover on highlighted commitment in `BookEditor`
 
 -   It should be part of the intellisense
 -   When you hover on the highlighted commitment, it should show the description of the commitment
