@@ -1,15 +1,15 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
-import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { AutoPluralizableCommitmentDefinition } from '../_base/AutoPluralizableCommitmentDefinition';
 
 /**
- * PERSONA commitment definition
+ * PERSONA/PERSONAE commitment definition
  *
- * The PERSONA commitment modifies the agent's personality and character in the system message.
+ * The PERSONA/PERSONAE commitment modifies the agent's personality and character in the system message.
  * It defines who the agent is, their background, expertise, and personality traits.
  *
  * Key features:
- * - Multiple PERSONA commitments are automatically merged into one
+ * - Multiple PERSONA/PERSONAE commitments are automatically merged into one
  * - Content is placed at the beginning of the system message
  * - Original content with comments is preserved in metadata.PERSONA
  * - Comments (# PERSONA) are removed from the final system message
@@ -18,37 +18,37 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * ```book
  * PERSONA You are a helpful programming assistant with expertise in TypeScript and React
- * PERSONA You have deep knowledge of modern web development practices
+ * PERSONAE You have deep knowledge of modern web development practices
  * ```
  *
  * The above will be merged into a single persona section at the beginning of the system message.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA'> {
-    constructor() {
-        super('PERSONA');
+export class PersonaCommitmentDefinition extends AutoPluralizableCommitmentDefinition<'PERSONA'> {
+    constructor(type: 'PERSONA' | 'PERSONAE' = 'PERSONA') {
+        super(type);
     }
 
     /**
-     * Short one-line description of PERSONA.
+     * Short one-line description of PERSONA/PERSONAE.
      */
     get description(): string {
-        return 'Define who the agent is: background, expertise, and personality.';
+        return this.createDescriptionWithBothForms('Define who the agent is: background, expertise, and personality');
     }
 
     /**
-     * Markdown documentation for PERSONA commitment.
+     * Markdown documentation for PERSONA/PERSONAE commitment.
      */
     get documentation(): string {
-        return spaceTrim(`
-            # PERSONA
+        return this.createDocumentationWithBothForms(spaceTrim(`
+            # ${this.displayName}
 
             Defines who the agent is, their background, expertise, and personality traits.
 
             ## Key behaviors
 
-            - Multiple \`PERSONA\` commitments are merged together.
+            - Multiple \`${this.canonicalType}\`/\`${this.pluralType}\` commitments are merged together.
             - If they are in conflict, the last one takes precedence.
             - You can write persona content in multiple lines.
 
@@ -58,9 +58,9 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
             Programming Assistant
 
             PERSONA You are a helpful programming assistant with expertise in TypeScript and React
-            PERSONA You have deep knowledge of modern web development practices
+            PERSONAE You have deep knowledge of modern web development practices
             \`\`\`
-        `);
+        `));
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
@@ -146,11 +146,18 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
 }
 
 /**
- * Singleton instance of the PERSONA commitment definition
+ * Singleton instances of the PERSONA commitment definitions
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const PersonaCommitment = new PersonaCommitmentDefinition();
+export const PersonaCommitment = new PersonaCommitmentDefinition('PERSONA');
+
+/**
+ * Singleton instances of the PERSONA commitment definitions
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const PersonaeCommitment = new PersonaCommitmentDefinition('PERSONAE');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
