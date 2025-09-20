@@ -40,7 +40,7 @@ We want to insert it where the file was dropped and select the inserted text
 
 ---
 
-[ ]
+[x]
 
 [✨🥰] Update file uploading drop point `<BookEditor>`
 

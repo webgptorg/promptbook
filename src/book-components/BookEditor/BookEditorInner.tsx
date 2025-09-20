@@ -144,22 +144,59 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             const files = Array.from(event.dataTransfer.files);
             if (files.length === 0) return;
 
-            // Get the drop position from coordinates
-            const dropPosition = getPositionFromCoordinates(event.clientX, event.clientY);
+            // Get the drop coordinates and calculate position
+            const textarea = textareaRef.current;
+            if (!textarea) return;
+
+            const rect = textarea.getBoundingClientRect();
+            const relativeY = event.clientY - rect.top;
+
+            // Account for scrolling
+            const scrollTop = textarea.scrollTop;
+            const adjustedY = relativeY + scrollTop;
+
+            // Get computed styles to calculate character dimensions
+            const computedStyle = window.getComputedStyle(textarea);
+            const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
+
+            // Adjust for padding
+            const textY = Math.max(0, adjustedY - paddingTop);
+
+            // Estimate target line number based on font metrics
+            const targetLineNumber = Math.floor(textY / lineHeight);
+
+            const lines = (value || '').split('\n');
+            const currentLastLine = lines.length - 1;
+
+            let dropPosition: number;
+            let textToInsert: string;
 
             try {
                 // Handle multiple files in parallel
                 const uploadPromises = files.map((file) => onFileUpload(file));
                 const urls = await Promise.all(uploadPromises);
 
-                // Insert all URLs separated by spaces at drop position
+                // Insert all URLs separated by spaces
                 const urlsText = urls.join(' ');
-                insertTextAtPosition(urlsText, dropPosition);
+
+                if (targetLineNumber <= currentLastLine) {
+                    // Dropping within existing text - use normal position calculation
+                    dropPosition = getPositionFromCoordinates(event.clientX, event.clientY);
+                    textToInsert = urlsText;
+                } else {
+                    // Dropping below existing text - add newlines to reach target line
+                    const linesToAdd = targetLineNumber - currentLastLine;
+                    const newlines = '\n'.repeat(linesToAdd);
+                    dropPosition = (value || '').length;
+                    textToInsert = newlines + urlsText;
+                }
+
+                insertTextAtPosition(textToInsert, dropPosition);
             } catch (error) {
                 console.error('File upload failed:', error);
             }
         },
-        [onFileUpload, insertTextAtPosition, getPositionFromCoordinates],
+        [onFileUpload, insertTextAtPosition, getPositionFromCoordinates, value, lineHeight],
     );
 
     const handleDragOver = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {
