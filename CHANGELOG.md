@@ -15,6 +15,10 @@
 -   **Fixed:** Resolve Next.js bundling crash with "Module not found: Can't resolve 'prettier/parser-html'" by using dynamic imports and browser environment detection in `prettifyMarkdown` utility
 -   `<Chat/>` can be read-only
 -   Add `isBorderRadiusDisabled` prop to `<BookEditor>` component to allow sharp corners when set to `true`
+-   **[🧠] Parameter syntax highlighting in `<BookEditor/>` (In Progress):** Add syntax highlighting for parameter syntax in Book language with different colors for different parameter types:
+    -   `@Parameter` and `@ěščřžý` (single word parameters starting with `@`) - highlighted in orange
+    -   `{parameterName}`, `{parameter with multiple words}`, and `{parameterName: description text}` (parameters in braces) - highlighted in purple
+    -   Implementation covers syntax highlighting only, not full parsing logic - room left for future parsing enhancements
 -   **Singular/Plural Commitment Support:** All commitment definitions now work out of the box in both singular and plural forms
     -   Both `MESSAGE` and `MESSAGES` work identically and are highlighted the same
     -   Both `PERSONA` and `PERSONAE` work identically (proper Latin plural)

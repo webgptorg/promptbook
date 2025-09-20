@@ -163,3 +163,14 @@
 .bookEditorHighlight :global(.book-highlight-keyword) {
     color: #30a8bd;
 }
+
+/* [🧠] Parameter syntax highlighting - different colors for different parameter types */
+.bookEditorHighlight :global(.book-highlight-at-parameter) {
+    color: #e67e22; /* Orange color for @Parameter syntax */
+    font-weight: 500;
+}
+
+.bookEditorHighlight :global(.book-highlight-brace-parameter) {
+    color: #8e44ad; /* Purple color for {parameter} syntax */
+    font-weight: 500;
+}

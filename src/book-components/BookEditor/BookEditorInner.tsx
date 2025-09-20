@@ -326,17 +326,30 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         return /\bMETA\s+(?:[A-Z]+(?:\s+[A-Z]+)*)/gmi;
     }, []);
 
+    // [🧠] Parameter syntax highlighting - two types:
+    // 1. @Parameter (single word parameters starting with @)
+    // 2. {parameterName} or {parameter with multiple words} or {parameterName: description text}
+    const atParameterRegex = useMemo(() => {
+        // Match @followed by word characters (letters, numbers, underscore) and unicode letters (for @ěščřžý)
+        return /@[\w\u00C0-\u017F\u0100-\u024F\u1E00-\u1EFF]+/gmi;
+    }, []);
+
+    const braceParameterRegex = useMemo(() => {
+        // Match {parameter} or {parameter: description} - content inside braces
+        return /\{[^}]+\}/gmi;
+    }, []);
+
     const highlightedHtml = useMemo(() => {
         const text = value ?? '';
 
         let lastIndex = 0;
         let out = '';
-        const processedRanges: Array<{ start: number; end: number }> = [];
+        const processedRanges: Array<{ start: number; end: number; type: 'keyword' | 'at-parameter' | 'brace-parameter' }> = [];
 
         // First, handle META commitments (they take priority)
         text.replace(metaRegex, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number;
-            processedRanges.push({ start: index, end: index + match.length });
+            processedRanges.push({ start: index, end: index + match.length, type: 'keyword' });
             return match;
         });
 
@@ -345,7 +358,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             const index = args[args.length - 2] as number;
             const matchEnd = index + match.length;
 
-            // Check if this match overlaps with any META range
+            // Check if this match overlaps with any existing range
             const overlaps = processedRanges.some(range =>
                 (index >= range.start && index < range.end) ||
                 (matchEnd > range.start && matchEnd <= range.end) ||
@@ -353,7 +366,43 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             );
 
             if (!overlaps) {
-                processedRanges.push({ start: index, end: matchEnd });
+                processedRanges.push({ start: index, end: matchEnd, type: 'keyword' });
+            }
+            return match;
+        });
+
+        // Handle @Parameter syntax (single word parameters starting with @)
+        text.replace(atParameterRegex, (match: string, ...args: unknown[]) => {
+            const index = args[args.length - 2] as number;
+            const matchEnd = index + match.length;
+
+            // Check if this match overlaps with any existing range
+            const overlaps = processedRanges.some(range =>
+                (index >= range.start && index < range.end) ||
+                (matchEnd > range.start && matchEnd <= range.end) ||
+                (index < range.start && matchEnd > range.end)
+            );
+
+            if (!overlaps) {
+                processedRanges.push({ start: index, end: matchEnd, type: 'at-parameter' });
+            }
+            return match;
+        });
+
+        // Handle {parameter} syntax (parameters in braces)
+        text.replace(braceParameterRegex, (match: string, ...args: unknown[]) => {
+            const index = args[args.length - 2] as number;
+            const matchEnd = index + match.length;
+
+            // Check if this match overlaps with any existing range
+            const overlaps = processedRanges.some(range =>
+                (index >= range.start && index < range.end) ||
+                (matchEnd > range.start && matchEnd <= range.end) ||
+                (index < range.start && matchEnd > range.end)
+            );
+
+            if (!overlaps) {
+                processedRanges.push({ start: index, end: matchEnd, type: 'brace-parameter' });
             }
             return match;
         });
@@ -366,9 +415,24 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             // Add text before this range
             out += escapeHtml(text.slice(lastIndex, range.start));
 
-            // Add highlighted text
+            // Add highlighted text with appropriate class
             const matchText = text.slice(range.start, range.end);
-            out += `<span class="book-highlight-keyword">${escapeHtml(matchText)}</span>`;
+            let cssClass: string;
+            switch (range.type) {
+                case 'keyword':
+                    cssClass = 'book-highlight-keyword';
+                    break;
+                case 'at-parameter':
+                    cssClass = 'book-highlight-at-parameter';
+                    break;
+                case 'brace-parameter':
+                    cssClass = 'book-highlight-brace-parameter';
+                    break;
+                default:
+                    cssClass = 'book-highlight-keyword';
+                    break;
+            }
+            out += `<span class="${cssClass}">${escapeHtml(matchText)}</span>`;
 
             lastIndex = range.end;
         });
@@ -381,7 +445,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             lines[0] = `<span class="book-highlight-title">${lines[0]}</span>`;
         }
         return lines.join('\n');
-    }, [value, typeRegex, metaRegex]);
+    }, [value, typeRegex, metaRegex, atParameterRegex, braceParameterRegex]);
 
     return (
         <div className={classNames(styles.bookEditorContainer, isVerbose && styles.isVerbose, className)}>

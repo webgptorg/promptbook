@@ -40,7 +40,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] Syntax highlighting in `<BookEditor/>` should work with parameters
 
