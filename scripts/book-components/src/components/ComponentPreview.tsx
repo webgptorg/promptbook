@@ -25,6 +25,9 @@ const ChatPreview = dynamic(() => import('@/components/chat/ChatPreview'), {
 const LlmChatPreview = dynamic(() => import('@/components/llm-chat/LlmChatPreview'), {
     ssr: false,
 });
+const MockedChatPreview = dynamic(() => import('@/components/mocked-chat/MockedChatPreview'), {
+    ssr: false,
+});
 
 type ComponentPreviewProps = {
     componentId: string;
@@ -89,6 +92,12 @@ export default function ComponentPreview({ componentId }: ComponentPreviewProps)
                 return (
                     <div className="p-6">
                         <LlmChatPreview />
+                    </div>
+                );
+            case 'mocked-chat':
+                return (
+                    <div className="p-6">
+                        <MockedChatPreview />
                     </div>
                 );
 
