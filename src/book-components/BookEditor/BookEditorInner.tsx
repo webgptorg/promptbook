@@ -182,9 +182,13 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             if (result.includes('\n')) {
                 // Multiline content: add "KNOWLEDGE" prefix only to first line
                 const resultLines = result.split('\n');
-                lines.push(`KNOWLEDGE ${resultLines[0]}`);
-                // Add remaining lines without prefix
-                lines.push(...resultLines.slice(1));
+                if (resultLines.length > 0) {
+                    lines.push(`KNOWLEDGE ${resultLines[0]}`);
+                    // Add remaining lines without prefix
+                    if (resultLines.length > 1) {
+                        lines.push(...resultLines.slice(1));
+                    }
+                }
             } else {
                 // Single-line content: add with "KNOWLEDGE " prefix
                 lines.push(`KNOWLEDGE ${result}`);
@@ -310,25 +314,66 @@ export function BookEditorInner(props: BookEditorInnerProps) {
 
     const typeRegex = useMemo(() => {
         const allTypes = getAllCommitmentDefinitions().map(({ type }) => String(type));
-        const pattern = `\\b(?:${allTypes.map((t) => escapeRegex(t)).join('|')})\\b`;
+        // Filter out 'META' from regular commitments since we'll handle it specially
+        const nonMetaTypes = allTypes.filter(t => t !== 'META');
+        const pattern = `\\b(?:${nonMetaTypes.map((t) => escapeRegex(t)).join('|')})\\b`;
         return new RegExp(pattern, 'gmi');
+    }, []);
+
+    const metaRegex = useMemo(() => {
+        // Pattern to match META followed by one or more uppercase words
+        // This will match: META IMAGE, META LINK, META TITLE, META DESCRIPTION, META CUSTOM FOO, etc.
+        return /\bMETA\s+(?:[A-Z]+(?:\s+[A-Z]+)*)/gmi;
     }, []);
 
     const highlightedHtml = useMemo(() => {
         const text = value ?? '';
-        const r = typeRegex;
 
         let lastIndex = 0;
         let out = '';
+        const processedRanges: Array<{ start: number; end: number }> = [];
 
-        text.replace(r, (match: string, ...args: unknown[]) => {
+        // First, handle META commitments (they take priority)
+        text.replace(metaRegex, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number;
-            out += escapeHtml(text.slice(lastIndex, index));
-            out += `<span class="book-highlight-keyword">${escapeHtml(match)}</span>`;
-            lastIndex = index + match.length;
+            processedRanges.push({ start: index, end: index + match.length });
             return match;
         });
 
+        // Then handle regular commitment types, avoiding overlaps with META ranges
+        text.replace(typeRegex, (match: string, ...args: unknown[]) => {
+            const index = args[args.length - 2] as number;
+            const matchEnd = index + match.length;
+
+            // Check if this match overlaps with any META range
+            const overlaps = processedRanges.some(range =>
+                (index >= range.start && index < range.end) ||
+                (matchEnd > range.start && matchEnd <= range.end) ||
+                (index < range.start && matchEnd > range.end)
+            );
+
+            if (!overlaps) {
+                processedRanges.push({ start: index, end: matchEnd });
+            }
+            return match;
+        });
+
+        // Sort ranges by start position
+        processedRanges.sort((a, b) => a.start - b.start);
+
+        // Build the highlighted HTML
+        processedRanges.forEach(range => {
+            // Add text before this range
+            out += escapeHtml(text.slice(lastIndex, range.start));
+
+            // Add highlighted text
+            const matchText = text.slice(range.start, range.end);
+            out += `<span class="book-highlight-keyword">${escapeHtml(matchText)}</span>`;
+
+            lastIndex = range.end;
+        });
+
+        // Add remaining text
         out += escapeHtml(text.slice(lastIndex));
 
         const lines = out.split('\n');
@@ -336,7 +381,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             lines[0] = `<span class="book-highlight-title">${lines[0]}</span>`;
         }
         return lines.join('\n');
-    }, [value, typeRegex]);
+    }, [value, typeRegex, metaRegex]);
 
     return (
         <div className={classNames(styles.bookEditorContainer, isVerbose && styles.isVerbose, className)}>

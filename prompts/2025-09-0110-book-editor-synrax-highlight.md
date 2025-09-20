@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] Syntax highlighting in `<BookEditor/>` of commitment `META IMAGE` should work differently:
 

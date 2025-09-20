@@ -10,8 +10,7 @@ import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
 import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
-import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
-import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
+import { MetaCommitmentDefinition } from './META/META';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
 import { PersonaCommitmentDefinition } from './PERSONA/PERSONA';
@@ -41,8 +40,7 @@ export const COMMITMENT_REGISTRY = [
     new FormatCommitmentDefinition(),
     new ModelCommitmentDefinition(),
     new ActionCommitmentDefinition(),
-    new MetaImageCommitmentDefinition(),
-    new MetaLinkCommitmentDefinition(),
+    new MetaCommitmentDefinition(),
     new NoteCommitmentDefinition(),
     new GoalCommitmentDefinition(),
     new MessageCommitmentDefinition(),
