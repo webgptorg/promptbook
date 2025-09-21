@@ -69,6 +69,24 @@ EXAMPLE of @Something
 
 [ ]
 
+[✨🐬] Enhance syntax highlighting in `<BookEditor/>` for the parameters - keep one syntax with two notations
+
+-   Now there are two notations for parameters:
+    -   ` @Parameter`, ` @ěščřžý` - single word parameter starting with `@`
+    -   `{parameterName}` or `{parameter with multiple words}` or `{parameterName: description text}`
+-   These are highlighted differently one in orange color and the other in purple color.
+-   They are also treated and parsed differently.
+-   But these are two different notations for the **same syntax feature** of the Book language - the parameter.
+-   Change the syntax highlighting so both these syntaxes are highlighted in the same color - the purple color.
+-   And also reflect this change into the parsing logic - both these syntaxes should be parsed as the same syntax feature - the parameter.
+-   Just that this syntax feature has two different notations.
+-   This principle should - two different notations for the same syntax feature - should be clear in the `/CHANGELOG.md`, code comments, parsing logic, etc.
+-   Keep in mind DRY principle, do not repeat yourself
+
+---
+
+[ ]
+
 [✨🐬] Syntax highlighting in `<BookEditor/>` of commitment `META IMAGE` has some false positive highlights
 
 -   It should highlight `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION` as single word commitment
