@@ -69,6 +69,17 @@ EXAMPLE of @Something
 
 [ ]
 
+[✨🐬] Syntax highlighting in `<BookEditor/>` of commitment `META IMAGE` has some false positive highlights
+
+-   It should highlight `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION` as single word commitment
+-   It should highlight everything `META FOO` as single word commitment
+-   But not the 3rd word, for example `META IMAGE something` should highlight only `META IMAGE` as commitment and `something` should not be highlighted as commitment.
+-   Keep in mind DRY principle, do not repeat yourself.
+
+---
+
+[ ]
+
 [✨🐬] Syntax highlighting in `<BookEditor/>` has some false positive highlights
 
 -   Commitments in the middle of the word should not be highlighted
