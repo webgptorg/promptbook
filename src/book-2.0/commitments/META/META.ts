@@ -29,7 +29,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MetaCommitmentDefinition extends BaseCommitmentDefinition<'META'> {
+export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META ${string}`> {
     constructor() {
         super('META');
     }
@@ -38,7 +38,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<'META'> {
      * Short one-line description of META commitments.
      */
     get description(): string {
-        return "Set meta-information about the agent (IMAGE, LINK, TITLE, DESCRIPTION, etc.).";
+        return 'Set meta-information about the agent (IMAGE, LINK, TITLE, DESCRIPTION, etc.).';
     }
 
     /**
