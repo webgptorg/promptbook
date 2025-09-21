@@ -11,6 +11,8 @@ import type { AvatarChipProps } from '../book-components/AvatarProfile/AvatarChi
 import type { AvatarChipFromSourceProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChipFromSource';
 import type { AvatarProfileProps } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import type { AvatarProfileFromSourceProps } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
+import type { MockedChatDelayConfig } from '../book-components/AvatarProfile/AvatarProfile/MockedChat';
+import type { MockedChatProps } from '../book-components/AvatarProfile/AvatarProfile/MockedChat';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
@@ -335,6 +337,8 @@ export type { AvatarChipProps };
 export type { AvatarChipFromSourceProps };
 export type { AvatarProfileProps };
 export type { AvatarProfileFromSourceProps };
+export type { MockedChatDelayConfig };
+export type { MockedChatProps };
 export type { BookEditorProps };
 export type { ChatProps };
 export type { LlmChatProps };

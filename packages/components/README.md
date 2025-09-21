@@ -130,7 +130,7 @@ interface BookEditorProps {
     onChange?: (value: string) => void;
 
     // Explicit list of commitment keywords to highlight (case-insensitive).
-    // If omitted, a default set (PERSONA, KNOWLEDGE, STYLE, RULE, RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, EXPECT, SCENARIO, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOAL, GOALS, CONTEXT) is used.
+    // If omitted, a default set (PERSONA, KNOWLEDGE, MEMORY, STYLE, RULE, RULES, SAMPLE, EXAMPLE, FORMAT, MODEL, ACTION, META IMAGE, META LINK, NOTE, GOAL, MESSAGE, SCENARIO, DELETE, CANCEL, DISCARD, REMOVE, EXPECT, SCENARIOS, BEHAVIOUR, BEHAVIOURS, AVOID, AVOIDANCE, GOALS, CONTEXT) is used.
     commitmentTypes?: string[];
 }
 ```
