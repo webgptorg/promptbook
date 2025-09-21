@@ -29,6 +29,32 @@
 
 [ ]
 
+[✨🐬] Fix parsing of `META IMAGE` commitment
+
+-   Keep the versatility of the `META ______` commitment to accept any meta type, but ensure that `META IMAGE` specifically parses correctly.
+
+```typescript
+it('parses agent with persona and profile image', () => {
+    const agentSource = validateBook(
+        spaceTrim(`
+            Agent Name
+            PERSONA A helpful assistant
+            META IMAGE https://img.url/pic.png
+        `),
+    );
+    const result = parseAgentSource(agentSource);
+    expect(result).toEqual({
+        agentName: 'Agent Name',
+        personaDescription: 'A helpful assistant',
+        profileImageUrl: 'https://img.url/pic.png',
+    });
+});
+```
+
+---
+
+[ ]
+
 [✨🐬] All commitment definitions should work out of the box in both singular and plural
 
 -   For example `MESSAGE` and `MESSAGES` should both work and be highlighted same with `EXAMPLE` and `EXAMPLES`, etc.
