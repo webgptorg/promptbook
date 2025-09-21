@@ -1,15 +1,15 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
-import { AutoPluralizableCommitmentDefinition } from '../_base/AutoPluralizableCommitmentDefinition';
+import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
- * PERSONA/PERSONAE commitment definition
+ * PERSONA commitment definition
  *
- * The PERSONA/PERSONAE commitment modifies the agent's personality and character in the system message.
+ * The PERSONA commitment modifies the agent's personality and character in the system message.
  * It defines who the agent is, their background, expertise, and personality traits.
  *
  * Key features:
- * - Multiple PERSONA/PERSONAE commitments are automatically merged into one
+ * - Multiple PERSONA commitments are automatically merged into one
  * - Content is placed at the beginning of the system message
  * - Original content with comments is preserved in metadata.PERSONA
  * - Comments (# PERSONA) are removed from the final system message
@@ -18,37 +18,37 @@ import { AutoPluralizableCommitmentDefinition } from '../_base/AutoPluralizableC
  *
  * ```book
  * PERSONA You are a helpful programming assistant with expertise in TypeScript and React
- * PERSONAE You have deep knowledge of modern web development practices
+ * PERSONA You have deep knowledge of modern web development practices
  * ```
  *
  * The above will be merged into a single persona section at the beginning of the system message.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class PersonaCommitmentDefinition extends AutoPluralizableCommitmentDefinition<'PERSONA'> {
-    constructor(type: 'PERSONA' | 'PERSONAE' = 'PERSONA') {
-        super(type);
+export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA'> {
+    constructor() {
+        super('PERSONA');
     }
 
     /**
-     * Short one-line description of PERSONA/PERSONAE.
+     * Short one-line description of PERSONA.
      */
     get description(): string {
-        return this.createDescriptionWithBothForms('Define who the agent is: background, expertise, and personality');
+        return 'Define who the agent is: background, expertise, and personality.';
     }
 
     /**
-     * Markdown documentation for PERSONA/PERSONAE commitment.
+     * Markdown documentation for PERSONA commitment.
      */
     get documentation(): string {
-        return this.createDocumentationWithBothForms(spaceTrim(`
-            # ${this.displayName}
+        return spaceTrim(`
+            # PERSONA
 
             Defines who the agent is, their background, expertise, and personality traits.
 
             ## Key behaviors
 
-            - Multiple \`${this.canonicalType}\`/\`${this.pluralType}\` commitments are merged together.
+            - Multiple \`PERSONA\` commitments are merged together.
             - If they are in conflict, the last one takes precedence.
             - You can write persona content in multiple lines.
 
@@ -58,9 +58,9 @@ export class PersonaCommitmentDefinition extends AutoPluralizableCommitmentDefin
             Programming Assistant
 
             PERSONA You are a helpful programming assistant with expertise in TypeScript and React
-            PERSONAE You have deep knowledge of modern web development practices
+            PERSONA You have deep knowledge of modern web development practices
             \`\`\`
-        `));
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
@@ -146,18 +146,11 @@ export class PersonaCommitmentDefinition extends AutoPluralizableCommitmentDefin
 }
 
 /**
- * Singleton instances of the PERSONA commitment definitions
+ * Singleton instance of the PERSONA commitment definition
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const PersonaCommitment = new PersonaCommitmentDefinition('PERSONA');
-
-/**
- * Singleton instances of the PERSONA commitment definitions
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const PersonaeCommitment = new PersonaCommitmentDefinition('PERSONAE');
+export const PersonaCommitment = new PersonaCommitmentDefinition();
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

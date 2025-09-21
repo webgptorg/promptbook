@@ -29,8 +29,7 @@ import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplemented
  */
 export const COMMITMENT_REGISTRY = [
     // Fully implemented commitments
-    new PersonaCommitmentDefinition('PERSONA'),
-    new PersonaCommitmentDefinition('PERSONAE'),
+    new PersonaCommitmentDefinition(),
     new KnowledgeCommitmentDefinition(),
     new MemoryCommitmentDefinition(),
     new StyleCommitmentDefinition(),
@@ -44,8 +43,7 @@ export const COMMITMENT_REGISTRY = [
     new MetaCommitmentDefinition(),
     new NoteCommitmentDefinition(),
     new GoalCommitmentDefinition(),
-    new MessageCommitmentDefinition('MESSAGE'),
-    new MessageCommitmentDefinition('MESSAGES'),
+    new MessageCommitmentDefinition(),
     new ScenarioCommitmentDefinition(),
     new DeleteCommitmentDefinition('DELETE'),
     new DeleteCommitmentDefinition('CANCEL'),

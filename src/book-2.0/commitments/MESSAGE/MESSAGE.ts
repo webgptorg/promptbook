@@ -1,11 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
-import { AutoPluralizableCommitmentDefinition } from '../_base/AutoPluralizableCommitmentDefinition';
+import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
- * MESSAGE/MESSAGES commitment definition
+ * MESSAGE commitment definition
  *
- * The MESSAGE/MESSAGES commitment contains 1:1 text of the message which AI assistant already
+ * The MESSAGE commitment contains 1:1 text of the message which AI assistant already
  * sent during the conversation. Later messages are later in the conversation.
  * It is similar to EXAMPLE but it is not example, it is the real message which
  * AI assistant already sent.
@@ -14,36 +14,36 @@ import { AutoPluralizableCommitmentDefinition } from '../_base/AutoPluralizableC
  *
  * ```book
  * MESSAGE Hello! How can I help you today?
- * MESSAGES I understand you're looking for information about our services.
+ * MESSAGE I understand you're looking for information about our services.
  * MESSAGE Based on your requirements, I'd recommend our premium package.
  * ```
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MessageCommitmentDefinition extends AutoPluralizableCommitmentDefinition<'MESSAGE'> {
-    constructor(type: 'MESSAGE' | 'MESSAGES' = 'MESSAGE') {
-        super(type);
+export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSAGE'> {
+    constructor() {
+        super('MESSAGE');
     }
 
     /**
-     * Short one-line description of MESSAGE/MESSAGES.
+     * Short one-line description of MESSAGE.
      */
     get description(): string {
-        return this.createDescriptionWithBothForms('Include actual **messages** the AI assistant has sent during conversation history');
+        return 'Include actual **messages** the AI assistant has sent during conversation history.';
     }
 
     /**
-     * Markdown documentation for MESSAGE/MESSAGES commitment.
+     * Markdown documentation for MESSAGE commitment.
      */
     get documentation(): string {
-        return this.createDocumentationWithBothForms(spaceTrim(`
-            # ${this.displayName}
+        return spaceTrim(`
+            # MESSAGE
 
             Contains 1:1 text of the message which AI assistant already sent during the conversation. Later messages are later in the conversation. It is similar to EXAMPLE but it is not example, it is the real message which AI assistant already sent.
 
             ## Key behaviors
 
-            - Multiple \`${this.canonicalType}\`/\`${this.pluralType}\` commitments represent the conversation timeline.
+            - Multiple \`MESSAGE\` commitments represent the conversation timeline.
             - Later messages are later in the conversation chronologically.
             - Contains actual historical messages, not examples or templates.
             - Helps maintain conversation continuity and context.
@@ -51,9 +51,9 @@ export class MessageCommitmentDefinition extends AutoPluralizableCommitmentDefin
             ## Differences from EXAMPLE
 
             - \`EXAMPLE\` shows hypothetical or template responses
-            - \`${this.canonicalType}\`/\`${this.pluralType}\` contains actual historical conversation content
-            - \`${this.canonicalType}\`/\`${this.pluralType}\` preserves the exact conversation flow
-            - \`${this.canonicalType}\`/\`${this.pluralType}\` helps with context awareness and consistency
+            - \`MESSAGE\` contains actual historical conversation content
+            - \`MESSAGE\` preserves the exact conversation flow
+            - \`MESSAGE\` helps with context awareness and consistency
 
             ## Use cases
 
@@ -96,7 +96,7 @@ export class MessageCommitmentDefinition extends AutoPluralizableCommitmentDefin
             MESSAGE You did great with that first problem! Let's try a more complex one.
             GOAL Build upon previous explanations for deeper understanding
             \`\`\`
-        `));
+        `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
@@ -115,18 +115,11 @@ export class MessageCommitmentDefinition extends AutoPluralizableCommitmentDefin
 }
 
 /**
- * Singleton instances of the MESSAGE commitment definitions
+ * Singleton instance of the MESSAGE commitment definition
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const MessageCommitment = new MessageCommitmentDefinition('MESSAGE');
-
-/**
- * Singleton instances of the MESSAGE commitment definitions
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MessagesCommitment = new MessageCommitmentDefinition('MESSAGES');
+export const MessageCommitment = new MessageCommitmentDefinition();
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
