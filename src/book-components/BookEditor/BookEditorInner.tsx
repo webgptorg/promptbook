@@ -15,7 +15,7 @@ import { DEFAULT_BOOK_FONT_CLASS } from './config';
  * @private util of `<BookEditor />`
  */
 export type BookEditorInnerProps = {
-    // TODO: !!!! Derrive from BookEditorProps
+    // TODO: !!!! Derive from BookEditorProps
     className?: string;
     fontClassName?: string;
     value?: string_book;
