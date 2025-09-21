@@ -29,7 +29,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META ${string}`> {
+export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${string}`> {
     constructor() {
         super('META');
     }

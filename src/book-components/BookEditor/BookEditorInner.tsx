@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
@@ -14,11 +15,12 @@ import { DEFAULT_BOOK_FONT_CLASS } from './config';
  * @private util of `<BookEditor />`
  */
 export type BookEditorInnerProps = {
+    // TODO: !!!! Derrive from BookEditorProps
     className?: string;
     fontClassName?: string;
     value?: string_book;
     onChange?(value: string_book): void;
-    onFileUpload?(file: File): Promise<string>;
+    onFileUpload?(file: File): Promisable<string>;
     isVerbose?: boolean;
     isBorderRadiusDisabled?: boolean;
 };
@@ -27,7 +29,15 @@ export type BookEditorInnerProps = {
  * @private util of `<BookEditor />`
  */
 export function BookEditorInner(props: BookEditorInnerProps) {
-    const { className = '', value: controlledValue, onChange, onFileUpload, fontClassName, isVerbose = false, isBorderRadiusDisabled = false } = props;
+    const {
+        className = '',
+        value: controlledValue,
+        onChange,
+        onFileUpload,
+        fontClassName,
+        isVerbose = false,
+        isBorderRadiusDisabled = false,
+    } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
     const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -51,88 +61,93 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         [controlledValue, onChange],
     );
 
+    const insertTextAtPosition = useCallback(
+        (textToInsert: string, position: number) => {
+            const textarea = textareaRef.current;
+            if (!textarea) return;
 
-    const insertTextAtPosition = useCallback((textToInsert: string, position: number) => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
+            const currentValue = value || '';
+            const newValue = currentValue.slice(0, position) + textToInsert + currentValue.slice(position);
 
-        const currentValue = value || '';
-        const newValue = currentValue.slice(0, position) + textToInsert + currentValue.slice(position);
-
-        if (controlledValue !== undefined) {
-            onChange?.(validateBook(newValue));
-        } else {
-            setInternalValue(validateBook(newValue));
-        }
-
-        // Select the inserted text
-        setTimeout(() => {
-            textarea.setSelectionRange(position, position + textToInsert.length);
-            textarea.focus();
-        }, 0);
-    }, [value, controlledValue, onChange]);
-
-    const getPositionFromCoordinates = useCallback((clientX: number, clientY: number): number => {
-        const textarea = textareaRef.current;
-        if (!textarea) return 0;
-
-        const rect = textarea.getBoundingClientRect();
-        const relativeX = clientX - rect.left;
-        const relativeY = clientY - rect.top;
-
-        // Account for scrolling
-        const scrollLeft = textarea.scrollLeft;
-        const scrollTop = textarea.scrollTop;
-
-        const adjustedX = relativeX + scrollLeft;
-        const adjustedY = relativeY + scrollTop;
-
-        // Get computed styles to calculate character dimensions
-        const computedStyle = window.getComputedStyle(textarea);
-        const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
-        const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
-
-        // Adjust for padding
-        const textX = Math.max(0, adjustedX - paddingLeft);
-        const textY = Math.max(0, adjustedY - paddingTop);
-
-        // Estimate line and column based on font metrics
-        const lineNumber = Math.floor(textY / lineHeight);
-
-        // Create a temporary span to measure character width
-        const span = document.createElement('span');
-        span.style.font = computedStyle.font;
-        span.style.fontSize = computedStyle.fontSize;
-        span.style.fontFamily = computedStyle.fontFamily;
-        span.style.position = 'absolute';
-        span.style.visibility = 'hidden';
-        span.textContent = 'W'; // Use a typical character for width estimation
-        document.body.appendChild(span);
-        const charWidth = span.getBoundingClientRect().width;
-        document.body.removeChild(span);
-
-        const columnNumber = Math.round(textX / charWidth);
-
-        // Convert line and column to character position
-        const lines = (value || '').split('\n');
-        let position = 0;
-
-        for (let i = 0; i < Math.min(lineNumber, lines.length); i++) {
-            if (i === lineNumber) {
-                position += Math.min(columnNumber, lines[i].length);
-                break;
+            if (controlledValue !== undefined) {
+                onChange?.(validateBook(newValue));
             } else {
-                position += lines[i].length + 1; // +1 for newline character
+                setInternalValue(validateBook(newValue));
             }
-        }
 
-        // If we're beyond the last line, position at the end
-        if (lineNumber >= lines.length) {
-            position = (value || '').length;
-        }
+            // Select the inserted text
+            setTimeout(() => {
+                textarea.setSelectionRange(position, position + textToInsert.length);
+                textarea.focus();
+            }, 0);
+        },
+        [value, controlledValue, onChange],
+    );
 
-        return Math.max(0, Math.min(position, (value || '').length));
-    }, [value, lineHeight]);
+    const getPositionFromCoordinates = useCallback(
+        (clientX: number, clientY: number): number => {
+            const textarea = textareaRef.current;
+            if (!textarea) return 0;
+
+            const rect = textarea.getBoundingClientRect();
+            const relativeX = clientX - rect.left;
+            const relativeY = clientY - rect.top;
+
+            // Account for scrolling
+            const scrollLeft = textarea.scrollLeft;
+            const scrollTop = textarea.scrollTop;
+
+            const adjustedX = relativeX + scrollLeft;
+            const adjustedY = relativeY + scrollTop;
+
+            // Get computed styles to calculate character dimensions
+            const computedStyle = window.getComputedStyle(textarea);
+            const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
+            const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
+
+            // Adjust for padding
+            const textX = Math.max(0, adjustedX - paddingLeft);
+            const textY = Math.max(0, adjustedY - paddingTop);
+
+            // Estimate line and column based on font metrics
+            const lineNumber = Math.floor(textY / lineHeight);
+
+            // Create a temporary span to measure character width
+            const span = document.createElement('span');
+            span.style.font = computedStyle.font;
+            span.style.fontSize = computedStyle.fontSize;
+            span.style.fontFamily = computedStyle.fontFamily;
+            span.style.position = 'absolute';
+            span.style.visibility = 'hidden';
+            span.textContent = 'W'; // Use a typical character for width estimation
+            document.body.appendChild(span);
+            const charWidth = span.getBoundingClientRect().width;
+            document.body.removeChild(span);
+
+            const columnNumber = Math.round(textX / charWidth);
+
+            // Convert line and column to character position
+            const lines = (value || '').split('\n');
+            let position = 0;
+
+            for (let i = 0; i < Math.min(lineNumber, lines.length); i++) {
+                if (i === lineNumber) {
+                    position += Math.min(columnNumber, lines[i]!.length);
+                    break;
+                } else {
+                    position += lines[i]!.length + 1; // +1 for newline character
+                }
+            }
+
+            // If we're beyond the last line, position at the end
+            if (lineNumber >= lines.length) {
+                position = (value || '').length;
+            }
+
+            return Math.max(0, Math.min(position, (value || '').length));
+        },
+        [value, lineHeight],
+    );
 
     /**
      * Checks if the drop position is at the beginning of a line
@@ -148,7 +163,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
      * Checks if any of the upload results contains multiple lines
      */
     const smartInsertHasMultilineContent = useCallback((results: string[]): boolean => {
-        return results.some(result => result.includes('\n'));
+        return results.some((result) => result.includes('\n'));
     }, []);
 
     /**
@@ -156,72 +171,81 @@ export function BookEditorInner(props: BookEditorInnerProps) {
      * - If all results are single-line: insert separated by spaces
      * - If any result is multiline: behave like line-start insertion
      */
-    const smartInsertInlineContent = useCallback((results: string[], position: number): void => {
-        const hasMultiline = smartInsertHasMultilineContent(results);
+    const smartInsertInlineContent = useCallback(
+        (results: string[], position: number): void => {
+            const hasMultiline = smartInsertHasMultilineContent(results);
 
-        if (hasMultiline) {
-            // If any result is multiline, treat as line-start insertion
-            smartInsertAtLineStart(results, position);
-            return;
-        }
+            if (hasMultiline) {
+                // If any result is multiline, treat as line-start insertion
+                smartInsertAtLineStart(results, position);
+                return;
+            }
 
-        // All results are single-line: insert separated by spaces
-        const textToInsert = results.join(' ');
-        insertTextAtPosition(textToInsert, position);
-    }, [smartInsertHasMultilineContent, insertTextAtPosition]);
+            // All results are single-line: insert separated by spaces
+            const textToInsert = results.join(' ');
+            insertTextAtPosition(textToInsert, position);
+        },
+        [smartInsertHasMultilineContent, insertTextAtPosition],
+    );
 
     /**
      * Handles smart insertion for line-start drops
      * Each result gets its own line with "KNOWLEDGE " prefix
      */
-    const smartInsertAtLineStart = useCallback((results: string[], position: number): void => {
-        const lines: string[] = [];
+    const smartInsertAtLineStart = useCallback(
+        (results: string[], position: number): void => {
+            const lines: string[] = [];
 
-        // Process each upload result
-        results.forEach(result => {
-            if (result.includes('\n')) {
-                // Multiline content: add "KNOWLEDGE" prefix only to first line
-                const resultLines = result.split('\n');
-                if (resultLines.length > 0) {
-                    lines.push(`KNOWLEDGE ${resultLines[0]}`);
-                    // Add remaining lines without prefix
-                    if (resultLines.length > 1) {
-                        lines.push(...resultLines.slice(1));
+            // Process each upload result
+            results.forEach((result) => {
+                if (result.includes('\n')) {
+                    // Multiline content: add "KNOWLEDGE" prefix only to first line
+                    const resultLines = result.split('\n');
+                    if (resultLines.length > 0) {
+                        lines.push(`KNOWLEDGE ${resultLines[0]}`);
+                        // Add remaining lines without prefix
+                        if (resultLines.length > 1) {
+                            lines.push(...resultLines.slice(1));
+                        }
                     }
+                } else {
+                    // Single-line content: add with "KNOWLEDGE " prefix
+                    lines.push(`KNOWLEDGE ${result}`);
                 }
-            } else {
-                // Single-line content: add with "KNOWLEDGE " prefix
-                lines.push(`KNOWLEDGE ${result}`);
-            }
-        });
+            });
 
-        // Join all lines and ensure proper spacing
-        const textToInsert = lines.join('\n');
+            // Join all lines and ensure proper spacing
+            const textToInsert = lines.join('\n');
 
-        // If we're not at position 0 and the previous character isn't already a newline,
-        // add a newline before our content
-        const textContent = value || '';
-        const needsLeadingNewline = position > 0 && textContent[position - 1] !== '\n';
-        const finalTextToInsert = needsLeadingNewline ? '\n' + textToInsert : textToInsert;
+            // If we're not at position 0 and the previous character isn't already a newline,
+            // add a newline before our content
+            const textContent = value || '';
+            const needsLeadingNewline = position > 0 && textContent[position - 1] !== '\n';
+            const finalTextToInsert = needsLeadingNewline ? '\n' + textToInsert : textToInsert;
 
-        insertTextAtPosition(finalTextToInsert, position);
-    }, [value, insertTextAtPosition]);
+            insertTextAtPosition(finalTextToInsert, position);
+        },
+        [value, insertTextAtPosition],
+    );
 
     /**
      * Main smart insertion logic that determines insertion strategy based on drop position
      */
-    const smartInsertUploadedContent = useCallback((results: string[], dropPosition: number): void => {
-        const textContent = value || '';
-        const isAtLineStart = smartInsertIsAtLineStart(dropPosition, textContent);
+    const smartInsertUploadedContent = useCallback(
+        (results: string[], dropPosition: number): void => {
+            const textContent = value || '';
+            const isAtLineStart = smartInsertIsAtLineStart(dropPosition, textContent);
 
-        if (isAtLineStart) {
-            // Scenario 2: Drop at line start - use formatted insertion
-            smartInsertAtLineStart(results, dropPosition);
-        } else {
-            // Scenario 1: Drop inline - check content type and insert accordingly
-            smartInsertInlineContent(results, dropPosition);
-        }
-    }, [value, smartInsertIsAtLineStart, smartInsertAtLineStart, smartInsertInlineContent]);
+            if (isAtLineStart) {
+                // Scenario 2: Drop at line start - use formatted insertion
+                smartInsertAtLineStart(results, dropPosition);
+            } else {
+                // Scenario 1: Drop inline - check content type and insert accordingly
+                smartInsertInlineContent(results, dropPosition);
+            }
+        },
+        [value, smartInsertIsAtLineStart, smartInsertAtLineStart, smartInsertInlineContent],
+    );
 
     const handleDrop = useCallback(
         async (event: React.DragEvent<HTMLTextAreaElement>) => {
@@ -243,7 +267,6 @@ export function BookEditorInner(props: BookEditorInnerProps) {
 
                 // Use smart insertion logic to handle the uploaded content
                 smartInsertUploadedContent(uploadResults, dropPosition);
-
             } catch (error) {
                 console.error('File upload failed:', error);
             }
@@ -315,7 +338,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
     const typeRegex = useMemo(() => {
         const allTypes = getAllCommitmentDefinitions().map(({ type }) => String(type));
         // Filter out 'META' from regular commitments since we'll handle it specially
-        const nonMetaTypes = allTypes.filter(t => t !== 'META');
+        const nonMetaTypes = allTypes.filter((t) => t !== 'META');
         const pattern = `\\b(?:${nonMetaTypes.map((t) => escapeRegex(t)).join('|')})\\b`;
         return new RegExp(pattern, 'gmi');
     }, []);
@@ -323,7 +346,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
     const metaRegex = useMemo(() => {
         // Pattern to match META followed by one or more uppercase words
         // This will match: META IMAGE, META LINK, META TITLE, META DESCRIPTION, META CUSTOM FOO, etc.
-        return /\bMETA\s+(?:[A-Z]+(?:\s+[A-Z]+)*)/gmi;
+        return /\bMETA\s+(?:[A-Z]+(?:\s+[A-Z]+)*)/gim;
     }, []);
 
     // [🧠] Parameter syntax highlighting - two types:
@@ -331,12 +354,12 @@ export function BookEditorInner(props: BookEditorInnerProps) {
     // 2. {parameterName} or {parameter with multiple words} or {parameterName: description text}
     const atParameterRegex = useMemo(() => {
         // Match @followed by word characters (letters, numbers, underscore) and unicode letters (for @ěščřžý)
-        return /@[\w\u00C0-\u017F\u0100-\u024F\u1E00-\u1EFF]+/gmi;
+        return /@[\w\u00C0-\u017F\u0100-\u024F\u1E00-\u1EFF]+/gim;
     }, []);
 
     const braceParameterRegex = useMemo(() => {
         // Match {parameter} or {parameter: description} - content inside braces
-        return /\{[^}]+\}/gmi;
+        return /\{[^}]+\}/gim;
     }, []);
 
     const highlightedHtml = useMemo(() => {
@@ -344,7 +367,11 @@ export function BookEditorInner(props: BookEditorInnerProps) {
 
         let lastIndex = 0;
         let out = '';
-        const processedRanges: Array<{ start: number; end: number; type: 'keyword' | 'at-parameter' | 'brace-parameter' }> = [];
+        const processedRanges: Array<{
+            start: number;
+            end: number;
+            type: 'keyword' | 'at-parameter' | 'brace-parameter';
+        }> = [];
 
         // First, handle META commitments (they take priority)
         text.replace(metaRegex, (match: string, ...args: unknown[]) => {
@@ -359,10 +386,11 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             const matchEnd = index + match.length;
 
             // Check if this match overlaps with any existing range
-            const overlaps = processedRanges.some(range =>
-                (index >= range.start && index < range.end) ||
-                (matchEnd > range.start && matchEnd <= range.end) ||
-                (index < range.start && matchEnd > range.end)
+            const overlaps = processedRanges.some(
+                (range) =>
+                    (index >= range.start && index < range.end) ||
+                    (matchEnd > range.start && matchEnd <= range.end) ||
+                    (index < range.start && matchEnd > range.end),
             );
 
             if (!overlaps) {
@@ -377,10 +405,11 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             const matchEnd = index + match.length;
 
             // Check if this match overlaps with any existing range
-            const overlaps = processedRanges.some(range =>
-                (index >= range.start && index < range.end) ||
-                (matchEnd > range.start && matchEnd <= range.end) ||
-                (index < range.start && matchEnd > range.end)
+            const overlaps = processedRanges.some(
+                (range) =>
+                    (index >= range.start && index < range.end) ||
+                    (matchEnd > range.start && matchEnd <= range.end) ||
+                    (index < range.start && matchEnd > range.end),
             );
 
             if (!overlaps) {
@@ -395,10 +424,11 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             const matchEnd = index + match.length;
 
             // Check if this match overlaps with any existing range
-            const overlaps = processedRanges.some(range =>
-                (index >= range.start && index < range.end) ||
-                (matchEnd > range.start && matchEnd <= range.end) ||
-                (index < range.start && matchEnd > range.end)
+            const overlaps = processedRanges.some(
+                (range) =>
+                    (index >= range.start && index < range.end) ||
+                    (matchEnd > range.start && matchEnd <= range.end) ||
+                    (index < range.start && matchEnd > range.end),
             );
 
             if (!overlaps) {
@@ -411,7 +441,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         processedRanges.sort((a, b) => a.start - b.start);
 
         // Build the highlighted HTML
-        processedRanges.forEach(range => {
+        processedRanges.forEach((range) => {
             // Add text before this range
             out += escapeHtml(text.slice(lastIndex, range.start));
 
@@ -453,7 +483,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
                 className={classNames(
                     styles.bookEditorWrapper,
                     effectiveFontClassName,
-                    isBorderRadiusDisabled && styles.isBorderRadiusDisabled
+                    isBorderRadiusDisabled && styles.isBorderRadiusDisabled,
                 )}
             >
                 <div aria-hidden className={styles.bookEditorBackground} style={{ backgroundImage: 'none' }} />
@@ -480,7 +510,9 @@ export function BookEditorInner(props: BookEditorInnerProps) {
                     onDragOver={handleDragOver}
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
-                    className={`${styles.bookEditorTextarea} ${effectiveFontClassName}${isDragOver ? ' ' + styles.isDragOver : ''}`}
+                    className={`${styles.bookEditorTextarea} ${effectiveFontClassName}${
+                        isDragOver ? ' ' + styles.isDragOver : ''
+                    }`}
                     style={{ lineHeight: `${lineHeight}px` }}
                     placeholder={DEFAULT_BOOK}
                     spellCheck={false}
