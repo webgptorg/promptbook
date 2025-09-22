@@ -125,6 +125,20 @@ EXAMPLE of @Something
 
 [ ]
 
+[✨🐬] Parsing of metadata commitments
+
+-   Function `parseAgentSource` should parse all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and return them in the result.
+-   Now it parses just `profileImageUrl` but it is hardcoded just for `META IMAGE`
+-   It should parse all metadata commitments and return them in the result in a structured way, for example as object `meta: { image?: string; link?: string; title?: string; description?: string; [key: string]: string | undefined }`
+-   `META` commitment has always two words, the first word is always `META` and the second word is the type of the meta, like `IMAGE`, `LINK`, `TITLE`, `DESCRIPTION`, etc. The rest of the line or multiple lines (until the next commitment or end of the book) is the value of the meta.
+-   Look at existing parsing of `profileImageUrl` for the reference _(but change it to be generic for all metadata commitments, not just for `META IMAGE`)_
+-   `personaDescription` is NOT metadata commitment, it is separate commitment, keep it as is.
+-   Keep in mind DRY principle, do not repeat yourself.
+
+---
+
+[ ]
+
 [✨🐬] Syntax highlighting in `<BookEditor/>` has some false positive highlights
 
 -   Commitments in the middle of the word should not be highlighted
