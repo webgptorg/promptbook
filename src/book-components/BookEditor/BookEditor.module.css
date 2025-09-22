@@ -164,13 +164,24 @@
     color: #30a8bd;
 }
 
-/* [🧠] Parameter syntax highlighting - different colors for different parameter types */
+/* [🧠] Parameter syntax highlighting - unified color for both parameter notations
+ * The Book language supports two different notations for the same syntax feature - parameters:
+ * 1. @Parameter - single word parameter starting with @
+ * 2. {parameterName} or {parameter with multiple words} or {parameterName: description text}
+ * Both notations represent the same semantic concept and are highlighted with the same purple color.
+ */
+.bookEditorHighlight :global(.book-highlight-parameter) {
+    color: #8e44ad; /* Purple color for all parameter syntaxes */
+    font-weight: 500;
+}
+
+/* Legacy classes for backward compatibility - both use the same purple color now */
 .bookEditorHighlight :global(.book-highlight-at-parameter) {
-    color: #e67e22; /* Orange color for @Parameter syntax */
+    color: #8e44ad; /* Purple color (unified with brace parameters) */
     font-weight: 500;
 }
 
 .bookEditorHighlight :global(.book-highlight-brace-parameter) {
-    color: #8e44ad; /* Purple color for {parameter} syntax */
+    color: #8e44ad; /* Purple color (same as at parameters) */
     font-weight: 500;
 }

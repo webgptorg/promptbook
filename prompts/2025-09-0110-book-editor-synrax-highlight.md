@@ -93,7 +93,7 @@ EXAMPLE of @Something
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] Enhance syntax highlighting and parsing in `<BookEditor/>` and `parseAgentSource` for the parameters - keep one syntax with two notations
 

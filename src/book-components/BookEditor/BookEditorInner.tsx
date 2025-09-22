@@ -349,9 +349,19 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         return /\bMETA\s+(?:[A-Z]+(?:\s+[A-Z]+)*)/gim;
     }, []);
 
-    // [🧠] Parameter syntax highlighting - two types:
-    // 1. @Parameter (single word parameters starting with @)
-    // 2. {parameterName} or {parameter with multiple words} or {parameterName: description text}
+    // [🧠] Parameter syntax highlighting - unified approach for two different notations of the same syntax feature
+    //
+    // IMPORTANT PRINCIPLE: The Book language supports parameters as a single syntax feature
+    // expressed through two different notations:
+    // 1. @Parameter (single word parameters starting with @) - e.g., @name, @ěščřžý
+    // 2. {parameterName} (parameters in braces) - e.g., {name}, {user name}, {name: description}
+    //
+    // Both notations represent the same semantic concept - parameters - and should be:
+    // - Highlighted with the same color (purple)
+    // - Parsed using the same logic
+    // - Treated identically in the syntax processing
+    //
+    // This follows the DRY principle: don't repeat yourself for the same syntax feature.
     const atParameterRegex = useMemo(() => {
         // Match @followed by word characters (letters, numbers, underscore) and unicode letters (for @ěščřžý)
         return /@[\w\u00C0-\u017F\u0100-\u024F\u1E00-\u1EFF]+/gim;
@@ -362,6 +372,53 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         return /\{[^}]+\}/gim;
     }, []);
 
+    /**
+     * Unified parameter extraction function that handles both parameter notations
+     *
+     * This function embodies the principle that @Parameter and {parameter} are
+     * two different notations for the same syntax feature - parameters.
+     *
+     * @param text - Text to extract parameters from
+     * @returns Array of parameter ranges with unified type
+     */
+    const extractUnifiedParameters = useCallback((text: string) => {
+        const parameters: Array<{
+            start: number;
+            end: number;
+            type: 'parameter'; // Same type for both notations
+            notation: 'at' | 'brace'; // Track which notation was used
+            text: string;
+        }> = [];
+
+        // Extract @Parameter notation (first notation)
+        text.replace(atParameterRegex, (match: string, ...args: unknown[]) => {
+            const index = args[args.length - 2] as number;
+            parameters.push({
+                start: index,
+                end: index + match.length,
+                type: 'parameter', // Same semantic meaning
+                notation: 'at',
+                text: match,
+            });
+            return match;
+        });
+
+        // Extract {parameter} notation (second notation)
+        text.replace(braceParameterRegex, (match: string, ...args: unknown[]) => {
+            const index = args[args.length - 2] as number;
+            parameters.push({
+                start: index,
+                end: index + match.length,
+                type: 'parameter', // Same semantic meaning
+                notation: 'brace',
+                text: match,
+            });
+            return match;
+        });
+
+        return parameters.sort((a, b) => a.start - b.start);
+    }, [atParameterRegex, braceParameterRegex]);
+
     const highlightedHtml = useMemo(() => {
         const text = value ?? '';
 
@@ -370,7 +427,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         const processedRanges: Array<{
             start: number;
             end: number;
-            type: 'keyword' | 'at-parameter' | 'brace-parameter';
+            type: 'keyword' | 'parameter';
         }> = [];
 
         // First, handle META commitments (they take priority)
@@ -399,42 +456,25 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             return match;
         });
 
-        // Handle @Parameter syntax (single word parameters starting with @)
-        text.replace(atParameterRegex, (match: string, ...args: unknown[]) => {
-            const index = args[args.length - 2] as number;
-            const matchEnd = index + match.length;
-
-            // Check if this match overlaps with any existing range
+        // Handle parameters using the unified extraction function - both @Parameter and {parameter} notations
+        // are treated as the same syntax feature with unified highlighting
+        const unifiedParameters = extractUnifiedParameters(text);
+        unifiedParameters.forEach((param) => {
+            // Check if this parameter overlaps with any existing range
             const overlaps = processedRanges.some(
                 (range) =>
-                    (index >= range.start && index < range.end) ||
-                    (matchEnd > range.start && matchEnd <= range.end) ||
-                    (index < range.start && matchEnd > range.end),
+                    (param.start >= range.start && param.start < range.end) ||
+                    (param.end > range.start && param.end <= range.end) ||
+                    (param.start < range.start && param.end > range.end),
             );
 
             if (!overlaps) {
-                processedRanges.push({ start: index, end: matchEnd, type: 'at-parameter' });
+                processedRanges.push({
+                    start: param.start,
+                    end: param.end,
+                    type: 'parameter'
+                });
             }
-            return match;
-        });
-
-        // Handle {parameter} syntax (parameters in braces)
-        text.replace(braceParameterRegex, (match: string, ...args: unknown[]) => {
-            const index = args[args.length - 2] as number;
-            const matchEnd = index + match.length;
-
-            // Check if this match overlaps with any existing range
-            const overlaps = processedRanges.some(
-                (range) =>
-                    (index >= range.start && index < range.end) ||
-                    (matchEnd > range.start && matchEnd <= range.end) ||
-                    (index < range.start && matchEnd > range.end),
-            );
-
-            if (!overlaps) {
-                processedRanges.push({ start: index, end: matchEnd, type: 'brace-parameter' });
-            }
-            return match;
         });
 
         // Sort ranges by start position
@@ -452,11 +492,9 @@ export function BookEditorInner(props: BookEditorInnerProps) {
                 case 'keyword':
                     cssClass = 'book-highlight-keyword';
                     break;
-                case 'at-parameter':
-                    cssClass = 'book-highlight-at-parameter';
-                    break;
-                case 'brace-parameter':
-                    cssClass = 'book-highlight-brace-parameter';
+                case 'parameter':
+                    // Use the unified parameter class, but maintain backward compatibility
+                    cssClass = 'book-highlight-parameter';
                     break;
                 default:
                     cssClass = 'book-highlight-keyword';
@@ -475,7 +513,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
             lines[0] = `<span class="book-highlight-title">${lines[0]}</span>`;
         }
         return lines.join('\n');
-    }, [value, typeRegex, metaRegex, atParameterRegex, braceParameterRegex]);
+    }, [value, typeRegex, metaRegex, extractUnifiedParameters]);
 
     return (
         <div className={classNames(styles.bookEditorContainer, isVerbose && styles.isVerbose, className)}>

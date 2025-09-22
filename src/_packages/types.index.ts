@@ -1,6 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/types`
 
+import type { BookParameter } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentBasicInformation } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentModelRequirements } from '../book-2.0/agent-source/AgentModelRequirements';
 import type { string_book } from '../book-2.0/agent-source/string_book';
@@ -327,6 +328,7 @@ import type { ITakeChain } from '../utils/take/interfaces/ITakeChain';
 import type { string_promptbook_version } from '../version';
 
 // Note: Entities of the `@promptbook/types`
+export type { BookParameter };
 export type { AgentBasicInformation };
 export type { AgentModelRequirements };
 export type { string_book };

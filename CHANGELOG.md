@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 -   Remove cache from `parseAgentSource` and `createAgentModelRequirements` <!-- <- TODO: !!!! -->
+-   **Enhanced parameter syntax:** Unified highlighting and parsing for Book language parameters
+    -   Both `@Parameter` and `{parameterName}` notations now use the same purple color highlighting
+    -   Both notations are treated as the same syntax feature in parsing logic
+    -   Added `BookParameter` type to represent unified parameter structure
+    -   Added `parseParameters` function for unified parameter extraction from text
+    -   Extended `AgentBasicInformation` to include `parameters` array with all found parameters
+    -   Maintains backward compatibility while clarifying that these are two different notations for the same syntax feature
 -   Export `removeMarkdownLinks` markdown utility from `@promptbook/markdown-utils`
 -   Export `humanizeAiText` utility from `@promptbook/markdown-utils`
 -   Export `promptbookifyAiText` utility from `@promptbook/markdown-utils`

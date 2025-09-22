@@ -4,6 +4,7 @@
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { createAgentModelRequirements } from '../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../book-2.0/agent-source/parseAgentSource';
+import { parseParameters } from '../book-2.0/agent-source/parseParameters';
 import { isValidBook } from '../book-2.0/agent-source/string_book';
 import { validateBook } from '../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK } from '../book-2.0/agent-source/string_book';
@@ -175,6 +176,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 // Note: Entities of the `@promptbook/core`
 export { createAgentModelRequirements };
 export { parseAgentSource };
+export { parseParameters };
 export { isValidBook };
 export { validateBook };
 export { DEFAULT_BOOK };

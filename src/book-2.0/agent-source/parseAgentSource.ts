@@ -2,6 +2,7 @@ import type { string_url_image } from '../../types/typeAliases';
 import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
+import { parseParameters } from './parseParameters';
 import type { string_book } from './string_book';
 
 /**
@@ -33,10 +34,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         profileImageUrl = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
     }
 
+    // Parse parameters using unified approach - both @Parameter and {parameter} notations
+    // are treated as the same syntax feature with unified representation
+    const parameters = parseParameters(agentSource);
+
     return {
         agentName: parseResult.agentName,
         personaDescription,
         profileImageUrl,
+        parameters,
     };
 }
 
