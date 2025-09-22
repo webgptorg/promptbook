@@ -68,11 +68,13 @@ describe('parseAgentSource', () => {
     it('handles empty or whitespace input', () => {
         expect(parseAgentSource(validateBook(''))).toEqual({
             agentName: null,
+            parameters: [],
             personaDescription: null,
             profileImageUrl: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
         });
         expect(parseAgentSource(validateBook('   '))).toEqual({
             agentName: null,
+            parameters: [],
             personaDescription: null,
             profileImageUrl: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
         });
