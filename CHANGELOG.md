@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+-   **Fixed:** BookEditor syntax highlighting false positives for META commitments
+    -   META commitments like `META IMAGE SOMETHING` now correctly highlight only `META IMAGE` part
+    -   Fixed regex pattern to match exactly one uppercase word after META (DRY principle)
+    -   Prevents highlighting of additional words beyond the commitment structure
 -   Remove cache from `parseAgentSource` and `createAgentModelRequirements` <!-- <- TODO: !!!! -->
 -   **Enhanced parameter syntax:** Unified highlighting and parsing for Book language parameters
     -   Both `@Parameter` and `{parameterName}` notations now use the same purple color highlighting

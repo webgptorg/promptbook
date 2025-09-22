@@ -344,9 +344,10 @@ export function BookEditorInner(props: BookEditorInnerProps) {
     }, []);
 
     const metaRegex = useMemo(() => {
-        // Pattern to match META followed by one or more uppercase words
-        // This will match: META IMAGE, META LINK, META TITLE, META DESCRIPTION, META CUSTOM FOO, etc.
-        return /\bMETA\s+(?:[A-Z]+(?:\s+[A-Z]+)*)/gim;
+        // Pattern to match META followed by exactly one uppercase word (DRY principle - single pattern for all META commitments)
+        // This will match: META IMAGE, META LINK, META TITLE, META DESCRIPTION, META FOO, etc.
+        // But NOT multiple words like "META IMAGE SOMETHING" - only "META IMAGE" part will be highlighted
+        return /\bMETA\s+[A-Z]+\b/gim;
     }, []);
 
     // [🧠] Parameter syntax highlighting - unified approach for two different notations of the same syntax feature

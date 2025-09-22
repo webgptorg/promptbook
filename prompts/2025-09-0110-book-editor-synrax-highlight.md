@@ -112,7 +112,7 @@ EXAMPLE of @Something
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] Syntax highlighting in `<BookEditor/>` of commitment `META IMAGE` has some false positive highlights
 
