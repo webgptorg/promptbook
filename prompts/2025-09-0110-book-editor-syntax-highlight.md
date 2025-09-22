@@ -123,7 +123,7 @@ EXAMPLE of @Something
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] Parsing of metadata commitments
 
