@@ -95,16 +95,17 @@ EXAMPLE of @Something
 
 [ ]
 
-[✨🐬] Enhance syntax highlighting in `<BookEditor/>` for the parameters - keep one syntax with two notations
+[✨🐬] Enhance syntax highlighting and parsing in `<BookEditor/>` and `parseAgentSource` for the parameters - keep one syntax with two notations
 
 -   Now there are two notations for parameters:
     -   ` @Parameter`, ` @ěščřžý` - single word parameter starting with `@`
     -   `{parameterName}` or `{parameter with multiple words}` or `{parameterName: description text}`
--   These are highlighted differently one in orange color and the other in purple color.
--   They are also treated and parsed differently.
+-   Now, these are highlighted differently one in orange color and the other in purple color, but should be
+-   Now, they are also treated and parsed differently, but should be
 -   But these are two different notations for the **same syntax feature** of the Book language - the parameter.
 -   Change the syntax highlighting so both these syntaxes are highlighted in the same color - the purple color.
 -   And also reflect this change into the parsing logic - both these syntaxes should be parsed as the same syntax feature - the parameter.
+-   The function `parseAgentSource` should has parameters array in the result, all the parameters occured in the parsed source
 -   Just that this syntax feature has two different notations.
 -   This principle should - two different notations for the same syntax feature - should be clear in the `/CHANGELOG.md`, code comments, parsing logic, etc.
 -   Keep in mind DRY principle, do not repeat yourself
