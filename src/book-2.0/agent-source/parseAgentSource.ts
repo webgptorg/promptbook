@@ -17,27 +17,20 @@ import type { string_book } from './string_book';
 export function parseAgentSource(agentSource: string_book): AgentBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 
-    // Find PERSONA and all META commitments
+    // Find PERSONA and META IMAGE commitments
     let personaDescription: string | null = null;
-    const meta: { [key: string]: string | undefined } = {};
+    let profileImageUrl: string_url_image | undefined;
 
     for (const commitment of parseResult.commitments) {
         if (commitment.type === 'PERSONA' && !personaDescription) {
             personaDescription = commitment.content;
-        } else if (commitment.type.startsWith('META ')) {
-            // Extract META type (e.g., 'META IMAGE' -> 'image')
-            const metaType = commitment.type.substring(5).toLowerCase();
-            if (metaType && commitment.content.trim()) {
-                meta[metaType] = commitment.content.trim();
-            }
+        } else if (commitment.type === 'META IMAGE' && !profileImageUrl) {
+            profileImageUrl = commitment.content as string_url_image;
         }
     }
 
     // Generate gravatar fallback if no profile image specified
-    let profileImageUrl: string_url_image;
-    if (meta.image) {
-        profileImageUrl = meta.image as string_url_image;
-    } else {
+    if (!profileImageUrl) {
         profileImageUrl = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
     }
 
@@ -48,8 +41,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     return {
         agentName: parseResult.agentName,
         personaDescription,
-        profileImageUrl, // Keep for backward compatibility
-        meta,
+        profileImageUrl,
         parameters,
     };
 }

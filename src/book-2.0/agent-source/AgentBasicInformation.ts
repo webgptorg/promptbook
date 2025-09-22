@@ -44,21 +44,8 @@ export type AgentBasicInformation = {
     /**
      * Optional profile image URL
      * This is the line starting with "META IMAGE"
-     * @deprecated Use meta.image instead. Kept for backward compatibility.
      */
     profileImageUrl: string_url_image;
-
-    /**
-     * All metadata commitments parsed from the agent source
-     * Contains structured meta information like image, link, title, description, etc.
-     */
-    meta: {
-        image?: string;
-        link?: string;
-        title?: string;
-        description?: string;
-        [key: string]: string | undefined;
-    };
 
     /**
      * Parameters found in the agent source
