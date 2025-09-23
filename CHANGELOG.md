@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+-   **Enhanced:** Generic metadata commitment parsing in `parseAgentSource`
+    -   Function now parses all META commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` generically
+    -   Removed hardcoded `profileImageUrl` property from `AgentBasicInformation` type
+    -   Added `meta` object with structure `{ image?: string; link?: string; title?: string; description?: string; [key: string]: string | undefined }`
+    -   `meta.image` still receives default fallback via `generatePlaceholderAgentProfileImageUrl` when not specified
+    -   Updated all related components and tests to use new `meta.image` instead of `profileImageUrl`
+    -   Follows DRY principle - single generic parsing logic for all metadata commitments
 -   **Fixed:** BookEditor syntax highlighting false positives for META commitments
     -   META commitments like `META IMAGE SOMETHING` now correctly highlight only `META IMAGE` part
     -   Fixed regex pattern to match exactly one uppercase word after META (DRY principle)
