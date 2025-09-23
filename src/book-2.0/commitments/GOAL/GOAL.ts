@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
-import { PluralSupportCommitmentDefinition } from '../_base/PluralSupportCommitmentDefinition';
+import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
  * GOAL commitment definition
@@ -12,15 +12,15 @@ import { PluralSupportCommitmentDefinition } from '../_base/PluralSupportCommitm
  *
  * ```book
  * GOAL Help users understand complex technical concepts
- * GOALS Provide accurate and up-to-date information
+ * GOAL Provide accurate and up-to-date information
  * GOAL Always prioritize user safety and ethical guidelines
  * ```
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class GoalCommitmentDefinition extends PluralSupportCommitmentDefinition<'GOAL' | 'GOALS'> {
-    constructor(type: 'GOAL' | 'GOALS', primaryType: string, pluralForms: readonly string[]) {
-        super(type, primaryType, pluralForms);
+export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL'> {
+    constructor() {
+        super('GOAL');
     }
 
     /**
@@ -35,14 +35,13 @@ export class GoalCommitmentDefinition extends PluralSupportCommitmentDefinition<
      */
     get documentation(): string {
         return spaceTrim(`
-            # ${this.primaryType}
+            # GOAL
 
             Defines the main goal which should be achieved by the AI assistant. There can be multiple goals, and later goals are more important than earlier goals.
 
             ## Key behaviors
 
-            - Multiple \`GOAL\` and \`GOALS\` commitments are applied sequentially.
-            - Both singular and plural forms work identically.
+            - Multiple \`GOAL\` commitments are applied sequentially.
             - Later goals have higher priority and can override earlier goals.
             - Goals provide clear direction and purpose for the agent's responses.
             - Goals influence decision-making and response prioritization.
@@ -58,7 +57,7 @@ export class GoalCommitmentDefinition extends PluralSupportCommitmentDefinition<
 
             PERSONA You are a helpful customer support representative
             GOAL Resolve customer issues quickly and efficiently
-            GOALS Maintain high customer satisfaction scores
+            GOAL Maintain high customer satisfaction scores
             GOAL Always follow company policies and procedures
             RULE Be polite and professional at all times
             \`\`\`
@@ -67,9 +66,9 @@ export class GoalCommitmentDefinition extends PluralSupportCommitmentDefinition<
             Educational Assistant
 
             PERSONA You are an educational assistant specializing in mathematics
-            GOALS Help students understand mathematical concepts clearly
+            GOAL Help students understand mathematical concepts clearly
             GOAL Encourage critical thinking and problem-solving skills
-            GOALS Ensure all explanations are age-appropriate and accessible
+            GOAL Ensure all explanations are age-appropriate and accessible
             STYLE Use simple language and provide step-by-step explanations
             \`\`\`
 
@@ -78,7 +77,7 @@ export class GoalCommitmentDefinition extends PluralSupportCommitmentDefinition<
 
             PERSONA You are a general-purpose AI assistant
             GOAL Be helpful and informative in all interactions
-            GOALS Provide accurate and reliable information
+            GOAL Provide accurate and reliable information
             GOAL Always prioritize user safety and ethical guidelines
             RULE Never provide harmful or dangerous advice
             \`\`\`
@@ -101,12 +100,11 @@ export class GoalCommitmentDefinition extends PluralSupportCommitmentDefinition<
 }
 
 /**
- * Singleton instances of the GOAL commitment definitions
+ * Singleton instance of the GOAL commitment definition
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const GoalCommitment = new GoalCommitmentDefinition('GOAL', 'GOAL', ['GOALS']);
-export const GoalsCommitment = new GoalCommitmentDefinition('GOALS', 'GOAL', ['GOALS']);
+export const GoalCommitment = new GoalCommitmentDefinition();
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

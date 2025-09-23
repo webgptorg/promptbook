@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
-import { PluralSupportCommitmentDefinition } from '../_base/PluralSupportCommitmentDefinition';
+import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
  * PERSONA commitment definition
@@ -18,16 +18,16 @@ import { PluralSupportCommitmentDefinition } from '../_base/PluralSupportCommitm
  *
  * ```book
  * PERSONA You are a helpful programming assistant with expertise in TypeScript and React
- * PERSONAE You have deep knowledge of modern web development practices
+ * PERSONA You have deep knowledge of modern web development practices
  * ```
  *
  * The above will be merged into a single persona section at the beginning of the system message.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class PersonaCommitmentDefinition extends PluralSupportCommitmentDefinition<'PERSONA' | 'PERSONAE'> {
-    constructor(type: 'PERSONA' | 'PERSONAE', primaryType: string, pluralForms: readonly string[]) {
-        super(type, primaryType, pluralForms);
+export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA'> {
+    constructor() {
+        super('PERSONA');
     }
 
     /**
@@ -42,14 +42,13 @@ export class PersonaCommitmentDefinition extends PluralSupportCommitmentDefiniti
      */
     get documentation(): string {
         return spaceTrim(`
-            # ${this.primaryType}
+            # PERSONA
 
             Defines who the agent is, their background, expertise, and personality traits.
 
             ## Key behaviors
 
-            - Multiple \`PERSONA\` and \`PERSONAE\` commitments are merged together.
-            - Both singular and plural forms work identically.
+            - Multiple \`PERSONA\` commitments are merged together.
             - If they are in conflict, the last one takes precedence.
             - You can write persona content in multiple lines.
 
@@ -59,7 +58,7 @@ export class PersonaCommitmentDefinition extends PluralSupportCommitmentDefiniti
             Programming Assistant
 
             PERSONA You are a helpful programming assistant with expertise in TypeScript and React
-            PERSONAE You have deep knowledge of modern web development practices
+            PERSONA You have deep knowledge of modern web development practices
             \`\`\`
         `);
     }
@@ -147,12 +146,11 @@ export class PersonaCommitmentDefinition extends PluralSupportCommitmentDefiniti
 }
 
 /**
- * Singleton instances of the PERSONA commitment definitions
+ * Singleton instance of the PERSONA commitment definition
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const PersonaCommitment = new PersonaCommitmentDefinition('PERSONA', 'PERSONA', ['PERSONAE']);
-export const PersonaeCommitment = new PersonaCommitmentDefinition('PERSONAE', 'PERSONA', ['PERSONAE']);
+export const PersonaCommitment = new PersonaCommitmentDefinition();
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
