@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+-   **[✨🐬] Parsing of metadata commitments**: Enhanced `parseAgentSource` to parse all metadata commitments generically
+    -   Function `parseAgentSource` now parses all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and returns them in structured format
+    -   Replaced hardcoded `profileImageUrl` parsing with generic metadata commitment parsing
+    -   Removed `profileImageUrl` from `AgentBasicInformation` and replaced with `meta.image` in structured `meta` object
+    -   `meta.image` always has default fallback created by `generatePlaceholderAgentProfileImageUrl`
+    -   Later META commitments of same type override earlier ones (e.g., `META FOO foo1` followed by `META FOO foo2` results in `meta.foo = "foo2"`)
+    -   META commitment parsing supports multiline content until next commitment or end of book
+    -   Updated all components (`AvatarProfile`, `AvatarChip`) to use `meta.image` instead of `profileImageUrl`
+    -   Added comprehensive test suite for metadata parsing functionality
+
 -   **Fixed:** BookEditor syntax highlighting false positives for META commitments
     -   META commitments like `META IMAGE SOMETHING` now correctly highlight only `META IMAGE` part
     -   Fixed regex pattern to match exactly one uppercase word after META (DRY principle)
