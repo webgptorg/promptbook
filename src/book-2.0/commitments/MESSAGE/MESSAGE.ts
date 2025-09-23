@@ -20,9 +20,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSAGE'> {
-    constructor() {
-        super('MESSAGE');
+export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSAGE' | 'MESSAGES'> {
+    constructor(type: 'MESSAGE' | 'MESSAGES' = 'MESSAGE') {
+        super(type);
     }
 
     /**
@@ -37,13 +37,14 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
      */
     get documentation(): string {
         return spaceTrim(`
-            # MESSAGE
+            # ${this.type}
 
             Contains 1:1 text of the message which AI assistant already sent during the conversation. Later messages are later in the conversation. It is similar to EXAMPLE but it is not example, it is the real message which AI assistant already sent.
 
             ## Key behaviors
 
-            - Multiple \`MESSAGE\` commitments represent the conversation timeline.
+            - Multiple \`MESSAGE\` and \`MESSAGES\` commitments represent the conversation timeline.
+            - Both terms work identically and can be used interchangeably.
             - Later messages are later in the conversation chronologically.
             - Contains actual historical messages, not examples or templates.
             - Helps maintain conversation continuity and context.
@@ -51,9 +52,9 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
             ## Differences from EXAMPLE
 
             - \`EXAMPLE\` shows hypothetical or template responses
-            - \`MESSAGE\` contains actual historical conversation content
-            - \`MESSAGE\` preserves the exact conversation flow
-            - \`MESSAGE\` helps with context awareness and consistency
+            - \`MESSAGE\`/\`MESSAGES\` contains actual historical conversation content
+            - \`MESSAGE\`/\`MESSAGES\` preserves the exact conversation flow
+            - \`MESSAGE\`/\`MESSAGES\` helps with context awareness and consistency
 
             ## Use cases
 
@@ -119,7 +120,14 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const MessageCommitment = new MessageCommitmentDefinition();
+export const MessageCommitment = new MessageCommitmentDefinition('MESSAGE');
+
+/**
+ * Singleton instance of the MESSAGES commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const MessagesCommitment = new MessageCommitmentDefinition('MESSAGES');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

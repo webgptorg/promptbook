@@ -28,9 +28,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
-    constructor() {
-        super('NOTE');
+export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 'NOTES'> {
+    constructor(type: 'NOTE' | 'NOTES' = 'NOTE') {
+        super(type);
     }
 
     /**
@@ -45,14 +45,15 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
      */
     get documentation(): string {
         return spaceTrim(`
-            # NOTE
+            # ${this.type}
 
             Adds comments for documentation without changing agent behavior.
 
             ## Key behaviors
 
             - Does not modify the agent's behavior or responses.
-            - Multiple \`NOTE\` commitments are aggregated for debugging.
+            - Multiple \`NOTE\` and \`NOTES\` commitments are aggregated for debugging.
+            - Both terms work identically and can be used interchangeably.
             - Useful for documenting design decisions and reminders.
             - Content is preserved in metadata for inspection.
 
@@ -115,7 +116,14 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE'> {
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const NoteCommitment = new NoteCommitmentDefinition();
+export const NoteCommitment = new NoteCommitmentDefinition('NOTE');
+
+/**
+ * Singleton instance of the NOTES commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const NotesCommitment = new NoteCommitmentDefinition('NOTES');
 
 /**
  * [💞] Ignore a discrepancy between file name and entity name

@@ -17,9 +17,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'> {
-    constructor() {
-        super('STYLE');
+export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' | 'STYLES'> {
+    constructor(type: 'STYLE' | 'STYLES' = 'STYLE') {
+        super(type);
     }
 
     /**
@@ -34,13 +34,14 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'>
      */
     get documentation(): string {
         return spaceTrim(`
-            # STYLE
+            # ${this.type}
 
             Defines how the agent should format and present its responses (tone, writing style, formatting).
 
             ## Key behaviors
 
-            - Multiple \`STYLE\` commitments are applied sequentially.
+            - Multiple \`STYLE\` and \`STYLES\` commitments are applied sequentially.
+            - Both terms work identically and can be used interchangeably.
             - Later style instructions can override earlier ones.
             - Style affects both tone and presentation format.
 
@@ -86,7 +87,14 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE'>
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const StyleCommitment = new StyleCommitmentDefinition();
+export const StyleCommitment = new StyleCommitmentDefinition('STYLE');
+
+/**
+ * Singleton instance of the STYLES commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const StylesCommitment = new StyleCommitmentDefinition('STYLES');
 
 /**
  * [💞] Ignore a discrepancy between file name and entity name

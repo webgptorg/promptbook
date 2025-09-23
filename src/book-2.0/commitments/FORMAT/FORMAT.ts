@@ -18,9 +18,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT'> {
-    constructor() {
-        super('FORMAT');
+export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT' | 'FORMATS'> {
+    constructor(type: 'FORMAT' | 'FORMATS' = 'FORMAT') {
+        super(type);
     }
 
     /**
@@ -35,13 +35,14 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
      */
     get documentation(): string {
         return spaceTrim(`
-            # FORMAT
+            # ${this.type}
 
             Defines the specific output structure and formatting for responses (data formats, templates, structure).
 
             ## Key behaviors
 
-            - Multiple \`FORMAT\` commitments are applied sequentially.
+            - Multiple \`FORMAT\` and \`FORMATS\` commitments are applied sequentially.
+            - Both terms work identically and can be used interchangeably.
             - If they are in conflict, the last one takes precedence.
             - You can specify both data formats and presentation styles.
 
@@ -85,7 +86,14 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const FormatCommitment = new FormatCommitmentDefinition();
+export const FormatCommitment = new FormatCommitmentDefinition('FORMAT');
+
+/**
+ * Singleton instance of the FORMATS commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const FormatsCommitment = new FormatCommitmentDefinition('FORMATS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -25,9 +25,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA'> {
-    constructor() {
-        super('PERSONA');
+export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA' | 'PERSONAE'> {
+    constructor(type: 'PERSONA' | 'PERSONAE' = 'PERSONA') {
+        super(type);
     }
 
     /**
@@ -42,13 +42,14 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
      */
     get documentation(): string {
         return spaceTrim(`
-            # PERSONA
+            # ${this.type}
 
             Defines who the agent is, their background, expertise, and personality traits.
 
             ## Key behaviors
 
-            - Multiple \`PERSONA\` commitments are merged together.
+            - Multiple \`PERSONA\` and \`PERSONAE\` commitments are merged together.
+            - Both terms work identically and can be used interchangeably.
             - If they are in conflict, the last one takes precedence.
             - You can write persona content in multiple lines.
 
@@ -150,7 +151,14 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const PersonaCommitment = new PersonaCommitmentDefinition();
+export const PersonaCommitment = new PersonaCommitmentDefinition('PERSONA');
+
+/**
+ * Singleton instance of the PERSONAE commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const PersonaeCommitment = new PersonaCommitmentDefinition('PERSONAE');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -18,9 +18,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL'> {
-    constructor() {
-        super('GOAL');
+export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 'GOALS'> {
+    constructor(type: 'GOAL' | 'GOALS' = 'GOAL') {
+        super(type);
     }
 
     /**
@@ -35,13 +35,14 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL'> {
      */
     get documentation(): string {
         return spaceTrim(`
-            # GOAL
+            # ${this.type}
 
             Defines the main goal which should be achieved by the AI assistant. There can be multiple goals, and later goals are more important than earlier goals.
 
             ## Key behaviors
 
-            - Multiple \`GOAL\` commitments are applied sequentially.
+            - Multiple \`GOAL\` and \`GOALS\` commitments are applied sequentially.
+            - Both terms work identically and can be used interchangeably.
             - Later goals have higher priority and can override earlier goals.
             - Goals provide clear direction and purpose for the agent's responses.
             - Goals influence decision-making and response prioritization.
@@ -104,7 +105,14 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL'> {
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const GoalCommitment = new GoalCommitmentDefinition();
+export const GoalCommitment = new GoalCommitmentDefinition('GOAL');
+
+/**
+ * Singleton instance of the GOALS commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const GoalsCommitment = new GoalCommitmentDefinition('GOALS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+-   **Enhanced:** All commitment definitions now support both singular and plural forms
+    -   All commitment types like `MESSAGE`/`MESSAGES`, `PERSONA`/`PERSONAE`, `GOAL`/`GOALS`, etc. work identically
+    -   Includes irregular plurals like `PERSONA` → `PERSONAE`
+    -   Each commitment definition acts as a plugin with alias support built-in
+    -   Follows DRY principle - no separate definitions needed for plural forms
+    -   Compatible with existing code while providing more natural language flexibility
 -   **Fixed:** BookEditor syntax highlighting false positives for commitments in middle of words/lines
     -   Commitments like `KNOWLEDGE`, `PERSONA`, etc. are now only highlighted when at the beginning of lines
     -   Fixed issue where words containing commitment names in the middle (e.g., "knowledge" in "Foo bar knowledge baz") were incorrectly highlighted  

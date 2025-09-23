@@ -19,9 +19,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'> {
-    constructor() {
-        super('MODEL');
+export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' | 'MODELS'> {
+    constructor(type: 'MODEL' | 'MODELS' = 'MODEL') {
+        super(type);
     }
 
     /**
@@ -36,13 +36,14 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'>
      */
     get documentation(): string {
         return spaceTrim(`
-            # MODEL
+            # ${this.type}
 
             Specifies which AI model to use and optional decoding parameters.
 
             ## Key behaviors
 
-            - Only one \`MODEL\` commitment should be used per agent.
+            - Only one \`MODEL\` or \`MODELS\` commitment should be used per agent.
+            - Both terms work identically and can be used interchangeably.
             - If multiple are specified, the last one takes precedence.
             - Parameters control the randomness and creativity of responses.
 
@@ -132,7 +133,14 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL'>
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const ModelCommitment = new ModelCommitmentDefinition();
+export const ModelCommitment = new ModelCommitmentDefinition('MODEL');
+
+/**
+ * Singleton instance of the MODELS commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const ModelsCommitment = new ModelCommitmentDefinition('MODELS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

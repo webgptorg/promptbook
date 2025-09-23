@@ -17,9 +17,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION'> {
-    constructor() {
-        super('ACTION');
+export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION' | 'ACTIONS'> {
+    constructor(type: 'ACTION' | 'ACTIONS' = 'ACTION') {
+        super(type);
     }
 
     /**
@@ -34,13 +34,14 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
      */
     get documentation(): string {
         return spaceTrim(`
-            # ACTION
+            # ${this.type}
 
             Defines specific actions or capabilities that the agent can perform.
 
             ## Key behaviors
 
-            - Multiple \`ACTION\` commitments are applied sequentially.
+            - Multiple \`ACTION\` and \`ACTIONS\` commitments are applied sequentially.
+            - Both terms work identically and can be used interchangeably.
             - Each action adds to the agent's capability list.
             - Actions help users understand what the agent can do.
 
@@ -86,7 +87,14 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const ActionCommitment = new ActionCommitmentDefinition();
+export const ActionCommitment = new ActionCommitmentDefinition('ACTION');
+
+/**
+ * Singleton instance of the ACTIONS commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const ActionsCommitment = new ActionCommitmentDefinition('ACTIONS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

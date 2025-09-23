@@ -19,9 +19,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCENARIO'> {
-    constructor() {
-        super('SCENARIO');
+export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCENARIO' | 'SCENARIOS'> {
+    constructor(type: 'SCENARIO' | 'SCENARIOS' = 'SCENARIO') {
+        super(type);
     }
 
     /**
@@ -36,13 +36,14 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
      */
     get documentation(): string {
         return spaceTrim(`
-            # SCENARIO
+            # ${this.type}
 
             Defines a specific situation or context in which the AI assistant should operate. It helps to set the scene for the AI's responses. Later scenarios are more important than earlier scenarios.
 
             ## Key behaviors
 
-            - Multiple \`SCENARIO\` commitments build upon each other.
+            - Multiple \`SCENARIO\` and \`SCENARIOS\` commitments build upon each other.
+            - Both terms work identically and can be used interchangeably.
             - Later scenarios have higher priority and can override earlier scenarios.
             - Provides situational context that influences response tone and content.
             - Helps establish the environment and circumstances for interactions.
@@ -127,7 +128,14 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const ScenarioCommitment = new ScenarioCommitmentDefinition();
+export const ScenarioCommitment = new ScenarioCommitmentDefinition('SCENARIO');
+
+/**
+ * Singleton instance of the SCENARIOS commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const ScenariosCommitment = new ScenarioCommitmentDefinition('SCENARIOS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

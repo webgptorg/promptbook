@@ -21,9 +21,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE'> {
-    constructor() {
-        super('KNOWLEDGE');
+export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE' | 'KNOWLEDGES'> {
+    constructor(type: 'KNOWLEDGE' | 'KNOWLEDGES' = 'KNOWLEDGE') {
+        super(type);
     }
 
     /**
@@ -38,13 +38,14 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
      */
     get documentation(): string {
         return spaceTrim(`
-            # KNOWLEDGE
+            # ${this.type}
 
             Adds specific knowledge, facts, or context to the agent using a RAG (Retrieval-Augmented Generation) approach for external sources.
 
             ## Key behaviors
 
-            - Multiple \`KNOWLEDGE\` commitments are applied sequentially.
+            - Multiple \`KNOWLEDGE\` and \`KNOWLEDGES\` commitments are applied sequentially.
+            - Both terms work identically and can be used interchangeably.
             - Supports both direct text knowledge and external URLs.
             - External sources (PDFs, websites) are processed via RAG for context retrieval.
 
@@ -128,7 +129,14 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const KnowledgeCommitment = new KnowledgeCommitmentDefinition();
+export const KnowledgeCommitment = new KnowledgeCommitmentDefinition('KNOWLEDGE');
+
+/**
+ * Singleton instance of the KNOWLEDGES commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const KnowledgesCommitment = new KnowledgeCommitmentDefinition('KNOWLEDGES');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

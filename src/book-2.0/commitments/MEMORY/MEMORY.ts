@@ -19,9 +19,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY'> {
-    constructor() {
-        super('MEMORY');
+export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY' | 'MEMORIES'> {
+    constructor(type: 'MEMORY' | 'MEMORIES' = 'MEMORY') {
+        super(type);
     }
 
     /**
@@ -36,13 +36,14 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
      */
     get documentation(): string {
         return spaceTrim(`
-            # MEMORY
+            # ${this.type}
 
             Similar to KNOWLEDGE but focuses on remembering past interactions and user preferences. This commitment helps the agent maintain context about the user's history, preferences, and previous conversations.
 
             ## Key behaviors
 
-            - Multiple \`MEMORY\` commitments are applied sequentially.
+            - Multiple \`MEMORY\` and \`MEMORIES\` commitments are applied sequentially.
+            - Both terms work identically and can be used interchangeably.
             - Focuses on user-specific information and interaction history.
             - Helps personalize responses based on past interactions.
             - Maintains continuity across conversations.
@@ -111,7 +112,14 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const MemoryCommitment = new MemoryCommitmentDefinition();
+export const MemoryCommitment = new MemoryCommitmentDefinition('MEMORY');
+
+/**
+ * Singleton instance of the MEMORIES commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const MemoriesCommitment = new MemoryCommitmentDefinition('MEMORIES');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
