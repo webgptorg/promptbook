@@ -339,15 +339,18 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         const allTypes = getAllCommitmentDefinitions().map(({ type }) => String(type));
         // Filter out 'META' from regular commitments since we'll handle it specially
         const nonMetaTypes = allTypes.filter((t) => t !== 'META');
-        const pattern = `\\b(?:${nonMetaTypes.map((t) => escapeRegex(t)).join('|')})\\b`;
+        // Only match commitments at the beginning of lines (after newline or at start of text)
+        // This follows the same logic as parsing in createCommitmentRegex.ts
+        const pattern = `(^|\\n)\\s*(?:${nonMetaTypes.map((t) => escapeRegex(t)).join('|')})\\b`;
         return new RegExp(pattern, 'gmi');
     }, []);
 
     const metaRegex = useMemo(() => {
         // Pattern to match META followed by exactly one uppercase word (DRY principle - single pattern for all META commitments)
+        // Only match at the beginning of lines, consistent with other commitments and parsing logic
         // This will match: META IMAGE, META LINK, META TITLE, META DESCRIPTION, META FOO, etc.
         // But NOT multiple words like "META IMAGE SOMETHING" - only "META IMAGE" part will be highlighted
-        return /\bMETA\s+[A-Z]+\b/gim;
+        return /(^|\n)\s*META\s+[A-Z]+\b/gim;
     }, []);
 
     // [🧠] Parameter syntax highlighting - unified approach for two different notations of the same syntax feature
@@ -434,25 +437,31 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         // First, handle META commitments (they take priority)
         text.replace(metaRegex, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number;
-            processedRanges.push({ start: index, end: index + match.length, type: 'keyword' });
+            // Adjust index to skip the newline character if present at the beginning of match
+            const adjustedStart = match.startsWith('\n') ? index + 1 : index;
+            const adjustedMatch = match.startsWith('\n') ? match.slice(1) : match;
+            processedRanges.push({ start: adjustedStart, end: adjustedStart + adjustedMatch.length, type: 'keyword' });
             return match;
         });
 
         // Then handle regular commitment types, avoiding overlaps with META ranges
         text.replace(typeRegex, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number;
-            const matchEnd = index + match.length;
+            // Adjust index to skip the newline character if present at the beginning of match
+            const adjustedStart = match.startsWith('\n') ? index + 1 : index;
+            const adjustedMatch = match.startsWith('\n') ? match.slice(1) : match;
+            const matchEnd = adjustedStart + adjustedMatch.length;
 
             // Check if this match overlaps with any existing range
             const overlaps = processedRanges.some(
                 (range) =>
-                    (index >= range.start && index < range.end) ||
+                    (adjustedStart >= range.start && adjustedStart < range.end) ||
                     (matchEnd > range.start && matchEnd <= range.end) ||
-                    (index < range.start && matchEnd > range.end),
+                    (adjustedStart < range.start && matchEnd > range.end),
             );
 
             if (!overlaps) {
-                processedRanges.push({ start: index, end: matchEnd, type: 'keyword' });
+                processedRanges.push({ start: adjustedStart, end: matchEnd, type: 'keyword' });
             }
             return match;
         });

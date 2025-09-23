@@ -193,7 +193,7 @@ Should be parsed by `parseAgentSource` to:
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] Syntax highlighting in `<BookEditor/>` has some false positive highlights
 

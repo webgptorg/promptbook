@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+-   **Fixed:** BookEditor syntax highlighting false positives for commitments in middle of words/lines
+    -   Commitments like `KNOWLEDGE`, `PERSONA`, etc. are now only highlighted when at the beginning of lines
+    -   Fixed issue where words containing commitment names in the middle (e.g., "knowledge" in "Foo bar knowledge baz") were incorrectly highlighted  
+    -   Updated both syntax highlighting and parsing logic to use consistent line-beginning patterns following DRY principle
+    -   Matches parsing behavior in `createCommitmentRegex.ts` which already correctly used `^\\s*` pattern for line beginnings
 -   **Fixed:** BookEditor syntax highlighting false positives for META commitments
     -   META commitments like `META IMAGE SOMETHING` now correctly highlight only `META IMAGE` part
     -   Fixed regex pattern to match exactly one uppercase word after META (DRY principle)
