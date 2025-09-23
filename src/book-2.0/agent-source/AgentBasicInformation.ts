@@ -42,17 +42,10 @@ export type AgentBasicInformation = {
     personaDescription: string | null;
 
     /**
-     * Metadata commitments from the agent source
-     * Contains all META commitments like META IMAGE, META LINK, META TITLE, etc.
-     * Only meta.image is special as it always has a default fallback.
+     * Optional profile image URL
+     * This is the line starting with "META IMAGE"
      */
-    meta: {
-        image?: string_url_image;
-        link?: string;
-        title?: string;
-        description?: string;
-        [key: string]: string | undefined;
-    };
+    profileImageUrl: string_url_image;
 
     /**
      * Parameters found in the agent source
