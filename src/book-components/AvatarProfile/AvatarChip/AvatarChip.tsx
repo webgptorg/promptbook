@@ -42,7 +42,7 @@ export type AvatarChipProps = {
  */
 export function AvatarChip(props: AvatarChipProps) {
     const { avatarBasicInformation, className, onSelect, isSelected, isTemplate } = props;
-    const { agentName, profileImageUrl } = avatarBasicInformation;
+    const { agentName, meta } = avatarBasicInformation;
 
     return (
         <div
@@ -50,7 +50,7 @@ export function AvatarChip(props: AvatarChipProps) {
             onClick={() => onSelect?.(avatarBasicInformation)}
             style={{ cursor: onSelect ? 'pointer' : undefined }}
         >
-            <img src={profileImageUrl} alt={agentName || ''} className={styles.Avatar} />
+            <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
             {agentName}
             {isTemplate && <span className={styles.TemplateLabel}>Template</span>}
         </div>

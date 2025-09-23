@@ -1,4 +1,4 @@
-import type { string_agent_name, string_url_image } from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/typeAliases';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -42,10 +42,17 @@ export type AgentBasicInformation = {
     personaDescription: string | null;
 
     /**
-     * Optional profile image URL
-     * This is the line starting with "META IMAGE"
+     * Metadata commitments from META lines
+     * All META commitments are parsed and stored here
+     * Special handling for 'image' which always has a default fallback
      */
-    profileImageUrl: string_url_image;
+    meta: {
+        image?: string;
+        link?: string;
+        title?: string;
+        description?: string;
+        [key: string]: string | undefined;
+    };
 
     /**
      * Parameters found in the agent source
