@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
-import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { PluralSupportCommitmentDefinition } from '../_base/PluralSupportCommitmentDefinition';
 
 /**
  * MESSAGE commitment definition
@@ -14,15 +14,15 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * ```book
  * MESSAGE Hello! How can I help you today?
- * MESSAGE I understand you're looking for information about our services.
+ * MESSAGES I understand you're looking for information about our services.
  * MESSAGE Based on your requirements, I'd recommend our premium package.
  * ```
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSAGE'> {
-    constructor() {
-        super('MESSAGE');
+export class MessageCommitmentDefinition extends PluralSupportCommitmentDefinition<'MESSAGE' | 'MESSAGES'> {
+    constructor(type: 'MESSAGE' | 'MESSAGES', primaryType: string, pluralForms: readonly string[]) {
+        super(type, primaryType, pluralForms);
     }
 
     /**
@@ -37,13 +37,14 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
      */
     get documentation(): string {
         return spaceTrim(`
-            # MESSAGE
+            # ${this.primaryType}
 
             Contains 1:1 text of the message which AI assistant already sent during the conversation. Later messages are later in the conversation. It is similar to EXAMPLE but it is not example, it is the real message which AI assistant already sent.
 
             ## Key behaviors
 
-            - Multiple \`MESSAGE\` commitments represent the conversation timeline.
+            - Multiple \`MESSAGE\` and \`MESSAGES\` commitments represent the conversation timeline.
+            - Both singular and plural forms work identically.
             - Later messages are later in the conversation chronologically.
             - Contains actual historical messages, not examples or templates.
             - Helps maintain conversation continuity and context.
@@ -69,9 +70,9 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
 
             PERSONA You are a helpful customer support agent
             MESSAGE Hello! How can I help you today?
-            MESSAGE I understand you're experiencing issues with your account login.
+            MESSAGES I understand you're experiencing issues with your account login.
             MESSAGE I've sent you a password reset link to your email address.
-            MESSAGE Is there anything else I can help you with regarding your account?
+            MESSAGES Is there anything else I can help you with regarding your account?
             GOAL Continue providing consistent support based on conversation history
             \`\`\`
 
@@ -80,9 +81,9 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
 
             PERSONA You are a software development mentor
             MESSAGE Let's start by reviewing the React component structure you shared.
-            MESSAGE I notice you're using class components - have you considered hooks?
+            MESSAGES I notice you're using class components - have you considered hooks?
             MESSAGE Here's how you could refactor that using the useState hook.
-            MESSAGE Great question about performance! Let me explain React's rendering cycle.
+            MESSAGES Great question about performance! Let me explain React's rendering cycle.
             KNOWLEDGE React hooks were introduced in version 16.8
             \`\`\`
 
@@ -90,9 +91,9 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
             Educational Session
 
             PERSONA You are a mathematics tutor
-            MESSAGE Today we'll work on solving quadratic equations.
+            MESSAGES Today we'll work on solving quadratic equations.
             MESSAGE Let's start with the basic form: ax² + bx + c = 0
-            MESSAGE Remember, we can use the quadratic formula or factoring.
+            MESSAGES Remember, we can use the quadratic formula or factoring.
             MESSAGE You did great with that first problem! Let's try a more complex one.
             GOAL Build upon previous explanations for deeper understanding
             \`\`\`
@@ -115,11 +116,12 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
 }
 
 /**
- * Singleton instance of the MESSAGE commitment definition
+ * Singleton instances of the MESSAGE commitment definitions
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const MessageCommitment = new MessageCommitmentDefinition();
+export const MessageCommitment = new MessageCommitmentDefinition('MESSAGE', 'MESSAGE', ['MESSAGES']);
+export const MessagesCommitment = new MessageCommitmentDefinition('MESSAGES', 'MESSAGE', ['MESSAGES']);
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -6,14 +6,14 @@ import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
-import { GoalCommitmentDefinition } from './GOAL/GOAL';
+import { GoalCommitment, GoalsCommitment } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
-import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
+import { MessageCommitment, MessagesCommitment } from './MESSAGE/MESSAGE';
 import { MetaCommitmentDefinition } from './META/META';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
-import { PersonaCommitmentDefinition } from './PERSONA/PERSONA';
+import { PersonaCommitment, PersonaeCommitment } from './PERSONA/PERSONA';
 import { RuleCommitmentDefinition } from './RULE/RULE';
 import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
 import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
@@ -28,8 +28,15 @@ import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplemented
  * @private Use functions to access commitments instead of this array directly
  */
 export const COMMITMENT_REGISTRY = [
-    // Fully implemented commitments
-    new PersonaCommitmentDefinition(),
+    // Fully implemented commitments with plural support
+    PersonaCommitment,
+    PersonaeCommitment,
+    MessageCommitment,
+    MessagesCommitment,
+    GoalCommitment,
+    GoalsCommitment,
+
+    // Other fully implemented commitments
     new KnowledgeCommitmentDefinition(),
     new MemoryCommitmentDefinition(),
     new StyleCommitmentDefinition(),
@@ -42,8 +49,6 @@ export const COMMITMENT_REGISTRY = [
     new ActionCommitmentDefinition(),
     new MetaCommitmentDefinition(),
     new NoteCommitmentDefinition(),
-    new GoalCommitmentDefinition(),
-    new MessageCommitmentDefinition(),
     new ScenarioCommitmentDefinition(),
     new DeleteCommitmentDefinition('DELETE'),
     new DeleteCommitmentDefinition('CANCEL'),
@@ -57,7 +62,6 @@ export const COMMITMENT_REGISTRY = [
     new NotYetImplementedCommitmentDefinition('BEHAVIOURS'),
     new NotYetImplementedCommitmentDefinition('AVOID'),
     new NotYetImplementedCommitmentDefinition('AVOIDANCE'),
-    new NotYetImplementedCommitmentDefinition('GOALS'),
     new NotYetImplementedCommitmentDefinition('CONTEXT'),
 ] as const satisfies ReadonlyArray<CommitmentDefinition>;
 

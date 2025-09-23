@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+-   **Enhanced:** All commitment definitions now support both singular and plural forms
+    -   Added plugin-like system where each commitment automatically works with both forms
+    -   Examples: `MESSAGE` and `MESSAGES`, `GOAL` and `GOALS`, `PERSONA` and `PERSONAE` all work identically
+    -   Non-English plurals are properly supported (e.g., `PERSONA` -> `PERSONAE`)
+    -   Each commitment definition acts as a self-contained plugin without requiring a central plural registry
+    -   Follows DRY principle by implementing plural support through base class rather than duplicating definitions
+    -   Maintains backward compatibility with all existing commitment types
 -   **Fixed:** BookEditor syntax highlighting false positives for commitments in middle of words/lines
     -   Commitments like `KNOWLEDGE`, `PERSONA`, etc. are now only highlighted when at the beginning of lines
     -   Fixed issue where words containing commitment names in the middle (e.g., "knowledge" in "Foo bar knowledge baz") were incorrectly highlighted  

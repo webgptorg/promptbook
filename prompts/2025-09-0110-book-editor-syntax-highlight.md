@@ -53,7 +53,7 @@ it('parses agent with persona and profile image', () => {
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] All commitment definitions should work out of the box in both singular and plural
 
