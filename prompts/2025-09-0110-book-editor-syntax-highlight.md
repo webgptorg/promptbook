@@ -59,12 +59,17 @@ it('parses agent with persona and profile image', () => {
 
 -   For example `MESSAGE` and `MESSAGES` should both work and be highlighted same with `EXAMPLE` and `EXAMPLES`, etc.
 -   Keep in mind that some plurals are not just adding `s` at the end, for example `PERSONA` and `PERSONAE`.
--   Make some system for this change, aliases, etc.
 -   There **should not exist** some separate place where plural forms are defined - each commitment definition should work as plugin
-    -   Do not create some central place where plural forms are defined, it should be decentralized and each commitment definition should work as plugin
 -   Look at existing commitment definitions for the reference
 -   Reflect this change into the `/CHANGELOG.md`
 -   Keep in mind DRY principle, do not repeat yourself.
+
+Do it via existing system of passing the alias into the constructor:
+
+```typescript
+new RuleCommitmentDefinition('RULE'),
+new RuleCommitmentDefinition('RULES'),
+```
 
 ---
 
