@@ -139,6 +139,8 @@ EXAMPLE of @Something
 -   `personaDescription` is NOT metadata commitment, it is separate commitment, keep it as is.
 -   Keep in mind DRY principle, do not repeat yourself.
 
+!!!! - Upravit prompt, neparsuje se
+
 For example the source:
 
 ```book
