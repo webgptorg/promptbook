@@ -134,9 +134,60 @@ EXAMPLE of @Something
 -   Only special thing about `meta.image` is that it always have default fallback created by `generatePlaceholderAgentProfileImageUrl`
 -   It should parse all metadata commitments and return them in the result in a structured way, for example as object `meta: { image?: string; link?: string; title?: string; description?: string; [key: string]: string | undefined }`
 -   `META` commitment has always two words, the first word is always `META` and the second word is the type of the meta, like `IMAGE`, `LINK`, `TITLE`, `DESCRIPTION`, etc. The rest of the line or multiple lines (until the next commitment or end of the book) is the value of the meta.
+-   When there are multiple meta commitments of same type, later should override the earlier
 -   Look at existing parsing of `profileImageUrl` for the reference _(but change it to be generic for all metadata commitments, not just for `META IMAGE`)_
 -   `personaDescription` is NOT metadata commitment, it is separate commitment, keep it as is.
 -   Keep in mind DRY principle, do not repeat yourself.
+
+For example the source:
+
+```book
+AI Avatar
+
+PERSONA A friendly AI assistant that helps you with your tasks
+META FOO foo
+```
+
+Should be parsed by `parseAgentSource` to:
+
+```json
+{
+    "agentName": "AI Avatar",
+    "personaDescription": "A friendly AI assistant that helps you with your tasks",
+    "meta": {
+        "image": "https://www.gravatar.com/avatar/xxx?default=robohash&size=200&rating=x",
+        "foo": "foo"
+    },
+    "parameters": []
+}
+```
+
+For example the source:
+
+```book
+AI Avatar
+
+PERSONA A friendly AI assistant that helps you with your tasks
+META FOO foo
+META IMAGE ./picture.png
+META BaR bar
+META foo foo2
+```
+
+Should be parsed by `parseAgentSource` to:
+
+```json
+{
+    "agentName": "AI Avatar",
+    "personaDescription": "A friendly AI assistant that helps you with your tasks",
+    "meta": {
+        "image": "./picture.png",
+        "foo": "foo2",
+        "bar": "bar"
+    },
+    "parameters": []
+}
+```
 
 ---
 
