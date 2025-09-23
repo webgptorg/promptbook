@@ -27,11 +27,11 @@ export type AvatarProfileProps = {
  */
 export function AvatarProfile(props: AvatarProfileProps) {
     const { agent, className } = props;
-    const { agentName, personaDescription, meta } = agent;
+    const { agentName, personaDescription, profileImageUrl } = agent;
 
     return (
         <div className={classNames(styles.AvatarProfile, className)}>
-            <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
+            <img src={profileImageUrl} alt={agentName || ''} className={styles.Avatar} />
             <div className={styles.AgentInfo}>
                 <h2 className={styles.AgentName}>{agentName}</h2>
                 <p className={styles.AgentDescription}>{personaDescription}</p>

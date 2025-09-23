@@ -138,6 +138,6 @@ export function extractAgentName(agentSource: string_book): string {
  * @private
  */
 export function extractAgentProfileImage(agentSource: string_book): string {
-    const { meta } = parseAgentSource(agentSource);
-    return meta.image!; // Image always has a fallback value
+    const { profileImageUrl } = parseAgentSource(agentSource);
+    return profileImageUrl;
 }
