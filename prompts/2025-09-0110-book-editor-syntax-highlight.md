@@ -142,11 +142,10 @@ EXAMPLE of @Something
 -   When there are multiple meta commitments of same type, later should override the earlier
 -   Look at existing parsing of `profileImageUrl` for the reference _(but change it to be generic for all metadata commitments, not just for `META IMAGE`)_
 -   `personaDescription` is NOT metadata commitment, it is separate commitment, keep it as is.
+-   Modify tests of `parseAgentSource`
 -   Keep in mind DRY principle, do not repeat yourself.
 
-!!!! - Upravit prompt, neparsuje se
-
-For example the source:
+1. For example the source:
 
 ```book
 AI Avatar
@@ -155,7 +154,7 @@ PERSONA A friendly AI assistant that helps you with your tasks
 META FOO foo
 ```
 
-Should be parsed by `parseAgentSource` to:
+1. Should be parsed by `parseAgentSource` to:
 
 ```json
 {
@@ -169,7 +168,7 @@ Should be parsed by `parseAgentSource` to:
 }
 ```
 
-For example the source:
+2. For example the source:
 
 ```book
 AI Avatar
@@ -181,7 +180,7 @@ META BaR bar
 META foo foo2
 ```
 
-Should be parsed by `parseAgentSource` to:
+2. When passed as argument to `parseAgentSource`, the `parseAgentSource` should return:
 
 ```json
 {
