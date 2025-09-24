@@ -1,4 +1,5 @@
-import type { string_url_image } from '../../types/typeAliases';
+import spaceTrim from 'spacetrim';
+import { normalizeTo_camelCase } from '../../_packages/utils.index';
 import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
@@ -17,21 +18,39 @@ import type { string_book } from './string_book';
 export function parseAgentSource(agentSource: string_book): AgentBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 
-    // Find PERSONA and META IMAGE commitments
+    // Find PERSONA and META commitments
     let personaDescription: string | null = null;
-    let profileImageUrl: string_url_image | undefined;
 
     for (const commitment of parseResult.commitments) {
-        if (commitment.type === 'PERSONA' && !personaDescription) {
-            personaDescription = commitment.content;
-        } else if (commitment.type === 'META IMAGE' && !profileImageUrl) {
-            profileImageUrl = commitment.content as string_url_image;
+        if (commitment.type !== 'PERSONA') {
+            continue;
         }
+
+        if (personaDescription === null) {
+            personaDescription = '';
+        } else {
+            personaDescription += `\n\n${personaDescription}`;
+        }
+
+        personaDescription += commitment.content;
     }
 
-    // Generate gravatar fallback if no profile image specified
-    if (!profileImageUrl) {
-        profileImageUrl = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
+    const meta: Record<string, string> = {};
+
+    for (const commitment of parseResult.commitments) {
+        if (commitment.type !== 'META') {
+            continue;
+        }
+
+        // Parse META commitments - format is "META TYPE content"
+        const metaTypeRaw = commitment.content.split(' ')[0] || 'NONE';
+        const metaType = normalizeTo_camelCase(metaTypeRaw);
+        meta[metaType] = spaceTrim(commitment.content.substring(metaTypeRaw.length));
+    }
+
+    // Generate gravatar fallback if no meta image specified
+    if (!meta.image) {
+        meta.image = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
     }
 
     // Parse parameters using unified approach - both @Parameter and {parameter} notations
@@ -41,7 +60,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     return {
         agentName: parseResult.agentName,
         personaDescription,
-        profileImageUrl,
+        meta,
         parameters,
     };
 }

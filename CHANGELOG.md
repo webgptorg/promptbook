@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+-   **Enhanced:** Parsing of metadata commitments in `parseAgentSource`
+    -   Function `parseAgentSource` now parses all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and returns them in the result
+    -   Removed `profileImageUrl` from the result of `parseAgentSource` and changed it to `meta.image`
+    -   `meta.image` has default fallback created by `generatePlaceholderAgentProfileImageUrl`
+    -   Parses all metadata commitments and returns them in structured way as object `meta: { image?: string; link?: string; title?: string; description?: string; [key: string]: string | undefined }`
+    -   When there are multiple meta commitments of same type, later overrides the earlier
+    -   META commitment format: `META TYPE content` where TYPE is case-insensitive
+    -   Updated all components and utilities to use new `meta.image` instead of deprecated `profileImageUrl`
 -   **Enhanced:** All commitment definitions now support both singular and plural forms
     -   All commitment types like `MESSAGE`/`MESSAGES`, `PERSONA`/`PERSONAE`, `GOAL`/`GOALS`, etc. work identically
     -   Includes irregular plurals like `PERSONA` → `PERSONAE`
