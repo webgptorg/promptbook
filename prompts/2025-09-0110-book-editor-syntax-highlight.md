@@ -27,7 +27,7 @@
 
 ---
 
-[ ]
+[.] <- Note: Done without the Prompt
 
 [✨🐬] Fix parsing of `META IMAGE` commitment
 
@@ -128,7 +128,7 @@ EXAMPLE of @Something
 
 ---
 
-[ ]
+[x]
 
 [✨🐬] Parsing of metadata commitments
 
