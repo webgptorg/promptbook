@@ -31,8 +31,7 @@ export const COMMITMENT_REGISTRY = [
     // Fully implemented commitments
     new PersonaCommitmentDefinition('PERSONA'),
     new PersonaCommitmentDefinition('PERSONAE'),
-    new KnowledgeCommitmentDefinition('KNOWLEDGE'),
-    new KnowledgeCommitmentDefinition('KNOWLEDGES'),
+    new KnowledgeCommitmentDefinition(),
     new MemoryCommitmentDefinition('MEMORY'),
     new MemoryCommitmentDefinition('MEMORIES'),
     new StyleCommitmentDefinition('STYLE'),

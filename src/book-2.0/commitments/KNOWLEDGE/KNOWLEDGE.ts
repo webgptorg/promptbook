@@ -21,9 +21,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE' | 'KNOWLEDGES'> {
-    constructor(type: 'KNOWLEDGE' | 'KNOWLEDGES' = 'KNOWLEDGE') {
-        super(type);
+export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE'> {
+    constructor() {
+        super('KNOWLEDGE');
     }
 
     /**
@@ -44,7 +44,6 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 
             ## Key behaviors
 
-            - Multiple \`KNOWLEDGE\` and \`KNOWLEDGES\` commitments are applied sequentially.
             - Both terms work identically and can be used interchangeably.
             - Supports both direct text knowledge and external URLs.
             - External sources (PDFs, websites) are processed via RAG for context retrieval.
@@ -125,18 +124,11 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 }
 
 /**
- * Singleton instance of the KNOWLEDGE commitment definition
+ * Singleton instance of the KNOWLEDGE commitment definition !!!!
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export const KnowledgeCommitment = new KnowledgeCommitmentDefinition('KNOWLEDGE');
-
-/**
- * Singleton instance of the KNOWLEDGES commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const KnowledgesCommitment = new KnowledgeCommitmentDefinition('KNOWLEDGES');
+export const KnowledgeCommitment = new KnowledgeCommitmentDefinition();
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

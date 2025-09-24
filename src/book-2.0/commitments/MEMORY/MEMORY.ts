@@ -42,7 +42,7 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
 
             ## Key behaviors
 
-            - Multiple \`MEMORY\` and \`MEMORIES\` commitments are applied sequentially.
+            - Multiple \`MEMORY\` and \`MEMORIES\` commitments are applied sequentially. !!!!
             - Both terms work identically and can be used interchangeably.
             - Focuses on user-specific information and interaction history.
             - Helps personalize responses based on past interactions.
