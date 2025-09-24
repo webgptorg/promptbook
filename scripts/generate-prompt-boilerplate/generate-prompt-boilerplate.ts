@@ -102,32 +102,34 @@ async function generatePromptBoilerplate() {
         const emoji = selectedEmojis[i];
         const filename = `${datePrefix}-${number}-${title}.md`;
         const filepath = join('prompts', filename);
-        const content = spaceTrim(`
+        const one = spaceTrim(`
 
             [ ]
 
             [✨${emoji}] ${title}
 
-            ---
-
-            [ ]
-
-            [✨${emoji}] ${title}
-
-            ---
-
-            [ ]
-
-            [✨${emoji}] ${title}
-
-            ---
-
-            [ ]
-
-            [✨${emoji}] ${title}
-
-
+            -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+            -   Add the changes into the \`CHANGELOG.md\`
         `);
+        const content = spaceTrim(
+            (block) => `
+
+                ${block(one)}
+
+                ---
+
+                ${block(one)}
+
+                ---
+
+                ${block(one)}
+
+                ---
+
+                ${block(one)}
+
+            `,
+        );
 
         filesToCreate.push({
             filepath,
