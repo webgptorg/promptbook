@@ -110,8 +110,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         if (packageFullname !== '@promptbook/types') {
             // TODO: DRY [1]
+            const useClientDirective = packageFullname === '@promptbook/components' ? "'use client';" : '';
             entryIndexFilePathContent = spaceTrim(
                 (block) => `
+                    ${useClientDirective}
+
                     // ${block(GENERATOR_WARNING)}
                     // \`${packageFullname}\`
 

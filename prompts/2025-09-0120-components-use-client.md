@@ -114,7 +114,7 @@ export default function Home() {
 
 ---
 
-[ ]
+[x]
 
 [✨🥶] Change the build process such as `/src/_packages/components.index.ts` ends up with 'use client'; statement on the first line.
 
