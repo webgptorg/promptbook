@@ -1,0 +1,112 @@
+#!/usr/bin/env ts-node
+
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: '.env' });
+
+import colors from 'colors';
+import { usageToHuman } from '../../../_packages/core.index';
+import { book } from '../../../pipeline/book-notation';
+import { ChatPrompt } from '../../../types/Prompt';
+import { just } from '../../../utils/organization/just';
+import { $provideLlmToolsFromEnv } from '../../_common/register/$provideLlmToolsFromEnv';
+import { _AnthropicClaudeRegistration } from '../../anthropic-claude/register-constructor';
+import { _DeepseekRegistration } from '../../deepseek/register-constructor';
+import { _GoogleRegistration } from '../../google/register-constructor';
+import { _OpenAiRegistration } from '../../openai/register-constructor';
+import { createAgentLlmExecutionTools } from '../createAgentLlmExecutionTools';
+
+just(_OpenAiRegistration); // <- Note: Ensure OpenAI is registered
+just(_AnthropicClaudeRegistration); // <- Note: Ensure OpenAI is registered
+just(_GoogleRegistration); // <- Note: Ensure OpenAI is registered
+just(_DeepseekRegistration); // <- Note: Ensure OpenAI is registered
+
+/**
+ * Main function demonstrating AgentLlmExecutionTools usage
+ */
+playground()
+    .catch((error) => {
+        console.error(colors.bgRed(error.name || 'NamelessError'));
+        console.error(error);
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
+
+/**
+ * Demo AgentLlmExecutionTools in a chat scenario
+ */
+async function playground() {
+    // Create underlying OpenAI tools
+    const llmTools = await $provideLlmToolsFromEnv();
+
+    console.info(colors.bgBlue(`🤖  LLM Tools:`));
+    console.info(colors.bgCyan(llmTools.title));
+    console.info(colors.cyan(llmTools.description));
+
+    // Test configuration
+    console.info(colors.bgBlue(`🔧  Checking configuration of LLM tools...`));
+    await llmTools.checkConfiguration();
+
+    // List available models
+    console.info(colors.bgBlue(`🔍  Listing available models of LLM tools...`));
+    const llmToolsModels = await llmTools.listModels();
+    console.info(`📊  Found ${colors.yellow(llmToolsModels.length.toString())} available models`);
+    console.info(llmToolsModels.map((model) => ` - ${model.modelTitle}`).join('\n'));
+
+    // Create agent tools wrapping the OpenAI tools
+    const agentTools = createAgentLlmExecutionTools({
+        llmTools,
+        agentSource: book`
+            Rhymer
+
+            RULE
+            You are writing only in rhymes
+            As your brain is made of poetry
+            You love to help and entertain
+            With verses that will ease the pain
+
+        `,
+    });
+
+    console.info(colors.bgBlue(`🧔  Agent Tools:`));
+    console.info(colors.bgCyan(agentTools.title));
+    console.info(colors.cyan(agentTools.description));
+
+    // Test configuration
+    console.info(colors.bgBlue(`🔧  Checking configuration of agent tools...`));
+    await agentTools.checkConfiguration();
+
+    // List available models
+    console.info(colors.bgBlue(`🔍  Listing available models of agent tools...`));
+    const models = await agentTools.listModels();
+    console.info(`📊  Found ${colors.yellow(models.length.toString())} available models`);
+    console.info(models.map((model) => ` - ${model.modelTitle}`).join('\n'));
+
+    // Test chat interaction
+    console.info(colors.bgBlue(`💬  Testing chat interaction...`));
+
+    const chatPrompt = {
+        title: 'Test Chat',
+        content: 'Hello! Can you tell me a fun fact about TypeScript?',
+        parameters: {},
+        modelRequirements: {
+            modelVariant: 'CHAT',
+        },
+    } satisfies ChatPrompt;
+
+    const result = await agentTools.callChatModel(chatPrompt);
+
+    console.info({ result });
+    console.info(colors.cyan(usageToHuman(result.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
+    console.info(colors.bgCyan(` ${agentTools.title}: `) + colors.green(result.content));
+}
+
+/**
+ * TODO: [🧠] Add more complex agent scenarios
+ * TODO: [🧠] Add parameter substitution demo
+ * TODO: [🧠] Add multi-turn conversation demo
+ * Note: [⚫] Code in this file should never be published in any package
+ */

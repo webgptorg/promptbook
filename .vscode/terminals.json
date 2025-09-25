@@ -257,6 +257,12 @@
             "focus": true
         },
         {
+            "name": "🧸 Agent playground (💸)",
+            "command": "npx ts-node ./src/llm-providers/agent/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧸 Langtail playground (💸)",
             "command": "npx ts-node ./src/llm-providers/langtail/playground/playground.ts",
             "onlySingle": true,

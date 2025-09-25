@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+-   **Added:** `AgentLlmExecutionTools` - LLM execution tools with predefined agent "soul"
+    -   New class `AgentLlmExecutionTools` that wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
+    -   Factory function `createAgentLlmExecutionTools` to create agent tools with underlying LLM tools and agent source
+    -   Agent tools parse agent source using `parseAgentSource` and `createAgentModelRequirements` with internal caching
+    -   Only supports chat model interactions (`callChatModel` method), intentionally excludes completion and embedding models
+    -   Agent profile information (title, description, visual identity) derived from agent source metadata
+    -   Registered as available LLM provider in `$llmToolsRegister` and `$llmToolsMetadataRegister` 
+    -   Exported from `@promptbook/core` package for seamless integration with Promptbook engine
+    -   Includes playground example demonstrating usage in chat scenarios
 -   **Fixed:** Chat component loading issue where avatar images caused layout jumps and refocus when profile images were present by enforcing dimensions immediately via inline styles
 -   **Enhanced:** Parsing of metadata commitments in `parseAgentSource`
     -   Function `parseAgentSource` now parses all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and returns them in the result
