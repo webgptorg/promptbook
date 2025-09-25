@@ -1,6 +1,6 @@
 import { MODEL_ORDERS, MODEL_TRUST_LEVELS } from '../../constants';
-import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
+import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 
 /**
  * Metadata for Agent LLM execution tools
@@ -35,6 +35,7 @@ export const _AgentMetadata = $llmToolsMetadataRegister.register({
 });
 
 /**
- * TODO: [🧠] Consider adding a special trust level for wrapper tools
- * TODO: [🧠] Consider how to handle configuration for wrapper tools that depend on other tools
+ * TODO: [🧠] Consider adding a special trust level for AgentLlmExecutionTools
+ * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */
