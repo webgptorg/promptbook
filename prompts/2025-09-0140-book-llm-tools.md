@@ -27,7 +27,11 @@
 
 [ ]
 
-[✨🌮] quux
+[✨🌮] In `AgentLlmExecutionTools` pick the best model from available models
+
+-   The mechanism of picking the best model should be in the `createAgentModelRequirements` function
+-   The `createAgentModelRequirements` function should has optionally parameter `availableModels: AvailableModel[]` - the list of available models from the underlying
+-   Keep in mind the DRY _(don't repeat yourself)_ principle - the mechanism of picking the best model is already implemented in the [`preparePersona`](/src/personas/preparePersona.ts) function - use it internally in the `createAgentModelRequirements` function when the `availableModels` parameter is passed
 
 ---
 
