@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+-   **Fixed:** Chat component loading issue where avatar images caused layout jumps and refocus when profile images were present by enforcing dimensions immediately via inline styles
 -   **Enhanced:** Parsing of metadata commitments in `parseAgentSource`
     -   Function `parseAgentSource` now parses all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and returns them in the result
     -   Removed `profileImageUrl` from the result of `parseAgentSource` and changed it to `meta.image`

@@ -19,6 +19,9 @@ import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
 
+// [🚉] Avatar dimensions constant to prevent layout jumps and maintain DRY principle
+const AVATAR_SIZE = 40;
+
 /**
  * Renders a chat with messages and input for new messages
  *
@@ -380,12 +383,18 @@ export function Chat(props: ChatProps) {
                                     {avatarSrc && (
                                         <div className={styles.avatar}>
                                             <img
-                                                width={256}
-                                                height={256}
+                                                width={AVATAR_SIZE}
+                                                height={AVATAR_SIZE}
                                                 src={avatarSrc}
                                                 alt={`Avatar of ${message.from.toLocaleLowerCase()}`}
                                                 style={{
                                                     backgroundColor: color.toHex(),
+                                                    width: AVATAR_SIZE,
+                                                    height: AVATAR_SIZE,
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                    border: '2px solid rgba(125, 125, 125, 0.1)',
+                                                    flexShrink: 0,
                                                 }}
                                             />
                                         </div>
