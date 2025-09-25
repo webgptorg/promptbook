@@ -2,7 +2,6 @@
 
 ## [Unreleased]
 
--   **Fixed:** Chat component layout jump during CSS module loading by adding critical inline styles
 -   **Enhanced:** Parsing of metadata commitments in `parseAgentSource`
     -   Function `parseAgentSource` now parses all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and returns them in the result
     -   Removed `profileImageUrl` from the result of `parseAgentSource` and changed it to `meta.image`

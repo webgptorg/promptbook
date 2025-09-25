@@ -19,50 +19,6 @@ import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
 
-// Critical inline styles to prevent layout shift during CSS module loading
-const CRITICAL_STYLES = {
-    chat: {
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column' as const,
-    },
-    chatMainFlow: {
-        width: '100%',
-        height: '100%',
-        maxWidth: '100vw',
-        display: 'grid',
-        gridTemplate: `
-            'header' min-content
-            'messages' 1fr
-            'input' min-content
-            / 1fr`,
-    },
-    chatMessages: {
-        gridArea: 'messages',
-        width: '100%',
-        height: '100%',
-        padding: '24px 20px 16px',
-        overflowY: 'auto' as const,
-        overflowX: 'hidden' as const,
-    },
-    chatInput: {
-        gridArea: 'input',
-        width: '100%',
-        padding: '20px',
-        display: 'flex',
-        alignItems: 'center' as const,
-        gap: '12px',
-    },
-    chatBar: {
-        gridArea: 'header',
-        width: '100%',
-        padding: '16px 20px',
-        textAlign: 'center' as const,
-    },
-} as const;
-// <- TODO: [💩] !!!! "[✨🦬] Fix `<Chat/>` loading"
-
 /**
  * Renders a chat with messages and input for new messages
  *
@@ -287,25 +243,9 @@ export function Chat(props: ChatProps) {
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
 
-            <div
-                className={classNames(className, styles.Chat, useChatCssClassName('Chat'))}
-                style={{
-                    ...CRITICAL_STYLES.chat,
-                    ...style,
-                }}
-            >
-                <div
-                    className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}
-                    style={CRITICAL_STYLES.chatMainFlow}
-                >
-                    {children && (
-                        <div
-                            className={classNames(styles.chatBar, chatBarCssClassName)}
-                            style={CRITICAL_STYLES.chatBar}
-                        >
-                            {children}
-                        </div>
-                    )}
+            <div className={classNames(className, styles.Chat, useChatCssClassName('Chat'))} {...{ style }}>
+                <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
+                    {children && <div className={classNames(styles.chatBar, chatBarCssClassName)}>{children}</div>}
 
                     {!isAutoScrolling && (
                         <div className={styles.scrollToBottomContainer}>
@@ -376,7 +316,6 @@ export function Chat(props: ChatProps) {
 
                     <div
                         className={classNames(styles.chatMessages, useChatCssClassName('chatMessages'))}
-                        style={CRITICAL_STYLES.chatMessages}
                         ref={(chatMessagesElement) => {
                             chatMessagesRef.current = chatMessagesElement;
 
@@ -539,10 +478,7 @@ export function Chat(props: ChatProps) {
                     </div>
 
                     {onMessage && (
-                        <div
-                            className={classNames(styles.chatInput, useChatCssClassName('chatInput'))}
-                            style={CRITICAL_STYLES.chatInput}
-                        >
+                        <div className={classNames(styles.chatInput, useChatCssClassName('chatInput'))}>
                             <textarea
                                 ref={(element) => {
                                     textareaRef.current = element;
