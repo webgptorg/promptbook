@@ -37,7 +37,9 @@
 
 [ ]
 
-[✨🌮] quux
+[✨🌮] In src/book-2.0/agent-source/createAgentModelRequirements.ts shouldnt be `selectBestModelFromAvailable`, it should use directly [`preparePersona`](/src/personas/preparePersona.ts) function
+
+This is mechanism for picking the best model from available models when I know all the available models and the requirements of the agent.
 
 ---
 
