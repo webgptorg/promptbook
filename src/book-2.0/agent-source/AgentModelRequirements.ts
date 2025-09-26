@@ -43,3 +43,7 @@ export type AgentModelRequirements = {
     readonly metadata?: Record<string, TODO_any>;
 };
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here
+
+/**
+ * TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
+ */

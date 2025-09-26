@@ -1,10 +1,16 @@
 'use client';
 
 import { BookEditor } from '@promptbook-local/components';
-import { DEFAULT_BOOK, getAllCommitmentDefinitions, parseAgentSource } from '@promptbook-local/core';
-import type { string_book } from '@promptbook-local/types';
+import {
+    createAgentModelRequirements,
+    DEFAULT_BOOK,
+    getAllCommitmentDefinitions,
+    parseAgentSource,
+} from '@promptbook-local/core';
+import type { AgentModelRequirements, string_book } from '@promptbook-local/types';
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { forTime } from 'waitasecond';
 import styles from './BookEditorPreview.module.css';
 
 /**
@@ -12,6 +18,8 @@ import styles from './BookEditorPreview.module.css';
  */
 export default function BookEditorPreview() {
     const [book, setBook] = useState<string_book>(DEFAULT_BOOK);
+    const [modelRequirements, setModelRequirements] = useState<AgentModelRequirements | null>(null);
+    const [isCreatingModelRequirements, setIsCreatingModelRequirements] = useState(false);
 
     const bookParsed = useMemo(() => {
         return parseAgentSource(book);
@@ -21,6 +29,20 @@ export default function BookEditorPreview() {
     const definitions = useMemo(() => getAllCommitmentDefinitions(), []);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const selected = definitions[selectedIndex];
+
+    const handleCreateModelRequirements = async () => {
+        setIsCreatingModelRequirements(true);
+        try {
+            await forTime(300); // <- Note: Add small delay to show "Creating..." state
+            const requirements = await createAgentModelRequirements(book);
+            setModelRequirements(requirements);
+        } catch (error) {
+            console.error('Error creating model requirements:', error);
+            alert('Error creating model requirements. See console for details.');
+        } finally {
+            setIsCreatingModelRequirements(false);
+        }
+    };
 
     return (
         <div className={`w-full`}>
@@ -37,6 +59,22 @@ export default function BookEditorPreview() {
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
                 <code>{JSON.stringify(bookParsed, null, 4)}</code>
             </pre>
+            <h2 className="text-lg font-semibold mt-6 mb-2">Model Requirements</h2>
+            <div className="mb-4">
+                <button
+                    type="button"
+                    onClick={handleCreateModelRequirements}
+                    disabled={isCreatingModelRequirements}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                    {isCreatingModelRequirements ? 'Creating...' : modelRequirements === null ? 'Create' : 'Update'}
+                </button>
+                {modelRequirements && (
+                    <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm mt-4">
+                        <code>{JSON.stringify(modelRequirements, null, 4)}</code>
+                    </pre>
+                )}
+            </div>
             <h2 className="text-lg font-semibold mt-6 mb-2">Commitment Definitions (Manual)</h2>
             <div className="flex gap-4">
                 {/* Navigation list */}

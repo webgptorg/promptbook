@@ -1,8 +1,5 @@
 import type { ModelVariant } from './ModelVariant';
-import type { number_model_temperature } from './typeAliases';
-import type { number_seed } from './typeAliases';
-import type { string_model_name } from './typeAliases';
-import type { string_system_message } from './typeAliases';
+import type { number_model_temperature, number_seed, string_model_name, string_system_message } from './typeAliases';
 
 /**
  * Abstract way to specify the LLM.
@@ -117,4 +114,5 @@ export type CommonModelRequirements = {
  * TODO: Add here more requirement options like max context size, max tokens, etc.
  * TODO: [💕][🧠] Just selecting gpt3 or gpt4 level of model
  * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
+ * TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
  */
