@@ -3,29 +3,32 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { API_REQUEST_TIMEOUT } from '../../config';
-import { CONNECTION_RETRIES_LIMIT } from '../../config';
-import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import {
+    isUnsupportedParameterError,
+    parseUnsupportedParameterError,
+    removeUnsupportedModelRequirement,
+} from '../_common/utils/removeUnsupportedModelRequirements';
 
 /**
  * Execution Tools for calling OpenAI API or other OpenAI compatible provider
@@ -42,6 +45,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      * Rate limiter instance
      */
     private limiter: Bottleneck;
+
+    /**
+     * Tracks models and parameters that have already been retried to prevent infinite loops
+     */
+    private retriedUnsupportedParameters = new Set<string>();
 
     /**
      * Creates OpenAI compatible Execution Tools.
@@ -130,24 +138,34 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     public async callChatModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
     ): Promise<ChatPromptResult> {
+        return this.callChatModelWithRetry(prompt, prompt.modelRequirements);
+    }
+
+    /**
+     * Internal method that handles parameter retry for chat model calls
+     */
+    private async callChatModelWithRetry(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
+        currentModelRequirements: typeof prompt.modelRequirements,
+    ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
-            console.info(`💬 ${this.title} callChatModel call`, { prompt });
+            console.info(`💬 ${this.title} callChatModel call`, { prompt, currentModelRequirements });
         }
 
-        const { content, parameters, modelRequirements, format } = prompt;
+        const { content, parameters, format } = prompt;
 
         const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.modelVariant !== 'CHAT') {
+        if (currentModelRequirements.modelVariant !== 'CHAT') {
             throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
-        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
+        const modelName = currentModelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
             model: modelName,
-            max_tokens: modelRequirements.maxTokens,
-            temperature: modelRequirements.temperature,
+            max_tokens: currentModelRequirements.maxTokens,
+            temperature: currentModelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
@@ -166,12 +184,12 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
-                ...(modelRequirements.systemMessage === undefined
+                ...(currentModelRequirements.systemMessage === undefined
                     ? []
                     : ([
                           {
                               role: 'system',
-                              content: modelRequirements.systemMessage,
+                              content: currentModelRequirements.systemMessage,
                           },
                       ] as const)),
                 {
@@ -186,54 +204,99 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.limiter
-            .schedule(() => this.makeRequestWithRetry(() => client.chat.completions.create(rawRequest)))
-            .catch((error) => {
-                assertsError(error);
+
+        try {
+            const rawResponse = await this.limiter
+                .schedule(() => this.makeRequestWithNetworkRetry(() => client.chat.completions.create(rawRequest)))
+                .catch((error) => {
+                    assertsError(error);
+                    if (this.options.isVerbose) {
+                        console.info(colors.bgRed('error'), error);
+                    }
+                    throw error;
+                });
+
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+            const complete: string_date_iso8601 = $getCurrentDate();
+
+            if (!rawResponse.choices[0]) {
+                throw new PipelineExecutionError(`No choises from ${this.title}`);
+            }
+
+            if (rawResponse.choices.length > 1) {
+                // TODO: This should be maybe only warning
+                throw new PipelineExecutionError(`More than one choise from ${this.title}`);
+            }
+
+            const resultContent = rawResponse.choices[0].message.content;
+            const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
+
+            if (resultContent === null) {
+                throw new PipelineExecutionError(`No response message from ${this.title}`);
+            }
+
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`OpenAiCompatibleExecutionTools.callChatModel\``,
+                order: [],
+                value: {
+                    content: resultContent,
+                    modelName: rawResponse.model || modelName,
+                    timing: {
+                        start,
+                        complete,
+                    },
+                    usage,
+                    rawPromptContent,
+                    rawRequest,
+                    rawResponse,
+                    // <- [🗯]
+                },
+            });
+        } catch (error) {
+            assertsError(error);
+
+            // Check if this is an unsupported parameter error
+            if (!isUnsupportedParameterError(error)) {
+                throw error;
+            }
+
+            // Parse which parameter is unsupported
+            const unsupportedParameter = parseUnsupportedParameterError(error.message);
+
+            if (!unsupportedParameter) {
                 if (this.options.isVerbose) {
-                    console.info(colors.bgRed('error'), error);
+                    console.warn(colors.bgYellow('Warning'), 'Could not parse unsupported parameter from error:', error.message);
                 }
                 throw error;
-            });
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+
+            // Create a unique key for this model + parameter combination to prevent infinite loops
+            const retryKey = `${modelName}-${unsupportedParameter}`;
+
+            if (this.retriedUnsupportedParameters.has(retryKey)) {
+                // Already retried this parameter, throw the error
+                if (this.options.isVerbose) {
+                    console.warn(colors.bgRed('Error'), `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`, error.message);
+                }
+                throw error;
+            }
+
+            // Mark this parameter as retried
+            this.retriedUnsupportedParameters.add(retryKey);
+
+            // Log warning in verbose mode
+            if (this.options.isVerbose) {
+                console.warn(colors.bgYellow('Warning'), `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`);
+            }
+
+            // Remove the unsupported parameter and retry
+            const modifiedModelRequirements = removeUnsupportedModelRequirement(currentModelRequirements, unsupportedParameter);
+
+            return this.callChatModelWithRetry(prompt, modifiedModelRequirements);
         }
-        const complete: string_date_iso8601 = $getCurrentDate();
-
-        if (!rawResponse.choices[0]) {
-            throw new PipelineExecutionError(`No choises from ${this.title}`);
-        }
-
-        if (rawResponse.choices.length > 1) {
-            // TODO: This should be maybe only warning
-            throw new PipelineExecutionError(`More than one choise from ${this.title}`);
-        }
-
-        const resultContent = rawResponse.choices[0].message.content;
-        const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
-
-        if (resultContent === null) {
-            throw new PipelineExecutionError(`No response message from ${this.title}`);
-        }
-
-        return exportJson({
-            name: 'promptResult',
-            message: `Result of \`OpenAiCompatibleExecutionTools.callChatModel\``,
-            order: [],
-            value: {
-                content: resultContent,
-                modelName: rawResponse.model || modelName,
-                timing: {
-                    start,
-                    complete,
-                },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse,
-                // <- [🗯]
-            },
-        });
     }
 
     /**
@@ -242,24 +305,34 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<CompletionPromptResult> {
+        return this.callCompletionModelWithRetry(prompt, prompt.modelRequirements);
+    }
+
+    /**
+     * Internal method that handles parameter retry for completion model calls
+     */
+    private async callCompletionModelWithRetry(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+        currentModelRequirements: typeof prompt.modelRequirements,
+    ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
-            console.info(`🖋 ${this.title} callCompletionModel call`, { prompt });
+            console.info(`🖋 ${this.title} callCompletionModel call`, { prompt, currentModelRequirements });
         }
 
-        const { content, parameters, modelRequirements } = prompt;
+        const { content, parameters } = prompt;
 
         const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.modelVariant !== 'COMPLETION') {
+        if (currentModelRequirements.modelVariant !== 'COMPLETION') {
             throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
-        const modelName = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
+        const modelName = currentModelRequirements.modelName || this.getDefaultCompletionModel().modelName;
         const modelSettings = {
             model: modelName,
-            max_tokens: modelRequirements.maxTokens,
-            temperature: modelRequirements.temperature,
+            max_tokens: currentModelRequirements.maxTokens,
+            temperature: currentModelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
@@ -276,50 +349,95 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.limiter
-            .schedule(() => this.makeRequestWithRetry(() => client.completions.create(rawRequest)))
-            .catch((error) => {
-                assertsError(error);
+
+        try {
+            const rawResponse = await this.limiter
+                .schedule(() => this.makeRequestWithNetworkRetry(() => client.completions.create(rawRequest)))
+                .catch((error) => {
+                    assertsError(error);
+                    if (this.options.isVerbose) {
+                        console.info(colors.bgRed('error'), error);
+                    }
+                    throw error;
+                });
+
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+            const complete: string_date_iso8601 = $getCurrentDate();
+
+            if (!rawResponse.choices[0]) {
+                throw new PipelineExecutionError(`No choises from ${this.title}`);
+            }
+
+            if (rawResponse.choices.length > 1) {
+                // TODO: This should be maybe only warning
+                throw new PipelineExecutionError(`More than one choise from ${this.title}`);
+            }
+
+            const resultContent = rawResponse.choices[0].text;
+            const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
+
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`OpenAiCompatibleExecutionTools.callCompletionModel\``,
+                order: [],
+                value: {
+                    content: resultContent,
+                    modelName: rawResponse.model || modelName,
+                    timing: {
+                        start,
+                        complete,
+                    },
+                    usage,
+                    rawPromptContent,
+                    rawRequest,
+                    rawResponse,
+                    // <- [🗯]
+                },
+            });
+        } catch (error) {
+            assertsError(error);
+
+            // Check if this is an unsupported parameter error
+            if (!isUnsupportedParameterError(error)) {
+                throw error;
+            }
+
+            // Parse which parameter is unsupported
+            const unsupportedParameter = parseUnsupportedParameterError(error.message);
+
+            if (!unsupportedParameter) {
                 if (this.options.isVerbose) {
-                    console.info(colors.bgRed('error'), error);
+                    console.warn(colors.bgYellow('Warning'), 'Could not parse unsupported parameter from error:', error.message);
                 }
                 throw error;
-            });
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+
+            // Create a unique key for this model + parameter combination to prevent infinite loops
+            const retryKey = `${modelName}-${unsupportedParameter}`;
+
+            if (this.retriedUnsupportedParameters.has(retryKey)) {
+                // Already retried this parameter, throw the error
+                if (this.options.isVerbose) {
+                    console.warn(colors.bgRed('Error'), `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`, error.message);
+                }
+                throw error;
+            }
+
+            // Mark this parameter as retried
+            this.retriedUnsupportedParameters.add(retryKey);
+
+            // Log warning in verbose mode
+            if (this.options.isVerbose) {
+                console.warn(colors.bgYellow('Warning'), `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`);
+            }
+
+            // Remove the unsupported parameter and retry
+            const modifiedModelRequirements = removeUnsupportedModelRequirement(currentModelRequirements, unsupportedParameter);
+
+            return this.callCompletionModelWithRetry(prompt, modifiedModelRequirements);
         }
-        const complete: string_date_iso8601 = $getCurrentDate();
-
-        if (!rawResponse.choices[0]) {
-            throw new PipelineExecutionError(`No choises from ${this.title}`);
-        }
-
-        if (rawResponse.choices.length > 1) {
-            // TODO: This should be maybe only warning
-            throw new PipelineExecutionError(`More than one choise from ${this.title}`);
-        }
-
-        const resultContent = rawResponse.choices[0].text;
-        const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
-
-        return exportJson({
-            name: 'promptResult',
-            message: `Result of \`OpenAiCompatibleExecutionTools.callCompletionModel\``,
-            order: [],
-            value: {
-                content: resultContent,
-                modelName: rawResponse.model || modelName,
-                timing: {
-                    start,
-                    complete,
-                },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse,
-                // <- [🗯]
-            },
-        });
     }
 
     /**
@@ -355,7 +473,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
         const rawResponse = await this.limiter
-            .schedule(() => this.makeRequestWithRetry(() => client.embeddings.create(rawRequest)))
+            .schedule(() => this.makeRequestWithNetworkRetry(() => client.embeddings.create(rawRequest)))
             .catch((error) => {
                 assertsError(error);
                 if (this.options.isVerbose) {
@@ -463,10 +581,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     protected abstract getDefaultEmbeddingModel(): AvailableModel;
     // <- Note: [🤖] getDefaultXxxModel
 
+
     /**
      * Makes a request with retry logic for network errors like ECONNRESET
      */
-    private async makeRequestWithRetry<T>(requestFn: () => Promise<T>): Promise<T> {
+    private async makeRequestWithNetworkRetry<T>(requestFn: () => Promise<T>): Promise<T> {
         let lastError: Error;
 
         for (let attempt = 1; attempt <= CONNECTION_RETRIES_LIMIT; attempt++) {
@@ -480,9 +599,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 const isRetryableError = this.isRetryableNetworkError(error);
 
                 if (!isRetryableError || attempt === CONNECTION_RETRIES_LIMIT) {
-                    if (this.options.isVerbose) {
+                    if (this.options.isVerbose && this.isRetryableNetworkError(error)) {
                         console.info(
-                            colors.bgRed('Final error after retries'),
+                            colors.bgRed('Final network error after retries'),
                             `Attempt ${attempt}/${CONNECTION_RETRIES_LIMIT}:`,
                             error,
                         );
@@ -498,7 +617,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                 if (this.options.isVerbose) {
                     console.info(
-                        colors.bgYellow('Retrying request'),
+                        colors.bgYellow('Retrying network request'),
                         `Attempt ${attempt}/${CONNECTION_RETRIES_LIMIT}, waiting ${Math.round(totalDelay)}ms:`,
                         error.message,
                     );

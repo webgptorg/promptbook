@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+-   **Enhanced:** `OpenAiCompatibleExecutionTools` now automatically handles "Unsupported value" parameter errors
+    -   Detects OpenAI errors like "Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported."
+    -   Automatically removes the unsupported parameter (e.g., temperature, max_tokens) and retries the request once
+    -   Logs warnings in verbose mode when parameters are removed and retried
+    -   Prevents infinite retry loops by tracking already retried parameter combinations per model
+    -   Applies to both chat and completion model calls in `OpenAiCompatibleExecutionTools`
+    -   Maintains backward compatibility while providing graceful degradation for unsupported model parameters
 -   **Refactored:** `createAgentModelRequirements` now uses `preparePersona` directly instead of duplicating its logic
     -   Replaced `selectBestModelFromAvailable` with `selectBestModelUsingPersona` that calls `preparePersona` directly
     -   Eliminates code duplication between agent model selection and persona preparation
