@@ -109,7 +109,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$15.00 / 1M tokens`),
                 output: pricing(`$60.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -124,7 +123,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$30.00 / 1M tokens`),
                 output: pricing(`$120.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -139,7 +137,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$4.00 / 1M tokens`),
                 output: pricing(`$16.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -154,7 +151,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$25.00 / 1M tokens`),
                 output: pricing(`$100.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -169,7 +165,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$12.00 / 1M tokens`),
                 output: pricing(`$48.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -587,7 +582,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$15.00 / 1M tokens`),
                 output: pricing(`$60.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -602,7 +596,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$15.00 / 1M tokens`),
                 output: pricing(`$60.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -617,7 +610,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$3.00 / 1M tokens`),
                 output: pricing(`$12.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -632,7 +624,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$15.00 / 1M tokens`),
                 output: pricing(`$60.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -647,7 +638,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$3.00 / 1M tokens`),
                 output: pricing(`$12.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
@@ -662,7 +652,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
                 prompt: pricing(`$3.00 / 1M tokens`),
                 output: pricing(`$12.00 / 1M tokens`),
             },
-            unsupportedModelRequirements: ['temperature'],
         },
         /**/
 
