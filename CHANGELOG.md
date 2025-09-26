@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+<!-- TODO: Make [Unreleased] more compact: -->
+
 -   **Enhanced:** `OpenAiCompatibleExecutionTools` now automatically handles "Unsupported value" parameter errors
     -   Detects OpenAI errors like "Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported."
     -   Automatically removes the unsupported parameter (e.g., temperature, max_tokens) and retries the request once
@@ -17,7 +19,7 @@
     -   Requires `tools` parameter when using automatic model selection from available models
 -   **Enhanced:** `AgentLlmExecutionTools` now automatically picks the best model from available models
     -   Function `createAgentModelRequirements` now has optional `availableModels` parameter to enable automatic model selection
-    -   The mechanism reuses the existing logic from `preparePersona` to ensure DRY principle  
+    -   The mechanism reuses the existing logic from `preparePersona` to ensure DRY principle
     -   Removed hardcoded model name and now uses dynamic model selection based on agent source and available models
     -   Model selection uses persona description derived from agent source to find the most suitable model
     -   Fallback mechanisms ensure robustness when model selection fails
@@ -27,7 +29,7 @@
     -   Agent tools parse agent source using `parseAgentSource` and `createAgentModelRequirements` with internal caching
     -   Only supports chat model interactions (`callChatModel` method), intentionally excludes completion and embedding models
     -   Agent profile information (title, description, visual identity) derived from agent source metadata
-    -   Registered as available LLM provider in `$llmToolsRegister` and `$llmToolsMetadataRegister` 
+    -   Registered as available LLM provider in `$llmToolsRegister` and `$llmToolsMetadataRegister`
     -   Exported from `@promptbook/core` package for seamless integration with Promptbook engine
     -   Includes playground example demonstrating usage in chat scenarios
 -   **Fixed:** Chat component loading issue where avatar images caused layout jumps and refocus when profile images were present by enforcing dimensions immediately via inline styles
@@ -47,14 +49,14 @@
     -   Compatible with existing code while providing more natural language flexibility
 -   **Fixed:** BookEditor syntax highlighting false positives for commitments in middle of words/lines
     -   Commitments like `KNOWLEDGE`, `PERSONA`, etc. are now only highlighted when at the beginning of lines
-    -   Fixed issue where words containing commitment names in the middle (e.g., "knowledge" in "Foo bar knowledge baz") were incorrectly highlighted  
+    -   Fixed issue where words containing commitment names in the middle (e.g., "knowledge" in "Foo bar knowledge baz") were incorrectly highlighted
     -   Updated both syntax highlighting and parsing logic to use consistent line-beginning patterns following DRY principle
     -   Matches parsing behavior in `createCommitmentRegex.ts` which already correctly used `^\\s*` pattern for line beginnings
 -   **Fixed:** BookEditor syntax highlighting false positives for META commitments
     -   META commitments like `META IMAGE SOMETHING` now correctly highlight only `META IMAGE` part
     -   Fixed regex pattern to match exactly one uppercase word after META (DRY principle)
     -   Prevents highlighting of additional words beyond the commitment structure
--   Remove cache from `parseAgentSource` and `createAgentModelRequirements` <!-- <- TODO: !!!! -->
+-   Remove cache from `parseAgentSource` and `createAgentModelRequirements`
 -   **Enhanced parameter syntax:** Unified highlighting and parsing for Book language parameters
     -   Both `@Parameter` and `{parameterName}` notations now use the same purple color highlighting
     -   Both notations are treated as the same syntax feature in parsing logic
@@ -76,7 +78,7 @@
 -   Add `isBorderRadiusDisabled` prop to `<BookEditor>` component to allow sharp corners when set to `true`
 -   **New commitment types:** Add syntax highlighting and full implementation for new commitment types:
     -   `GOAL` - Define main goals the AI assistant should achieve, with later goals having higher priority
-    -   `MEMORY` - Remember past interactions and user preferences for personalized responses  
+    -   `MEMORY` - Remember past interactions and user preferences for personalized responses
     -   `MESSAGE` - Include actual messages the AI assistant has sent during conversation history
     -   `SCENARIO` - Define specific situations or contexts for AI responses, with later scenarios having higher priority
     -   `DELETE` (`CANCEL`, `DISCARD`, `REMOVE`) - Remove or disregard certain information, context, or previous commitments
