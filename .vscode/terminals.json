@@ -393,7 +393,7 @@
             "focus": true
         },
         {
-            "name": "🔼🆚 Use current version of Promptbook in all Projects",
+            "name": "🔼🆚 Use current version of Promptbook in all Projects / install ptbk",
             "command": "npm run use-packages",
             "onlySingle": true,
             "focus": true
