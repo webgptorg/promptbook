@@ -43,7 +43,7 @@ This is mechanism for picking the best model from available models when I know a
 
 ---
 
-[ ]
+[x]
 
 [✨🌮] Fix **OpenAI** thrown **Error:** 400 Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported.
 

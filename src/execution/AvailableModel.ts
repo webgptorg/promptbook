@@ -50,6 +50,12 @@ export type AvailableModel = {
      * If the model is deprecated, it should not be used for new tasks
      */
     readonly isDeprecated?: boolean;
+
+    /**
+     * List of model requirements that this specific model does not support
+     * For example, some OpenAI models don't support custom temperature values
+     */
+    readonly unsupportedModelRequirements?: Partial<Array<keyof import('../types/ModelRequirements').ModelRequirements>>;
 };
 
 /**

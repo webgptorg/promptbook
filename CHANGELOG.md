@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+-   **Fixed:** OpenAI temperature error for reasoning models (o1, o3 families) that don't support custom temperature values
+    -   Added `unsupportedModelRequirements` property to `AvailableModel` interface to specify model limitations
+    -   Created `removeUnsupportedModelRequirements` utility function to filter out unsupported model requirements before API calls
+    -   Updated OpenAI execution tools to automatically remove unsupported requirements (e.g., temperature) for reasoning models
+    -   Added unsupported model requirements metadata to all reasoning models in openai-models.ts (o1, o3 families)
+    -   Prevents "400 Unsupported value: 'temperature' does not support 0.7 with this model" errors
 -   **Refactored:** `createAgentModelRequirements` now uses `preparePersona` directly instead of duplicating its logic
     -   Replaced `selectBestModelFromAvailable` with `selectBestModelUsingPersona` that calls `preparePersona` directly
     -   Eliminates code duplication between agent model selection and persona preparation

@@ -24,6 +24,7 @@ import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
+import { removeUnsupportedModelRequirements } from '../_common/utils/removeUnsupportedModelRequirements';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 
@@ -144,10 +145,19 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
+
+        // Get the available model to check for unsupported requirements
+        const availableModel = this.HARDCODED_MODELS.find(model => model.modelName === modelName);
+
+        // Filter out unsupported model requirements if model is known
+        const filteredModelRequirements = availableModel
+            ? removeUnsupportedModelRequirements(modelRequirements, availableModel)
+            : modelRequirements;
+
         const modelSettings = {
             model: modelName,
-            max_tokens: modelRequirements.maxTokens,
-            temperature: modelRequirements.temperature,
+            max_tokens: filteredModelRequirements.maxTokens,
+            temperature: filteredModelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
@@ -256,10 +266,19 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
+
+        // Get the available model to check for unsupported requirements
+        const availableModel = this.HARDCODED_MODELS.find(model => model.modelName === modelName);
+
+        // Filter out unsupported model requirements if model is known
+        const filteredModelRequirements = availableModel
+            ? removeUnsupportedModelRequirements(modelRequirements, availableModel)
+            : modelRequirements;
+
         const modelSettings = {
             model: modelName,
-            max_tokens: modelRequirements.maxTokens,
-            temperature: modelRequirements.temperature,
+            max_tokens: filteredModelRequirements.maxTokens,
+            temperature: filteredModelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
