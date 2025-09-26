@@ -1,4 +1,12 @@
-import type { string_model_name } from '../../types/typeAliases';
+import PipelineCollection from '../../../books/index.json';
+import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
+import type { AvailableModel } from '../../execution/AvailableModel';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { string_model_name, string_persona_description } from '../../types/typeAliases';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import {
     clearAgentModelRequirementsWithCommitmentsCache,
@@ -33,9 +41,97 @@ const modelRequirementsCache = new Map<string, AgentModelRequirements>();
 export async function createAgentModelRequirements(
     agentSource: string_book,
     modelName?: string_model_name,
+    availableModels?: readonly AvailableModel[],
 ): Promise<AgentModelRequirements> {
-    // Use the new commitment-based system
+    // If availableModels are provided and no specific modelName is given,
+    // use preparePersona to select the best model
+    if (availableModels && !modelName) {
+        const selectedModelName = await selectBestModelFromAvailable(agentSource, availableModels);
+        return createAgentModelRequirementsWithCommitmentsCached(agentSource, selectedModelName);
+    }
+
+    // Use the new commitment-based system with provided or default model
     return createAgentModelRequirementsWithCommitmentsCached(agentSource, modelName);
+}
+
+/**
+ * Selects the best model from available models using the preparePersona mechanism
+ * This reuses the existing logic from preparePersona to ensure DRY principle
+ *
+ * @param agentSource The agent source to derive persona description from
+ * @param availableModels List of available models to choose from
+ * @returns The name of the best selected model
+ * @private
+ */
+async function selectBestModelFromAvailable(
+    agentSource: string_book,
+    availableModels: readonly AvailableModel[]
+): Promise<string_model_name> {
+    // Parse agent source to get persona description
+    const { agentName, personaDescription } = parseAgentSource(agentSource);
+
+    // Use agent name as fallback if no persona description is available
+    const description = personaDescription || agentName || 'AI Agent';
+
+    // Transform availableModels to the format expected by preparePersona
+    const modelsForPersona = availableModels
+        .filter(({ modelVariant }) => modelVariant === 'CHAT')
+        .map(({ modelName, modelDescription }) => ({
+            modelName,
+            modelDescription,
+        }));
+
+    if (modelsForPersona.length === 0) {
+        throw new Error('No CHAT models available for agent model selection');
+    }
+
+    try {
+        // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
+        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+
+        // Create a minimal execution tools object with mock LLM tools
+        // Since we're only using this for model selection, we don't need full LLM functionality
+        const mockLlmTools = {
+            listModels: () => Promise.resolve(availableModels),
+            // We don't need other methods for model selection
+        } as TODO_any;
+
+        const tools: Pick<ExecutionTools, 'llm'> = {
+            llm: mockLlmTools,
+        };
+
+        const preparePersonaExecutor = createPipelineExecutor({
+            pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book'),
+            tools,
+        });
+
+        const result = await preparePersonaExecutor({
+            availableModels: modelsForPersona, /* <- Note: Passing as JSON */
+            personaDescription: description as string_persona_description,
+        }).asPromise({ isCrashedOnError: true });
+
+        const { outputParameters } = result;
+        const { modelsRequirements: modelsRequirementsJson } = outputParameters;
+
+        let modelsRequirementsUnchecked: Array<TODO_any> = jsonParse(modelsRequirementsJson!);
+
+        if (!Array.isArray(modelsRequirementsUnchecked)) {
+            modelsRequirementsUnchecked = [modelsRequirementsUnchecked];
+        }
+
+        // Extract the first model name from the requirements
+        if (modelsRequirementsUnchecked.length > 0 && modelsRequirementsUnchecked[0]?.modelName) {
+            return modelsRequirementsUnchecked[0].modelName;
+        }
+
+        // Fallback to the first available model if preparePersona doesn't return a selection
+        return modelsForPersona[0]!.modelName;
+
+    } catch (error) {
+        console.warn('Failed to use preparePersona for model selection, falling back to first available model:', error);
+        // Fallback to the first available CHAT model
+        return modelsForPersona[0]!.modelName;
+    }
 }
 
 /**
@@ -141,3 +237,9 @@ export function extractAgentProfileImage(agentSource: string_book): string {
     const { meta } = parseAgentSource(agentSource);
     return meta.image!;
 }
+
+
+
+/**
+ * TODO: [😩] DRY `preparePersona` and `selectBestModelFromAvailable`
+ */

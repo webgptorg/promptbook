@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+-   **Enhanced:** `AgentLlmExecutionTools` now automatically picks the best model from available models
+    -   Function `createAgentModelRequirements` now has optional `availableModels` parameter to enable automatic model selection
+    -   The mechanism reuses the existing logic from `preparePersona` to ensure DRY principle  
+    -   Removed hardcoded model name and now uses dynamic model selection based on agent source and available models
+    -   Model selection uses persona description derived from agent source to find the most suitable model
+    -   Fallback mechanisms ensure robustness when model selection fails
 -   **Added:** `AgentLlmExecutionTools` - LLM execution tools with predefined agent "soul"
     -   New class `AgentLlmExecutionTools` that wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
     -   Factory function `createAgentLlmExecutionTools` to create agent tools with underlying LLM tools and agent source

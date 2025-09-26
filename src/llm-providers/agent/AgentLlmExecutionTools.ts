@@ -50,7 +50,13 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      */
     private async getAgentModelRequirements(): Promise<AgentModelRequirements> {
         if (this._cachedModelRequirements === null) {
-            this._cachedModelRequirements = await createAgentModelRequirements(this.agentSource);
+            // Get available models from underlying LLM tools for best model selection
+            const availableModels = await this.llmTools.listModels();
+            this._cachedModelRequirements = await createAgentModelRequirements(
+                this.agentSource,
+                undefined, // Let the function pick the best model
+                availableModels
+            );
         }
         return this._cachedModelRequirements;
     }
@@ -112,14 +118,8 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         const chatPrompt = prompt as ChatPrompt;
 
-        // Get agent model requirements (cached)
-        let modelRequirements = await this.getAgentModelRequirements();
-        // <- TODO: !!!! Pick the best model from available models in `createAgentModelRequirements`
-
-        modelRequirements = {
-            ...modelRequirements,
-            modelName: 'claude-sonnet-4-20250514', // <- TODO: !!!! Unhardcode
-        };
+        // Get agent model requirements (cached with best model selection)
+        const modelRequirements = await this.getAgentModelRequirements();
 
         // Create modified chat prompt with agent system message
         const modifiedChatPrompt: ChatPrompt = {
@@ -146,6 +146,5 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
 /**
  * TODO: [🍚] Implement Destroyable pattern to free resources
- * TODO: !!!! Pick the best model from available models
  * TODO: !!!! adding parameter substitution support
  */
