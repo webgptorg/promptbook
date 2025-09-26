@@ -43,7 +43,7 @@ This is mechanism for picking the best model from available models when I know a
 
 ---
 
-[ ]
+[.] <- Note: Implementing differently
 
 [✨🌮] Fix **OpenAI** thrown **Error:** 400 Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported.
 
@@ -51,6 +51,17 @@ This is mechanism for picking the best model from available models when I know a
 -   In `OpenAiExecutionTools` in dynamically remove unsupported model requirements before calling the OpenAI API
 -   Do some common utility function to remove unsupported model requirements which will be later used in other model providers
 -   List theese unsupported model requirements for each model in the `openai-models.ts` file
+
+---
+
+[ ]
+
+[✨🌮] Fix **OpenAI** thrown **Error:** 400 Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported.
+
+-   In `OpenAiCompatibleExecutionTools` should detect the "Unsupported value" error and remove unsupported model requirements and retry the request once again
+-   The error should be just logged as a warning when the tools are in `isVerbose` mode
+-   When the same error happens again, the error should be thrown as usual
+-   This should be implemented only for `OpenAiCompatibleExecutionTools`
 
 ---
 
