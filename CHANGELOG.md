@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+-   **Refactored:** `createAgentModelRequirements` now uses `preparePersona` directly instead of duplicating its logic
+    -   Replaced `selectBestModelFromAvailable` with `selectBestModelUsingPersona` that calls `preparePersona` directly
+    -   Eliminates code duplication between agent model selection and persona preparation
+    -   Follows DRY principle by reusing existing proven logic from `preparePersona`
+    -   Maintains same functionality while reducing maintenance burden
+    -   Requires `tools` parameter when using automatic model selection from available models
 -   **Enhanced:** `AgentLlmExecutionTools` now automatically picks the best model from available models
     -   Function `createAgentModelRequirements` now has optional `availableModels` parameter to enable automatic model selection
     -   The mechanism reuses the existing logic from `preparePersona` to ensure DRY principle  

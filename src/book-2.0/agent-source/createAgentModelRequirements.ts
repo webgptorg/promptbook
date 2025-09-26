@@ -1,12 +1,7 @@
-import PipelineCollection from '../../../books/index.json';
-import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
 import type { AvailableModel } from '../../execution/AvailableModel';
-import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { jsonParse } from '../../formats/json/utils/jsonParse';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_model_name, string_persona_description } from '../../types/typeAliases';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { preparePersona } from '../../personas/preparePersona';
+import type { string_model_name } from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import {
     clearAgentModelRequirementsWithCommitmentsCache,
@@ -34,7 +29,7 @@ const modelRequirementsCache = new Map<string, AgentModelRequirements>();
  *
  * There are 2 similar functions:
  * - `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
- * - `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
+ * - `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronous.
  *
  * @public exported from `@promptbook/core`
  */
@@ -42,11 +37,12 @@ export async function createAgentModelRequirements(
     agentSource: string_book,
     modelName?: string_model_name,
     availableModels?: readonly AvailableModel[],
+    llmTools?: LlmExecutionTools,
 ): Promise<AgentModelRequirements> {
     // If availableModels are provided and no specific modelName is given,
     // use preparePersona to select the best model
-    if (availableModels && !modelName) {
-        const selectedModelName = await selectBestModelFromAvailable(agentSource, availableModels);
+    if (availableModels && !modelName && llmTools) {
+        const selectedModelName = await selectBestModelUsingPersona(agentSource, llmTools);
         return createAgentModelRequirementsWithCommitmentsCached(agentSource, selectedModelName);
     }
 
@@ -55,17 +51,17 @@ export async function createAgentModelRequirements(
 }
 
 /**
- * Selects the best model from available models using the preparePersona mechanism
- * This reuses the existing logic from preparePersona to ensure DRY principle
+ * Selects the best model using the preparePersona function
+ * This directly uses preparePersona to ensure DRY principle
  *
  * @param agentSource The agent source to derive persona description from
- * @param availableModels List of available models to choose from
+ * @param llmTools LLM tools for preparing persona
  * @returns The name of the best selected model
- * @private
+ * @private function of `createAgentModelRequirements`
  */
-async function selectBestModelFromAvailable(
+async function selectBestModelUsingPersona(
     agentSource: string_book,
-    availableModels: readonly AvailableModel[]
+    llmTools: LlmExecutionTools,
 ): Promise<string_model_name> {
     // Parse agent source to get persona description
     const { agentName, personaDescription } = parseAgentSource(agentSource);
@@ -73,66 +69,40 @@ async function selectBestModelFromAvailable(
     // Use agent name as fallback if no persona description is available
     const description = personaDescription || agentName || 'AI Agent';
 
-    // Transform availableModels to the format expected by preparePersona
-    const modelsForPersona = availableModels
-        .filter(({ modelVariant }) => modelVariant === 'CHAT')
-        .map(({ modelName, modelDescription }) => ({
-            modelName,
-            modelDescription,
-        }));
-
-    if (modelsForPersona.length === 0) {
-        throw new Error('No CHAT models available for agent model selection');
-    }
-
     try {
-        // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
-        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
-
-        // Create a minimal execution tools object with mock LLM tools
-        // Since we're only using this for model selection, we don't need full LLM functionality
-        const mockLlmTools = {
-            listModels: () => Promise.resolve(availableModels),
-            // We don't need other methods for model selection
-        } as TODO_any;
-
-        const tools: Pick<ExecutionTools, 'llm'> = {
-            llm: mockLlmTools,
-        };
-
-        const preparePersonaExecutor = createPipelineExecutor({
-            pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book'),
-            tools,
-        });
-
-        const result = await preparePersonaExecutor({
-            availableModels: modelsForPersona, /* <- Note: Passing as JSON */
-            personaDescription: description as string_persona_description,
-        }).asPromise({ isCrashedOnError: true });
-
-        const { outputParameters } = result;
-        const { modelsRequirements: modelsRequirementsJson } = outputParameters;
-
-        let modelsRequirementsUnchecked: Array<TODO_any> = jsonParse(modelsRequirementsJson!);
-
-        if (!Array.isArray(modelsRequirementsUnchecked)) {
-            modelsRequirementsUnchecked = [modelsRequirementsUnchecked];
-        }
+        // Use preparePersona directly
+        const { modelsRequirements } = await preparePersona(description, { llm: llmTools }, { isVerbose: false });
 
         // Extract the first model name from the requirements
-        if (modelsRequirementsUnchecked.length > 0 && modelsRequirementsUnchecked[0]?.modelName) {
-            return modelsRequirementsUnchecked[0].modelName;
+        if (modelsRequirements.length > 0 && modelsRequirements[0]?.modelName) {
+            return modelsRequirements[0].modelName;
         }
 
-        // Fallback to the first available model if preparePersona doesn't return a selection
-        return modelsForPersona[0]!.modelName;
+        // Fallback: get available models and return the first CHAT model
+        const availableModels = await llmTools.listModels();
+        const chatModels = availableModels.filter(({ modelVariant }) => modelVariant === 'CHAT');
 
+        if (chatModels.length === 0) {
+            throw new Error('No CHAT models available for agent model selection');
+        }
+
+        return chatModels[0]!.modelName;
     } catch (error) {
         console.warn('Failed to use preparePersona for model selection, falling back to first available model:', error);
-        // Fallback to the first available CHAT model
-        return modelsForPersona[0]!.modelName;
+
+        // Fallback: get available models and return the first CHAT model
+        const availableModels = await llmTools.listModels();
+        const chatModels = availableModels.filter(({ modelVariant }) => modelVariant === 'CHAT');
+
+        if (chatModels.length === 0) {
+            throw new Error('No CHAT models available for agent model selection');
+        }
+
+        return chatModels[0]!.modelName;
     }
 }
+
+// TODO: !!!! Remove caching
 
 /**
  * Clears the cache for createAgentModelRequirements
@@ -237,9 +207,3 @@ export function extractAgentProfileImage(agentSource: string_book): string {
     const { meta } = parseAgentSource(agentSource);
     return meta.image!;
 }
-
-
-
-/**
- * TODO: [😩] DRY `preparePersona` and `selectBestModelFromAvailable`
- */

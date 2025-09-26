@@ -35,7 +35,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🌮] In src/book-2.0/agent-source/createAgentModelRequirements.ts shouldnt be `selectBestModelFromAvailable`, it should use directly [`preparePersona`](/src/personas/preparePersona.ts) function
 
