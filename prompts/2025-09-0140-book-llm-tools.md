@@ -45,4 +45,33 @@ This is mechanism for picking the best model from available models when I know a
 
 [ ]
 
+[✨🌮] Fix **OpenAI** thrown **Error:** 400 Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported.
+
+-   `AvailableModel` interface should have `unsupportedModelRequirements?: Partial<Array<keyof ModelRequirements>>` property
+-   In `OpenAiExecutionTools` in dynamically remove unsupported model requirements before calling the OpenAI API
+-   Do some common utility function to remove unsupported model requirements which will be later used in other model providers
+-   List theese unsupported model requirements for each model in the `openai-models.ts` file
+
+---
+
+[ ]
+
+[✨🌮] quux
+
+---
+
+[ ]
+
+[✨🌮] quux
+
+---
+
+[ ]
+
+[✨🌮] quux
+
+---
+
+[ ]
+
 [✨🌮] quux
