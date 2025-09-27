@@ -2,7 +2,7 @@ import type { Takeable } from './Takeable';
 
 /**
  * Represents any value with take chain functionality
- * 
+ *
  * @private util of `@promptbook/color`
  * @deprecated [🤡] Use some better functional library instead of `TakeChain`
  */
@@ -19,4 +19,4 @@ export type ITakeChain<TValue extends Takeable> = {
     use():
     catch():
     */
-}
+};

@@ -1,4 +1,3 @@
-
 /**
  * @private utility of `<Chat/>` component
  */

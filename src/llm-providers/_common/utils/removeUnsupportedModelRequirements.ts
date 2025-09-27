@@ -41,10 +41,10 @@ export function removeUnsupportedModelRequirement(
 
     // Map of parameter names that might appear in error messages to ModelRequirements properties
     const parameterMap: Record<string, keyof ModelRequirements> = {
-        'temperature': 'temperature',
-        'max_tokens': 'maxTokens',
-        'maxTokens': 'maxTokens',
-        'seed': 'seed',
+        temperature: 'temperature',
+        max_tokens: 'maxTokens',
+        maxTokens: 'maxTokens',
+        seed: 'seed',
     };
 
     const propertyToRemove = parameterMap[unsupportedParameter];
@@ -65,7 +65,9 @@ export function removeUnsupportedModelRequirement(
 export function isUnsupportedParameterError(error: Error): boolean {
     const errorMessage = error.message.toLowerCase();
 
-    return errorMessage.includes('unsupported value:') ||
-           errorMessage.includes('is not supported with this model') ||
-           errorMessage.includes('does not support');
+    return (
+        errorMessage.includes('unsupported value:') ||
+        errorMessage.includes('is not supported with this model') ||
+        errorMessage.includes('does not support')
+    );
 }

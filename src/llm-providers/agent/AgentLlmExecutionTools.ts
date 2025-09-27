@@ -55,7 +55,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             this._cachedModelRequirements = await createAgentModelRequirements(
                 this.agentSource,
                 undefined, // Let the function pick the best model
-                availableModels
+                availableModels,
             );
         }
         return this._cachedModelRequirements;

@@ -140,7 +140,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     const pipelineExecutor: PipelineExecutor = (inputParameters: InputParameters): ExecutionTask => {
         const startTime = new Date().getTime();
-        
+
         return createTask<PipelineExecutorResult>({
             taskType: 'EXECUTION',
             title: pipeline.title,
@@ -155,7 +155,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     const cv = newOngoingResult as PartialDeep<PipelineExecutorResult>;
 
                     // Calculate progress based on parameters resolved vs total parameters
-                    const totalParameters = pipeline.parameters.filter(p => !p.isInput).length;
+                    const totalParameters = pipeline.parameters.filter((p) => !p.isInput).length;
                     let resolvedParameters = 0;
                     let currentTaskTitle = '';
 
@@ -163,13 +163,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     if (cv?.outputParameters) {
                         // Count how many output parameters have non-empty values
                         resolvedParameters = Object.values(cv.outputParameters).filter(
-                            value => value !== undefined && value !== null && String(value).trim() !== ''
+                            (value) => value !== undefined && value !== null && String(value).trim() !== '',
                         ).length;
                     }
 
                     // Try to determine current task from execution report
                     if (cv?.executionReport?.promptExecutions && cv.executionReport.promptExecutions.length > 0) {
-                        const lastExecution = cv.executionReport.promptExecutions[cv.executionReport.promptExecutions.length - 1];
+                        const lastExecution =
+                            cv.executionReport.promptExecutions[cv.executionReport.promptExecutions.length - 1];
                         if (lastExecution?.prompt?.title) {
                             currentTaskTitle = lastExecution.prompt.title;
                         }

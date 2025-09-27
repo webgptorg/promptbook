@@ -93,13 +93,14 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
         } catch (error) {
             // Note: If we can't write to cache, silently ignore the error
             //       This handles read-only filesystems, permission issues, and missing parent directories
-            if (error instanceof Error && (
-                error.message.includes('EROFS') ||
-                error.message.includes('read-only') ||
-                error.message.includes('EACCES') ||
-                error.message.includes('EPERM') ||
-                error.message.includes('ENOENT')
-            )) {
+            if (
+                error instanceof Error &&
+                (error.message.includes('EROFS') ||
+                    error.message.includes('read-only') ||
+                    error.message.includes('EACCES') ||
+                    error.message.includes('EPERM') ||
+                    error.message.includes('ENOENT'))
+            ) {
                 // Silently ignore filesystem errors - caching is optional
                 return;
             } else {

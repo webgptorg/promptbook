@@ -109,7 +109,7 @@ export function MockedChat(props: MockedChatProps) {
                     isVoiceCall: currentMessage.isVoiceCall,
                 };
 
-                setDisplayedMessages(prev => [...prev, incompleteMessage]);
+                setDisplayedMessages((prev) => [...prev, incompleteMessage]);
 
                 // Split message content into words
                 const words = currentMessage.content.split(' ');
@@ -133,7 +133,7 @@ export function MockedChat(props: MockedChatProps) {
                         isVoiceCall: currentMessage.isVoiceCall,
                     };
 
-                    setDisplayedMessages(prev => {
+                    setDisplayedMessages((prev) => {
                         const newMessages = [...prev];
                         newMessages[newMessages.length - 1] = updatingMessage;
                         return newMessages;
@@ -155,7 +155,7 @@ export function MockedChat(props: MockedChatProps) {
                     isVoiceCall: currentMessage.isVoiceCall,
                 };
 
-                setDisplayedMessages(prev => {
+                setDisplayedMessages((prev) => {
                     const newMessages = [...prev];
                     newMessages[newMessages.length - 1] = completeMessage;
                     return newMessages;
@@ -169,7 +169,7 @@ export function MockedChat(props: MockedChatProps) {
             setIsSimulationComplete(true);
         };
 
-        simulateChat().catch(error => {
+        simulateChat().catch((error) => {
             if (!isCancelled) {
                 console.error('Error in MockedChat simulation:', error);
                 // Fallback to showing all messages immediately
@@ -181,7 +181,13 @@ export function MockedChat(props: MockedChatProps) {
         return () => {
             isCancelled = true;
         };
-    }, [originalMessages, delays.beforeFirstMessage, delays.thinkingBetweenMessages, delays.waitAfterWord, delays.extraWordDelay]);
+    }, [
+        originalMessages,
+        delays.beforeFirstMessage,
+        delays.thinkingBetweenMessages,
+        delays.waitAfterWord,
+        delays.extraWordDelay,
+    ]);
 
     // Use the internal Chat component with simulated messages
     return (

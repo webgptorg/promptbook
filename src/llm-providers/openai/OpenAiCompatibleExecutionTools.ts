@@ -268,7 +268,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             if (!unsupportedParameter) {
                 if (this.options.isVerbose) {
-                    console.warn(colors.bgYellow('Warning'), 'Could not parse unsupported parameter from error:', error.message);
+                    console.warn(
+                        colors.bgYellow('Warning'),
+                        'Could not parse unsupported parameter from error:',
+                        error.message,
+                    );
                 }
                 throw error;
             }
@@ -279,7 +283,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             if (this.retriedUnsupportedParameters.has(retryKey)) {
                 // Already retried this parameter, throw the error
                 if (this.options.isVerbose) {
-                    console.warn(colors.bgRed('Error'), `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`, error.message);
+                    console.warn(
+                        colors.bgRed('Error'),
+                        `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`,
+                        error.message,
+                    );
                 }
                 throw error;
             }
@@ -289,11 +297,17 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             // Log warning in verbose mode
             if (this.options.isVerbose) {
-                console.warn(colors.bgYellow('Warning'), `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`);
+                console.warn(
+                    colors.bgYellow('Warning'),
+                    `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`,
+                );
             }
 
             // Remove the unsupported parameter and retry
-            const modifiedModelRequirements = removeUnsupportedModelRequirement(currentModelRequirements, unsupportedParameter);
+            const modifiedModelRequirements = removeUnsupportedModelRequirement(
+                currentModelRequirements,
+                unsupportedParameter,
+            );
 
             return this.callChatModelWithRetry(prompt, modifiedModelRequirements);
         }
@@ -409,7 +423,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             if (!unsupportedParameter) {
                 if (this.options.isVerbose) {
-                    console.warn(colors.bgYellow('Warning'), 'Could not parse unsupported parameter from error:', error.message);
+                    console.warn(
+                        colors.bgYellow('Warning'),
+                        'Could not parse unsupported parameter from error:',
+                        error.message,
+                    );
                 }
                 throw error;
             }
@@ -420,7 +438,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             if (this.retriedUnsupportedParameters.has(retryKey)) {
                 // Already retried this parameter, throw the error
                 if (this.options.isVerbose) {
-                    console.warn(colors.bgRed('Error'), `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`, error.message);
+                    console.warn(
+                        colors.bgRed('Error'),
+                        `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`,
+                        error.message,
+                    );
                 }
                 throw error;
             }
@@ -430,11 +452,17 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             // Log warning in verbose mode
             if (this.options.isVerbose) {
-                console.warn(colors.bgYellow('Warning'), `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`);
+                console.warn(
+                    colors.bgYellow('Warning'),
+                    `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`,
+                );
             }
 
             // Remove the unsupported parameter and retry
-            const modifiedModelRequirements = removeUnsupportedModelRequirement(currentModelRequirements, unsupportedParameter);
+            const modifiedModelRequirements = removeUnsupportedModelRequirement(
+                currentModelRequirements,
+                unsupportedParameter,
+            );
 
             return this.callCompletionModelWithRetry(prompt, modifiedModelRequirements);
         }
@@ -580,7 +608,6 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      */
     protected abstract getDefaultEmbeddingModel(): AvailableModel;
     // <- Note: [🤖] getDefaultXxxModel
-
 
     /**
      * Makes a request with retry logic for network errors like ECONNRESET

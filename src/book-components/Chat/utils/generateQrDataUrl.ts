@@ -1,7 +1,7 @@
 /**
  * Utility: generate a QR code data URL for a given text
  * Simplified version without QR code library dependency
- * 
+ *
  * @private utility of `<Chat/>` component
  */
 export async function generateQrDataUrl(text: string): Promise<string | null> {

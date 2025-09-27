@@ -1,6 +1,6 @@
 /**
  * Generates Promptbook branding header for exported files
- * 
+ *
  * @private utility of `<Chat/>` component
  */
 export function getPromptbookBranding(shareUrl: string): string {

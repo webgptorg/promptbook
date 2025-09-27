@@ -7,7 +7,7 @@ import type { ColorTransformer } from './ColorTransformer';
  * Makes color transformer which lighten the given color
  *
  * @param amount from 0 to 1
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function lighten(amount: number): ColorTransformer {

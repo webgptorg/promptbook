@@ -6,7 +6,7 @@ import { Color } from '../Color';
  * @returns hue in degrees <0-360)
  *
  * @see https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function colorHue(color: Color): number {

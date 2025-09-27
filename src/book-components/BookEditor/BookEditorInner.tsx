@@ -385,43 +385,46 @@ export function BookEditorInner(props: BookEditorInnerProps) {
      * @param text - Text to extract parameters from
      * @returns Array of parameter ranges with unified type
      */
-    const extractUnifiedParameters = useCallback((text: string) => {
-        const parameters: Array<{
-            start: number;
-            end: number;
-            type: 'parameter'; // Same type for both notations
-            notation: 'at' | 'brace'; // Track which notation was used
-            text: string;
-        }> = [];
+    const extractUnifiedParameters = useCallback(
+        (text: string) => {
+            const parameters: Array<{
+                start: number;
+                end: number;
+                type: 'parameter'; // Same type for both notations
+                notation: 'at' | 'brace'; // Track which notation was used
+                text: string;
+            }> = [];
 
-        // Extract @Parameter notation (first notation)
-        text.replace(atParameterRegex, (match: string, ...args: unknown[]) => {
-            const index = args[args.length - 2] as number;
-            parameters.push({
-                start: index,
-                end: index + match.length,
-                type: 'parameter', // Same semantic meaning
-                notation: 'at',
-                text: match,
+            // Extract @Parameter notation (first notation)
+            text.replace(atParameterRegex, (match: string, ...args: unknown[]) => {
+                const index = args[args.length - 2] as number;
+                parameters.push({
+                    start: index,
+                    end: index + match.length,
+                    type: 'parameter', // Same semantic meaning
+                    notation: 'at',
+                    text: match,
+                });
+                return match;
             });
-            return match;
-        });
 
-        // Extract {parameter} notation (second notation)
-        text.replace(braceParameterRegex, (match: string, ...args: unknown[]) => {
-            const index = args[args.length - 2] as number;
-            parameters.push({
-                start: index,
-                end: index + match.length,
-                type: 'parameter', // Same semantic meaning
-                notation: 'brace',
-                text: match,
+            // Extract {parameter} notation (second notation)
+            text.replace(braceParameterRegex, (match: string, ...args: unknown[]) => {
+                const index = args[args.length - 2] as number;
+                parameters.push({
+                    start: index,
+                    end: index + match.length,
+                    type: 'parameter', // Same semantic meaning
+                    notation: 'brace',
+                    text: match,
+                });
+                return match;
             });
-            return match;
-        });
 
-        return parameters.sort((a, b) => a.start - b.start);
-    }, [atParameterRegex, braceParameterRegex]);
+            return parameters.sort((a, b) => a.start - b.start);
+        },
+        [atParameterRegex, braceParameterRegex],
+    );
 
     const highlightedHtml = useMemo(() => {
         const text = value ?? '';
@@ -482,7 +485,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
                 processedRanges.push({
                     start: param.start,
                     end: param.end,
-                    type: 'parameter'
+                    type: 'parameter',
                 });
             }
         });

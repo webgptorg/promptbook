@@ -5,7 +5,7 @@
  * @param channelName - The name of the channel being validated.
  * @param value - The value of the channel to validate.
  * @throws Will throw an error if the value is not a valid channel number.
- * 
+ *
  * @private util of `@promptbook/color`
  */
 export function checkChannelValue(

@@ -95,13 +95,14 @@ export async function getScraperIntermediateSource(
     } catch (error) {
         // Note: If we can't create cache directory, continue without it
         //       This handles read-only filesystems, permission issues, and missing parent directories
-        if (error instanceof Error && (
-            error.message.includes('EROFS') ||
-            error.message.includes('read-only') ||
-            error.message.includes('EACCES') ||
-            error.message.includes('EPERM') ||
-            error.message.includes('ENOENT')
-        )) {
+        if (
+            error instanceof Error &&
+            (error.message.includes('EROFS') ||
+                error.message.includes('read-only') ||
+                error.message.includes('EACCES') ||
+                error.message.includes('EPERM') ||
+                error.message.includes('ENOENT'))
+        ) {
             // Silently ignore filesystem errors - caching is optional
         } else {
             // Re-throw other unexpected errors

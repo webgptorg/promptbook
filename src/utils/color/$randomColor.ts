@@ -2,7 +2,7 @@ import { Color } from './Color';
 
 /**
  * Creates a random color
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function $randomColor(): Color {

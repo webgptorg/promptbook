@@ -6,7 +6,7 @@ import { Color } from '../Color';
  * @param color1 - The first color to compare.
  * @param color2 - The second color to compare.
  * @returns {boolean} True if the colors are equal, false otherwise.
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function areColorsEqual(color1: Color, color2: Color): boolean {

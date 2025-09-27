@@ -27,7 +27,6 @@ export const _OpenAiRegistration: Registration = $llmToolsRegister.register(crea
  */
 export const _OpenAiAssistantRegistration = $llmToolsRegister.register(createOpenAiAssistantExecutionTools);
 
-
 /**
  * Registration of the OpenAI Compatible provider
  *
@@ -38,7 +37,6 @@ export const _OpenAiAssistantRegistration = $llmToolsRegister.register(createOpe
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiCompatibleRegistration = $llmToolsRegister.register(createOpenAiCompatibleExecutionTools);
-
 
 /**
  * Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be registered directly.

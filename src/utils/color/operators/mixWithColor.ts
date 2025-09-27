@@ -6,7 +6,7 @@ import type { ColorTransformer } from './ColorTransformer';
  *
  * @param ratio the ratio of the first color to the second color, from 0 to 1
  * @param additionalColor the second color to mix with the first color
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function mixWithColor(ratio: number, additionalColor: Color): ColorTransformer {

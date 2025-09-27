@@ -18,7 +18,6 @@ export function furthest(...colors: Color[]): ColorTransformer {
     };
 }
 
-
 /**
  * Makes color transformer which finds the best text color (black or white) for the given background color
  *

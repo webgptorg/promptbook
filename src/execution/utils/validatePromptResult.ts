@@ -33,7 +33,7 @@ export type ValidatePromptResultOptions = {
      * Note: This is for validation purposes only - postprocessing should be done before calling this function
      */
     postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>;
-}
+};
 
 /**
  * Result of prompt result validation
@@ -53,7 +53,7 @@ export type ValidatePromptResultResult = {
      * Error that occurred during validation, if any
      */
     error?: ExpectError;
-}
+};
 
 /**
  * Validates a prompt result against expectations and format requirements.

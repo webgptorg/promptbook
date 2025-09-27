@@ -2,7 +2,6 @@ import type { ITakeChain } from '../interfaces/ITakeChain';
 import type { Takeable } from '../interfaces/Takeable';
 import { take } from '../take';
 
-
 /**
  * @private util of `@promptbook/color`
  * @de

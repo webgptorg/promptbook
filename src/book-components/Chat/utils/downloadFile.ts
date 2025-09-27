@@ -1,6 +1,6 @@
 /**
  * Downloads a file with the given content and filename
- * 
+ *
  * @private utility of `<Chat/>` component
  */
 export function downloadFile(content: string, filename: string, mimeType: string): void {

@@ -124,7 +124,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         try {
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
-                maxTokens: modelRequirements.maxTokens ,
+                maxTokens: modelRequirements.maxTokens,
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
@@ -249,7 +249,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         try {
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
-                maxTokens: modelRequirements.maxTokens ,
+                maxTokens: modelRequirements.maxTokens,
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools

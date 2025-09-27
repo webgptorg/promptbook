@@ -114,13 +114,14 @@ export class WebsiteScraper implements Converter, Scraper {
         } catch (error) {
             // Note: If we can't write to cache, we'll continue without caching
             //       This handles read-only filesystems like Vercel
-            if (error instanceof Error && (
-                error.message.includes('EROFS') ||
-                error.message.includes('read-only') ||
-                error.message.includes('EACCES') ||
-                error.message.includes('EPERM') ||
-                error.message.includes('ENOENT')
-            )) {
+            if (
+                error instanceof Error &&
+                (error.message.includes('EROFS') ||
+                    error.message.includes('read-only') ||
+                    error.message.includes('EACCES') ||
+                    error.message.includes('EPERM') ||
+                    error.message.includes('ENOENT'))
+            ) {
                 // Silently ignore read-only filesystem errors
             } else {
                 // Re-throw other unexpected errors

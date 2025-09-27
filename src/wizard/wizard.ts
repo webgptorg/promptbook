@@ -26,7 +26,7 @@ type WizardOptions = {
      * Whether to enable verbose logging
      */
     isVerbose?: boolean;
-}
+};
 
 /**
  * Wizard for simple usage of the Promptbook

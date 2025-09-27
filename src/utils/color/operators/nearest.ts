@@ -6,7 +6,7 @@ import type { ColorTransformer } from './ColorTransformer';
  * Makes color transformer which finds the nearest color from the given list
  *
  * @param colors array of colors to choose from
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function nearest(...colors: Color[]): ColorTransformer {

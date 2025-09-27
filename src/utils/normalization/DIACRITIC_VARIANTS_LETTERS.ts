@@ -232,7 +232,7 @@ const defaultDiacriticsRemovalMap = [
  * > "ě" => "e"
  * > "Ă" => "A"
  * > ...
- * 
+ *
  * @public exported from `@promptbook/utils`
  */
 export const DIACRITIC_VARIANTS_LETTERS: Record<string, string> = {};

@@ -6,7 +6,7 @@ import { Color } from '../Color';
  *
  * @param {...Color} colors - The array of colors to be mixed.
  * @returns {WithTake<Color>} - The mixed color.
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function mixColors(...colors: Array<Color>): WithTake<Color> {

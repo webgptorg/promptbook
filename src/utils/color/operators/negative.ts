@@ -2,7 +2,7 @@ import { Color } from '../Color';
 
 /**
  * Color transformer which returns the negative color
- * 
+ *
  * @public exported from `@promptbook/color`
  */
 export function negative(color: Color): Color {

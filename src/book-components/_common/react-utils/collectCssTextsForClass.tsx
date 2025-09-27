@@ -1,4 +1,3 @@
-
 /**
  * Collect matching CSS texts from document stylesheets for a given class.
  * This will skip cross-origin stylesheets (they throw when accessed).

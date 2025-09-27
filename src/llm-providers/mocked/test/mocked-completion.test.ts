@@ -10,7 +10,9 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        expect(
+            pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             outputParameters: {
                 response: spaceTrim(`
                     One day I went to the shop and bought a cup of coffee.

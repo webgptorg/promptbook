@@ -59,7 +59,7 @@ export type $OngoingTaskResult = {
      * Array of all failed attempts, storing both the result string and the error for each failure
      */
     $failedResults: Array<{
-      attemptIndex: number;
+        attemptIndex: number;
         result: string | null;
         error: ExpectError;
     }>;

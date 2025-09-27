@@ -8,8 +8,6 @@ import type { really_any } from './really_any';
  * @returns void
  * @private within the repository
  */
-export function $sideEffect(
-    ...sideEffectSubjects: ReadonlyArray<really_any>
-): void {
+export function $sideEffect(...sideEffectSubjects: ReadonlyArray<really_any>): void {
     keepUnused(...sideEffectSubjects);
 }

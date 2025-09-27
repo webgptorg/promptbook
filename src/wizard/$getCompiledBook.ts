@@ -64,13 +64,14 @@ export async function $getCompiledBook(
                 } catch (error) {
                     // Note: Ignore filesystem errors (like EROFS on read-only systems like Vercel)
                     //       The compiled book can still be used even if it can't be cached
-                    if (error instanceof Error && (
-                        error.message.includes('EROFS') ||
-                        error.message.includes('read-only') ||
-                        error.message.includes('EACCES') ||
-                        error.message.includes('EPERM') ||
-                        error.message.includes('ENOENT')
-                    )) {
+                    if (
+                        error instanceof Error &&
+                        (error.message.includes('EROFS') ||
+                            error.message.includes('read-only') ||
+                            error.message.includes('EACCES') ||
+                            error.message.includes('EPERM') ||
+                            error.message.includes('ENOENT'))
+                    ) {
                         // Silently ignore read-only filesystem errors
                     } else {
                         // Re-throw other unexpected errors
