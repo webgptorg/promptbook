@@ -423,6 +423,13 @@
             "command": "npm version patch",
             "onlySingle": true,
             "focus": true
+        },
+        {
+            "name": "🏭🩹 Prettify all files",
+            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         }
     ]
 }

@@ -72,7 +72,7 @@ async function repairImports({
         }
 
         if (file.path.includes('_packages')) {
-            // Note: Do not repair imports in files which defines expoeted packages
+            // Note: Do not repair imports in files which defines exported packages
             continue;
         }
 
