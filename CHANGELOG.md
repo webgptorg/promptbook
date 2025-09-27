@@ -4,6 +4,15 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
+-   **Enhanced:** MODEL commitment to support enforcing any model requirement with multiple syntax variations
+    -   Added support for multi-line named parameter format: `MODEL NAME gpt-4`, `MODEL TEMPERATURE 0.7`, `MODEL TOP_P 0.9`, `MODEL MAX_TOKENS 2048`
+    -   Maintained backward compatibility with legacy single-line format: `MODEL gpt-4 temperature=0.3 topP=0.9`
+    -   Purpose of MODEL commitment is to enforce technical parameters for the agent
+    -   When no MODEL commitment is specified, the best model requirement is picked automatically based on agent PERSONA, KNOWLEDGE, TOOLS and other commitments
+    -   Multiple MODEL commitments can be used to specify different parameters
+    -   Supported parameters: NAME, TEMPERATURE, TOP_P, TOP_K, MAX_TOKENS
+    -   Enhanced documentation with comprehensive examples for different use cases
+    -   Follows DRY principle by using unified parsing logic for both syntax formats
 -   **Enhanced:** Completed COMMENT and NONCE aliases implementation for NOTE commitment
     -   Added missing singleton instances `CommentCommitment` and `NonceCommitment` to NOTE.ts
     -   Updated documentation to include examples using all four aliases (NOTE, NOTES, COMMENT, NONCE)
