@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨↖️] Enhance `MODEL` commitment to support enforcing any model requirement
 
