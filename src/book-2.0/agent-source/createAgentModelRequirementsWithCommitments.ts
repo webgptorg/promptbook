@@ -12,7 +12,7 @@ import type { string_book } from './string_book';
  * This function uses a reduce-like pattern where each commitment applies its changes
  * to build the final requirements starting from a basic empty model
  *
- * @private - TODO: [🧠] Maybe should be public?
+ * @public exported from `@promptbook/core`
  */
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_book,
@@ -85,83 +85,4 @@ export async function createAgentModelRequirementsWithCommitments(
         ...requirements,
         systemMessage: cleanedSystemMessage,
     };
-}
-
-/**
- * Cache for expensive createAgentModelRequirementsWithCommitments calls
- * @private
- */
-const modelRequirementsCache = new Map<string, AgentModelRequirements>();
-
-/**
- * @private - TODO: Maybe should be public
- */
-const CACHE_SIZE_LIMIT = 100;
-
-/**
- * Cached version of createAgentModelRequirementsWithCommitments
- * This maintains the same caching behavior as the original function
- *
- * @private
- */
-export async function createAgentModelRequirementsWithCommitmentsCached(
-    agentSource: string_book,
-    modelName?: string_model_name,
-): Promise<AgentModelRequirements> {
-    // Create cache key
-    const cacheKey = `${agentSource}|${modelName || 'default'}`;
-
-    // Check cache first
-    if (modelRequirementsCache.has(cacheKey)) {
-        return modelRequirementsCache.get(cacheKey)!;
-    }
-
-    // Limit cache size to prevent memory leaks
-    if (modelRequirementsCache.size >= CACHE_SIZE_LIMIT) {
-        const firstKey = modelRequirementsCache.keys().next().value;
-        if (firstKey) {
-            modelRequirementsCache.delete(firstKey);
-        }
-    }
-
-    // Create requirements
-    const requirements = await createAgentModelRequirementsWithCommitments(agentSource, modelName);
-
-    // Cache the result
-    modelRequirementsCache.set(cacheKey, requirements);
-
-    return requirements;
-}
-
-/**
- * Clears the cache for createAgentModelRequirementsWithCommitments
- *
- * @private
- */
-export function clearAgentModelRequirementsWithCommitmentsCache(): void {
-    modelRequirementsCache.clear();
-}
-
-/**
- * Removes cache entries for a specific agent source
- *
- * @private
- */
-export function invalidateAgentModelRequirementsWithCommitmentsCache(agentSource: string_book): void {
-    const keysToDelete: string[] = [];
-    for (const key of modelRequirementsCache.keys()) {
-        if (key.startsWith(`${agentSource}|`)) {
-            keysToDelete.push(key);
-        }
-    }
-    keysToDelete.forEach((key) => modelRequirementsCache.delete(key));
-}
-
-/**
- * Gets the current cache size
- *
- * @private
- */
-export function getAgentModelRequirementsWithCommitmentsCacheSize(): number {
-    return modelRequirementsCache.size;
 }

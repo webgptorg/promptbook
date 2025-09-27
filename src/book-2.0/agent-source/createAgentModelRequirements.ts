@@ -3,29 +3,12 @@ import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { preparePersona } from '../../personas/preparePersona';
 import type { string_model_name } from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import {
-    clearAgentModelRequirementsWithCommitmentsCache,
-    createAgentModelRequirementsWithCommitmentsCached,
-    getAgentModelRequirementsWithCommitmentsCacheSize,
-    invalidateAgentModelRequirementsWithCommitmentsCache,
-} from './createAgentModelRequirementsWithCommitments';
+import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
 import { parseAgentSource } from './parseAgentSource';
 import type { string_book } from './string_book';
 
 /**
- *  Cache for expensive createAgentModelRequirements calls
- *
- *  TODO: !!!! Remove caching
- *  @private
- */
-const modelRequirementsCache = new Map<string, AgentModelRequirements>();
-
-// TODO: Remove or use:
-//const CACHE_SIZE_LIMIT = 100; // Prevent memory leaks by limiting cache size
-
-/**
  * Creates model requirements for an agent based on its source
- * Results are cached to improve performance for repeated calls with the same agentSource and modelName
  *
  * There are 2 similar functions:
  * - `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
@@ -43,11 +26,11 @@ export async function createAgentModelRequirements(
     // use preparePersona to select the best model
     if (availableModels && !modelName && llmTools) {
         const selectedModelName = await selectBestModelUsingPersona(agentSource, llmTools);
-        return createAgentModelRequirementsWithCommitmentsCached(agentSource, selectedModelName);
+        return createAgentModelRequirementsWithCommitments(agentSource, selectedModelName);
     }
 
     // Use the new commitment-based system with provided or default model
-    return createAgentModelRequirementsWithCommitmentsCached(agentSource, modelName);
+    return createAgentModelRequirementsWithCommitments(agentSource, modelName);
 }
 
 /**
@@ -102,46 +85,6 @@ async function selectBestModelUsingPersona(
     }
 }
 
-// TODO: !!!! Remove caching
-
-/**
- * Clears the cache for createAgentModelRequirements
- * Useful when agent sources are updated and cached results should be invalidated
- *
- * @private
- */
-export function clearAgentModelRequirementsCache(): void {
-    modelRequirementsCache.clear();
-    clearAgentModelRequirementsWithCommitmentsCache();
-}
-
-/**
- * Removes cache entries for a specific agent source (all model variants)
- * @param agentSource The agent source to remove from cache
- * @private
- */
-export function invalidateAgentModelRequirementsCache(agentSource: string_book): void {
-    // Remove all cache entries that start with this agent source
-    const keysToDelete: string[] = [];
-    for (const key of modelRequirementsCache.keys()) {
-        if (key.startsWith(`${agentSource}|`)) {
-            keysToDelete.push(key);
-        }
-    }
-    keysToDelete.forEach((key) => modelRequirementsCache.delete(key));
-
-    // Also clear the new commitment-based cache
-    invalidateAgentModelRequirementsWithCommitmentsCache(agentSource);
-}
-
-/**
- * Gets the current cache size (for debugging/monitoring)
- *
- * @private
- */
-export function getAgentModelRequirementsCacheSize(): number {
-    return modelRequirementsCache.size + getAgentModelRequirementsWithCommitmentsCacheSize();
-}
 
 /**
  * Extracts MCP servers from agent source

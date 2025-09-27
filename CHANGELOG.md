@@ -56,7 +56,13 @@
     -   META commitments like `META IMAGE SOMETHING` now correctly highlight only `META IMAGE` part
     -   Fixed regex pattern to match exactly one uppercase word after META (DRY principle)
     -   Prevents highlighting of additional words beyond the commitment structure
--   Remove cache from `parseAgentSource` and `createAgentModelRequirements`
+-   **Removed:** Cache from `createAgentModelRequirements` function
+    -   Removed all caching logic from `createAgentModelRequirements` and `createAgentModelRequirementsWithCommitments`
+    -   Eliminated `modelRequirementsCache` Map and all related cache management functions
+    -   Removed `createAgentModelRequirementsWithCommitmentsCached` function in favor of direct usage of `createAgentModelRequirementsWithCommitments`
+    -   Deleted cache utility functions: `clearAgentModelRequirementsCache`, `invalidateAgentModelRequirementsCache`, `getAgentModelRequirementsCacheSize`
+    -   Function now executes fresh agent model requirements creation on every call for consistent behavior
+    -   Made `createAgentModelRequirementsWithCommitments` public instead of private to support direct usage
 -   **Enhanced parameter syntax:** Unified highlighting and parsing for Book language parameters
     -   Both `@Parameter` and `{parameterName}` notations now use the same purple color highlighting
     -   Both notations are treated as the same syntax feature in parsing logic
