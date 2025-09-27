@@ -60,6 +60,12 @@ export type BookEditorProps = {
      * If true, disables border radius making the editor have sharp corners
      */
     readonly isBorderRadiusDisabled?: boolean;
+
+    /**
+     * If true, shows the footer with book title and version information.
+     * By default, the footer is hidden.
+     */
+    readonly isFooterShown?: boolean;
 };
 
 // <- TODO: !!! Is this exported also to `@promptbook/types`?
@@ -79,6 +85,7 @@ export function BookEditor(props: BookEditorProps) {
         fontClassName,
         isVerbose = DEFAULT_IS_VERBOSE,
         isBorderRadiusDisabled = false,
+        isFooterShown = false,
     } = props;
 
     // Host div that will get a shadow root
@@ -120,6 +127,7 @@ export function BookEditor(props: BookEditorProps) {
             onFileUpload={onFileUpload}
             isVerbose={isVerbose}
             isBorderRadiusDisabled={isBorderRadiusDisabled}
+            isFooterShown={isFooterShown}
         />
     );
 

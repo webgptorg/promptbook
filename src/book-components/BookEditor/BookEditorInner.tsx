@@ -23,6 +23,7 @@ export type BookEditorInnerProps = {
     onFileUpload?(file: File): Promisable<string>;
     isVerbose?: boolean;
     isBorderRadiusDisabled?: boolean;
+    isFooterShown?: boolean;
 };
 
 /**
@@ -37,6 +38,7 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         fontClassName,
         isVerbose = false,
         isBorderRadiusDisabled = false,
+        isFooterShown = false,
     } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
@@ -605,27 +607,29 @@ export function BookEditorInner(props: BookEditorInnerProps) {
                     placeholder={DEFAULT_BOOK}
                     spellCheck={false}
                 />
-                <div className={styles.bookEditorBar}>
-                    {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
-                    {' | '}
-                    <a
-                        href="https://github.com/webgptorg/book"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={`Book Language Version ${BOOK_LANGUAGE_VERSION}`}
-                    >
-                        📖 {BOOK_LANGUAGE_VERSION}
-                    </a>
-                    {' | '}
-                    <a
-                        href="https://github.com/webgptorg/promptbook"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={`Promptbook Engine Version ${PROMPTBOOK_ENGINE_VERSION}`}
-                    >
-                        🏭 {PROMPTBOOK_ENGINE_VERSION}
-                    </a>
-                </div>
+                {isFooterShown && (
+                    <div className={styles.bookEditorBar}>
+                        {value.split('\n', 2)[0] || DEFAULT_BOOK_TITLE}
+                        {' | '}
+                        <a
+                            href="https://github.com/webgptorg/book"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Book Language Version ${BOOK_LANGUAGE_VERSION}`}
+                        >
+                            📖 {BOOK_LANGUAGE_VERSION}
+                        </a>
+                        {' | '}
+                        <a
+                            href="https://github.com/webgptorg/promptbook"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Promptbook Engine Version ${PROMPTBOOK_ENGINE_VERSION}`}
+                        >
+                            🏭 {PROMPTBOOK_ENGINE_VERSION}
+                        </a>
+                    </div>
+                )}
             </div>
         </div>
     );

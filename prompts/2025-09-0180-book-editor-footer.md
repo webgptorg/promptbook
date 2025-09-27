@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🎛] Add prop `isFooterShown` to `BookEditor` component
 

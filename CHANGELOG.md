@@ -4,6 +4,12 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
+-   **Enhanced:** Added `isFooterShown` prop to `BookEditor` component
+    -   New optional boolean prop `isFooterShown` controls visibility of the footer with book title and version information
+    -   By default, the footer is hidden to maintain clean appearance
+    -   When set to true, shows footer bar with book title, Book language version, and Promptbook engine version
+    -   Updated BookEditorPreview to demonstrate both variants (with and without footer)
+    -   Follows DRY principle by reusing existing footer implementation with conditional rendering
 -   **Enhanced:** MODEL commitment to support enforcing any model requirement with multiple syntax variations
     -   Added support for multi-line named parameter format: `MODEL NAME gpt-4`, `MODEL TEMPERATURE 0.7`, `MODEL TOP_P 0.9`, `MODEL MAX_TOKENS 2048`
     -   Maintained backward compatibility with legacy single-line format: `MODEL gpt-4 temperature=0.3 topP=0.9`

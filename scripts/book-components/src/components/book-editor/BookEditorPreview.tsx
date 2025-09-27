@@ -238,6 +238,28 @@ export default function BookEditorPreview() {
                 isVerbose={false}
                 isBorderRadiusDisabled={true}
             />
+            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor with Footer (isFooterShown)</h2>
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={styles.BookEditor}
+                isVerbose={false}
+                isFooterShown={true}
+                onFileUpload={(file) => {
+                    return `[${file.name}]`;
+                }}
+            />
+            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor without Footer (default)</h2>
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={styles.BookEditor}
+                isVerbose={false}
+                isFooterShown={false}
+                onFileUpload={(file) => {
+                    return `[${file.name}]`;
+                }}
+            />
         </div>
     );
 }
