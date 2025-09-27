@@ -1,10 +1,9 @@
 [ ]
 
-[✨↖️] Enhance `MODEL` commitment to support enforcing any model requirement
+[✨🎛] Add prop `isFooterShown` to `BookEditor` component
 
--   Purpose of the `MODEL` commimtnet is to enforce the technical parameter for the agent
--   When no `MODEL` commitment is specified, the best !!!!
--   Reflext this into commitment documentation and description and also `CHAMGELOG.md`
+-   By default, the footer is hidden.
+-   In preview show both variants (with and without footer) as an examples.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
@@ -12,16 +11,7 @@
 
 [ ]
 
-[✨↖️] bar
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
-
----
-
-[ ]
-
-[✨↖️] bar
+[✨🎛] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
@@ -30,7 +20,16 @@
 
 [ ]
 
-[✨↖️] bar
+[✨🎛] qux
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨🎛] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
