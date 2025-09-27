@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏬] `NOTE` commitment should have `COMMENT` and `NONCE` alias
 

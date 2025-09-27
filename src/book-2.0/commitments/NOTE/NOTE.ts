@@ -52,8 +52,8 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
             ## Key behaviors
 
             - Does not modify the agent's behavior or responses.
-            - Multiple \`NOTE\` and \`NOTES\` commitments are aggregated for debugging.
-            - Both terms work identically and can be used interchangeably.
+            - Multiple \`NOTE\`, \`NOTES\`, \`COMMENT\`, and \`NONCE\` commitments are aggregated for debugging.
+            - All four terms work identically and can be used interchangeably.
             - Useful for documenting design decisions and reminders.
             - Content is preserved in metadata for inspection.
 
@@ -63,7 +63,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
             Customer Support Bot
 
             NOTE This agent was designed for customer support scenarios
-            NOTE Remember to update the knowledge base monthly
+            COMMENT Remember to update the knowledge base monthly
             PERSONA You are a helpful customer support representative
             KNOWLEDGE Company policies and procedures
             RULE Always be polite and professional
@@ -72,7 +72,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
             \`\`\`book
             Research Assistant
 
-            NOTE Performance optimized for quick response times
+            NONCE Performance optimized for quick response times
             NOTE Uses RAG for accessing latest research papers
             PERSONA You are a knowledgeable research assistant
             ACTION Can help with literature reviews and citations
@@ -124,6 +124,20 @@ export const NoteCommitment = new NoteCommitmentDefinition('NOTE');
  * @private [🪔] Maybe export the commitments through some package
  */
 export const NotesCommitment = new NoteCommitmentDefinition('NOTES');
+
+/**
+ * Singleton instance of the COMMENT commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const CommentCommitment = new NoteCommitmentDefinition('COMMENT');
+
+/**
+ * Singleton instance of the NONCE commitment definition
+ *
+ * @private [🪔] Maybe export the commitments through some package
+ */
+export const NonceCommitment = new NoteCommitmentDefinition('NONCE');
 
 /**
  * [💞] Ignore a discrepancy between file name and entity name

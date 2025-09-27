@@ -4,6 +4,12 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
+-   **Enhanced:** Completed COMMENT and NONCE aliases implementation for NOTE commitment
+    -   Added missing singleton instances `CommentCommitment` and `NonceCommitment` to NOTE.ts
+    -   Updated documentation to include examples using all four aliases (NOTE, NOTES, COMMENT, NONCE)
+    -   All aliases now fully supported with proper TypeScript exports and singleton instances
+    -   Maintains DRY principle by using the same `NoteCommitmentDefinition` class for all aliases
+    -   Registry entries were already present, now implementation is complete and consistent
 -   **Enhanced:** Syntax highlighting for NOTE commitment with comment-like appearance
     -   NOTE commitments (NOTE, NOTES, COMMENT, NONCE) are now highlighted in gray color similar to code comments in IDEs
     -   The entire commitment including its content is treated as a comment and styled with gray color, italic font, and reduced opacity
