@@ -4,6 +4,14 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
+-   **Enhanced:** Syntax highlighting for NOTE commitment with comment-like appearance
+    -   NOTE commitments (NOTE, NOTES, COMMENT, NONCE) are now highlighted in gray color similar to code comments in IDEs
+    -   The entire commitment including its content is treated as a comment and styled with gray color, italic font, and reduced opacity
+    -   Added COMMENT and NONCE as aliases to the NOTE commitment following DRY principle - using same NoteCommitmentDefinition class for all aliases
+    -   All these commitments serve as code comments without affecting agent behavior, similar to `//` and `/* */` in JavaScript
+    -   Content continues until the next commitment or end of agent source, matching the parsing behavior
+    -   Follows DRY principle by reusing existing NOTE commitment logic for COMMENT and NONCE aliases
+
 -   **Enhanced:** `OpenAiCompatibleExecutionTools` now automatically handles "Unsupported value" parameter errors
     -   Detects OpenAI errors like "Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported."
     -   Automatically removes the unsupported parameter (e.g., temperature, max_tokens) and retries the request once

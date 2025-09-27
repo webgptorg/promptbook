@@ -185,3 +185,10 @@
     color: #8e44ad; /* Purple color (same as at parameters) */
     font-weight: 500;
 }
+
+/* Comment-like commitments (NOTE, COMMENT, NONCE) highlighting - gray like code comments */
+.bookEditorHighlight :global(.book-highlight-comment) {
+    color: #6b7280; /* Gray color similar to code comments in IDEs */
+    font-style: italic;
+    opacity: 0.8;
+}

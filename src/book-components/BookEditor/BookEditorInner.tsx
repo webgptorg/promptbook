@@ -335,15 +335,25 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         };
     }, []);
 
+    // Comment-like commitments that should be highlighted as gray comments
+    const commentCommitmentTypes = useMemo(() => ['NOTE', 'NOTES', 'COMMENT', 'NONCE'], []);
+
+    const commentRegex = useMemo(() => {
+        // Pattern to match comment-like commitments (NOTE, NOTES, COMMENT, NONCE) and their content
+        // Matches from the commitment keyword until the next line that starts with a commitment or end of text
+        const pattern = `(^|\\n)\\s*((?:${commentCommitmentTypes.map((t) => escapeRegex(t)).join('|')})\\b[^\\n]*(?:\\n(?!\\s*[A-Z]+\\s)[^\\n]*)*?)`;
+        return new RegExp(pattern, 'gmi');
+    }, [commentCommitmentTypes]);
+
     const typeRegex = useMemo(() => {
         const allTypes = getAllCommitmentDefinitions().map(({ type }) => String(type));
-        // Filter out 'META' from regular commitments since we'll handle it specially
-        const nonMetaTypes = allTypes.filter((t) => t !== 'META');
+        // Filter out 'META' and comment-like commitments since we'll handle them specially
+        const nonMetaTypes = allTypes.filter((t) => t !== 'META' && !commentCommitmentTypes.includes(t));
         // Only match commitments at the beginning of lines (after newline or at start of text)
         // This follows the same logic as parsing in createCommitmentRegex.ts
         const pattern = `(^|\\n)\\s*(?:${nonMetaTypes.map((t) => escapeRegex(t)).join('|')})\\b`;
         return new RegExp(pattern, 'gmi');
-    }, []);
+    }, [commentCommitmentTypes]);
 
     const metaRegex = useMemo(() => {
         // Pattern to match META followed by exactly one uppercase word (DRY principle - single pattern for all META commitments)
@@ -434,20 +444,43 @@ export function BookEditorInner(props: BookEditorInnerProps) {
         const processedRanges: Array<{
             start: number;
             end: number;
-            type: 'keyword' | 'parameter';
+            type: 'keyword' | 'parameter' | 'comment';
         }> = [];
 
-        // First, handle META commitments (they take priority)
+        // First, handle comment-like commitments (NOTE, COMMENT, NONCE) - they take highest priority
+        // and should be highlighted as gray comments, including their content
+        text.replace(commentRegex, (match: string, ...args: unknown[]) => {
+            const index = args[args.length - 2] as number;
+            // Adjust index to skip the newline character if present at the beginning of match
+            const adjustedStart = match.startsWith('\n') ? index + 1 : index;
+            const adjustedMatch = match.startsWith('\n') ? match.slice(1) : match;
+            processedRanges.push({ start: adjustedStart, end: adjustedStart + adjustedMatch.length, type: 'comment' });
+            return match;
+        });
+
+        // Then, handle META commitments (they take priority over regular commitments)
         text.replace(metaRegex, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number;
             // Adjust index to skip the newline character if present at the beginning of match
             const adjustedStart = match.startsWith('\n') ? index + 1 : index;
             const adjustedMatch = match.startsWith('\n') ? match.slice(1) : match;
-            processedRanges.push({ start: adjustedStart, end: adjustedStart + adjustedMatch.length, type: 'keyword' });
+            const matchEnd = adjustedStart + adjustedMatch.length;
+
+            // Check if this match overlaps with any existing range (especially comments)
+            const overlaps = processedRanges.some(
+                (range) =>
+                    (adjustedStart >= range.start && adjustedStart < range.end) ||
+                    (matchEnd > range.start && matchEnd <= range.end) ||
+                    (adjustedStart < range.start && matchEnd > range.end),
+            );
+
+            if (!overlaps) {
+                processedRanges.push({ start: adjustedStart, end: matchEnd, type: 'keyword' });
+            }
             return match;
         });
 
-        // Then handle regular commitment types, avoiding overlaps with META ranges
+        // Then handle regular commitment types, avoiding overlaps with META and comment ranges
         text.replace(typeRegex, (match: string, ...args: unknown[]) => {
             const index = args[args.length - 2] as number;
             // Adjust index to skip the newline character if present at the beginning of match
@@ -508,6 +541,10 @@ export function BookEditorInner(props: BookEditorInnerProps) {
                 case 'parameter':
                     // Use the unified parameter class, but maintain backward compatibility
                     cssClass = 'book-highlight-parameter';
+                    break;
+                case 'comment':
+                    // NOTE, COMMENT, NONCE commitments should be highlighted as gray comments
+                    cssClass = 'book-highlight-comment';
                     break;
                 default:
                     cssClass = 'book-highlight-keyword';

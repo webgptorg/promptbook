@@ -28,8 +28,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 'NOTES'> {
-    constructor(type: 'NOTE' | 'NOTES' = 'NOTE') {
+export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE'> {
+    constructor(type: 'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE' = 'NOTE') {
         super(type);
     }
 

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏬] Make syntax highlighting for `NOTE` commitment
 
