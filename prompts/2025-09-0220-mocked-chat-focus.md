@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💆] `MockedChat` should keep most recent message visible
 

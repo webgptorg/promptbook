@@ -13,6 +13,7 @@ import { ArrowIcon } from '../../icons/ArrowIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import type { ChatMessage } from '../types/ChatMessage';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
@@ -63,9 +64,17 @@ export function Chat(props: ChatProps) {
 
     const { onUseTemplate } = props;
 
-    const [isAutoScrolling, setAutoScrolling] = useState(true);
+    // Use the auto-scroll hook
+    const {
+        isAutoScrolling,
+        chatMessagesRef,
+        handleScroll,
+        handleMessagesChange,
+        scrollToBottom,
+        isMobile: isMobileFromHook,
+    } = useChatAutoScroll();
+
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const chatMessagesRef = useRef<HTMLDivElement | null>(null);
     const buttonSendRef = useRef<HTMLButtonElement | null>(null);
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
@@ -78,22 +87,9 @@ export function Chat(props: ChatProps) {
     // const [inputValue, setInputValue] = useState('');
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT'); // Simplified light/dark mode
     const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
-    const [isMobile, setIsMobile] = useState(false);
 
-    // Detect mobile device
-    useEffect(() => {
-        const checkMobile = () => {
-            const isMobileDevice =
-                window.innerWidth <= 768 ||
-                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            setIsMobile(isMobileDevice);
-        };
-
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    // Use mobile detection from the hook
+    const isMobile = isMobileFromHook;
 
     useEffect(
         (/* Focus textarea on page load */) => {
@@ -243,6 +239,11 @@ export function Chat(props: ChatProps) {
         });
     }, [messages, isAiTextHumanized]);
 
+    // Trigger auto-scroll when messages change
+    useEffect(() => {
+        handleMessagesChange();
+    }, [postprocessedMessages, handleMessagesChange]);
+
     return (
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
@@ -256,25 +257,7 @@ export function Chat(props: ChatProps) {
                             <button
                                 data-button-type="custom"
                                 className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
-                                onClick={() => {
-                                    const chatMessagesElement = chatMessagesRef.current;
-
-                                    if (chatMessagesElement === null) {
-                                        return;
-                                    }
-
-                                    // Mobile-optimized scroll to bottom
-                                    if (isMobile) {
-                                        chatMessagesElement.scrollTo({
-                                            top: chatMessagesElement.scrollHeight,
-                                            behavior: 'smooth',
-                                        });
-                                    } else {
-                                        chatMessagesElement.style.scrollBehavior = 'smooth';
-                                        chatMessagesElement.scrollBy(0, 10000);
-                                        chatMessagesElement.style.scrollBehavior = 'auto';
-                                    }
-                                }}
+                                onClick={scrollToBottom}
                             >
                                 <ArrowIcon direction="DOWN" size={33} />
                             </button>
@@ -320,42 +303,8 @@ export function Chat(props: ChatProps) {
 
                     <div
                         className={classNames(styles.chatMessages, useChatCssClassName('chatMessages'))}
-                        ref={(chatMessagesElement) => {
-                            chatMessagesRef.current = chatMessagesElement;
-
-                            if (chatMessagesElement === null) {
-                                return;
-                            }
-
-                            if (!isAutoScrolling) {
-                                return;
-                            }
-
-                            // Mobile-optimized scrolling
-                            if (isMobile) {
-                                // Delay scroll slightly on mobile for better performance
-                                requestAnimationFrame(() => {
-                                    chatMessagesElement.scrollTo({
-                                        top: chatMessagesElement.scrollHeight,
-                                        behavior: 'smooth',
-                                    });
-                                });
-                            } else {
-                                // Desktop smooth scrolling
-                                chatMessagesElement.style.scrollBehavior = 'smooth';
-                                chatMessagesElement.scrollBy(0, 1000);
-                                chatMessagesElement.style.scrollBehavior = 'auto';
-                            }
-                        }}
-                        onScroll={(event) => {
-                            const element = event.target;
-
-                            if (!(element instanceof HTMLDivElement)) {
-                                return;
-                            }
-
-                            setAutoScrolling(element.scrollTop + element.clientHeight > element.scrollHeight - 100);
-                        }}
+                        ref={chatMessagesRef}
+                        onScroll={handleScroll}
                     >
                         {postprocessedMessages.map((message, i) => {
                             const participant = participants.find((participant) => participant.name === message.from);
