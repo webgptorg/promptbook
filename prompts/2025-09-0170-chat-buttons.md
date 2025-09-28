@@ -1,6 +1,6 @@
 [x]
 
-[✨🎆] The ``Chat` component should be able to work with predefined messages buttons
+[✨🎆] The `Chat` component should be able to work with predefined messages buttons
 
 -   Buttons are defined in last shown message, for example:
 
