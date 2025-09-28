@@ -12,7 +12,7 @@ export type AvatarChipProps = {
     /**
      * Avatar to be shown
      */
-    readonly avatarBasicInformation: AgentBasicInformation;
+    readonly avatarBasicInformation: Omit<AgentBasicInformation, 'parameters'>;
 
     /**
      * Whether this chip is a template avatar
@@ -27,7 +27,7 @@ export type AvatarChipProps = {
     /**
      * Called when chip is clicked
      */
-    readonly onSelect?: (avatar: AgentBasicInformation) => void;
+    readonly onSelect?: (avatar: Omit<AgentBasicInformation, 'parameters'>) => void;
 
     /**
      * Whether this chip is selected

@@ -2,7 +2,6 @@
 'use client';
 
 import { AvatarChip } from '@promptbook-local/components';
-import type { AgentBasicInformation } from '@promptbook-local/types';
 import { useState } from 'react';
 
 /**
@@ -11,12 +10,14 @@ import { useState } from 'react';
 export default function AvatarChipPreview() {
     const [selected, setSelected] = useState(false);
 
-    const sampleAvatar: AgentBasicInformation = {
+    const sampleAvatar = {
         agentName: 'Jane Doe',
-        profileImageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
         personaDescription: 'A friendly AI assistant.',
+        meta: {
+            image: 'https://randomuser.me/api/portraits/women/44.jpg',
+        },
         // Add other required fields if needed
-    };
+    } as const;
 
     return (
         <div className="flex gap-6 items-center">
