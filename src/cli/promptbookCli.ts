@@ -11,6 +11,7 @@ import { $initializeListModelsCommand } from './cli-commands/list-models';
 import { $initializeListScrapersCommand } from './cli-commands/list-scrapers';
 import { $initializeLoginCommand } from './cli-commands/login';
 import { $initializeMakeCommand } from './cli-commands/make';
+import { $initializeOAuthLoginCommand } from './cli-commands/oauth-login';
 import { $initializePrettifyCommand } from './cli-commands/prettify';
 import { $initializeRunCommand } from './cli-commands/run';
 import { $initializeStartServerCommand } from './cli-commands/start-server';
@@ -54,6 +55,7 @@ export async function promptbookCli(): Promise<void> {
     $initializeAboutCommand(program);
     $initializeRunCommand(program);
     $initializeLoginCommand(program);
+    $initializeOAuthLoginCommand(program);
     $initializeHelloCommand(program);
     $initializeMakeCommand(program);
     $initializePrettifyCommand(program);
