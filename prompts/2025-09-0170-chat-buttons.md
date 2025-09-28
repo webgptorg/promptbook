@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🎆] The ``Chat` component should be able to work with predefined messages buttons
 

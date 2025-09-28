@@ -327,6 +327,61 @@
     transform: translateY(-1px);
 }
 
+/* Message buttons container */
+.messageButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(125, 125, 125, 0.15);
+}
+
+/* Individual message button */
+.messageButton {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    background: rgba(125, 125, 125, 0.1);
+    border: 1px solid rgba(125, 125, 125, 0.2);
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.messageButton:hover {
+    background: rgba(0, 132, 255, 0.1);
+    border-color: rgba(0, 132, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 132, 255, 0.15);
+}
+
+.messageButton:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* Remove default markdown styles from button content */
+.messageButton p {
+    margin: 0;
+    padding: 0;
+    line-height: inherit;
+}
+
+.messageButton strong {
+    font-weight: 600;
+}
+
+.messageButton em {
+    font-style: italic;
+}
+
 /* Rating system */
 .chatMainFlow .chatMessage .rating {
     position: absolute;

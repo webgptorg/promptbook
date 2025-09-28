@@ -4,6 +4,16 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
+-   **Enhanced:** Added predefined message buttons functionality to `Chat` component
+    -   Buttons are defined in markdown using format `[Button Text](?message=Message%20to%20send)` within message content
+    -   Buttons are automatically parsed from the last message and rendered below the message text
+    -   Button text supports markdown formatting (bold, italic, etc.) for enhanced presentation
+    -   Clicking a button sends the predefined message as if the user typed it manually
+    -   Added `parseMessageButtons` utility function exported from `Chat/utils/parseMessageButtons`
+    -   Added new CSS classes `.messageButtons` and `.messageButton` with hover and active states
+    -   Created new `chatButtons` scenario in ChatPreview to demonstrate the functionality
+    -   Follows DRY principle by reusing existing message handling and markdown rendering logic
+    -   Only shows buttons for the last message to maintain clean chat interface
 -   **Enhanced:** Added `isFooterShown` prop to `BookEditor` component
     -   New optional boolean prop `isFooterShown` controls visibility of the footer with book title and version information
     -   By default, the footer is hidden to maintain clean appearance

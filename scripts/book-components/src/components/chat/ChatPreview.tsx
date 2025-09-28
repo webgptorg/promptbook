@@ -6,6 +6,7 @@ import type { ChatMessage } from '../../../../../src/book-components/Chat/types/
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import {
     assistantsOnlyScenario,
+    chatButtonsScenario,
     emptyScenario,
     loadingScenario,
     longThreadScenario,
@@ -52,6 +53,7 @@ export default function ChatPreview() {
         assistantsOnly: assistantsOnlyScenario,
         loading: loadingScenario,
         longThread: longThreadScenario,
+        chatButtons: chatButtonsScenario,
     };
 
     // Read scenario from URL parameter on component mount

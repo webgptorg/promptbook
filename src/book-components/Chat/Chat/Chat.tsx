@@ -14,6 +14,7 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import type { ChatMessage } from '../types/ChatMessage';
+import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
@@ -362,6 +363,13 @@ export function Chat(props: ChatProps) {
                             const color = Color.from((participant && participant.color) || '#ccc');
                             const colorOfText = color.then(textColor);
 
+                            // Parse buttons from message content
+                            const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+
+                            // Only show buttons for the last message
+                            const isLastMessage = i === postprocessedMessages.length - 1;
+                            const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
+
                             return (
                                 <div
                                     key={i}
@@ -422,8 +430,30 @@ export function Chat(props: ChatProps) {
                                             </>
                                         ) : (
                                             <div
-                                                dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                                                dangerouslySetInnerHTML={{
+                                                    __html: renderMarkdown(contentWithoutButtons),
+                                                }}
                                             />
+                                        )}
+
+                                        {shouldShowButtons && (
+                                            <div className={styles.messageButtons}>
+                                                {buttons.map((button, buttonIndex) => (
+                                                    <button
+                                                        key={buttonIndex}
+                                                        className={styles.messageButton}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            if (onMessage) {
+                                                                onMessage(button.message);
+                                                            }
+                                                        }}
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: renderMarkdown(button.text),
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
                                         )}
 
                                         {message.from.includes('PROMPTBOOK_PERSONA') && message.isComplete && (
