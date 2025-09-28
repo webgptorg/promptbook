@@ -1,5 +1,6 @@
 'use client';
 
+import { book, createAgentLlmExecutionTools } from '@promptbook-local/core';
 import { useEffect, useMemo, useState } from 'react';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
@@ -47,6 +48,58 @@ export default function LlmChatPreview() {
         }
     }, [openaiApiKey]);
 
+    const agentLlmTools = useMemo(() => {
+        if (!openaiLlmTools) {
+            return null;
+        }
+        try {
+            return createAgentLlmExecutionTools({
+                llmTools: openaiLlmTools,
+                agentSource: book`
+                    Pavol Hejný
+
+                    PERSONA Pavol Hejný. Interested in Coding, AI, Business
+                    META LINK https://www.facebook.com/hejny
+                    META IMAGE https://collboard.fra1.cdn.digitaloceanspaces.com/ptbk/social-images/scontent-lga3-1.xx.fbcdn.net/78/78b62041a759f07e57da163985ee20d21e1bef612a031f3243066c0ece166d53.jpg
+
+                    STYLE 1. **Tone and Voice**: The overall tone across the posts varies from casual to professional, interspersed with humorous elements. The voice is generally informative, with a conversational style that often engages the reader directly, particularly when discussing technical or AI-related topics.
+
+                    2. **Language Patterns**: The author uses a mix of technical jargon related to AI, coding, and technology ("CRUD formulářů", "AI agenti", "LLM prompty") and more casual, approachable language. There is frequent use of rhetorical questions and direct questions to the audience, indicating a reflective and inclusive communication approach.
+
+                    3. **Communication Style**: The posts are primarily direct and informative, with a clear focus on engaging the audience by sharing insights, asking questions, and offering information through links and prompts. Storytelling is evident when discussing past events or future possibilities, particularly within the AI and tech community.
+
+                    4. **Personality Traits**: The posts reflect a curious, innovative, and forward-thinking personality, with a strong inclination towards humor, community involvement, and education.
+
+                    5. **Content Themes**: Key themes include technological advancements, AI developments, coding, community hackathons, and general tech community activities. There's a strong focus on AI's practical applications and theoretical questions about its future.
+
+                    6. **Formatting Preferences**: The use of emojis and hashtags is moderately frequent, enhancing the casual tone of some posts. Line breaks are used to separate thoughts and ideas clearly. There is also notable use of exaggerated letter elongation for emphasis ("veeeeeeeelká") and philosophical or pseudo-scientific formatting in some humorous posts.
+
+                    7. **Engagement Style**: Engagement with the audience is proactive, with questions posed directly to readers and calls to action ("Doražte dneska večer"). Posts are designed to stimulate conversation and reflection among the readers.
+
+                    **Concise Summary:**
+
+                    1. **Core Voice Characteristics**: The core traits of Pavol Hejný's writing include a conversational and approachable voice, combined with a professional and reflective tone when discussing technology and AI.
+
+                    2. **Distinctive Language Patterns**: He frequently employs technical terminology related to AI and coding, coupled with a casual language style that includes the use of emojis and rhetorical questions to engage the audience.
+
+                    3. **Communication Approach**: His messages are mainly structured in an informative yet direct manner, often incorporating questions and direct calls to action that encourage interactivity and engagement from the audience.
+
+                    4. **Personality Expression**: His personality shines through as innovative, community-oriented, and humorous, particularly when discussing complex AI topics or reflecting on technological advancements in a casual, approachable manner.
+
+
+                    RULE Add button suggestions for quick user actions, for example:
+
+                    [Say Hello](?message=Hello!)
+                    [Ask for help](?message=I need help with ...)
+                    [Just say thanks](?message=Thanks!)
+                `,
+            });
+        } catch (error) {
+            console.error('Failed to create Agent tools:', error);
+            return null;
+        }
+    }, [openaiLlmTools]);
+
     const scenarios = {
         'mock-basic': {
             name: 'Mocked Chat (No storage)',
@@ -62,6 +115,11 @@ export default function LlmChatPreview() {
             name: 'OpenAI Chat',
             description: 'Chat with OpenAI GPT models',
             llmTools: openaiLlmTools,
+        },
+        'pavol-hejny-agent': {
+            name: 'Pavol Hejny`s Agent',
+            description: 'Chat with Agent representing Pavol Hejny based on Promptbook persona',
+            llmTools: agentLlmTools,
         },
     };
 
@@ -125,6 +183,16 @@ export default function LlmChatPreview() {
                         {...commonProps}
                         persistenceKey="demo-openai-chat"
                         placeholderMessageContent="This OpenAI chat persists in localStorage - try refreshing the page!"
+                        isFocusedOnLoad={false}
+                        isSaveButtonEnabled={true}
+                    />
+                );
+            case 'pavol-hejny-agent':
+                return (
+                    <LlmChat
+                        {...commonProps}
+                        persistenceKey="demo-pavol-hejny-agent"
+                        placeholderMessageContent="This Pavol Hejny's Agent chat persists in localStorage - try refreshing the page!"
                         isFocusedOnLoad={false}
                         isSaveButtonEnabled={true}
                     />
