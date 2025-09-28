@@ -107,6 +107,13 @@
             "focus": false
         },
         {
+            "name": "🧪 Test 🔠 Book Components build",
+            "command": "npm run test-book-components-build",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🧪 (examples) Test lint ",
             "command": "npx eslint examples",
             "execute": true,
