@@ -343,7 +343,9 @@ export function BookEditorInner(props: BookEditorInnerProps) {
     const commentRegex = useMemo(() => {
         // Pattern to match comment-like commitments (NOTE, NOTES, COMMENT, NONCE) and their content
         // Matches from the commitment keyword until the next line that starts with a commitment or end of text
-        const pattern = `(^|\\n)\\s*((?:${commentCommitmentTypes.map((t) => escapeRegex(t)).join('|')})\\b[^\\n]*(?:\\n(?!\\s*[A-Z]+\\s)[^\\n]*)*?)`;
+        const pattern = `(^|\\n)\\s*((?:${commentCommitmentTypes
+            .map((t) => escapeRegex(t))
+            .join('|')})\\b[^\\n]*(?:\\n(?!\\s*[A-Z]+\\s)[^\\n]*)*?)`;
         return new RegExp(pattern, 'gmi');
     }, [commentCommitmentTypes]);
 

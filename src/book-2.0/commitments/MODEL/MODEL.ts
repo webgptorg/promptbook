@@ -155,7 +155,7 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
     private parseNamedParameter(
         requirements: AgentModelRequirements,
         parameterName: string,
-        valueParts: string[]
+        valueParts: string[],
     ): AgentModelRequirements {
         const value = valueParts.join(' ').trim();
 
