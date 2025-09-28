@@ -3,6 +3,7 @@
 import { book, createAgentLlmExecutionTools } from '@promptbook-local/core';
 import { useEffect, useMemo, useState } from 'react';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
+import { useSendMessageToLlmChat } from '../../../../../src/book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedEchoLlmExecutionTools';
@@ -135,6 +136,41 @@ export default function LlmChatPreview() {
         setOpenaiApiKey(newApiKey);
     };
 
+    // Component that demonstrates useSendMessageToLlmChat hook
+    function SendMessageButtons() {
+        const sendMessage = useSendMessageToLlmChat();
+
+        const quickMessages = [
+            { label: 'Say Hello', message: 'Hello! How are you today?' },
+            { label: 'Ask for Help', message: 'I need help with something. Can you assist me?' },
+            { label: 'Tell a Joke', message: 'Can you tell me a funny joke?' },
+            { label: 'Explain AI', message: 'Can you explain what artificial intelligence is in simple terms?' },
+            { label: 'Thank You', message: 'Thank you for your help!' },
+        ];
+
+        return (
+            <div className="mb-4 p-3 bg-gray-50 rounded-md border">
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                    useSendMessageToLlmChat Hook Demo:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                    {quickMessages.map(({ label, message }) => (
+                        <button
+                            key={label}
+                            onClick={() => sendMessage(message)}
+                            className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors"
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                    These buttons demonstrate how external components can send messages to the LlmChat using the hook.
+                </p>
+            </div>
+        );
+    }
+
     const renderChat = () => {
         const currentScenario = scenarios[scenario as keyof typeof scenarios];
 
@@ -157,49 +193,58 @@ export default function LlmChatPreview() {
             style: { height: '600px' },
         };
 
-        switch (scenario) {
-            case 'mock-basic':
-                return (
-                    <LlmChat
-                        {...commonProps}
-                        placeholderMessageContent="Ask the mocked echo LLM anything..."
-                        isFocusedOnLoad={false}
-                        isSaveButtonEnabled={true}
-                    />
-                );
-            case 'mock-persistent':
-                return (
-                    <LlmChat
-                        {...commonProps}
-                        persistenceKey="demo-mock-chat"
-                        placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
-                        isFocusedOnLoad={false}
-                        isSaveButtonEnabled={true}
-                    />
-                );
-            case 'openai':
-                return (
-                    <LlmChat
-                        {...commonProps}
-                        persistenceKey="demo-openai-chat"
-                        placeholderMessageContent="This OpenAI chat persists in localStorage - try refreshing the page!"
-                        isFocusedOnLoad={false}
-                        isSaveButtonEnabled={true}
-                    />
-                );
-            case 'pavol-hejny-agent':
-                return (
-                    <LlmChat
-                        {...commonProps}
-                        persistenceKey="demo-pavol-hejny-agent"
-                        placeholderMessageContent="This Pavol Hejny's Agent chat persists in localStorage - try refreshing the page!"
-                        isFocusedOnLoad={false}
-                        isSaveButtonEnabled={true}
-                    />
-                );
-            default:
-                return <div className="text-red-600">Unknown scenario</div>;
-        }
+        const chatComponent = (() => {
+            switch (scenario) {
+                case 'mock-basic':
+                    return (
+                        <LlmChat
+                            {...commonProps}
+                            placeholderMessageContent="Ask the mocked echo LLM anything..."
+                            isFocusedOnLoad={false}
+                            isSaveButtonEnabled={true}
+                        />
+                    );
+                case 'mock-persistent':
+                    return (
+                        <LlmChat
+                            {...commonProps}
+                            persistenceKey="demo-mock-chat"
+                            placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
+                            isFocusedOnLoad={false}
+                            isSaveButtonEnabled={true}
+                        />
+                    );
+                case 'openai':
+                    return (
+                        <LlmChat
+                            {...commonProps}
+                            persistenceKey="demo-openai-chat"
+                            placeholderMessageContent="This OpenAI chat persists in localStorage - try refreshing the page!"
+                            isFocusedOnLoad={false}
+                            isSaveButtonEnabled={true}
+                        />
+                    );
+                case 'pavol-hejny-agent':
+                    return (
+                        <LlmChat
+                            {...commonProps}
+                            persistenceKey="demo-pavol-hejny-agent"
+                            placeholderMessageContent="This Pavol Hejny's Agent chat persists in localStorage - try refreshing the page!"
+                            isFocusedOnLoad={false}
+                            isSaveButtonEnabled={true}
+                        />
+                    );
+                default:
+                    return <div className="text-red-600">Unknown scenario</div>;
+            }
+        })();
+
+        return (
+            <div>
+                <SendMessageButtons />
+                {chatComponent}
+            </div>
+        );
     };
 
     const currentScenario = scenarios[scenario as keyof typeof scenarios];

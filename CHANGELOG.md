@@ -4,6 +4,14 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
+-   **Added:** `useSendMessageToLlmChat` hook for programmatic message sending to `LlmChat` component
+    -   New React hook `useSendMessageToLlmChat` allows sending messages to any `LlmChat` component from anywhere in the React tree
+    -   Messages sent via the hook behave exactly like user-typed messages - they're added to chat thread and trigger LLM responses
+    -   Hook uses React Context pattern with `LlmChatContext` provider automatically created by `LlmChat` component
+    -   Added comprehensive demonstration in `LlmChatPreview` with predefined quick message buttons
+    -   Exported `SendMessageToLlmChatFunction` type and `useSendMessageToLlmChat` hook from `@promptbook/components`
+    -   Follows DRY principle by reusing existing `handleMessage` functionality from `LlmChat` component
+    -   Provides clear error message when used outside of `LlmChat` component context
 -   **Enhanced:** Added predefined message buttons functionality to `Chat` component
     -   Buttons are defined in markdown using format `[Button Text](?message=Message%20to%20send)` within message content
     -   Buttons are automatically parsed from the last message and rendered below the message text

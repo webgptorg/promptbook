@@ -5,6 +5,7 @@ import type { string_markdown, string_name } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { LlmChatContext } from '../hooks/useSendMessageToLlmChat';
 import { ChatPersistence } from '../utils/ChatPersistence';
 import type { LlmChatProps } from './LlmChatProps';
 
@@ -195,11 +196,13 @@ export function LlmChat(props: LlmChatProps) {
     }, [persistenceKey, onReset, onChange, participants]);
 
     return (
-        <Chat
-            {...restProps}
-            {...{ messages, onReset, tasksProgress, participants }}
-            onMessage={handleMessage}
-            onReset={handleReset}
-        />
+        <LlmChatContext.Provider value={handleMessage}>
+            <Chat
+                {...restProps}
+                {...{ messages, onReset, tasksProgress, participants }}
+                onMessage={handleMessage}
+                onReset={handleReset}
+            />
+        </LlmChatContext.Provider>
     );
 }
