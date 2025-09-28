@@ -2,33 +2,10 @@
 
 [✨☂️] Cleanup unused functions and classes
 
--   !!!
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
-
----
-
-[ ]
-
-[✨☂️] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
-
----
-
-[ ]
-
-[✨☂️] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
-
----
-
-[ ]
-
-[✨☂️] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
+-   Go through the codebase and identify any functions or classes that are no longer used.
+-   You are looking into `src` folder
+-   There are 3 types of entities (functions and classes) to cleanup:
+    1. Entities that are exported to some `@promptbook/*` package
+    2. Entities that are used only internally inside the project
+    3. Entities that arent used at all
+-   You are cleaning up only the 3rd type of entities - entities that arent used at all
