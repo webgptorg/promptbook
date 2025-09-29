@@ -45,7 +45,7 @@ export type SendMessageToLlmChatFunction = {
  * - Safe to call before the <LlmChat/> mounts (messages will be queued).
  * - Keeps DRY by letting <LlmChat/> reuse its internal `handleMessage` logic.
  *
- * @public
+ * @public exported from `@promptbook/components`
  */
 export function useSendMessageToLlmChat(): SendMessageToLlmChatFunction {
     const ref = useRef<SendMessageToLlmChatFunction | null>(null);
