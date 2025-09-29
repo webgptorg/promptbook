@@ -9,6 +9,8 @@ export type SendMessageToLlmChatFunction = (message: string) => void;
 
 /**
  * Context for LlmChat message sending functionality
+ *
+ * @private Internal utility of `useSendMessageToLlmChat` and `LlmChat`
  */
 export const LlmChatContext = createContext<SendMessageToLlmChatFunction | null>(null);
 
@@ -43,7 +45,7 @@ export function useSendMessageToLlmChat(): SendMessageToLlmChatFunction {
     if (!sendMessage) {
         throw new Error(
             'useSendMessageToLlmChat must be used within a component that contains an LlmChat component. ' +
-            'Make sure you have an <LlmChat/> component rendered somewhere in your component tree.'
+                'Make sure you have an <LlmChat/> component rendered somewhere in your component tree.',
         );
     }
 

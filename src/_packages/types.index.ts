@@ -16,6 +16,8 @@ import type { MockedChatDelayConfig } from '../book-components/AvatarProfile/Ava
 import type { MockedChatProps } from '../book-components/AvatarProfile/AvatarProfile/MockedChat';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
+import type { ChatAutoScrollConfig } from '../book-components/Chat/hooks/useChatAutoScroll';
+import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
@@ -345,6 +347,8 @@ export type { MockedChatDelayConfig };
 export type { MockedChatProps };
 export type { BookEditorProps };
 export type { ChatProps };
+export type { ChatAutoScrollConfig };
+export type { SendMessageToLlmChatFunction };
 export type { LlmChatProps };
 export type { ChatMessage };
 export type { ChatParticipant };
