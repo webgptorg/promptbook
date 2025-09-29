@@ -110,34 +110,35 @@ export default function LlmChatPreview() {
                 id: `seed-${kind}-user-${now}`,
                 date: new Date(),
                 from: 'USER',
-                content: (
-                    {
-                        'mock-basic': '👋 Hey echo friend! If I whisper "banana", will you shout it back dramatically?',
-                        'mock-persistent':
-                            '🔁 I am the persistent seeker. After refresh I shall return. Prove your memory, digital oracle!',
-                        openai:
-                            '🧪 Booting experimental OpenAI interface... Initiating friendly calibration ping. Respond with creative flair!',
-                        'pavol-hejny-agent':
-                            '🧙‍♂️ Summoning the spirit of Pavol Hejný... If you are truly him, reveal a quirky productivity insight!',
-                    } as Record<string, string>
-                )[kind] || `Hello from scenario "${kind}"`,
+                content:
+                    (
+                        {
+                            'mock-basic':
+                                '👋 Hey echo friend! If I whisper "banana", will you shout it back dramatically?',
+                            'mock-persistent':
+                                '🔁 I am the persistent seeker. After refresh I shall return. Prove your memory, digital oracle!',
+                            openai: '🧪 Booting experimental OpenAI interface... Initiating friendly calibration ping. Respond with creative flair!',
+                            'pavol-hejny-agent':
+                                '🧙‍♂️ Summoning the spirit of Pavol Hejný... If you are truly him, reveal a quirky productivity insight!',
+                        } as Record<string, string>
+                    )[kind] || `Hello from scenario "${kind}"`,
                 isComplete: true,
             },
             {
                 id: `seed-${kind}-assistant-${now}`,
                 date: new Date(),
                 from: 'ASSISTANT',
-                content: (
-                    {
-                        'mock-basic': '🪞 Echo chamber online. Say "banana" and behold its recursive destiny.',
-                        'mock-persistent':
-                            '📦 Persistence module armed. Refresh me if you dare; our words shall crystallize in storage.',
-                        openai:
-                            '🌐 OpenAI systems synced. Ready to ideate, speculate, and occasionally caffeinate your thoughts.',
-                        'pavol-hejny-agent':
-                            '🎩 Pavol-avatar online. Efficiency tip: Name variables like poetry, refactor like a sculptor.',
-                    } as Record<string, string>
-                )[kind] || `Assistant ready in scenario "${kind}"`,
+                content:
+                    (
+                        {
+                            'mock-basic': '🪞 Echo chamber online. Say "banana" and behold its recursive destiny.',
+                            'mock-persistent':
+                                '📦 Persistence module armed. Refresh me if you dare; our words shall crystallize in storage.',
+                            openai: '🌐 OpenAI systems synced. Ready to ideate, speculate, and occasionally caffeinate your thoughts.',
+                            'pavol-hejny-agent':
+                                '🎩 Pavol-avatar online. Efficiency tip: Name variables like poetry, refactor like a sculptor.',
+                        } as Record<string, string>
+                    )[kind] || `Assistant ready in scenario "${kind}"`,
                 isComplete: true,
             },
         ];
@@ -150,7 +151,7 @@ export default function LlmChatPreview() {
             openai: buildInitialMessages('openai'),
             'pavol-hejny-agent': buildInitialMessages('pavol-hejny-agent'),
         }),
-        [],
+        [buildInitialMessages],
     );
 
     const scenarios = {
@@ -202,9 +203,7 @@ export default function LlmChatPreview() {
 
         return (
             <div className="mb-4 p-3 bg-gray-50 rounded-md border">
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                    useSendMessageToLlmChat Hook Demo:
-                </p>
+                <p className="text-sm font-medium text-gray-700 mb-2">useSendMessageToLlmChat Hook Demo:</p>
                 <div className="flex flex-wrap gap-2">
                     {quickMessages.map(({ label, message }) => (
                         <button

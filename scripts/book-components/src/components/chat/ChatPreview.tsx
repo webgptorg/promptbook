@@ -67,7 +67,7 @@ export default function ChatPreview() {
                 setMessages([...scenarios[scenarioParam as keyof typeof scenarios].messages]);
             }
         }
-    }, []);
+    }, [scenarios]);
 
     const handleScenarioChange = (newScenario: string) => {
         setScenario(newScenario);
