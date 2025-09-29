@@ -87,10 +87,35 @@ export default function Home() {
 
 [ ]
 
-[✨🪛] quux
+[✨🪛] Fix `useSendMessageToLlmChat` hook
 
+-   Now user needs to use and wrap component and hook usage in `LlmChatContext`
+-   This shouldnt be the case, consumer should use JUST the combination of `useSendMessageToLlmChat` hook and `LlmChat` component without knowing anything about the React context
+-   If it couldnt be implemented with context, use different approach
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
+
+**This is the example which should work out of the box:**
+
+```typescript
+'use client';
+
+import { LlmChat } from '@promptbook/components';
+import { useSendMessageToLlmChat } from '@promptbook/components';
+
+export default function Home() {
+    const sendMessage = useSendMessageToLlmChat();
+
+    return (
+        <>
+            <button type="button" onClick={() => void sendMessage('Hello!')}>
+                Hello
+            </button>
+            <LlmChat /* ... */ sendMessage={sendMessage} />
+        </>
+    );
+}
+```
 
 ---
 
