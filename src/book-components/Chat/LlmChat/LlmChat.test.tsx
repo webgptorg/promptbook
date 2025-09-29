@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { LlmChatProps } from './LlmChatProps';
 import type { ChatMessage } from '../types/ChatMessage';
+import type { LlmChatProps } from './LlmChatProps';
 
 describe('LlmChat', () => {
     const mockLlmTools = new MockedEchoLlmExecutionTools({ isVerbose: false });
@@ -128,5 +128,37 @@ describe('LlmChat', () => {
         expect(props.initialMessages?.length).toBe(2);
         expect(props.initialMessages?.[0]?.from).toBe('USER');
         expect(props.initialMessages?.[1]?.from).toBe('ASSISTANT');
+    });
+
+    it('should allow optional external sendMessage prop in LlmChatProps', () => {
+        // Minimal shape of SendMessageToLlmChatFunction
+        type SendMessageToLlmChatFunction = {
+            (message: string): void;
+            _attach?: (handler: (message: string) => void) => void;
+        };
+
+        const attached: string[] = [];
+
+        const fakeSend: SendMessageToLlmChatFunction = Object.assign(
+            (msg: string) => {
+                // queue simulation (ignored here)
+                attached.push('queued:' + msg);
+            },
+            {
+                _attach: (handler: (m: string) => void) => {
+                    // simulate queued flush
+                    handler('flush-1');
+                    handler('flush-2');
+                },
+            },
+        );
+
+        const props: LlmChatProps = {
+            llmTools: mockLlmTools,
+            sendMessage: fakeSend,
+        };
+
+        expect(typeof props.sendMessage).toBe('function');
+        expect(typeof props.sendMessage?._attach).toBe('function');
     });
 });

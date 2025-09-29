@@ -5,7 +5,7 @@ import type { string_markdown, string_name } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { LlmChatContext } from '../hooks/useSendMessageToLlmChat';
+/* Context removed – using attachable sendMessage from hook */
 import { ChatPersistence } from '../utils/ChatPersistence';
 import type { LlmChatProps } from './LlmChatProps';
 
@@ -22,7 +22,7 @@ import type { LlmChatProps } from './LlmChatProps';
  * @public exported from `@promptbook/components`
  */
 export function LlmChat(props: LlmChatProps) {
-    const { llmTools, persistenceKey, onChange, onReset, initialMessages, ...restProps } = props;
+    const { llmTools, persistenceKey, onChange, onReset, initialMessages, sendMessage, ...restProps } = props;
 
     // Internal state management
     const [messages, setMessages] = useState<ChatMessage[]>(() => (initialMessages ? [...initialMessages] : []));
@@ -210,14 +210,19 @@ export function LlmChat(props: LlmChatProps) {
         }
     }, [persistenceKey, onReset, onChange, participants]);
 
+    // Attach internal handler to external sendMessage (from useSendMessageToLlmChat) if provided
+    useEffect(() => {
+        if (sendMessage && sendMessage._attach) {
+            sendMessage._attach(handleMessage);
+        }
+    }, [sendMessage, handleMessage]);
+
     return (
-        <LlmChatContext.Provider value={handleMessage}>
-            <Chat
-                {...restProps}
-                {...{ messages, onReset, tasksProgress, participants }}
-                onMessage={handleMessage}
-                onReset={handleReset}
-            />
-        </LlmChatContext.Provider>
+        <Chat
+            {...restProps}
+            {...{ messages, onReset, tasksProgress, participants }}
+            onMessage={handleMessage}
+            onReset={handleReset}
+        />
     );
 }

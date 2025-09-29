@@ -3,6 +3,7 @@ import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { ChatProps } from '../Chat/ChatProps';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { SendMessageToLlmChatFunction } from '../hooks/useSendMessageToLlmChat';
 
 /**
  * Props for LlmChat component, derived from ChatProps but with LLM-specific modifications
@@ -35,4 +36,10 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      */
     onChange?(messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>): void;
     // <- TODO: [🖱] `LlmChatProps.onChange` and `ChatProps.onChange` are not the same, unite them or distinct by name
+
+    /**
+     * Optional external sendMessage function produced by useSendMessageToLlmChat hook.
+     * When provided, LlmChat will attach its internal handler to it (no React context needed).
+     */
+    readonly sendMessage?: SendMessageToLlmChatFunction;
 };

@@ -4,7 +4,7 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
--   **Added:** `useSendMessageToLlmChat` hook for programmatic message sending to `LlmChat` component
+-   **Added:** `useSendMessageToLlmChat` hook for programmatic message sending to `LlmChat` component (now context-free attachable API)
 -   **Added:** `initialMessages` prop to `LlmChat`
     -   New optional prop `initialMessages?: ReadonlyArray<ChatMessage>` allows seeding the chat with predefined history
     -   Supports both `USER` and `ASSISTANT` messages (multi-role bootstrapping)
@@ -14,13 +14,13 @@
     -   DRY helper `buildInitialMessages` + centralized `initialMessagesByScenario` mapping
     -   Added unit test validating acceptance of both roles in `initialMessages`
     -   No changes required in `useSendMessageToLlmChat` hook (works transparently with seeded state)
-    -   New React hook `useSendMessageToLlmChat` allows sending messages to any `LlmChat` component from anywhere in the React tree
-    -   Messages sent via the hook behave exactly like user-typed messages - they're added to chat thread and trigger LLM responses
-    -   Hook uses React Context pattern with `LlmChatContext` provider automatically created by `LlmChat` component
-    -   Added comprehensive demonstration in `LlmChatPreview` with predefined quick message buttons
+    -   New React hook `useSendMessageToLlmChat` provides an attachable `sendMessage` function created without any provider
+    -   The hook returns a function that can be passed to `<LlmChat sendMessage={sendMessage} />`
+    -   No React Context or provider wrapper required; messages sent before mount are queued and flushed on attach
+    -   Optional `sendMessage` prop added to `LlmChat` which internally attaches its message handler
     -   Exported `SendMessageToLlmChatFunction` type and `useSendMessageToLlmChat` hook from `@promptbook/components`
-    -   Follows DRY principle by reusing existing `handleMessage` functionality from `LlmChat` component
-    -   Provides clear error message when used outside of `LlmChat` component context
+    -   Follows DRY principle by reusing internal `handleMessage` logic of `LlmChat`
+    -   Fix: Removed need to wrap components in hidden context just to send messages (breaking change to previous experimental context-based API)
 -   **Enhanced:** Added predefined message buttons functionality to `Chat` component
     -   Buttons are defined in markdown using format `[Button Text](?message=Message%20to%20send)` within message content
     -   Buttons are automatically parsed from the last message and rendered below the message text

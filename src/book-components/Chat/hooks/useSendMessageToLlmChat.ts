@@ -1,53 +1,79 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { useRef } from 'react';
 
 /**
- * Function type for sending a message to LlmChat
- */
-export type SendMessageToLlmChatFunction = (message: string) => void;
-
-/**
- * Context for LlmChat message sending functionality
+ * Function type for sending a message to LlmChat.
  *
- * @private Internal utility of `useSendMessageToLlmChat` and `LlmChat`
- */
-export const LlmChatContext = createContext<SendMessageToLlmChatFunction | null>(null);
-
-/**
- * Hook to send a message to any LlmChat component from anywhere in the React tree
- *
- * This allows components to programmatically send messages to the chat as if the user
- * typed them in the input and pressed Enter. The message will be added to the chat
- * thread and trigger sending it to the LLM.
- *
- * @returns Function to send a message to the LlmChat
- * @throws Error if used outside of LlmChatProvider context
- *
- * @example
- * ```typescript
- * function MyButton() {
- *   const sendMessage = useSendMessageToLlmChat();
- *
- *   return (
- *     <button onClick={() => sendMessage('Hello, AI!')}>
- *       Send Hello
- *     </button>
- *   );
- * }
- * ```
+ * Implementation detail: The returned function is "attachable".
+ * LlmChat will call the internal `_attach` method (if present) to bind
+ * its real message handler. Messages sent before attachment are queued
+ * and flushed after attachment.
  *
  * @public exported from `@promptbook/components`
  */
-export function useSendMessageToLlmChat(): SendMessageToLlmChatFunction {
-    const sendMessage = useContext(LlmChatContext);
+export type SendMessageToLlmChatFunction = {
+    /**
+     * Send a message to the bound LlmChat instance (or queue it until attached).
+     */
+    (message: string): void;
 
-    if (!sendMessage) {
-        throw new Error(
-            'useSendMessageToLlmChat must be used within a component that contains an LlmChat component. ' +
-                'Make sure you have an <LlmChat/> component rendered somewhere in your component tree.',
-        );
+    /**
+     * Internal method used by the <LlmChat/> component to attach its handler.
+     * Not intended for consumer usage.
+     *
+     * @internal
+     */
+    _attach?: (handler: (message: string) => Promise<void> | void) => void;
+};
+
+/**
+ * Hook to create a sendMessage function for an <LlmChat/> component WITHOUT needing any React Context.
+ *
+ * Usage pattern:
+ * ```tsx
+ * const sendMessage = useSendMessageToLlmChat();
+ * return (
+ *   <>
+ *     <button onClick={() => sendMessage('Hello!')}>Hello</button>
+ *     <LlmChat llmTools={llmTools} sendMessage={sendMessage} />
+ *   </>
+ * );
+ * ```
+ *
+ * - No provider wrapping needed.
+ * - Safe to call before the <LlmChat/> mounts (messages will be queued).
+ * - Keeps DRY by letting <LlmChat/> reuse its internal `handleMessage` logic.
+ *
+ * @public
+ */
+export function useSendMessageToLlmChat(): SendMessageToLlmChatFunction {
+    const ref = useRef<SendMessageToLlmChatFunction | null>(null);
+
+    if (!ref.current) {
+        let handler: ((message: string) => Promise<void> | void) | null = null;
+        const queue: string[] = [];
+
+        const sendMessage: SendMessageToLlmChatFunction = (message: string) => {
+            if (handler) {
+                // Fire and forget
+                void handler(message);
+            } else {
+                queue.push(message);
+            }
+        };
+
+        sendMessage._attach = (attachedHandler) => {
+            handler = attachedHandler;
+            // Flush queued messages
+            while (queue.length > 0) {
+                const next = queue.shift()!;
+                void handler(next);
+            }
+        };
+
+        ref.current = sendMessage;
     }
 
-    return sendMessage;
+    return ref.current;
 }

@@ -85,7 +85,7 @@ export default function Home() {
 
 ---
 
-[ ]
+[x]
 
 [✨🪛] Fix `useSendMessageToLlmChat` hook
 
