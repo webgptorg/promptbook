@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { LlmChatProps } from './LlmChatProps';
+import type { ChatMessage } from '../types/ChatMessage';
 
 describe('LlmChat', () => {
     const mockLlmTools = new MockedEchoLlmExecutionTools({ isVerbose: false });
@@ -98,5 +99,34 @@ describe('LlmChat', () => {
         expect(fullProps.llmTools).toBe(mockLlmTools);
         expect(fullProps.voiceLanguage).toBe('en-US');
         expect(fullProps.style?.height).toBe('400px');
+    });
+
+    it('should accept initialMessages with USER and ASSISTANT messages', () => {
+        const initialMessages: ChatMessage[] = [
+            {
+                id: 'seed-user',
+                date: new Date(),
+                from: 'USER',
+                content: 'Hello assistant, are you initialized?',
+                isComplete: true,
+            },
+            {
+                id: 'seed-assistant',
+                date: new Date(),
+                from: 'ASSISTANT',
+                content: 'Initialization complete. Ready to echo your thoughts.',
+                isComplete: true,
+            },
+        ];
+
+        const props: LlmChatProps = {
+            llmTools: mockLlmTools,
+            initialMessages,
+        };
+
+        expect(props.initialMessages).toBeDefined();
+        expect(props.initialMessages?.length).toBe(2);
+        expect(props.initialMessages?.[0]?.from).toBe('USER');
+        expect(props.initialMessages?.[1]?.from).toBe('ASSISTANT');
     });
 });

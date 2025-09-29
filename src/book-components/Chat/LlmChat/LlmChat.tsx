@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { string_markdown, string_name } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -22,11 +22,17 @@ import type { LlmChatProps } from './LlmChatProps';
  * @public exported from `@promptbook/components`
  */
 export function LlmChat(props: LlmChatProps) {
-    const { llmTools, persistenceKey, onChange, onReset, ...restProps } = props;
+    const { llmTools, persistenceKey, onChange, onReset, initialMessages, ...restProps } = props;
 
     // Internal state management
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>(() => (initialMessages ? [...initialMessages] : []));
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
+
+    /**
+     * Tracks whether the user (or system via persistence restoration) has interacted.
+     * We do NOT persist purely initialMessages until the user sends something.
+     */
+    const hasUserInteractedRef = useRef<boolean>(false);
 
     // Load persisted messages on component mount
     useEffect(() => {
@@ -34,6 +40,7 @@ export function LlmChat(props: LlmChatProps) {
             const persistedMessages = ChatPersistence.loadMessages(persistenceKey);
             if (persistedMessages.length > 0) {
                 setMessages(persistedMessages);
+                hasUserInteractedRef.current = true; // Persisted conversation exists; allow saving next changes
                 // Notify about loaded messages
                 if (onChange) {
                     onChange(persistedMessages, participants);
@@ -44,7 +51,12 @@ export function LlmChat(props: LlmChatProps) {
 
     // Save messages to localStorage whenever messages change (and persistence is enabled)
     useEffect(() => {
-        if (persistenceKey && ChatPersistence.isAvailable() && messages.length > 0) {
+        if (
+            persistenceKey &&
+            ChatPersistence.isAvailable() &&
+            messages.length > 0 &&
+            hasUserInteractedRef.current
+        ) {
             ChatPersistence.saveMessages(persistenceKey, messages);
         }
     }, [messages, persistenceKey]);
@@ -71,6 +83,8 @@ export function LlmChat(props: LlmChatProps) {
     // Handle user messages and LLM responses
     const handleMessage = useCallback(
         async (messageContent: string) => {
+            hasUserInteractedRef.current = true;
+
             // Add user message
             const userMessage: ChatMessage = {
                 id: `user_${Date.now()}`,
@@ -179,6 +193,7 @@ export function LlmChat(props: LlmChatProps) {
     const handleReset = useCallback(async () => {
         setMessages([]);
         setTasksProgress([]);
+        hasUserInteractedRef.current = false;
 
         // Clear persisted messages if persistence is enabled
         if (persistenceKey && ChatPersistence.isAvailable()) {

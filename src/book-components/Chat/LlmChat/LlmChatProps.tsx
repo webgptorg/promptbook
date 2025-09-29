@@ -23,6 +23,14 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     readonly persistenceKey?: string;
 
     /**
+     * Optional initial messages to pre-populate the chat.
+     * - They can include both USER and ASSISTANT messages.
+     * - They are only used when there is no persisted conversation (persistence takes precedence).
+     * - They are not automatically persisted until the user sends a new message.
+     */
+    readonly initialMessages?: ReadonlyArray<ChatMessage>;
+
+    /**
      * Called when the chat state changes (messages, participants, etc.)
      */
     onChange?(messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>): void;

@@ -12,7 +12,8 @@ import { OpenAiExecutionTools } from '../../../../../src/llm-providers/openai/Op
 const OPENAI_API_KEY_STORAGE_KEY = 'llm-chat-preview-openai-api-key';
 
 export default function LlmChatPreview() {
-    const [scenario, setScenario] = useState<string>('mock-basic');
+    type ScenarioKey = 'mock-basic' | 'mock-persistent' | 'openai' | 'pavol-hejny-agent';
+    const [scenario, setScenario] = useState<ScenarioKey>('mock-basic');
     const [openaiApiKey, setOpenaiApiKey] = useState<string>('');
 
     // Load API key from localStorage on component mount
@@ -101,6 +102,57 @@ export default function LlmChatPreview() {
         }
     }, [openaiLlmTools]);
 
+    // Helper to build initial messages (DRY)
+    function buildInitialMessages(kind: ScenarioKey): ChatMessage[] {
+        const now = Date.now();
+        return [
+            {
+                id: `seed-${kind}-user-${now}`,
+                date: new Date(),
+                from: 'USER',
+                content: (
+                    {
+                        'mock-basic': '👋 Hey echo friend! If I whisper "banana", will you shout it back dramatically?',
+                        'mock-persistent':
+                            '🔁 I am the persistent seeker. After refresh I shall return. Prove your memory, digital oracle!',
+                        openai:
+                            '🧪 Booting experimental OpenAI interface... Initiating friendly calibration ping. Respond with creative flair!',
+                        'pavol-hejny-agent':
+                            '🧙‍♂️ Summoning the spirit of Pavol Hejný... If you are truly him, reveal a quirky productivity insight!',
+                    } as Record<string, string>
+                )[kind] || `Hello from scenario "${kind}"`,
+                isComplete: true,
+            },
+            {
+                id: `seed-${kind}-assistant-${now}`,
+                date: new Date(),
+                from: 'ASSISTANT',
+                content: (
+                    {
+                        'mock-basic': '🪞 Echo chamber online. Say "banana" and behold its recursive destiny.',
+                        'mock-persistent':
+                            '📦 Persistence module armed. Refresh me if you dare; our words shall crystallize in storage.',
+                        openai:
+                            '🌐 OpenAI systems synced. Ready to ideate, speculate, and occasionally caffeinate your thoughts.',
+                        'pavol-hejny-agent':
+                            '🎩 Pavol-avatar online. Efficiency tip: Name variables like poetry, refactor like a sculptor.',
+                    } as Record<string, string>
+                )[kind] || `Assistant ready in scenario "${kind}"`,
+                isComplete: true,
+            },
+        ];
+    }
+
+    const initialMessagesByScenario = useMemo(
+        () => ({
+            'mock-basic': buildInitialMessages('mock-basic'),
+            'mock-persistent': buildInitialMessages('mock-persistent'),
+            openai: buildInitialMessages('openai'),
+            'pavol-hejny-agent': buildInitialMessages('pavol-hejny-agent'),
+        }),
+        [],
+    );
+
     const scenarios = {
         'mock-basic': {
             name: 'Mocked Chat (No storage)',
@@ -128,7 +180,7 @@ export default function LlmChatPreview() {
         console.log('Chat state changed:', { messages: messages.length, participants: participants.length });
     };
 
-    const handleScenarioChange = (newScenario: string) => {
+    const handleScenarioChange = (newScenario: ScenarioKey) => {
         setScenario(newScenario);
     };
 
@@ -191,6 +243,7 @@ export default function LlmChatPreview() {
             llmTools: currentScenario.llmTools,
             onChange: handleChange,
             style: { height: '600px' },
+            initialMessages: initialMessagesByScenario[scenario],
         };
 
         const chatComponent = (() => {
@@ -257,7 +310,7 @@ export default function LlmChatPreview() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">LLM Chat Scenario:</label>
                     <select
                         value={scenario}
-                        onChange={(e) => handleScenarioChange(e.target.value)}
+                        onChange={(e) => handleScenarioChange(e.target.value as ScenarioKey)}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
                     >
                         {Object.entries(scenarios).map(([key, { name }]) => (

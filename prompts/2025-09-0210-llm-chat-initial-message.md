@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚹] Add `readonly initialMessages?: ReadonlyArray<ChatMessage>;` into `LlmChatProps`
 

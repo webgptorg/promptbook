@@ -5,6 +5,15 @@
 <!-- TODO: Make [Unreleased] more compact: -->
 
 -   **Added:** `useSendMessageToLlmChat` hook for programmatic message sending to `LlmChat` component
+-   **Added:** `initialMessages` prop to `LlmChat`
+    -   New optional prop `initialMessages?: ReadonlyArray<ChatMessage>` allows seeding the chat with predefined history
+    -   Supports both `USER` and `ASSISTANT` messages (multi-role bootstrapping)
+    -   Used only when there is no persisted conversation (persistence has priority)
+    -   Seed messages are not persisted until the user sends a new message (prevents unwanted overwrites)
+    -   Preview updated: each scenario in `LlmChatPreview` now shows unique funny initial user+assistant exchange
+    -   DRY helper `buildInitialMessages` + centralized `initialMessagesByScenario` mapping
+    -   Added unit test validating acceptance of both roles in `initialMessages`
+    -   No changes required in `useSendMessageToLlmChat` hook (works transparently with seeded state)
     -   New React hook `useSendMessageToLlmChat` allows sending messages to any `LlmChat` component from anywhere in the React tree
     -   Messages sent via the hook behave exactly like user-typed messages - they're added to chat thread and trigger LLM responses
     -   Hook uses React Context pattern with `LlmChatContext` provider automatically created by `LlmChat` component
