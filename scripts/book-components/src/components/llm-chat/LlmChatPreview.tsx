@@ -1,7 +1,7 @@
 'use client';
 
 import { book, createAgentLlmExecutionTools } from '@promptbook-local/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
 import { useSendMessageToLlmChat } from '../../../../../src/book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
@@ -13,7 +13,7 @@ import { OpenAiExecutionTools } from '../../../../../src/llm-providers/openai/Op
 const OPENAI_API_KEY_STORAGE_KEY = 'llm-chat-preview-openai-api-key';
 
 export default function LlmChatPreview() {
-    type ScenarioKey = 'mock-basic' | 'mock-persistent' | 'openai' | 'pavol-hejny-agent';
+    type ScenarioKey = 'mock-basic' | 'mock-persistent' | 'fake-llm' | 'openai' | 'pavol-hejny-agent';
     const [scenario, setScenario] = useState<ScenarioKey>('mock-basic');
     const [openaiApiKey, setOpenaiApiKey] = useState<string>('');
 
@@ -106,7 +106,7 @@ export default function LlmChatPreview() {
     }, [openaiLlmTools]);
 
     // Helper to build initial messages (DRY)
-    function buildInitialMessages(kind: ScenarioKey): ChatMessage[] {
+    const buildInitialMessages = useCallback((kind: ScenarioKey): ChatMessage[] => {
         const now = Date.now();
         return [
             {
@@ -128,12 +128,13 @@ export default function LlmChatPreview() {
                 isComplete: true,
             },
         ];
-    }
+    }, []);
 
     const initialMessagesByScenario = useMemo(
         () => ({
             'mock-basic': buildInitialMessages('mock-basic'),
             'mock-persistent': buildInitialMessages('mock-persistent'),
+            'fake-llm': buildInitialMessages('fake-llm'),
             openai: buildInitialMessages('openai'),
             'pavol-hejny-agent': buildInitialMessages('pavol-hejny-agent'),
         }),
