@@ -15,5 +15,5 @@ export function generatePlaceholderAgentProfileImageUrl(agentName?: string_agent
 }
 
 /**
- * TODOL [🤹] Figure out best placeholder image generator https://i.pravatar.cc/1000?u=568
+ * TODO: [🤹] Figure out best placeholder image generator https://i.pravatar.cc/1000?u=568
  */
