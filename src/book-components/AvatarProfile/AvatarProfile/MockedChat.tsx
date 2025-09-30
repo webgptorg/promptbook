@@ -43,7 +43,7 @@ export type MockedChatDelayConfig = {
  */
 export type MockedChatProps = Omit<
     ChatProps,
-    'onReset' | 'onMessage' | 'onUseTemplate' | 'isVoiceRecognitionButtonShown'
+    'onReset' | /*'onMessage' | */ 'onUseTemplate' | 'isVoiceRecognitionButtonShown'
 > & {
     /**
      * Whether to show the reset button

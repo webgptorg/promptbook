@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import spaceTrim from 'spacetrim';
 import type { MockedChatDelayConfig } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
 import { MockedChat } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
@@ -60,6 +61,59 @@ export default function MockedChatPreview() {
             from: 'ASSISTANT',
             content:
                 'Exactly! You can customize the timing to create more realistic chat demonstrations. The component supports delays before first message, thinking time between messages, and word-by-word typing simulation.',
+            isComplete: true,
+        },
+        {
+            id: '5',
+            date: new Date(),
+            from: 'USER',
+            content: 'Great! How do I adjust those delays?',
+            isComplete: true,
+        },
+        {
+            id: '6',
+            date: new Date(),
+            from: 'ASSISTANT',
+            content:
+                'You can adjust the delays using the `delayConfig` prop, which accepts values in milliseconds for various delay types.',
+            isComplete: true,
+        },
+        {
+            id: '7',
+            date: new Date(),
+            from: 'USER',
+            content: 'Thanks for the explanation! This will definitely enhance my presentations.',
+            isComplete: true,
+        },
+        {
+            id: '8',
+            date: new Date(),
+            from: 'ASSISTANT',
+            content: "You're welcome! If you have any more questions, feel free to ask.",
+            isComplete: true,
+        },
+        {
+            id: '9',
+            date: new Date(),
+            from: 'USER',
+            content: 'One last thing, can you show me an example of a longer message?',
+            isComplete: true,
+        },
+        {
+            id: '10',
+            date: new Date(),
+            from: 'ASSISTANT',
+            content: spaceTrim(`
+
+                Certainly! Here is an example of a longer message that demonstrates how the \`MockedChat\` component can handle more extensive content.
+
+                This message is designed to showcase the word-by-word typing simulation feature, allowing you to see how each word appears sequentially,
+                creating a more engaging and realistic chat experience. You can adjust the delay settings to make the typing speed faster or slower, depending on your presentation needs.
+                This flexibility ensures that you can tailor the chat flow to suit the context of your demonstration, whether it's a quick interaction or a more detailed conversation.
+
+                I hope this gives you a clear idea of how to utilize the \`MockedChat\` component effectively in your projects!
+
+                `),
             isComplete: true,
         },
     ];

@@ -325,7 +325,7 @@ export function Chat(props: ChatProps) {
                                     className={classNames(
                                         styles.chatMessage,
                                         participant?.isMe && styles.isMe,
-                                        !message.isComplete && styles.isPending,
+                                        !message.isComplete && styles.isNotCompleteMessage,
                                     )}
                                     onClick={() => {
                                         console.group('💬', message.content);
@@ -383,6 +383,10 @@ export function Chat(props: ChatProps) {
                                                     __html: renderMarkdown(contentWithoutButtons),
                                                 }}
                                             />
+                                        )}
+
+                                        {!message.isComplete && (
+                                            <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>
                                         )}
 
                                         {shouldShowButtons && (

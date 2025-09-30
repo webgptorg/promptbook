@@ -21,7 +21,7 @@
         "scope": "typescript,typescriptreact,javascript,html,css",
         "prefix": "CSS testing outline",
         "description": "For draw the outline",
-        "body": ["/**/", "outline: 1px dotted red; /**/"]
+        "body": ["/**/", "outline: 1px dotted #ff0000 !important;", "/**/"]
     },
     "test": {
         "scope": "typescript",

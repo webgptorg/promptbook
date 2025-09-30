@@ -165,13 +165,21 @@
     }
 }
 
-.isPending {
+.isNotCompleteMessage {
+    /*/
+    outline: 1px dotted #ff0000 !important;
+    /**/
+
     opacity: 0.7;
     position: relative;
 }
 
+.NonCompleteMessageFiller {
+    color: transparent;
+}
+
 /* Enhanced loading states for messages */
-.isPending .messageText::after {
+.isNotCompleteMessage .messageText::after {
     content: '';
     position: absolute;
     bottom: 8px;
