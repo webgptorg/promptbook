@@ -85,5 +85,12 @@ describe('parseUnsupportedParameterError', () => {
             const result = parseUnsupportedParameterError(errorMessage);
             expect(result).toBe('max_tokens');
         });
+
+        it('should parse OpenAI error with specific value constraint', () => {
+            const errorMessage =
+                "Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported.";
+            const result = parseUnsupportedParameterError(errorMessage);
+            expect(result).toBe('temperature');
+        });
     });
 });
