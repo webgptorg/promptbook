@@ -1,19 +1,16 @@
 import { spaceTrim } from 'spacetrim';
+import { forTime } from 'waitasecond';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { forTime } from 'waitasecond';
+import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -90,6 +87,10 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
                     (block) => `
                     You said:
                     ${block(rawPromptContent)}
+
+                    [1️⃣ Say that again!](?message=${encodeURIComponent(rawPromptContent)})
+                    [2️⃣ Say that twice!](?message=${encodeURIComponent(rawPromptContent).repeat(2)})
+                    [3️⃣ Say that thrice!](?message=${encodeURIComponent(rawPromptContent).repeat(3)})
                 `,
                 ),
                 modelName,

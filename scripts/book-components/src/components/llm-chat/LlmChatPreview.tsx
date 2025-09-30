@@ -109,7 +109,7 @@ export default function LlmChatPreview() {
             {
                 id: `seed-${kind}-user-${now}`,
                 date: new Date(),
-                from: 'USER',
+                from: 'ASSISTANT',
                 content:
                     (
                         {
@@ -121,24 +121,7 @@ export default function LlmChatPreview() {
                             'pavol-hejny-agent':
                                 '🧙‍♂️ Summoning the spirit of Pavol Hejný... If you are truly him, reveal a quirky productivity insight!',
                         } as Record<string, string>
-                    )[kind] || `Hello from scenario "${kind}"`,
-                isComplete: true,
-            },
-            {
-                id: `seed-${kind}-assistant-${now}`,
-                date: new Date(),
-                from: 'ASSISTANT',
-                content:
-                    (
-                        {
-                            'mock-basic': '🪞 Echo chamber online. Say "banana" and behold its recursive destiny.',
-                            'mock-persistent':
-                                '📦 Persistence module armed. Refresh me if you dare; our words shall crystallize in storage.',
-                            openai: '🌐 OpenAI systems synced. Ready to ideate, speculate, and occasionally caffeinate your thoughts.',
-                            'pavol-hejny-agent':
-                                '🎩 Pavol-avatar online. Efficiency tip: Name variables like poetry, refactor like a sculptor.',
-                        } as Record<string, string>
-                    )[kind] || `Assistant ready in scenario "${kind}"`,
+                    )[kind] || `Hello from scenario "${kind}"` + '\n\n' + `[Say Hello](?message=Hello!)`,
                 isComplete: true,
             },
         ];
