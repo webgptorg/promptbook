@@ -180,38 +180,18 @@ export default function LlmChatPreview() {
         setOpenaiApiKey(newApiKey);
     };
 
-    // Component that demonstrates useSendMessageToLlmChat hook
-    function SendMessageButtons() {
-        const sendMessage = useSendMessageToLlmChat();
+    const sendMessage = useSendMessageToLlmChat();
 
-        const quickMessages = [
+    const quickMessages = useMemo(
+        () => [
             { label: 'Say Hello', message: 'Hello! How are you today?' },
             { label: 'Ask for Help', message: 'I need help with something. Can you assist me?' },
             { label: 'Tell a Joke', message: 'Can you tell me a funny joke?' },
             { label: 'Explain AI', message: 'Can you explain what artificial intelligence is in simple terms?' },
             { label: 'Thank You', message: 'Thank you for your help!' },
-        ];
-
-        return (
-            <div className="mb-4 p-3 bg-gray-50 rounded-md border">
-                <p className="text-sm font-medium text-gray-700 mb-2">useSendMessageToLlmChat Hook Demo:</p>
-                <div className="flex flex-wrap gap-2">
-                    {quickMessages.map(({ label, message }) => (
-                        <button
-                            key={label}
-                            onClick={() => sendMessage(message)}
-                            className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors"
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
-                <p className="text-xs text-gray-600 mt-2">
-                    These buttons demonstrate how external components can send messages to the LlmChat using the hook.
-                </p>
-            </div>
-        );
-    }
+        ],
+        [],
+    );
 
     const renderChat = () => {
         const currentScenario = scenarios[scenario as keyof typeof scenarios];
@@ -230,6 +210,7 @@ export default function LlmChatPreview() {
         }
 
         const commonProps = {
+            sendMessage,
             llmTools: currentScenario.llmTools,
             onChange: handleChange,
             style: { height: '600px' },
@@ -295,7 +276,24 @@ export default function LlmChatPreview() {
 
         return (
             <div>
-                <SendMessageButtons />
+                <div className="mb-4 p-3 bg-gray-50 rounded-md border">
+                    <p className="text-sm font-medium text-gray-700 mb-2">useSendMessageToLlmChat Hook Demo:</p>
+                    <div className="flex flex-wrap gap-2">
+                        {quickMessages.map(({ label, message }) => (
+                            <button
+                                key={label}
+                                onClick={() => sendMessage(message)}
+                                className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors"
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                        These buttons demonstrate how external components can send messages to the LlmChat using the
+                        hook.
+                    </p>
+                </div>
                 {chatComponent}
             </div>
         );
