@@ -12,10 +12,9 @@
 
 [ ]
 
-[✨🚹] bar
+[✨🚹] The `initialMessages` should be used not only on the first chat but also after resetting via "New chat" button
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
 
 ---
 
