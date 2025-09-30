@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { forTime } from 'waitasecond';
 import { Chat } from '../../Chat/Chat/Chat';
 import type { ChatProps } from '../../Chat/Chat/ChatProps';
@@ -41,7 +41,17 @@ export type MockedChatDelayConfig = {
  *
  * @public exported from `@promptbook/components`
  */
-export type MockedChatProps = ChatProps & {
+export type MockedChatProps = Omit<
+    ChatProps,
+    'onReset' | 'onMessage' | 'onUseTemplate' | 'isVoiceRecognitionButtonShown'
+> & {
+    /**
+     * Whether to show the reset button
+     *
+     * @default false
+     */
+    isResetShown?: boolean;
+
     /**
      * Optional delays configuration for emulating typing behavior
      */
@@ -55,7 +65,7 @@ export type MockedChatProps = ChatProps & {
  * @public exported from `@promptbook/components`
  */
 export function MockedChat(props: MockedChatProps) {
-    const { delayConfig, messages: originalMessages, ...chatProps } = props;
+    const { isResetShown = false, delayConfig, messages: originalMessages, ...chatProps } = props;
 
     // Default delay configuration
     const delays: Required<MockedChatDelayConfig> = {
@@ -68,6 +78,19 @@ export function MockedChat(props: MockedChatProps) {
 
     const [displayedMessages, setDisplayedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
     const [isSimulationComplete, setIsSimulationComplete] = useState(false);
+
+    const [resetNonce, setResetNonce] = useState(0);
+    const onReset = useMemo(() => {
+        if (!isResetShown) {
+            return undefined;
+        }
+
+        return () => {
+            setDisplayedMessages([]);
+            setIsSimulationComplete(false);
+            setResetNonce((nonce) => nonce + 1);
+        };
+    }, [resetNonce, isResetShown]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -187,12 +210,14 @@ export function MockedChat(props: MockedChatProps) {
         delays.thinkingBetweenMessages,
         delays.waitAfterWord,
         delays.extraWordDelay,
+        resetNonce,
     ]);
 
     // Use the internal Chat component with simulated messages
     return (
         <Chat
             {...chatProps}
+            onReset={onReset}
             messages={displayedMessages}
             // Disable input during simulation unless explicitly completed
             onMessage={isSimulationComplete ? chatProps.onMessage : undefined}

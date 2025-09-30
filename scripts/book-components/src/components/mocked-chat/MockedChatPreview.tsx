@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { MockedChat } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
 import type { MockedChatDelayConfig } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
+import { MockedChat } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 
@@ -43,7 +43,8 @@ export default function MockedChatPreview() {
             id: '2',
             date: new Date(),
             from: 'ASSISTANT',
-            content: 'Of course! MockedChat simulates realistic typing behavior with configurable delays between words and messages.',
+            content:
+                'Of course! MockedChat simulates realistic typing behavior with configurable delays between words and messages.',
             isComplete: true,
         },
         {
@@ -57,13 +58,14 @@ export default function MockedChatPreview() {
             id: '4',
             date: new Date(),
             from: 'ASSISTANT',
-            content: 'Exactly! You can customize the timing to create more realistic chat demonstrations. The component supports delays before first message, thinking time between messages, and word-by-word typing simulation.',
+            content:
+                'Exactly! You can customize the timing to create more realistic chat demonstrations. The component supports delays before first message, thinking time between messages, and word-by-word typing simulation.',
             isComplete: true,
         },
     ];
 
     const handleDelayChange = (key: keyof MockedChatDelayConfig, value: number) => {
-        setDelayConfig(prev => ({ ...prev, [key]: value }));
+        setDelayConfig((prev) => ({ ...prev, [key]: value }));
     };
 
     return (
@@ -102,9 +104,7 @@ export default function MockedChatPreview() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Wait After Word (ms)
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Wait After Word (ms)</label>
                         <input
                             type="number"
                             min="0"
@@ -117,9 +117,7 @@ export default function MockedChatPreview() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Extra Word Delay (ms)
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Extra Word Delay (ms)</label>
                         <input
                             type="number"
                             min="0"
@@ -133,11 +131,15 @@ export default function MockedChatPreview() {
                 </div>
 
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                    <p><strong>Tip:</strong> Adjust the delays to see how they affect the typing simulation. Lower values make typing faster, higher values create more dramatic pauses.</p>
+                    <p>
+                        <strong>Tip:</strong> Adjust the delays to see how they affect the typing simulation. Lower
+                        values make typing faster, higher values create more dramatic pauses.
+                    </p>
                 </div>
             </div>
 
             <MockedChat
+                isResetShown
                 style={{ height: '500px' }}
                 messages={messages}
                 participants={participants}
@@ -148,9 +150,15 @@ export default function MockedChatPreview() {
             />
 
             <div className="text-sm text-gray-600">
-                <p><strong>Component:</strong> MockedChat</p>
-                <p><strong>Messages:</strong> {messages.length} sample messages</p>
-                <p><strong>Features:</strong> Word-by-word typing simulation, configurable delays, realistic chat flow</p>
+                <p>
+                    <strong>Component:</strong> MockedChat
+                </p>
+                <p>
+                    <strong>Messages:</strong> {messages.length} sample messages
+                </p>
+                <p>
+                    <strong>Features:</strong> Word-by-word typing simulation, configurable delays, realistic chat flow
+                </p>
             </div>
         </div>
     );
