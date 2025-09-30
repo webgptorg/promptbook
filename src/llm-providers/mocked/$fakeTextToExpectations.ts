@@ -21,11 +21,22 @@ export async function $fakeTextToExpectations(
     expectations: Expectations,
     postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>,
 ): Promise<string> {
+    console.info({ expectations });
+
+    // If no expectations are set, return one paragraph
+    if (!expectations || Object.keys(expectations).length === 0) {
+        const lorem = new LoremIpsum({
+            wordsPerSentence: { min: 5, max: 15 },
+            sentencesPerParagraph: { min: 5, max: 15 },
+        });
+        return lorem.generateParagraphs(1);
+    }
+
     const lorem = new LoremIpsum({
         wordsPerSentence: { min: 5, max: 15 },
         sentencesPerParagraph: { min: 5, max: 15 },
     });
-    let loremText = '';
+    let loremWords: string[] = [];
     let text = '';
 
     for (let loopLimit = CHARACTER_LOOP_LIMIT; loopLimit-- > 0; ) {
@@ -51,12 +62,15 @@ export async function $fakeTextToExpectations(
             return text; // <- Note: Returning the text because the postprocessing
         }
 
-        if (loremText === '') {
-            loremText = lorem.generateParagraphs(1) + '\n\n';
+        if (loremWords.length === 0) {
+            const loremText = lorem.generateParagraphs(1);
+            loremWords = loremText.split(/\s+/);
         }
 
-        text += loremText.substring(0, 1);
-        loremText = loremText.substring(1);
+        const nextWord = loremWords.shift();
+        if (nextWord) {
+            text += (text ? ' ' : '') + nextWord;
+        }
     }
 
     throw new LimitReachedError(
@@ -77,5 +91,6 @@ export async function $fakeTextToExpectations(
 }
 
 /**
+ * TODO: Do not use LoremIpsum, but use some faked text that looks more human-promptbook-like
  * TODO: [💝] Unite object for expecting amount and format - use here also a format
  */

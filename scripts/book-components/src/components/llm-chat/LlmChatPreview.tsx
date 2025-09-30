@@ -7,6 +7,7 @@ import { useSendMessageToLlmChat } from '../../../../../src/book-components/Chat
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedEchoLlmExecutionTools';
+import { MockedFackedLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiExecutionTools';
 
 const OPENAI_API_KEY_STORAGE_KEY = 'llm-chat-preview-openai-api-key';
@@ -34,6 +35,8 @@ export default function LlmChatPreview() {
     }, [openaiApiKey]);
 
     const mockedLlmTools = useMemo(() => new MockedEchoLlmExecutionTools({ isVerbose: true }), []);
+
+    const fakeLlmTools = useMemo(() => new MockedFackedLlmExecutionTools({ isVerbose: true }), []);
 
     const openaiLlmTools = useMemo(() => {
         if (!openaiApiKey) {
@@ -148,8 +151,13 @@ export default function LlmChatPreview() {
             description: 'Chat with mocked LLM and localStorage persistence - messages survive page refresh',
             llmTools: mockedLlmTools,
         },
+        'fake-llm': {
+            name: 'Fake LLM',
+            description: 'Chat with Fake LLM that pretends to be real LLM but is not',
+            llmTools: fakeLlmTools,
+        },
         openai: {
-            name: 'OpenAI Chat',
+            name: 'OpenAI',
             description: 'Chat with OpenAI GPT models',
             llmTools: openaiLlmTools,
         },
@@ -245,6 +253,17 @@ export default function LlmChatPreview() {
                             {...commonProps}
                             persistenceKey="demo-mock-chat"
                             placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
+                            isFocusedOnLoad={false}
+                            isSaveButtonEnabled={true}
+                        />
+                    );
+
+                case 'fake-llm':
+                    return (
+                        <LlmChat
+                            {...commonProps}
+                            persistenceKey="demo-fake-llm-chat"
+                            placeholderMessageContent="This fake LLM chat pretends to be real - try asking it anything!"
                             isFocusedOnLoad={false}
                             isSaveButtonEnabled={true}
                         />
