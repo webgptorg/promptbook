@@ -123,6 +123,7 @@ import { createLlmToolsFromConfiguration } from '../llm-providers/_common/regist
 import { cacheLlmTools } from '../llm-providers/_common/utils/cache/cacheLlmTools';
 import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countUsage';
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
+import { getSingleLlmExecutionTools } from '../llm-providers/_multiple/getSingleLlmExecutionTools';
 import { joinLlmExecutionTools } from '../llm-providers/_multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../llm-providers/_multiple/MultipleLlmExecutionTools';
 import { AgentLlmExecutionTools } from '../llm-providers/agent/AgentLlmExecutionTools';
@@ -300,6 +301,7 @@ export { createLlmToolsFromConfiguration };
 export { cacheLlmTools };
 export { countUsage };
 export { limitTotalUsage };
+export { getSingleLlmExecutionTools };
 export { joinLlmExecutionTools };
 export { MultipleLlmExecutionTools };
 export { AgentLlmExecutionTools };
