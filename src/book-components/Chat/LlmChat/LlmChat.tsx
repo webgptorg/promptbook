@@ -51,12 +51,7 @@ export function LlmChat(props: LlmChatProps) {
 
     // Save messages to localStorage whenever messages change (and persistence is enabled)
     useEffect(() => {
-        if (
-            persistenceKey &&
-            ChatPersistence.isAvailable() &&
-            messages.length > 0 &&
-            hasUserInteractedRef.current
-        ) {
+        if (persistenceKey && ChatPersistence.isAvailable() && messages.length > 0 && hasUserInteractedRef.current) {
             ChatPersistence.saveMessages(persistenceKey, messages);
         }
     }, [messages, persistenceKey]);
@@ -113,6 +108,11 @@ export function LlmChat(props: LlmChatProps) {
 
             const messagesWithLoading = [...newMessages, loadingMessage];
             setMessages(messagesWithLoading);
+
+            // Notify about changes
+            if (onChange) {
+                onChange(newMessages, participants);
+            }
 
             // Add task progress for LLM call
             const taskId = `llm_call_${Date.now()}`;
