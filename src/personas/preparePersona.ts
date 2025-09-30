@@ -5,12 +5,11 @@ import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { jsonParse } from '../formats/json/utils/jsonParse';
-import { joinLlmExecutionTools } from '../llm-providers/_multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { string_persona_description } from '../types/typeAliases';
-import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
@@ -38,8 +37,7 @@ export async function preparePersona(
         tools,
     });
 
-    const _llms = arrayableToArray(tools.llm);
-    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+    const llmTools = getSingleLlmExecutionTools(tools.llm);
 
     const availableModels = (await llmTools.listModels())
         .filter(({ modelVariant }) => modelVariant === 'CHAT')

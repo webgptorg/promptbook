@@ -1,9 +1,7 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -11,13 +9,12 @@ import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
 import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countUsage';
-import { joinLlmExecutionTools } from '../llm-providers/_multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../llm-providers/_multiple/getSingleLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
-import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { exportJson } from '../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
@@ -62,9 +59,7 @@ export async function preparePipeline(
         throw new MissingToolsError('LLM tools are required for preparing the pipeline');
     }
 
-    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
-    const _llms = arrayableToArray(tools.llm);
-    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+    const llmTools = getSingleLlmExecutionTools(tools.llm);
 
     const llmToolsWithUsage = countUsage(llmTools);
     //    <- TODO: [🌯]

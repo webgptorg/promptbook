@@ -21,7 +21,7 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
     }
 
     const fs = $provideFilesystemForNode();
-    const llm = await $provideLlmToolsFromEnv(options);
+    const llm = await $provideLlmToolsFromEnv({ title: 'LLM Tools for Node.js', ...options });
     const executables = await $provideExecutablesForNode(options);
 
     const tools = {

@@ -62,7 +62,7 @@ async function playground() {
         ],
         script: await $provideScriptingForNode({}),
     };
-    const llmTools = joinLlmExecutionTools(...tools.llm);
+    const llmTools = joinLlmExecutionTools('Playground tools', ...tools.llm);
 
     keepUnused(llmTools);
     keepUnused(embeddingVectorToString);

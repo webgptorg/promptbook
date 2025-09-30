@@ -1,9 +1,8 @@
-import { MockedEchoLlmExecutionTools } from '../../../mocked/MockedEchoLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../../../_multiple/MultipleLlmExecutionTools';
+import { MockedEchoLlmExecutionTools } from '../../../mocked/MockedEchoLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../../openai/OpenAiExecutionTools';
 import { RemoteLlmExecutionTools } from '../../../remote/RemoteLlmExecutionTools';
-import { LLM_PROVIDER_PROFILES } from '../llmProviderProfiles';
-import { getLlmProviderProfile } from '../llmProviderProfiles';
+import { getLlmProviderProfile, LLM_PROVIDER_PROFILES } from '../llmProviderProfiles';
 
 describe('LLM Provider Profiles', () => {
     it('should have predefined profiles for all major providers', () => {
@@ -55,7 +54,7 @@ describe('LLM Provider Profiles', () => {
     it('should have profile property in Multiple execution tools', () => {
         const openaiTools = new OpenAiExecutionTools({ apiKey: 'test-key' });
         const mockedTools = new MockedEchoLlmExecutionTools();
-        const multipleTools = new MultipleLlmExecutionTools(openaiTools, mockedTools);
+        const multipleTools = new MultipleLlmExecutionTools('Multiple LLM Providers', openaiTools, mockedTools);
 
         expect(multipleTools.profile).toBeDefined();
         expect(multipleTools.profile.name).toBe('MULTIPLE');

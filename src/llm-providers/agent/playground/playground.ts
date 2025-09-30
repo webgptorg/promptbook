@@ -39,7 +39,9 @@ playground()
  */
 async function playground() {
     // Create underlying OpenAI tools
-    const llmTools = await $provideLlmToolsFromEnv();
+    const llmTools = await $provideLlmToolsFromEnv({
+        title: 'LLM Tools for Agent Playground',
+    });
 
     console.info(colors.bgBlue(`🤖  LLM Tools:`));
     console.info(colors.bgCyan(llmTools.title));

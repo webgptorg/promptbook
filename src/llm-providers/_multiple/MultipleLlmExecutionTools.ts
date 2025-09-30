@@ -4,19 +4,16 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
+import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
@@ -33,12 +30,11 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
     /**
      * Gets array of execution tools in order of priority
      */
-    public constructor(...llmExecutionTools: ReadonlyArray<LlmExecutionTools>) {
+    public constructor(
+        public readonly title: string_title & string_markdown_text,
+        ...llmExecutionTools: ReadonlyArray<LlmExecutionTools>
+    ) {
         this.llmExecutionTools = llmExecutionTools;
-    }
-
-    public get title(): string_title & string_markdown_text {
-        return 'Multiple LLM Providers';
     }
 
     public get description(): string_markdown {
@@ -149,7 +145,9 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
 
                     default:
                         throw new UnexpectedError(
-                            `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}"`,
+                            `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}" in ${
+                                llmExecutionTools.title
+                            }`,
                         );
                 }
             } catch (error) {
@@ -173,7 +171,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                 //     3) ...
                 spaceTrim(
                     (block) => `
-                          All execution tools failed:
+                          All execution tools of ${this.title} failed:
 
                           ${block(
                               errors
@@ -190,14 +188,14 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                 ),
             );
         } else if (this.llmExecutionTools.length === 0) {
-            throw new PipelineExecutionError(`You have not provided any \`LlmExecutionTools\``);
+            throw new PipelineExecutionError(`You have not provided any \`LlmExecutionTools\` into ${this.title}`);
         } else {
             throw new PipelineExecutionError(
                 spaceTrim(
                     (block) => `
                           You have not provided any \`LlmExecutionTools\` that support model variant "${
                               prompt.modelRequirements.modelVariant
-                          }"
+                          }" into ${this.title}
 
                           Available \`LlmExecutionTools\`:
                           ${block(this.description)}

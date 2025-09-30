@@ -1,23 +1,20 @@
 import spaceTrim from 'spacetrim';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { arrayableToArray } from '../../utils/arrayableToArray';
 import { titleToName } from '../../utils/normalization/titleToName';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
@@ -56,9 +53,7 @@ export class MarkdownScraper implements Scraper {
             // <- Note: This scraper is used in all other scrapers, so saying "external files" not "markdown files"
         }
 
-        // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
-        const _llms = arrayableToArray(llm);
-        const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+        const llmTools = getSingleLlmExecutionTools(llm);
 
         TODO_USE(maxParallelCount); // <- [🪂]
 

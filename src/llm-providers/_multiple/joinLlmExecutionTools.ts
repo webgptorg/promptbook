@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { string_markdown_text, string_title } from '../../types/typeAliases';
 import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
 
 /**
@@ -18,6 +19,7 @@ import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
  * @public exported from `@promptbook/core`
  */
 export function joinLlmExecutionTools(
+    title: string_title & string_markdown_text,
     ...llmExecutionTools: ReadonlyArray<LlmExecutionTools>
 ): MultipleLlmExecutionTools {
     if (llmExecutionTools.length === 0) {
@@ -54,7 +56,10 @@ export function joinLlmExecutionTools(
         */
     }
 
-    return new MultipleLlmExecutionTools(...llmExecutionTools);
+    return new MultipleLlmExecutionTools(
+        title || 'Multiple LLM Providers joined by `joinLlmExecutionTools`',
+        ...llmExecutionTools,
+    );
 }
 
 /**

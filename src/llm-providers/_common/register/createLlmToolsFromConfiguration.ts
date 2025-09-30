@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_user_id } from '../../../types/typeAliases';
+import type { string_markdown_text, string_mime_type_with_wildcard, string_user_id } from '../../../types/typeAliases';
 import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
@@ -19,11 +19,18 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  */
 export type CreateLlmToolsFromConfigurationOptions = {
     /**
+     * Title of the LLM tools
+     *
+     * @default 'LLM Tools from Configuration'
+     */
+    readonly title?: string_mime_type_with_wildcard & string_markdown_text;
+
+    /**
      * This will will be passed to the created `LlmExecutionTools`
      *
      * @default false
      */
-    isVerbose?: boolean;
+    readonly isVerbose?: boolean;
 
     /**
      * Identifier of the end user
@@ -50,7 +57,7 @@ export function createLlmToolsFromConfiguration(
     configuration: LlmToolsConfiguration,
     options: CreateLlmToolsFromConfigurationOptions = {},
 ): MultipleLlmExecutionTools {
-    const { isVerbose = DEFAULT_IS_VERBOSE, userId } = options;
+    const { title = 'LLM Tools from Configuration', isVerbose = DEFAULT_IS_VERBOSE, userId } = options;
 
     const llmTools: ReadonlyArray<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
         const registeredItem = $llmToolsRegister
@@ -97,7 +104,7 @@ export function createLlmToolsFromConfiguration(
         });
     });
 
-    return joinLlmExecutionTools(...llmTools);
+    return joinLlmExecutionTools(title, ...llmTools);
 }
 
 /**

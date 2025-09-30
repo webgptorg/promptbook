@@ -4,6 +4,7 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 
+-   [🚐] Better strategy for naming a LLM tools and handling the merge of LLM tools
 -   **Added:** `useSendMessageToLlmChat` hook for programmatic message sending to `LlmChat` component (now context-free attachable API)
 -   **Added:** `initialMessages` prop to `LlmChat`
     -   New optional prop `initialMessages?: ReadonlyArray<ChatMessage>` allows seeding the chat with predefined history

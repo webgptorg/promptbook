@@ -5,15 +5,12 @@ import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
-import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
@@ -131,9 +128,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         $failedResults: [], // Track all failed attempts
     };
 
-    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
-    const _llms = arrayableToArray(tools.llm);
-    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+    const llmTools = getSingleLlmExecutionTools(tools.llm);
 
     attempts: for (let attemptIndex = -jokerParameterNames.length; attemptIndex < maxAttempts; attemptIndex++) {
         const isJokerAttempt = attemptIndex < 0;

@@ -1,13 +1,10 @@
 import type { ReadonlyDeep } from 'type-fest';
 import { assertsError } from '../../errors/assertsError';
-import { joinLlmExecutionTools } from '../../llm-providers/_multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
-import { arrayableToArray } from '../../utils/arrayableToArray';
+import type { Parameters, string_markdown, string_parameter_value } from '../../types/typeAliases';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
 import { knowledgePiecesToString } from './knowledgePiecesToString';
@@ -60,9 +57,7 @@ export async function getKnowledgeForTask(
     }
 
     try {
-        // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
-        const _llms = arrayableToArray(tools.llm);
-        const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+        const llmTools = getSingleLlmExecutionTools(tools.llm);
 
         const taskEmbeddingPrompt = {
             title: 'Knowledge Search',
