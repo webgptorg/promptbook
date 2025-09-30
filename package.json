@@ -271,7 +271,7 @@
         "destroyable": "0.12.62",
         "dotenv": "16.3.1",
         "express": "4.21.2",
-        "express-openapi-validator": "^5.4.9",
+        "express-openapi-validator": "^5.5.8",
         "glob-promise": "6.0.5",
         "jsdom": "25.0.1",
         "jszip": "3.10.1",
