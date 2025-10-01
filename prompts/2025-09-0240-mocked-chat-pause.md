@@ -13,6 +13,17 @@
 
 [ ]
 
+[✨🏃] Enhance UI and UX of `MockedChat`
+
+-   Add icon, opacity and color to the pause button to enhance the UI and UX of pausing
+-   Hide pause button when chat is ended _(then you can reset it but this is separate responsibility you are not touching here)_
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
 [✨🏃] Allow to hide/show "New chat" button in `MockedChat`
 
 -   Add prop `isResettable?: boolean;` into `MockedChatProps`
