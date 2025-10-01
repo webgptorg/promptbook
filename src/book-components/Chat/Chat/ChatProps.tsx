@@ -77,6 +77,13 @@ export type ChatProps = {
     readonly children?: ReactNode;
 
     /**
+     * Extra action buttons/elements rendered in the actions toolbar
+     * (next to reset / template buttons). Keeps consumers DRY when
+     * adding feature–specific controls (e.g. Pause / Resume in MockedChat).
+     */
+    readonly extraActions?: ReactNode;
+
+    /**
      * Optional CSS class name which will be added to root <div/> element
      */
     readonly className?: string;

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏃] Allow to pause `MockedChat`
 

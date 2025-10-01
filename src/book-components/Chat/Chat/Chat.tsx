@@ -60,6 +60,7 @@ export function Chat(props: ChatProps) {
         // TODO: !!!!> isSaveButtonEnabled = false,
         // exportHeaderMarkdown,
         participants = [],
+        extraActions,
     } = props;
 
     const { onUseTemplate } = props;
@@ -299,6 +300,9 @@ export function Chat(props: ChatProps) {
                                 <TemplateIcon size={16} />
                             </button>
                         )}
+
+                        {/* Extra custom action buttons (e.g. Pause/Resume for MockedChat) */}
+                        {extraActions}
                     </div>
 
                     <div

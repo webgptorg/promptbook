@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { forTime } from 'waitasecond';
 import { Chat } from '../../Chat/Chat/Chat';
+import chatStyles from '../../Chat/Chat/Chat.module.css';
 import type { ChatProps } from '../../Chat/Chat/ChatProps';
 import type { ChatMessage } from '../../Chat/types/ChatMessage';
 
@@ -56,6 +57,15 @@ export type MockedChatProps = Omit<
      * Optional delays configuration for emulating typing behavior
      */
     delayConfig?: MockedChatDelayConfig;
+
+    /**
+     * When true, shows Pause/Resume control and allows pausing the simulated flow.
+     * Pausing finishes the currently typing message first (transitions via PAUSING state),
+     * then prevents new messages from starting until resumed.
+     *
+     * @default true
+     */
+    isPausable?: boolean;
 };
 
 /**
@@ -65,7 +75,13 @@ export type MockedChatProps = Omit<
  * @public exported from `@promptbook/components`
  */
 export function MockedChat(props: MockedChatProps) {
-    const { isResetShown = false, delayConfig, messages: originalMessages, ...chatProps } = props;
+    const {
+        isResetShown = false,
+        delayConfig,
+        messages: originalMessages,
+        isPausable = true,
+        ...chatProps
+    } = props;
 
     // Default delay configuration
     const delays: Required<MockedChatDelayConfig> = {
@@ -79,6 +95,12 @@ export function MockedChat(props: MockedChatProps) {
     const [displayedMessages, setDisplayedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
     const [isSimulationComplete, setIsSimulationComplete] = useState(false);
 
+    // Playback state machine
+    // RUNNING -> (user clicks Pause) -> PAUSING (finish current message) -> PAUSED
+    // PAUSED -> (user clicks Resume) -> RUNNING
+    const [playbackState, setPlaybackState] = useState<'RUNNING' | 'PAUSING' | 'PAUSED'>('RUNNING');
+    const pauseRequestedRef = useRef(false);
+
     const [resetNonce, setResetNonce] = useState(0);
     const onReset = useMemo(() => {
         if (!isResetShown) {
@@ -91,6 +113,35 @@ export function MockedChat(props: MockedChatProps) {
             setResetNonce((nonce) => nonce + 1);
         };
     }, [resetNonce, isResetShown]);
+
+    // Helper: Wait while paused (entered only between messages, never mid-typing)
+    const waitIfPaused = async (isCancelledRef: () => boolean) => {
+        if (!pauseRequestedRef.current) return;
+        setPlaybackState('PAUSED');
+        // Busy wait with small sleeps until resume
+        while (pauseRequestedRef.current) {
+            if (isCancelledRef()) return;
+            await forTime(100);
+        }
+        // Resumed
+        setPlaybackState('RUNNING');
+    };
+
+    const requestPause = () => {
+        if (playbackState === 'RUNNING') {
+            pauseRequestedRef.current = true;
+            // Will flip to PAUSING when current message completes
+            setPlaybackState('PAUSING');
+        }
+    };
+
+    const resume = () => {
+        pauseRequestedRef.current = false;
+        if (playbackState !== 'RUNNING') {
+            // Actual state will become RUNNING after loop exits waitIfPaused
+            setPlaybackState('RUNNING');
+        }
+    };
 
     useEffect(() => {
         let isCancelled = false;
@@ -110,6 +161,12 @@ export function MockedChat(props: MockedChatProps) {
             if (isCancelled) return;
 
             for (let i = 0; i < originalMessages.length; i++) {
+
+                // If a pause was requested earlier, we only pause between messages
+                if (pauseRequestedRef.current) {
+                    await waitIfPaused(() => isCancelled);
+                    if (isCancelled) return;
+                }
                 if (isCancelled) return;
 
                 const currentMessage = originalMessages[i];
@@ -119,6 +176,11 @@ export function MockedChat(props: MockedChatProps) {
                 if (i > 0) {
                     await forTime(delays.thinkingBetweenMessages);
                     if (isCancelled) return;
+                    // Pause check (still between messages)
+                    if (pauseRequestedRef.current) {
+                        await waitIfPaused(() => isCancelled);
+                        if (isCancelled) return;
+                    }
                 }
 
                 // Show incomplete message first (for typing effect)
@@ -187,6 +249,11 @@ export function MockedChat(props: MockedChatProps) {
                 // Small pause after completing the message
                 await forTime(200);
                 if (isCancelled) return;
+
+                // Transition PAUSING -> PAUSED (after finishing current message)
+                if (pauseRequestedRef.current && playbackState === 'PAUSING') {
+                    // Will block further messages
+                }
             }
 
             setIsSimulationComplete(true);
@@ -213,12 +280,35 @@ export function MockedChat(props: MockedChatProps) {
         resetNonce,
     ]);
 
+    // Build extra actions (Pause / Resume)
+    const extraActions =
+        isPausable ? (
+            <button
+                className={chatStyles.resetButton}
+                onClick={() => {
+                    if (playbackState === 'RUNNING') {
+                        requestPause();
+                    } else if (playbackState === 'PAUSED') {
+                        resume();
+                    }
+                }}
+                disabled={playbackState === 'PAUSING'}
+            >
+                <span className={chatStyles.resetButtonText}>
+                    {playbackState === 'RUNNING' && 'Pause'}
+                    {playbackState === 'PAUSING' && 'Pausing…'}
+                    {playbackState === 'PAUSED' && 'Resume'}
+                </span>
+            </button>
+        ) : undefined;
+
     // Use the internal Chat component with simulated messages
     return (
         <Chat
             {...chatProps}
             onReset={onReset}
             messages={displayedMessages}
+            extraActions={extraActions}
             // Disable input during simulation unless explicitly completed
             onMessage={isSimulationComplete ? chatProps.onMessage : undefined}
         />
