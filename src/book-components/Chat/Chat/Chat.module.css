@@ -898,6 +898,42 @@
     transform: translateX(1px);
 }
 
+/* Pause/Resume button variant (reuses .resetButton base styles for DRY) */
+.pauseButton {
+    background: linear-gradient(135deg, #ffb347 0%, #ff8c42 100%) !important; /* Warm orange for "active/running" */
+}
+
+.pauseButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ffc067 0%, #ff9e5f 100%) !important;
+}
+
+.pauseButton.pausing {
+    opacity: 0.6 !important;
+    cursor: wait !important;
+}
+
+.pauseButton.paused {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; /* Green when paused (ready to resume) */
+}
+
+.pauseButton.paused:hover:not(:disabled) {
+    background: linear-gradient(135deg, #34d399 0%, #059669 100%) !important;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+}
+
+.pauseButton svg {
+    transition: transform 0.3s ease;
+}
+
+.pauseButton.paused svg {
+    transform: scale(1.1);
+}
+
+.pauseButton.pausing svg {
+    opacity: 0.8;
+}
+
 /* Voice call indicator bar */
 .voiceCallIndicatorBar {
     grid-area: 🟦;

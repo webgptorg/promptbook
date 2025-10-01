@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏃] Enhance UI and UX of `MockedChat`
 

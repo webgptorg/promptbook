@@ -6,6 +6,13 @@
 
 -   **Enhanced:** `Chat` component now accepts `extraActions` prop for injecting custom action buttons (keeps Pause/Resume implementation DRY and reusable)
 -   **Added:** Pausing capability to `MockedChat` via `isPausable` (default `true`) with state machine RUNNING → PAUSING → PAUSED → RUNNING; finishes the currently typing message before pausing and resumes seamlessly
+-   **Enhanced:** Improved `MockedChat` pause UX (icons + colors + auto-hide)
+    -   Added `PauseIcon` (⏸) and `PlayIcon` (▶) components and integrated them into the pause/resume control
+    -   Distinct visual states: orange gradient while running, dimmed with opacity during transitional PAUSING state, green gradient when paused (ready to resume)
+    -   Button hides automatically once simulated chat flow completes (prevents meaningless interaction)
+    -   Transitional text label changes: Pause → Pausing… → Resume
+    -   DRY styling: introduced `.pauseButton` variant class reusing `.resetButton` base styles instead of duplicating CSS
+    -   Accessibility: `aria-label` reflects current action (pause / resume)
 -   [🚐] Better strategy for naming a LLM tools and handling the merge of LLM tools
 -   **Added:** `useSendMessageToLlmChat` hook for programmatic message sending to `LlmChat` component (now context-free attachable API)
 -   **Added:** `initialMessages` prop to `LlmChat`

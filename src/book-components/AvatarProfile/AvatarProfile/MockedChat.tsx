@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { forTime } from 'waitasecond';
 import { Chat } from '../../Chat/Chat/Chat';
 import chatStyles from '../../Chat/Chat/Chat.module.css';
+import { PauseIcon } from '../../icons/PauseIcon';
+import { PlayIcon } from '../../icons/PlayIcon';
 import type { ChatProps } from '../../Chat/Chat/ChatProps';
 import type { ChatMessage } from '../../Chat/types/ChatMessage';
 
@@ -281,10 +283,24 @@ export function MockedChat(props: MockedChatProps) {
     ]);
 
     // Build extra actions (Pause / Resume)
+    const showPauseButton = isPausable && !isSimulationComplete;
     const extraActions =
-        isPausable ? (
+        showPauseButton ? (
             <button
-                className={chatStyles.resetButton}
+                className={`${chatStyles.resetButton} ${chatStyles.pauseButton} ${
+                    playbackState === 'PAUSING'
+                        ? chatStyles.pausing
+                        : playbackState === 'PAUSED'
+                        ? chatStyles.paused
+                        : ''
+                }`}
+                aria-label={
+                    playbackState === 'RUNNING'
+                        ? 'Pause simulation'
+                        : playbackState === 'PAUSING'
+                        ? 'Pausing simulation'
+                        : 'Resume simulation'
+                }
                 onClick={() => {
                     if (playbackState === 'RUNNING') {
                         requestPause();
@@ -294,11 +310,24 @@ export function MockedChat(props: MockedChatProps) {
                 }}
                 disabled={playbackState === 'PAUSING'}
             >
-                <span className={chatStyles.resetButtonText}>
-                    {playbackState === 'RUNNING' && 'Pause'}
-                    {playbackState === 'PAUSING' && 'Pausing…'}
-                    {playbackState === 'PAUSED' && 'Resume'}
-                </span>
+                {playbackState === 'RUNNING' && (
+                    <>
+                        <PauseIcon size={16} />
+                        <span className={chatStyles.resetButtonText}>Pause</span>
+                    </>
+                )}
+                {playbackState === 'PAUSING' && (
+                    <>
+                        <PauseIcon size={16} />
+                        <span className={chatStyles.resetButtonText}>Pausing…</span>
+                    </>
+                )}
+                {playbackState === 'PAUSED' && (
+                    <>
+                        <PlayIcon size={16} />
+                        <span className={chatStyles.resetButtonText}>Resume</span>
+                    </>
+                )}
             </button>
         ) : undefined;
 

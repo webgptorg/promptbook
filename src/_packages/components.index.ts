@@ -32,6 +32,8 @@ import { parseMessageButtons } from '../book-components/Chat/utils/parseMessageB
 import { renderMarkdown } from '../book-components/Chat/utils/renderMarkdown';
 import { isMarkdownContent } from '../book-components/Chat/utils/renderMarkdown';
 import { ArrowIcon } from '../book-components/icons/ArrowIcon';
+import { PauseIcon } from '../book-components/icons/PauseIcon';
+import { PlayIcon } from '../book-components/icons/PlayIcon';
 import { ResetIcon } from '../book-components/icons/ResetIcon';
 import { SendIcon } from '../book-components/icons/SendIcon';
 import { TemplateIcon } from '../book-components/icons/TemplateIcon';
@@ -70,6 +72,8 @@ export { parseMessageButtons };
 export { renderMarkdown };
 export { isMarkdownContent };
 export { ArrowIcon };
+export { PauseIcon };
+export { PlayIcon };
 export { ResetIcon };
 export { SendIcon };
 export { TemplateIcon };
