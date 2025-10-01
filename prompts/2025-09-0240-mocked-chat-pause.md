@@ -22,7 +22,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏃] Allow to hide/show "New chat" button in `MockedChat`
 

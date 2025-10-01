@@ -7,6 +7,7 @@
 -   **Enhanced:** `Chat` component now accepts `extraActions` prop for injecting custom action buttons (keeps Pause/Resume implementation DRY and reusable)
 -   **Added:** Pausing capability to `MockedChat` via `isPausable` (default `true`) with state machine RUNNING → PAUSING → PAUSED → RUNNING; finishes the currently typing message before pausing and resumes seamlessly
 -   **Enhanced:** Improved `MockedChat` pause UX (icons + colors + auto-hide)
+-   **Added:** `isResettable` prop to `MockedChat` (default `true`) controlling visibility of the "New chat" reset button; replaces deprecated `isResetShown` (removed). When set to `false`, the reset button is hidden and manual restart of the simulation is disabled. Note: default visibility changed from previously hidden to visible by default (rename + default change is a breaking change for consumers using the old prop).
     -   Added `PauseIcon` (⏸) and `PlayIcon` (▶) components and integrated them into the pause/resume control
     -   Distinct visual states: orange gradient while running, dimmed with opacity during transitional PAUSING state, green gradient when paused (ready to resume)
     -   Button hides automatically once simulated chat flow completes (prevents meaningless interaction)

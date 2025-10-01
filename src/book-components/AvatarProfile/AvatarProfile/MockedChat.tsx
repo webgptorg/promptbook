@@ -49,11 +49,14 @@ export type MockedChatProps = Omit<
     'onReset' | /*'onMessage' | */ 'onUseTemplate' | 'isVoiceRecognitionButtonShown'
 > & {
     /**
-     * Whether to show the reset button
+     * Whether the chat can be reset via the "New chat" button.
      *
-     * @default false
+     * When true (default), the reset button is shown and clicking it restarts the simulated flow.
+     * When false, the reset button is hidden (read-only simulation without manual restart).
+     *
+     * @default true
      */
-    isResetShown?: boolean;
+    isResettable?: boolean;
 
     /**
      * Optional delays configuration for emulating typing behavior
@@ -78,7 +81,7 @@ export type MockedChatProps = Omit<
  */
 export function MockedChat(props: MockedChatProps) {
     const {
-        isResetShown = false,
+        isResettable = true,
         delayConfig,
         messages: originalMessages,
         isPausable = true,
@@ -105,7 +108,7 @@ export function MockedChat(props: MockedChatProps) {
 
     const [resetNonce, setResetNonce] = useState(0);
     const onReset = useMemo(() => {
-        if (!isResetShown) {
+        if (!isResettable) {
             return undefined;
         }
 
@@ -114,7 +117,7 @@ export function MockedChat(props: MockedChatProps) {
             setIsSimulationComplete(false);
             setResetNonce((nonce) => nonce + 1);
         };
-    }, [resetNonce, isResetShown]);
+    }, [resetNonce, isResettable]);
 
     // Helper: Wait while paused (entered only between messages, never mid-typing)
     const waitIfPaused = async (isCancelledRef: () => boolean) => {

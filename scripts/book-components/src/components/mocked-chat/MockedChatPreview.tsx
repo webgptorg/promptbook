@@ -193,7 +193,7 @@ export default function MockedChatPreview() {
             </div>
 
             <MockedChat
-                isResetShown
+                isResettable
                 style={{ height: '500px' }}
                 messages={messages}
                 participants={participants}
