@@ -1,6 +1,4 @@
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { Usage } from './Usage';
@@ -56,7 +54,7 @@ export type CommonPromptResult = {
     // TODO: [🗯] prompt
 
     /**
-     * Exact text response from the model
+     * Text response from the model
      */
     readonly content: string;
 

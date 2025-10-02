@@ -1,4 +1,5 @@
 import type { Promisable } from 'type-fest';
+import { promptbookifyAiText } from '../../_packages/markdown-utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -8,7 +9,7 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
 
 /**
  * Execution Tools for calling LLM models with a predefined agent "soul"
@@ -91,10 +92,17 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         return this.llmTools.checkConfiguration();
     }
 
+    /**
+     * Returns a virtual model name representing the agent behavior
+     */
+    public get modelName(): string_model_name {
+        return 'agent-007-!!!';
+    }
+
     public listModels(): Promisable<ReadonlyArray<AvailableModel>> {
         return [
             {
-                modelName: 'agent-007-!!!',
+                modelName: this.modelName,
                 modelVariant: 'CHAT',
                 modelTitle: `${this.title} (Agent Chat Default)`,
                 modelDescription: `Chat model with agent behavior: ${this.description}`,
@@ -136,8 +144,15 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             },
         };
 
-        // Call underlying chat model with modified prompt
-        return this.llmTools.callChatModel(modifiedChatPrompt);
+        const underlyingLlmResult = await this.llmTools.callChatModel(modifiedChatPrompt);
+
+        const agentResult: ChatPromptResult = {
+            ...underlyingLlmResult,
+            content: promptbookifyAiText(underlyingLlmResult.content),
+            modelName: this.modelName,
+        };
+
+        return agentResult;
     }
 
     // Note: We intentionally do NOT implement callCompletionModel and callEmbeddingModel
