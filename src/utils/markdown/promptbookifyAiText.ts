@@ -20,7 +20,7 @@ export function promptbookifyAiText(text: string_markdown): string_markdown {
 }
 
 /**
- * TODO: !!!!! Make the function idempotent and add "Note: [🔂] This function is idempotent."
+ * TODO: !!! Make the function idempotent and add "Note: [🔂] This function is idempotent."
  * TODO: [🅾️]!!! Use this across the project where AI text is involved
  * TODO: [🧠][✌️] Make some Promptbook-native token system
  */

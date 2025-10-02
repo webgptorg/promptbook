@@ -31,3 +31,8 @@ describe('how `promptbookifyAiText` works', () => {
             ),
         ));
 });
+
+
+/**
+ * TODO: !!! Make the function idempotent and add "Note: [🔂] This function is idempotent."
+ */
