@@ -221,3 +221,7 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
         </div>
     );
 }
+
+/**
+ * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+ */

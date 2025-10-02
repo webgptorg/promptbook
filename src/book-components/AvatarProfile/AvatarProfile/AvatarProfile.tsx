@@ -39,3 +39,7 @@ export function AvatarProfile(props: AvatarProfileProps) {
         </div>
     );
 }
+
+/**
+ * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+ */

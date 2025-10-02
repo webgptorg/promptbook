@@ -167,3 +167,8 @@ export type ChatProps = {
         url: string;
     }): Promisable<void>;
 };
+
+
+/**
+ * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+ */

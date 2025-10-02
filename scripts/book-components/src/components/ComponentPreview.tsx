@@ -113,3 +113,7 @@ export default function ComponentPreview({ componentId }: ComponentPreviewProps)
 
     return <div className="bg-gray-50">{renderComponentPreview()}</div>;
 }
+
+/**
+ * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+ */

@@ -56,3 +56,7 @@ export function AvatarChip(props: AvatarChipProps) {
         </div>
     );
 }
+
+/**
+ * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+ */

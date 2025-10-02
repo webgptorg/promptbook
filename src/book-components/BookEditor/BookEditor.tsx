@@ -68,8 +68,6 @@ export type BookEditorProps = {
     readonly isFooterShown?: boolean;
 };
 
-// <- TODO: !!! Is this exported also to `@promptbook/types`?
-
 /**
  * Renders a book editor
  *
@@ -144,3 +142,7 @@ export function BookEditor(props: BookEditorProps) {
         </div>
     );
 }
+
+/**
+ * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+ */
