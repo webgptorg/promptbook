@@ -146,5 +146,5 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
 /**
  * TODO: [🍚] Implement Destroyable pattern to free resources
- * TODO: !!!! adding parameter substitution support
+ * TODO: [🧠] Adding parameter substitution support (here or should be responsibility of the underlying LLM Tools)
  */
