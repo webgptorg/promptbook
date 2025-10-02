@@ -83,19 +83,5 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
 }
 
 /**
- * Singleton instance of the STYLE commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const StyleCommitment = new StyleCommitmentDefinition('STYLE');
-
-/**
- * Singleton instance of the STYLES commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const StylesCommitment = new StyleCommitmentDefinition('STYLES');
-
-/**
  * [💞] Ignore a discrepancy between file name and entity name
  */

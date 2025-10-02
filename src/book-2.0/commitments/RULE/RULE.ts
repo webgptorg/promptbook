@@ -82,19 +82,6 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
     }
 }
 
-/**
- * Singleton instances of the RULE commitment definitions
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const RuleCommitment = new RuleCommitmentDefinition('RULE');
-
-/**
- * Singleton instances of the RULE commitment definitions
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const RulesCommitment = new RuleCommitmentDefinition('RULES');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

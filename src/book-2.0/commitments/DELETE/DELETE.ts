@@ -124,33 +124,5 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
 }
 
 /**
- * Singleton instances of the DELETE commitment definitions with aliases
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const DeleteCommitment = new DeleteCommitmentDefinition('DELETE');
-
-/**
- * Singleton instances of the DELETE commitment definitions with aliases
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const CancelCommitment = new DeleteCommitmentDefinition('CANCEL');
-
-/**
- * Singleton instances of the DELETE commitment definitions with aliases
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const DiscardCommitment = new DeleteCommitmentDefinition('DISCARD');
-
-/**
- * Singleton instances of the DELETE commitment definitions with aliases
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const RemoveCommitment = new DeleteCommitmentDefinition('REMOVE');
-
-/**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

@@ -144,12 +144,6 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
     }
 }
 
-/**
- * Singleton instance of the META commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MetaCommitment = new MetaCommitmentDefinition();
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

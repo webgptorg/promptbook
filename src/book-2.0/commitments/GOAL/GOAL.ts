@@ -101,19 +101,5 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
 }
 
 /**
- * Singleton instance of the GOAL commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const GoalCommitment = new GoalCommitmentDefinition('GOAL');
-
-/**
- * Singleton instance of the GOALS commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const GoalsCommitment = new GoalCommitmentDefinition('GOALS');
-
-/**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

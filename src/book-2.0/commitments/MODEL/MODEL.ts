@@ -253,19 +253,6 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
     }
 }
 
-/**
- * Singleton instance of the MODEL commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const ModelCommitment = new ModelCommitmentDefinition('MODEL');
-
-/**
- * Singleton instance of the MODELS commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const ModelsCommitment = new ModelCommitmentDefinition('MODELS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

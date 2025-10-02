@@ -123,19 +123,6 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
     }
 }
 
-/**
- * Singleton instance of the SCENARIO commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const ScenarioCommitment = new ScenarioCommitmentDefinition('SCENARIO');
-
-/**
- * Singleton instance of the SCENARIOS commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const ScenariosCommitment = new ScenarioCommitmentDefinition('SCENARIOS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

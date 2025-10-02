@@ -124,12 +124,5 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 }
 
 /**
- * Singleton instance of the KNOWLEDGE commitment definition !!!!
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const KnowledgeCommitment = new KnowledgeCommitmentDefinition();
-
-/**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

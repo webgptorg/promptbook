@@ -112,33 +112,5 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
 }
 
 /**
- * Singleton instance of the NOTE commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const NoteCommitment = new NoteCommitmentDefinition('NOTE');
-
-/**
- * Singleton instance of the NOTES commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const NotesCommitment = new NoteCommitmentDefinition('NOTES');
-
-/**
- * Singleton instance of the COMMENT commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const CommentCommitment = new NoteCommitmentDefinition('COMMENT');
-
-/**
- * Singleton instance of the NONCE commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const NonceCommitment = new NoteCommitmentDefinition('NONCE');
-
-/**
  * [💞] Ignore a discrepancy between file name and entity name
  */

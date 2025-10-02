@@ -109,12 +109,6 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
     }
 }
 
-/**
- * Singleton instance of the META LINK commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MetaLinkCommitment = new MetaLinkCommitmentDefinition();
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

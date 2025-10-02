@@ -115,19 +115,6 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
     }
 }
 
-/**
- * Singleton instance of the MESSAGE commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MessageCommitment = new MessageCommitmentDefinition('MESSAGE');
-
-/**
- * Singleton instance of the MESSAGES commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MessagesCommitment = new MessageCommitmentDefinition('MESSAGES');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -81,19 +81,6 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
     }
 }
 
-/**
- * Singleton instances of the SAMPLE commitment definitions
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const SampleCommitment = new SampleCommitmentDefinition('SAMPLE');
-
-/**
- * Singleton instances of the SAMPLE commitment definitions
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const ExampleCommitment = new SampleCommitmentDefinition('EXAMPLE');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

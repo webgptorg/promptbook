@@ -108,19 +108,5 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
 }
 
 /**
- * Singleton instance of the MEMORY commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MemoryCommitment = new MemoryCommitmentDefinition('MEMORY');
-
-/**
- * Singleton instance of the MEMORIES commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MemoriesCommitment = new MemoryCommitmentDefinition('MEMORIES');
-
-/**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

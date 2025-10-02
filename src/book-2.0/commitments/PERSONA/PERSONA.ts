@@ -146,19 +146,6 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
     }
 }
 
-/**
- * Singleton instance of the PERSONA commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const PersonaCommitment = new PersonaCommitmentDefinition('PERSONA');
-
-/**
- * Singleton instance of the PERSONAE commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const PersonaeCommitment = new PersonaCommitmentDefinition('PERSONAE');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -88,12 +88,5 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
 }
 
 /**
- * Singleton instance of the META IMAGE commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const MetaImageCommitment = new MetaImageCommitmentDefinition();
-
-/**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

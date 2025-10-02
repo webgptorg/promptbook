@@ -81,19 +81,6 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
     }
 }
 
-/**
- * Singleton instance of the FORMAT commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const FormatCommitment = new FormatCommitmentDefinition('FORMAT');
-
-/**
- * Singleton instance of the FORMATS commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const FormatsCommitment = new FormatCommitmentDefinition('FORMATS');
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

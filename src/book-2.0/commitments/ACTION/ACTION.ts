@@ -83,19 +83,5 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
 }
 
 /**
- * Singleton instance of the ACTION commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const ActionCommitment = new ActionCommitmentDefinition('ACTION');
-
-/**
- * Singleton instance of the ACTIONS commitment definition
- *
- * @private [🪔] Maybe export the commitments through some package
- */
-export const ActionsCommitment = new ActionCommitmentDefinition('ACTIONS');
-
-/**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */
