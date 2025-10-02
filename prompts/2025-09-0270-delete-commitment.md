@@ -1,9 +1,9 @@
 [ ]
 
-[✨🐢] baz
+[✨🐢] Implement the functionality of `DELETE` commitment
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
+-   When user adds `DELETE @Foo` or `DELETE {Foo}` it should invalidate all `@Foo` and `{Foo}` commitments in the book above the `DELETE` commitment.
+-   Reflect this change into the `/CHANGELOG.md`
 
 ---
 
