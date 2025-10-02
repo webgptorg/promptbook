@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
@@ -8,28 +7,14 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version'
 import { classNames } from '../_common/react-utils/classNames';
 import { escapeHtml } from '../_common/react-utils/escapeHtml';
 import { escapeRegex } from '../_common/react-utils/escapeRegex';
+import { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { DEFAULT_BOOK_FONT_CLASS } from './config';
 
 /**
  * @private util of `<BookEditor />`
  */
-export type BookEditorInnerProps = {
-    // TODO: !!!! Derive from BookEditorProps
-    className?: string;
-    fontClassName?: string;
-    value?: string_book;
-    onChange?(value: string_book): void;
-    onFileUpload?(file: File): Promisable<string>;
-    isVerbose?: boolean;
-    isBorderRadiusDisabled?: boolean;
-    isFooterShown?: boolean;
-};
-
-/**
- * @private util of `<BookEditor />`
- */
-export function BookEditorInner(props: BookEditorInnerProps) {
+export function BookEditorInner(props: BookEditorProps) {
     const {
         className = '',
         value: controlledValue,
