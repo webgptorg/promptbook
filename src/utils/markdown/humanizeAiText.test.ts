@@ -58,7 +58,7 @@ describe('how `humanizeAiText` works', () => {
         const firstPass = humanizeAiText(originalText);
         const secondPass = humanizeAiText(firstPass);
         const thirdPass = humanizeAiText(secondPass);
-        const milionthPass = (() => {
+        const millionthPass = (() => {
             let result = thirdPass;
             for (let i = 0; i < 1_000_000; i++) {
                 result = humanizeAiText(result);
@@ -69,11 +69,11 @@ describe('how `humanizeAiText` works', () => {
 
         expect(firstPass).toBe(secondPass);
         expect(secondPass).toBe(thirdPass);
-        expect(thirdPass).toBe(milionthPass);
-        expect(firstPass).toBe(milionthPass);
+        expect(thirdPass).toBe(millionthPass);
+        expect(firstPass).toBe(millionthPass);
         expect(originalText).not.toBe(firstPass);
         expect(originalText).not.toBe(secondPass);
         expect(originalText).not.toBe(thirdPass);
-        expect(originalText).not.toBe(milionthPass);
+        expect(originalText).not.toBe(millionthPass);
     });
 });
