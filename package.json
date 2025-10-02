@@ -196,7 +196,6 @@
         "preversion": "git pull && git pull --tags && npm run test-without-package-generation && echo \"<- Note: In next command the packages are generated\" && npm run generate-packages-commit",
         "postversion": "git push && git push --tags && npm run update-version-in-config-commit && npm run generate-packages-commit && npm run use-packages",
         "make": "npm run make-promptbook-collection && npm run update-version-in-config && npm run generate-packages && npm run generate-examples-bookc && npm run generate-documentation && npm run import-markdowns && npm run generate-openapi-types",
-        "make-commit": "echo: \"TODO: !!! Either use make-commit in postversion or clean all generated things out of the repository together with -commit variants of scripts\"",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts",
         "generate-packages-commit": "ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler --commit",
         "_NOTE-0": " <- Note: This is here to ensure that publish.yml is up to date before tagging the new version",
