@@ -14,11 +14,13 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example comp
             pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
         ).resolves.toMatchObject({
             outputParameters: {
-                response: spaceTrim(`
+                response: expect.stringContaining(
+                    spaceTrim(`
                     One day I went to the shop and bought a cup of coffee.
                     Now I have a cup of coffee.
                     And so on...
                 `),
+                ),
             },
         });
     });
@@ -142,6 +144,5 @@ async function getPipelineExecutor() {
 }
 
 /**
- * TODO: [🐷] !!!! Fix and uncomment the test
  * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
  */

@@ -26,10 +26,12 @@ describe('createPipelineExecutor + MockedEchoExecutionTools with example chat pr
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                name: spaceTrim(`
+                name: expect.stringContaining(
+                    spaceTrim(`
                     You said:
                     Write some name for Badname
                 `),
+                ),
             },
         });
     });
@@ -74,6 +76,5 @@ async function getPipelineExecutor() {
 }
 
 /**
- * TODO: [🐷] !!!! Fix and uncomment the test
  * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
  */

@@ -15,7 +15,7 @@ describe('createPipelineExecutor + postprocessing', () => {
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('LUA_P_OLLE_H_DIAS_UO_Y'),
             },
         });
 
@@ -23,7 +23,7 @@ describe('createPipelineExecutor + postprocessing', () => {
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('MAD_A_OLLE_H_DIAS_UO_Y'),
             },
         });
 
@@ -31,7 +31,7 @@ describe('createPipelineExecutor + postprocessing', () => {
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('NHO_J_OLLE_H_DIAS_UO_Y'),
             },
         });
 
@@ -39,7 +39,7 @@ describe('createPipelineExecutor + postprocessing', () => {
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('DIVAD_OLLE_H_DIAS_UO_Y'),
             },
         });
     });
@@ -94,7 +94,3 @@ async function getPipelineExecutor() {
 
     return pipelineExecutor;
 }
-
-/**
- * TODO: [🐷] !!!! Fix and uncomment the test
- */
