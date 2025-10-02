@@ -9,3 +9,5 @@
     2. Entities that are used only internally inside the project
     3. Entities that arent used at all
 -   You are cleaning up only the 3rd type of entities - entities that arent used at all
+-   Do not ask me any questions, just analyze the codebase and cleanup unused entities
+-   List the removed entities in the `CHANGELOG.md`
