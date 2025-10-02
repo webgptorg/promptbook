@@ -146,7 +146,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
     // Note: OpenAI-compatible chat completions endpoint
     app.post('/v1/chat/completions', async (request, response) => {
-        // TODO: !!!! Make more promptbook-native:
+        // TODO: [🧠][🦢] Make OpenAI  compatible more promptbook-native - make reverse adapter from LlmExecutionTools to OpenAI-compatible:
 
         try {
             const params = request.body;

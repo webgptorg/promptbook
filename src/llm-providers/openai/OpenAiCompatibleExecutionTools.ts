@@ -12,23 +12,23 @@ import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } 
 import type { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
 import type {
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_title,
+  string_date_iso8601,
+  string_markdown,
+  string_markdown_text,
+  string_model_name,
+  string_title,
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
+import {
+  isUnsupportedParameterError,
+  parseUnsupportedParameterError,
+  removeUnsupportedModelRequirement,
+} from '../_common/utils/removeUnsupportedModelRequirements';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
-import {
-    isUnsupportedParameterError,
-    parseUnsupportedParameterError,
-    removeUnsupportedModelRequirement,
-} from '../_common/utils/removeUnsupportedModelRequirements';
 
 /**
  * Execution Tools for calling OpenAI API or other OpenAI compatible provider
@@ -705,4 +705,5 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
  * TODO: [🛄] Maybe make custom `OpenAiCompatibleError`
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+ * TODO: [🧠][🦢] Make reverse adapter from LlmExecutionTools to OpenAI-compatible:
  */
