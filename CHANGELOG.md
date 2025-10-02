@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 <!-- TODO: Make [Unreleased] more compact: -->
+-   **Removed:** Unused draft expectation utilities `isDomainNameFree` and `isGithubNameFree` (internal only; never exported; eliminated dead code)
+
 
 -   **Enhanced:** `Chat` component now accepts `extraActions` prop for injecting custom action buttons (keeps Pause/Resume implementation DRY and reusable)
 -   **Added:** Pausing capability to `MockedChat` via `isPausable` (default `true`) with state machine RUNNING → PAUSING → PAUSED → RUNNING; finishes the currently typing message before pausing and resumes seamlessly
