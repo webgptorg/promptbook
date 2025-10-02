@@ -11,6 +11,17 @@ import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Mocked Fake provider (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const MOCKED_FAKE_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'MOCKED_FAKE' as string_name,
+    fullname: 'Fake LLM (Test)',
+    color: '#ec4899',
+} as const;
 
 keepTypeImported<EmbeddingVector>();
 
@@ -28,6 +39,10 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
 
     public get description(): string_markdown {
         return 'Use faked lorem ipsum data - just for testing';
+    }
+
+    public get profile() {
+        return MOCKED_FAKE_PROVIDER_PROFILE;
     }
 
     /**

@@ -13,7 +13,17 @@ import type {
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Multiple providers aggregation (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const MULTIPLE_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'MULTIPLE' as string_name,
+    fullname: 'Multiple Providers',
+    color: '#6366f1',
+} as const;
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
@@ -66,7 +76,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
     }
 
     public get profile() {
-        return LLM_PROVIDER_PROFILES.MULTIPLE;
+        return MULTIPLE_PROVIDER_PROFILE;
     }
 
     /**

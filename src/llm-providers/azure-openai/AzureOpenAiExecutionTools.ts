@@ -24,6 +24,17 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Azure OpenAI provider (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const AZURE_OPENAI_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'AZURE_OPENAI' as string_name,
+    fullname: 'Azure OpenAI',
+    color: '#0078d4',
+} as const;
 
 keepTypeImported<Usage>();
 
@@ -61,6 +72,10 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
 
     public get description(): string_markdown {
         return 'Use all models trained by OpenAI provided by Azure';
+    }
+
+    public get profile() {
+        return AZURE_OPENAI_PROVIDER_PROFILE;
     }
 
     public async getClient(): Promise<OpenAIClient> {

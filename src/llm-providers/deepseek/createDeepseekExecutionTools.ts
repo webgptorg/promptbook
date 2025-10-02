@@ -4,6 +4,17 @@ import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { DeepseekExecutionToolsOptions } from './DeepseekExecutionToolsOptions';
 import { DEEPSEEK_MODELS } from './deepseek-models';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Deepseek provider (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const DEEPSEEK_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'DEEPSEEK' as string_name,
+    fullname: 'DeepSeek',
+    color: '#7c3aed',
+} as const;
 
 /**
  * Execution Tools for calling Deepseek API.
@@ -26,13 +37,18 @@ export const createDeepseekExecutionTools = Object.assign(
             // apiKey: process.env.DEEPSEEK_GENERATIVE_AI_API_KEY,
         });
 
-        return createExecutionToolsFromVercelProvider({
+        const baseTools = createExecutionToolsFromVercelProvider({
             title: 'Deepseek',
             description: 'Implementation of Deepseek models',
             vercelProvider: deepseekVercelProvider,
             availableModels: DEEPSEEK_MODELS,
             ...options,
         });
+
+        return {
+            ...baseTools,
+            profile: DEEPSEEK_PROVIDER_PROFILE,
+        };
     },
     {
         packageName: '@promptbook/deepseek',

@@ -4,6 +4,7 @@
 
 <!-- TODO: Make [Unreleased] more compact: -->
 -   **Removed:** Unused draft expectation utilities `isDomainNameFree` and `isGithubNameFree` (internal only; never exported; eliminated dead code)
+-   **Refactored:** Removed centralized `LLM_PROVIDER_PROFILES` registry (`src/llm-providers/_common/profiles/llmProviderProfiles.ts`) and colocated a `profile` object with every provider (OpenAI, Anthropic, Azure OpenAI, Google, Deepseek, Ollama, Remote, Multiple, Vercel adapter, Mocked Echo, Mocked Fake). Legacy test replaced with placeholder; import sites now rely on per-provider `profile` property. This simplifies maintenance and prevents stale profile drift.
 
 
 -   **Enhanced:** `Chat` component now accepts `extraActions` prop for injecting custom action buttons (keeps Pause/Resume implementation DRY and reusable)

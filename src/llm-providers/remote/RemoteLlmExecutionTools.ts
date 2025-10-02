@@ -1,7 +1,17 @@
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Remote provider (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const REMOTE_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'REMOTE' as string_name,
+    fullname: 'Remote Server',
+    color: '#6b7280',
+} as const;
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../execution/PromptResult';
@@ -49,7 +59,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
     }
 
     public get profile() {
-        return LLM_PROVIDER_PROFILES.REMOTE;
+        return REMOTE_PROVIDER_PROFILE;
     }
 
     /**

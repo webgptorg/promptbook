@@ -11,6 +11,17 @@ import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionTools
 import { OLLAMA_MODELS } from './ollama-models';
 import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Ollama provider (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const OLLAMA_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'OLLAMA' as string_name,
+    fullname: 'Ollama',
+    color: '#059669',
+} as const;
 
 /**
  * Execution Tools for calling Ollama API
@@ -37,6 +48,10 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
 
     public get description(): string_markdown {
         return 'Use all models provided by Ollama';
+    }
+
+    public get profile() {
+        return OLLAMA_PROVIDER_PROFILE;
     }
 
     /**

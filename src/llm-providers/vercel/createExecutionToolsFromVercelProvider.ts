@@ -14,6 +14,17 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import { asSerializable } from '../../utils/serialization/asSerializable';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Vercel AI adapter (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const VERCEL_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'VERCEL' as string_name,
+    fullname: 'Vercel AI',
+    color: '#000000',
+} as const;
 
 /**
  * Adapter which creates Promptbook execution tools from Vercel provider
@@ -41,6 +52,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
     return {
         title,
         description,
+        profile: VERCEL_PROVIDER_PROFILE,
         checkConfiguration() {
             // Note: There is no way how to check configuration of Vercel provider
             return Promise.resolve();

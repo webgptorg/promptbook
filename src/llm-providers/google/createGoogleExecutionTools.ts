@@ -4,6 +4,17 @@ import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
 import { GOOGLE_MODELS } from './google-models';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Google Gemini provider (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const GOOGLE_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'GOOGLE' as string_name,
+    fullname: 'Google Gemini',
+    color: '#4285f4',
+} as const;
 
 /**
  * Execution Tools for calling Google Gemini API.
@@ -26,13 +37,18 @@ export const createGoogleExecutionTools = Object.assign(
             /// apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
         });
 
-        return createExecutionToolsFromVercelProvider({
+        const baseTools = createExecutionToolsFromVercelProvider({
             title: 'Google',
             description: 'Implementation of Google models',
             vercelProvider: googleGeminiVercelProvider,
             availableModels: GOOGLE_MODELS,
             ...options,
         });
+
+        return {
+            ...baseTools,
+            profile: GOOGLE_PROVIDER_PROFILE,
+        };
     },
     {
         packageName: '@promptbook/google',

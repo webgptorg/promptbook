@@ -10,7 +10,17 @@ import type { string_markdown, string_markdown_text, string_title } from '../../
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { LLM_PROVIDER_PROFILES } from '../_common/profiles/llmProviderProfiles';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import type { string_name } from '../../types/typeAliases';
+
+/**
+ * Profile for Mocked Echo provider (moved from centralized LLM_PROVIDER_PROFILES)
+ */
+const MOCKED_ECHO_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'MOCKED_ECHO' as string_name,
+    fullname: 'Echo (Test)',
+    color: '#8b5cf6',
+} as const;
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -29,7 +39,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
     }
 
     public get profile() {
-        return LLM_PROVIDER_PROFILES.MOCKED_ECHO;
+        return MOCKED_ECHO_PROVIDER_PROFILE;
     }
 
     /**
