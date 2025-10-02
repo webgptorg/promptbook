@@ -24,6 +24,7 @@
     -   Preview updated: each scenario in `LlmChatPreview` now shows unique funny initial user+assistant exchange
     -   DRY helper `buildInitialMessages` + centralized `initialMessagesByScenario` mapping
     -   Added unit test validating acceptance of both roles in `initialMessages`
+    -   Enhancement: Re-applies `initialMessages` after "New chat" reset (previously only applied on first mount) using shared `buildInitialMessages` factory; added reset reseed test to ensure DRY + correctness
     -   No changes required in `useSendMessageToLlmChat` hook (works transparently with seeded state)
     -   New React hook `useSendMessageToLlmChat` provides an attachable `sendMessage` function created without any provider
     -   The hook returns a function that can be passed to `<LlmChat sendMessage={sendMessage} />`

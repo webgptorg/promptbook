@@ -3,6 +3,26 @@ import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/Mocke
 import type { ChatMessage } from '../types/ChatMessage';
 import type { LlmChatProps } from './LlmChatProps';
 
+type CapturedChatProps = {
+    messages: ReadonlyArray<ChatMessage>;
+    onReset?: () => Promise<void> | void;
+    // Allow other props without using `any`
+    [key: string]: unknown;
+};
+
+// Mock the Chat component to capture props (including messages + onReset) without rendering DOM
+jest.mock('../Chat/Chat', () => ({
+    Chat: (props: CapturedChatProps) => {
+        (globalThis as unknown as { __lastChatProps?: CapturedChatProps }).__lastChatProps = props;
+        return null;
+    },
+}));
+
+import React from 'react';
+import { act } from 'react-dom/test-utils';
+import { createRoot } from 'react-dom/client';
+import { LlmChat } from './LlmChat';
+
 describe('LlmChat', () => {
     const mockLlmTools = new MockedEchoLlmExecutionTools({ isVerbose: false });
 
@@ -160,5 +180,58 @@ describe('LlmChat', () => {
 
         expect(typeof props.sendMessage).toBe('function');
         expect(typeof props.sendMessage?._attach).toBe('function');
+    });
+
+    it('should re-seed initialMessages after reset (New chat)', async () => {
+        const initialMessages: ChatMessage[] = [
+            {
+                id: 'init-user',
+                date: new Date(),
+                from: 'USER',
+                content: 'Hi assistant (seed)',
+                isComplete: true,
+            },
+            {
+                id: 'init-assistant',
+                date: new Date(),
+                from: 'ASSISTANT',
+                content: 'Hello user (seed)',
+                isComplete: true,
+            },
+        ];
+
+        // Render LlmChat with mocked Chat component
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        await act(async () => {
+            const root = createRoot(container);
+            root.render(<LlmChat llmTools={mockLlmTools} initialMessages={initialMessages} />);
+        });
+
+        const rawFirstProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;
+        expect(rawFirstProps).toBeDefined();
+        const firstProps = rawFirstProps as CapturedChatProps;
+        expect(firstProps.messages).toHaveLength(2);
+        expect(firstProps.messages[0]!.content).toContain('Hi assistant');
+        expect(firstProps.messages[1]!.content).toContain('Hello user');
+
+        // Trigger reset via captured onReset (assert defined to satisfy TS)
+        if (!firstProps.onReset) {
+            throw new Error('Expected onReset to be defined on firstProps');
+        }
+        await act(async () => {
+            await firstProps.onReset!();
+        });
+
+        const rawAfterResetProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;
+        expect(rawAfterResetProps).toBeDefined();
+        if (!rawAfterResetProps) {
+            throw new Error('Expected after reset chat props to be captured');
+        }
+        const afterResetProps = rawAfterResetProps as CapturedChatProps;
+        expect(afterResetProps.messages).toHaveLength(2);
+        expect(afterResetProps.messages[0]!.content).toContain('Hi assistant');
+        expect(afterResetProps.messages[1]!.content).toContain('Hello user');
     });
 });

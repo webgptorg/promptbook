@@ -25,7 +25,12 @@ export function LlmChat(props: LlmChatProps) {
     const { llmTools, persistenceKey, onChange, onReset, initialMessages, sendMessage, ...restProps } = props;
 
     // Internal state management
-    const [messages, setMessages] = useState<ChatMessage[]>(() => (initialMessages ? [...initialMessages] : []));
+    // DRY: Single factory for seeding initial messages (used on mount and after reset)
+    const buildInitialMessages = useCallback(
+        () => (initialMessages ? [...initialMessages] as ChatMessage[] : [] as ChatMessage[]),
+        [initialMessages],
+    );
+    const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
 
     /**
@@ -191,7 +196,8 @@ export function LlmChat(props: LlmChatProps) {
 
     // Handle chat reset
     const handleReset = useCallback(async () => {
-        setMessages([]);
+        // Re-seed with initialMessages instead of empty array
+        setMessages(buildInitialMessages());
         setTasksProgress([]);
         hasUserInteractedRef.current = false;
 
@@ -206,9 +212,9 @@ export function LlmChat(props: LlmChatProps) {
 
         // Notify about changes
         if (onChange) {
-            onChange([], participants);
+            onChange(buildInitialMessages(), participants);
         }
-    }, [persistenceKey, onReset, onChange, participants]);
+    }, [persistenceKey, onReset, onChange, participants, buildInitialMessages]);
 
     // Attach internal handler to external sendMessage (from useSendMessageToLlmChat) if provided
     useEffect(() => {
