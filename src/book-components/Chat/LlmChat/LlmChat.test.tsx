@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 import { describe, expect, it } from '@jest/globals';
 import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { ChatMessage } from '../types/ChatMessage';
