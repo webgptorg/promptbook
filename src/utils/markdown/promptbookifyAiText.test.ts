@@ -12,7 +12,6 @@ describe('how `promptbookifyAiText` works', () => {
 
                     It can be humanized or not.
 
-                    But we will mark it is Promptbookified.
 
                     This Promptbookification does not raise red flags for AI text detectors.
                 `),
