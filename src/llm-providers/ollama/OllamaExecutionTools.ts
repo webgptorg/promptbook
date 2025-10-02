@@ -1,21 +1,18 @@
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { Usage } from '../../execution/Usage';
 import { ZERO_VALUE } from '../../execution/utils/usage-constants';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
 import { computeOpenAiUsage } from '../openai/computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from '../openai/OpenAiCompatibleExecutionTools';
 import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
 import { OLLAMA_MODELS } from './ollama-models';
 import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
 
 /**
- * Profile for Ollama provider (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for Ollama provider
  */
 const OLLAMA_PROVIDER_PROFILE: ChatParticipant = {
     name: 'OLLAMA' as string_name,

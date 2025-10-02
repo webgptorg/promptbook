@@ -1,20 +1,19 @@
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
 
 /**
- * Profile for Mocked Echo provider (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for Mocked Echo provider
  */
 const MOCKED_ECHO_PROVIDER_PROFILE: ChatParticipant = {
     name: 'MOCKED_ECHO' as string_name,

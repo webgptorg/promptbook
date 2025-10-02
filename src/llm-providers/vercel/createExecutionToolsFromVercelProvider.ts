@@ -1,5 +1,6 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
@@ -8,17 +9,15 @@ import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_date_iso8601, string_name } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { asSerializable } from '../../utils/serialization/asSerializable';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
 
 /**
- * Profile for Vercel AI adapter (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for Vercel AI adapter
  */
 const VERCEL_PROVIDER_PROFILE: ChatParticipant = {
     name: 'VERCEL' as string_name,

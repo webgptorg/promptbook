@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
@@ -11,13 +12,11 @@ import type {
     PromptResult,
 } from '../../execution/PromptResult';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
 
 /**
- * Profile for Multiple providers aggregation (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for Multiple providers aggregation
  */
 const MULTIPLE_PROVIDER_PROFILE: ChatParticipant = {
     name: 'MULTIPLE' as string_name,

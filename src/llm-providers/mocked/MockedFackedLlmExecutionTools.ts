@@ -1,3 +1,4 @@
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
@@ -5,17 +6,15 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
 
 /**
- * Profile for Mocked Fake provider (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for Mocked Fake provider
  */
 const MOCKED_FAKE_PROVIDER_PROFILE: ChatParticipant = {
     name: 'MOCKED_FAKE' as string_name,

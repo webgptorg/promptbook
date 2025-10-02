@@ -1,22 +1,19 @@
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import { computeOpenAiUsage } from './computeOpenAiUsage';
+import { OPENAI_MODELS } from './openai-models';
+import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
 
 /**
- * Profile for OpenAI provider (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for OpenAI provider
  */
 const OPENAI_PROVIDER_PROFILE: ChatParticipant = {
     name: 'OPENAI' as string_name,
     fullname: 'OpenAI GPT',
     color: '#10a37f',
 } as const;
-import { computeOpenAiUsage } from './computeOpenAiUsage';
-import { OPENAI_MODELS } from './openai-models';
-import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
 
 /**
  * Execution Tools for calling OpenAI API

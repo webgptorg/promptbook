@@ -1,14 +1,14 @@
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import type { string_name } from '../../types/typeAliases';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { DeepseekExecutionToolsOptions } from './DeepseekExecutionToolsOptions';
 import { DEEPSEEK_MODELS } from './deepseek-models';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
 
 /**
- * Profile for Deepseek provider (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for Deepseek provider
  */
 const DEEPSEEK_PROVIDER_PROFILE: ChatParticipant = {
     name: 'DEEPSEEK' as string_name,

@@ -1,14 +1,14 @@
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import type { string_name } from '../../types/typeAliases';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
 import { GOOGLE_MODELS } from './google-models';
-import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
-import type { string_name } from '../../types/typeAliases';
 
 /**
- * Profile for Google Gemini provider (moved from centralized LLM_PROVIDER_PROFILES)
+ * Profile for Google Gemini provider
  */
 const GOOGLE_PROVIDER_PROFILE: ChatParticipant = {
     name: 'GOOGLE' as string_name,
