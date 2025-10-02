@@ -47,4 +47,33 @@ describe('how `humanizeAiText` works', () => {
                 `),
             ),
         ));
+
+    it('should be idempotent', () => {
+        const originalText = spaceTrim(`
+            This is an example of AI-generated text — it may contain some “smart quotes” and unprintable hard spaces.
+
+            Let's see how it handles ellipses… and em-dashes — as well as other characters like «guillemets» and ‚single low-9 quotes‘.
+        `);
+
+        const firstPass = humanizeAiText(originalText);
+        const secondPass = humanizeAiText(firstPass);
+        const thirdPass = humanizeAiText(secondPass);
+        const milionthPass = (() => {
+            let result = thirdPass;
+            for (let i = 0; i < 1_000_000; i++) {
+                result = humanizeAiText(result);
+            }
+
+            return result;
+        })();
+
+        expect(firstPass).toBe(secondPass);
+        expect(secondPass).toBe(thirdPass);
+        expect(thirdPass).toBe(milionthPass);
+        expect(firstPass).toBe(milionthPass);
+        expect(originalText).not.toBe(firstPass);
+        expect(originalText).not.toBe(secondPass);
+        expect(originalText).not.toBe(thirdPass);
+        expect(originalText).not.toBe(milionthPass);
+    });
 });
