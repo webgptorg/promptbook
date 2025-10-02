@@ -49,7 +49,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
 
             Adds comments for documentation without changing agent behavior.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Does not modify the agent's behavior or responses.
             - Multiple \`NOTE\`, \`NOTES\`, \`COMMENT\`, and \`NONCE\` commitments are aggregated for debugging.

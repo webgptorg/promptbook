@@ -33,7 +33,7 @@ export class NotYetImplementedCommitmentDefinition<
 
             This commitment is not yet fully implemented.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Content is appended directly to the system message.
             - No special processing or validation is performed.

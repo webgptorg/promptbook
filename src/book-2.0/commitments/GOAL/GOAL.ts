@@ -39,9 +39,8 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
 
             Defines the main goal which should be achieved by the AI assistant. There can be multiple goals, and later goals are more important than earlier goals.
 
-            ## Key behaviors
+            ## Key aspects
 
-            - Multiple \`GOAL\` and \`GOALS\` commitments are applied sequentially.
             - Both terms work identically and can be used interchangeably.
             - Later goals have higher priority and can override earlier goals.
             - Goals provide clear direction and purpose for the agent's responses.

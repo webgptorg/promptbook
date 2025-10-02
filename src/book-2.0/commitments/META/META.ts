@@ -58,7 +58,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
             - **META DESCRIPTION** - Sets the agent's description
             - **META [ANYTHING]** - Any other meta information in uppercase format
 
-            ## Key behaviors
+            ## Key aspects
 
             - Does not modify the agent's behavior or responses
             - Used for visual representation and attribution in user interfaces
@@ -143,7 +143,6 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
         return knownTypes.includes(metaType.toUpperCase());
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

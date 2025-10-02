@@ -48,7 +48,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             - \`DISCARD\` - Discard or ignore something
             - \`REMOVE\` - Remove or take away something
 
-            ## Key behaviors
+            ## Key aspects
 
             - Multiple delete commitments can be used to remove different aspects.
             - Useful for overriding previous commitments in the same agent definition.

@@ -39,9 +39,8 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
 
             Defines the specific output structure and formatting for responses (data formats, templates, structure).
 
-            ## Key behaviors
+            ## Key aspects
 
-            - Multiple \`FORMAT\` and \`FORMATS\` commitments are applied sequentially.
             - Both terms work identically and can be used interchangeably.
             - If they are in conflict, the last one takes precedence.
             - You can specify both data formats and presentation styles.
@@ -80,7 +79,6 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
         return this.appendToSystemMessage(requirements, formatSection, '\n\n');
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

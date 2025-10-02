@@ -40,9 +40,8 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
 
             Similar to KNOWLEDGE but focuses on remembering past interactions and user preferences. This commitment helps the agent maintain context about the user's history, preferences, and previous conversations.
 
-            ## Key behaviors
+            ## Key aspects
 
-            - Multiple \`MEMORY\` and \`MEMORIES\` commitments are applied sequentially. !!!!
             - Both terms work identically and can be used interchangeably.
             - Focuses on user-specific information and interaction history.
             - Helps personalize responses based on past interactions.

@@ -38,9 +38,8 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
 
             Defines how the agent should format and present its responses (tone, writing style, formatting).
 
-            ## Key behaviors
+            ## Key aspects
 
-            - Multiple \`STYLE\` and \`STYLES\` commitments are applied sequentially.
             - Both terms work identically and can be used interchangeably.
             - Later style instructions can override earlier ones.
             - Style affects both tone and presentation format.

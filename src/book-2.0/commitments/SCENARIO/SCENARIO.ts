@@ -40,7 +40,7 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
 
             Defines a specific situation or context in which the AI assistant should operate. It helps to set the scene for the AI's responses. Later scenarios are more important than earlier scenarios.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Multiple \`SCENARIO\` and \`SCENARIOS\` commitments build upon each other.
             - Both terms work identically and can be used interchangeably.
@@ -122,7 +122,6 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
         return this.appendToSystemMessage(requirements, scenarioSection, '\n\n');
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

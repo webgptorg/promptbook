@@ -49,7 +49,7 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
 
             Enforces technical parameters for the AI model, ensuring consistent behavior across different execution environments.
 
-            ## Key behaviors
+            ## Key aspects
 
             - When no \`MODEL\` commitment is specified, the best model requirement is picked automatically based on the agent \`PERSONA\`, \`KNOWLEDGE\`, \`TOOLS\` and other commitments
             - Multiple \`MODEL\` commitments can be used to specify different parameters
@@ -252,7 +252,6 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
         return result;
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

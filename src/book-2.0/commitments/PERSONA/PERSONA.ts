@@ -46,7 +46,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
 
             Defines who the agent is, their background, expertise, and personality traits.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Multiple \`PERSONA\` and \`PERSONAE\` commitments are merged together.
             - Both terms work identically and can be used interchangeably.
@@ -145,7 +145,6 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
         };
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

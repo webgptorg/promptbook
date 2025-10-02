@@ -40,7 +40,7 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
 
             Sets the agent's avatar/profile image URL.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Does not modify the agent's behavior or responses.
             - Only one \`META IMAGE\` should be used per agent.

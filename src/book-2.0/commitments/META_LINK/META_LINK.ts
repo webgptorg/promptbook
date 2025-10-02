@@ -48,7 +48,7 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
 
             Represents a profile or source link for the person the agent is modeled after.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Does not modify the agent's behavior or responses.
             - Multiple \`META LINK\` commitments can be used for different social profiles.
@@ -108,7 +108,6 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
         }
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

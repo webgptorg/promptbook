@@ -42,7 +42,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 
             Adds specific knowledge, facts, or context to the agent using a RAG (Retrieval-Augmented Generation) approach for external sources.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Both terms work identically and can be used interchangeably.
             - Supports both direct text knowledge and external URLs.

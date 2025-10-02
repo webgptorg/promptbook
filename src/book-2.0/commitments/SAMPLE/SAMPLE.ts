@@ -38,9 +38,8 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
 
             Provides examples of how the agent should respond or behave in certain situations.
 
-            ## Key behaviors
+            ## Key aspects
 
-            - Multiple \`SAMPLE\` and \`EXAMPLE\` commitments are applied sequentially.
             - Both terms work identically and can be used interchangeably.
             - Examples help guide the agent's response patterns and style.
 
@@ -80,7 +79,6 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
         return this.appendToSystemMessage(requirements, exampleSection, '\n\n');
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

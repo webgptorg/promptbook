@@ -41,7 +41,7 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
 
             Contains 1:1 text of the message which AI assistant already sent during the conversation. Later messages are later in the conversation. It is similar to EXAMPLE but it is not example, it is the real message which AI assistant already sent.
 
-            ## Key behaviors
+            ## Key aspects
 
             - Multiple \`MESSAGE\` and \`MESSAGES\` commitments represent the conversation timeline.
             - Both terms work identically and can be used interchangeably.
@@ -114,7 +114,6 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
         return this.appendToSystemMessage(requirements, messageSection, '\n\n');
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

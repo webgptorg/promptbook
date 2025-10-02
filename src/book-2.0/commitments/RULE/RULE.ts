@@ -38,9 +38,8 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
 
             Adds behavioral constraints and guidelines that the agent must follow.
 
-            ## Key behaviors
+            ## Key aspects
 
-            - Multiple \`RULE\` and \`RULES\` commitments are applied sequentially.
             - All rules are treated equally regardless of singular/plural form.
             - Rules define what the agent must or must not do.
 
@@ -81,7 +80,6 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
         return this.appendToSystemMessage(requirements, ruleSection, '\n\n');
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

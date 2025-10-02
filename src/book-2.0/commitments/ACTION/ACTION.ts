@@ -38,9 +38,8 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
 
             Defines specific actions or capabilities that the agent can perform.
 
-            ## Key behaviors
+            ## Key aspects
 
-            - Multiple \`ACTION\` and \`ACTIONS\` commitments are applied sequentially.
             - Both terms work identically and can be used interchangeably.
             - Each action adds to the agent's capability list.
             - Actions help users understand what the agent can do.
