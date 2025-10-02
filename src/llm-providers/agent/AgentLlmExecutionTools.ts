@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import { promptbookifyAiText } from '../../_packages/markdown-utils.index';
+import { humanizeAiText, promptbookifyAiText } from '../../_packages/markdown-utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -146,9 +146,17 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         const underlyingLlmResult = await this.llmTools.callChatModel(modifiedChatPrompt);
 
+        let content = underlyingLlmResult.content as string_markdown;
+
+        // Note: Cleanup the AI artifacts from the content
+        content = humanizeAiText(content);
+
+        // Note: Make sure the content is Promptbook-like
+        content = promptbookifyAiText(content);
+
         const agentResult: ChatPromptResult = {
             ...underlyingLlmResult,
-            content: promptbookifyAiText(underlyingLlmResult.content),
+            content,
             modelName: this.modelName,
         };
 

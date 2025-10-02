@@ -23,8 +23,3 @@ describe('how promptbookCli works', () => {
 
     // TODO: Test each command
 });
-
-
-/**
- * TODO: [🐷] !!!! Fix and uncomment the test
- */
