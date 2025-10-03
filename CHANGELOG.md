@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
--   No changes in unreleased version
+-   Chat component: Add "Download" button to export chat history in multiple formats (JSON, Plain text, Markdown, HTML)
+-   Extensible plugin system for save formats (`src/book-components/Chat/utils/savePlugins.ts`)
+-   New props: `isSaveButtonEnabled`, `saveFormats` for `<Chat />`
+-   Demo: Save functionality showcased in `MockedChat`
 
 ## Released versions
 

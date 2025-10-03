@@ -341,6 +341,8 @@ export function MockedChat(props: MockedChatProps) {
             onReset={onReset}
             messages={displayedMessages}
             extraActions={extraActions}
+            isSaveButtonEnabled={true}
+            saveFormats={['json', 'md', 'txt', 'html']}
             // Disable input during simulation unless explicitly completed
             onMessage={isSimulationComplete ? chatProps.onMessage : undefined}
         />

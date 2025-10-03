@@ -20,6 +20,7 @@ import { renderMarkdown } from '../utils/renderMarkdown';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
+import { getChatSavePlugins, ChatSaveFormat } from '../utils/savePlugins';
 
 // [🚉] Avatar dimensions constant to prevent layout jumps and maintain DRY principle
 const AVATAR_SIZE = 40;
@@ -37,7 +38,7 @@ const AVATAR_SIZE = 40;
  *
  * @public exported from `@promptbook/components`
  */
-export function Chat(props: ChatProps) {
+export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSaveButtonEnabled?: boolean }) {
     const {
         messages,
         onChange,
@@ -61,6 +62,8 @@ export function Chat(props: ChatProps) {
         // exportHeaderMarkdown,
         participants = [],
         extraActions,
+        saveFormats,
+        isSaveButtonEnabled = true,
     } = props;
 
     const { onUseTemplate } = props;
@@ -245,6 +248,27 @@ export function Chat(props: ChatProps) {
         handleMessagesChange();
     }, [postprocessedMessages, handleMessagesChange]);
 
+    // Download logic
+    const [showSaveMenu, setShowSaveMenu] = useState(false);
+
+    function handleDownload(format: ChatSaveFormat) {
+        const plugin = getChatSavePlugins([format])[0];
+        if (!plugin) return;
+        const content = plugin.getContent([...messages]);
+        const blob = new Blob([content], { type: plugin.mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat-history.${plugin.fileExtension}`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+        setShowSaveMenu(false);
+    }
+
     return (
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
@@ -292,6 +316,51 @@ export function Chat(props: ChatProps) {
                                 <ResetIcon />
                                 <span className={styles.resetButtonText}>New chat</span>
                             </button>
+                        )}
+
+                        {isSaveButtonEnabled && (
+                            <div style={{ display: 'inline-block', position: 'relative' }}>
+                                <button
+                                    className={classNames(styles.resetButton)}
+                                    onClick={() => setShowSaveMenu((v) => !v)}
+                                    aria-haspopup="true"
+                                    aria-expanded={showSaveMenu}
+                                >
+                                    <span className={styles.resetButtonText}>Download</span>
+                                </button>
+                                {showSaveMenu && (
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            left: 0,
+                                            background: '#fff',
+                                            border: '1px solid #ddd',
+                                            zIndex: 10,
+                                            minWidth: 120,
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                        }}
+                                    >
+                                        {getChatSavePlugins(saveFormats).map((plugin) => (
+                                            <button
+                                                key={plugin.format}
+                                                style={{
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    padding: '8px 16px',
+                                                    border: 'none',
+                                                    background: 'none',
+                                                    textAlign: 'left',
+                                                    cursor: 'pointer',
+                                                }}
+                                                onClick={() => handleDownload(plugin.format)}
+                                            >
+                                                {plugin.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         )}
 
                         {onUseTemplate && (

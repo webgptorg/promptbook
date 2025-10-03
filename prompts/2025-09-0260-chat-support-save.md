@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😅] Allow to download the chat history / transcript from `Chat` component
 
