@@ -2,165 +2,43 @@
 
 ## [Unreleased]
 
-<!-- TODO: Make [Unreleased] more compact: -->
--   **Removed:** Unused draft expectation utilities `isDomainNameFree` and `isGithubNameFree` (internal only; never exported; eliminated dead code)
--   **Refactored:** Removed centralized `LLM_PROVIDER_PROFILES` registry (`src/llm-providers/_common/profiles/llmProviderProfiles.ts`) and colocated a `profile` object with every provider (OpenAI, Anthropic, Azure OpenAI, Google, Deepseek, Ollama, Remote, Multiple, Vercel adapter, Mocked Echo, Mocked Fake). Legacy test replaced with placeholder; import sites now rely on per-provider `profile` property. This simplifies maintenance and prevents stale profile drift.
-
-
--   **Enhanced:** `Chat` component now accepts `extraActions` prop for injecting custom action buttons (keeps Pause/Resume implementation DRY and reusable)
--   **Added:** Pausing capability to `MockedChat` via `isPausable` (default `true`) with state machine RUNNING → PAUSING → PAUSED → RUNNING; finishes the currently typing message before pausing and resumes seamlessly
--   **Enhanced:** Improved `MockedChat` pause UX (icons + colors + auto-hide)
--   **Added:** `isResettable` prop to `MockedChat` (default `true`) controlling visibility of the "New chat" reset button; replaces deprecated `isResetShown` (removed). When set to `false`, the reset button is hidden and manual restart of the simulation is disabled. Note: default visibility changed from previously hidden to visible by default (rename + default change is a breaking change for consumers using the old prop).
-    -   Added `PauseIcon` (⏸) and `PlayIcon` (▶) components and integrated them into the pause/resume control
-    -   Distinct visual states: orange gradient while running, dimmed with opacity during transitional PAUSING state, green gradient when paused (ready to resume)
-    -   Button hides automatically once simulated chat flow completes (prevents meaningless interaction)
-    -   Transitional text label changes: Pause → Pausing… → Resume
-    -   DRY styling: introduced `.pauseButton` variant class reusing `.resetButton` base styles instead of duplicating CSS
-    -   Accessibility: `aria-label` reflects current action (pause / resume)
--   [🚐] Better strategy for naming a LLM tools and handling the merge of LLM tools
--   **Added:** `useSendMessageToLlmChat` hook for programmatic message sending to `LlmChat` component (now context-free attachable API)
--   **Added:** `initialMessages` prop to `LlmChat`
-    -   New optional prop `initialMessages?: ReadonlyArray<ChatMessage>` allows seeding the chat with predefined history
-    -   Supports both `USER` and `ASSISTANT` messages (multi-role bootstrapping)
-    -   Used only when there is no persisted conversation (persistence has priority)
-    -   Seed messages are not persisted until the user sends a new message (prevents unwanted overwrites)
-    -   Preview updated: each scenario in `LlmChatPreview` now shows unique funny initial user+assistant exchange
-    -   DRY helper `buildInitialMessages` + centralized `initialMessagesByScenario` mapping
-    -   Added unit test validating acceptance of both roles in `initialMessages`
-    -   Enhancement: Re-applies `initialMessages` after "New chat" reset (previously only applied on first mount) using shared `buildInitialMessages` factory; added reset reseed test to ensure DRY + correctness
-    -   No changes required in `useSendMessageToLlmChat` hook (works transparently with seeded state)
-    -   New React hook `useSendMessageToLlmChat` provides an attachable `sendMessage` function created without any provider
-    -   The hook returns a function that can be passed to `<LlmChat sendMessage={sendMessage} />`
-    -   No React Context or provider wrapper required; messages sent before mount are queued and flushed on attach
-    -   Optional `sendMessage` prop added to `LlmChat` which internally attaches its message handler
-    -   Exported `SendMessageToLlmChatFunction` type and `useSendMessageToLlmChat` hook from `@promptbook/components`
-    -   Follows DRY principle by reusing internal `handleMessage` logic of `LlmChat`
-    -   Fix: Removed need to wrap components in hidden context just to send messages (breaking change to previous experimental context-based API)
--   **Enhanced:** Added predefined message buttons functionality to `Chat` component
-    -   Buttons are defined in markdown using format `[Button Text](?message=Message%20to%20send)` within message content
-    -   Buttons are automatically parsed from the last message and rendered below the message text
-    -   Button text supports markdown formatting (bold, italic, etc.) for enhanced presentation
-    -   Clicking a button sends the predefined message as if the user typed it manually
-    -   Added `parseMessageButtons` utility function exported from `Chat/utils/parseMessageButtons`
-    -   Added new CSS classes `.messageButtons` and `.messageButton` with hover and active states
-    -   Created new `chatButtons` scenario in ChatPreview to demonstrate the functionality
-    -   Follows DRY principle by reusing existing message handling and markdown rendering logic
-    -   Only shows buttons for the last message to maintain clean chat interface
--   **Enhanced:** Added `isFooterShown` prop to `BookEditor` component
-    -   New optional boolean prop `isFooterShown` controls visibility of the footer with book title and version information
-    -   By default, the footer is hidden to maintain clean appearance
-    -   When set to true, shows footer bar with book title, Book language version, and Promptbook engine version
-    -   Updated BookEditorPreview to demonstrate both variants (with and without footer)
-    -   Follows DRY principle by reusing existing footer implementation with conditional rendering
--   **Enhanced:** MODEL commitment to support enforcing any model requirement with multiple syntax variations
-    -   Added support for multi-line named parameter format: `MODEL NAME gpt-4`, `MODEL TEMPERATURE 0.7`, `MODEL TOP_P 0.9`, `MODEL MAX_TOKENS 2048`
-    -   Maintained backward compatibility with legacy single-line format: `MODEL gpt-4 temperature=0.3 topP=0.9`
-    -   Purpose of MODEL commitment is to enforce technical parameters for the agent
-    -   When no MODEL commitment is specified, the best model requirement is picked automatically based on agent PERSONA, KNOWLEDGE, TOOLS and other commitments
-    -   Multiple MODEL commitments can be used to specify different parameters
-    -   Supported parameters: NAME, TEMPERATURE, TOP_P, TOP_K, MAX_TOKENS
-    -   Enhanced documentation with comprehensive examples for different use cases
-    -   Follows DRY principle by using unified parsing logic for both syntax formats
--   **Enhanced:** Completed COMMENT and NONCE aliases implementation for NOTE commitment
-    -   Added missing singleton instances `CommentCommitment` and `NonceCommitment` to NOTE.ts
-    -   Updated documentation to include examples using all four aliases (NOTE, NOTES, COMMENT, NONCE)
-    -   All aliases now fully supported with proper TypeScript exports and singleton instances
-    -   Maintains DRY principle by using the same `NoteCommitmentDefinition` class for all aliases
-    -   Registry entries were already present, now implementation is complete and consistent
--   **Enhanced:** Syntax highlighting for NOTE commitment with comment-like appearance
-    -   NOTE commitments (NOTE, NOTES, COMMENT, NONCE) are now highlighted in gray color similar to code comments in IDEs
-    -   The entire commitment including its content is treated as a comment and styled with gray color, italic font, and reduced opacity
-    -   Added COMMENT and NONCE as aliases to the NOTE commitment following DRY principle - using same NoteCommitmentDefinition class for all aliases
-    -   All these commitments serve as code comments without affecting agent behavior, similar to `//` and `/* */` in JavaScript
-    -   Content continues until the next commitment or end of agent source, matching the parsing behavior
-    -   Follows DRY principle by reusing existing NOTE commitment logic for COMMENT and NONCE aliases
-
--   **Enhanced:** `OpenAiCompatibleExecutionTools` now automatically handles "Unsupported value" parameter errors
-    -   Detects OpenAI errors like "Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported."
-    -   Automatically removes the unsupported parameter (e.g., temperature, max_tokens) and retries the request once
-    -   Logs warnings in verbose mode when parameters are removed and retried
-    -   Prevents infinite retry loops by tracking already retried parameter combinations per model
-    -   Applies to both chat and completion model calls in `OpenAiCompatibleExecutionTools`
-    -   Maintains backward compatibility while providing graceful degradation for unsupported model parameters
--   **Refactored:** `createAgentModelRequirements` now uses `preparePersona` directly instead of duplicating its logic
-    -   Replaced `selectBestModelFromAvailable` with `selectBestModelUsingPersona` that calls `preparePersona` directly
-    -   Eliminates code duplication between agent model selection and persona preparation
-    -   Follows DRY principle by reusing existing proven logic from `preparePersona`
-    -   Maintains same functionality while reducing maintenance burden
-    -   Requires `tools` parameter when using automatic model selection from available models
--   **Enhanced:** `AgentLlmExecutionTools` now automatically picks the best model from available models
-    -   Function `createAgentModelRequirements` now has optional `availableModels` parameter to enable automatic model selection
-    -   The mechanism reuses the existing logic from `preparePersona` to ensure DRY principle
-    -   Removed hardcoded model name and now uses dynamic model selection based on agent source and available models
-    -   Model selection uses persona description derived from agent source to find the most suitable model
-    -   Fallback mechanisms ensure robustness when model selection fails
--   **Added:** `AgentLlmExecutionTools` - LLM execution tools with predefined agent "soul"
-    -   New class `AgentLlmExecutionTools` that wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
-    -   Factory function `createAgentLlmExecutionTools` to create agent tools with underlying LLM tools and agent source
-    -   Agent tools parse agent source using `parseAgentSource` and `createAgentModelRequirements` with internal caching
-    -   Only supports chat model interactions (`callChatModel` method), intentionally excludes completion and embedding models
-    -   Agent profile information (title, description, visual identity) derived from agent source metadata
-    -   Registered as available LLM provider in `$llmToolsRegister` and `$llmToolsMetadataRegister`
-    -   Exported from `@promptbook/core` package for seamless integration with Promptbook engine
-    -   Includes playground example demonstrating usage in chat scenarios
--   **Fixed:** Chat component loading issue where avatar images caused layout jumps and refocus when profile images were present by enforcing dimensions immediately via inline styles
--   **Enhanced:** Parsing of metadata commitments in `parseAgentSource`
-    -   Function `parseAgentSource` now parses all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and returns them in the result
-    -   Removed `profileImageUrl` from the result of `parseAgentSource` and changed it to `meta.image`
-    -   `meta.image` has default fallback created by `generatePlaceholderAgentProfileImageUrl`
-    -   Parses all metadata commitments and returns them in structured way as object `meta: { image?: string; link?: string; title?: string; description?: string; [key: string]: string | undefined }`
-    -   When there are multiple meta commitments of same type, later overrides the earlier
-    -   META commitment format: `META TYPE content` where TYPE is case-insensitive
-    -   Updated all components and utilities to use new `meta.image` instead of deprecated `profileImageUrl`
--   **Enhanced:** All commitment definitions now support both singular and plural forms
-    -   All commitment types like `MESSAGE`/`MESSAGES`, `PERSONA`/`PERSONAE`, `GOAL`/`GOALS`, etc. work identically
-    -   Includes irregular plurals like `PERSONA` → `PERSONAE`
-    -   Each commitment definition acts as a plugin with alias support built-in
-    -   Follows DRY principle - no separate definitions needed for plural forms
-    -   Compatible with existing code while providing more natural language flexibility
--   **Fixed:** BookEditor syntax highlighting false positives for commitments in middle of words/lines
-    -   Commitments like `KNOWLEDGE`, `PERSONA`, etc. are now only highlighted when at the beginning of lines
-    -   Fixed issue where words containing commitment names in the middle (e.g., "knowledge" in "Foo bar knowledge baz") were incorrectly highlighted
-    -   Updated both syntax highlighting and parsing logic to use consistent line-beginning patterns following DRY principle
-    -   Matches parsing behavior in `createCommitmentRegex.ts` which already correctly used `^\\s*` pattern for line beginnings
--   **Fixed:** BookEditor syntax highlighting false positives for META commitments
-    -   META commitments like `META IMAGE SOMETHING` now correctly highlight only `META IMAGE` part
-    -   Fixed regex pattern to match exactly one uppercase word after META (DRY principle)
-    -   Prevents highlighting of additional words beyond the commitment structure
--   **Removed:** Cache from `createAgentModelRequirements` function
-    -   Removed all caching logic from `createAgentModelRequirements` and `createAgentModelRequirementsWithCommitments`
-    -   Eliminated `modelRequirementsCache` Map and all related cache management functions
-    -   Removed `createAgentModelRequirementsWithCommitmentsCached` function in favor of direct usage of `createAgentModelRequirementsWithCommitments`
-    -   Deleted cache utility functions: `clearAgentModelRequirementsCache`, `invalidateAgentModelRequirementsCache`, `getAgentModelRequirementsCacheSize`
-    -   Function now executes fresh agent model requirements creation on every call for consistent behavior
-    -   Made `createAgentModelRequirementsWithCommitments` public instead of private to support direct usage
--   **Enhanced parameter syntax:** Unified highlighting and parsing for Book language parameters
-    -   Both `@Parameter` and `{parameterName}` notations now use the same purple color highlighting
-    -   Both notations are treated as the same syntax feature in parsing logic
-    -   Added `BookParameter` type to represent unified parameter structure
-    -   Added `parseParameters` function for unified parameter extraction from text
-    -   Extended `AgentBasicInformation` to include `parameters` array with all found parameters
-    -   Maintains backward compatibility while clarifying that these are two different notations for the same syntax feature
--   Export `removeMarkdownLinks` markdown utility from `@promptbook/markdown-utils`
--   Export `humanizeAiText` utility from `@promptbook/markdown-utils`
--   Export `promptbookifyAiText` utility from `@promptbook/markdown-utils`
--   Add `<Chat isAiTextCleaned>` property to `<Chat>` component
--   Add markdown support to `<Chat>` component
--   Allow feedback in `<Chat>` component via `onFeedback` prop
--   Allow feedback in `<Chat>` component via `onFileUpload` prop
--   Allow to create Avatar profile pictures via `generatePlaceholderAgentProfileImageUrl`
--   **Refactor:** Convert all `interface` declarations to `type` across the codebase for consistency and better TypeScript practices
--   **Fixed:** Resolve Next.js bundling crash with "Module not found: Can't resolve 'prettier/parser-html'" by using dynamic imports and browser environment detection in `prettifyMarkdown` utility
--   `<Chat/>` can be read-only
--   Add `isBorderRadiusDisabled` prop to `<BookEditor>` component to allow sharp corners when set to `true`
--   **New commitment types:** Add syntax highlighting and full implementation for new commitment types:
-    -   `GOAL` - Define main goals the AI assistant should achieve, with later goals having higher priority
-    -   `MEMORY` - Remember past interactions and user preferences for personalized responses
-    -   `MESSAGE` - Include actual messages the AI assistant has sent during conversation history
-    -   `SCENARIO` - Define specific situations or contexts for AI responses, with later scenarios having higher priority
-    -   `DELETE` (`CANCEL`, `DISCARD`, `REMOVE`) - Remove or disregard certain information, context, or previous commitments
+-   No changes in unreleased version
 
 ## Released versions
+
+### `0.101.0` _(2025-10-03)_
+
+Agent tools, Book 2.0 enhancements, component improvements
+
+-   Add `AgentLlmExecutionTools` with predefined agent "soul"
+-   Add `createAgentLlmExecutionTools` factory function
+-   Agent tools automatically pick best model from available models
+-   Parse metadata commitments (`META IMAGE`, `META LINK`, etc.) in `parseAgentSource`
+-   All commitment definitions support singular and plural forms
+-   Add new commitment types: `GOAL`, `MEMORY`, `MESSAGE`, `SCENARIO`, `DELETE` with aliases
+-   Enhanced MODEL commitment with multi-line named parameter format
+-   Add COMMENT and NONCE aliases for NOTE commitment
+-   Syntax highlighting for NOTE commitments (comment-like appearance)
+-   `Chat` component accepts `extraActions` prop for custom action buttons
+-   Add pausing capability to `MockedChat` with `isPausable` prop
+-   Add `isResettable` prop to `MockedChat` (replaces `isResetShown`)
+-   Add `useSendMessageToLlmChat` hook for programmatic message sending
+-   Add `initialMessages` prop to `LlmChat` for seeding chat history
+-   Add predefined message buttons to `Chat` component
+-   Add `isFooterShown` prop to `BookEditor` component
+-   Unified parameter syntax highlighting for `@Parameter` and `{parameterName}`
+-   `OpenAiCompatibleExecutionTools` handles "Unsupported value" parameter errors automatically
+-   Refactor `createAgentModelRequirements` to use `preparePersona` directly
+-   Remove centralized `LLM_PROVIDER_PROFILES` registry and colocate profiles with providers
+-   Remove cache from `createAgentModelRequirements` function
+-   Fix BookEditor syntax highlighting false positives
+-   Fix Chat component loading issue with avatar images
+-   Fix Next.js bundling crash with prettier
+-   Export markdown utilities: `removeMarkdownLinks`, `humanizeAiText`, `promptbookifyAiText`
+-   Add `<Chat isAiTextCleaned>` and `isBorderRadiusDisabled` props
+-   Convert all `interface` declarations to `type` for consistency
+-   `<Chat/>` can be read-only
+-   Remove unused draft expectation utilities
 
 ### `0.100.0` _(2025-08-)_
 
