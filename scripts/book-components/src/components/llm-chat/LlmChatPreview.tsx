@@ -211,12 +211,19 @@ export default function LlmChatPreview() {
         }
 
         const commonProps = {
+            isFocusedOnLoad: false,
+            isSaveButtonEnabled: true,
             sendMessage,
             llmTools: currentScenario.llmTools,
             onChange: handleChange,
             style: { height: '600px' },
             initialMessages: initialMessagesByScenario[scenario],
-        };
+            onFileUpload: (file) => {
+                console.log('Files uploaded:', file);
+
+                return `[${file.name}]`;
+            },
+        } satisfies Partial<React.ComponentProps<typeof LlmChat>>;
 
         const chatComponent = (() => {
             switch (scenario) {
@@ -235,8 +242,6 @@ export default function LlmChatPreview() {
                             {...commonProps}
                             persistenceKey="demo-mock-chat"
                             placeholderMessageContent="This mock chat persists in localStorage - try refreshing the page!"
-                            isFocusedOnLoad={false}
-                            isSaveButtonEnabled={true}
                         />
                     );
 
@@ -246,8 +251,6 @@ export default function LlmChatPreview() {
                             {...commonProps}
                             persistenceKey="demo-fake-llm-chat"
                             placeholderMessageContent="This fake LLM chat pretends to be real - try asking it anything!"
-                            isFocusedOnLoad={false}
-                            isSaveButtonEnabled={true}
                         />
                     );
                 case 'openai':
@@ -256,8 +259,6 @@ export default function LlmChatPreview() {
                             {...commonProps}
                             persistenceKey="demo-openai-chat"
                             placeholderMessageContent="This OpenAI chat persists in localStorage - try refreshing the page!"
-                            isFocusedOnLoad={false}
-                            isSaveButtonEnabled={true}
                         />
                     );
                 case 'pavol-hejny-agent':
@@ -266,8 +267,6 @@ export default function LlmChatPreview() {
                             {...commonProps}
                             persistenceKey="demo-pavol-hejny-agent"
                             placeholderMessageContent="This Pavol Hejny's Agent chat persists in localStorage - try refreshing the page!"
-                            isFocusedOnLoad={false}
-                            isSaveButtonEnabled={true}
                         />
                     );
                 default:
