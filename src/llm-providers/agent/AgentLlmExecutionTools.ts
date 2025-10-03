@@ -1,5 +1,8 @@
+import { SHA256 as sha256 } from 'crypto-js';
+import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
 import { humanizeAiText, promptbookifyAiText } from '../../_packages/markdown-utils.index';
+import { normalizeToKebabCase } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -96,7 +99,15 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * Returns a virtual model name representing the agent behavior
      */
     public get modelName(): string_model_name {
-        return 'agent-007-!!!';
+        const hash = sha256(hexEncoder.parse(this.agentSource))
+            //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
+            .toString(/* hex */);
+        //    <- TODO: [🥬] Make some system for hashes and ids of promptbook
+
+        const agentId = hash.substring(0, 10);
+        //                    <- TODO: [🥬] Make some system for hashes and ids of promptbook
+
+        return (normalizeToKebabCase(this.title) + '-' + agentId) as string_model_name;
     }
 
     public listModels(): Promisable<ReadonlyArray<AvailableModel>> {
