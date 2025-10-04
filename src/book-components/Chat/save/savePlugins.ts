@@ -48,7 +48,7 @@ export const txtSaveFormatDefinition = {
 } as const satisfies ChatSaveFormatDefinition;
 
 /**
- * Markdown export plugin (formatNameted)
+ * Markdown export plugin
  *
  * @public exported from `@promptbook/components`
  */
@@ -61,7 +61,8 @@ export const mdSaveFormatDefinition = {
 } as const satisfies ChatSaveFormatDefinition;
 
 /**
- * HTML export plugin (formatNameted)
+ * HTML export plugin
+ * 
  * @public exported from `@promptbook/components`
  */
 export const htmlSaveFormatDefinition = {
