@@ -25,7 +25,7 @@ import { LlmChat } from '../book-components/Chat/LlmChat/LlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
 import type { ChatSaveFormat, ChatSavePlugin } from '../book-components/Chat/save/savePlugins';
 import {
-    chatSavePlugins,
+    CHAT_SAVE_FORMATS,
     getChatSavePlugins,
     htmlSavePlugin,
     jsonSavePlugin,
@@ -57,7 +57,7 @@ export {
     AvatarProfileFromSource,
     BookEditor,
     Chat,
-    chatSavePlugins,
+    CHAT_SAVE_FORMATS as chatSavePlugins,
     DEFAULT_BOOK_FONT_CLASS,
     getChatSavePlugins,
     htmlSavePlugin,

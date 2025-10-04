@@ -1,19 +1,20 @@
+import { string_file_extension, string_mime_type } from '../../../types/typeAliases';
 import type { ChatMessage } from '../types/ChatMessage';
 
 /**
- * Supported chat export formats
+ * Supported chat export formatNames
  * @public exported from `@promptbook/components`
  */
-export type ChatSaveFormat = 'json' | 'txt' | 'md' | 'html';
+export type ChatSaveFormatName = typeof CHAT_SAVE_FORMATS[number]['formatName'];
 
 // TODO: !!!! Split save plugins into multiple files and folders
 
 /**
- * Plugin contract for chat export formats
+ * Plugin contract for chat export formatNames
  * @public exported from `@promptbook/components`
  */
-export type ChatSavePlugin = {
-    format: ChatSaveFormat;
+export type ChatSaveFormatDefinition = {
+    formatName: string_file_extension | string_mime_type | string;
     label: string;
     getContent: (messages: ChatMessage[]) => string;
     mimeType: string;
@@ -25,68 +26,77 @@ export type ChatSavePlugin = {
  *
  * @public exported from `@promptbook/components`
  */
-export const jsonSavePlugin: ChatSavePlugin = {
-    format: 'json',
+export const jsonSaveFormatDefinition = {
+    formatName: 'json',
     label: 'JSON (full)',
     getContent: (messages) => JSON.stringify(messages, null, 2),
     mimeType: 'application/json',
     fileExtension: 'json',
-};
+} as const satisfies ChatSaveFormatDefinition;
 
 /**
  * Plain text export plugin (messages only)
  *
  * @public exported from `@promptbook/components`
  */
-export const txtSavePlugin: ChatSavePlugin = {
-    format: 'txt',
+export const txtSaveFormatDefinition = {
+    formatName: 'txt',
     label: 'Plain Text',
     getContent: (messages) => messages.map((m) => m.content).join('\n\n---\n\n'),
     mimeType: 'text/plain',
     fileExtension: 'txt',
-};
+} as const satisfies ChatSaveFormatDefinition;
 
 /**
- * Markdown export plugin (formatted)
+ * Markdown export plugin (formatNameted)
  *
  * @public exported from `@promptbook/components`
  */
-export const mdSavePlugin: ChatSavePlugin = {
-    format: 'md',
+export const mdSaveFormatDefinition = {
+    formatName: 'md',
     label: 'Markdown',
     getContent: (messages) => messages.map((m) => `**${m.from}:**\n\n${m.content}\n`).join('\n---\n'),
     mimeType: 'text/markdown',
     fileExtension: 'md',
-};
+} as const satisfies ChatSaveFormatDefinition;
 
 /**
- * HTML export plugin (formatted)
+ * HTML export plugin (formatNameted)
  * @public exported from `@promptbook/components`
  */
-export const htmlSavePlugin: ChatSavePlugin = {
-    format: 'html',
+export const htmlSaveFormatDefinition = {
+    formatName: 'html',
     label: 'HTML',
     getContent: (messages) =>
         `<html><body>${messages.map((m) => `<strong>${m.from}:</strong><br>${m.content}<hr>`).join('')}</body></html>`,
     mimeType: 'text/html',
     fileExtension: 'html',
-};
+} as const satisfies ChatSaveFormatDefinition;
 
 /**
  * Registry of all built-in chat save plugins
  *
  * @public exported from `@promptbook/components`
  */
-export const chatSavePlugins: ChatSavePlugin[] = [jsonSavePlugin, txtSavePlugin, mdSavePlugin, htmlSavePlugin];
+export const CHAT_SAVE_FORMATS = [
+    jsonSaveFormatDefinition,
+    txtSaveFormatDefinition,
+    mdSaveFormatDefinition,
+    htmlSaveFormatDefinition,
+] as const satisfies ReadonlyArray<ChatSaveFormatDefinition>;
 
 /**
- * Returns enabled chat save plugins filtered by formats (or all when omitted)
+ * Returns enabled chat save plugins filtered by formatNames (or all when omitted)
  *
  * @public exported from `@promptbook/components`
  */
-export function getChatSavePlugins(formats?: ChatSaveFormat[]): ChatSavePlugin[] {
-    if (!formats) return chatSavePlugins;
-    return chatSavePlugins.filter((plugin) => formats.includes(plugin.format));
+export function getChatSaveFormatDefinitions(
+    formatNames?: ReadonlyArray<ChatSaveFormatName>,
+): ReadonlyArray<ChatSaveFormatDefinition> {
+    if (!formatNames) {
+        return CHAT_SAVE_FORMATS;
+    }
+    return CHAT_SAVE_FORMATS.filter((saveFormatDefinition) => formatNames.includes(saveFormatDefinition.formatName));
 }
 
 /**
