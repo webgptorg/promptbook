@@ -14,7 +14,7 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
-import { ChatSaveFormatName, getChatSaveFormatDefinitions } from '../save/savePlugins';
+import { getChatSaveFormatDefinitions, string_chat_format_name } from '../save/savePlugins';
 import type { ChatMessage } from '../types/ChatMessage';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
@@ -38,7 +38,7 @@ const AVATAR_SIZE = 40;
  *
  * @public exported from `@promptbook/components`
  */
-export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormatName[]; isSaveButtonEnabled?: boolean }) {
+export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[]; isSaveButtonEnabled?: boolean }) {
     const {
         messages,
         onChange,
@@ -251,7 +251,7 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormatName[]; is
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
-    function handleDownload(format: ChatSaveFormatName) {
+    function handleDownload(format: string_chat_format_name) {
         const formatDefinition = getChatSaveFormatDefinitions([format])[0];
         if (!formatDefinition) return;
         const content = formatDefinition.getContent([...messages]);
@@ -354,7 +354,9 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormatName[]; is
                                                     cursor: 'pointer',
                                                 }}
                                                 onClick={() =>
-                                                    handleDownload(formatDefinition.formatName as ChatSaveFormatName)
+                                                    handleDownload(
+                                                        formatDefinition.formatName as string_chat_format_name,
+                                                    )
                                                 }
                                             >
                                                 {formatDefinition.label}

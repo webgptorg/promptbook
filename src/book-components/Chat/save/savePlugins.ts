@@ -5,7 +5,7 @@ import type { ChatMessage } from '../types/ChatMessage';
  * Supported chat export formatNames
  * @public exported from `@promptbook/components`
  */
-export type ChatSaveFormatName = typeof CHAT_SAVE_FORMATS[number]['formatName'];
+export type string_chat_format_name = typeof CHAT_SAVE_FORMATS[number]['formatName'];
 
 // TODO: !!!! Split save plugins into multiple files and folders
 
@@ -62,7 +62,7 @@ export const mdSaveFormatDefinition = {
 
 /**
  * HTML export plugin
- * 
+ *
  * @public exported from `@promptbook/components`
  */
 export const htmlSaveFormatDefinition = {
@@ -92,7 +92,7 @@ export const CHAT_SAVE_FORMATS = [
  * @public exported from `@promptbook/components`
  */
 export function getChatSaveFormatDefinitions(
-    formatNames?: ReadonlyArray<ChatSaveFormatName>,
+    formatNames?: ReadonlyArray<string_chat_format_name>,
 ): ReadonlyArray<ChatSaveFormatDefinition> {
     if (!formatNames) {
         return CHAT_SAVE_FORMATS;

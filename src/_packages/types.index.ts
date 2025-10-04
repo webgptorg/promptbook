@@ -17,7 +17,7 @@ import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatAutoScrollConfig } from '../book-components/Chat/hooks/useChatAutoScroll';
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
-import type { ChatSaveFormatDefinition, ChatSaveFormatName } from '../book-components/Chat/save/savePlugins';
+import type { ChatSaveFormatDefinition, string_chat_format_name } from '../book-components/Chat/save/savePlugins';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
@@ -366,7 +366,6 @@ export type {
     ChatPromptResult,
     ChatProps,
     ChatSaveFormatDefinition,
-    ChatSaveFormatName,
     CheckSerializableAsJsonOptions,
     CodeBlock,
     ColorTransformer,
@@ -553,6 +552,7 @@ export type {
     string_camelCase,
     string_char,
     string_char_emoji,
+    string_chat_format_name,
     string_chat_prompt,
     string_color,
     string_completion_prompt,

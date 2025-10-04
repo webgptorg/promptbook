@@ -22,7 +22,7 @@ import { useChatAutoScroll } from '../book-components/Chat/hooks/useChatAutoScro
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import { useSendMessageToLlmChat } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
-import type { ChatSaveFormatDefinition, ChatSaveFormatName } from '../book-components/Chat/save/savePlugins';
+import type { ChatSaveFormatDefinition, string_chat_format_name } from '../book-components/Chat/save/savePlugins';
 import { CHAT_SAVE_FORMATS, getChatSaveFormatDefinitions } from '../book-components/Chat/save/savePlugins';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
@@ -73,10 +73,10 @@ export type {
     ChatParticipant,
     ChatProps,
     ChatSaveFormatDefinition,
-    ChatSaveFormatName,
     LlmChatProps,
     MessageButton,
     MockedChatDelayConfig,
     MockedChatProps,
     SendMessageToLlmChatFunction,
+    string_chat_format_name,
 };
