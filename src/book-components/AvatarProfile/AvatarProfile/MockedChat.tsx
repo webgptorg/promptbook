@@ -7,6 +7,7 @@ import { PauseIcon } from '../../icons/PauseIcon';
 import { PlayIcon } from '../../icons/PlayIcon';
 import type { ChatProps } from '../../Chat/Chat/ChatProps';
 import type { ChatMessage } from '../../Chat/types/ChatMessage';
+import { MOCKED_CHAT_DELAY_CONFIGS } from './MockedChatDelayConfigs';
 
 /**
  * Delay configuration for the MockedChat component
@@ -52,6 +53,11 @@ export type MockedChatDelayConfig = {
      * @default [1200, 3500]
      */
     longPauseDuration?: [number, number];
+
+    /**
+     * If true, disables typing effect and shows full message at once (BLOCKY_FLOW)
+     */
+    blocky?: boolean;
 };
 
 /**
@@ -113,16 +119,15 @@ export function MockedChat(props: MockedChatProps) {
         return fallback;
     }
 
-    // Default delay configuration
-    const delays = {
-        beforeFirstMessage: delayConfig?.beforeFirstMessage ?? 1000,
-        thinkingBetweenMessages: delayConfig?.thinkingBetweenMessages ?? 2000,
-        waitAfterWord: delayConfig?.waitAfterWord ?? 100,
-        extraWordDelay: delayConfig?.extraWordDelay ?? 50,
-        longPauseChance: delayConfig?.longPauseChance ?? 0.2,
-        longPauseDuration: delayConfig?.longPauseDuration ?? [1200, 3500],
-        ...delayConfig,
-    };
+    // Helper for BLOCKY_FLOW: disables typing effect, shows full message at once
+    function isBlockyFlow(cfg: any): boolean {
+        return !!cfg.blocky;
+    }
+
+const delays = {
+    ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW,
+    ...delayConfig,
+};
 
     const [displayedMessages, setDisplayedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
     const [isSimulationComplete, setIsSimulationComplete] = useState(false);

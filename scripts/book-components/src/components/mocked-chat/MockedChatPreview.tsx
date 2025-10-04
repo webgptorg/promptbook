@@ -3,19 +3,23 @@
 import { useState } from 'react';
 import spaceTrim from 'spacetrim';
 import type { MockedChatDelayConfig } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
+import { MOCKED_CHAT_DELAY_CONFIGS } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChatDelayConfigs';
 import { MockedChat } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 
 export default function MockedChatPreview() {
-const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({
-    beforeFirstMessage: 1000,
-    thinkingBetweenMessages: 2000,
-    waitAfterWord: 100,
-    extraWordDelay: 50,
-    longPauseChance: 0.2,
-    longPauseDuration: [1200, 3500],
-});
+const PREDEFINED_CONFIG_NAMES = Object.keys(MOCKED_CHAT_DELAY_CONFIGS);
+
+const [selectedConfigName, setSelectedConfigName] = useState<string>('NORMAL_FLOW');
+const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({ ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW });
+
+function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
+    const configName = e.target.value;
+    setSelectedConfigName(configName);
+    // Deep copy to avoid mutation
+    setDelayConfig(JSON.parse(JSON.stringify(MOCKED_CHAT_DELAY_CONFIGS[configName])));
+}
 
     // Sample participants
     const participants: ChatParticipant[] = [
@@ -122,12 +126,35 @@ const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({
 
     const handleDelayChange = (key: keyof MockedChatDelayConfig, value: number) => {
         setDelayConfig((prev) => ({ ...prev, [key]: value }));
+        setSelectedConfigName('CUSTOM');
     };
 
     return (
         <div className="space-y-6">
             <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Delay Configuration</h3>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Predefined Config
+                    </label>
+                    <select
+                        value={selectedConfigName}
+                        onChange={handleSelectConfig}
+                        className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+                    >
+                        {PREDEFINED_CONFIG_NAMES.map((name) => (
+                            <option key={name} value={name}>
+                                {name.replace('_', ' ')}
+                            </option>
+                        ))}
+                        <option value="CUSTOM">Custom</option>
+                    </select>
+                    <div className="text-xs text-gray-500 mt-1">
+                        {selectedConfigName !== 'CUSTOM'
+                            ? `Using ${selectedConfigName.replace('_', ' ')} config`
+                            : 'Custom configuration'}
+                    </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">

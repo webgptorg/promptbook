@@ -13,7 +13,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🎯] Make multiple predefined `delayConfig` values for `MockedChat`
 

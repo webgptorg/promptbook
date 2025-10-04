@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+-   MockedChat: Add multiple predefined delay configs (`NORMAL_FLOW`, `FAST_FLOW`, `SLOW_FLOW`, `BLOCKY_FLOW`, `RANDOM_FLOW`) exported from `@promptbook/components`
+-   MockedChatPreview: UI updated to allow picking predefined delay configs via `<select>`, auto-populates fields and overrides custom config
+-   DRY improvements for delay config usage
 -   Chat component: Add "Download" button to export chat history in multiple formats (JSON, Plain text, Markdown, HTML)
 -   Extensible plugin system for save formats (`src/book-components/Chat/utils/savePlugins.ts`)
 -   New props: `isSaveButtonEnabled`, `saveFormats` for `<Chat />`
