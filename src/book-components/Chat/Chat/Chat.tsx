@@ -14,13 +14,13 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
+import { ChatSaveFormat, getChatSavePlugins } from '../save/savePlugins';
 import type { ChatMessage } from '../types/ChatMessage';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
-import { getChatSavePlugins, ChatSaveFormat } from '../utils/savePlugins';
 
 // [🚉] Avatar dimensions constant to prevent layout jumps and maintain DRY principle
 const AVATAR_SIZE = 40;
