@@ -218,11 +218,14 @@ export default function LlmChatPreview() {
             onChange: handleChange,
             style: { height: '600px' },
             initialMessages: initialMessagesByScenario[scenario],
+            /*
+            !!!!
             onFileUpload: (file) => {
                 console.log('Files uploaded:', file);
 
                 return `[${file.name}]`;
             },
+            */
         } satisfies Partial<React.ComponentProps<typeof LlmChat>>;
 
         const chatComponent = (() => {
