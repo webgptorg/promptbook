@@ -45,6 +45,7 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
 
     const [isAutoScrolling, setIsAutoScrolling] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
+    const [isUserSelecting, setIsUserSelecting] = useState(false);
     const chatMessagesRef = useRef<HTMLDivElement | null>(null);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastScrollHeightRef = useRef<number>(0);
@@ -63,6 +64,54 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
 
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    // Track whether the user currently has a non-collapsed selection inside the chat messages container
+    useEffect(() => {
+        const updateSelectionState = () => {
+            const root = chatMessagesRef.current;
+            if (!root) {
+                setIsUserSelecting(false);
+                return;
+            }
+
+            const sel = typeof window !== 'undefined' && window.getSelection ? window.getSelection() : null;
+            if (!sel || sel.isCollapsed) {
+                setIsUserSelecting(false);
+                return;
+            }
+
+            const anchor = sel.anchorNode;
+            const focus = sel.focusNode;
+            if (!anchor || !focus) {
+                setIsUserSelecting(false);
+                return;
+            }
+
+            const isNodeWithin = (node: Node | null): boolean => {
+                if (!node) return false;
+                const el = node.nodeType === Node.TEXT_NODE ? (node.parentElement as Element | null) : (node as Element | null);
+                return !!el && root.contains(el);
+            };
+
+            setIsUserSelecting(isNodeWithin(anchor) && isNodeWithin(focus));
+        };
+
+        document.addEventListener('selectionchange', updateSelectionState);
+        document.addEventListener('mouseup', updateSelectionState);
+        document.addEventListener('keyup', updateSelectionState);
+        document.addEventListener('touchend', updateSelectionState);
+
+        // Initialize on mount
+        updateSelectionState();
+
+        return () => {
+            document.removeEventListener('selectionchange', updateSelectionState);
+            document.removeEventListener('mouseup', updateSelectionState);
+            document.removeEventListener('keyup', updateSelectionState);
+            document.removeEventListener('touchend', updateSelectionState);
+        };
+    }, []);
+
 
     // Check if user is at the bottom of the chat
     const checkIfAtBottom = useCallback((element: HTMLDivElement): boolean => {
@@ -112,6 +161,9 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
 
     // Auto-scroll when messages change (if user is at bottom)
     const handleMessagesChange = useCallback(() => {
+        // Preserve user selection: when user is actively selecting text inside chat, suppress auto-scrolling
+        if (isUserSelecting) return;
+
         const chatMessagesElement = chatMessagesRef.current;
         if (!chatMessagesElement) return;
 
@@ -129,7 +181,7 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
                 scrollToBottom('smooth');
             }, scrollCheckDelay);
         }
-    }, [isAutoScrolling, scrollToBottom, scrollCheckDelay]);
+    }, [isAutoScrolling, scrollToBottom, scrollCheckDelay, isUserSelecting]);
 
     // Ref callback for chat messages container
     const chatMessagesRefCallback = useCallback((element: HTMLDivElement | null) => {
@@ -183,6 +235,7 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
         scrollToBottom: handleScrollToBottomClick,
         enableAutoScroll,
         disableAutoScroll,
+        isUserSelecting,
         isMobile,
     };
 }

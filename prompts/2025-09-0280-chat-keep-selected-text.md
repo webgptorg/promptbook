@@ -1,4 +1,4 @@
-[x][ ]
+[x][x][ ]
 
 [✨🦉] When the `Chat` component is updated, do not remove text selection if the user selecting a text range
 
