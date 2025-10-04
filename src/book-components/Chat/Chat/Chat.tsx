@@ -14,7 +14,6 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
-import { useFrozenValueWhile } from '../hooks/useFrozenValueWhile';
 import type { ChatMessage } from '../types/ChatMessage';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
@@ -76,7 +75,6 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
         handleScroll,
         handleMessagesChange,
         scrollToBottom,
-        isUserSelecting,
         isMobile: isMobileFromHook,
     } = useChatAutoScroll();
 
@@ -245,9 +243,6 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
         });
     }, [messages, isAiTextHumanized]);
 
-    // Freeze rendered messages while user is selecting text to preserve DOM nodes and keep selection intact
-    const renderedMessages = useFrozenValueWhile(postprocessedMessages, isUserSelecting);
-
     // Trigger auto-scroll when messages change
     useEffect(() => {
         handleMessagesChange();
@@ -307,7 +302,7 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
                     )}
 
                     <div className={classNames(actionsAlignmentClass)}>
-                        {onReset && renderedMessages.length !== 0 && (
+                        {onReset && postprocessedMessages.length !== 0 && (
                             <button
                                 className={classNames(styles.resetButton)}
                                 onClick={() => {
@@ -384,7 +379,7 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
                         ref={chatMessagesRef}
                         onScroll={handleScroll}
                     >
-                        {renderedMessages.map((message, i) => {
+                        {postprocessedMessages.map((message, i) => {
                             const participant = participants.find((participant) => participant.name === message.from);
                             const avatarSrc = (participant && participant.avatarSrc) || '';
                             const color = Color.from((participant && participant.color) || '#ccc');
@@ -394,7 +389,7 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
                             const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
 
                             // Only show buttons for the last message
-                            const isLastMessage = i === renderedMessages.length - 1;
+                            const isLastMessage = i === postprocessedMessages.length - 1;
                             const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
 
                             return (
@@ -648,9 +643,9 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
                             readOnly
                             value={(() => {
                                 // Try to find the user's message before the selectedMessage
-                                const idx = renderedMessages.findIndex((m) => m.id === selectedMessage.id);
+                                const idx = postprocessedMessages.findIndex((m) => m.id === selectedMessage.id);
                                 if (idx > 0) {
-                                    const prev = renderedMessages[idx - 1];
+                                    const prev = postprocessedMessages[idx - 1];
 
                                     if (prev!.from === 'USER') {
                                         return prev!.content;
