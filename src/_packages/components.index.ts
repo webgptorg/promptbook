@@ -21,22 +21,14 @@ import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import { useChatAutoScroll } from '../book-components/Chat/hooks/useChatAutoScroll';
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import { useSendMessageToLlmChat } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
-import { LlmChat } from '../book-components/Chat/LlmChat/LlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
-import type { ChatSaveFormat, ChatSavePlugin } from '../book-components/Chat/save/savePlugins';
-import {
-    CHAT_SAVE_FORMATS,
-    getChatSavePlugins,
-    htmlSavePlugin,
-    jsonSavePlugin,
-    mdSavePlugin,
-    txtSavePlugin,
-} from '../book-components/Chat/save/savePlugins';
+import type { ChatSaveFormatDefinition, ChatSaveFormatName } from '../book-components/Chat/save/savePlugins';
+import { CHAT_SAVE_FORMATS, getChatSaveFormatDefinitions } from '../book-components/Chat/save/savePlugins';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
 import { parseMessageButtons } from '../book-components/Chat/utils/parseMessageButtons';
-import { isMarkdownContent, renderMarkdown } from '../book-components/Chat/utils/renderMarkdown';
+import { renderMarkdown } from '../book-components/Chat/utils/renderMarkdown';
 import { ArrowIcon } from '../book-components/icons/ArrowIcon';
 import { PauseIcon } from '../book-components/icons/PauseIcon';
 import { PlayIcon } from '../book-components/icons/PlayIcon';
@@ -59,12 +51,7 @@ export {
     Chat,
     CHAT_SAVE_FORMATS as chatSavePlugins,
     DEFAULT_BOOK_FONT_CLASS,
-    getChatSavePlugins,
-    htmlSavePlugin,
-    isMarkdownContent,
-    jsonSavePlugin,
-    LlmChat,
-    mdSavePlugin,
+    getChatSaveFormatDefinitions,
     MockedChat,
     parseMessageButtons,
     PauseIcon,
@@ -73,7 +60,6 @@ export {
     ResetIcon,
     SendIcon,
     TemplateIcon,
-    txtSavePlugin,
     useChatAutoScroll,
     useSendMessageToLlmChat,
 };
@@ -86,8 +72,8 @@ export type {
     ChatMessage,
     ChatParticipant,
     ChatProps,
-    ChatSaveFormat,
-    ChatSavePlugin,
+    ChatSaveFormatDefinition,
+    ChatSaveFormatName,
     LlmChatProps,
     MessageButton,
     MockedChatDelayConfig,

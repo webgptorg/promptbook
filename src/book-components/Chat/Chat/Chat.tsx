@@ -14,7 +14,7 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
-import { ChatSaveFormat, getChatSavePlugins } from '../save/savePlugins';
+import { ChatSaveFormatName, getChatSaveFormatDefinitions } from '../save/savePlugins';
 import type { ChatMessage } from '../types/ChatMessage';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
@@ -38,7 +38,7 @@ const AVATAR_SIZE = 40;
  *
  * @public exported from `@promptbook/components`
  */
-export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSaveButtonEnabled?: boolean }) {
+export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormatName[]; isSaveButtonEnabled?: boolean }) {
     const {
         messages,
         onChange,
@@ -251,15 +251,15 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
-    function handleDownload(format: ChatSaveFormat) {
-        const plugin = getChatSavePlugins([format])[0];
-        if (!plugin) return;
-        const content = plugin.getContent([...messages]);
-        const blob = new Blob([content], { type: plugin.mimeType });
+    function handleDownload(format: ChatSaveFormatName) {
+        const formatDefinition = getChatSaveFormatDefinitions([format])[0];
+        if (!formatDefinition) return;
+        const content = formatDefinition.getContent([...messages]);
+        const blob = new Blob([content], { type: formatDefinition.mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `chat-history.${plugin.fileExtension}`;
+        a.download = `chat-history.${formatDefinition.fileExtension}`;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => {
@@ -341,9 +341,9 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
                                             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                                         }}
                                     >
-                                        {getChatSavePlugins(saveFormats).map((plugin) => (
+                                        {getChatSaveFormatDefinitions(saveFormats).map((formatDefinition) => (
                                             <button
-                                                key={plugin.format}
+                                                key={formatDefinition.formatName}
                                                 style={{
                                                     display: 'block',
                                                     width: '100%',
@@ -353,9 +353,11 @@ export function Chat(props: ChatProps & { saveFormats?: ChatSaveFormat[]; isSave
                                                     textAlign: 'left',
                                                     cursor: 'pointer',
                                                 }}
-                                                onClick={() => handleDownload(plugin.format)}
+                                                onClick={() =>
+                                                    handleDownload(formatDefinition.formatName as ChatSaveFormatName)
+                                                }
                                             >
-                                                {plugin.label}
+                                                {formatDefinition.label}
                                             </button>
                                         ))}
                                     </div>
