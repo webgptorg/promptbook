@@ -2,7 +2,15 @@
 
 [✨👚] Make Promptbook server rich UI
 
+-   Promptbook server is working perfectly fine as a backend service, but its UI on `/` is very minimal and not user friendly
+-   Pass `RemoteServerOptions.isRichUi?: boolean` to the `startRemoteServer` function to enable the rich UI - default is `true`, when user passes `false`, the server should work as before
+-   Put this flag also for running the server via CLI - `promptbook-server --no-rich-ui` should disable the rich UI
+-   Make a rich UI for the Promptbook server on `/` path
+-   Get inspiration from [book components preview server](/scripts/book-components/)
+-   The UI part of the server should contain React components and TailwindCSS styles
+-   Logic of the server is in the function `startRemoteServer`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+    -   You can use the current server as API backend for the rich UI which will be the full Next.js app proxied / appended to the base server
 -   Add the changes into the `CHANGELOG.md`
 
 ---
