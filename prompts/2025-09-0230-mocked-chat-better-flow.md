@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🎯] `MockedChat` should have more natural flow of messages
 

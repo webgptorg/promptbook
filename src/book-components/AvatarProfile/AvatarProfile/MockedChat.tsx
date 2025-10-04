@@ -15,28 +15,43 @@ import type { ChatMessage } from '../../Chat/types/ChatMessage';
  */
 export type MockedChatDelayConfig = {
     /**
-     * Delay before showing the first message (in milliseconds)
+     * Delay before showing the first message (ms)
      * @default 1000
      */
-    beforeFirstMessage?: number;
+    beforeFirstMessage?: number | [number, number];
 
     /**
-     * Emulated thinking time between messages (in milliseconds)
+     * Emulated thinking time between messages (ms)
+     * Can be a fixed number or [min, max] for random range.
      * @default 2000
      */
-    thinkingBetweenMessages?: number;
+    thinkingBetweenMessages?: number | [number, number];
 
     /**
-     * Wait time after each written word (in milliseconds)
+     * Wait time after each written word (ms)
+     * Can be a fixed number or [min, max] for random range.
      * @default 100
      */
-    waitAfterWord?: number;
+    waitAfterWord?: number | [number, number];
 
     /**
-     * Extra delay on top of the word waiting (in milliseconds)
+     * Extra delay on top of the word waiting (ms)
+     * Can be a fixed number or [min, max] for random range.
      * @default 50
      */
-    extraWordDelay?: number;
+    extraWordDelay?: number | [number, number];
+
+    /**
+     * Chance (0-1) that a longer pause occurs before a message (e.g. agent switch)
+     * @default 0.2
+     */
+    longPauseChance?: number;
+
+    /**
+     * Range for long pause duration (ms), [min, max]
+     * @default [1200, 3500]
+     */
+    longPauseDuration?: [number, number];
 };
 
 /**
@@ -88,12 +103,24 @@ export function MockedChat(props: MockedChatProps) {
         ...chatProps
     } = props;
 
+    // Helper to get random delay from config
+    function getDelay(val: number | [number, number] | undefined, fallback: number): number {
+        if (Array.isArray(val) && val.length === 2) {
+            const [min, max] = val;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        if (typeof val === 'number') return val;
+        return fallback;
+    }
+
     // Default delay configuration
-    const delays: Required<MockedChatDelayConfig> = {
+    const delays = {
         beforeFirstMessage: delayConfig?.beforeFirstMessage ?? 1000,
         thinkingBetweenMessages: delayConfig?.thinkingBetweenMessages ?? 2000,
         waitAfterWord: delayConfig?.waitAfterWord ?? 100,
         extraWordDelay: delayConfig?.extraWordDelay ?? 50,
+        longPauseChance: delayConfig?.longPauseChance ?? 0.2,
+        longPauseDuration: delayConfig?.longPauseDuration ?? [1200, 3500],
         ...delayConfig,
     };
 
@@ -161,12 +188,11 @@ export function MockedChat(props: MockedChatProps) {
                 return;
             }
 
-            // Wait before first message
-            await forTime(delays.beforeFirstMessage);
+            // Wait before first message (randomized)
+            await forTime(getDelay(delays.beforeFirstMessage, 1000));
             if (isCancelled) return;
 
             for (let i = 0; i < originalMessages.length; i++) {
-
                 // If a pause was requested earlier, we only pause between messages
                 if (pauseRequestedRef.current) {
                     await waitIfPaused(() => isCancelled);
@@ -179,8 +205,23 @@ export function MockedChat(props: MockedChatProps) {
 
                 // Add thinking delay between messages (except for the first one)
                 if (i > 0) {
-                    await forTime(delays.thinkingBetweenMessages);
-                    if (isCancelled) return;
+                    // Sometimes do a longer pause (agent switch or random)
+                    let didLongPause = false;
+                    if (
+                        delays.longPauseChance &&
+                        Math.random() < delays.longPauseChance &&
+                        i > 0 &&
+                        originalMessages[i].from !== originalMessages[i - 1].from
+                    ) {
+                        await forTime(getDelay(delays.longPauseDuration, 2000));
+                        didLongPause = true;
+                        if (isCancelled) return;
+                    }
+                    // Otherwise normal thinking delay
+                    if (!didLongPause) {
+                        await forTime(getDelay(delays.thinkingBetweenMessages, 2000));
+                        if (isCancelled) return;
+                    }
                     // Pause check (still between messages)
                     if (pauseRequestedRef.current) {
                         await waitIfPaused(() => isCancelled);
@@ -205,7 +246,7 @@ export function MockedChat(props: MockedChatProps) {
                 const words = currentMessage.content.split(' ');
                 let currentContent = '';
 
-                // Type each word with delay
+                // Type each word with delay (randomized)
                 for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
                     if (isCancelled) return;
 
@@ -229,8 +270,11 @@ export function MockedChat(props: MockedChatProps) {
                         return newMessages;
                     });
 
-                    // Wait after word with extra delay
-                    await forTime(delays.waitAfterWord + delays.extraWordDelay);
+                    // Wait after word with extra delay (randomized)
+                    await forTime(
+                        getDelay(delays.waitAfterWord, 100) +
+                        getDelay(delays.extraWordDelay, 50)
+                    );
                     if (isCancelled) return;
                 }
 
@@ -344,7 +388,7 @@ export function MockedChat(props: MockedChatProps) {
             isSaveButtonEnabled={true}
             saveFormats={['json', 'md', 'txt', 'html']}
             // Disable input during simulation unless explicitly completed
-            onMessage={isSimulationComplete ? chatProps.onMessage : undefined}
+            onMessage={isSimulationComplete && chatProps.onMessage ? chatProps.onMessage : undefined}
         />
     );
 }

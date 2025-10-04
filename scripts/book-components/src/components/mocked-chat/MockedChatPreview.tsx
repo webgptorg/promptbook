@@ -8,12 +8,14 @@ import type { ChatMessage } from '../../../../../src/book-components/Chat/types/
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 
 export default function MockedChatPreview() {
-    const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({
-        beforeFirstMessage: 1000,
-        thinkingBetweenMessages: 2000,
-        waitAfterWord: 100,
-        extraWordDelay: 50,
-    });
+const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({
+    beforeFirstMessage: 1000,
+    thinkingBetweenMessages: 2000,
+    waitAfterWord: 100,
+    extraWordDelay: 50,
+    longPauseChance: 0.2,
+    longPauseDuration: [1200, 3500],
+});
 
     // Sample participants
     const participants: ChatParticipant[] = [
@@ -136,7 +138,7 @@ export default function MockedChatPreview() {
                             min="0"
                             max="10000"
                             step="100"
-                            value={delayConfig.beforeFirstMessage || 1000}
+                            value={typeof delayConfig.beforeFirstMessage === 'number' ? delayConfig.beforeFirstMessage : (Array.isArray(delayConfig.beforeFirstMessage) ? delayConfig.beforeFirstMessage[0] : 1000)}
                             onChange={(e) => handleDelayChange('beforeFirstMessage', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
@@ -151,7 +153,7 @@ export default function MockedChatPreview() {
                             min="0"
                             max="10000"
                             step="100"
-                            value={delayConfig.thinkingBetweenMessages || 2000}
+                            value={typeof delayConfig.thinkingBetweenMessages === 'number' ? delayConfig.thinkingBetweenMessages : (Array.isArray(delayConfig.thinkingBetweenMessages) ? delayConfig.thinkingBetweenMessages[0] : 2000)}
                             onChange={(e) => handleDelayChange('thinkingBetweenMessages', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
@@ -164,7 +166,7 @@ export default function MockedChatPreview() {
                             min="0"
                             max="1000"
                             step="10"
-                            value={delayConfig.waitAfterWord || 100}
+                            value={typeof delayConfig.waitAfterWord === 'number' ? delayConfig.waitAfterWord : (Array.isArray(delayConfig.waitAfterWord) ? delayConfig.waitAfterWord[0] : 100)}
                             onChange={(e) => handleDelayChange('waitAfterWord', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
@@ -177,8 +179,59 @@ export default function MockedChatPreview() {
                             min="0"
                             max="500"
                             step="10"
-                            value={delayConfig.extraWordDelay || 50}
+                            value={typeof delayConfig.extraWordDelay === 'number' ? delayConfig.extraWordDelay : (Array.isArray(delayConfig.extraWordDelay) ? delayConfig.extraWordDelay[0] : 50)}
                             onChange={(e) => handleDelayChange('extraWordDelay', parseInt(e.target.value))}
+                            className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Long Pause Chance (0-1)</label>
+                        <input
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={delayConfig.longPauseChance ?? 0.2}
+                            onChange={(e) => handleDelayChange('longPauseChance', parseFloat(e.target.value))}
+                            className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Long Pause Duration Min (ms)</label>
+                        <input
+                            type="number"
+                            min="0"
+                            max="10000"
+                            step="100"
+                            value={Array.isArray(delayConfig.longPauseDuration) ? delayConfig.longPauseDuration[0] : 1200}
+                            onChange={(e) => setDelayConfig((prev) => ({
+                                ...prev,
+                                longPauseDuration: [
+                                    parseInt(e.target.value),
+                                    Array.isArray(prev.longPauseDuration) ? prev.longPauseDuration[1] : 3500,
+                                ],
+                            }))}
+                            className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Long Pause Duration Max (ms)</label>
+                        <input
+                            type="number"
+                            min="0"
+                            max="10000"
+                            step="100"
+                            value={Array.isArray(delayConfig.longPauseDuration) ? delayConfig.longPauseDuration[1] : 3500}
+                            onChange={(e) => setDelayConfig((prev) => ({
+                                ...prev,
+                                longPauseDuration: [
+                                    Array.isArray(prev.longPauseDuration) ? prev.longPauseDuration[0] : 1200,
+                                    parseInt(e.target.value),
+                                ],
+                            }))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
                     </div>
