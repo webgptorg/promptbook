@@ -22,6 +22,8 @@ import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps'
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
+import type { ChatSaveFormat } from '../book-components/Chat/utils/savePlugins';
+import type { ChatSavePlugin } from '../book-components/Chat/utils/savePlugins';
 import type { PipelineCollection } from '../collection/PipelineCollection';
 import type { Command } from '../commands/_common/types/Command';
 import type { CommandParser } from '../commands/_common/types/CommandParser';
@@ -353,6 +355,8 @@ export type { LlmChatProps };
 export type { ChatMessage };
 export type { ChatParticipant };
 export type { MessageButton };
+export type { ChatSaveFormat };
+export type { ChatSavePlugin };
 export type { PipelineCollection };
 export type { Command };
 export type { CommandParser };
