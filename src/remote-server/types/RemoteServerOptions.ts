@@ -34,6 +34,13 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     readonly port: number;
 
     /**
+     * Enable rich UI (React + Tailwind) at `/` path.
+     * Default: true
+     * If false, server will respond with markdown as before.
+     */
+    readonly isRichUi?: boolean;
+
+    /**
      * Creates execution tools the client
      *
      * This is relevant also in anonymous mode in opposition to `createLlmExecutionTools`

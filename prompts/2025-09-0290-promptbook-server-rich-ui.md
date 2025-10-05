@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨👚] Make Promptbook server rich UI
 

@@ -248,66 +248,91 @@ export function startRemoteServer<TCustomOptions = undefined>(
             return;
         }
 
-        response.type('text/markdown').send(
-            await spaceTrim(
-                async (block) => `
-                    # Promptbook
+        if (options.isRichUi !== false) {
+            // TODO: Serve rich React + Tailwind UI here
+            response.type('text/html').send(
+                `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    <title>Promptbook Server</title>
+                    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                </head>
+                <body class="bg-gray-50 text-gray-900">
+                    <div id="root"></div>
+                    <script>
+                        // TODO: Hydrate React app here
+                        // You will need to bundle and serve a React app for full functionality
+                        document.getElementById('root').innerHTML = '<h1 class="text-3xl font-bold mb-4">Promptbook Server Rich UI</h1><p>This is a placeholder for the rich React UI.</p>';
+                    </script>
+                </body>
+                </html>
+                `
+            );
+        } else {
+            response.type('text/markdown').send(
+                await spaceTrim(
+                    async (block) => `
+                        # Promptbook
 
-                    > ${block(CLAIM)}
+                        > ${block(CLAIM)}
 
-                    **Book language version:** ${BOOK_LANGUAGE_VERSION}
-                    **Promptbook engine version:** ${PROMPTBOOK_ENGINE_VERSION}
-                    **Node.js version:** ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
+                        **Book language version:** ${BOOK_LANGUAGE_VERSION}
+                        **Promptbook engine version:** ${PROMPTBOOK_ENGINE_VERSION}
+                        **Node.js version:** ${process.version /* <- TODO: [🧠] Is it secure to expose this */}
 
-                    ---
+                        ---
 
-                    ## Details
+                        ## Details
 
-                    **Server port:** ${port}
-                    **Startup date:** ${startupDate.toISOString()}
-                    **Anonymous mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
-                    **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
-                    ${block(
-                        !isApplicationModeAllowed || collection === null
-                            ? ''
-                            : '**Pipelines in collection:**\n' +
-                                  (await collection.listPipelines())
-                                      .map((pipelineUrl) => `- ${pipelineUrl}`)
-                                      .join('\n'),
-                    )}
-                    **Running executions:** ${runningExecutionTasks.length}
+                        **Server port:** ${port}
+                        **Startup date:** ${startupDate.toISOString()}
+                        **Anonymous mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
+                        **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
+                        ${block(
+                            !isApplicationModeAllowed || collection === null
+                                ? ''
+                                : '**Pipelines in collection:**\n' +
+                                      (await collection.listPipelines())
+                                          .map((pipelineUrl) => `- ${pipelineUrl}`)
+                                          .join('\n'),
+                        )}
+                        **Running executions:** ${runningExecutionTasks.length}
 
-                    ---
+                        ---
 
-                    ## Paths
+                        ## Paths
 
-                    ${block(
-                        [
-                            ...app._router.stack
-                                .map(({ route }: really_any) => route?.path || null)
-                                .filter((path: string) => path !== null),
-                            '/api-docs',
-                        ]
-                            .map((path: string) => `- ${path}`)
-                            .join('\n'),
-                    )}
+                        ${block(
+                            [
+                                ...app._router.stack
+                                    .map(({ route }: really_any) => route?.path || null)
+                                    .filter((path: string) => path !== null),
+                                '/api-docs',
+                            ]
+                                .map((path: string) => `- ${path}`)
+                                .join('\n'),
+                        )}
 
-                    ---
+                        ---
 
-                    ## Instructions
+                        ## Instructions
 
-                    To connect to this server use:
+                        To connect to this server use:
 
-                    1) The client https://www.npmjs.com/package/@promptbook/remote-client
-                    2) OpenAI compatible client *(Not working yet)*
-                    3) REST API
+                        1) The client https://www.npmjs.com/package/@promptbook/remote-client
+                        2) OpenAI compatible client *(Not working yet)*
+                        3) REST API
 
-                    For more information look at:
-                    https://github.com/webgptorg/promptbook
-                `,
-            ),
-            // <- TODO: [🗽] Unite branding and make single place for it
-        );
+                        For more information look at:
+                        https://github.com/webgptorg/promptbook
+                    `,
+                ),
+                // <- TODO: [🗽] Unite branding and make single place for it
+            );
+        }
     });
 
     app.post(`/login`, async (request, response) => {

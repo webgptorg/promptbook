@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+-   Added rich React + Tailwind UI for Promptbook server at `/` ([2025-09-0290])
+-   Added `isRichUi?: boolean` to `RemoteServerOptions` to enable/disable rich UI
+-   CLI: `promptbook-server --no-rich-ui` disables rich UI
+
 -   MockedChat: Add multiple predefined delay configs (`NORMAL_FLOW`, `FAST_FLOW`, `SLOW_FLOW`, `BLOCKY_FLOW`, `RANDOM_FLOW`) exported from `@promptbook/components`
 -   MockedChatPreview: UI updated to allow picking predefined delay configs via `<select>`, auto-populates fields and overrides custom config
 -   DRY improvements for delay config usage
