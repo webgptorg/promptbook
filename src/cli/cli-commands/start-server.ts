@@ -50,7 +50,7 @@ export function $initializeStartServerCommand(program: Program) {
     );
     startServerCommand.option('--allow-anonymous', `Is anonymous mode allowed`, false);
     startServerCommand.option('-r, --reload', `Call LLM models even if same prompt with result is in the cache`, false);
-    startServerCommand.option('--no-rich-ui', `Disable rich UI`, false);
+    startServerCommand.option('--no-rich-ui', `Disable rich UI`, true);
 
     startServerCommand.description(
         spaceTrim(`
@@ -131,6 +131,8 @@ export function $initializeStartServerCommand(program: Program) {
             });
 
             // console.log(path, await collection.listPipelines());
+
+            console.log({ isRichUi });
 
             const server = startRemoteServer({
                 port,
