@@ -10,6 +10,9 @@
 -   When the file is uploaded, show a small preview of the file (filename, size, icon) in the chat input area, with an option to remove the file before sending the message
 -   Also append the result of `onFileUpload` to the message when the message is sent
 -   Get inspiration from `<BookEditor onFileUpload={...} />`
+-   I should be able to test this feature in:
+    - http://localhost:4022/component/chat
+    - http://localhost:4022/component/llm-chat
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, especially with `<BookEditor onFileUpload={...} />`
 -   Add the changes into the `CHANGELOG.md`
 
