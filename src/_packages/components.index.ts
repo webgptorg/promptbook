@@ -3,6 +3,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/components`
 
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { AvatarChipProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import { AvatarChip } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import type { AvatarChipFromSourceProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChipFromSource';
@@ -19,59 +20,88 @@ import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import { useChatAutoScroll } from '../book-components/Chat/hooks/useChatAutoScroll';
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import { useSendMessageToLlmChat } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
+import { LlmChat } from '../book-components/Chat/LlmChat/LlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
-import type { ChatSaveFormatDefinition, string_chat_format_name } from '../book-components/Chat/save/savePlugins';
-import { CHAT_SAVE_FORMATS, getChatSaveFormatDefinitions } from '../book-components/Chat/save/savePlugins';
+import { NORMAL_FLOW } from '../book-components/Chat/MockedChat/constants';
+import { FAST_FLOW } from '../book-components/Chat/MockedChat/constants';
+import { SLOW_FLOW } from '../book-components/Chat/MockedChat/constants';
+import { BLOCKY_FLOW } from '../book-components/Chat/MockedChat/constants';
+import { RANDOM_FLOW } from '../book-components/Chat/MockedChat/constants';
+import { MOCKED_CHAT_DELAY_CONFIGS } from '../book-components/Chat/MockedChat/constants';
+import type { MockedChatDelayConfig } from '../book-components/Chat/MockedChat/MockedChat';
+import type { MockedChatProps } from '../book-components/Chat/MockedChat/MockedChat';
+import { MockedChat } from '../book-components/Chat/MockedChat/MockedChat';
+import type { string_chat_format_name } from '../book-components/Chat/save/savePlugins';
+import type { ChatSaveFormatDefinition } from '../book-components/Chat/save/savePlugins';
+import { jsonSaveFormatDefinition } from '../book-components/Chat/save/savePlugins';
+import { txtSaveFormatDefinition } from '../book-components/Chat/save/savePlugins';
+import { mdSaveFormatDefinition } from '../book-components/Chat/save/savePlugins';
+import { htmlSaveFormatDefinition } from '../book-components/Chat/save/savePlugins';
+import { CHAT_SAVE_FORMATS } from '../book-components/Chat/save/savePlugins';
+import { getChatSaveFormatDefinitions } from '../book-components/Chat/save/savePlugins';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
 import { parseMessageButtons } from '../book-components/Chat/utils/parseMessageButtons';
 import { renderMarkdown } from '../book-components/Chat/utils/renderMarkdown';
+import { isMarkdownContent } from '../book-components/Chat/utils/renderMarkdown';
 import { ArrowIcon } from '../book-components/icons/ArrowIcon';
 import { PauseIcon } from '../book-components/icons/PauseIcon';
 import { PlayIcon } from '../book-components/icons/PlayIcon';
 import { ResetIcon } from '../book-components/icons/ResetIcon';
 import { SendIcon } from '../book-components/icons/SendIcon';
 import { TemplateIcon } from '../book-components/icons/TemplateIcon';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+
 
 // Note: Exporting version from each package
 export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
+
 // Note: Entities of the `@promptbook/components`
-export {
-    ArrowIcon,
-    AvatarChip,
-    AvatarChipFromSource,
-    AvatarProfile,
-    AvatarProfileFromSource,
-    BookEditor,
-    Chat,
-    CHAT_SAVE_FORMATS as chatSavePlugins,
-    DEFAULT_BOOK_FONT_CLASS,
-    getChatSaveFormatDefinitions,
-    parseMessageButtons,
-    PauseIcon,
-    PlayIcon,
-    renderMarkdown,
-    ResetIcon,
-    SendIcon,
-    TemplateIcon,
-    useChatAutoScroll,
-    useSendMessageToLlmChat,
-};
-export type {
-    AvatarChipFromSourceProps,
-    AvatarChipProps,
-    AvatarProfileFromSourceProps,
-    AvatarProfileProps,
-    BookEditorProps,
-    ChatMessage,
-    ChatParticipant,
-    ChatProps,
-    ChatSaveFormatDefinition,
-    LlmChatProps,
-    MessageButton,
-    SendMessageToLlmChatFunction,
-    string_chat_format_name,
-};
+export type { AvatarChipProps };
+export { AvatarChip };
+export type { AvatarChipFromSourceProps };
+export { AvatarChipFromSource };
+export type { AvatarProfileProps };
+export { AvatarProfile };
+export type { AvatarProfileFromSourceProps };
+export { AvatarProfileFromSource };
+export type { BookEditorProps };
+export { BookEditor };
+export { DEFAULT_BOOK_FONT_CLASS };
+export { Chat };
+export type { ChatProps };
+export { useChatAutoScroll };
+export type { SendMessageToLlmChatFunction };
+export { useSendMessageToLlmChat };
+export { LlmChat };
+export type { LlmChatProps };
+export { NORMAL_FLOW };
+export { FAST_FLOW };
+export { SLOW_FLOW };
+export { BLOCKY_FLOW };
+export { RANDOM_FLOW };
+export { MOCKED_CHAT_DELAY_CONFIGS };
+export type { MockedChatDelayConfig };
+export type { MockedChatProps };
+export { MockedChat };
+export type { string_chat_format_name };
+export type { ChatSaveFormatDefinition };
+export { jsonSaveFormatDefinition };
+export { txtSaveFormatDefinition };
+export { mdSaveFormatDefinition };
+export { htmlSaveFormatDefinition };
+export { CHAT_SAVE_FORMATS };
+export { getChatSaveFormatDefinitions };
+export type { ChatMessage };
+export type { ChatParticipant };
+export type { MessageButton };
+export { parseMessageButtons };
+export { renderMarkdown };
+export { isMarkdownContent };
+export { ArrowIcon };
+export { PauseIcon };
+export { PlayIcon };
+export { ResetIcon };
+export { SendIcon };
+export { TemplateIcon };
