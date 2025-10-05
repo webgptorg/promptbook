@@ -1,4 +1,4 @@
-[x][x][ ]
+[x][x][x] <- Note: Maybe still not working
 
 [✨🦉] When the `Chat` component is updated (re-rendered), do not blur users text selection
 

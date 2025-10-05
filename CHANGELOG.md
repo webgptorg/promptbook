@@ -1,6 +1,7 @@
 # 📅 Changelog
 
 ## [Unreleased]
+-   Preserve user text selection in chat components (`Chat`, `MockedChat`, `LlmChat`) during message updates. Selection is no longer cleared when new messages arrive or incomplete messages update. [2025-09-0280]
 
 -   Added rich React + Tailwind UI for Promptbook server at `/` ([2025-09-0290])
 -   Added `isRichUi?: boolean` to `RemoteServerOptions` to enable/disable rich UI

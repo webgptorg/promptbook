@@ -122,8 +122,19 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
 
         if (!hasNewContent) return;
 
-        // If user is set to auto-scroll, scroll to bottom
-        if (isAutoScrolling) {
+        // Only auto-scroll if user does NOT have a selection inside chat container
+        const selection = window.getSelection();
+        let hasSelectionInChat = false;
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            if (chatMessagesElement.contains(range.startContainer) || chatMessagesElement.contains(range.endContainer)) {
+                if (!selection.isCollapsed) {
+                    hasSelectionInChat = true;
+                }
+            }
+        }
+
+        if (isAutoScrolling && !hasSelectionInChat) {
             // Delay scroll slightly to ensure DOM has updated
             setTimeout(() => {
                 scrollToBottom('smooth');
