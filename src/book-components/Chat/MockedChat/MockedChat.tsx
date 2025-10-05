@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { forTime } from 'waitasecond';
 import { Chat } from '../../Chat/Chat/Chat';
 import chatStyles from '../../Chat/Chat/Chat.module.css';
-import { PauseIcon } from '../../icons/PauseIcon';
-import { PlayIcon } from '../../icons/PlayIcon';
 import type { ChatProps } from '../../Chat/Chat/ChatProps';
 import type { ChatMessage } from '../../Chat/types/ChatMessage';
+import { PauseIcon } from '../../icons/PauseIcon';
+import { PlayIcon } from '../../icons/PlayIcon';
 import { MOCKED_CHAT_DELAY_CONFIGS } from './constants';
 
 /**
@@ -101,13 +101,7 @@ export type MockedChatProps = Omit<
  * @public exported from `@promptbook/components`
  */
 export function MockedChat(props: MockedChatProps) {
-    const {
-        isResettable = true,
-        delayConfig,
-        messages: originalMessages,
-        isPausable = true,
-        ...chatProps
-    } = props;
+    const { isResettable = true, delayConfig, messages: originalMessages, isPausable = true, ...chatProps } = props;
 
     // Helper to get random delay from config
     function getDelay(val: number | [number, number] | undefined, fallback: number): number {
@@ -119,15 +113,10 @@ export function MockedChat(props: MockedChatProps) {
         return fallback;
     }
 
-    // Helper for BLOCKY_FLOW: disables typing effect, shows full message at once
-    function isBlockyFlow(cfg: any): boolean {
-        return !!cfg.blocky;
-    }
-
-const delays = {
-    ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW,
-    ...delayConfig,
-};
+    const delays = {
+        ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW,
+        ...delayConfig,
+    };
 
     const [displayedMessages, setDisplayedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
     const [isSimulationComplete, setIsSimulationComplete] = useState(false);
@@ -216,7 +205,7 @@ const delays = {
                         delays.longPauseChance &&
                         Math.random() < delays.longPauseChance &&
                         i > 0 &&
-                        originalMessages[i].from !== originalMessages[i - 1].from
+                        originalMessages[i]!.from !== originalMessages[i - 1]!.from
                     ) {
                         await forTime(getDelay(delays.longPauseDuration, 2000));
                         didLongPause = true;
@@ -276,10 +265,7 @@ const delays = {
                     });
 
                     // Wait after word with extra delay (randomized)
-                    await forTime(
-                        getDelay(delays.waitAfterWord, 100) +
-                        getDelay(delays.extraWordDelay, 50)
-                    );
+                    await forTime(getDelay(delays.waitAfterWord, 100) + getDelay(delays.extraWordDelay, 50));
                     if (isCancelled) return;
                 }
 
@@ -336,52 +322,47 @@ const delays = {
 
     // Build extra actions (Pause / Resume)
     const showPauseButton = isPausable && !isSimulationComplete;
-    const extraActions =
-        showPauseButton ? (
-            <button
-                className={`${chatStyles.resetButton} ${chatStyles.pauseButton} ${
-                    playbackState === 'PAUSING'
-                        ? chatStyles.pausing
-                        : playbackState === 'PAUSED'
-                        ? chatStyles.paused
-                        : ''
-                }`}
-                aria-label={
-                    playbackState === 'RUNNING'
-                        ? 'Pause simulation'
-                        : playbackState === 'PAUSING'
-                        ? 'Pausing simulation'
-                        : 'Resume simulation'
+    const extraActions = showPauseButton ? (
+        <button
+            className={`${chatStyles.resetButton} ${chatStyles.pauseButton} ${
+                playbackState === 'PAUSING' ? chatStyles.pausing : playbackState === 'PAUSED' ? chatStyles.paused : ''
+            }`}
+            aria-label={
+                playbackState === 'RUNNING'
+                    ? 'Pause simulation'
+                    : playbackState === 'PAUSING'
+                    ? 'Pausing simulation'
+                    : 'Resume simulation'
+            }
+            onClick={() => {
+                if (playbackState === 'RUNNING') {
+                    requestPause();
+                } else if (playbackState === 'PAUSED') {
+                    resume();
                 }
-                onClick={() => {
-                    if (playbackState === 'RUNNING') {
-                        requestPause();
-                    } else if (playbackState === 'PAUSED') {
-                        resume();
-                    }
-                }}
-                disabled={playbackState === 'PAUSING'}
-            >
-                {playbackState === 'RUNNING' && (
-                    <>
-                        <PauseIcon size={16} />
-                        <span className={chatStyles.resetButtonText}>Pause</span>
-                    </>
-                )}
-                {playbackState === 'PAUSING' && (
-                    <>
-                        <PauseIcon size={16} />
-                        <span className={chatStyles.resetButtonText}>Pausing…</span>
-                    </>
-                )}
-                {playbackState === 'PAUSED' && (
-                    <>
-                        <PlayIcon size={16} />
-                        <span className={chatStyles.resetButtonText}>Resume</span>
-                    </>
-                )}
-            </button>
-        ) : undefined;
+            }}
+            disabled={playbackState === 'PAUSING'}
+        >
+            {playbackState === 'RUNNING' && (
+                <>
+                    <PauseIcon size={16} />
+                    <span className={chatStyles.resetButtonText}>Pause</span>
+                </>
+            )}
+            {playbackState === 'PAUSING' && (
+                <>
+                    <PauseIcon size={16} />
+                    <span className={chatStyles.resetButtonText}>Pausing…</span>
+                </>
+            )}
+            {playbackState === 'PAUSED' && (
+                <>
+                    <PlayIcon size={16} />
+                    <span className={chatStyles.resetButtonText}>Resume</span>
+                </>
+            )}
+        </button>
+    ) : undefined;
 
     // Use the internal Chat component with simulated messages
     return (
