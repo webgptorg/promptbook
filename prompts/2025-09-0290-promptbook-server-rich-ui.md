@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨👚] Enhance Promptbook server rich UI
 

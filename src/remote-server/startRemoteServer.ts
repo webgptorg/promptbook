@@ -29,6 +29,7 @@ import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
+import { renderServerIndexHtml } from './ui/renderServerIndexHtml';
 import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
 import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
@@ -269,52 +270,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     '/api-docs',
                 ],
             };
-            response.type('text/html').send(
-                `
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                    <title>Promptbook Server</title>
-                    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                </head>
-                <body class="bg-gray-50 text-gray-900">
-                    <div id="root"></div>
-                    <script>
-                        window.__PROMPTBOOK_SERVER_INFO__ = ${JSON.stringify(serverInfo)};
-                        // TODO: Hydrate React app here
-                        // You will need to bundle and serve a React app for full functionality
-                        const info = window.__PROMPTBOOK_SERVER_INFO__;
-                        document.getElementById('root').innerHTML = \`
-                            <h1 class="text-3xl font-bold mb-4">Promptbook Server Rich UI</h1>
-                            <div class="mb-4">
-                                <strong>Book language version:</strong> \${info.bookLanguageVersion}<br>
-                                <strong>Promptbook engine version:</strong> \${info.promptbookEngineVersion}<br>
-                                <strong>Node.js version:</strong> \${info.nodeVersion}<br>
-                                <strong>Server port:</strong> \${info.port}<br>
-                                <strong>Startup date:</strong> \${info.startupDate}<br>
-                                <strong>Anonymous mode:</strong> \${info.isAnonymousModeAllowed ? 'enabled' : 'disabled'}<br>
-                                <strong>Application mode:</strong> \${info.isApplicationModeAllowed ? 'enabled' : 'disabled'}<br>
-                                <strong>Pipelines in collection:</strong> \${info.pipelines.length ? '<ul>' + info.pipelines.map(p => '<li>' + p + '</li>').join('') + '</ul>' : 'none'}<br>
-                                <strong>Running executions:</strong> \${info.runningExecutions}<br>
-                                <strong>Paths:</strong> <ul>\${info.paths.map(p => '<li>' + p + '</li>').join('')}</ul>
-                            </div>
-                            <div class="mt-8">
-                                <h2 class="text-xl font-semibold mb-2">Instructions</h2>
-                                <ol class="list-decimal ml-6">
-                                    <li>The client <a href="https://www.npmjs.com/package/@promptbook/remote-client" class="text-blue-600 underline">https://www.npmjs.com/package/@promptbook/remote-client</a></li>
-                                    <li>OpenAI compatible client <span class="text-gray-500">(Not working yet)</span></li>
-                                    <li>REST API</li>
-                                </ol>
-                                <p class="mt-2">For more information look at: <a href="https://github.com/webgptorg/promptbook" class="text-blue-600 underline">https://github.com/webgptorg/promptbook</a></p>
-                            </div>
-                        \`;
-                    </script>
-                </body>
-                </html>
-                `
-            );
+            response.type('text/html').send(renderServerIndexHtml(serverInfo));
         } else {
             response.type('text/markdown').send(
                 await spaceTrim(
