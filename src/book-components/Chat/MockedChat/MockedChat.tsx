@@ -7,7 +7,7 @@ import { PauseIcon } from '../../icons/PauseIcon';
 import { PlayIcon } from '../../icons/PlayIcon';
 import type { ChatProps } from '../../Chat/Chat/ChatProps';
 import type { ChatMessage } from '../../Chat/types/ChatMessage';
-import { MOCKED_CHAT_DELAY_CONFIGS } from './MockedChatDelayConfigs';
+import { MOCKED_CHAT_DELAY_CONFIGS } from './constants';
 
 /**
  * Delay configuration for the MockedChat component
