@@ -2,24 +2,24 @@
 
 import { useState } from 'react';
 import spaceTrim from 'spacetrim';
-import type { MockedChatDelayConfig } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
-import { MOCKED_CHAT_DELAY_CONFIGS } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChatDelayConfigs';
-import { MockedChat } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/MockedChat';
+import type { MockedChatDelayConfig } from '../../../../../src/book-components/Chat/MockedChat/MockedChat';
+import { MockedChat } from '../../../../../src/book-components/Chat/MockedChat/MockedChat';
+import { MOCKED_CHAT_DELAY_CONFIGS } from '../../../../../src/book-components/Chat/MockedChat/constants';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 
 export default function MockedChatPreview() {
-const PREDEFINED_CONFIG_NAMES = Object.keys(MOCKED_CHAT_DELAY_CONFIGS);
+    const PREDEFINED_CONFIG_NAMES = Object.keys(MOCKED_CHAT_DELAY_CONFIGS);
 
-const [selectedConfigName, setSelectedConfigName] = useState<string>('NORMAL_FLOW');
-const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({ ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW });
+    const [selectedConfigName, setSelectedConfigName] = useState<string>('NORMAL_FLOW');
+    const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({ ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW });
 
-function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
-    const configName = e.target.value;
-    setSelectedConfigName(configName);
-    // Deep copy to avoid mutation
-    setDelayConfig(JSON.parse(JSON.stringify(MOCKED_CHAT_DELAY_CONFIGS[configName])));
-}
+    function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
+        const configName = e.target.value;
+        setSelectedConfigName(configName);
+        // Deep copy to avoid mutation
+        setDelayConfig(JSON.parse(JSON.stringify(MOCKED_CHAT_DELAY_CONFIGS[configName])));
+    }
 
     // Sample participants
     const participants: ChatParticipant[] = [
@@ -134,9 +134,7 @@ function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
             <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Delay Configuration</h3>
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Predefined Config
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Predefined Config</label>
                     <select
                         value={selectedConfigName}
                         onChange={handleSelectConfig}
@@ -165,7 +163,13 @@ function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
                             min="0"
                             max="10000"
                             step="100"
-                            value={typeof delayConfig.beforeFirstMessage === 'number' ? delayConfig.beforeFirstMessage : (Array.isArray(delayConfig.beforeFirstMessage) ? delayConfig.beforeFirstMessage[0] : 1000)}
+                            value={
+                                typeof delayConfig.beforeFirstMessage === 'number'
+                                    ? delayConfig.beforeFirstMessage
+                                    : Array.isArray(delayConfig.beforeFirstMessage)
+                                    ? delayConfig.beforeFirstMessage[0]
+                                    : 1000
+                            }
                             onChange={(e) => handleDelayChange('beforeFirstMessage', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
@@ -180,7 +184,13 @@ function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
                             min="0"
                             max="10000"
                             step="100"
-                            value={typeof delayConfig.thinkingBetweenMessages === 'number' ? delayConfig.thinkingBetweenMessages : (Array.isArray(delayConfig.thinkingBetweenMessages) ? delayConfig.thinkingBetweenMessages[0] : 2000)}
+                            value={
+                                typeof delayConfig.thinkingBetweenMessages === 'number'
+                                    ? delayConfig.thinkingBetweenMessages
+                                    : Array.isArray(delayConfig.thinkingBetweenMessages)
+                                    ? delayConfig.thinkingBetweenMessages[0]
+                                    : 2000
+                            }
                             onChange={(e) => handleDelayChange('thinkingBetweenMessages', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
@@ -193,7 +203,13 @@ function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
                             min="0"
                             max="1000"
                             step="10"
-                            value={typeof delayConfig.waitAfterWord === 'number' ? delayConfig.waitAfterWord : (Array.isArray(delayConfig.waitAfterWord) ? delayConfig.waitAfterWord[0] : 100)}
+                            value={
+                                typeof delayConfig.waitAfterWord === 'number'
+                                    ? delayConfig.waitAfterWord
+                                    : Array.isArray(delayConfig.waitAfterWord)
+                                    ? delayConfig.waitAfterWord[0]
+                                    : 100
+                            }
                             onChange={(e) => handleDelayChange('waitAfterWord', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
@@ -206,7 +222,13 @@ function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
                             min="0"
                             max="500"
                             step="10"
-                            value={typeof delayConfig.extraWordDelay === 'number' ? delayConfig.extraWordDelay : (Array.isArray(delayConfig.extraWordDelay) ? delayConfig.extraWordDelay[0] : 50)}
+                            value={
+                                typeof delayConfig.extraWordDelay === 'number'
+                                    ? delayConfig.extraWordDelay
+                                    : Array.isArray(delayConfig.extraWordDelay)
+                                    ? delayConfig.extraWordDelay[0]
+                                    : 50
+                            }
                             onChange={(e) => handleDelayChange('extraWordDelay', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
@@ -226,39 +248,51 @@ function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Long Pause Duration Min (ms)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Long Pause Duration Min (ms)
+                        </label>
                         <input
                             type="number"
                             min="0"
                             max="10000"
                             step="100"
-                            value={Array.isArray(delayConfig.longPauseDuration) ? delayConfig.longPauseDuration[0] : 1200}
-                            onChange={(e) => setDelayConfig((prev) => ({
-                                ...prev,
-                                longPauseDuration: [
-                                    parseInt(e.target.value),
-                                    Array.isArray(prev.longPauseDuration) ? prev.longPauseDuration[1] : 3500,
-                                ],
-                            }))}
+                            value={
+                                Array.isArray(delayConfig.longPauseDuration) ? delayConfig.longPauseDuration[0] : 1200
+                            }
+                            onChange={(e) =>
+                                setDelayConfig((prev) => ({
+                                    ...prev,
+                                    longPauseDuration: [
+                                        parseInt(e.target.value),
+                                        Array.isArray(prev.longPauseDuration) ? prev.longPauseDuration[1] : 3500,
+                                    ],
+                                }))
+                            }
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Long Pause Duration Max (ms)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Long Pause Duration Max (ms)
+                        </label>
                         <input
                             type="number"
                             min="0"
                             max="10000"
                             step="100"
-                            value={Array.isArray(delayConfig.longPauseDuration) ? delayConfig.longPauseDuration[1] : 3500}
-                            onChange={(e) => setDelayConfig((prev) => ({
-                                ...prev,
-                                longPauseDuration: [
-                                    Array.isArray(prev.longPauseDuration) ? prev.longPauseDuration[0] : 1200,
-                                    parseInt(e.target.value),
-                                ],
-                            }))}
+                            value={
+                                Array.isArray(delayConfig.longPauseDuration) ? delayConfig.longPauseDuration[1] : 3500
+                            }
+                            onChange={(e) =>
+                                setDelayConfig((prev) => ({
+                                    ...prev,
+                                    longPauseDuration: [
+                                        Array.isArray(prev.longPauseDuration) ? prev.longPauseDuration[0] : 1200,
+                                        parseInt(e.target.value),
+                                    ],
+                                }))
+                            }
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
                     </div>
