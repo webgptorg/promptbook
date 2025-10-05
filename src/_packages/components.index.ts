@@ -11,8 +11,6 @@ import type { AvatarProfileProps } from '../book-components/AvatarProfile/Avatar
 import { AvatarProfile } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import type { AvatarProfileFromSourceProps } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 import { AvatarProfileFromSource } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
-import type { MockedChatDelayConfig, MockedChatProps } from '../book-components/AvatarProfile/AvatarProfile/MockedChat';
-import { MockedChat } from '../book-components/AvatarProfile/AvatarProfile/MockedChat';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
 import { DEFAULT_BOOK_FONT_CLASS } from '../book-components/BookEditor/config';
@@ -52,7 +50,6 @@ export {
     CHAT_SAVE_FORMATS as chatSavePlugins,
     DEFAULT_BOOK_FONT_CLASS,
     getChatSaveFormatDefinitions,
-    MockedChat,
     parseMessageButtons,
     PauseIcon,
     PlayIcon,
@@ -75,8 +72,6 @@ export type {
     ChatSaveFormatDefinition,
     LlmChatProps,
     MessageButton,
-    MockedChatDelayConfig,
-    MockedChatProps,
     SendMessageToLlmChatFunction,
     string_chat_format_name,
 };
