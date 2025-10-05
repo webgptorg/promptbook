@@ -17,8 +17,10 @@
 
 [ ]
 
-[✨👚] quux
+[✨👚] Enhance Promptbook server rich UI
 
+-   Use React in the rich UI not inline HTML strings
+-   Logic of remote server is in [`startRemoteServer` function](src/remote-server/startRemoteServer.ts)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
