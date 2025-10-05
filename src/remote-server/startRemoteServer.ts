@@ -249,7 +249,26 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
 
         if (options.isRichUi !== false) {
-            // TODO: Serve rich React + Tailwind UI here
+            // Serve rich React + Tailwind UI with server info injected
+            const serverInfo = {
+                bookLanguageVersion: BOOK_LANGUAGE_VERSION,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                nodeVersion: process.version,
+                port,
+                startupDate: startupDate.toISOString(),
+                isAnonymousModeAllowed,
+                isApplicationModeAllowed,
+                pipelines: !isApplicationModeAllowed || collection === null
+                    ? []
+                    : await collection.listPipelines(),
+                runningExecutions: runningExecutionTasks.length,
+                paths: [
+                    ...app._router.stack
+                        .map(({ route }: really_any) => route?.path || null)
+                        .filter((path: string) => path !== null),
+                    '/api-docs',
+                ],
+            };
             response.type('text/html').send(
                 `
                 <!DOCTYPE html>
@@ -263,9 +282,34 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 <body class="bg-gray-50 text-gray-900">
                     <div id="root"></div>
                     <script>
+                        window.__PROMPTBOOK_SERVER_INFO__ = ${JSON.stringify(serverInfo)};
                         // TODO: Hydrate React app here
                         // You will need to bundle and serve a React app for full functionality
-                        document.getElementById('root').innerHTML = '<h1 class="text-3xl font-bold mb-4">Promptbook Server Rich UI</h1><p>This is a placeholder for the rich React UI.</p>';
+                        const info = window.__PROMPTBOOK_SERVER_INFO__;
+                        document.getElementById('root').innerHTML = \`
+                            <h1 class="text-3xl font-bold mb-4">Promptbook Server Rich UI</h1>
+                            <div class="mb-4">
+                                <strong>Book language version:</strong> \${info.bookLanguageVersion}<br>
+                                <strong>Promptbook engine version:</strong> \${info.promptbookEngineVersion}<br>
+                                <strong>Node.js version:</strong> \${info.nodeVersion}<br>
+                                <strong>Server port:</strong> \${info.port}<br>
+                                <strong>Startup date:</strong> \${info.startupDate}<br>
+                                <strong>Anonymous mode:</strong> \${info.isAnonymousModeAllowed ? 'enabled' : 'disabled'}<br>
+                                <strong>Application mode:</strong> \${info.isApplicationModeAllowed ? 'enabled' : 'disabled'}<br>
+                                <strong>Pipelines in collection:</strong> \${info.pipelines.length ? '<ul>' + info.pipelines.map(p => '<li>' + p + '</li>').join('') + '</ul>' : 'none'}<br>
+                                <strong>Running executions:</strong> \${info.runningExecutions}<br>
+                                <strong>Paths:</strong> <ul>\${info.paths.map(p => '<li>' + p + '</li>').join('')}</ul>
+                            </div>
+                            <div class="mt-8">
+                                <h2 class="text-xl font-semibold mb-2">Instructions</h2>
+                                <ol class="list-decimal ml-6">
+                                    <li>The client <a href="https://www.npmjs.com/package/@promptbook/remote-client" class="text-blue-600 underline">https://www.npmjs.com/package/@promptbook/remote-client</a></li>
+                                    <li>OpenAI compatible client <span class="text-gray-500">(Not working yet)</span></li>
+                                    <li>REST API</li>
+                                </ol>
+                                <p class="mt-2">For more information look at: <a href="https://github.com/webgptorg/promptbook" class="text-blue-600 underline">https://github.com/webgptorg/promptbook</a></p>
+                            </div>
+                        \`;
                     </script>
                 </body>
                 </html>
