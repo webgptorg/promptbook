@@ -16,7 +16,8 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
-import { getChatSaveFormatDefinitions, string_chat_format_name } from '../save/savePlugins';
+import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
+import { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
@@ -651,12 +652,18 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
 
                     {onMessage && (
                         <div
-                            className={classNames(styles.chatInput, useChatCssClassName('chatInput'), isDragOver && styles.dragOver)}
-                            {...(onFileUpload ? {
-                                onDrop: handleDrop,
-                                onDragOver: handleDragOver,
-                                onDragLeave: handleDragLeave
-                            } : {})}
+                            className={classNames(
+                                styles.chatInput,
+                                useChatCssClassName('chatInput'),
+                                isDragOver && styles.dragOver,
+                            )}
+                            {...(onFileUpload
+                                ? {
+                                      onDrop: handleDrop,
+                                      onDragOver: handleDragOver,
+                                      onDragLeave: handleDragLeave,
+                                  }
+                                : {})}
                         >
                             {/* File previews */}
                             {uploadedFiles.length > 0 && (
