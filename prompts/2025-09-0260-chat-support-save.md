@@ -30,7 +30,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😅] Enhance saving of <Chat/> to html format
 

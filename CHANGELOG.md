@@ -1,6 +1,14 @@
 # 📅 Changelog
 
 ## [Unreleased]
+-   **[✨] Enhanced HTML export for `<Chat/>`** ([2025-09-0260])
+    -   Chat messages are now exported as a standalone HTML5 file with visually appealing chat bubbles and avatars
+    -   Participant colors are preserved using a fallback color map
+    -   Reference to [Promptbook](https://ptbk.io) is added in the footer
+    -   Inline CSS styles for layout and color
+    -   Uses `spaceTrim` utility for clean output
+    -   DRY principle applied to formatting logic
+    -   Fixed TypeScript errors related to message properties and color handling
 -   **[✨] Enhanced Markdown export for `<Chat/>`** ([2025-09-0260])
     -   Chat messages are now serialized in markdown with sender bolded and message content as blockquote
     -   Reference to [Promptbook](https://ptbk.io) is added at the end of exported markdown
