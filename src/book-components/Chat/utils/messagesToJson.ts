@@ -18,7 +18,7 @@ export function messagesToJson(messages: ChatMessage[], shareUrl: string): strin
             id: message.id || `msg_${index}`,
             from: message.from,
             content: message.content,
-            isComplete: message.isComplete,
+            isComplete: message.isComplete ?? true,
             timestamp: new Date().toISOString(), // Note: Real timestamp would come from message data
         })),
     };
