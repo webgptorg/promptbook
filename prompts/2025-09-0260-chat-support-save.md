@@ -45,7 +45,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😅] Create saving of <Chat/> to pdf format
 

@@ -1,6 +1,12 @@
 # 📅 Changelog
 
 ## [Unreleased]
+-   **[✨] Added PDF export for `<Chat/>`** ([2025-09-0260])
+    -   New `pdf` save format available for chat messages
+    -   PDF export logic is DRY and reuses HTML formatting
+    -   Registered in `CHAT_SAVE_FORMATS` plugin registry
+    -   Uses `spaceTrim` utility for formatting
+    -   Placeholder implementation; integrate a PDF library for conversion
 -   **[✨] Enhanced HTML export for `<Chat/>`** ([2025-09-0260])
     -   Chat messages are now exported as a standalone HTML5 file with visually appealing chat bubbles and avatars
     -   Participant colors are preserved using a fallback color map
