@@ -6,6 +6,8 @@ import { extractMcpServers } from './createAgentModelRequirements';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
 import type { string_book } from './string_book';
+import { parseParameters } from './parseParameters';
+import type { ParsedCommitment } from '../commitments/_base/ParsedCommitment';
 
 /**
  * Creates agent model requirements using the new commitment system
@@ -20,6 +22,42 @@ export async function createAgentModelRequirementsWithCommitments(
 ): Promise<AgentModelRequirements> {
     // Parse the agent source to extract commitments
     const parseResult = parseAgentSourceWithCommitments(agentSource);
+
+    // Apply DELETE filtering: remove prior commitments tagged by parameters targeted by DELETE/CANCEL/DISCARD/REMOVE
+    const filteredCommitments: ParsedCommitment[] = [];
+    for (const commitment of parseResult.commitments) {
+        // Handle DELETE-like commitments by invalidating prior tagged commitments
+        if (
+            commitment.type === 'DELETE' ||
+            commitment.type === 'CANCEL' ||
+            commitment.type === 'DISCARD' ||
+            commitment.type === 'REMOVE'
+        ) {
+            const targets = parseParameters(commitment.content)
+                .map((p) => p.name.trim().toLowerCase())
+                .filter(Boolean);
+
+            if (targets.length === 0) {
+                // Ignore DELETE with no targets; also don't pass the DELETE further
+                continue;
+            }
+
+            // Drop prior kept commitments that contain any of the targeted tags
+            for (let i = filteredCommitments.length - 1; i >= 0; i--) {
+                const prev = filteredCommitments[i]!;
+                const prevParams = parseParameters(prev.content).map((p) => p.name.trim().toLowerCase());
+                const hasIntersection = prevParams.some((n) => targets.includes(n));
+                if (hasIntersection) {
+                    filteredCommitments.splice(i, 1);
+                }
+            }
+
+            // Do not keep the DELETE commitment itself
+            continue;
+        }
+
+        filteredCommitments.push(commitment);
+    }
 
     // Start with basic agent model requirements
     let requirements = createBasicAgentModelRequirements(parseResult.agentName);
@@ -42,7 +80,7 @@ export async function createAgentModelRequirementsWithCommitments(
     }
 
     // Apply each commitment in order using reduce-like pattern
-    for (const commitment of parseResult.commitments) {
+    for (const commitment of filteredCommitments) {
         const definition = getCommitmentDefinition(commitment.type);
         if (definition) {
             try {

@@ -1,4 +1,4 @@
-[ ]
+[x] <- Note: Maybe still not working
 
 [✨🐢] Implement the functionality of `DELETE` commitment
 

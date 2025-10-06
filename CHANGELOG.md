@@ -1,6 +1,7 @@
 # 📅 Changelog
 
 ## [Unreleased]
+-   Implement DELETE commitment: `DELETE`/`CANCEL`/`DISCARD`/`REMOVE` now invalidate earlier commitments tagged with `@Tag` or `{Tag}` above the DELETE. DELETE lines are not emitted into the final system message.
 -   Rich UI at `/` is now rendered with React (SSR) instead of inline HTML strings; UI centralized in `src/remote-server/ui/ServerApp.tsx` to keep things DRY. ([2025-09-0290])
 -   `startRemoteServer` serves the UI via `renderServerIndexHtml(serverInfo)` for a cleaner separation of concerns.
 -   Preserve user text selection in chat components (`Chat`, `MockedChat`, `LlmChat`) during message updates. Selection is no longer cleared when new messages arrive or incomplete messages update. [2025-09-0280]
