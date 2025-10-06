@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { string_markdown, string_name } from '../../../types/typeAliases';
+import type { string_markdown } from '../../../types/typeAliases';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -22,12 +22,22 @@ import type { LlmChatProps } from './LlmChatProps';
  * @public exported from `@promptbook/components`
  */
 export function LlmChat(props: LlmChatProps) {
-    const { llmTools, persistenceKey, onChange, onReset, initialMessages, sendMessage, ...restProps } = props;
+    const {
+        llmTools,
+        persistenceKey,
+        onChange,
+        onReset,
+        initialMessages,
+        sendMessage,
+        userParticipantName = 'USER',
+        llmParticipantName = 'ASSISTANT',
+        ...restProps
+    } = props;
 
     // Internal state management
     // DRY: Single factory for seeding initial messages (used on mount and after reset)
     const buildInitialMessages = useCallback(
-        () => (initialMessages ? [...initialMessages] as ChatMessage[] : [] as ChatMessage[]),
+        () => (initialMessages ? ([...initialMessages] as ChatMessage[]) : ([] as ChatMessage[])),
         [initialMessages],
     );
     const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
@@ -62,21 +72,22 @@ export function LlmChat(props: LlmChatProps) {
     }, [messages, persistenceKey]);
 
     // Generate participants from llmTools
-    const participants = useMemo<Array<ChatParticipant>>(
-        () => [
-            {
-                name: 'USER' as string_name,
-                fullname: 'You',
-                isMe: true,
-                color: '#1D4ED8',
-            },
-            // Use the profile from llmTools if available, otherwise fallback to default
-            llmTools.profile || {
-                name: 'ASSISTANT' as string_name,
-                fullname: llmTools.title || 'AI Assistant',
-                color: '#10b981',
-            },
-        ],
+    const participants = useMemo<ReadonlyArray<ChatParticipant>>(
+        () =>
+            props.participants || [
+                {
+                    name: userParticipantName,
+                    fullname: 'You',
+                    isMe: true,
+                    color: '#1D4ED8',
+                },
+                // Use the profile from llmTools if available, otherwise fallback to default
+                llmTools.profile || {
+                    name: llmParticipantName,
+                    fullname: llmTools.title || 'AI Assistant',
+                    color: '#10b981',
+                },
+            ],
         [llmTools.profile, llmTools.title],
     );
 
@@ -89,7 +100,7 @@ export function LlmChat(props: LlmChatProps) {
             const userMessage: ChatMessage = {
                 id: `user_${Date.now()}`,
                 date: new Date(),
-                from: 'USER' as string_name,
+                from: userParticipantName,
                 content: messageContent as string_markdown,
                 isComplete: true,
             };
@@ -106,7 +117,7 @@ export function LlmChat(props: LlmChatProps) {
             const loadingMessage: ChatMessage = {
                 id: `assistant_${Date.now()}`,
                 date: new Date(),
-                from: 'ASSISTANT' as string_name,
+                from: llmParticipantName,
                 content: 'Thinking...' as string_markdown,
                 isComplete: false,
             };
@@ -148,7 +159,7 @@ export function LlmChat(props: LlmChatProps) {
                 const assistantMessage: ChatMessage = {
                     id: loadingMessage.id,
                     date: new Date(),
-                    from: 'ASSISTANT' as string_name,
+                    from: llmParticipantName,
                     content: result.content as string_markdown,
                     isComplete: true,
                 };
@@ -172,7 +183,7 @@ export function LlmChat(props: LlmChatProps) {
                 const errorMessage: ChatMessage = {
                     id: loadingMessage.id,
                     date: new Date(),
-                    from: 'ASSISTANT' as string_name,
+                    from: llmParticipantName,
                     content: `Sorry, I encountered an error: ${
                         error instanceof Error ? error.message : 'Unknown error'
                     }` as string_markdown,

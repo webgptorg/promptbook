@@ -1,9 +1,10 @@
 'use client';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import { id } from '../../../types/typeAliases';
 import type { ChatProps } from '../Chat/ChatProps';
+import type { SendMessageToLlmChatFunction } from '../hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { SendMessageToLlmChatFunction } from '../hooks/useSendMessageToLlmChat';
 
 /**
  * Props for LlmChat component, derived from ChatProps but with LLM-specific modifications
@@ -42,4 +43,18 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * When provided, LlmChat will attach its internal handler to it (no React context needed).
      */
     readonly sendMessage?: SendMessageToLlmChatFunction;
+
+    /**
+     * Name of the USER as participant in the chat
+     *
+     * @default 'USER'
+     */
+    readonly userParticipantName?: id;
+
+    /**
+     * Name of the LLM as participant in the chat
+     *
+     * @default 'ASSISTANT'
+     */
+    readonly llmParticipantName?: id;
 };
