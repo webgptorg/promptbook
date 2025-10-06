@@ -1,5 +1,5 @@
+import { spaceTrim } from 'spacetrim';
 import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
-import { spaceTrim } from 'space-trim';
 
 /**
  * Markdown export plugin
@@ -17,7 +17,7 @@ export const mdSaveFormatDefinition = {
                         **${m.from}:**
 
                         > ${m.content.replace(/\n/g, '\n> ')}
-                    `)
+                    `),
                 )
                 .join('\n\n---\n\n')}
 
