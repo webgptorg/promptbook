@@ -591,7 +591,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                                             </div>
                                         )}
 
-                                        {message.from.includes('PROMPTBOOK_PERSONA') && message.isComplete && (
+                                        {message.isComplete && (
                                             <div
                                                 className={styles.rating}
                                                 onMouseEnter={() => setExpandedMessageId(message.id)}
