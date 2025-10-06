@@ -11,8 +11,8 @@
 -   Also append the result of `onFileUpload` to the message when the message is sent
 -   Get inspiration from `<BookEditor onFileUpload={...} />`
 -   I should be able to test this feature in:
-    - http://localhost:4022/component/chat
-    - http://localhost:4022/component/llm-chat
+    -   http://localhost:4022/component/chat
+    -   http://localhost:4022/component/llm-chat
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, especially with `<BookEditor onFileUpload={...} />`
 -   Add the changes into the `CHANGELOG.md`
 
@@ -29,7 +29,7 @@
 
 [ ]
 
-[✨💵] foo
+[✨💵] When `onFileUpload` not set in `<Chat>` component should not listen on drop events at all
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
@@ -38,8 +38,11 @@
 
 [ ]
 
-[✨💵] foo
+[✨💵] When file is dropped into `<Chat>` component it is show as attachment but should be also placed in the message input
 
+-   Work both via drag-n-drop and via a button in the chat input area alongside the "send" and "voice call" button
+-   **(working)** When the file is uploaded, show a small preview of the file (filename, size, icon) in the chat input area, with an option to remove the file before sending the message
+-   **Implement:** Also append the result of `onFileUpload` to the message when the message is sent as a text in the input area
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
