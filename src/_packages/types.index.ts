@@ -157,6 +157,7 @@ import type { ApplicationRemoteServerOptions } from '../remote-server/types/Remo
 import type { ApplicationRemoteServerClientOptions } from '../remote-server/types/RemoteServerOptions';
 import type { LoginRequest } from '../remote-server/types/RemoteServerOptions';
 import type { LoginResponse } from '../remote-server/types/RemoteServerOptions';
+import type { ServerInfo } from '../remote-server/ui/types';
 import type { Converter } from '../scrapers/_common/Converter';
 import type { ScraperAndConverterMetadata } from '../scrapers/_common/register/ScraperAndConverterMetadata';
 import type { ScraperConstructor } from '../scrapers/_common/register/ScraperConstructor';
@@ -490,6 +491,7 @@ export type { ApplicationRemoteServerOptions };
 export type { ApplicationRemoteServerClientOptions };
 export type { LoginRequest };
 export type { LoginResponse };
+export type { ServerInfo };
 export type { Converter };
 export type { ScraperAndConverterMetadata };
 export type { ScraperConstructor };
