@@ -19,6 +19,56 @@
 
 [ ]
 
+[✨😅] Enhance saving of <Chat/> to markdown format
+
+-   The markdown should serialize the chat messages as closely as possible but still in markdown format _(do not embed raw HTML in markdown)_
+-   Add reference to Promptbook with link to https://ptbk.io, ideally somewhere at the end of the markdown file
+-   The logic of markdown saving is in [`mdSaveFormatDefinition.ts`](/src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts)
+-   Use `spaceTrim` utility
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨😅] Enhance saving of <Chat/> to html format
+
+-   The HTML should be a full standalone HTML file with simple but visually appealing chat as similar to the chat UI in Promptbook
+-   Html should be valid HTML5 standalone page with inline CSS styles and JS if needed
+-   Preserve the colors of chat participants
+-   Add reference to Promptbook with link to https://ptbk.io, ideally in the footer of the page
+-   The logic of html saving is in [`htmlSaveFormatDefinition.ts`](/src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts)
+-   Use `spaceTrim` utility
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨😅] Create saving of <Chat/> to pdf format
+
+-   The PDF should take `htmlSaveFormatDefinition` as base and convert the HTML to PDF
+-   The logic of pdf saving should be in new file [`pdfSaveFormatDefinition.ts`](/src/book-components/Chat/save/pdf/pdfSaveFormatDefinition.ts)
+-   Add to the available formats as `pdf`
+-   Use `spaceTrim` utility
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨😅] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
 [✨😅] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
