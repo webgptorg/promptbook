@@ -141,6 +141,19 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                 }
 
                 setUploadedFiles((prev) => [...prev, ...newUploadedFiles]);
+
+                // Also append the result of onFileUpload to the message input area
+                if (textareaRef.current && newUploadedFiles.length > 0) {
+                    const currentValue = textareaRef.current.value;
+                    const fileContents = newUploadedFiles.map((f) => f.content).join(' ');
+                    const newValue = currentValue ? `${currentValue} ${fileContents}` : fileContents;
+                    textareaRef.current.value = newValue;
+
+                    // Trigger onChange if it exists
+                    if (onChange) {
+                        onChange(newValue);
+                    }
+                }
             } catch (error) {
                 console.error('File upload failed:', error);
                 alert('File upload failed. Please try again.');
@@ -148,7 +161,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                 setIsUploading(false);
             }
         },
-        [onFileUpload],
+        [onFileUpload, onChange],
     );
 
     const handleDrop = useCallback(

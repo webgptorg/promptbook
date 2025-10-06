@@ -36,7 +36,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨💵] When file is dropped into `<Chat>` component it is show as attachment but should be also placed in the message input
 

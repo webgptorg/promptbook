@@ -7,11 +7,12 @@
     -   Multiple files can be uploaded simultaneously, with `onFileUpload` called for each file separately
     -   File upload is disabled when `onFileUpload` prop is not provided - component does NOT listen to drop events at all when `onFileUpload` is not set
     -   Added file preview component showing filename, size, and remove option
-    -   File upload results are automatically appended to chat messages when sent
+    -   File upload results are automatically appended to chat messages when sent AND immediately placed in the message input area
     -   Added new icons: `<AttachmentIcon>` and `<CloseIcon>`
     -   DRY implementation inspired by `<BookEditor>` file upload functionality
     -   Comprehensive styling with drag overlay, upload progress, and responsive design
     -   Conditional event listeners: drag and drop events only attached when `onFileUpload` is provided
+    -   **Enhanced:** File upload results now appear immediately in textarea input for user editing before sending
 -   Implement DELETE commitment: `DELETE`/`CANCEL`/`DISCARD`/`REMOVE` now invalidate earlier commitments tagged with `@Tag` or `{Tag}` above the DELETE. DELETE lines are not emitted into the final system message.
 -   Rich UI at `/` is now rendered with React (SSR) instead of inline HTML strings; UI centralized in `src/remote-server/ui/ServerApp.tsx` to keep things DRY. ([2025-09-0290])
 -   `startRemoteServer` serves the UI via `renderServerIndexHtml(serverInfo)` for a cleaner separation of concerns.
