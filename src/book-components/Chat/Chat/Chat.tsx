@@ -273,11 +273,14 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
     const chatBarCssClassName = useChatCssClassName('chatBar');
     const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
 
-    const handleRating = async (message: ChatMessage, newRating: number) => {
-        setSelectedMessage(message);
-        setMessageRatings(new Map(messageRatings.set(message.id, newRating)));
-        setRatingModalOpen(true);
-    };
+    const handleRating = useCallback(
+        async (message: ChatMessage, newRating: number) => {
+            setSelectedMessage(message);
+            setMessageRatings(new Map(messageRatings.set(message.id, newRating)));
+            setRatingModalOpen(true);
+        },
+        [messageRatings],
+    );
 
     const submitRating = useCallback(async () => {
         if (!selectedMessage) return;
@@ -356,23 +359,26 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
-    function handleDownload(format: string_chat_format_name) {
-        const formatDefinition = getChatSaveFormatDefinitions([format])[0];
-        if (!formatDefinition) return;
-        const content = formatDefinition.getContent([...messages]);
-        const blob = new Blob([content], { type: formatDefinition.mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `chat-history.${formatDefinition.fileExtension}`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 100);
-        setShowSaveMenu(false);
-    }
+    const handleDownload = useCallback(
+        (format: string_chat_format_name) => {
+            const formatDefinition = getChatSaveFormatDefinitions([format])[0];
+            if (!formatDefinition) return;
+            const content = formatDefinition.getContent([...messages]);
+            const blob = new Blob([content], { type: formatDefinition.mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat-history.${formatDefinition.fileExtension}`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            setShowSaveMenu(false);
+        },
+        [messages],
+    );
 
     return (
         <>
@@ -503,7 +509,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
 
                             return (
                                 <div
-                                    key={i}
+                                    key={message.id}
                                     className={classNames(
                                         styles.chatMessage,
                                         participant?.isMe && styles.isMe,
