@@ -101,3 +101,9 @@ export function HtmlDoc({ info }: { info: ServerInfo }) {
         </html>
     );
 }
+
+
+/**
+ * Add Note: [💞] Ignore a discrepancy between file name and entity name
+ *     <- TODO: !!! Maybe split into multiple files
+ */
