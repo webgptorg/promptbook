@@ -10,12 +10,12 @@ KNOWLEDGE @Example https://example.com
 PERSONA Friendly assistant
 DELETE @Example`);
 
-        const reqs = await createAgentModelRequirementsWithCommitments(book);
+        const modelRequirements = await createAgentModelRequirementsWithCommitments(book);
 
-        expect(reqs.systemMessage).toContain('Friendly assistant');
-        expect(reqs.systemMessage).not.toContain('Knowledge:');
-        expect(reqs.systemMessage).not.toContain('@Example');
-        expect(reqs.systemMessage).not.toContain('example.com');
+        expect(modelRequirements.systemMessage).toContain('Friendly assistant');
+        expect(modelRequirements.systemMessage).not.toContain('Knowledge:');
+        expect(modelRequirements.systemMessage).not.toContain('@Example');
+        expect(modelRequirements.systemMessage).not.toContain('example.com');
     });
 
     it('only invalidates commitments above; below commitments remain', async () => {
@@ -25,13 +25,13 @@ KNOWLEDGE @X First knowledge above
 DELETE {X}
 KNOWLEDGE {X: second knowledge below}`);
 
-        const reqs = await createAgentModelRequirementsWithCommitments(book);
+        const modelRequirements = await createAgentModelRequirementsWithCommitments(book);
 
         // Above knowledge removed
-        expect(reqs.systemMessage).not.toContain('First knowledge above');
+        expect(modelRequirements.systemMessage).not.toContain('First knowledge above');
         // Below knowledge kept
-        expect(reqs.systemMessage).toContain('second knowledge below');
+        expect(modelRequirements.systemMessage).toContain('second knowledge below');
         // Ensure a Knowledge line exists for the remaining one
-        expect(reqs.systemMessage).toMatch(/Knowledge:/);
+        expect(modelRequirements.systemMessage).toMatch(/Knowledge:/);
     });
 });
