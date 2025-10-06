@@ -17,7 +17,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😅] Enhance saving of <Chat/> to markdown format
 

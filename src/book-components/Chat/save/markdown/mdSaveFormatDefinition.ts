@@ -1,4 +1,5 @@
 import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
+import { spaceTrim } from 'space-trim';
 
 /**
  * Markdown export plugin
@@ -8,7 +9,22 @@ import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 export const mdSaveFormatDefinition = {
     formatName: 'md',
     label: 'Markdown',
-    getContent: (messages) => messages.map((m) => `**${m.from}:**\n\n${m.content}\n`).join('\n---\n'),
+    getContent: (messages) =>
+        spaceTrim(`
+            ${messages
+                .map((m) =>
+                    spaceTrim(`
+                        **${m.from}:**
+
+                        > ${m.content.replace(/\n/g, '\n> ')}
+                    `)
+                )
+                .join('\n\n---\n\n')}
+
+            ---
+
+            _Exported from [Promptbook](https://ptbk.io)_
+        `),
     mimeType: 'text/markdown',
     fileExtension: 'md',
 } as const satisfies ChatSaveFormatDefinition;

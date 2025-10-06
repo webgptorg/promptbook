@@ -1,6 +1,12 @@
 # 📅 Changelog
 
 ## [Unreleased]
+-   **[✨] Enhanced Markdown export for `<Chat/>`** ([2025-09-0260])
+    -   Chat messages are now serialized in markdown with sender bolded and message content as blockquote
+    -   Reference to [Promptbook](https://ptbk.io) is added at the end of exported markdown
+    -   Formatting uses `spaceTrim` utility for clean output
+    -   DRY principle applied to formatting logic
+    -   Fixed TypeScript errors related to `space-trim` and message properties
 -   **[🔧] `ChatMessage.isComplete` defaults to `true`** - The `isComplete` property in `ChatMessage` is now optional and defaults to `true` when not specified. This simplifies message creation for complete messages while maintaining explicit control for incomplete/streaming messages. Updated `messagesToJson` to apply the default value consistently.
 -   **[🔧] Auto-retry with stripped parameters on unsupported parameter errors** - `OpenAiCompatibleExecutionTools` now automatically detects and retries requests when receiving "Unsupported value" errors from LLM providers (e.g., "temperature does not support 0.7 with this model"). The implementation strips the unsupported parameter and retries once per model-parameter combination to prevent infinite loops. This applies to all model variants: CHAT, COMPLETION, and EMBEDDING.
 -   **[✨💵] File Upload Support in Chat Component** ([2025-09-0250])
