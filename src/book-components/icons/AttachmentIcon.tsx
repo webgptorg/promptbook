@@ -1,10 +1,13 @@
-import React from 'react';
-
 type AttachmentIconProps = {
     size?: number;
     color?: string;
 };
 
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/components`
+ */
 export function AttachmentIcon({ size = 24, color = 'currentColor' }: AttachmentIconProps) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -83,6 +83,11 @@ function ServerBody({ info }: { info: ServerInfo }) {
     );
 }
 
+/**
+ * @@@
+ *
+ * @private internal utility of Remote Server
+ */
 export function HtmlDoc({ info }: { info: ServerInfo }) {
     return (
         <html lang="en">
@@ -101,7 +106,6 @@ export function HtmlDoc({ info }: { info: ServerInfo }) {
         </html>
     );
 }
-
 
 /**
  * Add Note: [💞] Ignore a discrepancy between file name and entity name

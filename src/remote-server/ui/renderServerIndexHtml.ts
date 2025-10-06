@@ -116,6 +116,8 @@ function HtmlDoc({ info }: { info: ServerInfo }) {
 
 /**
  * Render full HTML for the server index using React SSR without requiring TSX/JSX compiler flags.
+ *
+ * @private internal utility of Remote Server
  */
 export function renderServerIndexHtml(info: ServerInfo): string {
   return '<!DOCTYPE html>' + renderToStaticMarkup(h(HtmlDoc, { info }));
