@@ -474,20 +474,30 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     public async callEmbeddingModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<EmbeddingPromptResult> {
+        return this.callEmbeddingModelWithRetry(prompt, prompt.modelRequirements);
+    }
+
+    /**
+     * Internal method that handles parameter retry for embedding model calls
+     */
+    private async callEmbeddingModelWithRetry(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+        currentModelRequirements: typeof prompt.modelRequirements,
+    ): Promise<EmbeddingPromptResult> {
         if (this.options.isVerbose) {
-            console.info(`🖋 ${this.title} embedding call`, { prompt });
+            console.info(`🖋 ${this.title} embedding call`, { prompt, currentModelRequirements });
         }
 
-        const { content, parameters, modelRequirements } = prompt;
+        const { content, parameters } = prompt;
 
         const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.modelVariant !== 'EMBEDDING') {
+        if (currentModelRequirements.modelVariant !== 'EMBEDDING') {
             throw new PipelineExecutionError('Use embed only for EMBEDDING variant');
         }
 
-        const modelName = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
+        const modelName = currentModelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Embeddings.EmbeddingCreateParams = {
@@ -500,53 +510,112 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.limiter
-            .schedule(() => this.makeRequestWithNetworkRetry(() => client.embeddings.create(rawRequest)))
-            .catch((error) => {
-                assertsError(error);
+
+        try {
+            const rawResponse = await this.limiter
+                .schedule(() => this.makeRequestWithNetworkRetry(() => client.embeddings.create(rawRequest)))
+                .catch((error) => {
+                    assertsError(error);
+                    if (this.options.isVerbose) {
+                        console.info(colors.bgRed('error'), error);
+                    }
+                    throw error;
+                });
+
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+            const complete: string_date_iso8601 = $getCurrentDate();
+
+            if (rawResponse.data.length !== 1) {
+                throw new PipelineExecutionError(
+                    `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
+                );
+            }
+
+            const resultContent = rawResponse.data[0]!.embedding;
+
+            const usage = this.computeUsage(
+                content || '',
+                '',
+                // <- Note: Embedding does not have result content
+                rawResponse,
+            );
+
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`OpenAiCompatibleExecutionTools.callEmbeddingModel\``,
+                order: [],
+                value: {
+                    content: resultContent,
+                    modelName: rawResponse.model || modelName,
+                    timing: {
+                        start,
+                        complete,
+                    },
+                    usage,
+                    rawPromptContent,
+                    rawRequest,
+                    rawResponse,
+                    // <- [🗯]
+                },
+            });
+        } catch (error) {
+            assertsError(error);
+
+            // Check if this is an unsupported parameter error
+            if (!isUnsupportedParameterError(error)) {
+                throw error;
+            }
+
+            // Parse which parameter is unsupported
+            const unsupportedParameter = parseUnsupportedParameterError(error.message);
+
+            if (!unsupportedParameter) {
                 if (this.options.isVerbose) {
-                    console.info(colors.bgRed('error'), error);
+                    console.warn(
+                        colors.bgYellow('Warning'),
+                        'Could not parse unsupported parameter from error:',
+                        error.message,
+                    );
                 }
                 throw error;
-            });
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
-        }
-        const complete: string_date_iso8601 = $getCurrentDate();
+            }
 
-        if (rawResponse.data.length !== 1) {
-            throw new PipelineExecutionError(
-                `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
+            // Create a unique key for this model + parameter combination to prevent infinite loops
+            const retryKey = `${modelName}-${unsupportedParameter}`;
+
+            if (this.retriedUnsupportedParameters.has(retryKey)) {
+                // Already retried this parameter, throw the error
+                if (this.options.isVerbose) {
+                    console.warn(
+                        colors.bgRed('Error'),
+                        `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`,
+                        error.message,
+                    );
+                }
+                throw error;
+            }
+
+            // Mark this parameter as retried
+            this.retriedUnsupportedParameters.add(retryKey);
+
+            // Log warning in verbose mode
+            if (this.options.isVerbose) {
+                console.warn(
+                    colors.bgYellow('Warning'),
+                    `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`,
+                );
+            }
+
+            // Remove the unsupported parameter and retry
+            const modifiedModelRequirements = removeUnsupportedModelRequirement(
+                currentModelRequirements,
+                unsupportedParameter,
             );
+
+            return this.callEmbeddingModelWithRetry(prompt, modifiedModelRequirements);
         }
-
-        const resultContent = rawResponse.data[0]!.embedding;
-
-        const usage = this.computeUsage(
-            content || '',
-            '',
-            // <- Note: Embedding does not have result content
-            rawResponse,
-        );
-
-        return exportJson({
-            name: 'promptResult',
-            message: `Result of \`OpenAiCompatibleExecutionTools.callEmbeddingModel\``,
-            order: [],
-            value: {
-                content: resultContent,
-                modelName: rawResponse.model || modelName,
-                timing: {
-                    start,
-                    complete,
-                },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse,
-                // <- [🗯]
-            },
-        });
     }
 
     // <- Note: [🤖] callXxxModel

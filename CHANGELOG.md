@@ -1,6 +1,7 @@
 # 📅 Changelog
 
 ## [Unreleased]
+-   **[🔧] Auto-retry with stripped parameters on unsupported parameter errors** - `OpenAiCompatibleExecutionTools` now automatically detects and retries requests when receiving "Unsupported value" errors from LLM providers (e.g., "temperature does not support 0.7 with this model"). The implementation strips the unsupported parameter and retries once per model-parameter combination to prevent infinite loops. This applies to all model variants: CHAT, COMPLETION, and EMBEDDING.
 -   **[✨💵] File Upload Support in Chat Component** ([2025-09-0250])
     -   Added `onFileUpload` prop to `<Chat>` component for handling file uploads
     -   File upload functionality works via both drag-and-drop and file picker button
