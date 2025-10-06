@@ -71,5 +71,5 @@ export async function exportChatHistory(
 }
 
 /**
- * TODO: !!!! Delete this paralel chat history export
+ * TODO: !!!! Delete this parallel chat history export
  */
