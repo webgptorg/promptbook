@@ -1,4 +1,4 @@
-import type { string_color, string_name, string_person_fullname, string_url_image } from '../../../types/typeAliases';
+import type { id, string_color, string_person_fullname, string_url_image } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 
 /**
@@ -10,12 +10,12 @@ export type ChatParticipant = {
     /**
      * Identifies the participant by their name, same as `message.from`
      */
-    name: string_name;
+    name: id;
 
     /**
      * Full name of the participant
      */
-    fullname: string_person_fullname;
+    fullname?: string_person_fullname;
 
     /**
      * Am I the participant? (i.e. is this the user)

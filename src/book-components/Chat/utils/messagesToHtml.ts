@@ -35,8 +35,12 @@ export function messagesToHtml(
             return spaceTrim(`
                 <div class="message ${senderClass}">
                     <div class="senderRow">
-                        ${avatarSrc ? `<img class="avatar" src="${avatarSrc}" alt="${escapeHtml(name)}"/>` : ''}
-                        <div class="sender">${escapeHtml(name)}:</div>
+                        ${
+                            avatarSrc
+                                ? `<img class="avatar" src="${avatarSrc}" alt="${escapeHtml(name.toString())}"/>`
+                                : ''
+                        }
+                        <div class="sender">${escapeHtml(name.toString())}:</div>
                     </div>
                     <div class="content">${messageContent}</div>
                 </div>

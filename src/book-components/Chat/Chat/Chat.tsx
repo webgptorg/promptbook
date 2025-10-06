@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
+import { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { countLines } from '../../../utils/expectation-counters/countLines';
@@ -87,10 +88,10 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
-    const [messageRatings, setMessageRatings] = useState<Map<string, number>>(new Map());
+    const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
     const [textRating, setTextRating] = useState('');
     const [hoveredRating, setHoveredRating] = useState(0);
-    const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
+    const [expandedMessageId, setExpandedMessageId] = useState<id | null>(null);
     // const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
     // const [isTyping, setIsTyping] = useState(false);
     // const [inputValue, setInputValue] = useState('');
@@ -524,7 +525,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                                                 width={AVATAR_SIZE}
                                                 height={AVATAR_SIZE}
                                                 src={avatarSrc}
-                                                alt={`Avatar of ${message.from.toLocaleLowerCase()}`}
+                                                alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
                                                 style={{
                                                     backgroundColor: color.toHex(),
                                                     width: AVATAR_SIZE,

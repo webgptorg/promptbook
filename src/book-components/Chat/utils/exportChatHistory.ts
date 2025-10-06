@@ -69,3 +69,7 @@ export async function exportChatHistory(
             console.error('Unsupported export format:', format);
     }
 }
+
+/**
+ * TODO: !!!! Delete this paralel chat history export
+ */

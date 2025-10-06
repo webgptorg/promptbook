@@ -23,7 +23,7 @@ export class ChatPersistence {
         try {
             const serializableMessages: SerializableChatMessage[] = messages.map((message) => ({
                 ...message,
-                date: message.date.toISOString(),
+                date: (message.date || new Date()).toISOString(),
             }));
 
             const storageKey = this.STORAGE_PREFIX + persistenceKey;
