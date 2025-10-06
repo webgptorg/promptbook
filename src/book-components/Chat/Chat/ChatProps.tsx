@@ -166,6 +166,16 @@ export type ChatProps = {
         expectedAnswer: string | null;
         url: string;
     }): Promisable<void>;
+
+    /**
+     * Optional callback for handling file uploads
+     * When provided, enables file upload functionality via drag-and-drop and file button
+     * The callback should process the file and return text content to be inserted into the message
+     *
+     * @param file - The uploaded file
+     * @returns Promise or string with the text content to insert into the chat message
+     */
+    onFileUpload?(file: File): Promisable<string>;
 };
 
 

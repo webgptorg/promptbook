@@ -441,10 +441,197 @@
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(125, 125, 125, 0.1);
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+}
+
+/* File upload drag-and-drop styles */
+.chatMainFlow .chatInput.dragOver {
+    background: linear-gradient(to top, rgba(0, 132, 255, 0.1) 0%, rgba(0, 132, 255, 0.05) 100%);
+    border-top: 2px solid rgba(0, 132, 255, 0.3);
+}
+
+/* File preview container */
+.filePreviewContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* Individual file preview */
+.filePreview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(125, 125, 125, 0.1);
+    border: 1px solid rgba(125, 125, 125, 0.2);
+    border-radius: 8px;
+    font-size: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+.filePreview:hover {
+    background: rgba(125, 125, 125, 0.15);
+    border-color: rgba(125, 125, 125, 0.3);
+}
+
+.fileIcon {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.fileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.fileName {
+    font-weight: 500;
+    color: var(--primary-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.fileSize {
+    color: var(--secondary-text-color);
+    font-size: 11px;
+}
+
+.removeFileButton {
+    display: flex;
     align-items: center;
     justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff4444;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.removeFileButton:hover {
+    background: rgba(255, 0, 0, 0.2);
+    transform: scale(1.1);
+}
+
+/* Input container for textarea and buttons */
+.inputContainer {
+    display: flex;
+    align-items: center;
     gap: 12px;
+}
+
+/* Attachment button */
+.attachmentButton {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(125, 125, 125, 0.2);
+    background: rgba(125, 125, 125, 0.05);
+    color: var(--secondary-text-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+}
+
+.attachmentButton:hover:not(:disabled) {
+    background: rgba(0, 132, 255, 0.1);
+    border-color: rgba(0, 132, 255, 0.3);
+    color: var(--primary-color, #0084ff);
+    transform: scale(1.05);
+}
+
+.attachmentButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Upload progress indicator */
+.uploadProgress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(0, 132, 255, 0.1);
+    border: 1px solid rgba(0, 132, 255, 0.2);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--primary-color, #0084ff);
+}
+
+.uploadProgressBar {
+    flex: 1;
+    height: 4px;
+    background: rgba(0, 132, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.uploadProgressFill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color, #0084ff), rgba(0, 132, 255, 0.8));
+    border-radius: 2px;
+    animation: uploadProgress 1.5s ease-in-out infinite;
+}
+
+@keyframes uploadProgress {
+    0% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Drag overlay */
+.dragOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 132, 255, 0.1);
+    border: 2px dashed rgba(0, 132, 255, 0.5);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    z-index: 20;
+    pointer-events: none;
+}
+
+.dragOverlayContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--primary-color, #0084ff);
+    font-weight: 600;
+    text-align: center;
+}
+
+.dragOverlayContent svg {
+    opacity: 0.7;
 }
 
 /* Chat input field */

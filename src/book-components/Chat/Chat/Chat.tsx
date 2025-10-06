@@ -10,6 +10,8 @@ import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { classNames } from '../../_common/react-utils/classNames';
 import { ArrowIcon } from '../../icons/ArrowIcon';
+import { AttachmentIcon } from '../../icons/AttachmentIcon';
+import { CloseIcon } from '../../icons/CloseIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
@@ -45,6 +47,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
         onMessage,
         onReset,
         onFeedback,
+        onFileUpload,
         // isVoiceRecognitionButtonShown,
         // voiceLanguage = 'en-US',
         placeholderMessageContent,
@@ -80,6 +83,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const buttonSendRef = useRef<HTMLButtonElement | null>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const [messageRatings, setMessageRatings] = useState<Map<string, number>>(new Map());
@@ -91,6 +95,11 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
     // const [inputValue, setInputValue] = useState('');
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT'); // Simplified light/dark mode
     const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
+
+    // File upload state
+    const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; file: File; content: string }>>([]);
+    const [isDragOver, setIsDragOver] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Use mobile detection from the hook
     const isMobile = isMobileFromHook;
@@ -110,6 +119,78 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
         },
         [textareaRef, isMobile],
     );
+
+    // File upload handlers inspired by BookEditor
+    const handleFileUpload = useCallback(
+        async (files: FileList | File[]) => {
+            if (!onFileUpload) return;
+
+            setIsUploading(true);
+            const fileArray = Array.from(files);
+
+            try {
+                // Process files one by one as specified in requirements
+                const newUploadedFiles: Array<{ id: string; file: File; content: string }> = [];
+                for (const file of fileArray) {
+                    const content = await onFileUpload(file);
+                    newUploadedFiles.push({
+                        id: Math.random().toString(36).substring(2),
+                        file,
+                        content,
+                    });
+                }
+
+                setUploadedFiles((prev) => [...prev, ...newUploadedFiles]);
+            } catch (error) {
+                console.error('File upload failed:', error);
+                alert('File upload failed. Please try again.');
+            } finally {
+                setIsUploading(false);
+            }
+        },
+        [onFileUpload],
+    );
+
+    const handleDrop = useCallback(
+        (event: React.DragEvent) => {
+            event.preventDefault();
+            setIsDragOver(false);
+
+            if (!onFileUpload) return;
+
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files);
+            }
+        },
+        [onFileUpload, handleFileUpload],
+    );
+
+    const handleDragOver = useCallback((event: React.DragEvent) => {
+        event.preventDefault();
+        setIsDragOver(true);
+    }, []);
+
+    const handleDragLeave = useCallback((event: React.DragEvent) => {
+        event.preventDefault();
+        setIsDragOver(false);
+    }, []);
+
+    const handleFileInputChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                handleFileUpload(files);
+            }
+            // Reset input value so same file can be selected again
+            event.target.value = '';
+        },
+        [handleFileUpload],
+    );
+
+    const removeUploadedFile = useCallback((fileId: string) => {
+        setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
+    }, []);
 
     const handleSend = useCallback(async () => {
         if (!onMessage) {
@@ -133,13 +214,22 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
         buttonSendElement.disabled = true;
 
         try {
-            if (spaceTrim(textareaElement.value) === '') {
-                throw new Error(`You need to write some text`);
+            let messageContent = textareaElement.value;
+
+            // Append file upload results to the message if any files are uploaded
+            if (uploadedFiles.length > 0) {
+                const fileContents = uploadedFiles.map((f) => f.content).join(' ');
+                messageContent = messageContent ? `${messageContent} ${fileContents}` : fileContents;
             }
 
-            await onMessage(textareaElement.value);
+            if (spaceTrim(messageContent) === '') {
+                throw new Error(`You need to write some text or upload a file`);
+            }
+
+            await onMessage(messageContent);
 
             textareaElement.value = '';
+            setUploadedFiles([]); // Clear uploaded files after sending
 
             // Only restore focus if the textarea was focused when sending the message
             if (wasTextareaFocused) {
@@ -161,7 +251,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                 textareaElement.focus();
             }
         }
-    }, [onMessage]);
+    }, [onMessage, uploadedFiles]);
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
@@ -547,59 +637,133 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                     </div>
 
                     {onMessage && (
-                        <div className={classNames(styles.chatInput, useChatCssClassName('chatInput'))}>
-                            <textarea
-                                ref={(element) => {
-                                    textareaRef.current = element;
-                                }}
-                                style={{
-                                    height:
-                                        Math.max(
-                                            countLines(textareaRef.current?.value || defaultMessage || ''),
-                                            (textareaRef.current?.value || defaultMessage || '').split('\n').length,
-                                            3,
-                                        ) *
-                                            25 +
-                                        10,
-                                }}
-                                defaultValue={defaultMessage}
-                                placeholder={placeholderMessageContent || 'Write a message'}
-                                onKeyDown={(event) => {
-                                    if (!onMessage) {
-                                        return;
-                                    }
-                                    if (event.shiftKey) {
-                                        return;
-                                    }
-                                    if (event.key !== 'Enter') {
-                                        return;
-                                    }
+                        <div
+                            className={classNames(styles.chatInput, useChatCssClassName('chatInput'), isDragOver && styles.dragOver)}
+                            onDrop={handleDrop}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                        >
+                            {/* File previews */}
+                            {uploadedFiles.length > 0 && (
+                                <div className={styles.filePreviewContainer}>
+                                    {uploadedFiles.map((uploadedFile) => (
+                                        <div key={uploadedFile.id} className={styles.filePreview}>
+                                            <div className={styles.fileIcon}>📎</div>
+                                            <div className={styles.fileInfo}>
+                                                <div className={styles.fileName}>{uploadedFile.file.name}</div>
+                                                <div className={styles.fileSize}>
+                                                    {(uploadedFile.file.size / 1024).toFixed(1)} KB
+                                                </div>
+                                            </div>
+                                            <button
+                                                className={styles.removeFileButton}
+                                                onClick={() => removeUploadedFile(uploadedFile.id)}
+                                                title="Remove file"
+                                            >
+                                                <CloseIcon size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
-                                    event.preventDefault();
-                                    /* not await */ handleSend();
-                                }}
-                                onKeyUp={() => {
-                                    if (!onChange) {
-                                        return;
-                                    }
+                            <div className={styles.inputContainer}>
+                                <textarea
+                                    ref={(element) => {
+                                        textareaRef.current = element;
+                                    }}
+                                    style={{
+                                        height:
+                                            Math.max(
+                                                countLines(textareaRef.current?.value || defaultMessage || ''),
+                                                (textareaRef.current?.value || defaultMessage || '').split('\n').length,
+                                                3,
+                                            ) *
+                                                25 +
+                                            10,
+                                    }}
+                                    defaultValue={defaultMessage}
+                                    placeholder={placeholderMessageContent || 'Write a message'}
+                                    onKeyDown={(event) => {
+                                        if (!onMessage) {
+                                            return;
+                                        }
+                                        if (event.shiftKey) {
+                                            return;
+                                        }
+                                        if (event.key !== 'Enter') {
+                                            return;
+                                        }
 
-                                    onChange(textareaRef.current?.value || '');
-                                }}
-                            />
-                            <button
-                                data-button-type="call-to-action"
-                                ref={buttonSendRef}
-                                onClick={(event) => {
-                                    if (!onMessage) {
-                                        return;
-                                    }
+                                        event.preventDefault();
+                                        /* not await */ handleSend();
+                                    }}
+                                    onKeyUp={() => {
+                                        if (!onChange) {
+                                            return;
+                                        }
 
-                                    event.preventDefault();
-                                    /* not await */ handleSend();
-                                }}
-                            >
-                                <SendIcon size={25} />
-                            </button>
+                                        onChange(textareaRef.current?.value || '');
+                                    }}
+                                />
+
+                                {/* File upload button */}
+                                {onFileUpload && (
+                                    <>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            multiple
+                                            style={{ display: 'none' }}
+                                            onChange={handleFileInputChange}
+                                        />
+                                        <button
+                                            type="button"
+                                            className={styles.attachmentButton}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={isUploading}
+                                            title="Attach file"
+                                        >
+                                            <AttachmentIcon size={20} />
+                                        </button>
+                                    </>
+                                )}
+
+                                <button
+                                    data-button-type="call-to-action"
+                                    ref={buttonSendRef}
+                                    onClick={(event) => {
+                                        if (!onMessage) {
+                                            return;
+                                        }
+
+                                        event.preventDefault();
+                                        /* not await */ handleSend();
+                                    }}
+                                >
+                                    <SendIcon size={25} />
+                                </button>
+                            </div>
+
+                            {/* Upload progress indicator */}
+                            {isUploading && (
+                                <div className={styles.uploadProgress}>
+                                    <div className={styles.uploadProgressBar}>
+                                        <div className={styles.uploadProgressFill}></div>
+                                    </div>
+                                    <span>Uploading files...</span>
+                                </div>
+                            )}
+
+                            {/* Drag overlay */}
+                            {isDragOver && (
+                                <div className={styles.dragOverlay}>
+                                    <div className={styles.dragOverlayContent}>
+                                        <AttachmentIcon size={48} />
+                                        <span>Drop files here to upload</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
