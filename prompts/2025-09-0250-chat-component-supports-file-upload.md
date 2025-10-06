@@ -27,7 +27,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨💵] When `onFileUpload` not set in `<Chat>` component should not listen on drop events at all
 

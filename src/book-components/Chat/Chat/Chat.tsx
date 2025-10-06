@@ -639,9 +639,11 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                     {onMessage && (
                         <div
                             className={classNames(styles.chatInput, useChatCssClassName('chatInput'), isDragOver && styles.dragOver)}
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
+                            {...(onFileUpload ? {
+                                onDrop: handleDrop,
+                                onDragOver: handleDragOver,
+                                onDragLeave: handleDragLeave
+                            } : {})}
                         >
                             {/* File previews */}
                             {uploadedFiles.length > 0 && (
@@ -756,7 +758,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
                             )}
 
                             {/* Drag overlay */}
-                            {isDragOver && (
+                            {isDragOver && onFileUpload && (
                                 <div className={styles.dragOverlay}>
                                     <div className={styles.dragOverlayContent}>
                                         <AttachmentIcon size={48} />
