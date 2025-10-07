@@ -38,6 +38,7 @@ import { htmlSaveFormatDefinition } from '../book-components/Chat/save/html/html
 import { CHAT_SAVE_FORMATS } from '../book-components/Chat/save/index';
 import { jsonSaveFormatDefinition } from '../book-components/Chat/save/json/jsonSaveFormatDefinition';
 import { mdSaveFormatDefinition } from '../book-components/Chat/save/markdown/mdSaveFormatDefinition';
+import { pdfSaveFormatDefinition } from '../book-components/Chat/save/pdf/pdfSaveFormatDefinition';
 import { txtSaveFormatDefinition } from '../book-components/Chat/save/text/txtSaveFormatDefinition';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
@@ -94,6 +95,7 @@ export { htmlSaveFormatDefinition };
 export { CHAT_SAVE_FORMATS };
 export { jsonSaveFormatDefinition };
 export { mdSaveFormatDefinition };
+export { pdfSaveFormatDefinition };
 export { txtSaveFormatDefinition };
 export type { ChatMessage };
 export type { ChatParticipant };
