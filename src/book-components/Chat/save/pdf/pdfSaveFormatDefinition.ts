@@ -8,6 +8,8 @@ import { htmlSaveFormatDefinition } from '../html/htmlSaveFormatDefinition';
  * Converts HTML to PDF buffer using a PDF library.
  * This is a placeholder for actual implementation.
  * Replace with real conversion logic as needed.
+ *
+ * @private
  */
 async function htmlToPdfBuffer(html: string): Promise<Uint8Array> {
     // Example: Use a library like 'html-pdf' or 'puppeteer' here
