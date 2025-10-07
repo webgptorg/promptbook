@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+-   **[✨] Added DOCX export for `<Chat/>`** ([2025-09-0260])
+    -   New `docx` save format available for chat messages
+    -   DOCX export logic is DRY and reuses formatting patterns
+    -   Registered in `CHAT_SAVE_FORMATS` plugin registry
+    -   Uses `spaceTrim` utility for formatting
+    -   Placeholder implementation; integrate a DOCX library for conversion
 -   **[✨] Added PDF export for `<Chat/>`** ([2025-09-0260])
     -   New `pdf` save format available for chat messages
     -   PDF export logic is DRY and reuses HTML formatting

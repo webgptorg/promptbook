@@ -4,6 +4,7 @@ import { jsonSaveFormatDefinition } from './json/jsonSaveFormatDefinition';
 import { mdSaveFormatDefinition } from './markdown/mdSaveFormatDefinition';
 import { txtSaveFormatDefinition } from './text/txtSaveFormatDefinition';
 import { pdfSaveFormatDefinition } from './pdf/pdfSaveFormatDefinition';
+import { docxSaveFormatDefinition } from './docx/docxSaveFormatDefinition';
 
 /**
  * Registry of all built-in chat save plugins
@@ -16,6 +17,7 @@ export const CHAT_SAVE_FORMATS = [
     mdSaveFormatDefinition,
     htmlSaveFormatDefinition,
     pdfSaveFormatDefinition,
+    docxSaveFormatDefinition,
 ] as const satisfies ReadonlyArray<ChatSaveFormatDefinition>;
 
 

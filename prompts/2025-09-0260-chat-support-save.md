@@ -58,7 +58,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😅] Create saving of <Chat/> to docx format
 
