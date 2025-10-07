@@ -60,6 +60,19 @@
 
 [ ]
 
+[✨😅] Create saving of <Chat/> to docx format
+
+-   The DOCX should take `docxSaveFormatDefinition` as base and convert the Markdown or Html to DOCX
+-   The logic of docx saving should be in new file [`docxSaveFormatDefinition.ts`](/src/book-components/Chat/save/docx/docxSaveFormatDefinition.ts)
+-   Add to the available formats as `docx`
+-   Use `spaceTrim` utility
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
 [✨😅] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
