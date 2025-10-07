@@ -36,7 +36,7 @@ export const pdfSaveFormatDefinition = {
 
         // PDF conversion should be implemented here (sync or pre-generated)
         // For now, return a placeholder string
-        return '[PDF export not implemented. Integrate a PDF library for conversion.]';
+        return '[PDF chat save not implemented. Integrate a PDF library for conversion.]';
     },
     mimeType: 'application/pdf',
     fileExtension: 'pdf',
