@@ -3,6 +3,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -12,20 +13,20 @@ import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } 
 import type { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
 import type {
-  string_date_iso8601,
-  string_markdown,
-  string_markdown_text,
-  string_model_name,
-  string_title,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import {
-  isUnsupportedParameterError,
-  parseUnsupportedParameterError,
-  removeUnsupportedModelRequirement,
+    isUnsupportedParameterError,
+    parseUnsupportedParameterError,
+    removeUnsupportedModelRequirement,
 } from '../_common/utils/removeUnsupportedModelRequirements';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
@@ -135,9 +136,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     /**
      * Calls OpenAI compatible API to use a chat model.
      */
-    public async callChatModel(
-        prompt: Prompt,
-    ): Promise<ChatPromptResult> {
+    public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
         return this.callChatModelWithRetry(prompt, prompt.modelRequirements);
     }
 
@@ -184,9 +183,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         // Convert thread to OpenAI format if present
         let threadMessages: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming['messages'] = [];
-        if ('thread' in prompt && Array.isArray((prompt as any).thread)) {
-            threadMessages = ((prompt as any).thread).map((msg: any) => ({
-                role: msg.role === 'assistant' ? 'assistant' : 'user',
+        if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
+            threadMessages = (prompt as TODO_any).thread.map((msg: TODO_any) => ({
+                role: msg.role === 'assistant' ? 'assistant' : 'user', // <- TODO: Standardize to `role: 'USER' | 'ASSISTANT'
                 content: msg.content,
             }));
         }

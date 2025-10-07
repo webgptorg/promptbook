@@ -48,13 +48,10 @@ export function BookEditorInner(props: BookEditorProps) {
             const clientHeight = textarea.clientHeight;
             const totalLines = (value ?? '').split('\n').length;
             const firstLine = Math.max(0, Math.floor(scrollTop / lineHeight) - 10); // buffer
-            const lastLine = Math.min(
-                totalLines,
-                Math.ceil((scrollTop + clientHeight) / lineHeight) + 10
-            );
+            const lastLine = Math.min(totalLines, Math.ceil((scrollTop + clientHeight) / lineHeight) + 10);
             setVisibleRange([firstLine, lastLine]);
         }, 30),
-        [value, lineHeight]
+        [value, lineHeight],
     );
     // Update visible range on scroll/resize/value change
     useEffect(() => {
@@ -468,7 +465,7 @@ export function BookEditorInner(props: BookEditorProps) {
         // Compute offset for correct line numbers
         const offset = lines.slice(0, firstLine).join('\n').length + (firstLine > 0 ? 1 : 0);
 
-        let lastIndex = 0;
+        const lastIndex = 0;
         let out = '';
         const processedRanges: Array<{
             start: number;
