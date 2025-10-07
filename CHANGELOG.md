@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+-   **[✨] Enhanced `<BookEditor>` for large books** ([2025-10-0030])
+    -   Improved performance and highlighting for big and complicated books using line virtualization and debounced rendering.
+    -   Keeps highlighting in sync and rendering smooth for large content.
+    -   Refactored to follow DRY principle and introduced a reusable debounce utility.
+
 -   **[✨] Added PDF export for `<Chat/>`** ([2025-09-0260])
     -   New `pdf` save format available for chat messages
     -   PDF export logic is DRY and reuses HTML formatting

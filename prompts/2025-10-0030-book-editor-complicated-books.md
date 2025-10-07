@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨𓀆] Enhance `BookEditor` with large books
 

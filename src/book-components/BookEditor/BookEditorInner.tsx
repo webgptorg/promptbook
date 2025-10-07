@@ -10,6 +10,7 @@ import { escapeRegex } from '../_common/react-utils/escapeRegex';
 import { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { DEFAULT_BOOK_FONT_CLASS } from './config';
+import { debounce } from './utils';
 
 /**
  * @private util of `<BookEditor />`
@@ -35,6 +36,38 @@ export function BookEditorInner(props: BookEditorProps) {
 
     const [lineHeight, setLineHeight] = useState<number>(32);
     const [isDragOver, setIsDragOver] = useState<boolean>(false);
+
+    // Virtualization state: visible line range
+    const [visibleRange, setVisibleRange] = useState<[number, number]>([0, 30]);
+    // Debounced update for visible range
+    const updateVisibleRange = useCallback(
+        debounce(() => {
+            const textarea = textareaRef.current;
+            if (!textarea) return;
+            const scrollTop = textarea.scrollTop;
+            const clientHeight = textarea.clientHeight;
+            const totalLines = (value ?? '').split('\n').length;
+            const firstLine = Math.max(0, Math.floor(scrollTop / lineHeight) - 10); // buffer
+            const lastLine = Math.min(
+                totalLines,
+                Math.ceil((scrollTop + clientHeight) / lineHeight) + 10
+            );
+            setVisibleRange([firstLine, lastLine]);
+        }, 30),
+        [value, lineHeight]
+    );
+    // Update visible range on scroll/resize/value change
+    useEffect(() => {
+        updateVisibleRange();
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.addEventListener('scroll', updateVisibleRange);
+        window.addEventListener('resize', updateVisibleRange);
+        return () => {
+            textarea.removeEventListener('scroll', updateVisibleRange);
+            window.removeEventListener('resize', updateVisibleRange);
+        };
+    }, [updateVisibleRange]);
 
     const handleChange = useCallback(
         (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -425,8 +458,15 @@ export function BookEditorInner(props: BookEditorProps) {
         [atParameterRegex, braceParameterRegex],
     );
 
+    // Virtualized, debounced highlight rendering for large books
     const highlightedHtml = useMemo(() => {
         const text = value ?? '';
+        const lines = text.split('\n');
+        const [firstLine, lastLine] = visibleRange;
+        const visibleLines = lines.slice(firstLine, lastLine);
+
+        // Compute offset for correct line numbers
+        const offset = lines.slice(0, firstLine).join('\n').length + (firstLine > 0 ? 1 : 0);
 
         let lastIndex = 0;
         let out = '';
@@ -436,77 +476,69 @@ export function BookEditorInner(props: BookEditorProps) {
             type: 'keyword' | 'parameter' | 'comment';
         }> = [];
 
-        // First, handle comment-like commitments (NOTE, COMMENT, NONCE) - they take highest priority
-        // and should be highlighted as gray comments, including their content
-        text.replace(commentRegex, (match: string, ...args: unknown[]) => {
-            const index = args[args.length - 2] as number;
-            // Adjust index to skip the newline character if present at the beginning of match
+        // Highlighting logic for visible lines only
+        const visibleText = visibleLines.join('\n');
+
+        // First, handle comment-like commitments (NOTE, COMMENT, NONCE)
+        visibleText.replace(commentRegex, (match: string, ...args: unknown[]) => {
+            const index = (args[args.length - 2] as number) + offset;
             const adjustedStart = match.startsWith('\n') ? index + 1 : index;
             const adjustedMatch = match.startsWith('\n') ? match.slice(1) : match;
             processedRanges.push({ start: adjustedStart, end: adjustedStart + adjustedMatch.length, type: 'comment' });
             return match;
         });
 
-        // Then, handle META commitments (they take priority over regular commitments)
-        text.replace(metaRegex, (match: string, ...args: unknown[]) => {
-            const index = args[args.length - 2] as number;
-            // Adjust index to skip the newline character if present at the beginning of match
+        // META commitments
+        visibleText.replace(metaRegex, (match: string, ...args: unknown[]) => {
+            const index = (args[args.length - 2] as number) + offset;
             const adjustedStart = match.startsWith('\n') ? index + 1 : index;
             const adjustedMatch = match.startsWith('\n') ? match.slice(1) : match;
             const matchEnd = adjustedStart + adjustedMatch.length;
-
-            // Check if this match overlaps with any existing range (especially comments)
             const overlaps = processedRanges.some(
                 (range) =>
                     (adjustedStart >= range.start && adjustedStart < range.end) ||
                     (matchEnd > range.start && matchEnd <= range.end) ||
                     (adjustedStart < range.start && matchEnd > range.end),
             );
-
             if (!overlaps) {
                 processedRanges.push({ start: adjustedStart, end: matchEnd, type: 'keyword' });
             }
             return match;
         });
 
-        // Then handle regular commitment types, avoiding overlaps with META and comment ranges
-        text.replace(typeRegex, (match: string, ...args: unknown[]) => {
-            const index = args[args.length - 2] as number;
-            // Adjust index to skip the newline character if present at the beginning of match
+        // Regular commitment types
+        visibleText.replace(typeRegex, (match: string, ...args: unknown[]) => {
+            const index = (args[args.length - 2] as number) + offset;
             const adjustedStart = match.startsWith('\n') ? index + 1 : index;
             const adjustedMatch = match.startsWith('\n') ? match.slice(1) : match;
             const matchEnd = adjustedStart + adjustedMatch.length;
-
-            // Check if this match overlaps with any existing range
             const overlaps = processedRanges.some(
                 (range) =>
                     (adjustedStart >= range.start && adjustedStart < range.end) ||
                     (matchEnd > range.start && matchEnd <= range.end) ||
                     (adjustedStart < range.start && matchEnd > range.end),
             );
-
             if (!overlaps) {
                 processedRanges.push({ start: adjustedStart, end: matchEnd, type: 'keyword' });
             }
             return match;
         });
 
-        // Handle parameters using the unified extraction function - both @Parameter and {parameter} notations
-        // are treated as the same syntax feature with unified highlighting
-        const unifiedParameters = extractUnifiedParameters(text);
+        // Parameters
+        const unifiedParameters = extractUnifiedParameters(visibleText);
         unifiedParameters.forEach((param) => {
-            // Check if this parameter overlaps with any existing range
+            const paramStart = param.start + offset;
+            const paramEnd = param.end + offset;
             const overlaps = processedRanges.some(
                 (range) =>
-                    (param.start >= range.start && param.start < range.end) ||
-                    (param.end > range.start && param.end <= range.end) ||
-                    (param.start < range.start && param.end > range.end),
+                    (paramStart >= range.start && paramStart < range.end) ||
+                    (paramEnd > range.start && paramEnd <= range.end) ||
+                    (paramStart < range.start && paramEnd > range.end),
             );
-
             if (!overlaps) {
                 processedRanges.push({
-                    start: param.start,
-                    end: param.end,
+                    start: paramStart,
+                    end: paramEnd,
                     type: 'parameter',
                 });
             }
@@ -515,12 +547,10 @@ export function BookEditorInner(props: BookEditorProps) {
         // Sort ranges by start position
         processedRanges.sort((a, b) => a.start - b.start);
 
-        // Build the highlighted HTML
+        // Build the highlighted HTML for the visible lines only
+        let visibleLastIndex = offset;
         processedRanges.forEach((range) => {
-            // Add text before this range
-            out += escapeHtml(text.slice(lastIndex, range.start));
-
-            // Add highlighted text with appropriate class
+            out += escapeHtml(text.slice(visibleLastIndex, range.start));
             const matchText = text.slice(range.start, range.end);
             let cssClass: string;
             switch (range.type) {
@@ -528,11 +558,9 @@ export function BookEditorInner(props: BookEditorProps) {
                     cssClass = 'book-highlight-keyword';
                     break;
                 case 'parameter':
-                    // Use the unified parameter class, but maintain backward compatibility
                     cssClass = 'book-highlight-parameter';
                     break;
                 case 'comment':
-                    // NOTE, COMMENT, NONCE commitments should be highlighted as gray comments
                     cssClass = 'book-highlight-comment';
                     break;
                 default:
@@ -540,19 +568,16 @@ export function BookEditorInner(props: BookEditorProps) {
                     break;
             }
             out += `<span class="${cssClass}">${escapeHtml(matchText)}</span>`;
-
-            lastIndex = range.end;
+            visibleLastIndex = range.end;
         });
+        out += escapeHtml(text.slice(visibleLastIndex, offset + visibleText.length));
 
-        // Add remaining text
-        out += escapeHtml(text.slice(lastIndex));
-
-        const lines = out.split('\n');
-        if (lines.length > 0) {
-            lines[0] = `<span class="book-highlight-title">${lines[0]}</span>`;
+        const resultLines = out.split('\n').slice(firstLine, lastLine);
+        if (resultLines.length > 0 && firstLine === 0) {
+            resultLines[0] = `<span class="book-highlight-title">${resultLines[0]}</span>`;
         }
-        return lines.join('\n');
-    }, [value, typeRegex, metaRegex, extractUnifiedParameters]);
+        return resultLines.join('\n');
+    }, [value, typeRegex, metaRegex, extractUnifiedParameters, visibleRange]);
 
     return (
         <div className={classNames(styles.bookEditorContainer, isVerbose && styles.isVerbose, className)}>
