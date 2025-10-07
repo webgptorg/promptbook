@@ -91,7 +91,20 @@ async function playground() {
 
     const chatPrompt = {
         title: 'Test Chat',
-        content: 'Hello! Can you tell me a fun fact about TypeScript?',
+        thread: [
+            // <- TODO: !!! Maybe rename to `previousMessages`
+            {
+                id: 'msg1', // <- TODO: !!!! Do not require id in messages
+                from: 'user', // <- TODO: Standardize to `role: 'USER' | 'ASSISTANT'
+                content: 'Hello! Can you tell me a fun fact about TypeScript?',
+            },
+            {
+                id: 'msg2',
+                from: 'assistant',
+                content: 'TypeScript is a superset of JavaScript that adds static types.',
+            },
+        ],
+        content: 'Tell me more!',
         parameters: {},
         modelRequirements: {
             modelVariant: 'CHAT',

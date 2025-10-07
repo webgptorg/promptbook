@@ -90,13 +90,14 @@ async function playground() {
         title: 'Prague',
         parameters: {},
         thread: [
+            // <- TODO: !!! Maybe rename to `previousMessages`
             {
-                id: 'msg1',
-                from: 'user',
+                id: 'msg1', // <- TODO: !!!! Do not require id in messages
+                from: 'user', // <- TODO: Standardize to `role: 'USER' | 'ASSISTANT'
                 content: 'Where is Prague ',
             },
             {
-                id: 'msg2', // <- TODO: !!!! Do not require id in messages
+                id: 'msg2',
                 from: 'assistant',
                 content: 'Prague is a beautiful city located in the Czech Republic.',
             },
