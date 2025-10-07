@@ -1,8 +1,6 @@
-// PDF export plugin for <Chat/>
 import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 import { htmlSaveFormatDefinition } from '../html/htmlSaveFormatDefinition';
-// You may need to install a PDF library for actual conversion, e.g. 'html-pdf' or 'puppeteer'
 
 /**
  * Converts HTML to PDF buffer using a PDF library.
@@ -17,9 +15,6 @@ async function htmlToPdfBuffer(html: string): Promise<Uint8Array> {
     throw new Error('PDF conversion not implemented. Integrate a PDF library here.');
 }
 
-keepUnused(htmlToPdfBuffer);
-// <- TODO: !!!!
-
 /**
  * PDF export plugin
  *
@@ -30,6 +25,9 @@ export const pdfSaveFormatDefinition = {
     label: 'PDF',
     getContent: (messages) => {
         const html = htmlSaveFormatDefinition.getContent(messages);
+
+        keepUnused(htmlToPdfBuffer);
+        // <- TODO: !!!!
 
         keepUnused(html);
         // <- TODO: !!!!
