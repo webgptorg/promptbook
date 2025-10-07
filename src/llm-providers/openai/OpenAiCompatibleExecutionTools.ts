@@ -136,7 +136,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      * Calls OpenAI compatible API to use a chat model.
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
+        prompt: Prompt,
     ): Promise<ChatPromptResult> {
         return this.callChatModelWithRetry(prompt, prompt.modelRequirements);
     }
@@ -145,7 +145,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      * Internal method that handles parameter retry for chat model calls
      */
     private async callChatModelWithRetry(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
+        prompt: Prompt,
         currentModelRequirements: typeof prompt.modelRequirements,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
@@ -181,6 +181,16 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         //        > 'response_format' of type 'json_object' is not supported with this model.
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
+
+        // Convert thread to OpenAI format if present
+        let threadMessages: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming['messages'] = [];
+        if ('thread' in prompt && Array.isArray((prompt as any).thread)) {
+            threadMessages = ((prompt as any).thread).map((msg: any) => ({
+                role: msg.role === 'assistant' ? 'assistant' : 'user',
+                content: msg.content,
+            }));
+        }
+
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
@@ -192,6 +202,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                               content: currentModelRequirements.systemMessage,
                           },
                       ] as const)),
+                ...threadMessages,
                 {
                     role: 'user',
                     content: rawPromptContent,

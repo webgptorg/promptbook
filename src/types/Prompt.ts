@@ -1,4 +1,5 @@
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
+import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { Expectations } from '../pipeline/PipelineJson/Expectations';
 import type { ChatModelRequirements } from './ModelRequirements';
 import type { CompletionModelRequirements } from './ModelRequirements';
@@ -42,7 +43,10 @@ export type ChatPrompt = CommonPrompt & {
      */
     modelRequirements: ChatModelRequirements;
 
-    // <-TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+    /**
+     * Optional chat thread (history of previous messages)
+     */
+    thread?: ChatMessage[];
 };
 
 /**

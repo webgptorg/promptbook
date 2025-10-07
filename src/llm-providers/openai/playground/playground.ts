@@ -87,21 +87,33 @@ async function playground() {
 
     /**/
     const chatPrompt = {
-        title: 'Promptbook speech',
+        title: 'Prague',
         parameters: {},
-        content: `What have I said in previous message?`,
+        thread: [
+            {
+                id: 'msg1',
+                from: 'user',
+                content: 'Where is Prague ',
+            },
+            {
+                id: 'msg2', // <- TODO: !!!! Do not require id in messages
+                from: 'assistant',
+                content: 'Prague is a beautiful city located in the Czech Republic.',
+            },
+        ],
+        content: `Tell me more`,
         modelRequirements: {
             modelVariant: 'CHAT',
-            systemMessage: 'You are an assistant who only speaks in rhymes.',
+            systemMessage: 'You are an helpful assistant who provides short and concise answers.',
             modelName: 'gpt-3.5-turbo',
             temperature: 1.5,
         },
-    } as const satisfies Prompt;
+    } /* as const */ satisfies Prompt;
     const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
+    console.info(colors.bgGreen(' Chat!!!: ') + colors.green(chatPromptResult.content));
     /**/
 
     /*/

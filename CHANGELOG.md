@@ -1,4 +1,10 @@
-# 📅 Changelog
+# 📅 Changelog## [Unreleased]
+
+- Allow passing a chat thread (`thread` property) into `CommonPrompt` and `ChatPrompt`
+- Implemented thread support in `OpenAiExecutionTools` (and compatible tools)
+- Added usage sample to `src/llm-providers/openai/playground/playground.ts`
+- Kept implementation DRY and backward compatible
+
 
 ## [Unreleased]
 
