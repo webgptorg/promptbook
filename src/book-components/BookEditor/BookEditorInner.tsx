@@ -465,7 +465,6 @@ export function BookEditorInner(props: BookEditorProps) {
         // Compute offset for correct line numbers
         const offset = lines.slice(0, firstLine).join('\n').length + (firstLine > 0 ? 1 : 0);
 
-        const lastIndex = 0;
         let out = '';
         const processedRanges: Array<{
             start: number;
