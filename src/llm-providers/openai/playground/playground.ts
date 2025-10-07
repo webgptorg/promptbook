@@ -65,7 +65,7 @@ async function playground() {
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
-    /**/
+    /*/
     const models = await openAiExecutionTools.listModels();
     console.info({ models });
     /**/
@@ -85,14 +85,15 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+    /**/
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
-        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
+        content: `What have I said in previous message?`,
         modelRequirements: {
             modelVariant: 'CHAT',
             systemMessage: 'You are an assistant who only speaks in rhymes.',
+            modelName: 'gpt-3.5-turbo',
             temperature: 1.5,
         },
     } as const satisfies Prompt;
