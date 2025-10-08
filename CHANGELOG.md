@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+- Fixed: OpenAiCompatibleExecutionTools now correctly strips unsupported parameters (like `temperature`) on every call to `callChatModel`, `callCompletionModel`, and `callEmbeddingModel`, even for repeated or parallel calls. Each call is now stateless and thread-safe. ([2025-10-0000])
 
 - Allow passing a chat thread (`thread` property) into `CommonPrompt` and `ChatPrompt`
 - Implemented thread support in `OpenAiExecutionTools` (and compatible tools)
