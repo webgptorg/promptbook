@@ -1,10 +1,7 @@
-// Debounce utility for BookEditor and related components
-// [🧠] Use this for debouncing highlight and other expensive operations
-
-import { TODO_any } from '../../_packages/types.index';
+import { TODO_any } from '../_packages/types.index';
 
 /**
- * @private
+ * @public exported from `@promptbook/utils`
  */
 export function debounce<T extends (...args: TODO_any[]) => void>(fn: T, delay: number) {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -13,7 +10,3 @@ export function debounce<T extends (...args: TODO_any[]) => void>(fn: T, delay: 
         timeout = setTimeout(() => fn(...args), delay);
     };
 }
-
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * TODO: !!! remove this file */

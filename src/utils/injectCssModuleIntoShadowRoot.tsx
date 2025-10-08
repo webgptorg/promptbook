@@ -1,14 +1,29 @@
-import { collectCssTextsForClass } from '../_common/react-utils/collectCssTextsForClass';
-import styles from './BookEditor.module.css';
+import { collectCssTextsForClass } from '../book-components/_common/react-utils/collectCssTextsForClass';
+import { string_css_class } from '../types/typeAliases';
+
+export type InjectCssModuleIntoShadowRootOptions = {
+    /**
+     * The shadow root where the styles should be injected
+     */
+    shadowRoot: ShadowRoot;
+
+    /**
+     * The imported CSS module styles object
+     */
+    styles: Record<string_css_class, string_css_class>;
+};
 
 /**
  * Inject the CSS module rules (derived from imported `styles`) into the provided shadow root.
  * This allows CSS modules (which are normally emitted into the document head) to be
  * available inside the component's shadow DOM.
  *
- * @private within the promptbook components <- TODO: Maybe make promptbook util from this
+ * @public exported from `@promptbook/components`
+ *         <- TODO: [🧠] Make `@promptbook/components-utils`
  */
-export function injectCssModuleIntoShadowRoot(shadowRoot: ShadowRoot) {
+export function injectCssModuleIntoShadowRoot(options: InjectCssModuleIntoShadowRootOptions) {
+    const { shadowRoot, styles } = options;
+
     try {
         const classNames = Object.values(styles)
             .flatMap((s) => String(s).split(/\s+/))
@@ -28,7 +43,3 @@ export function injectCssModuleIntoShadowRoot(shadowRoot: ShadowRoot) {
         // console.error('Failed to inject CSS module into shadow root', e);
     }
 }
-
-/**
- * TODO: Make some utility functions for working with CSS modules in shadow DOM independent of `BookEditor.module.css`
- */
