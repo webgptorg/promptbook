@@ -413,3 +413,4 @@ strikethrough
 sublist
 sublists
 pseudotoken
+subcomponent
