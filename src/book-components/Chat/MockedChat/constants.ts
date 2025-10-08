@@ -1,4 +1,4 @@
-import { MockedChatDelayConfig } from './MockedChat';
+import type { MockedChatDelayConfig } from './MockedChat';
 
 /**
  * Normal flow of messages in the `MockedChat` component

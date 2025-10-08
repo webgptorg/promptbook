@@ -1,8 +1,6 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
-import { humanizeAiText, promptbookifyAiText } from '../../_packages/markdown-utils.index';
-import { normalizeToKebabCase } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -13,6 +11,9 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
+import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
+import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
+import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 
 /**
  * Execution Tools for calling LLM models with a predefined agent "soul"

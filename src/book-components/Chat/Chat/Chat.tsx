@@ -4,22 +4,22 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
-import { promptbookifyAiText } from '../../../_packages/markdown-utils.index';
-import { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
-import { classNames } from '../../_common/react-utils/classNames';
+import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import { classNames } from '../../_common/react-utils/classNames';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
-import { string_chat_format_name } from '../save/_common/string_chat_format_name';
+import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { parseMessageButtons } from '../utils/parseMessageButtons';

@@ -2,14 +2,15 @@ import spaceTrim from 'spacetrim';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { trimCodeBlock } from '../../utils/markdown/trimCodeBlock';
+import { trimEndOfCodeBlock } from '../../utils/markdown/trimEndOfCodeBlock';
 import { capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize } from '../../utils/normalization/decapitalize';
 import { nameToUriPart } from '../../utils/normalization/nameToUriPart';
 import { nameToUriParts } from '../../utils/normalization/nameToUriParts';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
+import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { normalizeTo_PascalCase } from '../../utils/normalization/normalizeTo_PascalCase';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
-import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { normalizeTo_snake_case } from '../../utils/normalization/normalizeTo_snake_case';
 import { normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
@@ -17,7 +18,6 @@ import { removeDiacritics } from '../../utils/normalization/removeDiacritics';
 import { removeEmojis } from '../../utils/normalization/removeEmojis';
 import { removeQuotes } from '../../utils/normalization/removeQuotes';
 import { unwrapResult } from '../../utils/normalization/unwrapResult';
-import { trimEndOfCodeBlock } from '../../utils/trimEndOfCodeBlock';
 
 const parseKeywords = (input: string) =>
     // TODO: DRY [🍯]

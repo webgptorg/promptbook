@@ -1,4 +1,4 @@
-import { CHAT_SAVE_FORMATS } from '..';
+import { CHAT_SAVE_FORMATS } from '../index';
 
 /**
  * Supported chat export formatNames

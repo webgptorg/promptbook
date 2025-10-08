@@ -1,5 +1,5 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
-import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { preparePersona } from '../../personas/preparePersona';
 import type { string_model_name } from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';

@@ -1,5 +1,4 @@
 import { keepUnused } from '../../../../utils/organization/keepUnused';
-import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 import { htmlSaveFormatDefinition } from '../html/htmlSaveFormatDefinition';
 
 /**

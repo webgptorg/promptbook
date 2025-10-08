@@ -1,4 +1,3 @@
-import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
  * Plain text export plugin (messages only)

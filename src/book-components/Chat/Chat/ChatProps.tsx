@@ -1,7 +1,7 @@
 'use client';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
-import { string_chat_format_name } from '../save/_common/string_chat_format_name';
+import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 

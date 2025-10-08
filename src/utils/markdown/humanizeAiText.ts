@@ -1,4 +1,4 @@
-import { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
 import { humanizeAiTextEllipsis } from './humanizeAiTextEllipsis';
 import { humanizeAiTextEmdashed } from './humanizeAiTextEmdashed';
 import { humanizeAiTextQuotes } from './humanizeAiTextQuotes';

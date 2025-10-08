@@ -1,4 +1,4 @@
-import { string_file_extension, string_mime_type } from '../../../../types/typeAliases';
+import type { string_file_extension, string_mime_type } from '../../../../types/typeAliases';
 import type { ChatMessage } from '../../types/ChatMessage';
 
 /**

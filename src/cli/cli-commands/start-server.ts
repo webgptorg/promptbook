@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forEver } from 'waitasecond';
@@ -8,15 +8,14 @@ import { createCollectionFromDirectory } from '../../collection/constructors/cre
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
 import type { number_port, string_url } from '../../types/typeAliases';
 import { suffixUrl } from '../../utils/normalization/suffixUrl';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';

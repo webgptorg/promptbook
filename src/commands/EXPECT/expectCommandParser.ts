@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
+import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import { assertsError } from '../../errors/assertsError';
 import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';

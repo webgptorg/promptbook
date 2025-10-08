@@ -1,4 +1,3 @@
-import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 import spaceTrim from 'spacetrim';
 
 /**
@@ -10,7 +9,7 @@ function getTextColor(bgColor: string): string {
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
     return luminance > 186 ? '#222' : '#fff';
 }
 /**
@@ -100,16 +99,17 @@ export const htmlSaveFormatDefinition = {
             </head>
             <body>
                 <div class="chat-container">
-                    ${messages.map((m) => {
-                        // Fallback color map for common participants
-                        const participantColors: Record<string, string> = {
-                            USER: '#2b7cff',
-                            ASSISTANT: '#ffb300',
-                            SYSTEM: '#888',
-                        };
-                        const bgColor = participantColors[String(m.from)] || '#2b7cff';
-                        const textColor = getTextColor(bgColor);
-                        return spaceTrim(`
+                    ${messages
+                        .map((m) => {
+                            // Fallback color map for common participants
+                            const participantColors: Record<string, string> = {
+                                USER: '#2b7cff',
+                                ASSISTANT: '#ffb300',
+                                SYSTEM: '#888',
+                            };
+                            const bgColor = participantColors[String(m.from)] || '#2b7cff';
+                            const textColor = getTextColor(bgColor);
+                            return spaceTrim(`
                             <div class="chat-message">
                                 <div class="avatar" style="background:${bgColor};color:${getTextColor(bgColor)};">
                                     ${String(m.from)[0] || '?'}
@@ -120,7 +120,8 @@ export const htmlSaveFormatDefinition = {
                                 </div>
                             </div>
                         `);
-                    }).join('')}
+                        })
+                        .join('')}
                 </div>
                 <div class="footer">
                     Exported from <a href="https://ptbk.io" target="_blank" rel="noopener">Promptbook</a>

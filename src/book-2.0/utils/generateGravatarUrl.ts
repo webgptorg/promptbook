@@ -1,4 +1,4 @@
-import { string_agent_name } from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/typeAliases';
 
 /**
  * Generates a gravatar URL based on agent name for fallback avatar

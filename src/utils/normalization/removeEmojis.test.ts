@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { just } from '../organization/just';
-import { removeEmojis } from '../removeEmojis';
+import { removeEmojis } from './removeEmojis';
 
 describe('removeEmojis', () => {
     it('should preserve text without emojis', () => {

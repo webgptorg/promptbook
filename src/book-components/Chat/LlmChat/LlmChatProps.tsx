@@ -1,6 +1,6 @@
 'use client';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/typeAliases';
 import type { ChatProps } from '../Chat/ChatProps';
 import type { SendMessageToLlmChatFunction } from '../hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../types/ChatMessage';

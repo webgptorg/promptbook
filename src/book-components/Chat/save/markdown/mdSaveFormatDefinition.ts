@@ -1,5 +1,4 @@
 import { spaceTrim } from 'spacetrim';
-import { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
  * Markdown export plugin

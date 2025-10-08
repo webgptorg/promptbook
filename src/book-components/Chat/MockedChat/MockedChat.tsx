@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { forTime } from 'waitasecond';
-import { Chat } from '../../Chat/Chat/Chat';
 import chatStyles from '../../Chat/Chat/Chat.module.css';
-import type { ChatProps } from '../../Chat/Chat/ChatProps';
-import type { ChatMessage } from '../../Chat/types/ChatMessage';
 import { PauseIcon } from '../../icons/PauseIcon';
 import { PlayIcon } from '../../icons/PlayIcon';
+import { Chat } from '../Chat/Chat';
+import type { ChatProps } from '../Chat/ChatProps';
+import type { ChatMessage } from '../types/ChatMessage';
 import { MOCKED_CHAT_DELAY_CONFIGS } from './constants';
 
 /**

@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { normalizeTo_camelCase } from '../../_packages/utils.index';
+import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';

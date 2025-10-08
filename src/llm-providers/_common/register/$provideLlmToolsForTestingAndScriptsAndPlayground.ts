@@ -1,11 +1,11 @@
 import { join } from 'path';
-import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
 import { DEFAULT_EXECUTION_CACHE_DIRNAME, IS_COST_PREVENTED } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
 import { countUsage } from '../utils/count-total-usage/countUsage';
 import { limitTotalUsage } from '../utils/count-total-usage/limitTotalUsage';

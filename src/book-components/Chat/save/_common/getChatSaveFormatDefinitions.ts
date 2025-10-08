@@ -1,6 +1,6 @@
-import { CHAT_SAVE_FORMATS } from '..';
-import { ChatSaveFormatDefinition } from './ChatSaveFormatDefinition';
-import { string_chat_format_name } from './string_chat_format_name';
+import { CHAT_SAVE_FORMATS } from '../index';
+import type { ChatSaveFormatDefinition } from './ChatSaveFormatDefinition';
+import type { string_chat_format_name } from './string_chat_format_name';
 
 /**
  * Returns enabled chat save plugins filtered by formatNames (or all when omitted)

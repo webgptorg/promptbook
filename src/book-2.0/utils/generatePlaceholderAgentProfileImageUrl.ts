@@ -1,4 +1,4 @@
-import { string_agent_name, string_url_image } from '../../types/typeAliases';
+import type { string_agent_name, string_url_image } from '../../types/typeAliases';
 import { generateGravatarUrl } from './generateGravatarUrl';
 
 /**

@@ -29,18 +29,17 @@ import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
-import { renderServerIndexHtml } from './ui/renderServerIndexHtml';
 import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
-import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
-import type { Identification } from './socket-types/_subtypes/Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './socket-types/listModels/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_PreparePipeline_Request } from './socket-types/prepare/PromptbookServer_PreparePipeline_Request';
-import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
+import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
+import type { Identification } from './socket-types/_subtypes/Identification';
 import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
+import { renderServerIndexHtml } from './ui/renderServerIndexHtml';
 
 keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
@@ -259,9 +258,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 startupDate: startupDate.toISOString(),
                 isAnonymousModeAllowed,
                 isApplicationModeAllowed,
-                pipelines: !isApplicationModeAllowed || collection === null
-                    ? []
-                    : await collection.listPipelines(),
+                pipelines: !isApplicationModeAllowed || collection === null ? [] : await collection.listPipelines(),
                 runningExecutions: runningExecutionTasks.length,
                 paths: [
                     ...app._router.stack

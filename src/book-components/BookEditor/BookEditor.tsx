@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import { string_knowledge_source_content } from '../../types/typeAliases';
+import type { string_knowledge_source_content } from '../../types/typeAliases';
 import { injectCssModuleIntoShadowRoot } from '../../utils/misc/injectCssModuleIntoShadowRoot';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';

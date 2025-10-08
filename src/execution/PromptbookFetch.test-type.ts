@@ -1,5 +1,5 @@
 import { keepUnused } from '../utils/organization/keepUnused';
-import { PromptbookFetch } from './PromptbookFetch';
+import type { PromptbookFetch } from './PromptbookFetch';
 
 // Note: Checking that `fetch` is implementing `PromptbookFetch`
 let compatibleFetch: PromptbookFetch | null;
