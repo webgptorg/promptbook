@@ -106,7 +106,8 @@ async function playground() {
         modelRequirements: {
             modelVariant: 'CHAT',
             systemMessage: 'You are an helpful assistant who provides short and concise answers.',
-            modelName: 'gpt-3.5-turbo',
+            // modelName: 'gpt-3.5-turbo',
+            modelName: 'gpt-5',
             temperature: 1.5,
         },
     } /* as const */ satisfies Prompt;
@@ -115,6 +116,13 @@ async function playground() {
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
     console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
+
+    /**/
+    const chatPromptResult2 = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
+    console.info({ chatPromptResult2 });
+    console.info(colors.cyan(usageToHuman(chatPromptResult2.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult2.content));
     /**/
 
     /*/
