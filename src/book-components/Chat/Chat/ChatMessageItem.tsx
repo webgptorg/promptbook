@@ -14,6 +14,11 @@ import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
 
+/**
+ * Props for the `ChatMessageItem` component
+ *
+ * @private props for internal subcomponent
+ */
 type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
@@ -27,6 +32,8 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
 
 /**
  * Renders a single chat message item with avatar, content, buttons, and rating.
+ *
+ * @private internal subcomponent of `<Chat>` component
  */
 export const ChatMessageItem = memo(
     ({
