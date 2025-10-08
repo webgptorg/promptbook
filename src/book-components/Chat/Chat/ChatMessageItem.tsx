@@ -1,5 +1,7 @@
 'use client';
-import styles from '*.module.css';
+// <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
+//          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
+
 import { memo, useEffect, useState } from 'react';
 import { Color, textColor } from '../../../_packages/color.index';
 import type { id } from '../../../types/typeAliases';
@@ -8,15 +10,14 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { renderMarkdown } from '../utils/renderMarkdown';
+import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
 
-type ChatMessageItemProps = {
+type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
-    participants: ReadonlyArray<ChatParticipant>;
     isLastMessage: boolean;
-    onMessage?: ChatProps['onMessage'];
     setExpandedMessageId: (value: id | null) => void;
     isExpanded: boolean;
     currentRating: number;
