@@ -25,8 +25,8 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
                 response: expect.stringContaining(
                     spaceTrim(`
                     You said:
-                    One day I went to the shop and bought a cup of coffee.
-                    Now I have a cup of coffee.
+                    „One day I went to the shop and bought a cup of coffee.
+                    Now I have a cup of coffee.“
                 `),
                 ),
             },

@@ -1,6 +1,7 @@
 'use client';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
+import { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 
@@ -106,13 +107,6 @@ export type ChatProps = {
     };
 
     /**
-     * Indicates whether a the text is AI-generated and should be humanized
-     *
-     * @default true
-     */
-    readonly isAiTextHumanized?: boolean;
-
-    /**
      * Indicates whether a voice call is currently active
      */
     readonly isVoiceCalling?: boolean;
@@ -128,11 +122,25 @@ export type ChatProps = {
     readonly isSaveButtonEnabled?: boolean;
 
     /**
+     * List of formats in which the chat can be saved/exported
+     *
+     * @default * All supported formats (see `string_chat_format_name` type)
+     */
+    readonly saveFormats?: Array<string_chat_format_name>;
+
+    /**
      * Is the writing textarea automatically focused?
      *
      * @default true on Desktop false on mobile (to prevent mobile keyboard from popping up)
      */
     readonly isFocusedOnLoad?: boolean;
+
+    /**
+     * Indicates whether the text shown in chat should be post-processed by removing AI artifacts and making it more "human-like" and "promptbook-like"
+     *
+     * @default true
+     */
+    readonly isAiTextHumanizedAndPromptbookified: boolean;
 
     /**
      * Optional markdown header to include at the top of exported files.
@@ -177,7 +185,6 @@ export type ChatProps = {
      */
     onFileUpload?(file: File): Promisable<string>;
 };
-
 
 /**
  * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

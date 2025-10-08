@@ -92,10 +92,11 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             message: `Result of \`MockedEchoLlmExecutionTools.callChatModel\``,
             order: [],
             value: {
+                // Note: The „quotes“ are intentional to test AI humanization and Promptbookification
                 content: spaceTrim(
                     (block) => `
                     You said:
-                    ${block(rawPromptContent)}
+                    „${block(rawPromptContent)}“
 
                     [1️⃣ Say that again!](?message=${encodeURIComponent(rawPromptContent)})
                     [2️⃣ Say that twice!](?message=${encodeURIComponent(rawPromptContent).repeat(2)})

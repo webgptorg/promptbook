@@ -4,6 +4,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
+import { promptbookifyAiText } from '../../../_packages/markdown-utils.index';
 import { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
@@ -275,7 +276,7 @@ ChatMessageItem.displayName = 'ChatMessageItem';
  *
  * @public exported from `@promptbook/components`
  */
-export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[]; isSaveButtonEnabled?: boolean }) {
+export function Chat(props: ChatProps) {
     const {
         messages,
         onChange,
@@ -292,7 +293,7 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
         className,
         style,
         // voiceCallProps,
-        isAiTextHumanized = true,
+        isAiTextHumanizedAndPromptbookified = true,
         isVoiceCalling = false,
         isFocusedOnLoad,
         // isExperimental = false,
@@ -576,14 +577,14 @@ export function Chat(props: ChatProps & { saveFormats?: string_chat_format_name[
         : styles.actions + ' ' + styles.right;
 
     const postprocessedMessages = useMemo<ReadonlyArray<ChatMessage>>(() => {
-        if (!isAiTextHumanized) {
+        if (!isAiTextHumanizedAndPromptbookified) {
             return messages;
         }
 
         return messages.map((message) => {
-            return { ...message, content: humanizeAiText(message.content) };
+            return { ...message, content: promptbookifyAiText(humanizeAiText(message.content)) };
         });
-    }, [messages, isAiTextHumanized]);
+    }, [messages, isAiTextHumanizedAndPromptbookified]);
 
     // Trigger auto-scroll when messages change
     useEffect(() => {

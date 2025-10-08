@@ -29,7 +29,7 @@ describe('createPipelineExecutor + MockedEchoExecutionTools with example chat pr
                 name: expect.stringContaining(
                     spaceTrim(`
                     You said:
-                    Write some name for Badname
+                    „Write some name for Badname“
                 `),
                 ),
             },
