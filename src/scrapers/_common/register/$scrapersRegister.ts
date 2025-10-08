@@ -1,4 +1,4 @@
-import { $Register } from '../../../utils/$Register';
+import { $Register } from '../../../utils/misc/$Register';
 import type { ScraperConstructor } from './ScraperConstructor';
 
 /**

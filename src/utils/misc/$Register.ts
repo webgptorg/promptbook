@@ -1,11 +1,11 @@
 import { type IDestroyable } from 'destroyable';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { NotYetImplementedError } from '../errors/NotYetImplementedError';
-import { UnexpectedError } from '../errors/UnexpectedError';
-import type { string_name } from '../types/typeAliases';
-import { $getGlobalScope } from './environment/$getGlobalScope';
-import { normalizeTo_snake_case } from './normalization/normalizeTo_snake_case';
-import type { TODO_string } from './organization/TODO_string';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { UnexpectedError } from '../../errors/UnexpectedError';
+import type { string_name } from '../../types/typeAliases';
+import { $getGlobalScope } from '../environment/$getGlobalScope';
+import { normalizeTo_snake_case } from '../normalization/normalizeTo_snake_case';
+import type { TODO_string } from '../organization/TODO_string';
 
 /**
  * Represents an entity in a global registry.

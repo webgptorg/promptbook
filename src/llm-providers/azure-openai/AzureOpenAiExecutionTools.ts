@@ -20,7 +20,7 @@ import type {
     string_name,
     string_title,
 } from '../../types/typeAliases';
-import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';

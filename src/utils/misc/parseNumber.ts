@@ -1,4 +1,4 @@
-import { ParseError } from '../errors/ParseError';
+import { ParseError } from '../../errors/ParseError';
 
 /**
  * Function parseNumber will parse number from string

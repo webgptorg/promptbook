@@ -1,12 +1,11 @@
 import spaceTrim from 'spacetrim';
 import { RESERVED_PARAMETER_NAMES } from '../../../constants';
 import { ParseError } from '../../../errors/ParseError';
-import type { string_parameter_name } from '../../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../../types/typeAliases';
+import type { string_parameter_name, string_reserved_parameter_name } from '../../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../normalization/normalizeTo_camelCase';
 import { removeDiacritics } from '../../normalization/removeDiacritics';
-import { removeEmojis } from '../../removeEmojis';
-import { removeQuotes } from '../../removeQuotes';
+import { removeEmojis } from '../../normalization/removeEmojis';
+import { removeQuotes } from '../../normalization/removeQuotes';
 
 /**
  * Function `validateParameterName` will normalize and validate a parameter name for use in pipelines.

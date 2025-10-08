@@ -10,7 +10,7 @@ import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601, string_name } from '../../types/typeAliases';
-import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { asSerializable } from '../../utils/serialization/asSerializable';
 import { exportJson } from '../../utils/serialization/exportJson';

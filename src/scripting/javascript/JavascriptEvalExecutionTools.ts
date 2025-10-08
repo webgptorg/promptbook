@@ -6,6 +6,7 @@ import { assertsError } from '../../errors/assertsError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
+import { trimCodeBlock as _trimCodeBlock } from '../../utils/markdown/trimCodeBlock';
 import { capitalize as _capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../utils/normalization/decapitalize';
 import { nameToUriPart as _nameToUriPart } from '../../utils/normalization/nameToUriPart';
@@ -18,13 +19,12 @@ import { normalizeTo_snake_case as _normalizeTo_snake_case } from '../../utils/n
 import { normalizeWhitespaces as _normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../utils/normalization/removeDiacritics';
+import { removeEmojis as _removeEmojis } from '../../utils/normalization/removeEmojis';
+import { removeQuotes as _removeQuotes } from '../../utils/normalization/removeQuotes';
+import { unwrapResult as _unwrapResult } from '../../utils/normalization/unwrapResult';
 import { TODO_any } from '../../utils/organization/TODO_any';
 import { $preserve } from '../../utils/organization/preserve';
-import { removeEmojis as _removeEmojis } from '../../utils/removeEmojis';
-import { removeQuotes as _removeQuotes } from '../../utils/removeQuotes';
-import { trimCodeBlock as _trimCodeBlock } from '../../utils/trimCodeBlock';
 import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../utils/trimEndOfCodeBlock';
-import { unwrapResult as _unwrapResult } from '../../utils/unwrapResult';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 
 /**

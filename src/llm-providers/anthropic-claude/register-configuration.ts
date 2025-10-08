@@ -1,8 +1,7 @@
-import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
-import { DEFAULT_REMOTE_SERVER_URL } from '../../config';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
-import type { Registration } from '../../utils/$Register';
+import type { Registration } from '../../utils/misc/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';

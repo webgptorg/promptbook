@@ -1,6 +1,6 @@
 import { MODEL_ORDERS, MODEL_TRUST_LEVELS } from '../../../constants';
 import type { string_name, string_title } from '../../../types/typeAliases';
-import type { Registered } from '../../../utils/$Register';
+import type { Registered } from '../../../utils/misc/$Register';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 

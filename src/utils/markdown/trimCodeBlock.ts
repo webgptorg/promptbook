@@ -7,7 +7,7 @@ import { spaceTrim } from 'spacetrim';
  * Note: This is useful for post-processing of the result of the chat LLM model
  *       when the model wraps the result in the (markdown) code block.
  *
- * @public exported from `@promptbook/utils`
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function trimCodeBlock(value: string): string {
     value = spaceTrim(value);

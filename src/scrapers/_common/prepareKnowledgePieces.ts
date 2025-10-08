@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
@@ -9,7 +8,7 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 
 import { assertsError } from '../../errors/assertsError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { arrayableToArray } from '../../utils/arrayableToArray';
+import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 

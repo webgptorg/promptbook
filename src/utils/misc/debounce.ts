@@ -1,4 +1,4 @@
-import { TODO_any } from '../_packages/types.index';
+import { TODO_any } from '../../_packages/types.index';
 
 /**
  * @public exported from `@promptbook/utils`

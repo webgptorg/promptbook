@@ -11,7 +11,7 @@ import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
 import type { Parameters, string_parameter_name } from '../../types/typeAliases';
-import { arrayableToArray } from '../../utils/arrayableToArray';
+import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import type { really_any } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';

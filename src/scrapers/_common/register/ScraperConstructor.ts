@@ -1,6 +1,6 @@
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
-import type { Registered } from '../../../utils/$Register';
+import type { Registered } from '../../../utils/misc/$Register';
 import type { Scraper } from '../Scraper';
 import type { ScraperAndConverterMetadata } from './ScraperAndConverterMetadata';
 

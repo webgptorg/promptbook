@@ -8,7 +8,7 @@ import type { ChatPromptResult, CompletionPromptResult } from '../../execution/P
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
-import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 

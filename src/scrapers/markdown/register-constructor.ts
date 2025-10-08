@@ -1,4 +1,4 @@
-import type { Registration } from '../../utils/$Register';
+import type { Registration } from '../../utils/misc/$Register';
 import { $scrapersRegister } from '../_common/register/$scrapersRegister';
 import { createMarkdownScraper } from './createMarkdownScraper';
 

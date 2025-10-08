@@ -1,5 +1,5 @@
 import type { LlmExecutionToolsConstructor } from '../../../execution/LlmExecutionToolsConstructor';
-import { $Register } from '../../../utils/$Register';
+import { $Register } from '../../../utils/misc/$Register';
 
 /**
  * Register for LLM tools.

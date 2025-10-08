@@ -1,5 +1,5 @@
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { arrayableToArray } from '../../utils/arrayableToArray';
+import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
 import { joinLlmExecutionTools } from './joinLlmExecutionTools';
 

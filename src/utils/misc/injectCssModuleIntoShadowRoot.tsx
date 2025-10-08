@@ -1,5 +1,5 @@
-import { collectCssTextsForClass } from '../book-components/_common/react-utils/collectCssTextsForClass';
-import { string_css_class } from '../types/typeAliases';
+import { collectCssTextsForClass } from '../../book-components/_common/react-utils/collectCssTextsForClass';
+import { string_css_class } from '../../types/typeAliases';
 
 export type InjectCssModuleIntoShadowRootOptions = {
     /**

@@ -1,8 +1,7 @@
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { FromtoItems } from '../FromtoItems';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
+import type { FromtoItems } from '../misc/FromtoItems';
+import { removeEmojis } from '../normalization/removeEmojis';
 import { numberToString } from '../parameters/numberToString';
-import { removeEmojis } from '../removeEmojis';
 import { createMarkdownTable } from './createMarkdownTable';
 
 /**

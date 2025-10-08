@@ -1,7 +1,7 @@
 import { MODEL_ORDERS } from '../../constants';
 import type { string_name } from '../../types/typeAliases';
-import type { Registration } from '../../utils/$Register';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
+import type { Registration } from '../../utils/misc/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 

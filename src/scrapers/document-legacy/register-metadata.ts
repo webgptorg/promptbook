@@ -1,4 +1,4 @@
-import type { Registration } from '../../utils/$Register';
+import type { Registration } from '../../utils/misc/$Register';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { $scrapersMetadataRegister } from '../_common/register/$scrapersMetadataRegister';

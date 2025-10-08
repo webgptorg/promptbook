@@ -1,5 +1,5 @@
-import type { string_char_emoji } from '../types/typeAliasEmoji';
-import type { TODO_any } from './organization/TODO_any';
+import type { string_char_emoji } from '../../types/typeAliasEmoji';
+import type { TODO_any } from '../organization/TODO_any';
 
 /**
  * All possible emoji chars like "🍆", "🍡", "🍤"...

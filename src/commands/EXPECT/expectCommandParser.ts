@@ -5,11 +5,9 @@ import { assertsError } from '../../errors/assertsError';
 import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';
+import { parseNumber } from '../../utils/misc/parseNumber';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import { parseNumber } from '../../utils/parseNumber';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**

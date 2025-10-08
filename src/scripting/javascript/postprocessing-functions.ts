@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
+import { trimCodeBlock } from '../../utils/markdown/trimCodeBlock';
 import { capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize } from '../../utils/normalization/decapitalize';
 import { nameToUriPart } from '../../utils/normalization/nameToUriPart';
@@ -13,11 +14,10 @@ import { normalizeTo_snake_case } from '../../utils/normalization/normalizeTo_sn
 import { normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics } from '../../utils/normalization/removeDiacritics';
-import { removeEmojis } from '../../utils/removeEmojis';
-import { removeQuotes } from '../../utils/removeQuotes';
-import { trimCodeBlock } from '../../utils/trimCodeBlock';
+import { removeEmojis } from '../../utils/normalization/removeEmojis';
+import { removeQuotes } from '../../utils/normalization/removeQuotes';
+import { unwrapResult } from '../../utils/normalization/unwrapResult';
 import { trimEndOfCodeBlock } from '../../utils/trimEndOfCodeBlock';
-import { unwrapResult } from '../../utils/unwrapResult';
 
 const parseKeywords = (input: string) =>
     // TODO: DRY [🍯]

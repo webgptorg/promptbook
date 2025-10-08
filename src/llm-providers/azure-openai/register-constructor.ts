@@ -1,4 +1,4 @@
-import type { Registration } from '../../utils/$Register';
+import type { Registration } from '../../utils/misc/$Register';
 import { $llmToolsRegister } from '../_common/register/$llmToolsRegister';
 import { createAzureOpenAiExecutionTools } from './createAzureOpenAiExecutionTools';
 

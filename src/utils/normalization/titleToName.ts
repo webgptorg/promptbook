@@ -1,8 +1,8 @@
 import { basename } from 'path';
-import { removeEmojis } from '../removeEmojis';
 import { isValidFilePath } from '../validators/filePath/isValidFilePath';
 import { isValidUrl } from '../validators/url/isValidUrl';
 import { normalizeToKebabCase } from './normalize-to-kebab-case';
+import { removeEmojis } from './removeEmojis';
 
 /**
  * Converts a title string into a normalized name.
