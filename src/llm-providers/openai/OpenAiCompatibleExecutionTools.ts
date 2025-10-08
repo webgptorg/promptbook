@@ -43,6 +43,16 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     private retriedUnsupportedParameters = new Set<string>();
 
     /**
+     * Tracks the history of attempts for error reporting
+     */
+    private attemptHistory: Array<{
+        modelName: string;
+        unsupportedParameter?: string;
+        errorMessage: string;
+        stripped: boolean;
+    }> = [];
+
+    /**
      * Creates OpenAI compatible Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI compatible client
@@ -136,6 +146,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     private async callChatModelWithRetry(
         prompt: Prompt,
         currentModelRequirements: typeof prompt.modelRequirements,
+        attemptStack: Array<{ modelName: string; unsupportedParameter?: string; errorMessage: string; stripped: boolean }> = [],
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info(`💬 ${this.title} callChatModel call`, { prompt, currentModelRequirements });
@@ -260,6 +271,19 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             // Check if this is an unsupported parameter error
             if (!isUnsupportedParameterError(error)) {
+                // If we have attemptStack, include it in the error message
+                if (attemptStack.length > 0) {
+                    throw new PipelineExecutionError(
+                        `All attempts failed. Attempt history:\n` +
+                        attemptStack.map((a, i) =>
+                            `  ${i + 1}. Model: ${a.modelName}` +
+                            (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                            `, Error: ${a.errorMessage}` +
+                            (a.stripped ? ' (stripped and retried)' : '')
+                        ).join('\n') +
+                        `\nFinal error: ${error.message}`
+                    );
+                }
                 throw error;
             }
 
@@ -281,15 +305,23 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             const retryKey = `${modelName}-${unsupportedParameter}`;
 
             if (this.retriedUnsupportedParameters.has(retryKey)) {
-                // Already retried this parameter, throw the error
-                if (this.options.isVerbose) {
-                    console.warn(
-                        colors.bgRed('Error'),
-                        `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`,
-                        error.message,
-                    );
-                }
-                throw error;
+                // Already retried this parameter, throw the error with attemptStack
+                attemptStack.push({
+                    modelName,
+                    unsupportedParameter,
+                    errorMessage: error.message,
+                    stripped: true,
+                });
+                throw new PipelineExecutionError(
+                    `All attempts failed. Attempt history:\n` +
+                    attemptStack.map((a, i) =>
+                        `  ${i + 1}. Model: ${a.modelName}` +
+                        (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                        `, Error: ${a.errorMessage}` +
+                        (a.stripped ? ' (stripped and retried)' : '')
+                    ).join('\n') +
+                    `\nFinal error: ${error.message}`
+                );
             }
 
             // Mark this parameter as retried
@@ -303,13 +335,21 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 );
             }
 
+            // Add to attemptStack
+            attemptStack.push({
+                modelName,
+                unsupportedParameter,
+                errorMessage: error.message,
+                stripped: true,
+            });
+
             // Remove the unsupported parameter and retry
             const modifiedModelRequirements = removeUnsupportedModelRequirement(
                 currentModelRequirements,
                 unsupportedParameter,
             );
 
-            return this.callChatModelWithRetry(prompt, modifiedModelRequirements);
+            return this.callChatModelWithRetry(prompt, modifiedModelRequirements, attemptStack);
         }
     }
 
@@ -328,6 +368,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     private async callCompletionModelWithRetry(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
         currentModelRequirements: typeof prompt.modelRequirements,
+        attemptStack: Array<{ modelName: string; unsupportedParameter?: string; errorMessage: string; stripped: boolean }> = [],
     ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info(`🖋 ${this.title} callCompletionModel call`, { prompt, currentModelRequirements });
@@ -415,6 +456,18 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             // Check if this is an unsupported parameter error
             if (!isUnsupportedParameterError(error)) {
+                if (attemptStack.length > 0) {
+                    throw new PipelineExecutionError(
+                        `All attempts failed. Attempt history:\n` +
+                        attemptStack.map((a, i) =>
+                            `  ${i + 1}. Model: ${a.modelName}` +
+                            (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                            `, Error: ${a.errorMessage}` +
+                            (a.stripped ? ' (stripped and retried)' : '')
+                        ).join('\n') +
+                        `\nFinal error: ${error.message}`
+                    );
+                }
                 throw error;
             }
 
@@ -436,15 +489,22 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             const retryKey = `${modelName}-${unsupportedParameter}`;
 
             if (this.retriedUnsupportedParameters.has(retryKey)) {
-                // Already retried this parameter, throw the error
-                if (this.options.isVerbose) {
-                    console.warn(
-                        colors.bgRed('Error'),
-                        `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`,
-                        error.message,
-                    );
-                }
-                throw error;
+                attemptStack.push({
+                    modelName,
+                    unsupportedParameter,
+                    errorMessage: error.message,
+                    stripped: true,
+                });
+                throw new PipelineExecutionError(
+                    `All attempts failed. Attempt history:\n` +
+                    attemptStack.map((a, i) =>
+                        `  ${i + 1}. Model: ${a.modelName}` +
+                        (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                        `, Error: ${a.errorMessage}` +
+                        (a.stripped ? ' (stripped and retried)' : '')
+                    ).join('\n') +
+                    `\nFinal error: ${error.message}`
+                );
             }
 
             // Mark this parameter as retried
@@ -458,13 +518,20 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 );
             }
 
+            attemptStack.push({
+                modelName,
+                unsupportedParameter,
+                errorMessage: error.message,
+                stripped: true,
+            });
+
             // Remove the unsupported parameter and retry
             const modifiedModelRequirements = removeUnsupportedModelRequirement(
                 currentModelRequirements,
                 unsupportedParameter,
             );
 
-            return this.callCompletionModelWithRetry(prompt, modifiedModelRequirements);
+            return this.callCompletionModelWithRetry(prompt, modifiedModelRequirements, attemptStack);
         }
     }
 
@@ -483,6 +550,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     private async callEmbeddingModelWithRetry(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
         currentModelRequirements: typeof prompt.modelRequirements,
+        attemptStack: Array<{ modelName: string; unsupportedParameter?: string; errorMessage: string; stripped: boolean }> = [],
     ): Promise<EmbeddingPromptResult> {
         if (this.options.isVerbose) {
             console.info(`🖋 ${this.title} embedding call`, { prompt, currentModelRequirements });
@@ -565,6 +633,18 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             // Check if this is an unsupported parameter error
             if (!isUnsupportedParameterError(error)) {
+                if (attemptStack.length > 0) {
+                    throw new PipelineExecutionError(
+                        `All attempts failed. Attempt history:\n` +
+                        attemptStack.map((a, i) =>
+                            `  ${i + 1}. Model: ${a.modelName}` +
+                            (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                            `, Error: ${a.errorMessage}` +
+                            (a.stripped ? ' (stripped and retried)' : '')
+                        ).join('\n') +
+                        `\nFinal error: ${error.message}`
+                    );
+                }
                 throw error;
             }
 
@@ -586,15 +666,22 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             const retryKey = `${modelName}-${unsupportedParameter}`;
 
             if (this.retriedUnsupportedParameters.has(retryKey)) {
-                // Already retried this parameter, throw the error
-                if (this.options.isVerbose) {
-                    console.warn(
-                        colors.bgRed('Error'),
-                        `Parameter '${unsupportedParameter}' for model '${modelName}' already retried once, throwing error:`,
-                        error.message,
-                    );
-                }
-                throw error;
+                attemptStack.push({
+                    modelName,
+                    unsupportedParameter,
+                    errorMessage: error.message,
+                    stripped: true,
+                });
+                throw new PipelineExecutionError(
+                    `All attempts failed. Attempt history:\n` +
+                    attemptStack.map((a, i) =>
+                        `  ${i + 1}. Model: ${a.modelName}` +
+                        (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                        `, Error: ${a.errorMessage}` +
+                        (a.stripped ? ' (stripped and retried)' : '')
+                    ).join('\n') +
+                    `\nFinal error: ${error.message}`
+                );
             }
 
             // Mark this parameter as retried
@@ -608,13 +695,20 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 );
             }
 
+            attemptStack.push({
+                modelName,
+                unsupportedParameter,
+                errorMessage: error.message,
+                stripped: true,
+            });
+
             // Remove the unsupported parameter and retry
             const modifiedModelRequirements = removeUnsupportedModelRequirement(
                 currentModelRequirements,
                 unsupportedParameter,
             );
 
-            return this.callEmbeddingModelWithRetry(prompt, modifiedModelRequirements);
+            return this.callEmbeddingModelWithRetry(prompt, modifiedModelRequirements, attemptStack);
         }
     }
 

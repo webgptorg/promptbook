@@ -25,7 +25,7 @@ at processTicksAndRejections (node:internal/process/task_queues:105:5)
 
 ---
 
-[ ]
+[x]
 
 [✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value _(like `temperature`)_ isnt supported, they should try again with stripped down that value.
 
