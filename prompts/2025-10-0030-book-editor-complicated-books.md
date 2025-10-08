@@ -1,4 +1,4 @@
-[x]
+[x] _<- Note: Not working well_
 
 [✨𓀆] Enhance `BookEditor` with large books
 
@@ -11,8 +11,9 @@
 
 [ ]
 
-[✨𓀆] qux
+[✨𓀆] Change `BookEditor` highlighting
 
+-   !!!
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
