@@ -1,4 +1,4 @@
-[x][ ]
+[x]
 
 [✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value isnt supported, they should try again with stripped down that value.
 
@@ -27,8 +27,18 @@ at processTicksAndRejections (node:internal/process/task_queues:105:5)
 
 [ ]
 
-[✨🎷] foo
+[✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value _(like `temperature`)_ isnt supported, they should try again with stripped down that value.
 
+```markdown
+Sorry, I encountered an error: All execution tools of LLM Tools from Configuration failed:
+
+1. OpenAI thrown Error: 400 Unsupported value: 'temperature' does not support 0.7 with this model. Only the default (1) value is supported.
+2. Deepseek (through Vercel) thrown AI_APICallError: Model Not Exist
+3. Google (through Vercel) thrown AI_APICallError: models/gpt-5 is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+```
+
+-   When the prompt fails and error is thrown, there should be some indication in the error message that the value was stripped down
+-   The error message should contain the entire process of trying different tools and values
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
