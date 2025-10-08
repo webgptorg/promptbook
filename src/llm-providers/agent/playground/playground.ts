@@ -14,6 +14,7 @@ import { _GoogleRegistration } from '../../google/register-constructor';
 import { _OpenAiRegistration } from '../../openai/register-constructor';
 import { $provideLlmToolsFromEnv } from '../../_common/register/$provideLlmToolsFromEnv';
 import { createAgentLlmExecutionTools } from '../createAgentLlmExecutionTools';
+import type { ChatPrompt } from '../../../types/Prompt';
 
 just(_OpenAiRegistration); // <- Note: Ensure OpenAI is registered
 just(_AnthropicClaudeRegistration); // <- Note: Ensure OpenAI is registered

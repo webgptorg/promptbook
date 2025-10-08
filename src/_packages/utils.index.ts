@@ -1,6 +1,4 @@
-// ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
-// `@promptbook/utils`
-
+export const foo = 1;
 import { SMALL_NUMBER, VALUE_STRINGS } from '../config';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { deserializeError } from '../errors/utils/deserializeError';
@@ -68,7 +66,6 @@ import { jsonStringsToJsons } from '../utils/serialization/jsonStringsToJsons';
 import { difference } from '../utils/sets/difference';
 import { intersection } from '../utils/sets/intersection';
 import { union } from '../utils/sets/union';
-import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { isValidEmail } from '../utils/validators/email/isValidEmail';
 import { isRootPath } from '../utils/validators/filePath/isRootPath';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
@@ -80,12 +77,6 @@ import { isUrlOnPrivateNetwork } from '../utils/validators/url/isUrlOnPrivateNet
 import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
-
-// Note: Exporting version from each package
-export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
-
-// Note: Entities of the `@promptbook/utils`
 export {
     $deepFreeze,
     $getCurrentDate,
@@ -160,7 +151,6 @@ export {
     templateParameters,
     titleToName,
     trimCodeBlock,
-    trimEndOfCodeBlock,
     union,
     unwrapResult,
     VALUE_STRINGS,

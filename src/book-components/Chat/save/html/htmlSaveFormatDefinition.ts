@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
  * Utility to compute readable text color based on background
@@ -100,23 +101,23 @@ export const htmlSaveFormatDefinition = {
             <body>
                 <div class="chat-container">
                     ${messages
-                        .map((m) => {
+                        .map((message) => {
                             // Fallback color map for common participants
                             const participantColors: Record<string, string> = {
                                 USER: '#2b7cff',
                                 ASSISTANT: '#ffb300',
                                 SYSTEM: '#888',
                             };
-                            const bgColor = participantColors[String(m.from)] || '#2b7cff';
+                            const bgColor = participantColors[String(message.from)] || '#2b7cff';
                             const textColor = getTextColor(bgColor);
                             return spaceTrim(`
                             <div class="chat-message">
                                 <div class="avatar" style="background:${bgColor};color:${getTextColor(bgColor)};">
-                                    ${String(m.from)[0] || '?'}
+                                    ${String(message.from)[0] || '?'}
                                 </div>
                                 <div class="bubble" style="background:${bgColor};color:${textColor};">
-                                    <span class="from-label">${String(m.from)}:</span>
-                                    ${m.content}
+                                    <span class="from-label">${String(message.from)}:</span>
+                                    ${message.content}
                                 </div>
                             </div>
                         `);

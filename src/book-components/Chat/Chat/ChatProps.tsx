@@ -140,7 +140,7 @@ export type ChatProps = {
      *
      * @default true
      */
-    readonly isAiTextHumanizedAndPromptbookified: boolean;
+    readonly isAiTextHumanizedAndPromptbookified?: boolean;
 
     /**
      * Optional markdown header to include at the top of exported files.

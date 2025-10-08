@@ -1,3 +1,4 @@
+import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
  * JSON export plugin (full metadata)

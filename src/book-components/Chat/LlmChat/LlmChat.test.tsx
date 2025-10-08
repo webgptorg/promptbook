@@ -19,9 +19,8 @@ jest.mock('../Chat/Chat', () => ({
     },
 }));
 
-import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { createRoot } from 'react-dom/client';
+import { act } from 'react-dom/test-utils';
 import { LlmChat } from './LlmChat';
 
 describe('LlmChat', () => {
@@ -236,5 +235,3 @@ describe('LlmChat', () => {
         expect(afterResetProps.messages[1]!.content).toContain('Hello user');
     });
 });
-
-

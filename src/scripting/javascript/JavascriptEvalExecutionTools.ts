@@ -7,6 +7,7 @@ import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '.
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { trimCodeBlock as _trimCodeBlock } from '../../utils/markdown/trimCodeBlock';
+import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../utils/markdown/trimEndOfCodeBlock';
 import { capitalize as _capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../utils/normalization/decapitalize';
 import { nameToUriPart as _nameToUriPart } from '../../utils/normalization/nameToUriPart';
@@ -24,7 +25,6 @@ import { removeQuotes as _removeQuotes } from '../../utils/normalization/removeQ
 import { unwrapResult as _unwrapResult } from '../../utils/normalization/unwrapResult';
 import { TODO_any } from '../../utils/organization/TODO_any';
 import { $preserve } from '../../utils/organization/preserve';
-import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../utils/trimEndOfCodeBlock';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 
 /**

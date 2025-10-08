@@ -100,8 +100,8 @@ export function BookEditor(props: BookEditorProps) {
             return;
         }
 
-        const shadowDom = hostRef.current.attachShadow({ mode: 'open' });
-        shadowRootRef.current = shadowDom;
+        const shadowRoot = hostRef.current.attachShadow({ mode: 'open' });
+        shadowRootRef.current = shadowRoot;
 
         // Inject CSS module rules into the shadow root so classes from the module
         // remain available inside the Shadow DOM.
