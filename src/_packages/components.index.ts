@@ -54,6 +54,7 @@ import { PlayIcon } from '../book-components/icons/PlayIcon';
 import { ResetIcon } from '../book-components/icons/ResetIcon';
 import { SendIcon } from '../book-components/icons/SendIcon';
 import { TemplateIcon } from '../book-components/icons/TemplateIcon';
+import { injectCssModuleIntoShadowRoot } from '../utils/misc/injectCssModuleIntoShadowRoot';
 
 
 // Note: Exporting version from each package
@@ -111,3 +112,4 @@ export { PlayIcon };
 export { ResetIcon };
 export { SendIcon };
 export { TemplateIcon };
+export { injectCssModuleIntoShadowRoot };

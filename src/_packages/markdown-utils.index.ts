@@ -32,6 +32,8 @@ import { removeMarkdownComments } from '../utils/markdown/removeMarkdownComments
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { removeMarkdownLinks } from '../utils/markdown/removeMarkdownLinks';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
+import { trimCodeBlock } from '../utils/markdown/trimCodeBlock';
+import { trimEndOfCodeBlock } from '../utils/markdown/trimEndOfCodeBlock';
 
 
 // Note: Exporting version from each package
@@ -69,3 +71,5 @@ export { removeMarkdownComments };
 export { removeMarkdownFormatting };
 export { removeMarkdownLinks };
 export { splitMarkdownIntoSections };
+export { trimCodeBlock };
+export { trimEndOfCodeBlock };
