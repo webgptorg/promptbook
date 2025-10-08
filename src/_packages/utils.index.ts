@@ -1,4 +1,3 @@
-export const foo = 1;
 import { SMALL_NUMBER, VALUE_STRINGS } from '../config';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { deserializeError } from '../errors/utils/deserializeError';
@@ -157,3 +156,5 @@ export {
     valueToString,
 };
 export type { Keywords, string_camelCase, string_kebab_case, string_keyword, string_PascalCase, string_SCREAMING_CASE };
+
+// TODO: !!!! is this auto-generated file?
