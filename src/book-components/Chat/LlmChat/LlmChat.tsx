@@ -143,6 +143,8 @@ export function LlmChat(props: LlmChatProps) {
                 // Update task progress
                 setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 50 }]);
 
+                // Build thread: use props.thread if provided, otherwise use current messages
+                const thread = props.thread ?? [...newMessages];
                 const result = await llmTools.callChatModel({
                     title: 'User Message',
                     content: messageContent as string_markdown,
@@ -150,6 +152,7 @@ export function LlmChat(props: LlmChatProps) {
                     modelRequirements: {
                         modelVariant: 'CHAT',
                     },
+                    thread: [...thread],
                 });
 
                 // Update task progress to complete

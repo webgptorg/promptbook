@@ -9,6 +9,9 @@
 
 ## [Unreleased]
 
+-   **[✨] LlmChat component now passes thread into LLM execution tools**
+    -   The `LlmChat` component now includes the full chat thread when calling LLM execution tools, enabling context-aware responses and improved multi-turn conversation support.
+    -   Implementation follows DRY principle and is backward compatible.
 -   **[✨] Enhanced `<BookEditor>` for large books** ([2025-10-0030])
     -   Improved performance and highlighting for big and complicated books using line virtualization and debounced rendering.
     -   Keeps highlighting in sync and rendering smooth for large content.

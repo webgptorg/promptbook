@@ -1,6 +1,6 @@
 import type { Promisable } from 'type-fest';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
-import type { Prompt } from '../types/Prompt';
+import type { Prompt, ChatPrompt } from '../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../types/typeAliases';
 import type { AvailableModel } from './AvailableModel';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
@@ -51,7 +51,7 @@ export type LlmExecutionTools = {
     /**
      * Calls a chat model
      */
-    callChatModel?(prompt: Prompt /* <- [🩱] ChatPrompt */): Promise<ChatPromptResult>;
+    callChatModel?(prompt: ChatPrompt): Promise<ChatPromptResult>;
 
     /**
      * Calls a completion model

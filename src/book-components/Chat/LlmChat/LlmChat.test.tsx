@@ -26,6 +26,60 @@ import { LlmChat } from './LlmChat';
 describe('LlmChat', () => {
     const mockLlmTools = new MockedEchoLlmExecutionTools({ isVerbose: false });
 
+    it('should pass the thread prop to llmTools.callChatModel', async () => {
+        let capturedThread: ChatMessage[] | undefined = undefined;
+        const customLlmTools = {
+            ...mockLlmTools,
+            callChatModel: jest.fn(async (prompt) => {
+                capturedThread = prompt.thread;
+                return {
+                    content: 'Echo',
+                    modelName: 'mocked-echo',
+                };
+            }),
+        };
+
+        const thread: ChatMessage[] = [
+            {
+                id: 't1',
+                date: new Date(),
+                from: 'USER',
+                content: 'First',
+                isComplete: true,
+            },
+            {
+                id: 't2',
+                date: new Date(),
+                from: 'ASSISTANT',
+                content: 'Second',
+                isComplete: true,
+            },
+        ];
+
+        // Render LlmChat with thread prop and trigger a message
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        await act(async () => {
+            const root = createRoot(container);
+            root.render(<LlmChat llmTools={customLlmTools as any} thread={thread} />);
+        });
+
+        // Simulate sending a message
+        const rawProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;
+        expect(rawProps).toBeDefined();
+        if (!rawProps || !rawProps.onMessage) throw new Error('Expected onMessage');
+        await act(async () => {
+            await rawProps.onMessage('Test message');
+        });
+
+        expect(capturedThread).toBeDefined();
+        expect(Array.isArray(capturedThread)).toBe(true);
+        expect(capturedThread?.length).toBe(2);
+        expect(capturedThread?.[0]?.content).toBe('First');
+        expect(capturedThread?.[1]?.content).toBe('Second');
+    });
+
     it('should have correct props interface', () => {
         // Test that LlmChatProps derives correctly from ChatProps
         const props: LlmChatProps = {

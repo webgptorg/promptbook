@@ -14,6 +14,11 @@ import type { ChatParticipant } from '../types/ChatParticipant';
 
 export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'> & {
     /**
+     * Optional thread (full chat history) to be passed to LLM execution tools.
+     * If not provided, the internal messages state will be used.
+     */
+    readonly thread?: ReadonlyArray<ChatMessage>;
+    /**
      * LLM execution tools for chatting with the model
      */
     readonly llmTools: LlmExecutionTools;
