@@ -21,6 +21,7 @@ jest.mock('../Chat/Chat', () => ({
 
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
+import { TODO_any } from '../../../_packages/types.index';
 import { LlmChat } from './LlmChat';
 
 describe('LlmChat', () => {
@@ -62,11 +63,11 @@ describe('LlmChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<LlmChat llmTools={customLlmTools as any} thread={thread} />);
+            root.render(<LlmChat llmTools={customLlmTools as TODO_any} thread={thread} />);
         });
 
         // Simulate sending a message
-        const rawProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;
+        const rawProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps as TODO_any;
         expect(rawProps).toBeDefined();
         if (!rawProps || !rawProps.onMessage) throw new Error('Expected onMessage');
         await act(async () => {
@@ -75,9 +76,9 @@ describe('LlmChat', () => {
 
         expect(capturedThread).toBeDefined();
         expect(Array.isArray(capturedThread)).toBe(true);
-        expect(capturedThread?.length).toBe(2);
-        expect(capturedThread?.[0]?.content).toBe('First');
-        expect(capturedThread?.[1]?.content).toBe('Second');
+        expect((capturedThread as TODO_any)?.length).toBe(2);
+        expect((capturedThread as TODO_any)?.[0]?.content).toBe('First');
+        expect((capturedThread as TODO_any)?.[1]?.content).toBe('Second');
     });
 
     it('should have correct props interface', () => {
