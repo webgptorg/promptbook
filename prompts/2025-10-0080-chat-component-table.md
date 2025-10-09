@@ -13,8 +13,10 @@
 
 [ ]
 
-[✨🪢] qux
+[✨🪢] Add sample of tables into `<ChatPreview />`
 
+-   Add sample (scenario) with table in the conversation in http://localhost:4022/component/chat name it "Chat with tables"
+-   Add both markdown and html tables
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 

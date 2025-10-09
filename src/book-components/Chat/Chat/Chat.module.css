@@ -328,18 +328,16 @@
     transition: all 0.2s ease;
     font-size: 15px;
     backdrop-filter: blur(10px);
-    /* Table styling inside messages */
-    overflow-x: auto;
 }
 .messageText table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     margin: 16px 0;
-    background: rgba(255,255,255,0.85);
+    background: rgba(255, 255, 255, 0.85);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     font-size: 14px;
 }
 .messageText th,
