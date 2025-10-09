@@ -28,6 +28,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
     currentRating: number;
     handleRating: (message: ChatMessage, rating: number) => void;
     mode: 'LIGHT' | 'DARK';
+    /**
+     * Enables the copy button for this message bubble.
+     */
+    isCopyButtonEnabled?: boolean;
 };
 
 /**
@@ -47,6 +51,7 @@ export const ChatMessageItem = memo(
         currentRating,
         handleRating,
         mode,
+        isCopyButtonEnabled,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
         const color = Color.from((participant && participant.color) || '#ccc');
@@ -103,8 +108,40 @@ export const ChatMessageItem = memo(
                     style={{
                         backgroundColor: color.toHex(),
                         color: colorOfText.toHex(),
+                        position: 'relative',
                     }}
                 >
+                    {isCopyButtonEnabled && (
+                        <div className={styles.copyButtonContainer}>
+                            <button
+                                className={styles.copyButton}
+                                title="Copy message"
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    // Copy plain text and formatted text (markdown)
+                                    const plain = contentWithoutButtons.replace(/<[^>]+>/g, '');
+                                    const formatted = message.content;
+                                    if (navigator.clipboard && window.ClipboardItem) {
+                                        const items: Record<string, Blob> = {
+                                            'text/plain': new Blob([plain], { type: 'text/plain' }),
+                                            'text/markdown': new Blob([formatted], { type: 'text/markdown' }),
+                                        };
+                                        await navigator.clipboard.write([
+                                            new window.ClipboardItem(items),
+                                        ]);
+                                    } else {
+                                        // Fallback: just copy plain text
+                                        await navigator.clipboard.writeText(plain);
+                                    }
+                                }}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <rect x="7" y="7" width="10" height="14" rx="2" fill="#fff" stroke="#bbb" strokeWidth="1.5"/>
+                                    <rect x="3" y="3" width="10" height="14" rx="2" fill="#fff" stroke="#bbb" strokeWidth="1.5"/>
+                                </svg>
+                            </button>
+                        </div>
+                    )}
                     {message.isVoiceCall && (
                         <div className={styles.voiceCallIndicator}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

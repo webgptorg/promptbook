@@ -184,6 +184,13 @@ export type ChatProps = {
      * @returns Promise or string with the text content to insert into the chat message
      */
     onFileUpload?(file: File): Promisable<string>;
+
+    /**
+     * Enables the copy button for each message bubble.
+     * When true, a copy button appears in the top-right of each message.
+     * @default true
+     */
+    isCopyButtonEnabled?: boolean;
 };
 
 /**

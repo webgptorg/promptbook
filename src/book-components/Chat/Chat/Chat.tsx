@@ -63,6 +63,7 @@ export function Chat(props: ChatProps) {
         extraActions,
         saveFormats,
         isSaveButtonEnabled = true,
+        isCopyButtonEnabled = true,
     } = props;
 
     const { onUseTemplate } = props;
@@ -508,6 +509,7 @@ export function Chat(props: ChatProps) {
                                     currentRating={currentRating}
                                     handleRating={handleRating}
                                     mode={mode}
+                                    isCopyButtonEnabled={isCopyButtonEnabled}
                                 />
                             );
                         })}

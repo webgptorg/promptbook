@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏀] `<Chat>` component should have prop `isCopyButtonEnabled`
 

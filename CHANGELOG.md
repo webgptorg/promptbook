@@ -1,4 +1,11 @@
-# 📅 Changelog## [Unreleased]
+# 📅 Changelog## [Unreleased]## [Unreleased]
+
+### Added
+- Chat component: Added `isCopyButtonEnabled` prop (default: `true`). When enabled, each message bubble shows a copy button in the top-right corner, supporting copy as plain text and formatted text (markdown).
+- Preview scenarios for Chat now support toggling copy buttons on/off.
+- Feature integrated into `Chat`, `MockedChat`, and `LlmChat` components.
+
+### Changed
 -   **[✨] `<Chat>` component now renders markdown and HTML tables as real tables**
     -   Chat messages containing markdown tables or HTML `<table>` markup are now rendered as proper tables, not as plain text.
     -   Security: Only safe table-related HTML is allowed; scripts and dangerous tags are stripped.
