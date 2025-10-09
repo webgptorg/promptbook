@@ -328,6 +328,53 @@
     transition: all 0.2s ease;
     font-size: 15px;
     backdrop-filter: blur(10px);
+    /* Table styling inside messages */
+    overflow-x: auto;
+}
+.messageText table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 16px 0;
+    background: rgba(255,255,255,0.85);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    font-size: 14px;
+}
+.messageText th,
+.messageText td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e3e7ee;
+    text-align: left;
+}
+.messageText th {
+    background: linear-gradient(90deg, #f5f8fa 80%, #eaf3fa 100%);
+    font-weight: 600;
+    color: #2a3b4d;
+    border-bottom: 2px solid #d1dbe8;
+}
+.messageText tr:last-child td {
+    border-bottom: none;
+}
+.messageText tr:nth-child(even) td {
+    background: #f7fafd;
+}
+.messageText tr:hover td {
+    background: #eaf3fa;
+    transition: background 0.2s;
+}
+.messageText table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.messageText th:first-child,
+.messageText td:first-child {
+    border-top-left-radius: 12px;
+}
+.messageText th:last-child,
+.messageText td:last-child {
+    border-top-right-radius: 12px;
 }
 
 .chatMainFlow .chatMessage .messageText:hover {

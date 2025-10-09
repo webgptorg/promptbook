@@ -3,6 +3,7 @@
     -   Chat messages containing markdown tables or HTML `<table>` markup are now rendered as proper tables, not as plain text.
     -   Security: Only safe table-related HTML is allowed; scripts and dangerous tags are stripped.
     -   Implementation follows DRY principle by centralizing all markdown/HTML rendering in `renderMarkdown.ts`.
+    -   **Tables inside chat messages now have a modern, pretty design with rounded corners, zebra striping, and responsive overflow.**
 - Fixed: OpenAiCompatibleExecutionTools now correctly strips unsupported parameters (like `temperature`) on every call to `callChatModel`, `callCompletionModel`, and `callEmbeddingModel`, even for repeated or parallel calls. Each call is now stateless and thread-safe. ([2025-10-0000])
 
 - Allow passing a chat thread (`thread` property) into `CommonPrompt` and `ChatPrompt`
