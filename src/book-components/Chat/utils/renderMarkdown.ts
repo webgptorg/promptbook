@@ -66,11 +66,17 @@ export function renderMarkdown(markdown: string_markdown): string_html {
 
         // Basic sanitization - remove potentially dangerous attributes
         // Note: For production use, consider using a proper HTML sanitizer like DOMPurify
+        // Allow safe HTML tables (<table>, <tr>, <td>, <th>, <thead>, <tbody>, <tfoot>)
+        // Remove script/style/iframe/object/embed tags and event handlers
         const sanitizedHtml = html
+            .replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '') // Remove dangerous tags
             .replace(/\s+on\w+="[^"]*"/gi, '') // Remove event handlers
             .replace(/\s+javascript:/gi, '') // Remove javascript: URLs
             .replace(/\s+data:/gi, '') // Remove data: URLs for security
             .replace(/\s+vbscript:/gi, ''); // Remove vbscript: URLs
+
+        // Optionally, allow only specific tags (table-related and common markdown tags)
+        // For now, we rely on Showdown + above regex for safety
 
         return sanitizedHtml as string_html;
     } catch (error) {
