@@ -1,4 +1,7 @@
 'use client';
+// <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
+//          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
+
 import type { CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';

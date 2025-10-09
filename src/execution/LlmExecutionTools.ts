@@ -1,6 +1,6 @@
 import type { Promisable } from 'type-fest';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
-import type { Prompt, ChatPrompt } from '../types/Prompt';
+import type { Prompt } from '../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../types/typeAliases';
 import type { AvailableModel } from './AvailableModel';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
@@ -51,17 +51,17 @@ export type LlmExecutionTools = {
     /**
      * Calls a chat model
      */
-    callChatModel?(prompt: ChatPrompt): Promise<ChatPromptResult>;
+    callChatModel?(prompt: Prompt /* <- TODO: [🩱] ChatPrompt */): Promise<ChatPromptResult>;
 
     /**
      * Calls a completion model
      */
-    callCompletionModel?(prompt: Prompt /* <- [🩱] CompletionPromptResult */): Promise<CompletionPromptResult>;
+    callCompletionModel?(prompt: Prompt /* <- TODO: [🩱] CompletionPrompt */): Promise<CompletionPromptResult>;
 
     /**
      * Calls an embedding model
      */
-    callEmbeddingModel?(prompt: Prompt /* <- [🩱] EmbeddingPrompt */): Promise<EmbeddingPromptResult>;
+    callEmbeddingModel?(prompt: Prompt /* <- TODO: [🩱] EmbeddingPrompt */): Promise<EmbeddingPromptResult>;
 };
 
 /**
