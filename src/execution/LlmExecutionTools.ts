@@ -51,17 +51,17 @@ export type LlmExecutionTools = {
     /**
      * Calls a chat model
      */
-    callChatModel?(prompt: Prompt): Promise<ChatPromptResult>;
+    callChatModel?(prompt: Prompt /* <- [🩱] ChatPrompt */): Promise<ChatPromptResult>;
 
     /**
      * Calls a completion model
      */
-    callCompletionModel?(prompt: Prompt): Promise<CompletionPromptResult>;
+    callCompletionModel?(prompt: Prompt /* <- [🩱] CompletionPromptResult */): Promise<CompletionPromptResult>;
 
     /**
      * Calls an embedding model
      */
-    callEmbeddingModel?(prompt: Prompt): Promise<EmbeddingPromptResult>;
+    callEmbeddingModel?(prompt: Prompt /* <- [🩱] EmbeddingPrompt */): Promise<EmbeddingPromptResult>;
 };
 
 /**

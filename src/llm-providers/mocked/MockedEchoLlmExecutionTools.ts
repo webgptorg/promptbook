@@ -6,7 +6,7 @@ import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
-import type { Prompt } from '../../types/Prompt';
+import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -87,6 +87,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
+        const thread = (prompt as ChatPrompt) /* <- [🩱] */.thread;
+
         return exportJson({
             name: 'promptResult',
             message: `Result of \`MockedEchoLlmExecutionTools.callChatModel\``,
@@ -96,7 +98,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
                 content: spaceTrim(
                     (block) => `
                     You said:
-                    „${block(rawPromptContent)}“
+                    „${block(rawPromptContent)}“${thread ? ` +${thread.length} other messages` : ''}
 
                     [1️⃣ Say that again!](?message=${encodeURIComponent(rawPromptContent)})
                     [2️⃣ Say that twice!](?message=${encodeURIComponent(rawPromptContent).repeat(2)})
