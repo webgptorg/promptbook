@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🫒] In `BookEditorPreview` should be select with samples
 

@@ -1,6 +1,12 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
 ### Added
+- BookEditorPreview now includes a sample selector for loading book samples from `/books/examples`.
+- When a sample is picked, the book content is replaced with the sample content.
+- If the book is not empty, a confirmation dialog is shown before replacing the content.
+
+
+### Added
 - Chat component: Added `isCopyButtonEnabled` prop (default: `true`). When enabled, each message bubble shows a copy button in the top-right corner, supporting copy as plain text and formatted text (markdown).
 - Preview scenarios for Chat now support toggling copy buttons on/off.
 - Feature integrated into `Chat`, `MockedChat`, and `LlmChat` components.
