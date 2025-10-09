@@ -13,8 +13,11 @@
 
 [✨𓀆] Change `BookEditor` highlighting
 
--   !!!
--   `contenteditable`
+-   Book editor highlighting is now done by using textarea together with an overlay div
+-   This approach improves renders complicated books out of sync with the text
+-   Change the logic to `contenteditable` approach
+-   User will still edit the text but the text will be auto-highlighted in place
+-   Props of the component should remain the same
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
