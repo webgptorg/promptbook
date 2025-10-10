@@ -9,7 +9,7 @@
 
 ---
 
-[ ]
+[.] _<- Not working; tryied multiple variations and modifications_
 
 [✨𓀆] /deep-planning Change `BookEditor` highlighting
 
