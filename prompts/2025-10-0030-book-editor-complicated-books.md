@@ -11,7 +11,7 @@
 
 [ ]
 
-[✨𓀆] Change `BookEditor` highlighting
+[✨𓀆] /deep-planning Change `BookEditor` highlighting
 
 -   Book editor highlighting is now done by using textarea together with an overlay div
 -   This approach improves renders complicated books out of sync with the text
