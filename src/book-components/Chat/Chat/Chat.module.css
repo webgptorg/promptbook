@@ -62,7 +62,7 @@
 
 /* Large tablet and small desktop screens */
 @media (max-width: 900px) {
-    .resetButton {
+    .chatButton {
         border-radius: 50% !important;
         width: 40px !important;
         height: 40px !important;
@@ -73,12 +73,12 @@
         margin: 0 !important;
     }
 
-    .resetButton svg {
+    .chatButton svg {
         width: 18px !important;
         height: 18px !important;
     }
 
-    .resetButtonText {
+    .chatButtonText {
         display: none !important;
     }
 
@@ -98,7 +98,7 @@
         height: 18px !important;
     }
 
-    .useTemplateButton .resetButtonText {
+    .useTemplateButton .chatButtonText {
         display: none !important;
     }
 }
@@ -342,12 +342,12 @@
 }
 
 .copyButton {
-    background: rgba(255,255,255,0.7);
+    background: rgba(255, 255, 255, 0.7);
     border: 1px solid #ddd;
     border-radius: 6px;
     padding: 2px 5px;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
     transition: background 0.15s, box-shadow 0.15s, border 0.15s;
     display: flex;
     align-items: center;
@@ -359,7 +359,7 @@
     background: #f5f8fa;
     border: 1.5px solid #bbb;
     opacity: 1;
-    box-shadow: 0 2px 8px rgba(0,132,255,0.10);
+    box-shadow: 0 2px 8px rgba(0, 132, 255, 0.1);
 }
 
 .copyButton svg {
@@ -1003,7 +1003,7 @@
 }
 
 /* New chat button styling - Matches the sleek chat message design */
-.resetButton {
+.chatButton {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1030,7 +1030,7 @@
     overflow: hidden !important;
 }
 
-.resetButton::before {
+.chatButton::before {
     content: '';
     position: absolute;
     top: 0;
@@ -1041,28 +1041,28 @@
     transition: left 0.5s ease;
 }
 
-.resetButton:hover::before {
+.chatButton:hover::before {
     left: 100%;
 }
 
-.resetButton:hover:not(:disabled) {
+.chatButton:hover:not(:disabled) {
     background: linear-gradient(135deg, #0099ff 0%, #0077dd 100%);
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 8px 24px rgba(0, 132, 255, 0.4);
 }
 
-.resetButton:active {
+.chatButton:active {
     transform: scale(0.98) translateY(-1px);
     transition: transform 0.1s ease;
     box-shadow: 0 4px 16px rgba(0, 132, 255, 0.3);
 }
 
-.resetButton:focus {
+.chatButton:focus {
     outline: none;
     box-shadow: 0 4px 16px rgba(0, 132, 255, 0.3), 0 0 0 3px rgba(0, 132, 255, 0.3);
 }
 
-.resetButton svg {
+.chatButton svg {
     width: 16px;
     height: 16px;
     flex-shrink: 0;
@@ -1071,12 +1071,12 @@
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
-.resetButton:hover svg {
+.chatButton:hover svg {
     transform: rotate(-90deg) scale(1.1);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-.resetButtonText {
+.chatButtonText {
     white-space: nowrap;
     font-weight: 600;
     transition: all 0.2s ease;
@@ -1084,11 +1084,11 @@
     opacity: 1;
 }
 
-.resetButton:hover .resetButtonText {
+.chatButton:hover .chatButtonText {
     transform: translateX(1px);
 }
 
-/* Use template button styling - matches the resetButton and saveButton */
+/* Use template button styling - matches the chatButton and saveButton */
 .useTemplateButton {
     display: inline-flex !important;
     align-items: center !important;
@@ -1162,11 +1162,11 @@
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-.useTemplateButton:hover .resetButtonText {
+.useTemplateButton:hover .chatButtonText {
     transform: translateX(1px);
 }
 
-/* Pause/Resume button variant (reuses .resetButton base styles for DRY) */
+/* Pause/Resume button variant (reuses .chatButton base styles for DRY) */
 .pauseButton {
     background: linear-gradient(135deg, #ffb347 0%, #ff8c42 100%) !important; /* Warm orange for "active/running" */
 }
@@ -1379,7 +1379,7 @@
         top: calc(100% - 160px);
     }
 
-    .resetButton {
+    .chatButton {
         border-radius: 50% !important;
         width: 40px !important;
         height: 40px !important;
@@ -1390,12 +1390,12 @@
         margin: 0 !important;
     }
 
-    .resetButton svg {
+    .chatButton svg {
         width: 18px !important;
         height: 18px !important;
     }
 
-    .resetButtonText {
+    .chatButtonText {
         display: none !important;
     }
 
@@ -1415,7 +1415,7 @@
         height: 18px !important;
     }
 
-    .useTemplateButton .resetButtonText {
+    .useTemplateButton .chatButtonText {
         display: none !important;
     }
 
@@ -1494,7 +1494,7 @@
         height: 40px;
     }
 
-    .resetButton {
+    .chatButton {
         border-radius: 50% !important;
         width: 40px !important;
         height: 40px !important;
@@ -1505,12 +1505,12 @@
         margin: 0 !important;
     }
 
-    .resetButton svg {
+    .chatButton svg {
         width: 18px !important;
         height: 18px !important;
     }
 
-    .resetButtonText {
+    .chatButtonText {
         display: none !important;
     }
 
@@ -1530,7 +1530,7 @@
         height: 18px !important;
     }
 
-    .useTemplateButton .resetButtonText {
+    .useTemplateButton .chatButtonText {
         display: none !important;
     }
 
@@ -1569,7 +1569,7 @@
     .chatMainFlow .chatInput textarea,
     .chatMainFlow .chatInput button,
     .chatMainFlow .chatMessage .avatar img,
-    .resetButton {
+    .chatButton {
         transition: none;
     }
 }

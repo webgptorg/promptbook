@@ -411,7 +411,7 @@ export function Chat(props: ChatProps) {
                     <div className={classNames(actionsAlignmentClass)}>
                         {onReset && postprocessedMessages.length !== 0 && (
                             <button
-                                className={classNames(styles.resetButton)}
+                                className={classNames(styles.chatButton)}
                                 onClick={() => {
                                     if (!confirm(`Do you really want to reset the chat?`)) {
                                         return;
@@ -421,19 +421,19 @@ export function Chat(props: ChatProps) {
                                 }}
                             >
                                 <ResetIcon />
-                                <span className={styles.resetButtonText}>New chat</span>
+                                <span className={styles.chatButtonText}>New chat</span>
                             </button>
                         )}
 
                         {isSaveButtonEnabled && (
                             <div style={{ display: 'inline-block', position: 'relative' }}>
                                 <button
-                                    className={classNames(styles.resetButton)}
+                                    className={classNames(styles.chatButton)}
                                     onClick={() => setShowSaveMenu((v) => !v)}
                                     aria-haspopup="true"
                                     aria-expanded={showSaveMenu}
                                 >
-                                    <span className={styles.resetButtonText}>Download</span>
+                                    <span className={styles.chatButtonText}>Download</span>
                                 </button>
                                 {showSaveMenu && (
                                     <div
@@ -476,7 +476,7 @@ export function Chat(props: ChatProps) {
 
                         {onUseTemplate && (
                             <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
-                                <span className={styles.resetButtonText}>Use this template</span>
+                                <span className={styles.chatButtonText}>Use this template</span>
                                 <TemplateIcon size={16} />
                             </button>
                         )}

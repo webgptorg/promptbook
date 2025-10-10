@@ -324,7 +324,7 @@ export function MockedChat(props: MockedChatProps) {
     const showPauseButton = isPausable && !isSimulationComplete;
     const extraActions = showPauseButton ? (
         <button
-            className={`${chatStyles.resetButton} ${chatStyles.pauseButton} ${
+            className={`${chatStyles.chatButton} ${chatStyles.pauseButton} ${
                 playbackState === 'PAUSING' ? chatStyles.pausing : playbackState === 'PAUSED' ? chatStyles.paused : ''
             }`}
             aria-label={
@@ -346,19 +346,19 @@ export function MockedChat(props: MockedChatProps) {
             {playbackState === 'RUNNING' && (
                 <>
                     <PauseIcon size={16} />
-                    <span className={chatStyles.resetButtonText}>Pause</span>
+                    <span className={chatStyles.chatButtonText}>Pause</span>
                 </>
             )}
             {playbackState === 'PAUSING' && (
                 <>
                     <PauseIcon size={16} />
-                    <span className={chatStyles.resetButtonText}>Pausing…</span>
+                    <span className={chatStyles.chatButtonText}>Pausing…</span>
                 </>
             )}
             {playbackState === 'PAUSED' && (
                 <>
                     <PlayIcon size={16} />
-                    <span className={chatStyles.resetButtonText}>Resume</span>
+                    <span className={chatStyles.chatButtonText}>Resume</span>
                 </>
             )}
         </button>
