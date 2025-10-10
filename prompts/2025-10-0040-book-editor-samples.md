@@ -14,10 +14,9 @@
 
 [ ]
 
-[✨🫒] quux
+[✨🫒] Samples should be loaded dynamically - scripts/book-components/src/components/book-editor/BookEditorPreview.tsx Keep in mind the DRY _(don't repeat yourself)_ principle.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
+-   There should be NO hardcoded samples in the code and no duplicates
 
 ---
 
