@@ -17,7 +17,8 @@
 -   This approach improves renders complicated books out of sync with the text
 -   Change the logic to `contenteditable` approach
 -   User will still edit the text but the text will be auto-highlighted in place
--   Props of the component should remain the same
+-   Props of the component should remain the same, **highlighting logic should be the same**
+-   Visually there should be no difference
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
