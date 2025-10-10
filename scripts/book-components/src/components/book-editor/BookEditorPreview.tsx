@@ -24,229 +24,32 @@ export default function BookEditorPreview() {
     const [samples, setSamples] = useState<{ name: string; content: string }[]>([]);
     const [isLoadingSamples, setIsLoadingSamples] = useState(false);
 
-    // Load samples from /books/examples (works in dev: use require/import, not fetch)
+    // Load samples from API (/books and /books/{bookId})
     useEffect(() => {
         setIsLoadingSamples(true);
-        try {
-            // Embed the sample content directly (workaround for environments without raw-loader)
-            const sampleContent = `Asistent pro LŠVP
+        async function loadSamples() {
+            try {
+                // 1. Fetch list of book IDs
+                const res = await fetch('/api/books');
+                if (!res.ok) throw new Error('Failed to fetch book list');
+                const bookIds: string[] = await res.json();
 
-PERSONA Jsi asistent pro RVP Lyceum v rámci Národního pedagogického institutu České Republiky
-META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.jpg
-RULE Pokud jsi nejsi jistý, napiš nevím
-KNOWLEDGE ./241129_Lyceum_final.pdf
-CONTEXT Obecně dokážeš řešit libovolné ŠVP, aktuálně řešíš {Školní vzdělávací program LYCEUM}
-RULE Z {Porovnání RVP a ŠVP - postup} je nejdůležitější fáze 3
-KNOWLEDGE {Školní vzdělávací program LYCEUM}  ./ŠVP Lyceum - Finance v digitální době.pdf
-KNOWLEDGE @Slovník
-
-**Interní slovník - RVP/ŠVP**
-
-**RVP**
-
-Rámcový vzdělávací program pro obor vzdělání Lyceum je dokument na národní úrovni, který formuluje požadavky na školní vzdělávací programy ve formě především očekávaných výsledků učení, kterých mají žáci absolvováním tohoto programu na dané škole dosáhnout.
-
-**ŠVP**
-
-Školní vzdělávací program pro obor vzdělání Lyceum je dokument každé jednotlivé školy, který popisuje v jakých vyučovacích předmětech/ vzdělávacích modulech a v jakých ročnících budou požadované očekávané výsledky učení naplněny. Zároveň formuluje další očekávané výsledky učení, které naplňují disponibilní část vyučovacího času určeného RVP pro tento obor vzdělání.
-
-**Očekávaný výsledek učení (OVU)**
-
-Vyjadřuje jednotlivý požadavek na to, co mají žáci umět na konci vzdělávacího programu, tzn. jejich požadované kompetence. Je vyjádřen formulací, která je uvozena činnostním slovesem a dále obsahuje předmět této činnosti. Formulace je konkretizována resp. doplněna zpravidla formou odrážek vymezením dílčích znalostí, dovedností, postojů, jejichž splnění je předpokladem dosažení OVU jako celku.
-
-_Příklad:_
-
-<div class="joplin-table-wrapper"><table><tbody><tr><th><p><strong>Žák/žákyně řídí realizaci jednoduchého projektu</strong></p></th></tr><tr><td><ul><li>naplánuje aktivity projektu</li></ul></td></tr><tr><td><ul><li>navrhne rozpočet projektu vzhledem k navrženým aktivitám</li></ul></td></tr><tr><td><ul><li>stanoví základní ukazatele a sleduje jejich naplňování</li></ul></td></tr><tr><td><ul><li>vede projektový tým</li></ul></td></tr><tr><td><ul><li>uvede, jak by řešil krizové situace v projektu</li></ul></td></tr><tr><td><ul><li>vyhodnotí úspěšnost projektu</li></ul></td></tr></tbody></table></div>
-
-**Vzdělávací oblasti**
-
-Očekávané výsledky učení jsou v **_RVP členěny do 4 vzdělávacích oblastí_**, které tvoří společný všeobecně vzdělávací základ:
-
-- Osobnostní rozvoj, vzdělávání ke zdraví, bezpečí a produktivnímu pracovnímu životu (kariéře)
-- Komunikační a jazykové vzdělávání
-- Aplikované vzdělávání STEM (Science, Technology, Engeneering, Math), tj. přírodní vědy, informatika, technika, matematika
-- Prakticky orientované vzdělávání společenskovědní a humanitní
-
-Každá vzdělávací oblast se dále člení na okruhy, v jejichž rámci jsou OVU samostatně číslované.
-
-<div class="joplin-table-wrapper"><table><tbody><tr><th rowspan="21"><ul><li>Prakticky orientované vzdělávání společenskovědní a humanitní</li></ul></th><th rowspan="21"><p><strong>Člověk, ekonomie a podnikání</strong></p></th><th rowspan="7"><p><strong>1</strong></p></th><th><p><strong>zpracuje podklady související s podnikáním</strong></p></th></tr><tr><td><p>připraví podnikatelský záměr</p></td></tr><tr><td><p>sestaví zakladatelský rozpočet</p></td></tr><tr><td><p>zkalkuluje cenu zboží nebo služby</p></td></tr><tr><td><p>vysvětlí na příkladu základní povinnosti podnikatele vůči státu a zaměstnancům</p></td></tr><tr><td><p>vede daňovou evidenci</p></td></tr><tr><td><p>vysvětlí na příkladech etiku v podnikání</p></td></tr><tr><td rowspan="7"><p><strong>2</strong></p></td><td><p><strong>řídí realizaci jednoduchého projektu</strong></p></td></tr><tr><td><p>naplánuje aktivity projektu</p></td></tr><tr><td><p>navrhne rozpočet projektu vzhledem k navrženým aktivitám</p></td></tr><tr><td><p>stanoví základní ukazatele a sleduje jejich naplňování</p></td></tr><tr><td><p>vede projektový tým</p></td></tr><tr><td><p>uvede, jak by řešil krizové situace v projektu</p></td></tr><tr><td><p>vyhodnotí úspěšnost projektu</p></td></tr><tr><td rowspan="7"><p><strong>3</strong></p></td><td><p><strong>aplikuje ekonomické teorie v osobním a profesním životě</strong></p></td></tr><tr><td><p>vysvětlí základní ekonomické otázky</p></td></tr><tr><td><p>vysvětí stanovení rovnovážné ceny na dokonalém i nedokonalém trhu</p></td></tr><tr><td><p>charakterizuje výrobní faktory a vysvětlí hranici produkčních možností a náklady obětované příležitosti</p></td></tr><tr><td><p>uvede nejdůležitější makroekonomické pojmy a vliv jejich výše na kvalitu života a podnikání v daném státě</p></td></tr><tr><td><p>vysvětlí podstatu inflace a její důsledky na finanční situaci obyvatel a na příkladu ukáže jak se bránit jejím nepříznivým důsledkům</p></td></tr><tr><td><p>uvede hlavní výhody a nevýhody mezinárodního obchodu a vliv ochranářských opatření na ekonomickou situaci dané země</p></td></tr><tr><td></td><td></td><td><p><strong>4</strong></p></td><td><p>Atd.</p></td></tr></tbody></table></div>
-
-**Vyučovací předmět / vzdělávací modul**
-
-Očekávané výsledky učení jsou v **ŠVP** členěny do vyučovacích předmětů nebo vzdělávacích modulů, které jsou dále zařazeny do jednoho nebo více ročníků 4letého studia. Vyučovací předmět / vzdělávací modul tvoří vyučovací jednotku, kde jsou očekávané výsledky učení dále rozpracovány pro potřeby výuky podle následující šablony
-
-| **A. VSTUPNÍ ČÁST** |
-| --- |
-| **1\. Název** |
-| **2\. Kód** (kódy by měly být navázány na obory vzdělání a výsledky učení) |
-| **2a) Kategorie vzdělání** - v případě, že nebude součástí kódu |
-| **3\. Typ vyučovací jednotky** (modul, předmět, stáž apod.) |
-| **4\. Délka** (počet hodin - dělitelný čtyřmi (optimální modul 16, 32 hodin = týden výuky) |
-| **5\. Platnost** (datum, od kterého platí) |
-| **6\. Vstupní předpoklady** (vymezení požadované úrovně vstupních vědomostí a dovedností, které jsou předpokladem úspěšného studia) |
-|     |
-| **B. JÁDRO VYUČOVACÍ JEDNOTKY** |
-| **1\. Charakteristika** (stručná anotace popisující obecné cíle a pojetí) |
-| **2\. Očekávané výsledky učení a jejich indikátory (převzaté z RVP nebo dále konkretizované)** |
-| **3\. Podpora rozvoje klíčových kompetencí a základních gramotností** (které klíčové kompetence jsou v rozvíjeny) |
-| **4\. Obsah vzdělávání** (rozpis učiva) |
-| **5\. Vzdělávací strategie** (strategie výuky, resp. učební činnosti žáků, které jsou doporučené pro dosažení výsledků) |
-|     |
-| **C. VÝSTUPNÍ ČÁST** |
-| **1\. Způsob ověřování dosažených výsledků** (ve vazbě na jednotlivé výsledky učení) |
-| **2\. Kritéria hodnocení** (co znamená splnění výsledků učení, kdy je splněna celá vyučovací jednotka, kritéria pro známky, příp. procentuální, slovní hodnocení) |
-| **3\. Doporučená studijní literatura, odkazy na ilustrační zdroje** |
-| **4\. Poznámky** |
-
-**Soulad OVU RVP a ŠVP**
-
-Tento soulad je předmětem zjišťování. Soulad nastává, jestliže jsou očekávané výsledky učení z jednotlivých vzdělávacích oblastí RVP **obsaženy** ve vyučovacích předmětech/ vzdělávacích modulech ŠVP jednotlivých škol, tzn. že v ŠVP se objevuje jejich formulace buď v doslovném nebo podobném znění v jednom nebo více vyučovacích předmětech/ vzdělávacích modulech.
-
-_Příklad souladu:_
-
-RVP ŠVP - komunikace a marketing (SŠ obchodní Č.
-
-| **2** | **řídí realizaci jednoduchého projektu** |
-| --- | --- |
-| naplánuje aktivity projektu |
-| navrhne rozpočet projektu vzhledem k navrženým aktivitám |
-| stanoví základní ukazatele a sleduje jejich naplňování |
-| vede projektový tým |
-| uvede, jak by řešil krizové situace v projektu |
-| vyhodnotí úspěšnost projektu |
-
-KNOWLEDGE  {Porovnání RVP a ŠVP - postup}
-
-# AUDITNÍ PROTOKOL ŠVP-RVP
-
-# (POPIS KONTROLNÍHO ALGORITMU)
-
-Metodika je určena pro **Kvantifikaci Shody** školního vzdělávacího programu (ŠVP) s Rámcovým vzdělávacím programem (RVP).
-
-## FÁZE 1: VALIDACE DOKUMENTACE
-
-**Cíl:** Ověřit platnost, aktuálnost a strukturu zdrojových dokumentů.
-
-- **RVP Verifikace:** Otevřít aktuální verzi RVP (např. RVP ZV/G/SOŠ).
-- **Typová shoda:** Ověřit, že RVP se vztahuje k danému typu školy.
-- **ŠVP Dimenze:** Identifikovat a izolovat relevantní části ŠVP: Profil absolventa, Klíčové kompetence (KK), Vzdělávací oblasti (VO), případně Učební plán (UP).
-- **Verzování:** Potvrdit, že obě verze (RVP a ŠVP) jsou nejnovější a platné (včetně dodatků RVP).
-
-## FÁZE 2: DATABÁZOVÉ MAPOVÁNÍ VÝSTUPŮ (MASTER MATICE)
-
-**Cíl:** Vytvořit systémovou databázi pro křížové porovnání všech povinných komponent RVP se ŠVP.
-
-- **Dekompozice RVP:** Rozložit RVP na základní povinné komponenty: Klíčové kompetence, Vzdělávací oblasti a obory, Očekávané výstupy (OVU), Průřezová témata (PT).
-- **Přiřazovací mapa:** Vytvořit hlavní kontrolní matici (Master Matice) pro záznam vazeb.
-
-| Oblast RVP | Výstup RVP (OVU) | Odpovídající Část ŠVP (Předmět/Ročník) | Konkrétní Tématický Celek v ŠVP | Stav Shody (Protokol) |
-| --- | --- | --- | --- | --- |
-| ... | ... | ... | ... | ... |
-| --- | --- | --- | --- | --- |
-
-## FÁZE 3: ALGORITMICKÁ KONTROLA POKRYTÍ A HLOUBKY
-
-**Cíl:** Posoudit, zda každý povinný výstup RVP je adekvátně reflektován v obsahu ŠVP, a přidělit bodovou hodnotu pro kvantifikaci.
-
-- **Audit OVU:** Projít každý jednotlivý Očekávaný výstup (OVU) z RVP.
-- **Kódování stavu a bodování:** U každého OVU v matici označit stav pokrytí dle následujícího schématu:
-
-| Kód (Protokol) | Popis (Kvalitativní zjištění) | Bodová hodnota (Kvantifikace) |
-| --- | --- | --- |
-| ✅   | Plná shoda (Výstup pokryt v plném rozsahu, odpovídající úrovni RVP) | 1,0 |
-| --- | --- | --- |
-| ⚠️  | Částečná shoda (Formální pokrytí, omezený rozsah, chybná návaznost) | 0,5 |
-| --- | --- | --- |
-| ❌   | Absence (Výstup zcela chybí v obsahu ŠVP) | 0,0 |
-| --- | --- | --- |
-
-- **Defektologie ŠVP:** Identifikovat a zaznamenat deficity ŠVP: Chybějící výstupy (❌), Sémantické překryvy, Přetížení obsahu.
-- **Kvalitativní posun:** Ověřit, zda je formulace výstupů v ŠVP **aktivní, měřitelná a v souladu** s úrovní RVP.
-
-## FÁZE 4: STRUKTURÁLNÍ VERIFIKACE NÁVAZNOSTI (VERTIKÁLA/HORIZONTÁLA)
-
-**Cíl:** Zkontrolovat logickou posloupnost a provázanost učiva v rámci ŠVP.
-
-- **Vertikální Kontrola:** Ověřit posloupnost OVU a učiva uvnitř jednoho předmětu/oblasti (postup od jednodušších ke složitějším konceptům napříč ročníky).
-- **Horizontální Kontrola:** Zkontrolovat logické provázání napříč vzdělávacími oblastmi a předměty (např. fyzika ↔ matematika).
-- **PT Integrace:** Audit reálné integrace Průřezových témat (PT) do konkrétních částí obsahu, metod a projektů.
-
-## FÁZE 5: ANALÝZA ŠKOLNÍ PROFILACE A ROZŠÍŘENÍ RVP
-
-**Cíl:** Validovat, že profilace školy je **v souladu** s RVP a nejedná se o **rozpor**.
-
-- **Nekonfliktnost:** Porovnat definovaný Profil absolventa školy s Klíčovými kompetencemi RVP. Profil ŠVP musí RVP rozvíjet, nikoli mu odporovat.
-- **Modularita:** Zkontrolovat, zda volitelné předměty a rozšiřující moduly logicky navazují na vzdělávací oblasti RVP.
-- **Implementace specializace:** Popisně uvést, jak je školní profilace (např. STEM zaměření, projektová výuka) integrována do OVU a kompetencí definovaných RVP.
-
-## FÁZE 6: GENERÁTOR ZÁVĚREČNÉ ZPRÁVY A KVANTIFIKACE
-
-**Cíl:** Syntetizovat výsledky, kvantifikovat soulad a generovat závazné návrhy na korekce.
-
-### 6.1 Kvantifikace Souladu
-
-Vypočítat Index shody (IS) na základě bodového hodnocení (Fáze 3):
-
-### 6.2 Interpretace Indexu Shody (IS)
-
-Klasifikace souladu pro standardizované vyhodnocení:
-
-| Interval IS | Klasifikace souladu | Popis |
-| --- | --- | --- |
-| 95-100 % | Výborný soulad | ŠVP plně odpovídá RVP, pouze stylistické nebo formální rozdíly. |
-| --- | --- | --- |
-| 85-94 % | Dobrá shoda | ŠVP pokrývá všechny klíčové výstupy, menší korekce nutné. |
-| --- | --- | --- |
-| 70-84 % | Částečná shoda | Významné nedostatky v některých oblastech, nutná revize obsahu. |
-| --- | --- | --- |
-| < 70 % | Kritická neshoda | ŠVP neplní rámcové požadavky, ohrožuje legislativní soulad. |
-| --- | --- | --- |
-
-### 6.3 Doplňkové Indexy
-
-Vypočítat následující doplňkové indexy pro detailní kvalitativní analýzu:
-
-- **Index kompetenčního souladu (IKS):** Poměr pokrytí klíčových kompetencí RVP v ŠVP.
-- **Index průřezové integrace (IPI):** Míra reálné integrace průřezových témat do výuky.
-- **Index hloubky pokrytí (IHP):** Procento výstupů, které jsou v ŠVP rozvedeny na konkrétní výukové cíle (měřitelné, aktivní formulace).
-- **Index profilové rozšiřitelnosti (IPR):** Kolik rozšiřujících nebo profilových výstupů přesahuje rámec RVP, aniž by narušily jeho strukturu.
-
-### 6.4 Vizuální výstupy
-
-Zajistit generování následujících vizualizací pro Závěrečnou zprávu:
-
-- Graf pokrytí po vzdělávacích oblastech (Sloupcový graf IS pro VO).
-- Pavoukový diagram Klíčových kompetencí (RVP vs. ŠVP).
-- Mapa defektů (Vizualizace ❌ a ⚠️ výstupů).
-
-### 6.5 Struktura Závěrečné Zprávy
-
-Zpráva musí být strukturována dle standardizovaného formátu:
-
-| Oddíl | Obsah |
-| --- | --- |
-| A. Identifikace | Název školy, IZO, typ školy, datum revize, zpracovatel, verze ŠVP a RVP. |
-| --- | --- |
-| B. Shrnutí výsledků | Celkový Index Shody (IS), hlavní závěry a doporučení. |
-| --- | --- |
-| C. Kvantitativní analýza | Přehled IS v % dle kategorií OVU / VO / kompetencí. |
-| --- | --- |
-| D. Kvalitativní analýza | Slovní zhodnocení kvality souladu (formulace, obtížnost, integrace PT). |
-| --- | --- |
-| E. Rizikové oblasti | Přehled nalezených defektů (chybějící OVU, přetížení, formální shoda). |
-| --- | --- |
-| F. Návrhy opatření (Korekční plán) | Přesné návrhy změn - **Co, Kde, Kdo** má upravit, včetně termínu. |
-| --- | --- |
-| G. Přílohy | Master Matice (Fáze 2-3), revizní tabulka, výstupní grafy a metriky. |
-| --- | --- |
-
-.`;
-            setSamples([{ name: 'lsvp-asistent.book', content: sampleContent }]);
-        } catch (e) {
-            setSamples([]);
-        } finally {
-            setIsLoadingSamples(false);
+                // 2. Fetch each book's content in parallel
+                const samplePromises = bookIds.map(async (bookId) => {
+                    const contentRes = await fetch(`/api/books/${encodeURIComponent(bookId)}`);
+                    if (!contentRes.ok) return null;
+                    const content = await contentRes.text();
+                    return { name: bookId, content };
+                });
+                const loadedSamples = (await Promise.all(samplePromises)).filter(Boolean) as { name: string; content: string }[];
+                setSamples(loadedSamples);
+            } catch (e) {
+                setSamples([]);
+            } finally {
+                setIsLoadingSamples(false);
+            }
         }
+        loadSamples();
     }, []);
 
     // Confirmation dialog state

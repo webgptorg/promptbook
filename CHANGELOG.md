@@ -1,5 +1,8 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
+### Changed
+- BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
+
 ### Added
 - BookEditorPreview now includes a sample selector for loading book samples from `/books/examples`.
 - When a sample is picked, the book content is replaced with the sample content.
