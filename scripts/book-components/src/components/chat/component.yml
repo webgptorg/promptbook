@@ -65,18 +65,18 @@ examples:
       code: '<Chat messages={[]} participants={participants} onMessage={handleMessage} />'
     - title: Simple User-Assistant Chat
       code: |-
-          <Chat 
+          <Chat
               messages={[
                   { id: '1', from: 'USER', content: 'Hello!', date: new Date(), isComplete: true },
                   { id: '2', from: 'ASSISTANT', content: 'Hi! How can I help?', date: new Date(), isComplete: true }
-              ]} 
+              ]}
               participants={participants}
               onMessage={handleMessage}
               onReset={handleReset}
           />
     - title: Multi-Participant Chat
       code: |-
-          <Chat 
+          <Chat
               messages={multiParticipantMessages}
               participants={[
                   { name: 'USER', fullname: 'You', isMe: true, color: '#3b82f6' },
@@ -88,11 +88,28 @@ examples:
           />
     - title: Chat with Loading Message
       code: |-
-          <Chat 
+          <Chat
               messages={[
                   { id: '1', from: 'USER', content: 'Question?', date: new Date(), isComplete: true },
                   { id: '2', from: 'ASSISTANT', content: 'Thinking...', date: new Date(), isComplete: false }
               ]}
               participants={participants}
               onMessage={handleMessage}
+          />
+    - title: Chat with children
+      code: |-
+          <Chat
+              messages={[
+                  { id: '1', from: 'USER', content: 'What is the meaning of life?', date: new Date(), isComplete: true },
+                  { id: '2', from: 'ASSISTANT_1', content: "That's a deep question! The meaning of life is often considered to be 42.", date: new Date(), isComplete: true }
+              ]}
+              participants={participants}
+              onMessage={handleMessage}
+              onReset={handleReset}
+              children={
+                <div>
+                  <strong>Custom children content:</strong>
+                  <span>This area is rendered above the chat messages and input.</span>
+                </div>
+              }
           />

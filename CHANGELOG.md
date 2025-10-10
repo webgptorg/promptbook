@@ -4,6 +4,10 @@
 - BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
 
 ### Added
+-   **[✨] `<Chat>` component now supports `children` prop**
+    -   When `children` is provided, it is rendered above the chat messages and input area.
+    -   Preview: New scenario "Chat with children" demonstrates this feature in the Chat component preview.
+    -   Implementation follows DRY principle and is covered by a usage example.
 - BookEditorPreview now includes a sample selector for loading book samples from `/books/examples`.
 - When a sample is picked, the book content is replaced with the sample content.
 - If the book is not empty, a confirmation dialog is shown before replacing the content.
