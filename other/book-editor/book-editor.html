@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor se zvýrazněním "ahoj"</title>
+<style>
+  body {
+    font-family: sans-serif;
+    padding: 2rem;
+    background: #f9f9f9;
+  }
+
+  [contenteditable] {
+    width: 100%;
+    min-height: 150px;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 8px;
+    background: white;
+    outline: none;
+  }
+
+  b {
+    color: #d00;
+  }
+</style>
+</head>
+<body>
+  <h2>Editor se zvýrazněním slova „ahoj“</h2>
+  <div id="editor" contenteditable="true"></div>
+
+  <script>
+    const editor = document.getElementById('editor');
+
+    editor.addEventListener('input', () => {
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      const cursorPosition = range.startOffset;
+
+      // Uložíme prostý text
+      const text = editor.innerText;
+
+      // Nahradíme výskyty "ahoj" za <b>ahoj</b>
+      const highlighted = text.replace(/(ahoj)/gi, '<b>$1</b>');
+
+      // Znovu nastavíme HTML
+      editor.innerHTML = highlighted;
+
+      // Vrátíme kurzor na konec
+      const lastChild = editor.lastChild;
+      if (lastChild) {
+        const range = document.createRange();
+        range.selectNodeContents(lastChild);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    });
+  </script>
+</body>
+</html>
