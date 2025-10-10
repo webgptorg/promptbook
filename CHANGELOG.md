@@ -1,6 +1,7 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
 ### Changed
+- BookEditor component migrated from textarea+overlay highlighting to a single contenteditable-based editor with in-place syntax highlighting. All props, callbacks, and highlighting logic are preserved. Improves performance and fidelity for large/complex books. See implementation_plan.md for details. ([2025-10-0030])
 - BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
 
 ### Added
