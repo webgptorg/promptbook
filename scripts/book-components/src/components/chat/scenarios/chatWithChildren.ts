@@ -1,5 +1,4 @@
-// Scenario: Chat with children
-import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
+import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
 export const chatWithChildrenScenario = {
     name: 'Chat with children',
