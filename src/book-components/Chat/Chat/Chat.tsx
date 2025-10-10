@@ -433,7 +433,7 @@ export function Chat(props: ChatProps) {
                                     aria-haspopup="true"
                                     aria-expanded={showSaveMenu}
                                 >
-                                    <span className={styles.chatButtonText}>Download</span>
+                                    <span className={styles.chatButtonText}>Save</span>
                                 </button>
                                 {showSaveMenu && (
                                     <div
