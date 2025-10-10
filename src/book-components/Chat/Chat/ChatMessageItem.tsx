@@ -32,6 +32,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Enables the copy button for this message bubble.
      */
     isCopyButtonEnabled?: boolean;
+    /**
+     * Enables the feedback (rating) UI for this message bubble.
+     */
+    isFeedbackEnabled?: boolean;
 };
 
 /**
@@ -52,6 +56,7 @@ export const ChatMessageItem = memo(
         handleRating,
         mode,
         isCopyButtonEnabled,
+        isFeedbackEnabled,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
         const color = Color.from((participant && participant.color) || '#ccc');
@@ -185,7 +190,7 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
-                    {message.isComplete && (
+                    {isFeedbackEnabled && message.isComplete && (
                         <div
                             className={styles.rating}
                             onMouseEnter={() => {

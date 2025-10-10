@@ -8,6 +8,7 @@ import {
     assistantsOnlyScenario,
     chatButtonsScenario,
     chatWithChildrenScenario,
+    chatWithFeedbackScenario,
     emptyScenario,
     loadingScenario,
     longThreadScenario,
@@ -57,6 +58,7 @@ export default function ChatPreview() {
             longThread: longThreadScenario,
             chatButtons: chatButtonsScenario,
             chatWithChildren: chatWithChildrenScenario,
+            chatWithFeedback: chatWithFeedbackScenario,
         }),
         [],
     );
@@ -194,6 +196,11 @@ export default function ChatPreview() {
                                   </span>
                               </div>
                           ),
+                      }
+                    : {})}
+                {...(scenario === 'chatWithFeedback'
+                    ? {
+                          onFeedback: () => window.alert('Feedback sent!'),
                       }
                     : {})}
             />

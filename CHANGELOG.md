@@ -2,6 +2,12 @@
 
 ### Changed
 - BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
+- **[✨] `<Chat>` component now only shows the feedback button if `onFeedback` prop is provided**
+    - By default, the feedback button is hidden unless `onFeedback` is set.
+    - DRY: Feedback logic is centralized and not duplicated.
+    - Preview scenarios should demonstrate both with and without feedback; "Chat with feedback" scenario added.
+    - This is a UI change for consumers relying on the feedback button always being present.
+    - ([2025-10-0060])
 
 ### Added
 -   **[✨] `<Chat>` component now supports `children` prop**

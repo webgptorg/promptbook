@@ -113,3 +113,15 @@ examples:
                 </div>
               }
           />
+    - title: Chat with feedback
+      code: |-
+          <Chat
+              messages={[
+                  { id: '1', from: 'USER', content: 'Hello! Can you help me?', date: new Date(), isComplete: true },
+                  { id: '2', from: 'ASSISTANT_1', content: 'Of course! What do you need help with?', date: new Date(), isComplete: true }
+              ]}
+              participants={participants}
+              onMessage={handleMessage}
+              onReset={handleReset}
+              onFeedback={(feedbackData) => void console.info('Feedback received:', feedbackData)}
+          />

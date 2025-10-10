@@ -376,6 +376,8 @@ export function Chat(props: ChatProps) {
         [messages],
     );
 
+    const isFeedbackEnabled = !!onFeedback;
+
     return (
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
@@ -510,6 +512,7 @@ export function Chat(props: ChatProps) {
                                     handleRating={handleRating}
                                     mode={mode}
                                     isCopyButtonEnabled={isCopyButtonEnabled}
+                                    isFeedbackEnabled={isFeedbackEnabled}
                                 />
                             );
                         })}
