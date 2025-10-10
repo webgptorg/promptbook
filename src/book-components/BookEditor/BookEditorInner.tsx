@@ -3,7 +3,7 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments/index';
 import { DEFAULT_BOOK_TITLE } from '../../config';
-/* Removed unused debounce import */
+import { debounce } from '../../utils/misc/debounce';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { classNames } from '../_common/react-utils/classNames';
 import { escapeHtml } from '../_common/react-utils/escapeHtml';
@@ -31,17 +31,44 @@ export function BookEditorInner(props: BookEditorProps) {
     const value = controlledValue !== undefined ? controlledValue : internalValue;
     const effectiveFontClassName = fontClassName || DEFAULT_BOOK_FONT_CLASS;
 
-    const editorRef = useRef<HTMLDivElement>(null);
-    const [isDragOver, setIsDragOver] = useState<boolean>(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const highlightRef = useRef<HTMLPreElement>(null);
+
     const [lineHeight, setLineHeight] = useState<number>(32);
+    const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
-    // For contenteditable, virtualization is not needed; show all content.
-    const visibleRange: [number, number] = [0, (value ?? '').split('\n').length];
+    // Virtualization state: visible line range
+    const [visibleRange, setVisibleRange] = useState<[number, number]>([0, 30]);
+    // Debounced update for visible range
+    const updateVisibleRange = useCallback(
+        debounce(() => {
+            const textarea = textareaRef.current;
+            if (!textarea) return;
+            const scrollTop = textarea.scrollTop;
+            const clientHeight = textarea.clientHeight;
+            const totalLines = (value ?? '').split('\n').length;
+            const firstLine = Math.max(0, Math.floor(scrollTop / lineHeight) - 10); // buffer
+            const lastLine = Math.min(totalLines, Math.ceil((scrollTop + clientHeight) / lineHeight) + 10);
+            setVisibleRange([firstLine, lastLine]);
+        }, 30),
+        [value, lineHeight],
+    );
+    // Update visible range on scroll/resize/value change
+    useEffect(() => {
+        updateVisibleRange();
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.addEventListener('scroll', updateVisibleRange);
+        window.addEventListener('resize', updateVisibleRange);
+        return () => {
+            textarea.removeEventListener('scroll', updateVisibleRange);
+            window.removeEventListener('resize', updateVisibleRange);
+        };
+    }, [updateVisibleRange]);
 
-    // Handle input from contenteditable
-    const handleInput = useCallback(
-        (event: React.FormEvent<HTMLDivElement>) => {
-            const newValue = event.currentTarget.innerText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const handleChange = useCallback(
+        (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+            const newValue = event.target.value;
             if (controlledValue !== undefined) {
                 onChange?.(validateBook(newValue));
             } else {
@@ -51,9 +78,11 @@ export function BookEditorInner(props: BookEditorProps) {
         [controlledValue, onChange],
     );
 
-    // Insert text at caret position in contenteditable
     const insertTextAtPosition = useCallback(
         (textToInsert: string, position: number) => {
+            const textarea = textareaRef.current;
+            if (!textarea) return;
+
             const currentValue = value || '';
             const newValue = currentValue.slice(0, position) + textToInsert + currentValue.slice(position);
 
@@ -63,75 +92,78 @@ export function BookEditorInner(props: BookEditorProps) {
                 setInternalValue(validateBook(newValue));
             }
 
-            // Restore selection after DOM update
+            // Select the inserted text
             setTimeout(() => {
-                const el = editorRef.current;
-                if (!el) return;
-                const range = document.createRange();
-                const sel = window.getSelection();
-                // Find text node and set caret
-                let charIndex = 0;
-                let nodeStack: ChildNode[] = [el];
-                let found = false;
-                while (nodeStack.length && !found) {
-                    const node = nodeStack.shift();
-                    if (!node) break;
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        const nextCharIndex = charIndex + node.textContent!.length;
-                        if (position >= charIndex && position <= nextCharIndex) {
-                            range.setStart(node, position - charIndex);
-                            range.collapse(true);
-                            found = true;
-                            break;
-                        }
-                        charIndex = nextCharIndex;
-                    } else if (node.nodeType === Node.ELEMENT_NODE) {
-                        nodeStack = Array.from(node.childNodes).concat(nodeStack);
-                    }
-                }
-                if (found && sel) {
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }
-                el.focus();
+                textarea.setSelectionRange(position, position + textToInsert.length);
+                textarea.focus();
             }, 0);
         },
         [value, controlledValue, onChange],
     );
 
-    // Get caret position from mouse coordinates in contenteditable
     const getPositionFromCoordinates = useCallback(
         (clientX: number, clientY: number): number => {
-            const el = editorRef.current;
-            if (!el) return 0;
+            const textarea = textareaRef.current;
+            if (!textarea) return 0;
+
+            const rect = textarea.getBoundingClientRect();
+            const relativeX = clientX - rect.left;
+            const relativeY = clientY - rect.top;
+
+            // Account for scrolling
+            const scrollLeft = textarea.scrollLeft;
+            const scrollTop = textarea.scrollTop;
+
+            const adjustedX = relativeX + scrollLeft;
+            const adjustedY = relativeY + scrollTop;
+
+            // Get computed styles to calculate character dimensions
+            const computedStyle = window.getComputedStyle(textarea);
+            const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
+            const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
+
+            // Adjust for padding
+            const textX = Math.max(0, adjustedX - paddingLeft);
+            const textY = Math.max(0, adjustedY - paddingTop);
+
+            // Estimate line and column based on font metrics
+            const lineNumber = Math.floor(textY / lineHeight);
+
+            // Create a temporary span to measure character width
+            const span = document.createElement('span');
+            span.style.font = computedStyle.font;
+            span.style.fontSize = computedStyle.fontSize;
+            span.style.fontFamily = computedStyle.fontFamily;
+            span.style.position = 'absolute';
+            span.style.visibility = 'hidden';
+            span.textContent = 'W'; // Use a typical character for width estimation
+            document.body.appendChild(span);
+            const charWidth = span.getBoundingClientRect().width;
+            document.body.removeChild(span);
+
+            const columnNumber = Math.round(textX / charWidth);
+
+            // Convert line and column to character position
+            const lines = (value || '').split('\n');
             let position = 0;
-            const range = document.caretRangeFromPoint
-                ? document.caretRangeFromPoint(clientX, clientY)
-                : ('caretPositionFromPoint' in document)
-                ? (() => {
-                      const pos = (document as { caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null }).caretPositionFromPoint?.(clientX, clientY);
-                      if (!pos) return null;
-                      const r = document.createRange();
-                      r.setStart(pos.offsetNode, pos.offset);
-                      return r;
-                  })()
-                : null;
-            if (range) {
-                // Count characters up to range start
-                const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
-                let charCount = 0;
-                let node: Node | null;
-                while ((node = walker.nextNode())) {
-                    if (node === range.startContainer) {
-                        position = charCount + range.startOffset;
-                        break;
-                    }
-                    charCount += node.textContent?.length || 0;
+
+            for (let i = 0; i < Math.min(lineNumber, lines.length); i++) {
+                if (i === lineNumber) {
+                    position += Math.min(columnNumber, lines[i]!.length);
+                    break;
+                } else {
+                    position += lines[i]!.length + 1; // +1 for newline character
                 }
             }
+
+            // If we're beyond the last line, position at the end
+            if (lineNumber >= lines.length) {
+                position = (value || '').length;
+            }
+
             return Math.max(0, Math.min(position, (value || '').length));
         },
-        [value],
+        [value, lineHeight],
     );
 
     /**
@@ -233,7 +265,7 @@ export function BookEditorInner(props: BookEditorProps) {
     );
 
     const handleDrop = useCallback(
-        async (event: React.DragEvent<HTMLDivElement>) => {
+        async (event: React.DragEvent<HTMLTextAreaElement>) => {
             event.preventDefault();
             setIsDragOver(false);
 
@@ -259,25 +291,34 @@ export function BookEditorInner(props: BookEditorProps) {
         [onFileUpload, getPositionFromCoordinates, smartInsertUploadedContent],
     );
 
-    const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    const handleDragOver = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {
         event.preventDefault();
         setIsDragOver(true);
     }, []);
 
-    const handleDragEnter = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    const handleDragEnter = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {
         event.preventDefault();
         setIsDragOver(true);
     }, []);
 
-    const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    const handleDragLeave = useCallback((event: React.DragEvent<HTMLTextAreaElement>) => {
         event.preventDefault();
+        // Only set drag over to false if we're leaving the textarea itself, not a child element
         if (event.currentTarget === event.target) {
             setIsDragOver(false);
         }
     }, []);
 
+    const handleScroll = useCallback((event: React.UIEvent<HTMLTextAreaElement>) => {
+        const t = event.currentTarget;
+        if (highlightRef.current) {
+            highlightRef.current.scrollTop = t.scrollTop;
+            highlightRef.current.scrollLeft = t.scrollLeft;
+        }
+    }, []);
+
     useEffect(() => {
-        const el = editorRef.current;
+        const el = textareaRef.current;
         if (!el) return;
 
         const measure = () => {
@@ -414,7 +455,7 @@ export function BookEditorInner(props: BookEditorProps) {
         [atParameterRegex, braceParameterRegex],
     );
 
-    // Highlighting logic for contenteditable
+    // Virtualized, debounced highlight rendering for large books
     const highlightedHtml = useMemo(() => {
         const text = value ?? '';
         const lines = text.split('\n');
@@ -431,7 +472,7 @@ export function BookEditorInner(props: BookEditorProps) {
             type: 'keyword' | 'parameter' | 'comment';
         }> = [];
 
-        // Highlighting logic for all lines (no virtualization)
+        // Highlighting logic for visible lines only
         const visibleText = visibleLines.join('\n');
 
         // First, handle comment-like commitments (NOTE, COMMENT, NONCE)
@@ -502,7 +543,7 @@ export function BookEditorInner(props: BookEditorProps) {
         // Sort ranges by start position
         processedRanges.sort((a, b) => a.start - b.start);
 
-        // Build the highlighted HTML for all lines
+        // Build the highlighted HTML for the visible lines only
         let visibleLastIndex = offset;
         processedRanges.forEach((range) => {
             out += escapeHtml(text.slice(visibleLastIndex, range.start));
@@ -531,7 +572,7 @@ export function BookEditorInner(props: BookEditorProps) {
         if (resultLines.length > 0 && firstLine === 0) {
             resultLines[0] = `<span class="book-highlight-title">${resultLines[0]}</span>`;
         }
-        return resultLines.join('<br>');
+        return resultLines.join('\n');
     }, [value, typeRegex, metaRegex, extractUnifiedParameters, visibleRange]);
 
     return (
@@ -544,30 +585,35 @@ export function BookEditorInner(props: BookEditorProps) {
                 )}
             >
                 <div aria-hidden className={styles.bookEditorBackground} style={{ backgroundImage: 'none' }} />
-                <div
-                    id="book"
-                    ref={editorRef}
-                    className={`${styles.bookEditorHighlight} ${effectiveFontClassName}${isDragOver ? ' ' + styles.isDragOver : ''}`}
-                    contentEditable
-                    suppressContentEditableWarning
-                    spellCheck={false}
+                <pre
+                    ref={highlightRef}
+                    aria-hidden
+                    className={`${styles.bookEditorHighlight} ${effectiveFontClassName}`}
                     style={{
                         lineHeight: `${lineHeight}px`,
                         backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
                         backgroundAttachment: 'local',
                         backgroundOrigin: 'padding-box, content-box',
                         backgroundClip: 'padding-box, content-box',
-                        outline: 'none',
-                        whiteSpace: 'pre-wrap',
-                        overflowWrap: 'break-word',
                     }}
-                    onInput={handleInput}
+                    dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                />
+                <textarea
+                    id="book"
+                    ref={textareaRef}
+                    value={value}
+                    onChange={handleChange}
+                    onScroll={handleScroll}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
-                    dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-                    aria-label="Book editor"
+                    className={`${styles.bookEditorTextarea} ${effectiveFontClassName}${
+                        isDragOver ? ' ' + styles.isDragOver : ''
+                    }`}
+                    style={{ lineHeight: `${lineHeight}px` }}
+                    placeholder={DEFAULT_BOOK}
+                    spellCheck={false}
                 />
                 {isFooterShown && (
                     <div className={styles.bookEditorBar}>
