@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import {
     assistantsOnlyScenario,
     chatButtonsScenario,
+    chatWithChildrenScenario,
     emptyScenario,
     loadingScenario,
     longThreadScenario,
     multiParticipantScenario,
     simpleScenario,
-    chatWithChildrenScenario,
 } from './scenarios';
 
 export default function ChatPreview() {
@@ -47,16 +47,19 @@ export default function ChatPreview() {
         },
     ];
 
-    const scenarios = {
-        empty: emptyScenario,
-        simple: simpleScenario,
-        multiParticipant: multiParticipantScenario,
-        assistantsOnly: assistantsOnlyScenario,
-        loading: loadingScenario,
-        longThread: longThreadScenario,
-        chatButtons: chatButtonsScenario,
-        chatWithChildren: chatWithChildrenScenario,
-    };
+    const scenarios = useMemo(
+        () => ({
+            empty: emptyScenario,
+            simple: simpleScenario,
+            multiParticipant: multiParticipantScenario,
+            assistantsOnly: assistantsOnlyScenario,
+            loading: loadingScenario,
+            longThread: longThreadScenario,
+            chatButtons: chatButtonsScenario,
+            chatWithChildren: chatWithChildrenScenario,
+        }),
+        [],
+    );
 
     // Read scenario from URL parameter on component mount
     useEffect(() => {
@@ -137,7 +140,7 @@ export default function ChatPreview() {
                     <div>
                         <strong>Chat with children:</strong>
                         <pre style={{ background: '#f3f4f6', padding: 8, borderRadius: 6, marginTop: 4 }}>
-{`<Chat
+                            {`<Chat
   messages={messages}
   participants={participants}
   onMessage={handleMessage}
@@ -184,7 +187,11 @@ export default function ChatPreview() {
                     ? {
                           children: (
                               <div style={{ padding: 12, background: '#f3f4f6', borderRadius: 8, marginBottom: 8 }}>
-                                  <strong>Custom children content:</strong> <span>This area is rendered above the chat messages and input. You can put anything here, such as tips, banners, or custom UI.</span>
+                                  <strong>Custom children content:</strong>{' '}
+                                  <span>
+                                      This area is rendered above the chat messages and input. You can put anything
+                                      here, such as tips, banners, or custom UI.
+                                  </span>
                               </div>
                           ),
                       }

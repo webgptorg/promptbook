@@ -141,33 +141,36 @@ export default function LlmChatPreview() {
         [buildInitialMessages],
     );
 
-    const scenarios = {
-        'mock-basic': {
-            name: 'Mocked Chat (No storage)',
-            description: 'Simple chat with mocked echo LLM',
-            llmTools: mockedLlmTools,
-        },
-        'mock-persistent': {
-            name: 'Mocked Chat (Persistent)',
-            description: 'Chat with mocked LLM and localStorage persistence - messages survive page refresh',
-            llmTools: mockedLlmTools,
-        },
-        'fake-llm': {
-            name: 'Fake LLM',
-            description: 'Chat with Fake LLM that pretends to be real LLM but is not',
-            llmTools: fakeLlmTools,
-        },
-        openai: {
-            name: 'OpenAI',
-            description: 'Chat with OpenAI GPT models',
-            llmTools: openaiLlmTools,
-        },
-        'pavol-hejny-agent': {
-            name: 'Pavol Hejny`s Agent',
-            description: 'Chat with Agent representing Pavol Hejny based on Promptbook persona',
-            llmTools: agentLlmTools,
-        },
-    };
+    const scenarios = useMemo(
+        () => ({
+            'mock-basic': {
+                name: 'Mocked Chat (No storage)',
+                description: 'Simple chat with mocked echo LLM',
+                llmTools: mockedLlmTools,
+            },
+            'mock-persistent': {
+                name: 'Mocked Chat (Persistent)',
+                description: 'Chat with mocked LLM and localStorage persistence - messages survive page refresh',
+                llmTools: mockedLlmTools,
+            },
+            'fake-llm': {
+                name: 'Fake LLM',
+                description: 'Chat with Fake LLM that pretends to be real LLM but is not',
+                llmTools: fakeLlmTools,
+            },
+            openai: {
+                name: 'OpenAI',
+                description: 'Chat with OpenAI GPT models',
+                llmTools: openaiLlmTools,
+            },
+            'pavol-hejny-agent': {
+                name: 'Pavol Hejny`s Agent',
+                description: 'Chat with Agent representing Pavol Hejny based on Promptbook persona',
+                llmTools: agentLlmTools,
+            },
+        }),
+        [mockedLlmTools, fakeLlmTools, openaiLlmTools, agentLlmTools],
+    );
 
     const handleChange = (messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>) => {
         console.log('Chat state changed:', { messages: messages.length, participants: participants.length });
