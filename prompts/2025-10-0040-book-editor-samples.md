@@ -14,7 +14,7 @@
 
 [ ]
 
-[✨🫒] Samples should be loaded dynamically - scripts/book-components/src/components/book-editor/BookEditorPreview.tsx Keep in mind the DRY _(don't repeat yourself)_ principle.
+[✨🫒] Samples should be loaded dynamically - [`BookEditorPreview.tsx`](/scripts/book-components/src/components/book-editor/BookEditorPreview.tsx) Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 -   There should be NO hardcoded samples in the code and no duplicates
 
