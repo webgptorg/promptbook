@@ -1,3 +1,4 @@
+import { TODO_any } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import fs from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,9 +10,10 @@ import { keepUnused } from '../../../../../../../src/utils/organization/keepUnus
  *
  * @returns GET /api/books/[bookId] -> return content of the .book file
  */
-export async function GET(request: NextRequest, { params }: { params: { bookId: string } }) {
+export async function GET(request: NextRequest, todoWhatIsThis: TODO_any) {
     try {
         keepUnused(request);
+        const { params } = todoWhatIsThis;
         const { bookId } = params;
 
         if (typeof bookId !== 'string' || !bookId.endsWith('.book')) {
