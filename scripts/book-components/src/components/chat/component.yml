@@ -106,13 +106,12 @@ examples:
               participants={participants}
               onMessage={handleMessage}
               onReset={handleReset}
-              children={
-                <div>
+          >
+              <div>
                   <strong>Custom children content:</strong>
                   <span>This area is rendered above the chat messages and input.</span>
-                </div>
-              }
-          />
+              </div>
+          </Chat>
     - title: Chat with feedback
       code: |-
           <Chat

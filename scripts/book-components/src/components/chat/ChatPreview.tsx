@@ -135,32 +135,6 @@ export default function ChatPreview() {
 
     return (
         <div className="space-y-4">
-            {/* Usage Examples */}
-            <div className="mb-4 p-4 bg-gray-50 rounded">
-                <div className="font-semibold mb-2">Usage Examples</div>
-                <div>
-                    <div>
-                        <strong>Chat with children:</strong>
-                        <pre style={{ background: '#f3f4f6', padding: 8, borderRadius: 6, marginTop: 4 }}>
-                            {`<Chat
-  messages={messages}
-  participants={participants}
-  onMessage={handleMessage}
-  onReset={handleReset}
-  children={
-    <div>
-      <strong>Custom children content:</strong>
-      <span>This area is rendered above the chat messages and input.</span>
-    </div>
-  }
-/>`}
-                        </pre>
-                        <span className="text-xs text-gray-500">
-                            See scenario: <code>Chat with children</code> in the selector below.
-                        </span>
-                    </div>
-                </div>
-            </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Chat Scenario:</label>
                 <select
