@@ -126,7 +126,6 @@
     overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
-    background-color: #f7fbff;
 }
 
 /* Custom scrollbar styling */
