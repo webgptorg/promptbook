@@ -14,7 +14,7 @@
 
 [ ]
 
-[✨🐣] baz
+[✨🐣] Chat shouldnt have any custom background color
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`

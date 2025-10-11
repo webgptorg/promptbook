@@ -3,8 +3,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    /* explicit background (was --page-background-color) */
-    background-color: #f7fbff;
 }
 
 .chatMainFlow {
@@ -17,7 +15,6 @@
         '💬' 1fr
         '📝' min-content
         / 1fr;
-    background-color: #f7fbff;
 }
 
 .chatMainFlow .chatBar {
@@ -526,7 +523,6 @@
     grid-area: 📝;
     width: 100%;
     padding: 20px;
-    background: linear-gradient(to top, #f7fbff 0%, transparent 100%);
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(125, 125, 125, 0.1);
     display: flex;
