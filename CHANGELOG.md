@@ -1,6 +1,10 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
 ### Changed
+-   **[✨] Improved visual contrast for tables in `<Chat />`**
+    -   Tables inside chat messages (markdown or HTML) now have higher contrast text and backgrounds for better readability and accessibility.
+    -   Styling is DRY and applies to all tables rendered in chat messages.
+    -   ([2025-10-0080])
 - BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
 - **[✨] `<Chat>` component now only shows the feedback button if `onFeedback` prop is provided**
     - By default, the feedback button is hidden unless `onFeedback` is set.

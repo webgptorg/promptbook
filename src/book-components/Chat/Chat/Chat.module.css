@@ -374,32 +374,35 @@
     border-collapse: separate;
     border-spacing: 0;
     margin: 16px 0;
-    background: rgba(255, 255, 255, 0.85);
+    background: #f8fafc; /* Stronger light background for contrast */
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-size: 14px;
+    color: #17223b; /* Dark text for contrast */
 }
 .messageText th,
 .messageText td {
     padding: 10px 16px;
-    border-bottom: 1px solid #e3e7ee;
+    border-bottom: 1px solid #d1dbe8;
     text-align: left;
+    color: #17223b; /* Ensure strong text color for all cells */
+    background: none;
 }
 .messageText th {
-    background: linear-gradient(90deg, #f5f8fa 80%, #eaf3fa 100%);
-    font-weight: 600;
-    color: #2a3b4d;
-    border-bottom: 2px solid #d1dbe8;
+    background: linear-gradient(90deg, #eaf3fa 80%, #d1e3f8 100%);
+    font-weight: 700;
+    color: #17223b; /* Strong header text */
+    border-bottom: 2px solid #b5c7de;
 }
 .messageText tr:last-child td {
     border-bottom: none;
 }
 .messageText tr:nth-child(even) td {
-    background: #f7fafd;
+    background: #eaf3fa;
 }
 .messageText tr:hover td {
-    background: #eaf3fa;
+    background: #cbe0f7;
     transition: background 0.2s;
 }
 .messageText table {

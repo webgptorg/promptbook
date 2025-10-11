@@ -23,7 +23,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🪢] Enhance visual contrast for tables in `<Chat />`
 
