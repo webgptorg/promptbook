@@ -427,7 +427,7 @@ export function Chat(props: ChatProps) {
                             </button>
                         )}
 
-                        {isSaveButtonEnabled && (
+                        {isSaveButtonEnabled && postprocessedMessages.length !== 0 && (
                             <div style={{ display: 'inline-block', position: 'relative' }}>
                                 <button
                                     className={classNames(styles.chatButton)}
