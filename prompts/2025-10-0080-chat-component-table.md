@@ -16,6 +16,7 @@
 [✨🪢] Add sample of tables into `<ChatPreview />`
 
 -   Add sample (scenario) with table in the conversation in http://localhost:4022/component/chat name it "Chat with tables"
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
 -   Add both markdown and html tables
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
@@ -24,8 +25,11 @@
 
 [ ]
 
-[✨🪢] qux
+[✨🪢] Enhance visual contrast for tables in `<Chat />`
 
+-   Chat should have good contrast color of text inside a <table>s nested in chat messages
+-   It shouldnt depent if the table is markdown or html
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
@@ -33,7 +37,41 @@
 
 [ ]
 
-[✨🪢] qux
+[✨🪢] Enhance code blocks in `<Chat />`
 
+-   Code blocks inside chat messages should have similar visual style as tables and other nested elements inside chat messages
+-   Code blocks should have a dark background and light text color for better contrast
+-   Do the syntax highlighting for code blocks
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨🪢] Enhance the ... in `<Chat />`
+
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨🪢] Enhance the ... in `<Chat />`
+
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨🪢] Enhance the ... in `<Chat />`
+
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
