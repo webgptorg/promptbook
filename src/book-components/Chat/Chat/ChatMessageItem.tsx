@@ -120,7 +120,7 @@ export const ChatMessageItem = memo(
                         position: 'relative',
                     }}
                 >
-                    {isCopyButtonEnabled && (
+                    {isCopyButtonEnabled && message.isComplete && (
                         <div className={styles.copyButtonContainer}>
                             <button
                                 className={styles.copyButton}

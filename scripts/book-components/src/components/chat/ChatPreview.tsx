@@ -172,7 +172,7 @@ export default function ChatPreview() {
                           ),
                       }
                     : {})}
-                {...(scenario === 'chatWithFeedback'
+                {...(['chatWithFeedback', 'loading'].includes(scenario)
                     ? {
                           onFeedback: () => window.alert('Feedback sent!'),
                       }
