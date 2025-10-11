@@ -265,7 +265,6 @@ export function Chat(props: ChatProps) {
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
-    const chatBarCssClassName = useChatCssClassName('chatBar');
     const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
 
     const handleRating = useCallback(async (message: ChatMessage, newRating: number) => {
