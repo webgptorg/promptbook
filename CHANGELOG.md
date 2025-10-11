@@ -1,5 +1,9 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
+### Enhanced
+- Code blocks in chat messages now have a dark background, light text, and syntax highlighting for improved readability and visual consistency with tables and other nested elements. Code block rendering is DRY and centralized in markdown rendering logic.
+
+
 ### Changed
 -   **[✨] Improved visual contrast for tables in `<Chat />`**
     -   Tables inside chat messages (markdown or HTML) now have higher contrast text and backgrounds for better readability and accessibility.

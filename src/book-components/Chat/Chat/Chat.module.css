@@ -369,6 +369,33 @@
 .copyButton svg {
     display: block;
 }
+/* Enhanced code block styling for chat messages */
+.chat-code-block {
+    background: #181c23;
+    color: #f8fafc;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 18px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    border: 1px solid #23272f;
+    font-family: 'Fira Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+}
+.chat-code-block code {
+    background: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    white-space: pre;
+    word-break: break-word;
+    overflow-x: auto;
+    display: block;
+}
 .messageText table {
     width: 100%;
     border-collapse: separate;

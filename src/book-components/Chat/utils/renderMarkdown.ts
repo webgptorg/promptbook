@@ -1,5 +1,7 @@
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github-dark.css';
 
 /**
  * Create a showdown converter instance optimized for chat messages
@@ -62,7 +64,59 @@ export function renderMarkdown(markdown: string_markdown): string_html {
 
     try {
         // Convert markdown to HTML
-        const html = chatMarkdownConverter.makeHtml(markdown);
+        let html = chatMarkdownConverter.makeHtml(markdown);
+
+        // Syntax highlight code blocks and add custom class
+        // Use a DOM parser to manipulate HTML safely
+        if (typeof window === 'undefined') {
+            // SSR: fallback to regex (less safe, but works for static export)
+            html = html.replace(
+                /<pre><code( class="language-([^"]+)")?>([\s\S]*?)<\/code><\/pre>/g,
+                (match, _langClass, lang, code) => {
+                    const decoded = code
+                        .replace(/&/g, '&')
+                        .replace(/</g, '<')
+                        .replace(/>/g, '>')
+                        .replace(/"/g, '"')
+                        .replace(/&#39;/g, "'");
+                    const highlighted = lang
+                        ? hljs.highlight(decoded, { language: lang }).value
+                        : hljs.highlightAuto(decoded).value;
+                    return `<pre class="chat-code-block"><code class="hljs${lang ? ' language-' + lang : ''}">${highlighted}</code></pre>`;
+                },
+            );
+        } else {
+            // Browser: use DOMParser for robust manipulation
+            const parser = new window.DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            doc.querySelectorAll('pre > code').forEach((codeEl) => {
+                const preEl = codeEl.parentElement;
+                if (!preEl) return;
+                const lang = Array.from(codeEl.classList)
+                    .find((cls) => cls.startsWith('language-'))
+                    ?.replace('language-', '');
+                const code = codeEl.innerHTML;
+                let highlighted = '';
+                try {
+                    const decoded = code
+                        .replace(/&/g, '&')
+                        .replace(/</g, '<')
+                        .replace(/>/g, '>')
+                        .replace(/"/g, '"')
+                        .replace(/&#39;/g, "'");
+                    highlighted = lang
+                        ? hljs.highlight(decoded, { language: lang }).value
+                        : hljs.highlightAuto(decoded).value;
+                } catch {
+                    highlighted = code;
+                }
+                codeEl.innerHTML = highlighted;
+                codeEl.classList.add('hljs');
+                if (lang) codeEl.classList.add(`language-${lang}`);
+                preEl.classList.add('chat-code-block');
+            });
+            html = doc.body.innerHTML;
+        }
 
         // Basic sanitization - remove potentially dangerous attributes
         // Note: For production use, consider using a proper HTML sanitizer like DOMPurify

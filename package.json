@@ -246,6 +246,7 @@
         "jest-environment-jsdom": "^30.2.0",
         "openapi-typescript": "^7.6.1",
         "organize-imports-cli": "0.10.0",
+        "prettier": "2.8.1",
         "rollup": "2.79.2",
         "rollup-plugin-polyfill-node": "0.13.0",
         "rollup-plugin-postcss": "^4.0.2",
@@ -253,8 +254,7 @@
         "ts-jest": "29.1.1",
         "tslib": "2.3.1",
         "typescript": "5.2.2",
-        "yaml": "2.3.3",
-        "prettier": "2.8.1"
+        "yaml": "2.3.3"
     },
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.6",
@@ -274,6 +274,7 @@
         "express": "4.21.2",
         "express-openapi-validator": "^5.4.9",
         "glob-promise": "6.0.5",
+        "highlight.js": "^11.11.1",
         "jsdom": "25.0.1",
         "jszip": "3.10.1",
         "lorem-ipsum": "2.0.8",

@@ -35,7 +35,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🪢] Enhance code blocks in `<Chat />`
 
