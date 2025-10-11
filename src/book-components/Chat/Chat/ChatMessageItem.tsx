@@ -2,9 +2,10 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Color, textColor } from '../../../_packages/color.index';
 import type { id } from '../../../types/typeAliases';
+import { just } from '../../../utils/organization/just';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -71,6 +72,9 @@ export const ChatMessageItem = memo(
             }
         }, [isExpanded]);
 
+        const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
+        const contentWithoutButtonsHtml = useMemo(() => renderMarkdown(contentWithoutButtons), [contentWithoutButtons]);
+
         return (
             <div
                 className={classNames(
@@ -123,26 +127,53 @@ export const ChatMessageItem = memo(
                                 title="Copy message"
                                 onClick={async (e) => {
                                     e.stopPropagation();
-                                    // Copy plain text and formatted text (markdown)
-                                    const plain = contentWithoutButtons.replace(/<[^>]+>/g, '');
-                                    const formatted = message.content;
+
                                     if (navigator.clipboard && window.ClipboardItem) {
-                                        const items: Record<string, Blob> = {
-                                            'text/plain': new Blob([plain], { type: 'text/plain' }),
-                                            'text/markdown': new Blob([formatted], { type: 'text/markdown' }),
-                                        };
-                                        await navigator.clipboard.write([
-                                            new window.ClipboardItem(items),
-                                        ]);
+                                        const clipboardItems: Record<string, Blob> = {};
+
+                                        if (just(true)) {
+                                            clipboardItems['text/html'] = new Blob([contentWithoutButtonsHtml], {
+                                                type: 'text/html',
+                                            });
+                                        }
+
+                                        if (contentWithoutButtonsRef.current) {
+                                            const plain = contentWithoutButtonsRef.current.innerText;
+                                            clipboardItems['text/plain'] = new Blob([plain], { type: 'text/plain' });
+                                        }
+
+                                        await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
                                     } else {
                                         // Fallback: just copy plain text
-                                        await navigator.clipboard.writeText(plain);
+                                        // await navigator.clipboard.writeText(plain);
+
+                                        throw new Error(
+                                            `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
+                                        );
                                     }
                                 }}
                             >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                    <rect x="7" y="7" width="10" height="14" rx="2" fill="#fff" stroke="#bbb" strokeWidth="1.5"/>
-                                    <rect x="3" y="3" width="10" height="14" rx="2" fill="#fff" stroke="#bbb" strokeWidth="1.5"/>
+                                    <rect
+                                        x="7"
+                                        y="7"
+                                        width="10"
+                                        height="14"
+                                        rx="2"
+                                        fill="#fff"
+                                        stroke="#bbb"
+                                        strokeWidth="1.5"
+                                    />
+                                    <rect
+                                        x="3"
+                                        y="3"
+                                        width="10"
+                                        height="14"
+                                        rx="2"
+                                        fill="#fff"
+                                        stroke="#bbb"
+                                        strokeWidth="1.5"
+                                    />
                                 </svg>
                             </button>
                         </div>
@@ -162,8 +193,9 @@ export const ChatMessageItem = memo(
                         </>
                     ) : (
                         <div
+                            ref={contentWithoutButtonsRef}
                             dangerouslySetInnerHTML={{
-                                __html: renderMarkdown(contentWithoutButtons),
+                                __html: contentWithoutButtonsHtml,
                             }}
                         />
                     )}

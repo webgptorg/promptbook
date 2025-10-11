@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
 export const assistantsOnlyScenario = {
@@ -14,8 +15,17 @@ export const assistantsOnlyScenario = {
             id: '2',
             date: new Date(),
             from: 'ASSISTANT_2',
-            content:
-                'Good point! We could use Redis for caching. Here\'s a code example:<br/><pre><code>const cache = require("redis").createClient();</code></pre>',
+            content: spaceTrim(`
+
+                Good point! We could use Redis for caching.
+
+                **Here is a code example:**
+
+                \`\`\`javascript
+                const cache = require("redis").createClient();
+                \`\`\`
+
+            `),
             isComplete: true,
         },
         {
