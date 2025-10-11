@@ -78,7 +78,12 @@ export function renderMarkdown(markdown: string_markdown): string_html {
         // Optionally, allow only specific tags (table-related and common markdown tags)
         // For now, we rely on Showdown + above regex for safety
 
-        return sanitizedHtml as string_html;
+        // Wrap all Unicode emoji in <span class="emoji">...</span> for OpenMoji font
+        // Uses emoji-regex pattern (https://github.com/mathiasbynens/emoji-regex)
+        const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu;
+        const htmlWithEmoji = sanitizedHtml.replace(emojiRegex, '<span class="emoji">$1</span>');
+
+        return htmlWithEmoji as string_html;
     } catch (error) {
         console.error('Error rendering markdown:', error);
         // Fallback to plain text if markdown parsing fails

@@ -1,18 +1,7 @@
-[x]
-
-[✨💤] For the `@promptbook/components` emoticons use the OpenMoji font.
-
--   Components are in /src/book-components
--   For example [`<Chat/>` component](/src/book-components/Chat/Chat/Chat.tsx)
--   The desired emoji font is in /src/book-components/fonts/OpenMoji-black-glyf.woff2
-
-Something like this:
-
-```css
 /**
  * OpenMoji black and white CSS
-  *
-  * https://github.com/hfg-gmuend/openmoji/blob/master/font/OpenMoji-black-glyf/openmoji.css
+ *
+ * https://github.com/hfg-gmuend/openmoji/blob/master/font/OpenMoji-black-glyf/openmoji.css
  */
 @font-face {
     font-family: 'OpenMojiBlack';
@@ -42,35 +31,17 @@ Something like this:
         U+1FABF-1FAC5, U+1FACE-1FADB, U+1FAE0-1FAE8, U+1FAF0-1FAF8, U+1FBC5-1FBC9, U+E0061-E0067, U+E0069,
         U+E006C-E0079, U+E007F;
 }
-```
 
--   Do not interact with fonts on the consumer side of `@promptbook/components` package.
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
-
----
-
-[ ]
-
-[✨💤] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
-
----
-
-[ ]
-
-[✨💤] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
-
----
-
-[ ]
-
-[✨💤] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
+.emoji {
+    font-family: 'OpenMojiBlack', 'OpenMoji', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji', 'EmojiOne', sans-serif !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-size: 1em;
+    line-height: 1;
+    vertical-align: middle;
+    letter-spacing: 0;
+    /* Prevent emoji from being replaced by system fallback */
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}

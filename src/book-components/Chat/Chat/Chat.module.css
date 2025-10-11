@@ -1,3 +1,5 @@
+@import '../../OpenMojiFont.css';
+
 .Chat {
     width: 100%;
     height: 100%;
@@ -332,6 +334,11 @@
     transition: all 0.2s ease;
     font-size: 15px;
     backdrop-filter: blur(10px);
+}
+.messageText .emoji, .messageText [role="img"] {
+    font-family: 'OpenMojiBlack', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'EmojiOne', 'Twemoji', sans-serif !important;
+    font-weight: normal !important;
+    font-style: normal !important;
 }
 
 /* Copy button styles */

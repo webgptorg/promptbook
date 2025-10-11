@@ -10,6 +10,12 @@
     - ([2025-10-0060])
 
 ### Added
+-   **[✨💤] All emoji in `@promptbook/components` now use the OpenMoji font**
+    -   OpenMoji font is loaded via `OpenMojiFont.css` and applied to emoji in all components (e.g., `<Chat/>`) using `.emoji` and `[role="img"]` CSS selectors.
+    -   Font file: `src/book-components/fonts/OpenMoji-black-glyf.woff2`
+    -   No changes required for consumers of the package.
+    -   Implementation follows DRY principle and is documented in the repository.
+    -   ([2025-10-0100])
 -   **[✨] `<Chat/>` Save button now has an icon, matching "New Chat"**
     -   Added a Save icon to the "Save" button in the Chat component, following the DRY principle and matching the style of the "New Chat" button.
     -   New reusable `<SaveIcon>` component in `src/book-components/icons/SaveIcon.tsx`.
