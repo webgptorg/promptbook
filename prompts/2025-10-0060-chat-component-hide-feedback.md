@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💏] `<Chat>` component should dynamically show/hide feedback button
 
