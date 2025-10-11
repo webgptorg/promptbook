@@ -384,7 +384,7 @@ export function Chat(props: ChatProps) {
 
             <div className={classNames(className, styles.Chat, useChatCssClassName('Chat'))} {...{ style }}>
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
-                    {children && <div className={classNames(styles.chatBar, chatBarCssClassName)}>{children}</div>}
+                    {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
                     {!isAutoScrolling && (
                         <div className={styles.scrollToBottomContainer}>

@@ -162,11 +162,25 @@ export default function ChatPreview() {
                 {...(scenario === 'chatWithChildren'
                     ? {
                           children: (
-                              <div style={{ padding: 12, background: '#f3f4f6', borderRadius: 8, marginBottom: 8 }}>
-                                  <strong>Custom children content:</strong>{' '}
+                              <div
+                                  style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      padding: 150,
+                                      borderRadius: 8,
+                                      //opacity: 0.5,
+                                      backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255 0 0 / 0.8))',
+                                      //'url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                  }}
+                              >
                                   <span>
-                                      This area is rendered above the chat messages and input. You can put anything
-                                      here, such as tips, banners, or custom UI.
+                                      <strong>Custom children content: </strong>
+                                      This area is rendered above the chat messages and above the input.
+                                      <br />
+                                      You can put anything here, such as tips, banners, or custom UI.
                                   </span>
                               </div>
                           ),
