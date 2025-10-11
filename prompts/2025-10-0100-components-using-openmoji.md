@@ -1,4 +1,4 @@
-[x]
+[ ]
 
 [✨💤] For the `@promptbook/components` emoticons use the OpenMoji font.
 
