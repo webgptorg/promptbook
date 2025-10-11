@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥷] Make a chat scenario which will test the rich formatting capabilities of the chat component.
 

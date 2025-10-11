@@ -14,6 +14,7 @@ import {
     longThreadScenario,
     multiParticipantScenario,
     simpleScenario,
+    richFormattingScenario,
 } from './scenarios';
 
 export default function ChatPreview() {
@@ -59,6 +60,7 @@ export default function ChatPreview() {
             chatButtons: chatButtonsScenario,
             chatWithChildren: chatWithChildrenScenario,
             chatWithFeedback: chatWithFeedbackScenario,
+            richFormatting: richFormattingScenario,
         }),
         [],
     );

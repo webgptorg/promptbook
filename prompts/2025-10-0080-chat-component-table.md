@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🪢] Add sample of tables into `<ChatPreview />`
 

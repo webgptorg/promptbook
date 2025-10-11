@@ -10,6 +10,10 @@
     - ([2025-10-0060])
 
 ### Added
+-   **[✨] Added "Rich Formatting Showcase" chat scenario**
+    -   New scenario `richFormattingScenario` demonstrates all supported rich formatting features in the Chat component preview.
+    -   Covers bold, italic, underline, strikethrough, inline code, code blocks, blockquotes, links, images, lists, tables, emojis, mentions, hashtags, math, and horizontal rules in a natural conversation.
+    -   Follows DRY principle and is available for testing and documentation.
 -   **[✨] `<Chat>` component now supports `children` prop**
     -   When `children` is provided, it is rendered above the chat messages and input area.
     -   Preview: New scenario "Chat with children" demonstrates this feature in the Chat component preview.

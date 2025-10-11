@@ -7,3 +7,4 @@ export { longThreadScenario } from './longThread';
 export { chatButtonsScenario } from './chatButtons';
 export { chatWithChildrenScenario } from './chatWithChildren';
 export { chatWithFeedbackScenario } from './chatWithFeedback';
+export { richFormattingScenario } from './richFormatting';
