@@ -15,6 +15,7 @@ import { CloseIcon } from '../../icons/CloseIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import { SaveIcon } from '../../icons/SaveIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
@@ -434,6 +435,7 @@ export function Chat(props: ChatProps) {
                                     aria-haspopup="true"
                                     aria-expanded={showSaveMenu}
                                 >
+                                    <SaveIcon size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                                     <span className={styles.chatButtonText}>Save</span>
                                 </button>
                                 {showSaveMenu && (

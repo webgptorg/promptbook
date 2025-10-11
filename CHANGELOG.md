@@ -10,6 +10,10 @@
     - ([2025-10-0060])
 
 ### Added
+-   **[✨] `<Chat/>` Save button now has an icon, matching "New Chat"**
+    -   Added a Save icon to the "Save" button in the Chat component, following the DRY principle and matching the style of the "New Chat" button.
+    -   New reusable `<SaveIcon>` component in `src/book-components/icons/SaveIcon.tsx`.
+    -   ([2025-10-0110])
 -   **[✨] Added "Rich Formatting Showcase" chat scenario**
     -   New scenario `richFormattingScenario` demonstrates all supported rich formatting features in the Chat component preview.
     -   Covers bold, italic, underline, strikethrough, inline code, code blocks, blockquotes, links, images, lists, tables, emojis, mentions, hashtags, math, and horizontal rules in a natural conversation.

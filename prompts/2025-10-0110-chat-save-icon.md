@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😚] `<Chat/>` "Save" button should have icon _(Simmilar to "New Chat" has also an icon)_
 
