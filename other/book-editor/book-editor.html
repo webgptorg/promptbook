@@ -1,62 +1,108 @@
 <!DOCTYPE html>
 <html lang="cs">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor se zvýrazněním "ahoj"</title>
-<style>
-  body {
-    font-family: sans-serif;
-    padding: 2rem;
-    background: #f9f9f9;
-  }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Plynulý contenteditable se zvýrazněním</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                padding: 2rem;
+                background: #f9f9f9;
+            }
 
-  [contenteditable] {
-    width: 100%;
-    min-height: 150px;
-    border: 1px solid #ccc;
-    padding: 1rem;
-    border-radius: 8px;
-    background: white;
-    outline: none;
-  }
+            .editor {
+                width: 100%;
+                min-height: 150px;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                padding: 1rem;
+                background: white;
+                outline: none;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
 
-  b {
-    color: #d00;
-  }
-</style>
-</head>
-<body>
-  <h2>Editor se zvýrazněním slova „ahoj“</h2>
-  <div id="editor" contenteditable="true"></div>
+            b {
+                color: #d00;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>contenteditable</h2>
+        <div class="editor" contenteditable="true"></div>
 
-  <script>
-    const editor = document.getElementById('editor');
+        <h2>contenteditable++</h2>
+        <div id="editor" class="editor" contenteditable="true"></div>
 
-    editor.addEventListener('input', () => {
-      const selection = window.getSelection();
-      const range = selection.getRangeAt(0);
-      const cursorPosition = range.startOffset;
+        <h2>Textarea</h2>
+        <textarea class="editor"></textarea>
 
-      // Uložíme prostý text
-      const text = editor.innerText;
+        <script>
+            const editor = document.getElementById('editor');
 
-      // Nahradíme výskyty "ahoj" za <b>ahoj</b>
-      const highlighted = text.replace(/(ahoj)/gi, '<b>$1</b>');
+            editor.addEventListener('input', () => {
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+                const cursorPosition = getCaretCharacterOffsetWithin(editor);
 
-      // Znovu nastavíme HTML
-      editor.innerHTML = highlighted;
+                // Získáme čistý text
+                const text = editor.innerText;
+                const highlighted = highlightWords(text);
 
-      // Vrátíme kurzor na konec
-      const lastChild = editor.lastChild;
-      if (lastChild) {
-        const range = document.createRange();
-        range.selectNodeContents(lastChild);
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    });
-  </script>
-</body>
+                // Nastavíme nový HTML obsah jen pokud se změnil
+                if (editor.innerHTML !== highlighted) {
+                    editor.innerHTML = highlighted;
+                    setCaretPosition(editor, cursorPosition);
+                }
+            });
+
+            function highlightWords(text) {
+                // Nahraď "ahoj" za tučné
+                return text.replace(/(ahoj)/gi, '<b>$1</b>');
+            }
+
+            // Pomocné funkce pro pozici kurzoru
+            function getCaretCharacterOffsetWithin(element) {
+                const selection = window.getSelection();
+                let caretOffset = 0;
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const preCaretRange = range.cloneRange();
+                    preCaretRange.selectNodeContents(element);
+                    preCaretRange.setEnd(range.endContainer, range.endOffset);
+                    caretOffset = preCaretRange.toString().length;
+                }
+                return caretOffset;
+            }
+
+            function setCaretPosition(element, chars) {
+                const range = document.createRange();
+                const selection = window.getSelection();
+                range.setStart(element.firstChild || element, 0);
+
+                let nodeStack = [element],
+                    charCount = 0,
+                    node;
+                while ((node = nodeStack.pop())) {
+                    if (node.nodeType === 3) {
+                        // text node
+                        const nextCharCount = charCount + node.length;
+                        if (chars <= nextCharCount) {
+                            range.setStart(node, chars - charCount);
+                            break;
+                        }
+                        charCount = nextCharCount;
+                    } else {
+                        let i = node.childNodes.length;
+                        while (i--) nodeStack.push(node.childNodes[i]);
+                    }
+                }
+
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        </script>
+    </body>
 </html>
