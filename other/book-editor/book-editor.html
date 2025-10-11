@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Plynulý contenteditable se zvýrazněním</title>
+        <title>Smooth contenteditable with highlighting</title>
         <style>
             body {
                 font-family: sans-serif;
@@ -47,6 +47,7 @@
                 const cursorPosition = getCaretCharacterOffsetWithin(editor);
 
                 // Získáme čistý text
+                // Get plain text
                 const text = editor.innerText;
                 const highlighted = highlightWords(text);
 
@@ -58,11 +59,11 @@
             });
 
             function highlightWords(text) {
-                // Nahraď "ahoj" za tučné
-                return text.replace(/(ahoj)/gi, '<b>$1</b>');
+                // Replace "hello" with bold
+                return text.replace(/(hello)/gi, '<b>$1</b>');
             }
 
-            // Pomocné funkce pro pozici kurzoru
+            // Helper functions for caret position
             function getCaretCharacterOffsetWithin(element) {
                 const selection = window.getSelection();
                 let caretOffset = 0;
