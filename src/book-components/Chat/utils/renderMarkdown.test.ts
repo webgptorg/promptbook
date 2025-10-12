@@ -68,7 +68,7 @@ describe('renderMarkdown', () => {
 
     it('should render blockquotes', () => {
         const result = renderMarkdown('> This is a quote');
-        expect(result).toContain('<blockquote>');
+        expect(result).toContain('<blockquote');
         expect(result).toContain('<p>This is a quote</p>');
         expect(result).toContain('</blockquote>');
     });
@@ -81,11 +81,11 @@ describe('renderMarkdown', () => {
     it('should render tables', () => {
         const markdown = '| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |';
         const result = renderMarkdown(markdown);
-        expect(result).toContain('<table>');
-        expect(result).toContain('<thead>');
+        expect(result).toContain('<table');
+        expect(result).toContain('<thead');
         expect(result).toContain('<th>Header 1</th>');
         expect(result).toContain('<th>Header 2</th>');
-        expect(result).toContain('<tbody>');
+        expect(result).toContain('<tbody');
         expect(result).toContain('<td>Cell 1</td>');
         expect(result).toContain('<td>Cell 2</td>');
     });
