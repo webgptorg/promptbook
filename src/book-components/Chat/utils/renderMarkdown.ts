@@ -1,7 +1,8 @@
+import hljs from 'highlight.js';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
-import hljs from 'highlight.js';
-import 'highlight.js/styles/github-dark.css';
+// import 'highlight.js/styles/github-dark.css';
+// <- TODO: !!!! Make this work
 
 /**
  * Create a showdown converter instance optimized for chat messages
@@ -86,7 +87,9 @@ export function renderMarkdown(markdown: string_markdown): string_html {
                     const highlighted = lang
                         ? hljs.highlight(decoded, { language: lang }).value
                         : hljs.highlightAuto(decoded).value;
-                    return `<pre class="chat-code-block"><code class="hljs${lang ? ' language-' + lang : ''}">${highlighted}</code></pre>`;
+                    return `<pre class="chat-code-block"><code class="hljs${
+                        lang ? ' language-' + lang : ''
+                    }">${highlighted}</code></pre>`;
                 },
             );
         } else {
