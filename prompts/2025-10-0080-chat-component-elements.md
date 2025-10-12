@@ -75,6 +75,30 @@
 
 [ ]
 
+[✨🪢] Enhance design of `<Chat/>` - `<ul>`, `<ol>` and `<li>`
+
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
+-   Lists in chat messages _(both ordered and unordered)_ should be rendered as lists
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+![alt text](screenshots/2025-10-0080-chat-component-elements.png)
+
+---
+
+[ ]
+
+[✨🪢] Enhance the `<table>` in `<Chat />`
+
+-   Enhance visual style of tables in chat messages
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
 [✨🪢] Enhance the ... in `<Chat />`
 
 -   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
