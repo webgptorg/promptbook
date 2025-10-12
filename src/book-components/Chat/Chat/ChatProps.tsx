@@ -19,6 +19,12 @@ export type ChatProps = {
     onUseTemplate?(): void;
 
     /**
+     * The title of the chat
+     */
+    readonly title: string;
+    // <- TODO: !!! Make title optional when updated all usages
+
+    /**
      * Messages to render - they are rendered as they are
      */
     readonly messages: ReadonlyArray<ChatMessage>;

@@ -8,7 +8,7 @@ import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefiniti
 export const jsonSaveFormatDefinition = {
     formatName: 'json',
     label: 'JSON (full)',
-    getContent: (messages) => JSON.stringify(messages, null, 2),
+    getContent: ({messages}) => JSON.stringify(messages, null, 2),
     mimeType: 'application/json',
     fileExtension: 'json',
 } as const satisfies ChatSaveFormatDefinition;

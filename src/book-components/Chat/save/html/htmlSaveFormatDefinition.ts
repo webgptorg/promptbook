@@ -21,7 +21,7 @@ function getTextColor(bgColor: string): string {
 export const htmlSaveFormatDefinition = {
     formatName: 'html',
     label: 'HTML',
-    getContent: (messages) =>
+    getContent: ({ messages }) =>
         spaceTrim(`
             <!DOCTYPE html>
             <html lang="en">

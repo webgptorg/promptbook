@@ -152,6 +152,7 @@ export default function ChatPreview() {
             </div>
 
             <Chat
+                title="Chat Preview"
                 style={{ height: '800px' }}
                 messages={messages}
                 participants={participants}

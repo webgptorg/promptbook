@@ -214,6 +214,7 @@ export default function LlmChatPreview() {
         }
 
         const commonProps = {
+            title: 'LLM Chat Preview',
             isFocusedOnLoad: false,
             isSaveButtonEnabled: true,
             sendMessage,

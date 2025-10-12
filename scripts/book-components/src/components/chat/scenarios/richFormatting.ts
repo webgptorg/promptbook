@@ -5,14 +5,14 @@ export const richFormattingScenario = {
     name: 'Rich Formatting Showcase',
     messages: [
         {
-            id: '1',
+            id: 1,
             date: new Date(),
             from: 'USER',
             content: 'Hi @assistant! Can you show me all the *rich formatting* features you support? 😄 #formatting',
             isComplete: true,
         },
         {
-            id: '2',
+            id: 2,
             date: new Date(),
             from: 'ASSISTANT_1',
             content:
@@ -51,7 +51,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            id: '3',
+            id: 3,
             date: new Date(),
             from: 'USER',
             content:
@@ -59,7 +59,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            id: '4',
+            id: 4,
             date: new Date(),
             from: 'ASSISTANT_1',
             content:
@@ -67,7 +67,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            id: '5',
+            id: 5,
             date: new Date(),
             from: 'ASSISTANT_1',
             content: spaceTrim(`
@@ -83,7 +83,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            id: '5',
+            id: 6,
             date: new Date(),
             from: 'ASSISTANT_1',
             content: spaceTrim(`

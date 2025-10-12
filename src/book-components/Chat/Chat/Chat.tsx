@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { Color, grayscale, lighten, textColor } from '../../../_packages/color.index';
+import { normalizeToKebabCase } from '../../../_packages/utils.index';
 import { USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { countLines } from '../../../utils/expectation-counters/countLines';
@@ -41,6 +42,7 @@ import type { ChatProps } from './ChatProps';
  */
 export function Chat(props: ChatProps) {
     const {
+        title,
         messages,
         onChange,
         onMessage,
@@ -358,15 +360,22 @@ export function Chat(props: ChatProps) {
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
     const handleDownload = useCallback(
-        (format: string_chat_format_name) => {
+        async (format: string_chat_format_name) => {
             const formatDefinition = getChatSaveFormatDefinitions([format])[0];
             if (!formatDefinition) return;
-            const content = formatDefinition.getContent([...messages]);
+
+            const date = new Date();
+            const dateName = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+                .getDate()
+                .toString()
+                .padStart(2, '0')}`;
+
+            const content = await formatDefinition.getContent({ title, messages, participants });
             const blob = new Blob([content], { type: formatDefinition.mimeType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `chat-history.${formatDefinition.fileExtension}`;
+            a.download = `${normalizeToKebabCase(title)}-${dateName}.${formatDefinition.fileExtension}`;
             document.body.appendChild(a);
             a.click();
             setTimeout(() => {

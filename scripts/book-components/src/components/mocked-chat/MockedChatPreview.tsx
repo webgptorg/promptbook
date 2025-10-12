@@ -307,6 +307,7 @@ export default function MockedChatPreview() {
             </div>
 
             <MockedChat
+                title="Mocked Chat"
                 isResettable
                 style={{ height: '500px' }}
                 messages={messages}

@@ -8,7 +8,7 @@ import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefiniti
 export const txtSaveFormatDefinition = {
     formatName: 'txt',
     label: 'Plain Text',
-    getContent: (messages) => messages.map((message) => message.content).join('\n\n---\n\n'),
+    getContent: ({ messages }) => messages.map((message) => message.content).join('\n\n---\n\n'),
     mimeType: 'text/plain',
     fileExtension: 'txt',
 } as const satisfies ChatSaveFormatDefinition;

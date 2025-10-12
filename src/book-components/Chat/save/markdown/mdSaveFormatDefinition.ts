@@ -9,7 +9,7 @@ import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefiniti
 export const mdSaveFormatDefinition = {
     formatName: 'md',
     label: 'Markdown',
-    getContent: (messages) =>
+    getContent: ({ messages }) =>
         spaceTrim(`
             ${messages
                 .map((message) =>
