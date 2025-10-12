@@ -312,7 +312,7 @@ export default function MockedChatPreview() {
                 messages={messages}
                 participants={participants}
                 delayConfig={delayConfig}
-                placeholderMessageContent="This chat demonstrates the MockedChat component with simulated typing..."
+                placeholderMessageContent="" // <- Note: No `placeholderMessageContent` to keep it clean
                 isFocusedOnLoad={false}
                 isSaveButtonEnabled={true}
             />

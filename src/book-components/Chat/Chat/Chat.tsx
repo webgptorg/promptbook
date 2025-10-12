@@ -593,7 +593,7 @@ export function Chat(props: ChatProps) {
                                                 color: inputTextColor,
                                             }}
                                             defaultValue={defaultMessage}
-                                            placeholder={placeholderMessageContent || 'Write a message'}
+                                            placeholder={placeholderMessageContent || 'Write a message...'}
                                             onKeyDown={(event) => {
                                                 if (!onMessage) {
                                                     return;

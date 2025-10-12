@@ -13,8 +13,8 @@ import {
     loadingScenario,
     longThreadScenario,
     multiParticipantScenario,
-    simpleScenario,
     richFormattingScenario,
+    simpleScenario,
 } from './scenarios';
 
 export default function ChatPreview() {
@@ -158,7 +158,6 @@ export default function ChatPreview() {
                 participants={participants}
                 onMessage={handleMessage}
                 onReset={handleReset}
-                placeholderMessageContent="Try typing a message to interact with the chat..."
                 isFocusedOnLoad={false}
                 isSaveButtonEnabled={true}
                 {...(scenario === 'chatWithChildren'
