@@ -68,6 +68,10 @@ export function renderMarkdown(markdown: string_markdown): string_html {
 
         // Syntax highlight code blocks and add custom class
         // Use a DOM parser to manipulate HTML safely
+
+        // Add custom class to blockquotes for chat styling
+        html = html.replace(/<blockquote>/g, '<blockquote class="chat-blockquote">');
+
         if (typeof window === 'undefined') {
             // SSR: fallback to regex (less safe, but works for static export)
             html = html.replace(

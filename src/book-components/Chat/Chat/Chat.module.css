@@ -369,18 +369,53 @@
 .copyButton svg {
     display: block;
 }
-/* Enhanced code block styling for chat messages */
-.chat-code-block {
-    background: #181c23;
-    color: #f8fafc;
+/* Shared block styles for code and blockquote */
+.chat-block {
     border-radius: 12px;
     padding: 16px 18px;
     margin: 18px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-width: 1px;
+    border-style: solid;
+    font-family: inherit;
+    position: relative;
+}
+
+/* Enhanced blockquote styling for chat messages */
+.chat-blockquote {
+    composes: chat-block;
+    background: #f8fafc;
+    color: #17223b;
+    font-size: 15px;
+    line-height: 1.6;
+    border-color: #d1dbe8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.chat-blockquote::before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 4px;
+    background: linear-gradient(180deg, #b5c7de 0%, #eaf3fa 100%);
+    border-radius: 4px;
+}
+.chat-blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Enhanced code block styling for chat messages */
+.chat-code-block {
+    composes: chat-block;
+    background: #181c23;
+    color: #f8fafc;
     font-size: 14px;
     line-height: 1.6;
     overflow-x: auto;
+    border-color: #23272f;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    border: 1px solid #23272f;
     font-family: 'Fira Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
 }
 .chat-code-block code {

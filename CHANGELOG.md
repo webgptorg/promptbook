@@ -1,7 +1,12 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
+- Enhanced `<blockquote>` in `<Chat />` to visually match `<code>` blocks, but lighter, for improved readability and consistency.
+- Refactored CSS for `.chat-blockquote` and `.chat-code-block` to share a common `.chat-block` base for DRYness.
+
+
 ### Enhanced
 - Code blocks in chat messages now have a dark background, light text, and syntax highlighting for improved readability and visual consistency with tables and other nested elements. Code block rendering is DRY and centralized in markdown rendering logic.
+- Blockquotes in chat messages now have a boxed, light background style visually consistent with code blocks and tables, for improved readability and message structure.
 
 
 ### Changed

@@ -48,10 +48,12 @@
 
 ---
 
-[ ]
+[x]
 
-[✨🪢] Enhance the ... in `<Chat />`
+[✨🪢] Enhance the <blockquote> in `<Chat />`
 
+-   Make visual for <blockquote> simmilar to <code>
+-   They are in the same box but light
 -   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
@@ -60,8 +62,11 @@
 
 [ ]
 
-[✨🪢] Enhance the ... in `<Chat />`
+[✨🪢] Enhance the `inputContainer` in `<Chat />`
 
+-   Background color of the input container should be same is `isMe` participant of the chat
+-   The text color should be set accordingly for good contrast - see how its done in the message bubbles
+-   The default color of `isMe` is `#1D4ED8`
 -   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
