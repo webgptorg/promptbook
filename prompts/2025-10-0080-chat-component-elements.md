@@ -99,6 +99,18 @@
 
 [ ]
 
+[✨🪢] Enhance the math embedded in `<Chat />` messages
+
+-   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
+-   When there is math embedded in the chat messages, it should be rendered properly
+-   For example: $a^2 + b^2 = c^2$
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
 [✨🪢] Enhance the ... in `<Chat />`
 
 -   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
