@@ -27,7 +27,7 @@ export default function ChatPreview() {
             name: 'USER',
             fullname: 'You',
             isMe: true,
-            color: '#1D4ED8',
+            // color: '#1D4ED8',
         },
         {
             name: 'ASSISTANT_1',

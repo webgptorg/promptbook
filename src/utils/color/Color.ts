@@ -444,6 +444,7 @@ export class Color {
 }
 
 /**
+ * TODO: [🥻] Split Color class and color type
  * TODO: For each method a corresponding static method should be created
  *       Like clone can be done by color.clone() OR Color.clone(color)
  * TODO: Probably as an independent LIB OR add to LIB xyzt (ask @roseckyj)
