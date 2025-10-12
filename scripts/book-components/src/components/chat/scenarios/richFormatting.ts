@@ -25,7 +25,11 @@ export const richFormattingScenario = {
                 '- Code block:\n\n' +
                 "```js\nconsole.log('Hello, world!');\n```\n" +
                 '> Blockquote\n' +
-                '- [Link](https://example.com)\n' +
+                '> With\n' +
+                '> Multiple lines\n' +
+                '\n' +
+                '\n' +
+                '- Some text with [Link](https://example.com)\n' +
                 '- ![image](https://img.youtube.com/vi/nD1v9dMvnLY/maxresdefault.jpg)\n' +
                 '- Lists:\n' +
                 '  - Item 1\n' +

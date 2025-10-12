@@ -573,6 +573,7 @@ export function Chat(props: ChatProps) {
                                             {
                                                 // Use a high-contrast placeholder color for visibility
                                                 '--chat-placeholder-color': '#fff',
+                                                // <- TODO: Remove
                                             } as React.CSSProperties
                                         }
                                     >
@@ -635,8 +636,8 @@ export function Chat(props: ChatProps) {
                                                     disabled={isUploading}
                                                     title="Attach file"
                                                     style={{
-                                                        background: inputBgColor,
-                                                        color: inputTextColor,
+                                                        background: inputBgColor.toHex(),
+                                                        color: inputTextColor.toHex(),
                                                         border: 'none',
                                                     }}
                                                 >
@@ -657,8 +658,8 @@ export function Chat(props: ChatProps) {
                                                 /* not await */ handleSend();
                                             }}
                                             style={{
-                                                background: inputBgColor,
-                                                color: inputTextColor,
+                                                background: inputBgColor.toHex(),
+                                                color: inputTextColor.toHex(),
                                                 border: 'none',
                                             }}
                                         >

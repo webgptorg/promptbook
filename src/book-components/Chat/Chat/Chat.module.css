@@ -406,9 +406,42 @@
     margin-bottom: 0;
 }
 
-/* Enhanced code block styling for chat messages */
-.chat-code-block {
-    composes: chat-block;
+.messageText blockquote {
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: #ffffffcc;
+    font-size: inherit;
+    line-height: inherit;
+    color: #000;
+    padding: 1em;
+    border-radius: 8px;
+}
+
+.messageText code {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: #cccccc55;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
+
+/*
+<- TODO: !!! Design of code code and blockquote
+*/
+
+.messageText pre code {
+    background-color: #000000cc;
+    border-radius: 8px;
+}
+
+.messageText .chat-code-block {
     background: #181c23;
     color: #f8fafc;
     font-size: 14px;
@@ -418,7 +451,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     font-family: 'Fira Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
 }
-.chat-code-block code {
+.messageText .chat-code-block code {
     background: none !important;
     color: inherit !important;
     font-family: inherit !important;
