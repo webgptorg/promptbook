@@ -1,7 +1,16 @@
 // SaveIcon.tsx
 import React from 'react';
 
-export function SaveIcon({ size = 20, color = 'currentColor', ...props }: { size?: number; color?: string } & React.SVGProps<SVGSVGElement>) {
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/components`
+ */
+export function SaveIcon({
+    size = 20,
+    color = 'currentColor',
+    ...props
+}: { size?: number; color?: string } & React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             width={size}
@@ -22,14 +31,8 @@ export function SaveIcon({ size = 20, color = 'currentColor', ...props }: { size
                 stroke={color}
             />
             {/* Downward arrow inside bubble */}
-            <path
-                d="M12 9v5"
-                stroke={color}
-            />
-            <path
-                d="M9.5 12.5L12 15l2.5-2.5"
-                stroke={color}
-            />
+            <path d="M12 9v5" stroke={color} />
+            <path d="M9.5 12.5L12 15l2.5-2.5" stroke={color} />
         </svg>
     );
 }
