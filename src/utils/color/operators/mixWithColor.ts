@@ -1,5 +1,6 @@
 import { Color } from '../Color';
 import type { ColorTransformer } from './ColorTransformer';
+import { number_percent } from '../../../types/typeAliases';
 
 /**
  * Makes color transformer which returns a mix of two colors based on a ratio
@@ -9,7 +10,7 @@ import type { ColorTransformer } from './ColorTransformer';
  *
  * @public exported from `@promptbook/color`
  */
-export function mixWithColor(ratio: number, additionalColor: Color): ColorTransformer {
+export function mixWithColor(ratio: number_percent, additionalColor: Color): ColorTransformer {
     return (baseColor: Color) => {
         const r = Math.round(baseColor.red * (1 - ratio) + additionalColor.red * ratio);
         const g = Math.round(baseColor.green * (1 - ratio) + additionalColor.green * ratio);

@@ -1,3 +1,4 @@
+import { number_percent } from '../../../types/typeAliases';
 import type { ColorTransformer } from './ColorTransformer';
 import { lighten } from './lighten';
 
@@ -8,6 +9,6 @@ import { lighten } from './lighten';
  *
  * @public exported from `@promptbook/color`
  */
-export function darken(amount: number): ColorTransformer {
+export function darken(amount: number_percent): ColorTransformer {
     return lighten(-amount);
 }

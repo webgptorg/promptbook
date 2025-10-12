@@ -4,19 +4,20 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
+import { Color, grayscale, lighten, textColor } from '../../../_packages/color.index';
+import { USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { classNames } from '../../_common/react-utils/classNames';
-import { Color, textColor } from '../../../_packages/color.index';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
+import { SaveIcon } from '../../icons/SaveIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
-import { SaveIcon } from '../../icons/SaveIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
@@ -24,7 +25,6 @@ import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
-import { PROMPTBOOK_COLOR } from '../../../config';
 
 /**
  * Renders a chat with messages and input for new messages
@@ -561,20 +561,20 @@ export function Chat(props: ChatProps) {
                             )}
 
                             {(() => {
-                                // Find the isMe participant or fallback to default
-                                const meParticipant =
-                                    participants.find((p) => p.isMe) ||
-                                    { color: PROMPTBOOK_COLOR };
-                                // Compute background and text color
-                                const inputBgColor = Color.from(meParticipant.color).toHex();
-                                const inputTextColor = Color.from(meParticipant.color).then(textColor).toHex();
+                                // Note: Find the isMe participant or fallback to default
+                                const myColor = participants.find((p) => p.isMe)?.color || USER_CHAT_COLOR;
+
+                                const inputBgColor = Color.from(myColor).then(lighten(0.4)).then(grayscale(0.7));
+                                const inputTextColor = inputBgColor.then(textColor);
                                 return (
                                     <div
                                         className={styles.inputContainer}
-                                        style={{
-                                            // Use a high-contrast placeholder color for visibility
-                                            '--chat-placeholder-color': '#fff',
-                                        } as React.CSSProperties}
+                                        style={
+                                            {
+                                                // Use a high-contrast placeholder color for visibility
+                                                '--chat-placeholder-color': '#fff',
+                                            } as React.CSSProperties
+                                        }
                                     >
                                         <textarea
                                             ref={(element) => {
@@ -584,13 +584,14 @@ export function Chat(props: ChatProps) {
                                                 height:
                                                     Math.max(
                                                         countLines(textareaRef.current?.value || defaultMessage || ''),
-                                                        (textareaRef.current?.value || defaultMessage || '').split('\n').length,
+                                                        (textareaRef.current?.value || defaultMessage || '').split('\n')
+                                                            .length,
                                                         3,
                                                     ) *
                                                         25 +
                                                     10,
-                                                background: inputBgColor,
-                                                color: inputTextColor,
+                                                background: inputBgColor.toHex(),
+                                                color: inputTextColor.toHex(),
                                             }}
                                             defaultValue={defaultMessage}
                                             placeholder={placeholderMessageContent || 'Write a message...'}
@@ -617,53 +618,53 @@ export function Chat(props: ChatProps) {
                                             }}
                                         />
 
-                                {/* File upload button */}
-                                {onFileUpload && (
-                                    <>
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            multiple
-                                            style={{ display: 'none' }}
-                                            onChange={handleFileInputChange}
-                                        />
+                                        {/* File upload button */}
+                                        {onFileUpload && (
+                                            <>
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    multiple
+                                                    style={{ display: 'none' }}
+                                                    onChange={handleFileInputChange}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className={styles.attachmentButton}
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    disabled={isUploading}
+                                                    title="Attach file"
+                                                    style={{
+                                                        background: inputBgColor,
+                                                        color: inputTextColor,
+                                                        border: 'none',
+                                                    }}
+                                                >
+                                                    <AttachmentIcon size={20} />
+                                                </button>
+                                            </>
+                                        )}
+
                                         <button
-                                            type="button"
-                                            className={styles.attachmentButton}
-                                            onClick={() => fileInputRef.current?.click()}
-                                            disabled={isUploading}
-                                            title="Attach file"
+                                            data-button-type="call-to-action"
+                                            ref={buttonSendRef}
+                                            onClick={(event) => {
+                                                if (!onMessage) {
+                                                    return;
+                                                }
+
+                                                event.preventDefault();
+                                                /* not await */ handleSend();
+                                            }}
                                             style={{
                                                 background: inputBgColor,
                                                 color: inputTextColor,
                                                 border: 'none',
                                             }}
                                         >
-                                            <AttachmentIcon size={20} />
+                                            <SendIcon size={25} />
                                         </button>
-                                    </>
-                                )}
-
-                                <button
-                                    data-button-type="call-to-action"
-                                    ref={buttonSendRef}
-                                    onClick={(event) => {
-                                        if (!onMessage) {
-                                            return;
-                                        }
-
-                                        event.preventDefault();
-                                        /* not await */ handleSend();
-                                    }}
-                                    style={{
-                                        background: inputBgColor,
-                                        color: inputTextColor,
-                                        border: 'none',
-                                    }}
-                                >
-                                    <SendIcon size={25} />
-                                </button>
-                            </div>
+                                    </div>
                                 );
                             })()}
 

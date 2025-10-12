@@ -4,6 +4,7 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Color, textColor } from '../../../_packages/color.index';
+import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -60,7 +61,10 @@ export const ChatMessageItem = memo(
         isFeedbackEnabled,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
-        const color = Color.from((participant && participant.color) || '#ccc');
+        const isMe = participant?.isMe;
+        const color = Color.from(
+            (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
+        );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
@@ -79,7 +83,7 @@ export const ChatMessageItem = memo(
             <div
                 className={classNames(
                     styles.chatMessage,
-                    participant?.isMe && styles.isMe,
+                    isMe && styles.isMe,
                     !message.isComplete && styles.isNotCompleteMessage,
                 )}
                 onClick={() => {

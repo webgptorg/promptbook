@@ -1,8 +1,9 @@
 import { REMOTE_SERVER_URLS } from '../servers';
-import { Color } from './_packages/color.index';
+import { Color, grayscale, lighten } from './_packages/color.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
+import { saturate } from './utils/color/operators/saturate';
 import { just } from './utils/organization/just';
 
 /**
@@ -53,6 +54,25 @@ export const CLAIM = `It's time for a paradigm shift. The future of software in 
  * @public exported from `@promptbook/core`
  */
 export const PROMPTBOOK_COLOR = Color.fromHex('#79EAFD');
+// <- TODO: !!! How much is this adding to package size of @promptbook/core
+
+/**
+ * Dark color of the Promptbook
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PROMPTBOOK_CHAT_COLOR = PROMPTBOOK_COLOR.then(lighten(0.1)).then(saturate(0.9)).then(grayscale(0.9));
+
+/**
+ * Color of the user (in chat)
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const USER_CHAT_COLOR = Color.fromHex('#1D4ED8');
 
 /**
  * When the title is not provided, the default title is used

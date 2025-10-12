@@ -1,3 +1,4 @@
+import { number_percent } from '../../../types/typeAliases';
 import { Color } from '../Color';
 import type { ColorTransformer } from './ColorTransformer';
 
@@ -8,7 +9,7 @@ import type { ColorTransformer } from './ColorTransformer';
  *
  * @public exported from `@promptbook/color`
  */
-export function grayscale(amount: number): ColorTransformer {
+export function grayscale(amount: number_percent): ColorTransformer {
     return ({ red, green, blue, alpha }: Color) => {
         const average = (red + green + blue) / 3;
         red = Math.round(average * amount + red * (1 - amount));

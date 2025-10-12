@@ -26,6 +26,8 @@ export class Color {
     public static from(color: string_color | Color): WithTake<Color> {
         if (color instanceof Color) {
             return take(color);
+        } else if (Color.isColor(color)) {
+            return take(color);
         } else if (typeof color === 'string') {
             return Color.fromString(color);
         } else {
