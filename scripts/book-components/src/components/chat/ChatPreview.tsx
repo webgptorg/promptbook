@@ -27,10 +27,7 @@ export default function ChatPreview() {
             name: 'USER',
             fullname: 'You',
             isMe: true,
-            // color: '#1D4ED8',
         },
-
-        /*
         {
             name: 'ASSISTANT_1',
             fullname: 'AI Assistant',
@@ -49,7 +46,6 @@ export default function ChatPreview() {
             color: '#8b5cf6',
             avatarSrc: 'https://randomuser.me/api/portraits/men/2.jpg',
         },
-        */
     ];
 
     const scenarios = useMemo(
