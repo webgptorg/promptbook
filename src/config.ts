@@ -1,10 +1,8 @@
 import { REMOTE_SERVER_URLS } from '../servers';
+import { Color } from './_packages/color.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id } from './types/typeAliases';
-import type { string_email } from './types/typeAliases';
-import type { string_name } from './types/typeAliases';
-import type { string_promptbook_server_url } from './types/typeAliases';
+import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
 import { just } from './utils/organization/just';
 
 /**
@@ -46,6 +44,15 @@ export const ADMIN_GITHUB_NAME: string_name = 'hejny';
  */
 export const CLAIM = `It's time for a paradigm shift. The future of software in plain English, French or Latin`;
 //            <- TODO: [🐊] Pick the best claim
+
+/**
+ * Color of the Promptbook
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PROMPTBOOK_COLOR = Color.fromHex('#79EAFD');
 
 /**
  * When the title is not provided, the default title is used

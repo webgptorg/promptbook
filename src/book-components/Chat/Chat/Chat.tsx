@@ -24,6 +24,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
+import { PROMPTBOOK_COLOR } from '../../../config';
 
 /**
  * Renders a chat with messages and input for new messages
@@ -563,7 +564,7 @@ export function Chat(props: ChatProps) {
                                 // Find the isMe participant or fallback to default
                                 const meParticipant =
                                     participants.find((p) => p.isMe) ||
-                                    { color: '#1D4ED8' };
+                                    { color: PROMPTBOOK_COLOR };
                                 // Compute background and text color
                                 const inputBgColor = Color.from(meParticipant.color).toHex();
                                 const inputTextColor = Color.from(meParticipant.color).then(textColor).toHex();
