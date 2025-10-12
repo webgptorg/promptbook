@@ -9,6 +9,7 @@ import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { classNames } from '../../_common/react-utils/classNames';
+import { Color, textColor } from '../../../_packages/color.index';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
@@ -558,45 +559,62 @@ export function Chat(props: ChatProps) {
                                 </div>
                             )}
 
-                            <div className={styles.inputContainer}>
-                                <textarea
-                                    ref={(element) => {
-                                        textareaRef.current = element;
-                                    }}
-                                    style={{
-                                        height:
-                                            Math.max(
-                                                countLines(textareaRef.current?.value || defaultMessage || ''),
-                                                (textareaRef.current?.value || defaultMessage || '').split('\n').length,
-                                                3,
-                                            ) *
-                                                25 +
-                                            10,
-                                    }}
-                                    defaultValue={defaultMessage}
-                                    placeholder={placeholderMessageContent || 'Write a message'}
-                                    onKeyDown={(event) => {
-                                        if (!onMessage) {
-                                            return;
-                                        }
-                                        if (event.shiftKey) {
-                                            return;
-                                        }
-                                        if (event.key !== 'Enter') {
-                                            return;
-                                        }
+                            {(() => {
+                                // Find the isMe participant or fallback to default
+                                const meParticipant =
+                                    participants.find((p) => p.isMe) ||
+                                    { color: '#1D4ED8' };
+                                // Compute background and text color
+                                const inputBgColor = Color.from(meParticipant.color).toHex();
+                                const inputTextColor = Color.from(meParticipant.color).then(textColor).toHex();
+                                return (
+                                    <div
+                                        className={styles.inputContainer}
+                                        style={{
+                                            // Use a high-contrast placeholder color for visibility
+                                            '--chat-placeholder-color': '#fff',
+                                        } as React.CSSProperties}
+                                    >
+                                        <textarea
+                                            ref={(element) => {
+                                                textareaRef.current = element;
+                                            }}
+                                            style={{
+                                                height:
+                                                    Math.max(
+                                                        countLines(textareaRef.current?.value || defaultMessage || ''),
+                                                        (textareaRef.current?.value || defaultMessage || '').split('\n').length,
+                                                        3,
+                                                    ) *
+                                                        25 +
+                                                    10,
+                                                background: inputBgColor,
+                                                color: inputTextColor,
+                                            }}
+                                            defaultValue={defaultMessage}
+                                            placeholder={placeholderMessageContent || 'Write a message'}
+                                            onKeyDown={(event) => {
+                                                if (!onMessage) {
+                                                    return;
+                                                }
+                                                if (event.shiftKey) {
+                                                    return;
+                                                }
+                                                if (event.key !== 'Enter') {
+                                                    return;
+                                                }
 
-                                        event.preventDefault();
-                                        /* not await */ handleSend();
-                                    }}
-                                    onKeyUp={() => {
-                                        if (!onChange) {
-                                            return;
-                                        }
+                                                event.preventDefault();
+                                                /* not await */ handleSend();
+                                            }}
+                                            onKeyUp={() => {
+                                                if (!onChange) {
+                                                    return;
+                                                }
 
-                                        onChange(textareaRef.current?.value || '');
-                                    }}
-                                />
+                                                onChange(textareaRef.current?.value || '');
+                                            }}
+                                        />
 
                                 {/* File upload button */}
                                 {onFileUpload && (
@@ -614,6 +632,11 @@ export function Chat(props: ChatProps) {
                                             onClick={() => fileInputRef.current?.click()}
                                             disabled={isUploading}
                                             title="Attach file"
+                                            style={{
+                                                background: inputBgColor,
+                                                color: inputTextColor,
+                                                border: 'none',
+                                            }}
                                         >
                                             <AttachmentIcon size={20} />
                                         </button>
@@ -631,10 +654,17 @@ export function Chat(props: ChatProps) {
                                         event.preventDefault();
                                         /* not await */ handleSend();
                                     }}
+                                    style={{
+                                        background: inputBgColor,
+                                        color: inputTextColor,
+                                        border: 'none',
+                                    }}
                                 >
                                     <SendIcon size={25} />
                                 </button>
                             </div>
+                                );
+                            })()}
 
                             {/* Upload progress indicator */}
                             {isUploading && (

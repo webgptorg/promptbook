@@ -1,5 +1,14 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
+### Enhanced
+-   **[✨🪢] `<Chat />` input container now matches the background color of the `isMe` participant**
+    -   The input area background color is now the same as the `isMe` participant's chat bubble (default: `#1D4ED8`).
+    -   Text color is automatically set for optimal contrast, using the same logic as message bubbles.
+    -   Color logic is DRY and shared between bubbles and input.
+    -   ([2025-10-0080])
+    -   Action buttons (send, attachment) now use the `isMe` color for background and icon, matching the input area.
+    -   Placeholder text is now more visible with high-contrast color.
+    -   Fixed TypeScript and CSS issues related to color handling and placeholder styling.
 - Enhanced `<blockquote>` in `<Chat />` to visually match `<code>` blocks, but lighter, for improved readability and consistency.
 - Refactored CSS for `.chat-blockquote` and `.chat-code-block` to share a common `.chat-block` base for DRYness.
 

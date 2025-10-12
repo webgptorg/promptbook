@@ -681,6 +681,11 @@
     gap: 12px;
 }
 
+.inputContainer textarea::placeholder {
+    color: var(--chat-placeholder-color, #fff);
+    opacity: 1;
+}
+
 /* Attachment button */
 .attachmentButton {
     width: 40px;

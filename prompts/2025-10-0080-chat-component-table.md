@@ -48,7 +48,7 @@
 
 ---
 
-[x]
+[x.]
 
 [✨🪢] Enhance the <blockquote> in `<Chat />`
 
@@ -60,7 +60,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🪢] Enhance the `inputContainer` in `<Chat />`
 
