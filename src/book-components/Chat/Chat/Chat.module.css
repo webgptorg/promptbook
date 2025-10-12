@@ -1,4 +1,19 @@
-@font-face {
+@font-face {.copiedToClipboardMessage {
+  position: fixed;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 1.1em;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  opacity: 0.97;
+  pointer-events: none;
+  z-index: 9999;
+}
+
     font-family: 'OpenMojiBlack';
     src: url('../../fonts/OpenMoji-black-glyf.woff2') format('woff2');
     /* <- TODO: Is this working in external consumer?! (Import internally from the repository source code (/src/book-components/fonts/OpenMoji-black-glyf.woff2), not from this random URL) */
@@ -395,6 +410,37 @@
     display: flex;
     align-items: center;
     opacity: 0.7;
+    position: relative;
+}
+
+.copiedTooltip {
+    position: absolute;
+    left: 50%;
+    top: 110%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 0.98em;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    opacity: 0.97;
+    pointer-events: none;
+    z-index: 100;
+    white-space: nowrap;
+    margin-top: 4px;
+    animation: copiedTooltipFadeIn 0.2s;
+}
+
+@keyframes copiedTooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(8px) scale(0.97);
+    }
+    to {
+        opacity: 0.97;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
 }
 
 .copyButton:hover,

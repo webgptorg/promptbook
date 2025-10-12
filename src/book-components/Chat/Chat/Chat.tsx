@@ -92,6 +92,7 @@ export function Chat(props: ChatProps) {
     const [textRating, setTextRating] = useState('');
     const [hoveredRating, setHoveredRating] = useState(0);
     const [expandedMessageId, setExpandedMessageId] = useState<id | null>(null);
+    // const [copiedToClipboard, setCopiedToClipboard] = useState(false);
     // const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
     // const [isTyping, setIsTyping] = useState(false);
     // const [inputValue, setInputValue] = useState('');
@@ -389,6 +390,9 @@ export function Chat(props: ChatProps) {
 
     const isFeedbackEnabled = !!onFeedback;
 
+    // Handler for copy button
+    const handleCopy = () => {};
+
     return (
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
@@ -525,6 +529,7 @@ export function Chat(props: ChatProps) {
                                     mode={mode}
                                     isCopyButtonEnabled={isCopyButtonEnabled}
                                     isFeedbackEnabled={isFeedbackEnabled}
+                                    onCopy={handleCopy}
                                 />
                             );
                         })}

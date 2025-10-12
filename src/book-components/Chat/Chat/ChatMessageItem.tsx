@@ -38,6 +38,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Enables the feedback (rating) UI for this message bubble.
      */
     isFeedbackEnabled?: boolean;
+    /**
+     * Called when the copy button is pressed.
+     */
+    onCopy?: () => void;
 };
 
 /**
@@ -59,6 +63,7 @@ export const ChatMessageItem = memo(
         mode,
         isCopyButtonEnabled,
         isFeedbackEnabled,
+    onCopy,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
         const isMe = participant?.isMe;
@@ -69,6 +74,7 @@ export const ChatMessageItem = memo(
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
+        const [copied, setCopied] = useState(false);
 
         useEffect(() => {
             if (!isExpanded) {
@@ -146,10 +152,12 @@ export const ChatMessageItem = memo(
                                         }
 
                                         await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                        if (typeof onCopy === 'function') {
+                                            onCopy();
+                                        }
                                     } else {
-                                        // Fallback: just copy plain text
-                                        // await navigator.clipboard.writeText(plain);
-
                                         throw new Error(
                                             `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
                                         );
@@ -178,6 +186,11 @@ export const ChatMessageItem = memo(
                                         strokeWidth="1.5"
                                     />
                                 </svg>
+                                {copied && (
+                                    <span className={styles.copiedTooltip}>
+                                        Copied to Clipboard!
+                                    </span>
+                                )}
                             </button>
                         </div>
                     )}
