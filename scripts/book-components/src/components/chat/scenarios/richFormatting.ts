@@ -87,7 +87,7 @@ export const richFormattingScenario = {
             date: new Date(),
             from: 'ASSISTANT_1',
             content: spaceTrim(`
-                And lists:
+                ## And lists:
 
                 - Item 1
                 - Item 2

@@ -402,6 +402,26 @@
     display: block;
 }
 
+.messageText h1 {
+    font-size: 2em;
+}
+
+.messageText h2 {
+    font-size: 1.75em;
+}
+
+.messageText h3 {
+    font-size: 1.5em;
+}
+
+.messageText h4 {
+    font-size: 1.25em;
+}
+
+.messageText h5 {
+    font-size: 1.1em;
+}
+
 .messageText ul {
     list-style: disc;
     margin-left: 20px;
