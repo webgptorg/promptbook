@@ -353,8 +353,24 @@
             "focus": true
         },
         {
-            "name": "👨🏽‍💻 Force reinstall of node modules",
+            "name": "🔪👨🏽‍💻 Force reinstall of node modules",
             "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔪👨🏽‍💻🔠 Force reinstall of node modules in Book Components Server (and run)",
+            "commands": [
+                "cd ./scripts/book-components/",
+                "(npx kill-port 4022 || true)",
+                "rm -f ./package-lock.json",
+                "rm -rf ./node_modules",
+                "rm -rf ./next",
+                "npm cache clean",
+                "npm install",
+                "npm ci",
+                "npm run dev"
+            ],
             "onlySingle": true,
             "focus": true
         },
