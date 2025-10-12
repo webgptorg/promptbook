@@ -4,6 +4,7 @@ about: Integration of Promptbook with other tools and platforms
 title: 🔃 Integrate [Tool / Platform Name / Model / ...]
 labels:
     - Integration
+    - Foooooo
 assignees: hejny
 ---
 
