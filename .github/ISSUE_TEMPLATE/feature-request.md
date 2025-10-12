@@ -1,7 +1,7 @@
 ---
 name: '✨ Feature request'
 about: Suggest an feature for Promptbook
-title: title !!!
+title: ✨ My Cool Feature
 labels: enhancement
 assignees: hejny
 ---
