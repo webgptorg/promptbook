@@ -100,13 +100,12 @@ export const ChatMessageItem = memo(
                     <div className={styles.avatar}>
                         <img
                             width={AVATAR_SIZE}
-                            height={AVATAR_SIZE}
                             src={avatarSrc}
                             alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
                             style={{
                                 backgroundColor: color.toHex(),
                                 width: AVATAR_SIZE,
-                                height: AVATAR_SIZE,
+                                aspectRatio: '1 / 1',
                                 borderRadius: '50%',
                                 objectFit: 'cover',
                                 border: '2px solid rgba(125, 125, 125, 0.1)',

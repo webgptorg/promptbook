@@ -446,7 +446,7 @@ export function Chat(props: ChatProps) {
                                     aria-haspopup="true"
                                     aria-expanded={showSaveMenu}
                                 >
-                                    <SaveIcon size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                                    <SaveIcon size={18} />
                                     <span className={styles.chatButtonText}>Save</span>
                                 </button>
                                 {showSaveMenu && (

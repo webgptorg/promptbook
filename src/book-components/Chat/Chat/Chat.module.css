@@ -256,7 +256,7 @@
 
 .typingIndicator .avatar img {
     width: 40px;
-    height: 40px;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     object-fit: cover;
     background-color: #eef6fb;
@@ -329,7 +329,7 @@
 /* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
     width: 40px;
-    height: 40px;
+    aspect-ratio: 1 / 1;
     margin: 0 12px 4px;
     flex-shrink: 0;
     position: relative;
@@ -337,7 +337,7 @@
 
 .chatMainFlow .chatMessage .avatar img {
     width: 40px;
-    height: 40px;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     object-fit: cover;
     background-color: #eef6fb;
@@ -1510,7 +1510,7 @@
 
     .chatMainFlow .chatMessage .avatar img {
         width: 36px;
-        height: 36px;
+        aspect-ratio: 1 / 1;
     }
 
     .chatMainFlow .chatInput {
@@ -1632,7 +1632,7 @@
 
     .chatMainFlow .chatMessage .avatar img {
         width: 32px;
-        height: 32px;
+        aspect-ratio: 1 / 1;
     }
 
     .chatMainFlow .chatInput {
