@@ -1,6 +1,7 @@
 # 📅 Changelog## [Unreleased]## [Unreleased]
 
 ### Enhanced
+
 -   **[✨🪢] `<Chat />` input container now matches the background color of the `isMe` participant**
     -   The input area background color is now the same as the `isMe` participant's chat bubble (default: `#1D4ED8`).
     -   Text color is automatically set for optimal contrast, using the same logic as message bubbles.
@@ -9,29 +10,29 @@
     -   Action buttons (send, attachment) now use the `isMe` color for background and icon, matching the input area.
     -   Placeholder text is now more visible with high-contrast color.
     -   Fixed TypeScript and CSS issues related to color handling and placeholder styling.
-- Enhanced `<blockquote>` in `<Chat />` to visually match `<code>` blocks, but lighter, for improved readability and consistency.
-- Refactored CSS for `.chat-blockquote` and `.chat-code-block` to share a common `.chat-block` base for DRYness.
-
+-   Enhanced `<blockquote>` in `<Chat />` to visually match `<code>` blocks, but lighter, for improved readability and consistency.
 
 ### Enhanced
-- Code blocks in chat messages now have a dark background, light text, and syntax highlighting for improved readability and visual consistency with tables and other nested elements. Code block rendering is DRY and centralized in markdown rendering logic.
-- Blockquotes in chat messages now have a boxed, light background style visually consistent with code blocks and tables, for improved readability and message structure.
 
+-   Code blocks in chat messages now have a dark background, light text, and syntax highlighting for improved readability and visual consistency with tables and other nested elements. Code block rendering is DRY and centralized in markdown rendering logic.
+-   Blockquotes in chat messages now have a boxed, light background style visually consistent with code blocks and tables, for improved readability and message structure.
 
 ### Changed
+
 -   **[✨] Improved visual contrast for tables in `<Chat />`**
     -   Tables inside chat messages (markdown or HTML) now have higher contrast text and backgrounds for better readability and accessibility.
     -   Styling is DRY and applies to all tables rendered in chat messages.
     -   ([2025-10-0080])
-- BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
-- **[✨] `<Chat>` component now only shows the feedback button if `onFeedback` prop is provided**
-    - By default, the feedback button is hidden unless `onFeedback` is set.
-    - DRY: Feedback logic is centralized and not duplicated.
-    - Preview scenarios should demonstrate both with and without feedback; "Chat with feedback" scenario added.
-    - This is a UI change for consumers relying on the feedback button always being present.
-    - ([2025-10-0060])
+-   BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
+-   **[✨] `<Chat>` component now only shows the feedback button if `onFeedback` prop is provided**
+    -   By default, the feedback button is hidden unless `onFeedback` is set.
+    -   DRY: Feedback logic is centralized and not duplicated.
+    -   Preview scenarios should demonstrate both with and without feedback; "Chat with feedback" scenario added.
+    -   This is a UI change for consumers relying on the feedback button always being present.
+    -   ([2025-10-0060])
 
 ### Added
+
 -   **[✨] `<Chat/>` Save button now has an icon, matching "New Chat"**
     -   Added a Save icon to the "Save" button in the Chat component, following the DRY principle and matching the style of the "New Chat" button.
     -   New reusable `<SaveIcon>` component in `src/book-components/icons/SaveIcon.tsx`.
@@ -44,29 +45,29 @@
     -   When `children` is provided, it is rendered above the chat messages and input area.
     -   Preview: New scenario "Chat with children" demonstrates this feature in the Chat component preview.
     -   Implementation follows DRY principle and is covered by a usage example.
-- BookEditorPreview now includes a sample selector for loading book samples from `/books/examples`.
-- When a sample is picked, the book content is replaced with the sample content.
-- If the book is not empty, a confirmation dialog is shown before replacing the content.
-
+-   BookEditorPreview now includes a sample selector for loading book samples from `/books/examples`.
+-   When a sample is picked, the book content is replaced with the sample content.
+-   If the book is not empty, a confirmation dialog is shown before replacing the content.
 
 ### Added
-- Chat component: Added `isCopyButtonEnabled` prop (default: `true`). When enabled, each message bubble shows a copy button in the top-right corner, supporting copy as plain text and formatted text (markdown).
-- Preview scenarios for Chat now support toggling copy buttons on/off.
-- Feature integrated into `Chat`, `MockedChat`, and `LlmChat` components.
+
+-   Chat component: Added `isCopyButtonEnabled` prop (default: `true`). When enabled, each message bubble shows a copy button in the top-right corner, supporting copy as plain text and formatted text (markdown).
+-   Preview scenarios for Chat now support toggling copy buttons on/off.
+-   Feature integrated into `Chat`, `MockedChat`, and `LlmChat` components.
 
 ### Changed
+
 -   **[✨] `<Chat>` component now renders markdown and HTML tables as real tables**
     -   Chat messages containing markdown tables or HTML `<table>` markup are now rendered as proper tables, not as plain text.
     -   Security: Only safe table-related HTML is allowed; scripts and dangerous tags are stripped.
     -   Implementation follows DRY principle by centralizing all markdown/HTML rendering in `renderMarkdown.ts`.
     -   **Tables inside chat messages now have a modern, pretty design with rounded corners, zebra striping, and responsive overflow.**
-- Fixed: OpenAiCompatibleExecutionTools now correctly strips unsupported parameters (like `temperature`) on every call to `callChatModel`, `callCompletionModel`, and `callEmbeddingModel`, even for repeated or parallel calls. Each call is now stateless and thread-safe. ([2025-10-0000])
+-   Fixed: OpenAiCompatibleExecutionTools now correctly strips unsupported parameters (like `temperature`) on every call to `callChatModel`, `callCompletionModel`, and `callEmbeddingModel`, even for repeated or parallel calls. Each call is now stateless and thread-safe. ([2025-10-0000])
 
-- Allow passing a chat thread (`thread` property) into `CommonPrompt` and `ChatPrompt`
-- Implemented thread support in `OpenAiExecutionTools` (and compatible tools)
-- Added usage sample to `src/llm-providers/openai/playground/playground.ts`
-- Kept implementation DRY and backward compatible
-
+-   Allow passing a chat thread (`thread` property) into `CommonPrompt` and `ChatPrompt`
+-   Implemented thread support in `OpenAiExecutionTools` (and compatible tools)
+-   Added usage sample to `src/llm-providers/openai/playground/playground.ts`
+-   Kept implementation DRY and backward compatible
 
 ## [Unreleased]
 
@@ -74,6 +75,7 @@
     -   The `LlmChat` component now includes the full chat thread when calling LLM execution tools, enabling context-aware responses and improved multi-turn conversation support.
     -   Implementation follows DRY principle and is backward compatible.
 -   **[✨] Enhanced `<BookEditor>` for large books** ([2025-10-0030])
+
     -   Improved performance and highlighting for big and complicated books using line virtualization and debounced rendering.
     -   Keeps highlighting in sync and rendering smooth for large content.
     -   Refactored to follow DRY principle and introduced a reusable debounce utility.

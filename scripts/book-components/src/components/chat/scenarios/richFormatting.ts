@@ -71,15 +71,37 @@ export const richFormattingScenario = {
             date: new Date(),
             from: 'ASSISTANT_1',
             content: spaceTrim(`
-                      And here are some more emojis:
+                And here are some more emojis:
 
-                      😄🎉🚀💡📊📝🔥🌟✅❌
-                      ❤🧡💙💚💛🧡❤️🤎🖤💜
-                      🐱‍👤🐱‍💻🐱🚀🐱‍🏍💫🎞🎫🎠🎏
-                      😀😀😁😂🤣😃😄😆😅🤩
-                      ➿🛂🛃🛄🛅♿📶🚻🚹🚾
+                😄🎉🚀💡📊📝🔥🌟✅❌
+                ❤🧡💙💚💛🧡❤️🤎🖤💜
+                🐱‍👤🐱‍💻🐱🚀🐱‍🏍💫🎞🎫🎠🎏
+                😀😀😁😂🤣😃😄😆😅🤩
+                ➿🛂🛃🛄🛅♿📶🚻🚹🚾
 
-                `),
+          `),
+            isComplete: true,
+        },
+        {
+            id: '5',
+            date: new Date(),
+            from: 'ASSISTANT_1',
+            content: spaceTrim(`
+                And lists:
+
+                - Item 1
+                - Item 2
+                    - Nested Item 2a
+                    - Nested Item 2b
+                - Item 3
+
+                1. First item
+                2. Second item
+                   1. Nested second item a
+                   2. Nested second item b
+                3. Third item
+
+            `),
             isComplete: true,
         },
     ] as ChatMessage[],

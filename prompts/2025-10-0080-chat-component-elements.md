@@ -73,7 +73,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🪢] Enhance design of `<Chat/>` - `<ul>`, `<ol>` and `<li>`
 

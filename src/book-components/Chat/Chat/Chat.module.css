@@ -401,47 +401,39 @@
 .copyButton svg {
     display: block;
 }
-/* Shared block styles for code and blockquote */
-.chat-block {
-    border-radius: 12px;
-    padding: 16px 18px;
-    margin: 18px 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-width: 1px;
-    border-style: solid;
-    font-family: inherit;
-    position: relative;
+
+.messageText ul {
+    list-style: disc;
+    margin-left: 20px;
 }
 
-/* Enhanced blockquote styling for chat messages */
-.chat-blockquote {
-    composes: chat-block;
-    background: #f8fafc;
-    color: #17223b;
-    font-size: 15px;
-    line-height: 1.6;
-    border-color: #d1dbe8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+.messageText ol {
+    list-style: decimal;
+    margin-left: 20px;
 }
-.chat-blockquote::before {
-    content: '';
+
+.messageText img,
+.messageText pre,
+.messageText blockquote,
+.messageText table {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+.messageText pre {
     display: block;
-    position: absolute;
-    left: 0;
-    top: 12px;
-    bottom: 12px;
-    width: 4px;
-    background: linear-gradient(180deg, #b5c7de 0%, #eaf3fa 100%);
-    border-radius: 4px;
-}
-.chat-blockquote p:last-child {
-    margin-bottom: 0;
+    border: none;
+    box-shadow: none;
+    background: #000000ff;
+    font-size: inherit;
+    line-height: inherit;
+    color: #fff;
+    padding: 1em;
 }
 
 .messageText blockquote {
     display: block;
-    margin: 0;
-    padding: 0;
     border: none;
     box-shadow: none;
     background: #ffffffcc;
@@ -449,7 +441,6 @@
     line-height: inherit;
     color: #000;
     padding: 1em;
-    border-radius: 8px;
 }
 
 .messageText code {
