@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/pdf",
-    "version": "0.102.0-12",
+    "version": "0.102.0-13",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -94,7 +94,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/pdf.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.102.0-12"
+        "@promptbook/core": "0.102.0-13"
     },
     "dependencies": {
         "crypto": "1.0.1",

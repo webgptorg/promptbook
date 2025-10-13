@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/website-crawler",
-    "version": "0.102.0-12",
+    "version": "0.102.0-13",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -95,7 +95,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/website-crawler.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.102.0-12"
+        "@promptbook/core": "0.102.0-13"
     },
     "dependencies": {
         "@mozilla/readability": "0.6.0",
