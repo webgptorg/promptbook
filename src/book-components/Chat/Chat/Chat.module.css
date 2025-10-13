@@ -208,7 +208,7 @@
 
 /* Add top margin to first message if actions are present and first message is long */
 .hasActionsAndFirstMessageIsLong {
-    margin-top: 48px;
+    margin-top: 55px;
 }
 
 @keyframes messageSlideIn {
@@ -436,7 +436,23 @@
     white-space: nowrap;
     margin-top: 4px;
     animation: copiedTooltipFadeIn 0.2s;
+    max-width: 220px;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
+
+.copiedTooltipLeft {
+    left: 0 !important;
+    transform: none !important;
+}
+
+.copiedTooltipRight {
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+}
+
+/* Removed right-aligned override to keep tooltip position stable */
 
 @keyframes copiedTooltipFadeIn {
     from {

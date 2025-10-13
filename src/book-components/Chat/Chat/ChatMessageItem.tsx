@@ -63,7 +63,7 @@ export const ChatMessageItem = memo(
         mode,
         isCopyButtonEnabled,
         isFeedbackEnabled,
-    onCopy,
+        onCopy,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
         const isMe = participant?.isMe;
@@ -75,6 +75,8 @@ export const ChatMessageItem = memo(
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
+        const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
+        const tooltipRef = useRef<HTMLSpanElement>(null);
 
         useEffect(() => {
             if (!isExpanded) {
@@ -154,6 +156,21 @@ export const ChatMessageItem = memo(
                                         await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
                                         setCopied(true);
                                         setTimeout(() => setCopied(false), 2000);
+
+                                        // Tooltip positioning logic
+                                        setTimeout(() => {
+                                            const tooltip = tooltipRef.current;
+                                            if (tooltip) {
+                                                const rect = tooltip.getBoundingClientRect();
+                                                if (rect.left < 8) {
+                                                    setTooltipAlign('left');
+                                                } else if (rect.right > window.innerWidth - 8) {
+                                                    setTooltipAlign('right');
+                                                } else {
+                                                    setTooltipAlign('center');
+                                                }
+                                            }
+                                        }, 10);
                                         if (typeof onCopy === 'function') {
                                             onCopy();
                                         }
@@ -187,8 +204,18 @@ export const ChatMessageItem = memo(
                                     />
                                 </svg>
                                 {copied && (
-                                    <span className={styles.copiedTooltip}>
-                                        Copied to Clipboard!
+                                    <span
+                                        ref={tooltipRef}
+                                        className={
+                                            styles.copiedTooltip +
+                                            (tooltipAlign === 'left'
+                                                ? ' ' + styles.copiedTooltipLeft
+                                                : tooltipAlign === 'right'
+                                                ? ' ' + styles.copiedTooltipRight
+                                                : '')
+                                        }
+                                    >
+                                        Copied!
                                     </span>
                                 )}
                             </button>
