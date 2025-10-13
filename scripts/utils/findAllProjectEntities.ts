@@ -65,6 +65,11 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
 
             const filename = file.path;
 
+            if (name === '$') {
+                // Note: [🍡] This is not a real entity, but an entity enclosed in a string.
+                continue;
+            }
+
             if (filename.endsWith('/src/cli/cli-commands/make.ts') && name === 'getPipelineCollection') {
                 // Note: [🍡] This is not a real entity, but an entity enclosed in a string.
                 continue;
