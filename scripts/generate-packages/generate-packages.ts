@@ -936,6 +936,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
 /**
  * TODO: [👵] test before publish
+ * TODO: !!! Is updated in Github Action on the first version or it needs two version
  * TODO: Add warning to the copy/generated files
  * TODO: Use prettier to format the generated files
  * TODO: Normalize order of keys in package.json
