@@ -88,6 +88,19 @@ export function renderMarkdown(markdown: string_markdown): string_html {
             );
         } else {
             // Browser: use DOMParser for robust manipulation
+            // Inject highlight.js GitHub Dark CSS if not already present and code block exists
+            if (html.match(/<pre><code/)) {
+                const cssId = 'hljs-github-dark-css';
+                if (!window.document.getElementById(cssId)) {
+                    const link = window.document.createElement('link');
+                    link.id = cssId;
+                    link.rel = 'stylesheet';
+                    link.href =
+                        'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css';
+                        // <- !!! Use Our CDN, Is it working?
+                    window.document.head.appendChild(link);
+                }
+            }
             const parser = new window.DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             doc.querySelectorAll('pre > code').forEach((codeEl) => {

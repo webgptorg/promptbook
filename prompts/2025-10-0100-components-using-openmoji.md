@@ -17,6 +17,7 @@ Something like this:
 @font-face {
     font-family: 'OpenMojiBlack';
     src: url('/fonts/OpenMoji-black-glyf.woff2') format('woff2');
+    /* <- !!! Is it working? */
     unicode-range: U+23, U+2A, U+2D, U+30-39, U+A9, U+AE, U+200D, U+203C, U+2049, U+20E3, U+2117, U+2120, U+2122,
         U+2139, U+2194-2199, U+21A9, U+21AA, U+229C, U+231A, U+231B, U+2328, U+23CF, U+23E9-23F3, U+23F8-23FE, U+24C2,
         U+25A1, U+25AA-25AE, U+25B6, U+25C0, U+25C9, U+25D0, U+25D1, U+25E7-25EA, U+25ED, U+25EE, U+25FB-25FE,
