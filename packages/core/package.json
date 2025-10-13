@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.102.0-13",
+    "version": "0.102.0-14",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
