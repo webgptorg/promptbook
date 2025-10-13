@@ -1,18 +1,19 @@
-@font-face {.copiedToClipboardMessage {
-  position: fixed;
-  top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #222;
-  color: #fff;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-size: 1.1em;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  opacity: 0.97;
-  pointer-events: none;
-  z-index: 9999;
-}
+@font-face {
+    .copiedToClipboardMessage {
+        position: fixed;
+        top: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #222;
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 1.1em;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+        opacity: 0.97;
+        pointer-events: none;
+        z-index: 9999;
+    }
 
     font-family: 'OpenMojiBlack';
     src: url('../../fonts/OpenMoji-black-glyf.woff2') format('woff2');
@@ -203,6 +204,11 @@
     position: relative;
     animation: messageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     max-width: 100%;
+}
+
+/* Add top margin to first message if actions are present and first message is long */
+.hasActionsAndFirstMessageIsLong {
+    margin-top: 48px;
 }
 
 @keyframes messageSlideIn {
@@ -423,7 +429,7 @@
     padding: 6px 16px;
     border-radius: 8px;
     font-size: 0.98em;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
     opacity: 0.97;
     pointer-events: none;
     z-index: 100;
@@ -621,7 +627,7 @@
     gap: 8px;
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid rgba(125, 125, 125, 0.15);
+    border-top: 1px solid rgba(125 125 125 / 0.83);
 }
 
 /* Individual message button */
@@ -630,7 +636,7 @@
     align-items: center;
     padding: 8px 14px;
     background: rgba(125, 125, 125, 0.1);
-    border: 1px solid rgba(125, 125, 125, 0.2);
+    border: 1px solid rgba(125, 125, 125, 0.9);
     border-radius: 16px;
     font-size: 13px;
     font-weight: 500;

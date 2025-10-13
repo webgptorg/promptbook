@@ -504,7 +504,35 @@ export function Chat(props: ChatProps) {
                     </div>
 
                     <div
-                        className={classNames(styles.chatMessages, useChatCssClassName('chatMessages'))}
+                        className={classNames(
+                            styles.chatMessages,
+                            useChatCssClassName('chatMessages'),
+                            (() => {
+                                // Detect if actions are present
+                                const hasActions =
+                                    (!!onReset && postprocessedMessages.length !== 0) ||
+                                    (isSaveButtonEnabled && postprocessedMessages.length !== 0) ||
+                                    !!onUseTemplate ||
+                                    !!extraActions;
+
+                                if (!hasActions) {
+                                    return false;
+                                }
+
+                                // Detect if first message is long
+                                const firstMsg = postprocessedMessages[0];
+                                const firstMsgContent = firstMsg?.content || '';
+                                const firstMsgLines = firstMsgContent.split('\n').length; // <- TODO: Maybe use official counting functions here
+                                const firstMsgChars = firstMsgContent.length;
+                                const isFirstLong = firstMsgLines > 5 || firstMsgChars > 50;
+
+                                if (!isFirstLong) {
+                                    return false;
+                                }
+
+                                return true;
+                            })() && styles.hasActionsAndFirstMessageIsLong,
+                        )}
                         ref={chatMessagesRef}
                         onScroll={handleScroll}
                     >
