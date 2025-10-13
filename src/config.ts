@@ -54,7 +54,7 @@ export const CLAIM = `It's time for a paradigm shift. The future of software in 
  * @public exported from `@promptbook/core`
  */
 export const PROMPTBOOK_COLOR = Color.fromHex('#79EAFD');
-// <- TODO: !!! How much is this adding to package size of @promptbook/core
+// <- TODO: [🧠] Using `Color` here increases the package size approx 3kb, maybe remove it
 
 /**
  * Dark color of the Promptbook

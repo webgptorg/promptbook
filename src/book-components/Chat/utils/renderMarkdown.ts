@@ -96,7 +96,7 @@ export function renderMarkdown(markdown: string_markdown): string_html {
                     link.id = cssId;
                     link.rel = 'stylesheet';
                     link.href =
-                        'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css';
+                        'https://book-components.ptbk.io/cdn/highlightjs/github-dark.css';
                         // <- !!! Use Our CDN, Is it working?
                     window.document.head.appendChild(link);
                 }
