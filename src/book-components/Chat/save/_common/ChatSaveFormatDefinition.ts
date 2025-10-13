@@ -5,6 +5,7 @@ import { ChatParticipant } from '../../types/ChatParticipant';
 
 /**
  * Plugin contract for chat export formatNames
+ *
  * @public exported from `@promptbook/components`
  */
 export type ChatSaveFormatDefinition = {
@@ -34,6 +35,11 @@ export type ChatSaveFormatDefinition = {
     getContent(chatExportData: ChatExportData): Promisable<string>;
 };
 
+/**
+ * Plugin contract for the data passed to `ChatSaveFormatDefinition.getContent()`
+ *
+ * @public exported from `@promptbook/components`
+ */
 type ChatExportData = {
     /**
      * The title of the chat (used for file naming, etc.)
