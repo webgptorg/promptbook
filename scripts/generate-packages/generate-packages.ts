@@ -877,6 +877,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     run: 'npm ci',
                                 },
                                 {
+                                    name: '🔽🔠 Install dependencies in Book Components',
+                                    run: 'npm ci',
+                                    'working-directory': './scripts/book-components/',
+                                },
+                                {
                                     name: '🔽 Clone book submodule',
                                     run: 'git submodule update --init --recursive',
                                 },
