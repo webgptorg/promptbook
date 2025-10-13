@@ -30,7 +30,7 @@ export type ChatSaveFormatDefinition = {
     readonly fileExtension: string;
 
     /**
-     * The export function that generates the content of the file to be saved
+     * The function that generates the content of the file to be saved
      */
     getContent(chatExportData: ChatExportData): Promisable<string>;
 };
