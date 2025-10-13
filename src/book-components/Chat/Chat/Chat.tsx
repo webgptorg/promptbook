@@ -477,6 +477,8 @@ export function Chat(props: ChatProps) {
                                                     background: 'none',
                                                     textAlign: 'left',
                                                     cursor: 'pointer',
+                                                    color: '#111',
+                                                    // <- TODO: Move to CSS and make hover effect
                                                 }}
                                                 onClick={() =>
                                                     handleDownload(

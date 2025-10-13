@@ -22,7 +22,7 @@ async function htmlToPdfBuffer(html: string): Promise<Uint8Array> {
  */
 export const pdfSaveFormatDefinition = {
     formatName: 'pdf',
-    label: 'PDF',
+    label: 'Pdf',
     getContent: async (chatExportData) => {
         // const { messages } = chatExportData;
 

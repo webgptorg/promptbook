@@ -1,0 +1,112 @@
+import { describe, expect, it } from '@jest/globals';
+import { spaceTrim } from 'spacetrim';
+import { Color } from '../color/Color';
+import { serializeToPromptbookJavascript } from './serializeToPromptbookJavascript';
+
+describe('how `serializeToPromptbookJavascript` works', () => {
+    it('should serialize simple values', () => {
+        expect(serializeToPromptbookJavascript(true)).toMatchObject({
+            value: 'true',
+        });
+
+        expect(serializeToPromptbookJavascript(null)).toMatchObject({
+            value: 'null',
+        });
+
+        expect(serializeToPromptbookJavascript(123)).toMatchObject({
+            value: '123',
+        });
+
+        expect(serializeToPromptbookJavascript('Hello')).toMatchObject({
+            value: '"Hello"',
+        });
+    });
+
+    it('should serialize simple JSON', () =>
+        expect(
+            serializeToPromptbookJavascript({
+                foo: 'bar',
+                baz: 123,
+            }),
+        ).toMatchObject({
+            value: spaceTrim(`
+                {
+                    "foo": "bar",
+                    "baz": 123
+                }
+            `),
+        }));
+
+    it('should serialize advanced JSON', () =>
+        expect(
+            serializeToPromptbookJavascript({
+                foo: 'bar',
+                baz: 123,
+                nested: {
+                    a: true,
+                    b: null,
+                    c: [1, 2, 3],
+                },
+            }),
+        ).toMatchObject({
+            value: spaceTrim(`
+                {
+                    "foo": "bar",
+                    "baz": 123,
+                    "nested": {
+                        "a": true,
+                        "b": null,
+                        "c": [1, 2, 3]
+                    }
+                }
+            `),
+        }));
+
+    it('should serialize string', () =>
+        expect(
+            serializeToPromptbookJavascript(
+                spaceTrim(`
+                    Foo
+                    Bar
+                    Baz
+                `),
+            ),
+        ).toMatchObject({
+            imports: [`import { spaceTrim } from '@promptbook/utils';`],
+            value: spaceTrim(`
+                spaceTrim(\`
+                    Foo
+                    Bar
+                    Baz
+                \`),
+            `),
+        }));
+
+    it('should serialize Date', () =>
+        expect(serializeToPromptbookJavascript(new Date(`2024-12-10T13:04:19.025Z`))).toMatchObject({
+            imports: [],
+            value: `new Date('2024-12-10T13:04:19.025Z')`,
+        }));
+
+    it('should serialize Color', () =>
+        expect(serializeToPromptbookJavascript(Color.fromHex(`#07C9BF`))).toMatchObject({
+            imports: [`import { Color } from '@promptbook/color';`],
+            value: `Color.fromHex('#07C9BF')`,
+        }));
+
+    it('should serialize string Color', () =>
+        expect(serializeToPromptbookJavascript(`#07C9BF`)).toMatchObject({
+            imports: [`import { Color } from '@promptbook/color';`],
+            value: `[Color.fromHex('#07C9BF')]`,
+        }));
+
+    it('should serialize Date (wrapped in Array)', () =>
+        expect(serializeToPromptbookJavascript([new Date(`2024-12-10T13:04:19.025Z`)])).toMatchObject({
+            value: [`[new Date('2024-12-10T13:04:19.025Z')]`],
+        }));
+
+    it('should serialize Color (wrapped in Array)', () =>
+        expect(serializeToPromptbookJavascript([Color.fromHex(`#07C9BF`)])).toMatchObject({
+            value: [`[Color.fromHex('#07C9BF')]`],
+        }));
+});

@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { normalizeTo_PascalCase } from '../../../../_packages/utils.index';
+import { serializeToPromptbookJavascript } from '../../../../utils/serialization/serializeToPromptbookJavascript';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
@@ -9,41 +10,42 @@ import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefiniti
  */
 export const reactSaveFormatDefinition = {
     formatName: 'jsx',
-    label: 'React (JavaScript)',
+    label: 'React',
     getContent(chatExportData) {
         const { title, messages, participants } = chatExportData;
 
         const componentName = normalizeTo_PascalCase(`${title} ChatComponent`);
 
-        const messagesJavascript = JSON.stringify(messages, null, 4);
-        // <- TODO: !!!! use `Date` for dates
-        // <- TODO: !!!! use spaceTrim and crop "
+        const { imports: participantsImports, value: participantsValue } =
+            serializeToPromptbookJavascript(participants);
+        const { imports: messagesImports, value: messagesValue } = serializeToPromptbookJavascript(messages);
 
-        const participantsJson = JSON.stringify(participants, null, 4);
-        // <- TODO: !!!! use `Color.fromHex` for colors
+        const uniqueImports = Array.from(
+            new Set([`import { Chat } from '@promptbook/components';`, ...participantsImports, ...messagesImports]),
+        ).filter((imp) => !!imp && imp.trim().length > 0);
 
         return spaceTrim(
             (block) => `
-            "use client";
+                "use client";
 
-            import { Chat } from '@promptbook/components';
+                ${block(uniqueImports.join('\n'))}
 
-            export function ${componentName}() {
-                return(
-                  <Chat
-                    title="${title.replace(/"/g, '&quot;')}"
-                    participants={
-                        ${block(participantsJson)}
-                    }
-                    messages={
-                        ${block(messagesJavascript)}
-                    }
+                export function ${componentName}() {
+                    return(
+                      <Chat
+                        title="${title.replace(/"/g, '&quot;')}"
+                        participants={
+                            ${block(participantsValue)}
+                        }
+                        messages={
+                            ${block(messagesValue)}
+                        }
 
 
-                  />
-                );
-            }
-        `,
+                      />
+                    );
+                }
+            `,
         );
     },
     mimeType: 'application/javascript',
