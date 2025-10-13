@@ -1,20 +1,4 @@
 @font-face {
-    .copiedToClipboardMessage {
-        position: fixed;
-        top: 32px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #222;
-        color: #fff;
-        padding: 10px 24px;
-        border-radius: 8px;
-        font-size: 1.1em;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
-        opacity: 0.97;
-        pointer-events: none;
-        z-index: 9999;
-    }
-
     font-family: 'OpenMojiBlack';
     src: url('../../fonts/OpenMoji-black-glyf.woff2') format('woff2');
     /* <- TODO: Is this working in external consumer?! (Import internally from the repository source code (/src/book-components/fonts/OpenMoji-black-glyf.woff2), not from this random URL) */
@@ -41,6 +25,22 @@
         U+1F6EB, U+1F6EC, U+1F6F0, U+1F6F3-1F6FC, U+1F7E0-1F7EB, U+1F7F0, U+1F90C-1F93A, U+1F93C-1F945, U+1F947-1F9FF,
         U+1FA70-1FA7C, U+1FA80-1FA88, U+1FA90-1FABD, U+1FABF-1FAC5, U+1FACE-1FADB, U+1FAE0-1FAE8, U+1FAF0-1FAF8,
         U+1FBC5-1FBC9, U+E0061-E0067, U+E0069, U+E006C-E0079, U+E007F;
+}
+
+.copiedToClipboardMessage {
+    position: fixed;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+    opacity: 0.97;
+    pointer-events: none;
+    z-index: 9999;
 }
 
 .Chat {
@@ -467,7 +467,6 @@
 
 .copyButton:hover,
 .copyButton:focus {
-    background: #f5f8fa;
     border: 1.5px solid #bbb;
     opacity: 1;
     box-shadow: 0 2px 8px rgba(0, 132, 255, 0.1);
