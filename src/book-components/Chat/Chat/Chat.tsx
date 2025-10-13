@@ -42,7 +42,7 @@ import type { ChatProps } from './ChatProps';
  */
 export function Chat(props: ChatProps) {
     const {
-        title,
+        title = 'Chat',
         messages,
         onChange,
         onMessage,
@@ -277,7 +277,10 @@ export function Chat(props: ChatProps) {
         setSelectedMessage(message);
         setMessageRatings((previousRatings) => {
             const nextRatings = new Map(previousRatings);
-            nextRatings.set(message.id, newRating);
+            nextRatings.set(
+                message.id || message.content /* <- TODO: [🧠][💃] Is `message.content` good replacement for the ID */,
+                newRating,
+            );
             return nextRatings;
         });
         setRatingModalOpen(true);
@@ -285,7 +288,7 @@ export function Chat(props: ChatProps) {
 
     const submitRating = useCallback(async () => {
         if (!selectedMessage) return;
-        const currentRating = messageRatings.get(selectedMessage.id);
+        const currentRating = messageRatings.get(selectedMessage.id || selectedMessage.content /* <-[💃] */);
         if (!currentRating) return;
 
         // Build chatThread: all messages separated by \n\n---\n\n
@@ -542,7 +545,7 @@ export function Chat(props: ChatProps) {
                             const participant = participants.find((participant) => participant.name === message.from);
                             const isLastMessage = i === postprocessedMessages.length - 1;
                             const isExpanded = expandedMessageId === message.id;
-                            const currentRating = messageRatings.get(message.id) || 0;
+                            const currentRating = messageRatings.get(message.id || message.content /* <-[💃] */) || 0;
 
                             return (
                                 <ChatMessageItem
@@ -756,7 +759,10 @@ export function Chat(props: ChatProps) {
                                     onClick={() =>
                                         setMessageRatings((previousRatings) => {
                                             const nextRatings = new Map(previousRatings);
-                                            nextRatings.set(selectedMessage.id, star);
+                                            nextRatings.set(
+                                                selectedMessage.id || selectedMessage.content /* <-[💃] */,
+                                                star,
+                                            );
                                             return nextRatings;
                                         })
                                     }
@@ -766,7 +772,12 @@ export function Chat(props: ChatProps) {
                                         cursor: 'pointer',
                                         fontSize: '24px',
                                         color:
-                                            star <= (hoveredRating || messageRatings.get(selectedMessage.id) || 0)
+                                            star <=
+                                            (hoveredRating ||
+                                                messageRatings.get(
+                                                    selectedMessage.id || selectedMessage.content /* <-[💃] */,
+                                                ) ||
+                                                0)
                                                 ? '#FFD700'
                                                 : mode === 'LIGHT'
                                                 ? '#ccc'

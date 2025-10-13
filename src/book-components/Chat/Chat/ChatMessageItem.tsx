@@ -269,7 +269,7 @@ export const ChatMessageItem = memo(
                         <div
                             className={styles.rating}
                             onMouseEnter={() => {
-                                setExpandedMessageId(message.id);
+                                setExpandedMessageId(message.id || message.content /* <-[💃] */);
                             }}
                             onMouseLeave={() => {
                                 setExpandedMessageId(null);

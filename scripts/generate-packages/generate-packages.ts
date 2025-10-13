@@ -16,6 +16,7 @@ import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeMarkdownComments } from '../../src/utils/markdown/removeMarkdownComments';
+import { TODO_any } from '../../src/utils/organization/TODO_any';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { getPackagesMetadata } from './getPackagesMetadata';
@@ -634,7 +635,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 'react-dom': '>=17.0.0',
             };
             // Ensure no hard dependency on React to avoid duplicate installs/bundles
-            delete (packageJson as any).dependencies;
+            delete (packageJson as TODO_any).dependencies;
         } else if (
             !['@promptbook/core', '@promptbook/utils', '@promptbook/cli', '@promptbook/markdown-utils'].includes(
                 packageFullname,
@@ -694,11 +695,11 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }
 
         // Finalize dependencies for React component library: ensure React stays as peer only
-        if (packageFullname === '@promptbook/components' && (packageJson as any).dependencies) {
-            delete (packageJson as any).dependencies['react'];
-            delete (packageJson as any).dependencies['react-dom'];
-            if (Object.keys((packageJson as any).dependencies).length === 0) {
-                delete (packageJson as any).dependencies;
+        if (packageFullname === '@promptbook/components' && (packageJson as TODO_any).dependencies) {
+            delete (packageJson as TODO_any).dependencies['react'];
+            delete (packageJson as TODO_any).dependencies['react-dom'];
+            if (Object.keys((packageJson as TODO_any).dependencies).length === 0) {
+                delete (packageJson as TODO_any).dependencies;
             }
         }
 

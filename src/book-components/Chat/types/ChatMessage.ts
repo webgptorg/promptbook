@@ -9,7 +9,7 @@ export type ChatMessage = {
     /**
      * Unique identifier of the message
      */
-    id: id;
+    id?: id;
 
     /**
      * Date when the message was created

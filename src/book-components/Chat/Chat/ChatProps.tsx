@@ -21,8 +21,7 @@ export type ChatProps = {
     /**
      * The title of the chat
      */
-    readonly title: string;
-    // <- TODO: !!! Make title optional when updated all usages
+    readonly title?: string;
 
     /**
      * Messages to render - they are rendered as they are
