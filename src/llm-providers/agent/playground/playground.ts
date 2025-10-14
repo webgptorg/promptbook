@@ -7,14 +7,14 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { book } from '../../../pipeline/book-notation';
+import type { ChatPrompt } from '../../../types/Prompt';
 import { just } from '../../../utils/organization/just';
+import { $provideLlmToolsFromEnv } from '../../_common/register/$provideLlmToolsFromEnv';
 import { _AnthropicClaudeRegistration } from '../../anthropic-claude/register-constructor';
 import { _DeepseekRegistration } from '../../deepseek/register-constructor';
 import { _GoogleRegistration } from '../../google/register-constructor';
 import { _OpenAiRegistration } from '../../openai/register-constructor';
-import { $provideLlmToolsFromEnv } from '../../_common/register/$provideLlmToolsFromEnv';
 import { createAgentLlmExecutionTools } from '../createAgentLlmExecutionTools';
-import type { ChatPrompt } from '../../../types/Prompt';
 
 just(_OpenAiRegistration); // <- Note: Ensure OpenAI is registered
 just(_AnthropicClaudeRegistration); // <- Note: Ensure OpenAI is registered
@@ -94,12 +94,12 @@ async function playground() {
         thread: [
             // <- TODO: !!! Maybe rename to `previousMessages`
             {
-                id: 'msg1', // <- TODO: !!!! Do not require id in messages
+                // id: 'msg1',
                 from: 'user', // <- TODO: Standardize to `role: 'USER' | 'ASSISTANT'
                 content: 'Hello! Can you tell me a fun fact about TypeScript?',
             },
             {
-                id: 'msg2',
+                // id: 'msg2',
                 from: 'assistant',
                 content: 'TypeScript is a superset of JavaScript that adds static types.',
             },

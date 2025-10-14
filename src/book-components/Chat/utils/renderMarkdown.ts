@@ -2,7 +2,7 @@ import hljs from 'highlight.js';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
 // import 'highlight.js/styles/github-dark.css';
-// <- TODO: !!!! Make this work
+// <- TODO: Make this work from node_modules
 
 /**
  * Create a showdown converter instance optimized for chat messages
@@ -95,9 +95,8 @@ export function renderMarkdown(markdown: string_markdown): string_html {
                     const link = window.document.createElement('link');
                     link.id = cssId;
                     link.rel = 'stylesheet';
-                    link.href =
-                        'https://book-components.ptbk.io/cdn/highlightjs/github-dark.css';
-                        // <- !!! Use Our CDN, Is it working?
+                    link.href = 'https://book-components.ptbk.io/cdn/highlightjs/github-dark.css';
+
                     window.document.head.appendChild(link);
                 }
             }
