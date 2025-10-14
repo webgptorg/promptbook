@@ -98,7 +98,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🪢] Enhance the math embedded in `<Chat />` messages
 

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+-   `<Chat />` now renders math expressions (inline `$...$` and block `$$...$$`) in messages using KaTeX for proper display.
+-   Enhanced `renderMarkdown` utility to support math rendering.
+-   Added dependencies: `katex`, `@types/katex`.
 ## Released versions
 
 ### `0.102.0` _(2025-10-14)_

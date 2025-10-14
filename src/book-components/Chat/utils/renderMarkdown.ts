@@ -1,4 +1,5 @@
 import hljs from 'highlight.js';
+import katex from 'katex';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
 // import 'highlight.js/styles/github-dark.css';
@@ -50,6 +51,36 @@ function createChatMarkdownConverter(): ShowdownConverter {
 const chatMarkdownConverter = createChatMarkdownConverter();
 
 /**
+ * Render math expressions in markdown using KaTeX.
+ * Supports inline ($...$) and block ($$...$$) math.
+ */
+function renderMathInMarkdown(md: string): string {
+    // Block math: $$...$$
+    md = md.replace(/(^|[^\\])\$\$([\s\S]+?)\$\$/g, (match, prefix, math) => {
+        try {
+            const rendered = katex.renderToString(math, { displayMode: true, throwOnError: false });
+            return prefix + rendered;
+        } catch {
+            return match;
+        }
+    });
+    // Inline math: $...$
+    md = md.replace(/(^|[^\\])\$([^\$\n]+?)\$/g, (match, prefix, math) => {
+        // Avoid matching block math or escaped dollars
+        if (/^\s*$/.test(math)) return match;
+        try {
+            const rendered = katex.renderToString(math, { displayMode: false, throwOnError: false });
+            return prefix + rendered;
+        } catch {
+            return match;
+        }
+    });
+    // Unescape $ to $
+    md = md.replace(/\\$/g, '$');
+    return md;
+}
+
+/**
  * Convert markdown content to HTML for display in chat messages
  *
  * @param markdown - The markdown content to convert
@@ -64,8 +95,11 @@ export function renderMarkdown(markdown: string_markdown): string_html {
     }
 
     try {
+        // Render math before markdown conversion
+        const processedMarkdown = renderMathInMarkdown(markdown);
+
         // Convert markdown to HTML
-        let html = chatMarkdownConverter.makeHtml(markdown);
+        let html = chatMarkdownConverter.makeHtml(processedMarkdown);
 
         if (typeof window === 'undefined') {
             // SSR: fallback to regex (less safe, but works for static export)
@@ -96,7 +130,17 @@ export function renderMarkdown(markdown: string_markdown): string_html {
                     link.id = cssId;
                     link.rel = 'stylesheet';
                     link.href = 'https://book-components.ptbk.io/cdn/highlightjs/github-dark.css';
-
+                    window.document.head.appendChild(link);
+                }
+            }
+            // Inject KaTeX CSS if not already present and math exists
+            if (html.match(/class="katex/)) {
+                const katexCssId = 'katex-css';
+                if (!window.document.getElementById(katexCssId)) {
+                    const link = window.document.createElement('link');
+                    link.id = katexCssId;
+                    link.rel = 'stylesheet';
+                    link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
                     window.document.head.appendChild(link);
                 }
             }
