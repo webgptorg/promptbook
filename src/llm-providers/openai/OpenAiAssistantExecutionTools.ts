@@ -107,10 +107,15 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
             assistant_id: this.assistantId,
             thread: {
-                messages: [
-                    // TODO:  [🗯] Allow threads to be passed
-                    { role: 'user', content: rawPromptContent },
-                ],
+                messages:
+                    'thread' in prompt && Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
+                        ? ((prompt as { thread: Array<{ role: string; content: string }> }).thread as Array<{ role: string; content: string }>).map((msg) => ({
+                              role: msg.role === 'assistant' ? 'assistant' : 'user',
+                              content: msg.content,
+                          }))
+                        : [
+                              { role: 'user', content: rawPromptContent },
+                          ],
             },
 
             // <- TODO: Add user identification here> user: this.options.user,

@@ -1,4 +1,7 @@
 # 📅 Changelog
+- Allow passing a chat thread into `OpenAiAssistantExecutionTools` via the `prompt.thread` property.  
+  This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
+  [2025-10-14]  
 
 ## [Unreleased]
 
