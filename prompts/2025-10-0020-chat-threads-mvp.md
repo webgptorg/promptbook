@@ -19,7 +19,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧇] Allow to pass chat thread into `AnthropicClaudeExecutionTools`
 

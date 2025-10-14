@@ -5,6 +5,9 @@
 
 ## [Unreleased]
 
+-   Allow passing a chat thread into `AnthropicClaudeExecutionTools` via the `prompt.thread` property.  
+    This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
+    [2025-10-14]  
 -   `<Chat />` now renders math expressions (inline `$...$` and block `$$...$$`) in messages using KaTeX for proper display.
 -   Enhanced `renderMarkdown` utility to support math rendering.
 -   Added dependencies: `katex`, `@types/katex`.

@@ -98,7 +98,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
      * Calls Anthropic Claude API to use a chat model.
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+        prompt: Prompt,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Anthropic Claude callChatModel call');
@@ -116,19 +116,29 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
+
+        // Support chat thread if provided, otherwise fallback to single message
+        let messages: MessageCreateParamsNonStreaming['messages'];
+        if ('thread' in prompt && Array.isArray((prompt as any).thread)) {
+            messages = ((prompt as any).thread as Array<{ role: string; content: string }>).map((msg) => ({
+                role: msg.role === 'assistant' ? 'assistant' : 'user',
+                content: msg.content,
+            })) as MessageCreateParamsNonStreaming['messages'];
+        } else {
+            messages = [
+                {
+                    role: 'user' as const,
+                    content: rawPromptContent,
+                },
+            ];
+        }
+
         const rawRequest: MessageCreateParamsNonStreaming = {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
             max_tokens: modelRequirements.maxTokens || 8192,
             temperature: modelRequirements.temperature,
             system: modelRequirements.systemMessage,
-            messages: [
-                {
-                    role: 'user',
-                    content: rawPromptContent,
-                    // <- TODO: [🧠][♏] Maybe if expecting JSON and its not specified in prompt content, append the instructions
-                    //    @see https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency#specify-the-desired-output-format
-                },
-            ],
+            messages,
         };
         const start: string_date_iso8601 = $getCurrentDate();
 
