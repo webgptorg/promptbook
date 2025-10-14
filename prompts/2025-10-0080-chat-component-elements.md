@@ -90,6 +90,7 @@
 
 [✨🪢] Enhance the `<table>` in `<Chat />`
 
+-   ...
 -   Enhance visual style of tables in chat messages
 -   Chat component is in /src/book-components/Chat/Chat/Chat.tsx
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
