@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/vercel",
-    "version": "0.102.0",
+    "version": "0.103.0-0",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -94,7 +94,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/vercel.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.102.0"
+        "@promptbook/core": "0.103.0-0"
     },
     "dependencies": {
         "colors": "1.4.0",
