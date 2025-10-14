@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.102.0-18",
+    "version": "0.102.0",
     "description": "Promptbook: Run AI apps in plain human language across multiple models and platforms",
     "private": false,
     "sideEffects": false,
@@ -102,7 +102,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.102.0-18"
+        "@promptbook/core": "0.102.0"
     },
     "dependencies": {
         "bottleneck": "^2.19.5",
