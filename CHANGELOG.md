@@ -1,138 +1,31 @@
-# 📅 Changelog## [Unreleased]## [Unreleased]
-
-### Enhanced
-
--   **[✨🪢] `<Chat />` input container now matches the background color of the `isMe` participant**
-    -   The input area background color is now the same as the `isMe` participant's chat bubble (default: `#1D4ED8`).
-    -   Text color is automatically set for optimal contrast, using the same logic as message bubbles.
-    -   Color logic is DRY and shared between bubbles and input.
-    -   ([2025-10-0080])
-    -   Action buttons (send, attachment) now use the `isMe` color for background and icon, matching the input area.
-    -   Placeholder text is now more visible with high-contrast color.
-    -   Fixed TypeScript and CSS issues related to color handling and placeholder styling.
--   Enhanced `<blockquote>` in `<Chat />` to visually match `<code>` blocks, but lighter, for improved readability and consistency.
-
-### Enhanced
-
--   Code blocks in chat messages now have a dark background, light text, and syntax highlighting for improved readability and visual consistency with tables and other nested elements. Code block rendering is DRY and centralized in markdown rendering logic.
--   Blockquotes in chat messages now have a boxed, light background style visually consistent with code blocks and tables, for improved readability and message structure.
-
-### Changed
-
--   **[✨] Improved visual contrast for tables in `<Chat />`**
-    -   Tables inside chat messages (markdown or HTML) now have higher contrast text and backgrounds for better readability and accessibility.
-    -   Styling is DRY and applies to all tables rendered in chat messages.
-    -   ([2025-10-0080])
--   BookEditorPreview now loads all book samples dynamically from the API endpoints `/books` and `/books/{bookId}` provided by the remote server, instead of using require.context or direct file system access. This follows the DRY principle and allows samples to be managed and served by the backend. ([2025-10-0040])
--   **[✨] `<Chat>` component now only shows the feedback button if `onFeedback` prop is provided**
-    -   By default, the feedback button is hidden unless `onFeedback` is set.
-    -   DRY: Feedback logic is centralized and not duplicated.
-    -   Preview scenarios should demonstrate both with and without feedback; "Chat with feedback" scenario added.
-    -   This is a UI change for consumers relying on the feedback button always being present.
-    -   ([2025-10-0060])
-
-### Added
-
--   **[✨] `<Chat/>` Save button now has an icon, matching "New Chat"**
-    -   Added a Save icon to the "Save" button in the Chat component, following the DRY principle and matching the style of the "New Chat" button.
-    -   New reusable `<SaveIcon>` component in `src/book-components/icons/SaveIcon.tsx`.
-    -   ([2025-10-0110])
--   **[✨] Added "Rich Formatting Showcase" chat scenario**
-    -   New scenario `richFormattingScenario` demonstrates all supported rich formatting features in the Chat component preview.
-    -   Covers bold, italic, underline, strikethrough, inline code, code blocks, blockquotes, links, images, lists, tables, emojis, mentions, hashtags, math, and horizontal rules in a natural conversation.
-    -   Follows DRY principle and is available for testing and documentation.
--   **[✨] `<Chat>` component now supports `children` prop**
-    -   When `children` is provided, it is rendered above the chat messages and input area.
-    -   Preview: New scenario "Chat with children" demonstrates this feature in the Chat component preview.
-    -   Implementation follows DRY principle and is covered by a usage example.
--   BookEditorPreview now includes a sample selector for loading book samples from `/books/examples`.
--   When a sample is picked, the book content is replaced with the sample content.
--   If the book is not empty, a confirmation dialog is shown before replacing the content.
-
-### Added
-
--   Chat component: Added `isCopyButtonEnabled` prop (default: `true`). When enabled, each message bubble shows a copy button in the top-right corner, supporting copy as plain text and formatted text (markdown).
--   Preview scenarios for Chat now support toggling copy buttons on/off.
--   Feature integrated into `Chat`, `MockedChat`, and `LlmChat` components.
-
-### Changed
-
--   **[✨] `<Chat>` component now renders markdown and HTML tables as real tables**
-    -   Chat messages containing markdown tables or HTML `<table>` markup are now rendered as proper tables, not as plain text.
-    -   Security: Only safe table-related HTML is allowed; scripts and dangerous tags are stripped.
-    -   Implementation follows DRY principle by centralizing all markdown/HTML rendering in `renderMarkdown.ts`.
-    -   **Tables inside chat messages now have a modern, pretty design with rounded corners, zebra striping, and responsive overflow.**
--   Fixed: OpenAiCompatibleExecutionTools now correctly strips unsupported parameters (like `temperature`) on every call to `callChatModel`, `callCompletionModel`, and `callEmbeddingModel`, even for repeated or parallel calls. Each call is now stateless and thread-safe. ([2025-10-0000])
-
--   Allow passing a chat thread (`thread` property) into `CommonPrompt` and `ChatPrompt`
--   Implemented thread support in `OpenAiExecutionTools` (and compatible tools)
--   Added usage sample to `src/llm-providers/openai/playground/playground.ts`
--   Kept implementation DRY and backward compatible
+# 📅 Changelog
 
 ## [Unreleased]
 
--   **[✨] LlmChat component now passes thread into LLM execution tools**
-    -   The `LlmChat` component now includes the full chat thread when calling LLM execution tools, enabling context-aware responses and improved multi-turn conversation support.
-    -   Implementation follows DRY principle and is backward compatible.
--   **[✨] Enhanced `<BookEditor>` for large books** ([2025-10-0030])
-
-    -   Improved performance and highlighting for big and complicated books using line virtualization and debounced rendering.
-    -   Keeps highlighting in sync and rendering smooth for large content.
-    -   Refactored to follow DRY principle and introduced a reusable debounce utility.
-
--   **[✨] Added PDF export for `<Chat/>`** ([2025-09-0260])
-    -   New `pdf` save format available for chat messages
-    -   PDF export logic is DRY and reuses HTML formatting
-    -   Registered in `CHAT_SAVE_FORMATS` plugin registry
-    -   Uses `spaceTrim` utility for formatting
-    -   Placeholder implementation; integrate a PDF library for conversion
--   **[✨] Enhanced HTML export for `<Chat/>`** ([2025-09-0260])
-    -   Chat messages are now exported as a standalone HTML5 file with visually appealing chat bubbles and avatars
-    -   Participant colors are preserved using a fallback color map
-    -   Reference to [Promptbook](https://ptbk.io) is added in the footer
-    -   Inline CSS styles for layout and color
-    -   Uses `spaceTrim` utility for clean output
-    -   DRY principle applied to formatting logic
-    -   Fixed TypeScript errors related to message properties and color handling
--   **[✨] Enhanced Markdown export for `<Chat/>`** ([2025-09-0260])
-    -   Chat messages are now serialized in markdown with sender bolded and message content as blockquote
-    -   Reference to [Promptbook](https://ptbk.io) is added at the end of exported markdown
-    -   Formatting uses `spaceTrim` utility for clean output
-    -   DRY principle applied to formatting logic
-    -   Fixed TypeScript errors related to `spacetrim` and message properties
--   **[🔧] `ChatMessage.isComplete` defaults to `true`** - The `isComplete` property in `ChatMessage` is now optional and defaults to `true` when not specified. This simplifies message creation for complete messages while maintaining explicit control for incomplete/streaming messages. Updated `messagesToJson` to apply the default value consistently.
--   **[🔧] Auto-retry with stripped parameters on unsupported parameter errors** - `OpenAiCompatibleExecutionTools` now automatically detects and retries requests when receiving "Unsupported value" errors from LLM providers (e.g., "temperature does not support 0.7 with this model"). The implementation strips the unsupported parameter and retries once per model-parameter combination to prevent infinite loops. This applies to all model variants: CHAT, COMPLETION, and EMBEDDING.
--   **[🔧] Improved error reporting for unsupported parameter retries** - When a prompt fails due to unsupported values (like `temperature`), the error message now includes a detailed attempt history, showing which parameters were stripped and the error for each attempt. This makes debugging easier and ensures transparency. The implementation is DRY and applies to all model variants.
--   **[✨💵] File Upload Support in Chat Component** ([2025-09-0250])
-    -   Added `onFileUpload` prop to `<Chat>` component for handling file uploads
-    -   File upload functionality works via both drag-and-drop and file picker button
-    -   Multiple files can be uploaded simultaneously, with `onFileUpload` called for each file separately
-    -   File upload is disabled when `onFileUpload` prop is not provided - component does NOT listen to drop events at all when `onFileUpload` is not set
-    -   Added file preview component showing filename, size, and remove option
-    -   File upload results are automatically appended to chat messages when sent AND immediately placed in the message input area
-    -   Added new icons: `<AttachmentIcon>` and `<CloseIcon>`
-    -   DRY implementation inspired by `<BookEditor>` file upload functionality
-    -   Comprehensive styling with drag overlay, upload progress, and responsive design
-    -   Conditional event listeners: drag and drop events only attached when `onFileUpload` is provided
-    -   **Enhanced:** File upload results now appear immediately in textarea input for user editing before sending
--   Implement DELETE commitment: `DELETE`/`CANCEL`/`DISCARD`/`REMOVE` now invalidate earlier commitments tagged with `@Tag` or `{Tag}` above the DELETE. DELETE lines are not emitted into the final system message.
--   Rich UI at `/` is now rendered with React (SSR) instead of inline HTML strings; UI centralized in `src/remote-server/ui/ServerApp.tsx` to keep things DRY. ([2025-09-0290])
--   `startRemoteServer` serves the UI via `renderServerIndexHtml(serverInfo)` for a cleaner separation of concerns.
--   Preserve user text selection in chat components (`Chat`, `MockedChat`, `LlmChat`) during message updates. Selection is no longer cleared when new messages arrive or incomplete messages update. [2025-09-0280]
-
--   Added rich React + Tailwind UI for Promptbook server at `/` ([2025-09-0290])
--   Added `isRichUi?: boolean` to `RemoteServerOptions` to enable/disable rich UI
--   CLI: `promptbook-server --no-rich-ui` disables rich UI
-
--   MockedChat: Add multiple predefined delay configs (`NORMAL_FLOW`, `FAST_FLOW`, `SLOW_FLOW`, `BLOCKY_FLOW`, `RANDOM_FLOW`) exported from `@promptbook/components`
--   MockedChatPreview: UI updated to allow picking predefined delay configs via `<select>`, auto-populates fields and overrides custom config
--   DRY improvements for delay config usage
--   Chat component: Add "Download" button to export chat history in multiple formats (JSON, Plain text, Markdown, HTML)
--   Extensible plugin system for save formats (`src/book-components/Chat/utils/savePlugins.ts`)
--   New props: `isSaveButtonEnabled`, `saveFormats` for `<Chat />`
--   Demo: Save functionality showcased in `MockedChat`
-
 ## Released versions
+
+### `0.102.0` _(2025-10-14)_
+
+-   `<Chat />` input now matches `isMe` bubble color with automatic text contrast and unified color logic; action buttons and placeholder adapt accordingly.
+-   Code blocks and blockquotes restyled for consistency and readability; tables improved with higher contrast and DRY styling.
+-   `<Chat>` shows feedback button only if `onFeedback` prop is provided; new “Chat with feedback” preview.
+-   Added Save icon to Chat’s “Save” button via new `<SaveIcon>` component.
+-   Added “Rich Formatting Showcase” chat scenario demonstrating all markdown and HTML features.
+-   `<Chat>` now supports `children` prop; new preview added.
+-   BookEditorPreview loads samples dynamically from backend endpoints `/books` and `/books/examples`.
+-   Added copy button support (`isCopyButtonEnabled`) to chat messages with plain/markdown copy options.
+-   `<Chat>` now renders markdown/HTML tables as styled, responsive tables with safe HTML handling.
+-   `OpenAiCompatibleExecutionTools` now strips unsupported parameters on all calls; thread support added across prompt and tool layers.
+-   `LlmChat` passes full thread to LLM tools for multi-turn context.
+-   `<BookEditor>` optimized for large books with debounced, virtualized rendering.
+-   Added Chat export formats: PDF, HTML, and Markdown with consistent DRY formatting and Promptbook footer.
+-   `ChatMessage.isComplete` defaults to `true`; improved error reporting and auto-retry on unsupported parameters.
+-   Added file upload support to `<Chat>` (drag & drop, preview, icons, immediate input insert).
+-   Implemented DELETE commitment invalidation logic.
+-   Promptbook server UI rebuilt with React + Tailwind (`/` route), toggled by `isRichUi` option or CLI flag.
+-   Preserved text selection in chat components during message updates.
+-   `MockedChat` now includes predefined delay configs and UI selector.
+-   `<Chat>` gains multi-format “Download” button via extensible save plugin system.
 
 ### `0.101.0` _(2025-10-03)_
 
