@@ -93,16 +93,21 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
             });
 
             const rawPromptContent = templateParameters(content, { ...parameters, modelName });
-            const rawRequest: Parameters<typeof model.doGenerate>[0] = {
-                // <- TODO: [☂]
-                inputFormat: 'messages',
-                mode: {
-                    type: 'regular',
-                    tools: [
-                        /* <- TODO: Pass the tools */
+
+            // Support for passing a chat thread (multi-message conversation)
+            let promptMessages: Array<any>;
+            if ('thread' in prompt && Array.isArray((prompt as any).thread)) {
+                promptMessages = (prompt as any).thread.map((msg: any) => ({
+                    role: msg.role === 'assistant' ? 'assistant' : (msg.role === 'system' ? 'system' : 'user'),
+                    content: [
+                        {
+                            type: 'text',
+                            text: msg.content,
+                        },
                     ],
-                },
-                prompt: [
+                }));
+            } else {
+                promptMessages = [
                     ...(modelRequirements.systemMessage === undefined
                         ? []
                         : ([
@@ -120,7 +125,19 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                             },
                         ],
                     },
-                ],
+                ];
+            }
+
+            const rawRequest: Parameters<typeof model.doGenerate>[0] = {
+                // <- TODO: [☂]
+                inputFormat: 'messages',
+                mode: {
+                    type: 'regular',
+                    tools: [
+                        /* <- TODO: Pass the tools */
+                    ],
+                },
+                prompt: promptMessages,
             };
 
             const start: string_date_iso8601 = $getCurrentDate();

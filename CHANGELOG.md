@@ -5,6 +5,9 @@
 
 ## [Unreleased]
 
+-   Allow passing a chat thread into `createExecutionToolsFromVercelProvider` via the `prompt.thread` property.  
+    This enables multi-message conversations and aligns thread handling with `OpenAiAssistantExecutionTools`.  
+    [2025-10-14]
 -   Allow passing a chat thread into `AnthropicClaudeExecutionTools` via the `prompt.thread` property.  
     This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
     [2025-10-14]  
