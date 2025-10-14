@@ -29,10 +29,9 @@ export const pdfSaveFormatDefinition = {
         const html = await htmlSaveFormatDefinition.getContent(chatExportData);
 
         keepUnused(htmlToPdfBuffer);
-        // <- TODO: !!!!
+        // <- TODO: [😬] Take chat save to PDF from existing parallel implementation
 
         keepUnused(html);
-        // <- TODO: !!!!
 
         // PDF conversion should be implemented here (sync or pre-generated)
         // For now, return a placeholder string

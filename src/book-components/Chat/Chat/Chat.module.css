@@ -49,7 +49,7 @@
     flex-direction: column;
 
     font-family: Arial, Helvetica, sans-serif, 'OpenMojiBlack';
-    /* <- TODO: !!! Better, define other fonts */
+    /* <- TODO: [🧠] Better, define other fonts */
 }
 
 .chatMainFlow {
@@ -548,9 +548,6 @@
     color: inherit;
 }
 
-/*
-<- TODO: !!! Design of code code and blockquote
-*/
 
 .messageText pre code {
     background-color: #000000cc;
