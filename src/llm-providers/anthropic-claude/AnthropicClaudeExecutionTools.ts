@@ -4,6 +4,7 @@ import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resource
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -12,7 +13,14 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_model_name, string_name, string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -97,9 +105,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
     /**
      * Calls Anthropic Claude API to use a chat model.
      */
-    public async callChatModel(
-        prompt: Prompt,
-    ): Promise<ChatPromptResult> {
+    public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Anthropic Claude callChatModel call');
         }
@@ -119,8 +125,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
 
         // Support chat thread if provided, otherwise fallback to single message
         let messages: MessageCreateParamsNonStreaming['messages'];
-        if ('thread' in prompt && Array.isArray((prompt as any).thread)) {
-            messages = ((prompt as any).thread as Array<{ role: string; content: string }>).map((msg) => ({
+        if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
+            messages = ((prompt as TODO_any).thread as Array<{ role: string; content: string }>).map((msg) => ({
                 role: msg.role === 'assistant' ? 'assistant' : 'user',
                 content: msg.content,
             })) as MessageCreateParamsNonStreaming['messages'];

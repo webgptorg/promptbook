@@ -65,7 +65,7 @@ function renderMathInMarkdown(md: string): string {
         }
     });
     // Inline math: $...$
-    md = md.replace(/(^|[^\\])\$([^\$\n]+?)\$/g, (match, prefix, math) => {
+    md = md.replace(/(^|[^\\])\$([^$\n]+?)\$/g, (match, prefix, math) => {
         // Avoid matching block math or escaped dollars
         if (/^\s*$/.test(math)) return match;
         try {

@@ -15,6 +15,7 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import { asSerializable } from '../../utils/serialization/asSerializable';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
+import { TODO_any } from '../../_packages/types.index';
 
 /**
  * Profile for Vercel AI adapter
@@ -95,9 +96,9 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
             const rawPromptContent = templateParameters(content, { ...parameters, modelName });
 
             // Support for passing a chat thread (multi-message conversation)
-            let promptMessages: Array<any>;
-            if ('thread' in prompt && Array.isArray((prompt as any).thread)) {
-                promptMessages = (prompt as any).thread.map((msg: any) => ({
+            let promptMessages: Array<TODO_any>;
+            if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
+                promptMessages = (prompt as TODO_any).thread.map((msg: TODO_any) => ({
                     role: msg.role === 'assistant' ? 'assistant' : (msg.role === 'system' ? 'system' : 'user'),
                     content: [
                         {
