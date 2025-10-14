@@ -415,3 +415,4 @@ sublists
 pseudotoken
 subcomponent
 openmoji
+katex
