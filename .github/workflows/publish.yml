@@ -23,7 +23,7 @@ jobs:
               run: npm ci
             - name: 🔽🔠 Install dependencies in Book Components
               run: npm ci
-              working-directory: ./scripts/book-components/
+              working-directory: ./book-components/
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
             - name: 🧪 Test | Name discrepancies
@@ -229,7 +229,7 @@ jobs:
               run: npm ci
             - name: 🔽🔠 Install dependencies in Book Components
               run: npm ci
-              working-directory: ./scripts/book-components/
+              working-directory: ./book-components/
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
             - name: 🆚 Update version in Dockerfile

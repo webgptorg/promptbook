@@ -1,1 +1,0 @@
-TODO: !!! Move book-components outside of the scripts folder, its confusing for the AI

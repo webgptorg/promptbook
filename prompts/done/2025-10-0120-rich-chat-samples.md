@@ -2,7 +2,7 @@
 
 [✨🥷] Make a chat scenario which will test the rich formatting capabilities of the chat component.
 
--   Add the chat scenario here /scripts/book-components/src/components/chat/scenarios/index.ts
+-   Add the chat scenario here /book-components/src/components/chat/scenarios/index.ts
 -   Use the:
     -   **bold**
     -   _italic_

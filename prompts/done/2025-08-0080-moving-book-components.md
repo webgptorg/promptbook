@@ -1,11 +1,11 @@
 [x]
 
-[✨🦪] Look at [BookEditorPreview](/scripts/book-components/src/components/book-editor/BookEditorPreview.tsx)
+[✨🦪] Look at [BookEditorPreview](/book-components/src/components/book-editor/BookEditorPreview.tsx)
 
 It should import `BookEditor` and other things from [src folder](/src) but now the imports are errored.
 
--   The [book-components](/scripts/book-components/) is subproject which is supposed to preview the components from the main project and create a nice preview page
--   Add alias to `paths` at [tsconfig.json](scripts/book-components/tsconfig.json) of the subproject
+-   The [book-components](/book-components/) is subproject which is supposed to preview the components from the main project and create a nice preview page
+-   Add alias to `paths` at [tsconfig.json](book-components/tsconfig.json) of the subproject
 
 The imports in this subproject should look like:
 

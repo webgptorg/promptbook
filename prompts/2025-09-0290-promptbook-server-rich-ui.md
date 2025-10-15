@@ -6,7 +6,7 @@
 -   Pass `RemoteServerOptions.isRichUi?: boolean` to the `startRemoteServer` function to enable the rich UI - default is `true`, when user passes `false`, the server should work as before
 -   Put this flag also for running the server via CLI - `promptbook-server --no-rich-ui` should disable the rich UI
 -   Make a rich UI for the Promptbook server on `/` path
--   Get inspiration from [book components preview server](/scripts/book-components/)
+-   Get inspiration from [book components preview server](/book-components/)
 -   The UI part of the server should contain React components and TailwindCSS styles
 -   By Promptbook server I mean `PROMPTBOOK server listening on port 4460`, `👨‍💻🟣 Run ptbk run-server`, function `startRemoteServer`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

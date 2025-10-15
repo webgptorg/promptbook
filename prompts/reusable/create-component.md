@@ -10,12 +10,12 @@ Its bit similar to the `<AvatarChip />` component but larger and with bit more d
 -   Put in under `/src/book-components/AvatarProfile/AvatarProfile`
 -   Make both `.tsx` and `.module.css` files
 -   Make preview component
-    -   Look at folder `/scripts/book-components/src/components`
+    -   Look at folder `/book-components/src/components`
     -   The `component.json` should look like other `component.json`s
     -   Look how other previews are made
         -   Make a preview component
         -   Also a `component.json` file
-        -   Register it in `/scripts/book-components/src/components/ComponentPreview.tsx`
+        -   Register it in `/book-components/src/components/ComponentPreview.tsx`
 -   Keep in mind DRY (Don't Repeat Yourself) principle
 
 ---
@@ -31,10 +31,9 @@ This should show multiple avatars and their relationships in the graph
 -   Put in under `/src/book-components/AvatarProfile/AvatarProfile`
 -   Make both `.tsx` and `.module.css` files
 -   Make preview component
-    -   Look at folder `/scripts/book-components/src/components`
+    -   Look at folder `/book-components/src/components`
     -   Look how other previews are made
         -   Make a preview component
         -   Also a `component.json` file
-        -   Register it in `/scripts/book-components/src/components/ComponentPreview.tsx`
+        -   Register it in `/book-components/src/components/ComponentPreview.tsx`
 -   Keep in mind DRY (Don't Repeat Yourself) principle
-

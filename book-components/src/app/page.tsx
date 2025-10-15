@@ -2,7 +2,7 @@ import ComponentCardPreview from '@/components/ComponentCardPreview';
 import { getAllComponents, getComponentsByCategory } from '@/lib/components';
 import { ExternalLink, Package, Search, Tag, User } from 'lucide-react';
 import Link from 'next/link';
-import { classNames } from '../../../../src/book-components/_common/react-utils/classNames';
+import { classNames } from '../../../src/book-components/_common/react-utils/classNames';
 
 export default function Home() {
     const components = getAllComponents();

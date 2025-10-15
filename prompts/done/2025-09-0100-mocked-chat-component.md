@@ -16,12 +16,12 @@ This should show the same chat as `<Chat/>` but emulate ongoing discussion
 -   Put in under `/src/book-components/AvatarProfile/AvatarProfile`
 -   Do not need to make `.module.css` file - internally its just `Chat`
 -   Make preview component
-    -   Look at folder `/scripts/book-components/src/components`
+    -   Look at folder `/book-components/src/components`
     -   The `component.json` should look like other `component.json`s
     -   Look how other previews are made
         -   Make a preview component
         -   Also a `component.json` file
-        -   Register it in `/scripts/book-components/src/components/ComponentPreview.tsx`
+        -   Register it in `/book-components/src/components/ComponentPreview.tsx`
 -   Use `await forTime` function from `waitasecond` package
 -   Keep in mind DRY (Don't Repeat Yourself) principle
 

@@ -8,17 +8,17 @@ Every component is in multiple places, try to make the system of organization be
 
     -   Alongside the component implementation is its jsdoc and props type
 
-2.  Component preview in `/scripts/book-components/src/components`
+2.  Component preview in `/book-components/src/components`
     -   preview file
     -   `component.yaml` files
     -   There is also a `README.md` alongside the preview component
-3.  Also each component preview is registered in `/scripts/book-components/src/components/ComponentPreview.tsx`
+3.  Also each component preview is registered in `/book-components/src/components/ComponentPreview.tsx`
 
 For example BookEditor:
 
 1.  Is implemented in `/src/book-components/BookEditor`
-2.  The preview is in `/scripts/book-components/src/components/book-editor/BookEditorPreview.tsx`,`/scripts/book-components/src/components/book-editor/component.yml`, `/scripts/book-components/src/components/book-editor/README.md`
-3.  There is a usage of this preview in `/scripts/book-components/src/components/ComponentPreview.tsx`
+2.  The preview is in `/book-components/src/components/book-editor/BookEditorPreview.tsx`,`/book-components/src/components/book-editor/component.yml`, `/book-components/src/components/book-editor/README.md`
+3.  There is a usage of this preview in `/book-components/src/components/ComponentPreview.tsx`
 
 ```typescript
     case 'book-editor':

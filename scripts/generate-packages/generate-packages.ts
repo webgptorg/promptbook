@@ -834,7 +834,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 {
                                     name: '🔽🔠 Install dependencies in Book Components',
                                     run: 'npm ci',
-                                    'working-directory': './scripts/book-components/',
+                                    'working-directory': './book-components/',
                                 },
                                 {
                                     name: '🔽 Clone book submodule',
@@ -885,7 +885,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 {
                                     name: '🔽🔠 Install dependencies in Book Components',
                                     run: 'npm ci',
-                                    'working-directory': './scripts/book-components/',
+                                    'working-directory': './book-components/',
                                 },
                                 {
                                     name: '🔽 Clone book submodule',

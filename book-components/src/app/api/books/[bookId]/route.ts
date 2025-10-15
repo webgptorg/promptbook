@@ -3,8 +3,8 @@ import { serializeError } from '@promptbook-local/utils';
 import fs from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import { assertsError } from '../../../../../../../src/errors/assertsError';
-import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
+import { assertsError } from '../../../../../../src/errors/assertsError';
+import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 
 /**
  *

@@ -11,10 +11,10 @@ import { basename, join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';
+import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { commit } from '../utils/autocommit/commit';
-import { assertsError } from '../../src/errors/assertsError';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -67,7 +67,7 @@ async function usePackages() {
     // Note: Update the version in all packages
     for (const remoteFolder of [
         'examples/usage/other/vercel',
-        'scripts/book-components',
+        'book-components',
         ...(process.env.USE_THIS_PACKAGE_PATHS || '').split(','),
     ]) {
         const remotePackageJsonPath = join(remoteFolder, 'package.json');
