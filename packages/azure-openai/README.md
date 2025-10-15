@@ -1,8 +1,10 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# ✨ Promptbook: AI apps in plain Language
+# ✨ Promptbook: AI Agents
 
-Write AI applications using plain human language across multiple models and platforms.
+Turn your company's scattered knowledge into AI ready Books
+
+
 
 
 
