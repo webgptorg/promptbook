@@ -43,7 +43,7 @@ export const ADMIN_GITHUB_NAME: string_name = 'hejny';
  *
  * @public exported from `@promptbook/core`
  */
-export const CLAIM = `It's time for a paradigm shift. The future of software in plain English, French or Latin`;
+export const CLAIM = `Turn your company's scattered knowledge into AI ready books`;
 //            <- TODO: [🐊] Pick the best claim
 
 /**
