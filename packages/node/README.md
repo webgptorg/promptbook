@@ -112,19 +112,131 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 
 
-## 🤍 The Book Abstract
+## 📖 The Book Whitepaper
 
-**It's time for a paradigm shift! The future of software is written in plain English, French, or Latin.**
+For most business applications nowadays, the biggest challenge isn't about the raw capabilities of AI models. Large language models like GPT-5 or Claude-4.1 are extremely capable.
 
-During the computer revolution, we have seen [multiple generations of computer languages](https://github.com/webgptorg/promptbook/discussions/180), from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the **next revolution**!
+The main challenge is to narrow it down, constrain it, set the proper **context, rules, knowledge, and personality**. There are a lot of tools which can do exactly this. On one side, there are no-code platforms which can launch your agent in seconds. On the other side, there are heavy frameworks like Langchain or Semantic Kernel, which can give you deep control.
 
-It's a revolution of writing software in **plain human language** that is understandable and executable by both humans and machines – and it's going to change everything!
+Promptbook takes the best from both worlds. You are defining your AI behavior by simple **books**, which are very explicit. They are automatically enforced, but they are very easy to understand, very easy to write, and very reliable and portable.
 
-The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
 
-This shift will happen whether we're ready or not. Our mission is to make it excellent, not just good.
 
-**Join us in this journey!**
+<img
+    alt="Paul Smith & Associés Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.&width=800&height=450&nonce=0"
+/>
+
+<div style="page-break-after: always;"></div>
+
+### Aspects of great AI agent
+
+We have created a language called **Book**, which allows you to write AI agents in their native language and create your own AI persona. Book provides a guide to define all the traits and commitments.
+
+You can look at it as prompting (or writing a system message), but decorated by **commitments**.
+
+#### `Persona` commitment
+
+Personas define the character of your AI persona, its role, and how it should interact with users. It sets the tone and style of communication.
+
+
+
+<img
+    alt="Paul Smith & Associés Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.&width=800&height=450&nonce=0"
+/>
+
+#### `Knowledge` commitment
+
+Knowledge Commitment allows you to provide specific information, facts, or context that the AI should be aware of when responding.
+
+This can include domain-specific knowledge, company policies, or any other relevant information.
+
+Promptbook Engine will automatically enforce this knowledge during interactions. When the knowledge is short enough, it will be included in the prompt. When it is too long, it will be stored in vector databases and RAG retrieved when needed. But you don't need to care about it.
+
+
+
+<img
+    alt="Paul Smith & Associés Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20%20https%3A%2F%2Fcompany.com%2Fcompany-policies.pdf%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20https%3A%2F%2Fcompany.com%2Finternal-documents%2Femployee-handbook.docx&width=800&height=450&nonce=0"
+/>
+
+#### `Rule` commitment
+
+Rules will enforce specific behaviors or constraints on the AI's responses. This can include ethical guidelines, communication styles, or any other rules you want the AI to follow.
+
+Depending on rule strictness, Promptbook will either propagate it to the prompt or use other techniques, like adversary agent, to enforce it.
+
+
+
+<img
+    alt="Paul Smith & Associés Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.%0A%20%20%20%20%20%20%7C%20RULE%20Always%20ensure%20compliance%20with%20laws%20and%20regulations.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20outside%20your%20area%20of%20expertise.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20about%20criminal%20law.%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20%20https%3A%2F%2Fcompany.com%2Fcompany-policies.pdf%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20https%3A%2F%2Fcompany.com%2Finternal-documents%2Femployee-handbook.docx&width=800&height=450&nonce=0"
+/>
+
+#### `Action` commitment
+
+Action Commitment allows you to define specific actions that the AI can take during interactions. This can include things like posting on a social media platform, sending emails, creating calendar events, or interacting with your internal systems.
+
+
+
+<img
+    alt="Paul Smith & Associés Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.%0A%20%20%20%20%20%20%7C%20RULE%20Always%20ensure%20compliance%20with%20laws%20and%20regulations.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20outside%20your%20area%20of%20expertise.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20about%20criminal%20law.%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20%20https%3A%2F%2Fcompany.com%2Fcompany-policies.pdf%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20https%3A%2F%2Fcompany.com%2Finternal-documents%2Femployee-handbook.docx%0A%20%20%20%20%20%20%7C%20ACTION%20When%20a%20user%20asks%20about%20an%20issue%20that%20could%20be%20treated%20as%20a%20crime%2C%20notify%20legal%40company.com.&width=800&height=450&nonce=0"
+/>
+
+[Read more about the language](./BLUEPRINT.md)
+
+<div style="page-break-after: always;"></div>
+
+### Where to use your AI agent in book
+
+Books can be useful in various applications and scenarios. Here are some examples:
+
+#### Chat apps:
+
+Create your own chat shopping assistant and place it in your eShop.
+You will be able to answer customer questions, help them find products, and provide personalized recommendations. Everything is tightly controlled by the book you have written.
+
+#### Reply Agent:
+
+Create your own AI agent, which will look at your emails and reply to them. It can even create drafts for you to review before sending.
+
+#### Coding Agent:
+
+Do you love Vibecoding, but the AI code is not always aligned with your coding style and architecture, rules, security, etc.? Create your own coding agent to help enforce your specific coding standards and practices.
+
+This can be integrated to almost any Vibecoding platform, like GitHub Copilot, Amazon CodeWhisperer, Cursor, Cline, Kilocode, Roocode,...
+
+They will work the same as you are used to, but with your specific rules written in book.
+
+#### Internal Expertise
+
+Do you have an app written in TypeScript, Python, C#, Java, or any other language, and you are integrating the AI.
+
+You can avoid struggle with choosing the best model, its settings like temperature, max tokens, etc., by writing a book agent and using it as your AI expertise.
+
+Doesn't matter if you do automations, data analysis, customer support, sentiment analysis, classification, or any other task. Your AI agent will be tailored to your specific needs and requirements.
+
+Even works in no-code platforms!
+
+<div style="page-break-after: always;"></div>
+
+### How to create your AI agent in book
+
+Now you want to use it. There are several ways how to write your first book:
+
+#### From scratch with help from Paul
+
+We have written ai asistant in book who can help you with writing your first book.
+
+#### Your AI twin
+
+Copy your own behavior, personality, and knowledge into book and create your AI twin. It can help you with your work, personal life, or any other task.
+
+#### AI persona workpool
+
+Or you can pick from our library of pre-written books for various roles and tasks. You can find books for customer support, coding, marketing, sales, HR, legal, and many other roles.
 
 
 
@@ -241,78 +353,207 @@ Join our growing community of developers and users:
 
 ## 📘 Book Language Blueprint
 
-_A concise, Markdown-based DSL for crafting AI workflows and automations._
+<blockquote style="color:#FFE600">
+⚠ This file is a work in progress and may be incomplete or inaccurate.
+</blockquote>
 
-### Introduction
+---
 
-Book is a Markdown-based language that simplifies the creation of AI applications, workflows, and automations. With human-readable commands, you can define inputs, outputs, personas, knowledge sources, and actions—without needing model-specific details.
+Book is a simple format do define AI apps and agents. It is the source code the soul of AI apps and agents.. It's purpose is to avoid ambiguous UIs with multiple fields and low-level ways like programming in langchain.
 
-### Example
+Book is defined in file with `.book` extension
 
-```book
-# 🌟 My First Book
+### Examples
 
--   BOOK VERSION 1.0.0
--   URL https://promptbook.studio/hello.book
--   INPUT PARAMETER {topic}
--   OUTPUT PARAMETER {article}
 
-# Write an Article
 
--   PERSONA Jane, marketing specialist with prior experience in tech and AI writing
--   KNOWLEDGE https://wikipedia.org/
--   KNOWLEDGE ./journalist-ethics.pdf
--   EXPECT MIN 1 Sentence
--   EXPECT MAX 5 Pages
+<img
+    alt="Write an article about {topic} Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Write%20an%20article%20about%20%7Btopic%7D%0A%20%20%20%20%20%20%7C%20PERSONA%20Jane%2C%20marketing%20specialist%20with%20prior%20experience%20in%20tech%20and%20AI%20writing%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20https%3A%2F%2Fwikipedia.org%2F%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20.%2Fjournalist-ethics.pdf%0A%20%20%20%20%20%20%7C%20EXPECT%201%20Sentence%20-%205%20Pages%0A%20%20%20%20%20%20%7C%20RESULT%20%7Barticle%7D&width=800&height=450&nonce=0"
+/>
 
-> Write an article about {topic}
+---
 
-→ {article}
-```
 
-Each part of the book defines one of three circles:
 
-### **1. What:** Workflows, Tasks and Parameters
+<img
+    alt="Make post on LinkedIn based on @Input. Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Make%20post%20on%20LinkedIn%20based%20on%20%40Input.%0A%20%20%20%20%20%20%7C%20PERSONA%20%40Jane%2C%20an%20experienced%20copywriter%20and%20HR%20expert%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20cetin.cz%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20linkedin.com%2Fcompany%2Fcetin%2F&width=800&height=450&nonce=0"
+/>
 
-What work needs to be done. Each book defines a [workflow _(scenario or pipeline)_](https://github.com/webgptorg/promptbook/discussions/88), which is one or more tasks. Each workflow has a fixed input and output. For example, you have a book that generates an article from a topic. Once it generates an article about AI, once about marketing, once about cooking. The workflow (= your AI program) is the same, only the input and output change.
+---
 
-**Related commands:**
 
--   [PARAMETER](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PARAMETER.md)
 
-### **2. Who:** Personas
+<img
+    alt="Odpověz na Email Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Odpov%C4%9Bz%20na%20Email%0A%20%20%20%20%20%20%7C%20%7BEmail%20content%7D%0A%20%20%20%20%20%20%7C%20PERSONA%20%40Pavol%20-%20pavolhejny.com%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20.%2Finstructions.pdf%0A%20%20%20%20%20%20%7C%20STYLE%20Professional%20tone%20of%20voice&width=800&height=450&nonce=0"
+/>
 
-Who does the work. Each task is performed by a persona. A persona is a description of your virtual employee. It is a higher abstraction than the model, tokens, temperature, top-k, top-p and other model parameters.
+---
 
-You can describe what you want in human language like `Jane, creative writer with a sense of sharp humour` instead of `gpt-4-2024-13-31, temperature 1.2, top-k 40, STOP token ".\n",...`.
 
-Personas can have access to different knowledge, tools and actions. They can also consult their work with other personas or user, if allowed.
 
-**Related commands:**
+<img
+    alt="Analyzuj {Případ}. Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Analyzuj%20%7BP%C5%99%C3%ADpad%7D.%0A%20%20%20%20%20%20%7C%20%7BDetaily%7D%0A%20%20%20%20%20%20%7C%20PERSONA%20%40Ji%C5%99%C3%AD%2C%20pr%C3%A1vn%C3%ADk%2C%20kter%C3%BD%20nikdy%20neode%C5%A1le%20informace%20o%20klientech%20mimo%20EU%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20%7B89%2F2012%20Sb.%20Ob%C4%8Dansk%C3%BD%20z%C3%A1kon%C3%ADk%7D&width=800&height=450&nonce=0"
+/>
 
--   [PERSONA](https://github.com/webgptorg/promptbook/blob/main/documents/commands/PERSONA.md)
+iframe:
 
-### **3. How:** Knowledge, Instruments and Actions
+<iframe frameborder="0" style="width:100%;height:455px;" src="https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&layers=1&nav=1&title=#R%3Cmxfile%20scale%3D%221%22%20border%3D%220%22%20disableSvgWarning%3D%22true%22%20linkTarget%3D%22_blank%22%3E%3Cdiagram%20name%3D%22Page-1%22%20id%3D%22zo4WBBcyATChdUDADUly%22%3E7ZxtU%2BM2EMc%2FjWfaF2b8kMTwEkKOu%2Fa468BM77ViK4mKLLmy8nSfvitbihPiNEAaIHTfYHm1luzVT7vG%2F5l4cT9f3ChSTG5lRrkXBdnCi6%2B9KAo7YQ8OxrK0liBKastYsczaGsM9%2B0mdo7VOWUbLDUctJdes2DSmUgia6g0bUUrON91Gkm%2FOWpCxnTFoDPcp4XTL7QfL9KS2nnfXvD9TNp64mcPA9uTEOVtDOSGZnK%2BZ4oEX95WUum7liz7lJnouLvV1n3b0rm5MUaGfcoFdiRnhU%2Ftsf1KlGTwqWPtSaMIEVfZe9dIFoJyznBMBZ1fzCdP0viCp6ZrDgoNtonMOZyE07fgwKF3svMdw9eTADJU51WoJLvYCP7qw0bK8JPZ03sQ%2B7lnbZC3ukQs7ses9Xo3dhAQaNirtEbrYipAX9TjMcFUWRDSOvb%2BnZtGuMpmWPhOaKkG4b0j1R2EcdbNO6iej0cgfhufQGiaJnw7PaXIRJT2adpsBoDW2x2qaYiP0zovDuvjuYS%2FDs%2FgcjDlRYyZ8LQtjiwrd2IZSa5k35vX5goypzcG12n0%2F9rG3b2kEuPhltVkvwWE1UVB1jEjO%2BLLugmtIbkCxV95JuD0JHbdSyMedXtQ3Owd6ypqyq2pnc6nqwdR4%2BEtQO7nDr7XTkKQPYyWnIvPX%2FLUionT0rW5vRhQjcBTTnCqW1q5Cqhx2wrYXJaX2SQntPY6EVyBok63%2B1bGQJdNM7huP5vIvtu0zs5sW5mNjO8aQlNRQUntU29SvImiCwUlR2nUqFC2pmtFHUNSLfkseqPGRpYaDNAv%2FlYkHmn0RdorM2R0fsKFqRN4%2FNhe1Uxh060YUJi9AZ%2B52IRgSYBCh2gOV1wm%2BiGKqT5AYTDRHYuJsDwxgLl5WGTtRGHW3imOntTgGH7A2ht34YGgxxT0T5z8Gd%2Fffv11iWURmnlMWfzP%2FU50eMFgVj4VEFdBqwemigMhQkVZv3KkslnMFY6qq35g%2B3zmvfS9WB9TSoLddSwMspZgWj7cHfv%2F2%2FcfXwfXN4DSLKebGI3GRUs3EWfoTkx0muw8D9TGSXYjJ7uS54NVHV5PvIN9En%2BAvrP7StEwWNGLG87NgxmbI1P%2BYKbfoQ9VCyw6IWpjZcn6kFWq6MPY1TdA%2ByDWnI9PjHvDSmnOWZXyXtFgtOTWSW7CabI%2B62GtXF62Y2HmimBg64yFiohOw37XeGjod20bIf2qI%2FhO9NQxRcH3%2FL4eYlFFwxS%2FLpwIVCq7IBAqur4Usfjh5A5xRcEVmUHDFqoiCK5ZSTIsH7QEUXJGLNi5QcMVk9%2BGgRsEVuWjjAgVXZAoFV%2B9FgmsYtOuLb6K4RieouK504tdRXGNUXN%2F%2F2yFmZVRc8dPyqUCFiisygYrrayGLX07eAGdUXJEZVFyxKqLiiqUU0%2BJBewAVV%2BSijQtUXDHZfTioUXFFLtq4QMUVmULF1XuZ4hq9meIKp83PFVd9N82vPseDfwA%3D%3C%2Fdiagram%3E%3C%2Fmxfile%3E"></iframe>
 
-The resources used by the personas are used to do the work.
+books.svg
 
-**Related commands:**
+![Books](./books/diagram/books.svg)
 
--   [KNOWLEDGE](https://github.com/webgptorg/promptbook/blob/main/documents/commands/KNOWLEDGE.md) of documents, websites, and other resources
--   [INSTRUMENT](https://github.com/webgptorg/promptbook/blob/main/documents/commands/INSTRUMENT.md) for real-time data like time, location, weather, stock prices, searching the internet, calculations, etc.
--   [ACTION](https://github.com/webgptorg/promptbook/blob/main/documents/commands/ACTION.md) for actions like sending emails, creating files, ending a workflow, etc.
+books.png
 
-### General Principles
+![Books](./books/diagram/books.png)
 
-Book language is based on markdown. It is subset of markdown. It is designed to be easy to read and write. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
+### Basic Commitments:
 
-The file has a `.book` extension and uses UTF-8 encoding without BOM.
+Book is composed of commitments, which are the building blocks of the book. Each commitment defines a specific task or action to be performed by the AI agent. The commitments are defined in a structured format, allowing for easy parsing and execution.
 
-Books have two variants: flat — just a prompt without structure, and full — with tasks, commands, and prompts.
+#### `PERSONA`
 
-As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
+defines basic contour of
 
-But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
+> PERSONA @Joe Average man with
+
+also the PERSONA is
+
+Describes
+
+#### `RULE` or `RULES`
+
+defines
+
+#### `STYLE`
+
+xxx
+
+#### `SAMPLE`
+
+xxx
+
+#### `KNOWLEDGE`
+
+xxx
+
+#### `EXPECT`
+
+xxx
+
+#### `FORMAT`
+
+xxx
+
+#### `JOKER`
+
+xxx
+
+#### `MODEL`
+
+xxx
+
+#### `ACTION`
+
+xxx
+
+#### `META`
+
+### Names
+
+each commitment is
+
+`PERSONA`
+
+Variable names
+
+### Types
+
+### Miscellaneous aspects of Book language
+
+#### Named vs Anonymous commitments
+
+#### Single line vs multiline
+
+#### Bookish vs Non-bookish definitions
+
+---
+
+## **\_\_\_\_**
+
+Great context and prompt can make or break you AI app. In last few years we have came from simple one-shot prompts. When you want to add conplexity you have finetunned the model or add better orchestration. But with really large large language models the context seems to be a king.
+
+The Book is the language to describe and define your AI app. Its like a shem for a Golem, book is the shem and model is the golem.
+
+
+
+<img
+    alt="Franz Kafka Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=Franz%20Kafka%0A%20%20%20%20%20%20%7C%20PERSONA%20Franz%20Kafka%2C%20a%20writer%20who%20is%20interested%20in%20the%20human%20condition%20and%20the%20absurdity%20of%20life%2C%20speaks%20German%20and%20Czech%20and%20English%0A%20%20%20%20%20%20%7C%20STYLE%20%7Bkafka.com%2Fthe-castle%7D%0A%20%20%20%20%20%20%7C%20STYLE%20%7Bkafka.com%2Fthe-trial.pdf%7D%0A%20%20%20%20%20%20%7C%20STYLE%20%7Bkafka.com%2Fmetamorphosis.docx%7D%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20Franz%20Kafka%20has%20a%20deep%20understanding%20of%20existentialism%2C%20surrealism%2C%20and%20the%20human%20psyche%0A%20%20%20%20%20%20%7C%20GOAL%20Write%20a%20short%20story%20that%20explores%20the%20themes%20of%20alienation%2C%20bureaucracy%2C%20and%20the%20absurd%0A%20%20%20%20%20%20%7C%20ACTION%20%7Bmcp&width=800&height=450&nonce=0"
+/>
+
+## Who, what and how?
+
+To write a good prompt and the book you will be answering 3 main questions
+
+-   **Who** is working on the task, is it a team or an individual? What is the role of the person in the team? What is the background of the person? What is the motivation of the person to work on this task?
+    You rather want `Paul, an typescript developer who prefers SOLID code` not `gemini-2`
+-   **What**
+-   **How**
+
+each commitment (described bellow) is connected with one of theese 3 questions.
+
+### Commitments
+
+Commitment is one piece of book, you can imagine it as one paragraph of book.
+
+Each commitment starts in a new line with commitment name, its usually in UPPERCASE and follows a contents of that commitment. Contents of the commithemt is defined in natural language.
+
+Commitments are chained one after another, in general commitments which are written later are more important and redefines things defined earlier.
+
+Each commitment falls into one or more of cathegory who, what or how
+
+Here are some basic commintemts:
+
+-   `PERSONA` tells **who** is working on the task
+-   `KNOWLEDGE` describes **what** knowledge the person has
+-   `GOAL` describes **what** is the goal of the task
+-   `ACTION` describes **what** actions can be done
+-   `RULE` describes **what** rules should be followed
+-   `STYLE` describes **how** the output should be presented
+
+### Variables and references
+
+When the prompt should be to be useful it should have some fixed static part and some variable dynamic part
+
+
+
+<img
+    alt="Untitled Book"
+    src="https://promptbook.studio/embed/book-preview.png?book=&width=800&height=450&nonce=0"
+/>
+
+### Imports
+
+### Layering
+
+### Book defined in book
+
+###
+
+Book vs:
+
+-   Why just dont pick the right model
+-   Orchestration frameworks - Langchain, Google Agent ..., Semantic Kernel,...
+-   Finetunning
+-   Temperature, top_t, top_k,... etc.
+-   System message
+-   MCP server
+-   function calling
 
 
 
