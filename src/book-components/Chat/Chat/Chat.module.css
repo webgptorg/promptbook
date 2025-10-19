@@ -345,8 +345,26 @@
 .chatMainFlow .chatMessage.isMe .messageText {
     border-bottom-right-radius: 6px;
 }
+.avatarTooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    padding: 8px;
+    min-width: 220px;
+}
 
-/* Sender Avatar */
+.ratingStar {
+    cursor: pointer;
+    font-size: 20px;
+    transition: color 0.2s;
+}
+
+ /* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
     width: 40px;
     aspect-ratio: 1 / 1;

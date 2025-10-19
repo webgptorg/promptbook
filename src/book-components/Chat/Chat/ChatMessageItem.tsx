@@ -111,36 +111,19 @@ export const ChatMessageItem = memo(
                         className={styles.avatar}
                         onMouseEnter={() => setIsAvatarHovered(true)}
                         onMouseLeave={() => setIsAvatarHovered(false)}
-                        style={{ position: 'relative', display: 'inline-block' }}
                     >
-                        <img
-                            width={AVATAR_SIZE}
-                            src={avatarSrc}
-                            alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
-                            style={{
-                                backgroundColor: color.toHex(),
-                                width: AVATAR_SIZE,
-                                aspectRatio: '1 / 1',
-                                borderRadius: '50%',
-                                objectFit: 'cover',
-                                border: '2px solid rgba(125, 125, 125, 0.1)',
-                                flexShrink: 0,
-                            }}
-                        />
+                            <img
+                                width={AVATAR_SIZE}
+                                src={avatarSrc}
+                                alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
+                                style={{
+                                    backgroundColor: color.toHex(),
+                                    width: AVATAR_SIZE,
+                                }}
+                            />
                         {isAvatarHovered && (participant?.fullname || participant?.name) && (
                             <div
-                                style={{
-                                    position: 'absolute',
-                                    top: '100%',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    zIndex: 100,
-                                    background: '#fff',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                                    borderRadius: 8,
-                                    padding: 8,
-                                    minWidth: 220,
-                                }}
+                                className={styles.avatarTooltip}
                             >
                                 <AvatarProfileFromSource agentSource={participant.fullname || participant.name} />
                             </div>
@@ -153,7 +136,6 @@ export const ChatMessageItem = memo(
                     style={{
                         backgroundColor: color.toHex(),
                         color: colorOfText.toHex(),
-                        position: 'relative',
                     }}
                 >
                     {isCopyButtonEnabled && message.isComplete && (
@@ -307,16 +289,14 @@ export const ChatMessageItem = memo(
                                         key={star}
                                         onClick={() => handleRating(message, star)}
                                         onMouseEnter={() => setLocalHoveredRating(star)}
+                                        className={styles.ratingStar}
                                         style={{
-                                            cursor: 'pointer',
-                                            fontSize: '20px',
                                             color:
                                                 star <= (localHoveredRating || currentRating || 0)
                                                     ? '#FFD700'
                                                     : mode === 'LIGHT'
                                                     ? '#ccc'
                                                     : '#555',
-                                            transition: 'color 0.2s',
                                         }}
                                     >
                                         ⭐
@@ -325,11 +305,9 @@ export const ChatMessageItem = memo(
                             ) : (
                                 <span
                                     onClick={() => handleRating(message, currentRating || 1)}
+                                    className={styles.ratingStar}
                                     style={{
-                                        cursor: 'pointer',
-                                        fontSize: '20px',
                                         color: currentRating ? '#FFD700' : mode === 'LIGHT' ? '#888' : '#666',
-                                        transition: 'color 0.2s',
                                     }}
                                 >
                                     ⭐
