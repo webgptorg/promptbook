@@ -22,7 +22,7 @@ export default function MockedChatPreview() {
     }
 
     // Sample participants
-    const participants: ChatParticipant[] = [
+    const participants: Array<ChatParticipant> = [
         {
             name: 'USER',
             fullname: 'You',

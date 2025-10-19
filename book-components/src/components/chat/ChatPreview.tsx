@@ -1,5 +1,6 @@
 'use client';
 
+import { book } from '@promptbook-local/core';
 import { useEffect, useMemo, useState } from 'react';
 import { Chat } from '../../../../src/book-components/Chat/Chat/Chat';
 import type { ChatMessage } from '../../../../src/book-components/Chat/types/ChatMessage';
@@ -22,7 +23,7 @@ export default function ChatPreview() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
 
     // Sample participants following DRY principle
-    const participants: ChatParticipant[] = [
+    const participants: Array<ChatParticipant> = [
         {
             name: 'USER',
             fullname: 'You',
@@ -33,6 +34,12 @@ export default function ChatPreview() {
             fullname: 'AI Assistant',
             color: '#10b981',
             avatarSrc: 'https://randomuser.me/api/portraits/men/0.jpg',
+            agentSource: book`
+                AI Assistant
+
+                a helpful and friendly AI assistant that provides information and answers questions.
+            `,
+            // <- TODO: [🕛] Create here the entire `ChatParticipant` from book
         },
         {
             name: 'ASSISTANT_2',

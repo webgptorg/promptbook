@@ -112,22 +112,23 @@ export const ChatMessageItem = memo(
                         onMouseEnter={() => setIsAvatarHovered(true)}
                         onMouseLeave={() => setIsAvatarHovered(false)}
                     >
-                            <img
-                                width={AVATAR_SIZE}
-                                src={avatarSrc}
-                                alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
-                                style={{
-                                    backgroundColor: color.toHex(),
-                                    width: AVATAR_SIZE,
-                                }}
-                            />
-                        {isAvatarHovered && (participant?.fullname || participant?.name) && (
-                            <div
-                                className={styles.avatarTooltip}
-                            >
-                                <AvatarProfileFromSource agentSource={participant.fullname || participant.name} />
-                            </div>
-                        )}
+                        <img
+                            width={AVATAR_SIZE}
+                            src={avatarSrc}
+                            alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
+                            style={{
+                                backgroundColor: color.toHex(),
+                                width: AVATAR_SIZE,
+                            }}
+                        />
+                        {isAvatarHovered &&
+                            participant &&
+                            participant.agentSource &&
+                            (participant?.fullname || participant?.name) && (
+                                <div className={styles.avatarTooltip}>
+                                    <AvatarProfileFromSource agentSource={participant.agentSource} />
+                                </div>
+                            )}
                     </div>
                 )}
 
