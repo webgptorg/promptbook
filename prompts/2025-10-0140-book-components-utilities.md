@@ -14,7 +14,6 @@
 -   Now it is showing `8 Components, 4 Categories, 100% Open Source`, it should show `X Components, X Utilities, X Categories, 100% Open Source`
 -   Book components website is in `/book-components` running in http://localhost:4022/
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
 
 ---
 
@@ -23,7 +22,6 @@
 [✨🕢] quux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
 
 ---
 
@@ -32,7 +30,6 @@
 [✨🕢] quux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
 
 ---
 
@@ -41,4 +38,3 @@
 [✨🕢] quux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`

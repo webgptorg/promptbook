@@ -1,5 +1,6 @@
 import type { id, string_color, string_person_fullname, string_url_image } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
 
 /**
  * A participant in the chat
@@ -32,6 +33,11 @@ export type ChatParticipant = {
      */
     color?: string_color | Color;
     //                     <- TODO: [🥻] Here should be just interface of the Color not the class itself
+
+    /**
+     * Agent source for avatar profile
+     */
+    agentSource?: string_book;
 };
 
 /**

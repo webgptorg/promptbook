@@ -8,6 +8,7 @@ import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
 import { classNames } from '../../_common/react-utils/classNames';
+import { AvatarProfileFromSource } from '../../AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
@@ -66,6 +67,7 @@ export const ChatMessageItem = memo(
         onCopy,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
+        const [isAvatarHovered, setIsAvatarHovered] = useState(false);
         const isMe = participant?.isMe;
         const color = Color.from(
             (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
@@ -105,7 +107,12 @@ export const ChatMessageItem = memo(
                 }}
             >
                 {avatarSrc && (
-                    <div className={styles.avatar}>
+                    <div
+                        className={styles.avatar}
+                        onMouseEnter={() => setIsAvatarHovered(true)}
+                        onMouseLeave={() => setIsAvatarHovered(false)}
+                        style={{ position: 'relative', display: 'inline-block' }}
+                    >
                         <img
                             width={AVATAR_SIZE}
                             src={avatarSrc}
@@ -120,6 +127,24 @@ export const ChatMessageItem = memo(
                                 flexShrink: 0,
                             }}
                         />
+                        {isAvatarHovered && (participant?.fullname || participant?.name) && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    zIndex: 100,
+                                    background: '#fff',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                    borderRadius: 8,
+                                    padding: 8,
+                                    minWidth: 220,
+                                }}
+                            >
+                                <AvatarProfileFromSource agentSource={participant.fullname || participant.name} />
+                            </div>
+                        )}
                     </div>
                 )}
 
