@@ -42,8 +42,18 @@
 
 [ ]
 
-[✨🔞] foo
+[✨🔞] Add prop `isReadonly` to `<BookEditor />`
 
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨🔞] Chat component have avatar profile on hover
+
+-   Allow to view the entire agent source in `<BookEditor />` from this preview
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
