@@ -37,7 +37,9 @@ export default function ChatPreview() {
             agentSource: book`
                 AI Assistant
 
-                a helpful and friendly AI assistant that provides information and answers questions.
+                PERSONA a helpful and friendly AI assistant that provides information and answers questions.
+                META IMAGE https://randomuser.me/api/portraits/men/0.jpg
+                META COLOR #10b981
             `,
             // <- TODO: [🕛] Create here the entire `ChatParticipant` from book
         },
