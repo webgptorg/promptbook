@@ -67,7 +67,50 @@ export const ChatMessageItem = memo(
         onCopy,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
-        const [isAvatarHovered, setIsAvatarHovered] = useState(false);
+        const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
+        const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+        const avatarRef = useRef<HTMLDivElement>(null);
+
+        useEffect(() => {
+            const handleClickOutside = (event: MouseEvent) => {
+                if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+                    setIsAvatarTooltipVisible(false);
+                }
+            };
+
+            if (isAvatarTooltipVisible) {
+                document.addEventListener('mousedown', handleClickOutside);
+            } else {
+                document.removeEventListener('mousedown', handleClickOutside);
+            }
+
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }, [isAvatarTooltipVisible]);
+
+        const showTooltip = () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+            setIsAvatarTooltipVisible(true);
+        };
+
+        const handleMouseEnter = () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+            hoverTimeoutRef.current = setTimeout(() => {
+                setIsAvatarTooltipVisible(true);
+            }, 800);
+        };
+
+        const handleMouseLeave = () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+        };
+
         const isMe = participant?.isMe;
         const color = Color.from(
             (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
@@ -108,9 +151,11 @@ export const ChatMessageItem = memo(
             >
                 {avatarSrc && (
                     <div
+                        ref={avatarRef}
                         className={styles.avatar}
-                        onMouseEnter={() => setIsAvatarHovered(true)}
-                        onMouseLeave={() => setIsAvatarHovered(false)}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        onClick={showTooltip}
                     >
                         <img
                             width={AVATAR_SIZE}
@@ -124,7 +169,8 @@ export const ChatMessageItem = memo(
                         {participant?.agentSource && (
                             <AvatarProfileTooltip
                                 agentSource={participant.agentSource}
-                                isVisible={isAvatarHovered}
+                                isVisible={isAvatarTooltipVisible}
+                                onClose={() => setIsAvatarTooltipVisible(false)}
                             />
                         )}
                     </div>

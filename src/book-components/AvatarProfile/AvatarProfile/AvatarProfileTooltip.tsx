@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import { CloseIcon } from '../../icons/CloseIcon';
 import { AvatarProfileFromSource } from './AvatarProfileFromSource';
 import styles from './AvatarProfileTooltip.module.css';
 
@@ -10,7 +11,15 @@ import styles from './AvatarProfileTooltip.module.css';
  * @param {boolean} isVisible - Determines whether the tooltip is visible.
  * @returns {JSX.Element} The rendered tooltip component.
  */
-export function AvatarProfileTooltip({ agentSource, isVisible }: { agentSource: string_book; isVisible: boolean }) {
+export function AvatarProfileTooltip({
+    agentSource,
+    isVisible,
+    onClose,
+}: {
+    agentSource: string_book;
+    isVisible: boolean;
+    onClose: () => void;
+}) {
     const tooltipRef = useRef<HTMLDivElement>(null);
     const [tooltipStyle, setTooltipStyle] = useState({});
 
@@ -47,6 +56,9 @@ export function AvatarProfileTooltip({ agentSource, isVisible }: { agentSource: 
 
     return (
         <div ref={tooltipRef} className={styles.avatarTooltip} style={tooltipStyle}>
+            <button className={styles.closeButton} onClick={onClose}>
+                <CloseIcon />
+            </button>
             <AvatarProfileFromSource agentSource={agentSource} />
         </div>
     );
