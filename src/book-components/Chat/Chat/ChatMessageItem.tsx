@@ -8,7 +8,7 @@ import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
 import { classNames } from '../../_common/react-utils/classNames';
-import { AvatarProfileFromSource } from '../../AvatarProfile/AvatarProfile/AvatarProfileFromSource';
+import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
@@ -121,14 +121,12 @@ export const ChatMessageItem = memo(
                                 width: AVATAR_SIZE,
                             }}
                         />
-                        {isAvatarHovered &&
-                            participant &&
-                            participant.agentSource &&
-                            (participant?.fullname || participant?.name) && (
-                                <div className={styles.avatarTooltip}>
-                                    <AvatarProfileFromSource agentSource={participant.agentSource} />
-                                </div>
-                            )}
+                        {participant?.agentSource && (
+                            <AvatarProfileTooltip
+                                agentSource={participant.agentSource}
+                                isVisible={isAvatarHovered}
+                            />
+                        )}
                     </div>
                 )}
 

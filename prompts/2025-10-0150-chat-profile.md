@@ -30,13 +30,15 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🔞] Chat component have avatar profile on hover
 
 -   Make sure the avatar profile is not cut off when near the edge of the screen
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
+
+![cropped avatar](screenshots/2025-10-0150-chat-profile.png)
 
 ---
 
