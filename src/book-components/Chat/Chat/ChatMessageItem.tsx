@@ -73,23 +73,43 @@ const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 const avatarRef = useRef<HTMLDivElement>(null);
 
 useEffect(() => {
+    const closeTooltip = () => {
+        setIsAvatarTooltipVisible(false);
+        setAvatarTooltipPosition(null);
+    };
+
     const handleClickOutside = (event: MouseEvent) => {
         if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
-            setIsAvatarTooltipVisible(false);
-            setAvatarTooltipPosition(null);
+            closeTooltip();
         }
     };
 
-            if (isAvatarTooltipVisible) {
-                document.addEventListener('mousedown', handleClickOutside);
-            } else {
-                document.removeEventListener('mousedown', handleClickOutside);
-            }
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            closeTooltip();
+        }
+    };
 
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside);
-            };
-        }, [isAvatarTooltipVisible]);
+    const handleScroll = () => {
+        closeTooltip();
+    };
+
+    if (isAvatarTooltipVisible) {
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('scroll', handleScroll, true);
+    } else {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('scroll', handleScroll, true);
+    }
+
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('scroll', handleScroll, true);
+    };
+}, [isAvatarTooltipVisible]);
 
 const showTooltip = () => {
     if (hoverTimeoutRef.current) {

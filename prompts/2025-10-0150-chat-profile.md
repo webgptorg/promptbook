@@ -75,7 +75,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🔞] Chat component have avatar profile on hover
 

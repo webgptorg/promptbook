@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   The chat component's avatar profile tooltip now closes when the Escape key is pressed, when scrolling, or when clicking outside of it.
 -   Fixed an issue where the "View Source" popup in the `<BookEditor />` was not showing at all.
 -   Fixed an issue where the avatar profile tooltip was opening in the wrong position.
 -   Chat component have avatar profile on hover, it's outside of the main chat container to avoid being cut off by overflow hidden, it floating on top of everything on the page.
