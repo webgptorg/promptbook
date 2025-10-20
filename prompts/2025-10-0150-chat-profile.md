@@ -77,6 +77,30 @@
 
 [ ]
 
+[✨🔞] Chat component have avatar profile on hover
+
+-   It closes the popup when clicking outside of it
+-   **Also closes when pressing Escape key**
+-   **Also closes when scrolling the page or the chat container**
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨🔞] Chat component have avatar profile on hover
+
+-   In this popup, there is a button "View Source" that should open the `<BookEditor />` with the agent source
+-   **This button is not working** it only closes the popup NOT opening the `<BookEditor />`, fix it
+-   The agent source in `<BookEditor />` should be in popup on top of entire page in a modal, this modal should be closable by "x" as well as clicking outside and pressing Escape key _(simmilar to avatar profile popup)_
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
 [✨🔞] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
