@@ -10,6 +10,8 @@ import styles from './AvatarProfileTooltip.module.css';
  * @param {AgentSource} agentSource - The source of the agent's information.
  * @param {boolean} isVisible - Determines whether the tooltip is visible.
  * @returns {JSX.Element} The rendered tooltip component.
+ *
+ * @private internal subcomponent of `<Chat>` component
  */
 export function AvatarProfileTooltip({
     agentSource,
