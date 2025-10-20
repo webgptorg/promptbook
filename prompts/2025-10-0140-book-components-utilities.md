@@ -21,7 +21,15 @@
 
 [✨🕢] Make Counting Utilities working
 
--
+-   In /utility/counting-utilities there should be a textarea where user can write or paste text
+-   Below the textarea show the counts:
+    -   Characters _(via `countCharacters` function_)
+    -   Words _(via `countWords` function_)
+    -   Sentences _(via `countSentences` function_)
+    -   Paragraphs _(via `countParagraphs` function_)
+    -   Lines _(via `countLines` function_)
+    -   Pages _(via `countPages` function_)
+-   For all of these functions there should be code preview how to use them
 -   Counting Utilities are in http://localhost:4022/utility/counting-utilities
 -   Book components website is in `/book-components` running in http://localhost:4022/
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -32,10 +40,25 @@
 
 [✨🕢] Make Humanize AI Text default value
 
--
+-   The textarea in /utility/humanize-ai-text should have some default text
+-   Humanized version should be shown on load as well
 -   Humanize AI Text is in http://localhost:4022/utility/humanize-ai-text
 -   Book components website is in `/book-components` running in http://localhost:4022/
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+The default is:
+
+```
+“The City Between Stones and Stars”
+
+“Prague never lets you go... this dear little mother has claws.”
+— Franz Kafka
+
+Beneath her bridges, the Vltava hums,
+a silver thread through labyrinthine dreams.
+Cobblestones remember footsteps
+of alchemists, lovers, and kings.
+```
 
 ---
 
@@ -43,7 +66,9 @@
 
 [✨🕢] Make Humanize AI Text more like translator
 
--
+-   Textareas should be side by side, not one above another
+-   On mobile show one above another _(like now)_
+-   Inspired by DeepL and Google Translate UI
 -   Humanize AI Text is in http://localhost:4022/utility/humanize-ai-text
 -   Book components website is in `/book-components` running in http://localhost:4022/
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -54,7 +79,8 @@
 
 [✨🕢] Make Humanize AI Text working automatically
 
--
+-   When user types or pastes text into the input textarea, the output textarea should update automatically
+-   Put a small debounce of 100ms so it does not update on every keystroke immediately
 -   Humanize AI Text is in http://localhost:4022/utility/humanize-ai-text
 -   Book components website is in `/book-components` running in http://localhost:4022/
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
