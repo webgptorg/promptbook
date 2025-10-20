@@ -18,6 +18,8 @@
     position: relative;
     max-width: 90%;
     max-height: 90%;
+    min-width: 50vw;
+    min-height: 30vh;
     overflow: auto;
 }
 

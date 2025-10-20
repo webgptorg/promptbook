@@ -8,3 +8,7 @@ import { BookEditor } from './BookEditor';
 export function BookEditorWrapper(props: BookEditorProps) {
     return createPortal(<BookEditor {...props} />, document.body);
 }
+
+/**
+ * TODO: !!! Maybe remove
+ */

@@ -4,7 +4,7 @@ import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { string_css_class } from '../../../types/typeAliases';
 import { Modal } from '../../_common/Modal/Modal';
 import { classNames } from '../../_common/react-utils/classNames';
-import { BookEditorWrapper } from '../../BookEditor/BookEditorWrapper';
+import { BookEditor } from '../../BookEditor/BookEditor';
 import styles from './AvatarProfile.module.css';
 
 /**
@@ -63,7 +63,7 @@ export function AvatarProfile(props: AvatarProfileProps) {
                         setIsBookEditorVisible(false);
                     }}
                 >
-                    <BookEditorWrapper
+                    <BookEditor
                         agentSource={agentSource}
                         onClose={() => {
                             setIsBookEditorVisible(false);

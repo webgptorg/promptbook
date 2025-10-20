@@ -42,3 +42,8 @@ export function Modal({
         document.body,
     );
 }
+
+
+/**
+ * TODO: !!!! Use this also for feedback modal in Chat component
+ */
