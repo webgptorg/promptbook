@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   Added `isReadonly` prop to `<BookEditor />` to allow read-only mode.
 - Refactored `ChatMessageItem.tsx` to move all inline static styles to `Chat.module.css` and use CSS modules. DRY principle applied.
 - Allow passing a chat thread into `OpenAiAssistantExecutionTools` via the `prompt.thread` property.  
   This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  

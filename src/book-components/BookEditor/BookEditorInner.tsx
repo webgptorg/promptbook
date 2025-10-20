@@ -25,6 +25,7 @@ export function BookEditorInner(props: BookEditorProps) {
         isVerbose = false,
         isBorderRadiusDisabled = false,
         isFooterShown = false,
+        isReadonly = false,
     } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
@@ -576,7 +577,14 @@ export function BookEditorInner(props: BookEditorProps) {
     }, [value, typeRegex, metaRegex, extractUnifiedParameters, visibleRange]);
 
     return (
-        <div className={classNames(styles.bookEditorContainer, isVerbose && styles.isVerbose, className)}>
+        <div
+            className={classNames(
+                styles.bookEditorContainer,
+                isVerbose && styles.isVerbose,
+                isReadonly && styles.isReadonly,
+                className,
+            )}
+        >
             <div
                 className={classNames(
                     styles.bookEditorWrapper,
@@ -614,6 +622,7 @@ export function BookEditorInner(props: BookEditorProps) {
                     style={{ lineHeight: `${lineHeight}px` }}
                     placeholder={DEFAULT_BOOK}
                     spellCheck={false}
+                    readOnly={isReadonly}
                 />
                 {isFooterShown && (
                     <div className={styles.bookEditorBar}>

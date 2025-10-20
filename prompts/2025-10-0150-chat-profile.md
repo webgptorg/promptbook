@@ -53,7 +53,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🔞] Add prop `isReadonly` to `<BookEditor />`
 

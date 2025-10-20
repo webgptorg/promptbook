@@ -66,6 +66,13 @@ export type BookEditorProps = {
      * By default, the footer is hidden.
      */
     readonly isFooterShown?: boolean;
+
+    /**
+     * If true, the editor is in read-only mode
+     *
+     * @default false
+     */
+    readonly isReadonly?: boolean;
 };
 
 /**
@@ -84,6 +91,7 @@ export function BookEditor(props: BookEditorProps) {
         isVerbose = DEFAULT_IS_VERBOSE,
         isBorderRadiusDisabled = false,
         isFooterShown = false,
+        isReadonly = false,
     } = props;
 
     // Host div that will get a shadow root
@@ -126,6 +134,7 @@ export function BookEditor(props: BookEditorProps) {
             isVerbose={isVerbose}
             isBorderRadiusDisabled={isBorderRadiusDisabled}
             isFooterShown={isFooterShown}
+            isReadonly={isReadonly}
         />
     );
 

@@ -192,3 +192,8 @@
     font-style: italic;
     opacity: 0.8;
 }
+
+.bookEditorContainer.isReadonly .bookEditorTextarea {
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.05);
+}
