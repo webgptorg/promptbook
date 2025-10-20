@@ -1161,6 +1161,12 @@
     background: rgba(255, 215, 0, 0.1);
 }
 
+.ratingModalStar {
+    cursor: pointer;
+    font-size: 24px;
+    transition: color 0.2s;
+}
+
 .ratingInput {
     width: 100%;
     min-height: 100px;
@@ -1394,6 +1400,37 @@
 
 .useTemplateButton:hover .chatButtonText {
     transform: translateX(1px);
+}
+
+.saveButtonContainer {
+    display: inline-block;
+    position: relative;
+}
+
+.saveMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    z-index: 10;
+    min-width: 120px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.saveMenuItem {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    color: #111;
+}
+
+.saveMenuItem:hover {
+    background-color: #f0f0f0;
 }
 
 /* Pause/Resume button variant (reuses .chatButton base styles for DRY) */

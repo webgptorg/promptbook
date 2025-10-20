@@ -446,7 +446,7 @@ export function Chat(props: ChatProps) {
                         )}
 
                         {isSaveButtonEnabled && postprocessedMessages.length !== 0 && (
-                            <div style={{ display: 'inline-block', position: 'relative' }}>
+                            <div className={styles.saveButtonContainer}>
                                 <button
                                     className={classNames(styles.chatButton)}
                                     onClick={() => setShowSaveMenu((v) => !v)}
@@ -457,32 +457,11 @@ export function Chat(props: ChatProps) {
                                     <span className={styles.chatButtonText}>Save</span>
                                 </button>
                                 {showSaveMenu && (
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            top: '100%',
-                                            left: 0,
-                                            background: '#fff',
-                                            border: '1px solid #ddd',
-                                            zIndex: 10,
-                                            minWidth: 120,
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                                        }}
-                                    >
+                                    <div className={styles.saveMenu}>
                                         {getChatSaveFormatDefinitions(saveFormats).map((formatDefinition) => (
                                             <button
                                                 key={formatDefinition.formatName}
-                                                style={{
-                                                    display: 'block',
-                                                    width: '100%',
-                                                    padding: '8px 16px',
-                                                    border: 'none',
-                                                    background: 'none',
-                                                    textAlign: 'left',
-                                                    cursor: 'pointer',
-                                                    color: '#111',
-                                                    // <- TODO: Move to CSS and make hover effect
-                                                }}
+                                                className={styles.saveMenuItem}
                                                 onClick={() =>
                                                     handleDownload(
                                                         formatDefinition.formatName as string_chat_format_name,
@@ -621,6 +600,8 @@ export function Chat(props: ChatProps) {
                                                 // Use a high-contrast placeholder color for visibility
                                                 '--chat-placeholder-color': '#fff',
                                                 // <- TODO: Remove
+                                                '--input-bg-color': inputBgColor.toHex(),
+                                                '--input-text-color': inputTextColor.toHex(),
                                             } as React.CSSProperties
                                         }
                                     >
@@ -638,8 +619,6 @@ export function Chat(props: ChatProps) {
                                                     ) *
                                                         25 +
                                                     10,
-                                                background: inputBgColor.toHex(),
-                                                color: inputTextColor.toHex(),
                                             }}
                                             defaultValue={defaultMessage}
                                             placeholder={placeholderMessageContent || 'Write a message...'}
@@ -682,11 +661,6 @@ export function Chat(props: ChatProps) {
                                                     onClick={() => fileInputRef.current?.click()}
                                                     disabled={isUploading}
                                                     title="Attach file"
-                                                    style={{
-                                                        background: inputBgColor.toHex(),
-                                                        color: inputTextColor.toHex(),
-                                                        border: 'none',
-                                                    }}
                                                 >
                                                     <AttachmentIcon size={20} />
                                                 </button>
@@ -703,11 +677,6 @@ export function Chat(props: ChatProps) {
 
                                                 event.preventDefault();
                                                 /* not await */ handleSend();
-                                            }}
-                                            style={{
-                                                background: inputBgColor.toHex(),
-                                                color: inputTextColor.toHex(),
-                                                border: 'none',
                                             }}
                                         >
                                             <SendIcon size={25} />
@@ -768,9 +737,8 @@ export function Chat(props: ChatProps) {
                                     }
                                     onMouseEnter={() => setHoveredRating(star)}
                                     onMouseLeave={() => setHoveredRating(0)}
+                                    className={styles.ratingModalStar}
                                     style={{
-                                        cursor: 'pointer',
-                                        fontSize: '24px',
                                         color:
                                             star <=
                                             (hoveredRating ||
@@ -782,7 +750,6 @@ export function Chat(props: ChatProps) {
                                                 : mode === 'LIGHT'
                                                 ? '#ccc'
                                                 : '#555',
-                                        transition: 'color 0.2s',
                                     }}
                                 >
                                     ⭐
