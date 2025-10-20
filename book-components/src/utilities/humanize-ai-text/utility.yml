@@ -1,0 +1,11 @@
+id: humanize-ai-text
+name: Humanize AI Text
+description: A utility to make AI-generated text sound more natural and human-like.
+category: Text Manipulation
+tags:
+    - ai
+    - text
+    - humanize
+author: Promptbook Team
+version: 1.0.0
+type: miniapp
