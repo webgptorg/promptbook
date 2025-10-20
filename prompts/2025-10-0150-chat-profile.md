@@ -23,8 +23,9 @@
 
 [✨🔞] Chat component have avatar profile on hover
 
--   Make there some debounce so the profile does not appear immediately on hover but after 300ms
--   Same for mouse leave - hide after 300ms
+-   Make there some debounce so the profile does not appear immediately on hover but after 800ms
+-   Allow to click and bypass the debounce - show immediately
+-   Do not hide automatically when mouse leaves - add a close button to the top-right profile popup
 -   Chat component is located in `src/book-components/Chat/Chat/Chat.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
