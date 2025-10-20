@@ -45,6 +45,16 @@
 
 [ ]
 
+[✨🔞] Chat component have avatar profile on hover
+
+-   It should be outside of the main chat container to avoid being cut off by overflow hidden, it floating on top of everything on the page
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
 [✨🔞] Add prop `isReadonly` to `<BookEditor />`
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
