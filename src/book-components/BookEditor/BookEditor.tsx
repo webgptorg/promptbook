@@ -21,6 +21,15 @@ import { BookEditorInner } from './BookEditorInner';
  */
 export type BookEditorProps = {
     /**
+     * The source of the agent to be displayed in the editor.
+     */
+    readonly agentSource?: string_book;
+
+    /**
+     * Callback function to be called when the editor is closed.
+     */
+    onClose?(): void;
+    /**
      * Additional CSS classes to apply to the editor container.
      */
     readonly className?: string;
@@ -82,6 +91,8 @@ export type BookEditorProps = {
  */
 export function BookEditor(props: BookEditorProps) {
     const {
+        agentSource,
+        onClose,
         className,
         style,
         value,
@@ -128,13 +139,14 @@ export function BookEditor(props: BookEditorProps) {
         <BookEditorInner
             className={className}
             fontClassName={fontClassName}
-            value={value}
+            value={agentSource || value}
             onChange={onChange}
             onFileUpload={onFileUpload}
             isVerbose={isVerbose}
             isBorderRadiusDisabled={isBorderRadiusDisabled}
             isFooterShown={isFooterShown}
             isReadonly={isReadonly}
+            onClose={onClose}
         />
     );
 

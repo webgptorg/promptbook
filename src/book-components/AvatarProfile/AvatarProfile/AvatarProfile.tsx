@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { string_css_class } from '../../../types/typeAliases';
 import { classNames } from '../../_common/react-utils/classNames';
+import { BookEditor } from '../../BookEditor/BookEditor';
 import styles from './AvatarProfile.module.css';
 
 /**
@@ -15,6 +18,11 @@ export type AvatarProfileProps = {
     readonly agent: AgentBasicInformation;
 
     /**
+     * The source of the agent, which will be displayed in the BookEditor.
+     */
+    readonly agentSource: string_book;
+
+    /**
      * Optional CSS class name which will be added to root <div> element
      */
     readonly className?: string_css_class;
@@ -26,17 +34,31 @@ export type AvatarProfileProps = {
  * @public exported from `@promptbook/components`
  */
 export function AvatarProfile(props: AvatarProfileProps) {
-    const { agent, className } = props;
+    const { agent, agentSource, className } = props;
     const { agentName, personaDescription, meta } = agent;
+    const [isBookEditorVisible, setIsBookEditorVisible] = useState(false);
 
     return (
-        <div className={classNames(styles.AvatarProfile, className)}>
-            <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
-            <div className={styles.AgentInfo}>
-                <h2 className={styles.AgentName}>{agentName}</h2>
-                <p className={styles.AgentDescription}>{personaDescription}</p>
+        <>
+            <div className={classNames(styles.AvatarProfile, className)}>
+                <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
+                <div className={styles.AgentInfo}>
+                    <h2 className={styles.AgentName}>{agentName}</h2>
+                    <p className={styles.AgentDescription}>{personaDescription}</p>
+                    <button className={styles.viewSourceButton} onClick={() => setIsBookEditorVisible(true)}>
+                        View Source
+                    </button>
+                </div>
             </div>
-        </div>
+            {isBookEditorVisible && (
+                <BookEditor
+                    agentSource={agentSource}
+                    onClose={() => {
+                        setIsBookEditorVisible(false);
+                    }}
+                />
+            )}
+        </>
     );
 }
 

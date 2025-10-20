@@ -24,5 +24,5 @@ export function AvatarProfileFromSource(props: AvatarProfileFromSourceProps) {
     const { agentSource, ...rest } = props;
     const agent = parseAgentSource(agentSource);
 
-    return <AvatarProfile {...rest} agent={agent} />;
+    return <AvatarProfile {...rest} agent={agent} agentSource={agentSource} />;
 }

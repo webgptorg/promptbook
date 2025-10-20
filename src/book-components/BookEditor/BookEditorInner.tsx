@@ -8,6 +8,7 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version'
 import { classNames } from '../_common/react-utils/classNames';
 import { escapeHtml } from '../_common/react-utils/escapeHtml';
 import { escapeRegex } from '../_common/react-utils/escapeRegex';
+import { CloseIcon } from '../icons/CloseIcon';
 import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { DEFAULT_BOOK_FONT_CLASS } from './config';
@@ -26,6 +27,7 @@ export function BookEditorInner(props: BookEditorProps) {
         isBorderRadiusDisabled = false,
         isFooterShown = false,
         isReadonly = false,
+        onClose,
     } = props;
     const [internalValue, setInternalValue] = useState<string_book>(DEFAULT_BOOK);
 
@@ -585,6 +587,9 @@ export function BookEditorInner(props: BookEditorProps) {
                 className,
             )}
         >
+            <button className={styles.closeButton} onClick={onClose}>
+                <CloseIcon />
+            </button>
             <div
                 className={classNames(
                     styles.bookEditorWrapper,

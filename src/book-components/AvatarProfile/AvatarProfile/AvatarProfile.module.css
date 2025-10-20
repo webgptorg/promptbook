@@ -40,3 +40,20 @@
     font-size: 0.9em;
     color: #5a6b7d;
 }
+
+.viewSourceButton {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border: 1px solid #e0e7ef;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #2a3b4d;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.viewSourceButton:hover {
+    background-color: #f0f4f8;
+}
