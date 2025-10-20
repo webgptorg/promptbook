@@ -1,8 +1,12 @@
 import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import styles from './Modal.module.css';
 import { classNames } from '../react-utils/classNames';
+import styles from './Modal.module.css';
 
+/**
+ *
+ * @private internal subcomponent of `<Chat>` component
+ */
 export function Modal({
     children,
     onClose,
@@ -28,10 +32,7 @@ export function Modal({
 
     return createPortal(
         <div className={styles.scrim} onClick={onClose}>
-            <div
-                className={classNames(styles.Modal, className)}
-                onClick={(e) => e.stopPropagation()}
-            >
+            <div className={classNames(styles.Modal, className)} onClick={(e) => e.stopPropagation()}>
                 <button className={styles.closeButton} onClick={onClose}>
                     &times;
                 </button>

@@ -14,7 +14,6 @@ type AvatarProfileTooltipProps = {
  *
  * @private internal subcomponent of `<Chat>` component
  */
-
 export const AvatarProfileTooltip = forwardRef<HTMLDivElement, AvatarProfileTooltipProps>(function AvatarProfileTooltip(
     { agentSource, position },
     ref,
