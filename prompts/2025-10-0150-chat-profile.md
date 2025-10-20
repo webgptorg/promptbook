@@ -43,7 +43,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🔞] Chat component have avatar profile on hover
 
@@ -51,6 +51,8 @@
 -   Simmilar with "View Source" popup in `<BookEditor />`, the Book editor should be popup on top of everything
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
+
+![alt text](screenshots/2025-10-0150-chat-profile-1.png)
 
 ---
 

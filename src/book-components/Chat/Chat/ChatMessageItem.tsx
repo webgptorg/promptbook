@@ -66,17 +66,19 @@ export const ChatMessageItem = memo(
         isFeedbackEnabled,
         onCopy,
     }: ChatMessageItemProps) => {
-        const avatarSrc = participant?.avatarSrc || '';
-        const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
-        const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-        const avatarRef = useRef<HTMLDivElement>(null);
+const avatarSrc = participant?.avatarSrc || '';
+const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
+const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+const avatarRef = useRef<HTMLDivElement>(null);
 
-        useEffect(() => {
-            const handleClickOutside = (event: MouseEvent) => {
-                if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
-                    setIsAvatarTooltipVisible(false);
-                }
-            };
+useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+            setIsAvatarTooltipVisible(false);
+            setAvatarTooltipPosition(null);
+        }
+    };
 
             if (isAvatarTooltipVisible) {
                 document.addEventListener('mousedown', handleClickOutside);
@@ -89,27 +91,33 @@ export const ChatMessageItem = memo(
             };
         }, [isAvatarTooltipVisible]);
 
-        const showTooltip = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            setIsAvatarTooltipVisible(true);
-        };
+const showTooltip = () => {
+    if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+    }
+    if (avatarRef.current) {
+        const rect = avatarRef.current.getBoundingClientRect();
+        setAvatarTooltipPosition({
+            top: rect.bottom + 5 /* <- 5px offset */,
+            left: rect.left,
+        });
+        setIsAvatarTooltipVisible(true);
+    }
+};
 
-        const handleMouseEnter = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            hoverTimeoutRef.current = setTimeout(() => {
-                setIsAvatarTooltipVisible(true);
-            }, 800);
-        };
+const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(showTooltip, 800);
+};
 
-        const handleMouseLeave = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-        };
+const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+    }
+    // Note: Do not hide tooltip on mouse leave, it will be hidden by clicking outside
+};
 
         const isMe = participant?.isMe;
         const color = Color.from(
@@ -166,12 +174,8 @@ export const ChatMessageItem = memo(
                                 width: AVATAR_SIZE,
                             }}
                         />
-                        {participant?.agentSource && (
-                            <AvatarProfileTooltip
-                                agentSource={participant.agentSource}
-                                isVisible={isAvatarTooltipVisible}
-                                onClose={() => setIsAvatarTooltipVisible(false)}
-                            />
+                        {isAvatarTooltipVisible && participant?.agentSource && avatarTooltipPosition && (
+                            <AvatarProfileTooltip agentSource={participant.agentSource} position={avatarTooltipPosition} />
                         )}
                     </div>
                 )}

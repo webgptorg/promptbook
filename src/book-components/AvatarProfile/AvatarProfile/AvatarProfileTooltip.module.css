@@ -1,30 +1,23 @@
-.avatarTooltip {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    border-radius: 8px;
-    padding: 8px;
-    min-width: 220px;
+.AvatarProfileTooltip {
+    position: fixed;
+    z-index: 1000;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 300px;
+    /* [🧠] What is the best max-width for the tooltip */
 }
 
-.closeButton {
+.arrow {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
-}
-
-.closeButton:hover {
-    color: #111;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    top: -10px;
+    left: 20px;
+    border-width: 0 10px 10px 10px;
+    border-color: transparent transparent white transparent;
+    filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
 }

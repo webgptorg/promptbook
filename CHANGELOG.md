@@ -1,10 +1,13 @@
 # 📅 Changelog## [Unreleased]
+-   Fixed an issue where the "View Source" popup in the `<BookEditor />` was not showing at all.
+-   Fixed an issue where the avatar profile tooltip was opening in the wrong position.
+-   Chat component have avatar profile on hover, it's outside of the main chat container to avoid being cut off by overflow hidden, it floating on top of everything on the page.
 -   Chat component's avatar profile now displays a tooltip on hover, allowing users to view the agent's source in the `<BookEditor />`.
 -   Added `isReadonly` prop to `<BookEditor />` to allow read-only mode.
 - Refactored `ChatMessageItem.tsx` to move all inline static styles to `Chat.module.css` and use CSS modules. DRY principle applied.
 - Allow passing a chat thread into `OpenAiAssistantExecutionTools` via the `prompt.thread` property.  
   This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
-  [2025-10-14]  
+  [2025-10-14]
 
 ## [Unreleased]
 

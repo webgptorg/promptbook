@@ -3,7 +3,7 @@ import type { AgentBasicInformation } from '../../../book-2.0/agent-source/Agent
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { string_css_class } from '../../../types/typeAliases';
 import { classNames } from '../../_common/react-utils/classNames';
-import { BookEditor } from '../../BookEditor/BookEditor';
+import { BookEditorWrapper } from '../../BookEditor/BookEditorWrapper';
 import styles from './AvatarProfile.module.css';
 
 /**
@@ -51,7 +51,7 @@ export function AvatarProfile(props: AvatarProfileProps) {
                 </div>
             </div>
             {isBookEditorVisible && (
-                <BookEditor
+                <BookEditorWrapper
                     agentSource={agentSource}
                     onClose={() => {
                         setIsBookEditorVisible(false);
