@@ -71,6 +71,7 @@ const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
 const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
 const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 const avatarRef = useRef<HTMLDivElement>(null);
+const tooltipRef = useRef<HTMLDivElement>(null);
 
 useEffect(() => {
     const closeTooltip = () => {
@@ -79,7 +80,12 @@ useEffect(() => {
     };
 
     const handleClickOutside = (event: MouseEvent) => {
-        if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+        if (
+            avatarRef.current &&
+            !avatarRef.current.contains(event.target as Node) &&
+            tooltipRef.current &&
+            !tooltipRef.current.contains(event.target as Node)
+        ) {
             closeTooltip();
         }
     };
@@ -149,7 +155,7 @@ const handleMouseLeave = () => {
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
-        const tooltipRef = useRef<HTMLSpanElement>(null);
+        const copyTooltipRef = useRef<HTMLSpanElement>(null);
 
         useEffect(() => {
             if (!isExpanded) {
@@ -195,7 +201,11 @@ const handleMouseLeave = () => {
                             }}
                         />
                         {isAvatarTooltipVisible && participant?.agentSource && avatarTooltipPosition && (
-                            <AvatarProfileTooltip agentSource={participant.agentSource} position={avatarTooltipPosition} />
+                            <AvatarProfileTooltip
+                                ref={tooltipRef}
+                                agentSource={participant.agentSource}
+                                position={avatarTooltipPosition}
+                            />
                         )}
                     </div>
                 )}
@@ -235,7 +245,7 @@ const handleMouseLeave = () => {
 
                                         // Tooltip positioning logic
                                         setTimeout(() => {
-                                            const tooltip = tooltipRef.current;
+                                            const tooltip = copyTooltipRef.current;
                                             if (tooltip) {
                                                 const rect = tooltip.getBoundingClientRect();
                                                 if (rect.left < 8) {
@@ -281,7 +291,7 @@ const handleMouseLeave = () => {
                                 </svg>
                                 {copied && (
                                     <span
-                                        ref={tooltipRef}
+                                        ref={copyTooltipRef}
                                         className={
                                             styles.copiedTooltip +
                                             (tooltipAlign === 'left'

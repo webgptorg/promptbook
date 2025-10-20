@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { string_css_class } from '../../../types/typeAliases';
+import { Modal } from '../../_common/Modal/Modal';
 import { classNames } from '../../_common/react-utils/classNames';
 import { BookEditorWrapper } from '../../BookEditor/BookEditorWrapper';
 import styles from './AvatarProfile.module.css';
@@ -45,18 +46,30 @@ export function AvatarProfile(props: AvatarProfileProps) {
                 <div className={styles.AgentInfo}>
                     <h2 className={styles.AgentName}>{agentName}</h2>
                     <p className={styles.AgentDescription}>{personaDescription}</p>
-                    <button className={styles.viewSourceButton} onClick={() => setIsBookEditorVisible(true)}>
+                    <button
+                        className={styles.viewSourceButton}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsBookEditorVisible(true);
+                        }}
+                    >
                         View Source
                     </button>
                 </div>
             </div>
             {isBookEditorVisible && (
-                <BookEditorWrapper
-                    agentSource={agentSource}
+                <Modal
                     onClose={() => {
                         setIsBookEditorVisible(false);
                     }}
-                />
+                >
+                    <BookEditorWrapper
+                        agentSource={agentSource}
+                        onClose={() => {
+                            setIsBookEditorVisible(false);
+                        }}
+                    />
+                </Modal>
             )}
         </>
     );
