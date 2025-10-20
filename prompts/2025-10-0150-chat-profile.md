@@ -48,6 +48,7 @@
 [✨🔞] Chat component have avatar profile on hover
 
 -   It should be outside of the main chat container to avoid being cut off by overflow hidden, it floating on top of everything on the page
+-   Simmilar with "View Source" popup in `<BookEditor />`, the Book editor should be popup on top of everything
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
