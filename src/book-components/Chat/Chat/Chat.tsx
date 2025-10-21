@@ -24,7 +24,7 @@ import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatD
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
-import { ChatMessageItem } from './ChatMessageItem';
+import { ChatMessageItem } from './ChatMessageItem'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
 
 /**

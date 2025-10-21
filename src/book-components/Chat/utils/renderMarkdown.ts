@@ -1,5 +1,6 @@
-import hljs from 'highlight.js';
-import katex from 'katex';
+import hljs from 'highlight.js'; // <- [🥂]
+import katex from 'katex'; // <- [🥂]
+// <- [🥂] !!! Fix `katex` and `highlight.js`
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
 // import 'highlight.js/styles/github-dark.css';

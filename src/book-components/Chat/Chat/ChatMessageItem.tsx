@@ -12,7 +12,7 @@ import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarPr
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
-import { renderMarkdown } from '../utils/renderMarkdown';
+import { renderMarkdown } from '../utils/renderMarkdown'; // <- [🥂]
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
