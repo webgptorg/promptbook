@@ -602,13 +602,11 @@ export function BookEditorInner(props: BookEditorProps) {
                     ref={highlightRef}
                     aria-hidden
                     className={`${styles.bookEditorHighlight} ${effectiveFontClassName}`}
-                    style={{
-                        lineHeight: `${lineHeight}px`,
-                        backgroundImage: `linear-gradient(90deg, transparent 30px, rgba(59,130,246,0.3) 30px, rgba(59,130,246,0.3) 31px, transparent 31px), repeating-linear-gradient(0deg, transparent, transparent calc(${lineHeight}px - 1px), rgba(0,0,0,0.06) ${lineHeight}px)`,
-                        backgroundAttachment: 'local',
-                        backgroundOrigin: 'padding-box, content-box',
-                        backgroundClip: 'padding-box, content-box',
-                    }}
+                    style={
+                        {
+                            '--line-height': `${lineHeight}px`,
+                        } as React.CSSProperties
+                    }
                     dangerouslySetInnerHTML={{ __html: highlightedHtml }}
                 />
                 <textarea
@@ -624,7 +622,11 @@ export function BookEditorInner(props: BookEditorProps) {
                     className={`${styles.bookEditorTextarea} ${effectiveFontClassName}${
                         isDragOver ? ' ' + styles.isDragOver : ''
                     }`}
-                    style={{ lineHeight: `${lineHeight}px` }}
+                    style={
+                        {
+                            '--line-height': `${lineHeight}px`,
+                        } as React.CSSProperties
+                    }
                     placeholder={DEFAULT_BOOK}
                     spellCheck={false}
                     readOnly={isReadonly}
