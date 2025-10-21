@@ -86,7 +86,13 @@
     white-space: pre-wrap;
 
     line-height: var(--line-height);
-    background-image: linear-gradient(90deg, transparent 30px, rgba(59, 130, 246, 0.3) 30px, rgba(59, 130, 246, 0.3) 31px, transparent 31px),
+    background-image: linear-gradient(
+            90deg,
+            transparent 30px,
+            rgba(59, 130, 246, 0.3) 30px,
+            rgba(59, 130, 246, 0.3) 31px,
+            transparent 31px
+        ),
         repeating-linear-gradient(
             0deg,
             transparent,
@@ -175,7 +181,7 @@
 }
 
 .bookEditorHighlight :global(.book-highlight-keyword) {
-    color: #30a8bd;
+    color: #DA0F78;
 }
 
 /* [🧠] Parameter syntax highlighting - unified color for both parameter notations
