@@ -101,8 +101,12 @@ of alchemists, lovers, and kings.
 
 [ ]
 
-[✨🕢] quux
+[✨🕢] In Humanizer in Promptbook components should be code samples
 
+-   Provide code samples for `humanizeAiText` function usage
+-   Humanize AI Text is in http://localhost:4022/utility/humanize-ai-text
+-   Book components website is in `/book-components` running in http://localhost:4022/
+-   Look how other components and utilities show code samples
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
