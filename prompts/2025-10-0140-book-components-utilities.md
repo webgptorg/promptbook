@@ -73,7 +73,7 @@ of alchemists, lovers, and kings.
 
 ---
 
-[ ]
+[x]
 
 [✨🕢] Make Humanize AI Text more like translator
 
