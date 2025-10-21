@@ -1,15 +1,19 @@
 'use client';
 
-import { countCharacters } from '../../../../src/utils/expectation-counters/countCharacters';
-import { countLines } from '../../../../src/utils/expectation-counters/countLines';
-import { countPages } from '../../../../src/utils/expectation-counters/countPages';
-import { countParagraphs } from '../../../../src/utils/expectation-counters/countParagraphs';
-import { countSentences } from '../../../../src/utils/expectation-counters/countSentences';
-import { countWords } from '../../../../src/utils/expectation-counters/countWords';
+import { CountUtils } from '@promptbook-local/utils';
 import { useState } from 'react';
 
 export default function CountingUtilitiesPreview() {
     const [text, setText] = useState('');
+
+    const counters = [
+        { name: 'Characters', unit: 'characters', fn: CountUtils.CHARACTERS },
+        { name: 'Words', unit: 'words', fn: CountUtils.WORDS },
+        { name: 'Sentences', unit: 'sentences', fn: CountUtils.SENTENCES },
+        { name: 'Paragraphs', unit: 'paragraphs', fn: CountUtils.PARAGRAPHS },
+        { name: 'Lines', unit: 'lines', fn: CountUtils.LINES },
+        { name: 'Pages', unit: 'pages', fn: CountUtils.PAGES },
+    ];
 
     return (
         <div className="p-6 space-y-4">
@@ -20,30 +24,12 @@ export default function CountingUtilitiesPreview() {
                 onChange={(e) => setText(e.target.value)}
             />
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-gray-100 p-4 rounded">
-                    <div className="text-lg font-bold">{countCharacters(text)}</div>
-                    <div className="text-gray-600">Characters</div>
-                </div>
-                <div className="bg-gray-100 p-4 rounded">
-                    <div className="text-lg font-bold">{countWords(text)}</div>
-                    <div className="text-gray-600">Words</div>
-                </div>
-                <div className="bg-gray-100 p-4 rounded">
-                    <div className="text-lg font-bold">{countSentences(text)}</div>
-                    <div className="text-gray-600">Sentences</div>
-                </div>
-                <div className="bg-gray-100 p-4 rounded">
-                    <div className="text-lg font-bold">{countParagraphs(text)}</div>
-                    <div className="text-gray-600">Paragraphs</div>
-                </div>
-                <div className="bg-gray-100 p-4 rounded">
-                    <div className="text-lg font-bold">{countLines(text)}</div>
-                    <div className="text-gray-600">Lines</div>
-                </div>
-                <div className="bg-gray-100 p-4 rounded">
-                    <div className="text-lg font-bold">{countPages(text)}</div>
-                    <div className="text-gray-600">Pages</div>
-                </div>
+                {counters.map(({ name, fn }) => (
+                    <div key={name} className="bg-gray-100 p-4 rounded">
+                        <div className="text-lg font-bold">{fn(text)}</div>
+                        <div className="text-gray-600">{name}</div>
+                    </div>
+                ))}
             </div>
         </div>
     );

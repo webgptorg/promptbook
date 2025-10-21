@@ -2,6 +2,7 @@
 
 import CopyButton from '@/components/CopyButton';
 import CountingUtilitiesPreviewWrapper from '@/components/counting-utilities/CountingUtilitiesPreviewWrapper';
+import CountingUtilitiesCodeSamples from '@/components/counting-utilities/CountingUtilitiesCodeSamples';
 import { ArrowLeft, Download, ExternalLink, Tag, User } from 'lucide-react';
 import Link from 'next/link';
 
@@ -87,6 +88,7 @@ export default function CountingUtilitiesPage() {
                         </div>
 
                         <CountingUtilitiesPreviewWrapper />
+                        <CountingUtilitiesCodeSamples />
                     </div>
 
                     {/* Sidebar */}

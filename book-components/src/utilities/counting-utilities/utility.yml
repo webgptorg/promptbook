@@ -3,9 +3,9 @@ name: Counting Utilities
 description: A collection of utilities for counting words, characters, and sentences in a text.
 category: Text Analysis
 tags:
-    - text
-    - counting
-    - analysis
+  - text
+  - utility
+  - counting
 author: Promptbook Team
 version: 1.0.0
-type: documentation
+type: miniapp
