@@ -38,6 +38,17 @@
 
 [ ]
 
+[✨🕢] Make Counting Utilities in same design as rest of the `book-components` website
+
+-   Book components website is in `/book-components` running in http://localhost:4022/
+-   Counting utilities are in http://localhost:4022/utility/counting-utilities
+-   They dont look quite like rest of the website now, for example http://localhost:4022/utility/humanize-ai-text, http://localhost:4022/component/chat?scenario=chatWithFeedback, http://localhost:4022/component/book-editor
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨🕢] Make Humanize AI Text default value
 
 -   The textarea in /utility/humanize-ai-text should have some default text
