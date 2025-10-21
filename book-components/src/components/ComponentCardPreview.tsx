@@ -3,10 +3,6 @@
 import { Package } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// Dynamically import components to avoid SSR issues
-const TextareaWithCounter = dynamic(() => import('@/components/textarea-with-counter/TextareaWithCounter'), {
-    ssr: false,
-});
 const MermaidSocialGraph = dynamic(() => import('@/components/mermaid-social-graph/MermaidSocialGraph'), {
     ssr: false,
 });
@@ -33,12 +29,6 @@ type ComponentCardPreviewProps = {
 export default function ComponentCardPreview({ componentId }: ComponentCardPreviewProps) {
     const renderComponentPreview = () => {
         switch (componentId) {
-            case 'textarea-with-counter':
-                return (
-                    <div className="p-3 scale-75 origin-top-left transform">
-                        <TextareaWithCounter placeholder="Try typing something here..." maxLength={100} rows={2} />
-                    </div>
-                );
             case 'mermaid-social-graph':
                 return (
                     <div className="p-3 scale-50 origin-top-left transform">
@@ -117,4 +107,5 @@ export default function ComponentCardPreview({ componentId }: ComponentCardPrevi
 
 /**
  * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+ * TODO: [🙉] DRY - make some index / register for component previews, DO not duplicate switch cases in multiple places
  */
