@@ -86,7 +86,7 @@ of alchemists, lovers, and kings.
 
 ---
 
-[ ]
+[x]
 
 [✨🕢] Make Humanize AI Text working automatically
 
