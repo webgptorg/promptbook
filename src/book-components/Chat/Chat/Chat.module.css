@@ -350,6 +350,11 @@
     cursor: pointer;
     font-size: 20px;
     transition: color 0.2s;
+    color: var(--star-inactive-color, #ccc);
+}
+
+.ratingStar.active {
+    color: #ffd700;
 }
 
  /* Sender Avatar */
@@ -366,7 +371,7 @@
     aspect-ratio: 1 / 1;
     border-radius: 50%;
     object-fit: cover;
-    background-color: #eef6fb;
+    background-color: var(--avatar-bg-color, #eef6fb);
     border: 2px solid rgba(125, 125, 125, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -378,6 +383,8 @@
 
 /* Message text bubble */
 .chatMainFlow .chatMessage .messageText {
+    background-color: var(--message-bg-color);
+    color: var(--message-text-color);
     position: relative;
     padding: 14px 18px;
     border-radius: 20px;

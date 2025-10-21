@@ -195,10 +195,12 @@ const handleMouseLeave = () => {
                             width={AVATAR_SIZE}
                             src={avatarSrc}
                             alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
-                            style={{
-                                backgroundColor: color.toHex(),
-                                width: AVATAR_SIZE,
-                            }}
+                            style={
+                                {
+                                    '--avatar-bg-color': color.toHex(),
+                                    width: AVATAR_SIZE,
+                                } as React.CSSProperties
+                            }
                         />
                         {isAvatarTooltipVisible && participant?.agentSource && avatarTooltipPosition && (
                             <AvatarProfileTooltip
@@ -212,10 +214,12 @@ const handleMouseLeave = () => {
 
                 <div
                     className={styles.messageText}
-                    style={{
-                        backgroundColor: color.toHex(),
-                        color: colorOfText.toHex(),
-                    }}
+                    style={
+                        {
+                            '--message-bg-color': color.toHex(),
+                            '--message-text-color': colorOfText.toHex(),
+                        } as React.CSSProperties
+                    }
                 >
                     {isCopyButtonEnabled && message.isComplete && (
                         <div className={styles.copyButtonContainer}>
@@ -368,15 +372,15 @@ const handleMouseLeave = () => {
                                         key={star}
                                         onClick={() => handleRating(message, star)}
                                         onMouseEnter={() => setLocalHoveredRating(star)}
-                                        className={styles.ratingStar}
-                                        style={{
-                                            color:
-                                                star <= (localHoveredRating || currentRating || 0)
-                                                    ? '#FFD700'
-                                                    : mode === 'LIGHT'
-                                                    ? '#ccc'
-                                                    : '#555',
-                                        }}
+                                        className={classNames(
+                                            styles.ratingStar,
+                                            star <= (localHoveredRating || currentRating || 0) && styles.active,
+                                        )}
+                                        style={
+                                            {
+                                                '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
+                                            } as React.CSSProperties
+                                        }
                                     >
                                         ⭐
                                     </span>
@@ -384,10 +388,12 @@ const handleMouseLeave = () => {
                             ) : (
                                 <span
                                     onClick={() => handleRating(message, currentRating || 1)}
-                                    className={styles.ratingStar}
-                                    style={{
-                                        color: currentRating ? '#FFD700' : mode === 'LIGHT' ? '#888' : '#666',
-                                    }}
+                                    className={classNames(styles.ratingStar, currentRating && styles.active)}
+                                    style={
+                                        {
+                                            '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
+                                        } as React.CSSProperties
+                                    }
                                 >
                                     ⭐
                                 </span>
