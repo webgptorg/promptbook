@@ -43,7 +43,6 @@ export function Modal({
     );
 }
 
-
 /**
- * TODO: !!!! Use this also for feedback modal in Chat component
+ * TODO: !!!! Use this also for feedback modal in Chat component -Make modals DRY
  */
