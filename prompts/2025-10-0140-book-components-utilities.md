@@ -47,7 +47,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🕢] Make Humanize AI Text default value
 
