@@ -91,6 +91,7 @@ of alchemists, lovers, and kings.
 [✨🕢] Make Humanize AI Text working automatically
 
 -   When user types or pastes text into the input textarea, the output textarea should update automatically
+-   The button "Humanize Text" can be moved on bottom and its purpose will be mainly the indication of humanization process
 -   Put a small debounce of 100ms so it does not update on every keystroke immediately
 -   Humanize AI Text is in http://localhost:4022/utility/humanize-ai-text
 -   Book components website is in `/book-components` running in http://localhost:4022/
