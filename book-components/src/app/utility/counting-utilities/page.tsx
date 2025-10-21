@@ -1,127 +1,144 @@
 'use client';
 
-import { CountUtils } from '../../../../../src/utils/expectation-counters';
-import { useState } from 'react';
-import { Code } from '../../../components/Code/Code';
-import { UtilityPageLayout } from '../../../components/UtilityPageLayout/UtilityPageLayout';
-import { MainContent } from '../../../components/MainContent/MainContent';
-import { Sidebar } from '../../../components/Sidebar/Sidebar';
-
-function Counter({
-    name,
-    unit,
-    count,
-    code,
-}: {
-    name: string;
-    unit: string;
-    count: number;
-    code: string;
-}) {
-    return (
-        <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                {name}: {count} {unit}
-            </h3>
-            <Code content={code} />
-        </div>
-    );
-}
+import CopyButton from '@/components/CopyButton';
+import CountingUtilitiesPreviewWrapper from '@/components/counting-utilities/CountingUtilitiesPreviewWrapper';
+import { ArrowLeft, Download, ExternalLink, Tag, User } from 'lucide-react';
+import Link from 'next/link';
 
 export default function CountingUtilitiesPage() {
-    const [text, setText] = useState('');
-
-    const counters = [
-        {
-            name: 'Characters',
-            unit: 'characters',
-            fn: CountUtils.CHARACTERS,
-            code: `import { countCharacters } from '@promptbook/utils';\n\ncountCharacters('Hello World');`,
+    const utility = {
+        name: 'Counting Utilities',
+        description: 'A collection of utilities for counting words, characters, and sentences in a text.',
+        tags: ['text', 'utility', 'counting'],
+        version: '1.0.0',
+        author: 'Promptbook',
+        repository: 'https://github.com/webgptorg/promptbook',
+        category: 'Text Analysis',
+        dependencies: {
+            react: '^18.0.0 || ^19.0.0',
+            '@promptbook/utils': '0.103.0-4',
         },
-        {
-            name: 'Words',
-            unit: 'words',
-            fn: CountUtils.WORDS,
-            code: `import { countWords } from '@promptbook/utils';\n\ncountWords('Hello World');`,
-        },
-        {
-            name: 'Sentences',
-            unit: 'sentences',
-            fn: CountUtils.SENTENCES,
-            code: `import { countSentences } from '@promptbook/utils';\n\ncountSentences('Hello World. How are you?');`,
-        },
-        {
-            name: 'Paragraphs',
-            unit: 'paragraphs',
-            fn: CountUtils.PARAGRAPHS,
-            code: `import { countParagraphs } from '@promptbook/utils';\n\ncountParagraphs('Hello World.\\n\\nHow are you?');`,
-        },
-        {
-            name: 'Lines',
-            unit: 'lines',
-            fn: CountUtils.LINES,
-            code: `import { countLines } from '@promptbook/utils';\n\ncountLines('Hello World.\\nHow are you?');`,
-        },
-        {
-            name: 'Pages',
-            unit: 'pages',
-            fn: CountUtils.PAGES,
-            code: `import { countPages } from '@promptbook/utils';\n\ncountPages('...');`,
-        },
-    ];
+    };
 
     return (
-        <UtilityPageLayout
-            title="Counting Utilities"
-            description="A collection of utilities for counting words, characters, and sentences in a text."
-        >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <MainContent>
-                    <div className="space-y-6">
-                        <textarea
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            placeholder="Paste or write text here..."
-                            rows={10}
-                            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {counters.map(({ name, unit, fn, code }) => (
-                                <Counter key={name} name={name} unit={unit} count={fn(text)} code={code} />
-                            ))}
+        <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-purple-50">
+            {/* Header */}
+            <header className="bg-white shadow-sm border-b">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <Link
+                                href="/"
+                                className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                            >
+                                <ArrowLeft className="h-5 w-5 mr-2" />
+                                Back to Promptbook utilities gallery
+                            </Link>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <a
+                                href={utility.repository}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                            >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Repository
+                            </a>
                         </div>
                     </div>
-                </MainContent>
-                <Sidebar>
+                </div>
+            </header>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Utility Header */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <div className="flex items-start justify-between mb-4">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{utility.name}</h1>
+                                    <p className="text-lg text-gray-600 mb-4">{utility.description}</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {utility.tags.map((tag) => (
+                                            <span
+                                                key={tag}
+                                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"
+                                            >
+                                                <Tag className="h-3 w-3 mr-1" />
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="inline-block bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full mb-2 whitespace-nowrap">
+                                        v{utility.version}
+                                    </span>
+                                    <div className="text-sm text-gray-500">
+                                        <div className="flex items-center">
+                                            <User className="h-4 w-4 mr-1" />
+                                            {utility.author}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <CountingUtilitiesPreviewWrapper />
+                    </div>
+
+                    {/* Sidebar */}
                     <div className="space-y-6">
+                        {/* Quick Actions */}
                         <div className="bg-white rounded-lg shadow-md p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                             <div className="space-y-3">
-                                <button className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                                <a
+                                    href={utility.repository}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 transition-colors"
+                                >
+                                    <Download className="h-4 w-4 mr-2" />
                                     Download Utility
-                                </button>
-                                <button className="w-full bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                                </a>
+                                <CopyButton
+                                    text={`import { countCharacters, countWords, ... } from '@promptbook/utils'`}
+                                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                                >
+                                    <Download className="h-4 w-4 mr-2" />
                                     Copy Import
-                                </button>
+                                </CopyButton>
                             </div>
                         </div>
+
+                        {/* Technical Details */}
                         <div className="bg-white rounded-lg shadow-md p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Details</h3>
-                            <div className="space-y-2 text-sm">
-                                <p>
-                                    <span className="font-semibold">Category:</span> Text Analysis
-                                </p>
-                                <p>
-                                    <span className="font-semibold">Dependencies:</span> react: ^18.0.0 | ^19.0.0
-                                </p>
-                                <p>
-                                    <span className="font-semibold">@promptbook/utils:</span> 0.103.0-4
-                                </p>
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-900 mb-2">Category</h4>
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        {utility.category}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-900 mb-2">Dependencies</h4>
+                                    <div className="space-y-1">
+                                        {Object.entries(utility.dependencies).map(([dep, version]) => (
+                                            <div key={dep} className="text-sm text-gray-600 font-mono">
+                                                {dep}: {version}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </Sidebar>
+                </div>
             </div>
-        </UtilityPageLayout>
+        </div>
     );
 }

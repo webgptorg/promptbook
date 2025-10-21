@@ -36,7 +36,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🕢] Make Counting Utilities in same design as rest of the `book-components` website
 
