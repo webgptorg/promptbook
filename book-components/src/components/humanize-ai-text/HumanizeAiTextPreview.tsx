@@ -1,8 +1,10 @@
 'use client';
 
 import { spaceTrim } from '@promptbook-local/utils';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { humanizeAiText } from '../../../../src/utils/markdown/humanizeAiText';
+
+/* eslint-disable no-irregular-whitespace */
 
 const defaultText = spaceTrim(`
     „The City Between Stones and Stars“
@@ -51,10 +53,7 @@ export default function HumanizeAiTextPreview() {
                 />
             </div>
             <div className="flex justify-center">
-                <button
-                    className="px-4 py-2 bg-yellow-500 text-white rounded cursor-not-allowed"
-                    disabled
-                >
+                <button className="px-4 py-2 bg-yellow-500 text-white rounded cursor-not-allowed" disabled>
                     {isHumanizing ? 'Humanizing...' : 'Humanized'}
                 </button>
             </div>

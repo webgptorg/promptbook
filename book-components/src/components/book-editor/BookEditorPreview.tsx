@@ -8,11 +8,10 @@ import {
     parseAgentSource,
 } from '@promptbook-local/core';
 import type { AgentModelRequirements, string_book } from '@promptbook-local/types';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { forTime } from 'waitasecond';
 import styles from './BookEditorPreview.module.css';
-import { useEffect } from 'react';
 
 /**
  * Renders a preview of `<BookEditor />` component.
@@ -41,9 +40,13 @@ export default function BookEditorPreview() {
                     const content = await contentRes.text();
                     return { name: bookId, content };
                 });
-                const loadedSamples = (await Promise.all(samplePromises)).filter(Boolean) as { name: string; content: string }[];
+                const loadedSamples = (await Promise.all(samplePromises)).filter(Boolean) as {
+                    name: string;
+                    content: string;
+                }[];
                 setSamples(loadedSamples);
-            } catch (e) {
+            } catch (error) {
+                console.error('Error loading book samples:', error);
                 setSamples([]);
             } finally {
                 setIsLoadingSamples(false);
@@ -108,7 +111,7 @@ export default function BookEditorPreview() {
                 <label className="block mb-1 font-medium">Load Book Sample:</label>
                 <select
                     disabled={isLoadingSamples || samples.length === 0}
-                    onChange={e => {
+                    onChange={(e) => {
                         const idx = Number(e.target.value);
                         if (!isNaN(idx) && samples[idx]) {
                             handleSamplePick(samples[idx]);
@@ -136,10 +139,7 @@ export default function BookEditorPreview() {
                             Your current book content will be lost. Are you sure you want to load the sample?
                         </div>
                         <div className="flex justify-end gap-2">
-                            <button
-                                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                                onClick={cancelReplace}
-                            >
+                            <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={cancelReplace}>
                                 Cancel
                             </button>
                             <button
