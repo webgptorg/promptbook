@@ -99,7 +99,7 @@ of alchemists, lovers, and kings.
 
 ---
 
-[ ]
+[x]
 
 [✨🕢] In Humanizer in Promptbook components should be code samples
 
