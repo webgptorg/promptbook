@@ -18,7 +18,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🕢] Do not use inline styles, use CSS modules
 
