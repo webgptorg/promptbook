@@ -5,7 +5,13 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import { join } from 'path';
+import { copyFile, rm } from 'fs/promises';
+import glob from 'glob-promise';
+import { basename, join } from 'path';
+import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
+import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
+import { makeKnowledgeSourceHandler } from '../scrapers/_common/utils/makeKnowledgeSourceHandler';
+import { DocumentScraper } from '../scrapers/document/DocumentScraper';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -27,6 +33,50 @@ async function playground() {
 
     // Do here stuff you want to test
     //========================================>
+
+    // const dictionary = `C:/Users/me/Documents/p13`;
+    const dictionary = `other/prague-13/source`;
+    const documentFiles = await glob(`${dictionary}/**/*.docx`);
+
+    console.info(colors.cyan(`Found ${documentFiles.length} document files to convert`));
+
+    const fs = $provideFilesystemForNode();
+    const executables = await $provideExecutablesForNode();
+
+    const documentScraper = new DocumentScraper(
+        {
+            fs,
+            executables,
+        },
+        {
+            isVerbose: false,
+        },
+    );
+
+    for (const documentFile of documentFiles) {
+        // const markdownFile = documentFile.replace(/\.docx$/i, '.md');
+        const markdownFile = join('other/prague-13/converted', basename(documentFile).replace(/\.docx$/i, '.md'));
+
+        if (markdownFile === documentFile) {
+            throw new Error(`Unexpected same filename markdownFile===documentFile==="${markdownFile}"`);
+        }
+
+        const sourceHandler = await makeKnowledgeSourceHandler(
+            { knowledgeSourceContent: documentFile },
+            { fs },
+            { rootDirname: process.cwd(), isVerbose: false },
+        );
+
+        // console.info('documentFile', documentFile);
+        // console.info('sourceHandler', sourceHandler);
+
+        const converted = await documentScraper.$convert(sourceHandler);
+
+        console.info(colors.green(`✅ ${converted.filename}`));
+
+        await copyFile(converted.filename, markdownFile);
+        await rm(converted.filename);
+    }
 
     //========================================/
 }
