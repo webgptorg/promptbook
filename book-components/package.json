@@ -4,7 +4,7 @@
     "scripts": {
         "dev": "(npx kill-port 4022 || true) && next dev -p 4022 --turbopack",
         "test-build": "npm run build",
-        "build": "(npx kill-port 4022 || true) && next build",
+        "build": "next build",
         "start": "next start",
         "lint": "next lint",
         "postinstall": "cd ../ && npm install"
