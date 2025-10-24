@@ -12,7 +12,7 @@ import type { string_knowledge_source_content } from '../../types/typeAliases';
 import { injectCssModuleIntoShadowRoot } from '../../utils/misc/injectCssModuleIntoShadowRoot';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
-import { BookEditorInner } from './BookEditorInner';
+import { BookEditorMonaco } from './BookEditorMonaco';
 
 /**
  * Props of `BookEditor`
@@ -136,7 +136,7 @@ export function BookEditor(props: BookEditorProps) {
 
     // Build the internal editor JSX (this will be portalled into the shadow root if available)
     const editorInner = (
-        <BookEditorInner
+        <BookEditorMonaco
             className={className}
             fontClassName={fontClassName}
             value={agentSource || value}

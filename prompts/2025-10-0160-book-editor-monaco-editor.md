@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨✧] Reimplement <BookEditor/> using Monaco Editor
 

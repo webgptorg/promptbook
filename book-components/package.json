@@ -10,6 +10,7 @@
         "postinstall": "cd ../ && npm install"
     },
     "dependencies": {
+        "@monaco-editor/react": "^4.6.0",
         "js-yaml": "^4.1.0",
         "lucide-react": "^0.536.0",
         "mermaid": "^11.9.0",
@@ -27,6 +28,7 @@
         "autoprefixer": "^10.4.14",
         "eslint": "^8.57.0",
         "eslint-config-next": "15.4.5",
+        "monaco-editor": "^0.44.0",
         "postcss": "^8.4.24",
         "tailwindcss": "^3.4.0",
         "type-fest": "^4.41.0",

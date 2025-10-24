@@ -175,42 +175,25 @@
 
 /* --- Book syntax highlighting */
 
-.bookEditorHighlight :global(.book-highlight-title) {
-    color: #30a8bd;
+.bookEditorContainer :global(.book-title) {
+    font-weight: bold;
     text-decoration: underline;
 }
 
-.bookEditorHighlight :global(.book-highlight-keyword) {
-    color: #DA0F78;
-}
-
-/* [🧠] Parameter syntax highlighting - unified color for both parameter notations
- * The Book language supports two different notations for the same syntax feature - parameters:
- * 1. @Parameter - single word parameter starting with @
- * 2. {parameterName} or {parameter with multiple words} or {parameterName: description text}
- * Both notations represent the same semantic concept and are highlighted with the same purple color.
- */
-.bookEditorHighlight :global(.book-highlight-parameter) {
-    color: #8e44ad; /* Purple color for all parameter syntaxes */
-    font-weight: 500;
-}
-
-/* Legacy classes for backward compatibility - both use the same purple color now */
-.bookEditorHighlight :global(.book-highlight-at-parameter) {
-    color: #8e44ad; /* Purple color (unified with brace parameters) */
-    font-weight: 500;
-}
-
-.bookEditorHighlight :global(.book-highlight-brace-parameter) {
-    color: #8e44ad; /* Purple color (same as at parameters) */
-    font-weight: 500;
-}
-
-/* Comment-like commitments (NOTE, COMMENT, NONCE) highlighting - gray like code comments */
-.bookEditorHighlight :global(.book-highlight-comment) {
-    color: #6b7280; /* Gray color similar to code comments in IDEs */
-    font-style: italic;
-    opacity: 0.8;
+.dropOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    z-index: 100;
+    pointer-events: none;
 }
 
 .bookEditorContainer.isReadonly .bookEditorTextarea {
