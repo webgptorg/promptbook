@@ -1,5 +1,4 @@
 # 📅 Changelog## [Unreleased]
--   [✨✧] Reimplemented `<BookEditor/>` using Monaco Editor.
 -   Added code samples for `humanizeAiText` utility in Promptbook components.
 -   Fixed the "View Source" button in the chat component's avatar profile popup. It now opens the agent's source in a modal, which can be closed by clicking outside, pressing the Escape key, or using the close button.
 -   The chat component's avatar profile tooltip now closes when the Escape key is pressed, when scrolling, or when clicking outside of it.
