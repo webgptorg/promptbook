@@ -63,12 +63,7 @@ export function AvatarProfile(props: AvatarProfileProps) {
                         setIsBookEditorVisible(false);
                     }}
                 >
-                    <BookEditor
-                        agentSource={agentSource}
-                        onClose={() => {
-                            setIsBookEditorVisible(false);
-                        }}
-                    />
+                    <BookEditor agentSource={agentSource} />
                 </Modal>
             )}
         </>
