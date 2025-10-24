@@ -20,12 +20,9 @@
 }
 
 .bookEditorWrapper {
-    width: 100%;
-    height: 100%;
-
-    position: relative;
     overflow: hidden;
     border-radius: 1rem;
+    padding-top: 10px;
     border: 1px solid rgba(209, 213, 219, 0.8);
     background-color: white;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -51,135 +48,6 @@
     border-radius: 0;
 }
 
-.bookEditorBackground {
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-}
-
-.bookEditorHighlight {
-    /* TODO: DRY */
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-
-    overflow: auto;
-    pointer-events: none;
-
-    color: rgb(17, 24, 39);
-    font-size: 1.125rem; /* TODO: DRY */
-    padding-top: 0;
-    padding-left: 46px;
-    padding-right: 46px;
-    margin-bottom: 50px;
-    z-index: 10;
-
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-
-    overflow-wrap: break-word;
-    white-space: pre-wrap;
-
-    line-height: var(--line-height);
-    background-image: linear-gradient(
-            90deg,
-            transparent 30px,
-            rgba(59, 130, 246, 0.3) 30px,
-            rgba(59, 130, 246, 0.3) 31px,
-            transparent 31px
-        ),
-        repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent calc(var(--line-height) - 1px),
-            rgba(0, 0, 0, 0.06) var(--line-height)
-        );
-    background-attachment: local;
-    background-origin: padding-box, content-box;
-    background-clip: padding-box, content-box;
-}
-
-.isVerbose .bookEditorHighlight {
-    /**/
-    opacity: 0.5;
-    outline: 1px dotted rgba(255, 0, 0, 0.5);
-    /**/
-}
-
-.bookEditorHighlight::-webkit-scrollbar {
-    display: none;
-}
-
-.bookEditorTextarea {
-    /* TODO: DRY */
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-
-    color: transparent;
-    caret-color: rgb(17, 24, 39);
-    font-size: 1.125rem; /* TODO: DRY */
-    background-color: transparent;
-    outline: none;
-    resize: none;
-    padding-top: 18px;
-    padding-left: 46px;
-    padding-right: 46px;
-    border: none;
-
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-
-    line-height: var(--line-height);
-}
-
-.isVerbose .bookEditorTextarea {
-    /**/
-    color: rgba(255, 255, 0, 0.5);
-    outline: 1px dotted rgba(255, 255, 0, 0.5);
-    /**/
-}
-
-.bookEditorTextarea::selection {
-    background-color: rgba(99, 102, 241, 0.6);
-}
-
-.bookEditorSerif {
-    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-}
-
-.bookEditorBar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    font-size: 0.875rem;
-    color: rgba(17, 24, 39, 0.6);
-    padding: 0.5rem 1rem;
-    border-top: 1px solid rgba(209, 213, 219, 0.8);
-    background-color: rgba(99, 102, 241, 0.1);
-}
-
-.bookEditorBar a {
-    color: unset;
-    text-decoration: none;
-}
-
-/* --- Book syntax highlighting */
-
-.bookEditorContainer :global(.book-title) {
-    font-weight: bold;
-    text-decoration: underline;
-}
-
 .dropOverlay {
     position: absolute;
     top: 0;
@@ -194,30 +62,4 @@
     font-size: 1.5rem;
     z-index: 100;
     pointer-events: none;
-}
-
-.bookEditorContainer.isReadonly .bookEditorTextarea {
-    pointer-events: none;
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-.closeButton {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 20;
-    padding: 4px;
-    border: none;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.2s;
-}
-
-.closeButton:hover {
-    background-color: #fff;
 }

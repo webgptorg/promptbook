@@ -2,11 +2,11 @@
 
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { useCallback, useEffect, useState } from 'react';
-import { getAllCommitmentDefinitions } from '../../book-2.0/commitments';
-import type { BookEditorProps } from './BookEditor';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import styles from './BookEditor.module.css';
+import { getAllCommitmentDefinitions } from '../../book-2.0/commitments';
 import { classNames } from '../_common/react-utils/classNames';
+import type { BookEditorProps } from './BookEditor';
+import styles from './BookEditor.module.css';
 
 const BOOK_LANGUAGE_ID = 'book';
 
@@ -25,12 +25,13 @@ export function BookEditorMonaco(props: BookEditorProps) {
         monaco.languages.register({ id: BOOK_LANGUAGE_ID });
 
         const commitmentTypes = getAllCommitmentDefinitions().map(({ type }) => type);
-        const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})(\\s.*)?$`);
+        const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
 
         // Register a tokens provider for the language
         monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
             tokenizer: {
                 root: [
+                    [/^a*$/, 'title'],
                     [/@\w+/, 'parameter'],
                     [/\{[^}]+\}/, 'parameter'],
                     [keywordRegex, 'keyword'],
@@ -42,8 +43,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
             base: 'vs',
             inherit: true,
             rules: [
-                { token: 'parameter', foreground: '800080' }, // Purple for parameters
-                { token: 'keyword', foreground: '0000ff' }, // Blue for keywords
+                { token: 'title', foreground: 'DA0F78', fontStyle: 'bold italic' },
+                { token: 'keyword', foreground: 'DA0F78' },
+                { token: 'parameter', foreground: '8e44ad', fontStyle: `italic` },
             ],
             colors: {},
         });
@@ -132,7 +134,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     readOnly: isReadonly,
                     wordWrap: 'on',
                     minimap: { enabled: false },
+                    lineNumbers: 'off',
+                    fontSize: 20,
+                    fontFamily: `ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif`,
                 }}
+                loading={<div className={styles.loading}>📖</div>}
             />
         </div>
     );
