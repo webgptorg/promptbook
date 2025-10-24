@@ -11,7 +11,7 @@ import styles from './BookEditor.module.css';
 const BOOK_LANGUAGE_ID = 'book';
 
 export function BookEditorMonaco(props: BookEditorProps) {
-    const { value, onChange, isReadonly, onFileUpload, fontClassName } = props;
+    const { value, onChange, isReadonly, onFileUpload } = props;
     const [isDragOver, setIsDragOver] = useState(false);
 
     const monaco = useMonaco();
@@ -97,7 +97,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     return (
         <div
-            className={classNames(styles.bookEditorContainer, fontClassName)}
+            className={classNames(styles.bookEditorContainer)}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}

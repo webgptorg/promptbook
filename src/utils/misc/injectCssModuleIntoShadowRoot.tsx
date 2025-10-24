@@ -20,6 +20,7 @@ export type InjectCssModuleIntoShadowRootOptions = {
  *
  * @public exported from `@promptbook/components`
  *         <- TODO: [🧠] Make `@promptbook/components-utils`
+ * @deprecated This was used for BookEditor shadow DOM support, which is no longer needed
  */
 export function injectCssModuleIntoShadowRoot(options: InjectCssModuleIntoShadowRootOptions) {
     const { shadowRoot, styles } = options;

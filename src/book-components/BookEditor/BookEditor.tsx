@@ -32,11 +32,6 @@ export type BookEditorProps = {
      */
     readonly style?: CSSProperties;
 
-    /**
-     * CSS className for a font (e.g. from next/font) to style the editor text.
-     * If omitted, defaults to system serif fonts.
-     */
-    readonly fontClassName?: string;
 
     /**
      * The book which is being edited.
@@ -90,7 +85,6 @@ export function BookEditor(props: BookEditorProps) {
         value,
         onChange,
         onFileUpload,
-        fontClassName,
         isVerbose = DEFAULT_IS_VERBOSE,
         isBorderRadiusDisabled = false,
         isFooterShown = false,
@@ -112,7 +106,6 @@ export function BookEditor(props: BookEditorProps) {
         >
             <BookEditorMonaco
                 className={className}
-                fontClassName={fontClassName}
                 value={agentSource || value}
                 onChange={onChange}
                 onFileUpload={onFileUpload}
