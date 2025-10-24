@@ -10,6 +10,7 @@
         "postinstall": "cd ../ && npm install"
     },
     "dependencies": {
+        "@monaco-editor/react": "^4.6.0",
         "js-yaml": "^4.1.0",
         "lucide-react": "^0.536.0",
         "mermaid": "^11.9.0",
@@ -19,6 +20,7 @@
         "react-markdown": "^10.1.0"
     },
     "devDependencies": {
+        "monaco-editor": "^0.41.0",
         "@eslint/eslintrc": "^3",
         "@types/js-yaml": "^4.0.9",
         "@types/node": "^20",
