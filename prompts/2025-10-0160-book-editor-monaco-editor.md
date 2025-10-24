@@ -18,8 +18,10 @@
 
 [ ]
 
-[✨✧] bar
+[✨✧] The `title` token should match only the first line and the entire line of the book
 
+-   The `title` should be both **bold** and *italic*
+-   You are `working in src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
