@@ -28,10 +28,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
         monaco.languages.register({ id: BOOK_LANGUAGE_ID });
 
         const commitmentTypes = getAllCommitmentDefinitions().map(({ type }) => type);
-        const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`, 'i');
+        const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
 
         // Register a tokens provider for the language
         monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
+            ignoreCase: true,
             tokenizer: {
                 root: [
                     [/^a*$/, 'title'],

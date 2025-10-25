@@ -45,11 +45,12 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✧] Commitment can be both lowercase and uppercase, both are the correct keywords
 
 -   For example `PERSONA` and `persona` both work as commitment keywords
+-   Do not modify the commitments logic and definitions, modify only the language definition in `BookEditorMonaco`
 -   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
