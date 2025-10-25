@@ -36,7 +36,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✧] Whisper all the commitment keywords in the `BookEditorMonaco` language definition when typing
 

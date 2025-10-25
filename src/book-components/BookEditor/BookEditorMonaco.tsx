@@ -46,6 +46,28 @@ export function BookEditorMonaco(props: BookEditorProps) {
             },
         });
 
+        // Register a completion item provider for the language
+        monaco.languages.registerCompletionItemProvider(BOOK_LANGUAGE_ID, {
+            provideCompletionItems: (model, position) => {
+                const word = model.getWordUntilPosition(position);
+                const range = {
+                    startLineNumber: position.lineNumber,
+                    endLineNumber: position.lineNumber,
+                    startColumn: word.startColumn,
+                    endColumn: word.endColumn,
+                };
+
+                const suggestions = commitmentTypes.map((type) => ({
+                    label: type,
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: type,
+                    range: range,
+                }));
+
+                return { suggestions: suggestions };
+            },
+        });
+
         monaco.editor.defineTheme('book-theme', {
             base: 'vs',
             inherit: true,
