@@ -50,7 +50,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             base: 'vs',
             inherit: true,
             rules: [
-                { token: 'title', foreground: 'DA0F78', fontStyle: 'bold italic' },
+                { token: 'title', foreground: 'DA0F78', fontStyle: 'bold italic underline' },
                 { token: 'keyword', foreground: 'DA0F78' },
                 { token: 'parameter', foreground: '8e44ad', fontStyle: `italic` },
             ],
