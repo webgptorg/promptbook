@@ -45,7 +45,8 @@
         },
         {
             "name": "👨‍💻🔠 Book Components Server",
-            "commands": ["cd ./book-components/", "npm ci", "npm run dev"],
+            "cwd": "./book-components/",
+            "command": "npm run dev",
             "execute": true,
             "onlySingle": false,
             "focus": false
