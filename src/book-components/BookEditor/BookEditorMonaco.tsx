@@ -10,7 +10,6 @@ import styles from './BookEditor.module.css';
 
 const BOOK_LANGUAGE_ID = 'book';
 
-
 /**
  * @private Internal component used by `BookEditor`
  */
@@ -29,7 +28,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         monaco.languages.register({ id: BOOK_LANGUAGE_ID });
 
         const commitmentTypes = getAllCommitmentDefinitions().map(({ type }) => type);
-        const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
+        const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`, 'i');
 
         // Register a tokens provider for the language
         monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {

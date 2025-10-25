@@ -20,10 +20,38 @@
 
 [✨✧] The `title` token should match only the first line and the entire line of the book
 
--   The `title` should be both **bold** and *italic*
--   You are `working in src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   The `title` should be both **bold** and _italic_
+-   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨✧] Between each line of the book there should be tiny visible lines, like a notebook page
+
+-   Not the lines are only on the top and bottom of the line with cursor
+-   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] Whisper all the commitment keywords in the `BookEditorMonaco` language definition when typing
+
+-   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] Commitment can be both lowercase and uppercase, both are the correct keywords
+
+-   For example `PERSONA` and `persona` both work as commitment keywords
+-   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
@@ -31,8 +59,8 @@
 
 [✨✧] bar
 
+-   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
 
 ---
 
@@ -40,5 +68,14 @@
 
 [✨✧] bar
 
+-   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
+
+---
+
+[ ]
+
+[✨✧] bar
+
+-   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
