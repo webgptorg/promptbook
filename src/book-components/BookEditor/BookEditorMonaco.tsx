@@ -27,7 +27,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         // Register a new language
         monaco.languages.register({ id: BOOK_LANGUAGE_ID });
 
-        const commitmentTypes = getAllCommitmentDefinitions().map(({ type }) => type);
+        const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
         const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
