@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   **Style:** Editor in `BookEditor` now has interval padding 20px from both left, right and top
 -   Added notebook-style lines to the book editor for a better writing experience.
 -   Reimplemented `<BookEditor/>` using Monaco Editor for improved performance, syntax highlighting, and functionality.
 -   Added code samples for `humanizeAiText` utility in Promptbook components.

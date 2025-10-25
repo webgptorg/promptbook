@@ -56,7 +56,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✧] Editor should have interval padding 20px from both left, right and top
 
