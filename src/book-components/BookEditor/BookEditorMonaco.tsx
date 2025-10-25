@@ -10,6 +10,10 @@ import styles from './BookEditor.module.css';
 
 const BOOK_LANGUAGE_ID = 'book';
 
+
+/**
+ * @private Internal component used by `BookEditor`
+ */
 export function BookEditorMonaco(props: BookEditorProps) {
     const { value, onChange, isReadonly, onFileUpload } = props;
     const [isDragOver, setIsDragOver] = useState(false);
