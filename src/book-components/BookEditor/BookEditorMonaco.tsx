@@ -38,7 +38,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         ];
 
         // Register a tokens provider for the language
-        monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
+        const tokenProvider = monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
             ignoreCase: true,
             tokenizer: {
                 root: [[/^.*$/, 'title', '@body']],
@@ -47,7 +47,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         });
 
         // Register a completion item provider for the language
-        monaco.languages.registerCompletionItemProvider(BOOK_LANGUAGE_ID, {
+        const completionProvider = monaco.languages.registerCompletionItemProvider(BOOK_LANGUAGE_ID, {
             provideCompletionItems: (model, position) => {
                 const word = model.getWordUntilPosition(position);
                 const range = {
@@ -80,6 +80,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
         });
 
         monaco.editor.setTheme('book-theme');
+
+        return () => {
+            tokenProvider.dispose();
+            completionProvider.dispose();
+        };
     }, [monaco]);
 
     const handleDrop = useCallback(
