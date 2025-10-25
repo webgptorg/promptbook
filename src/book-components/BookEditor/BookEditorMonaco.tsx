@@ -123,6 +123,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     fontSize: 20,
                     fontFamily: `ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif`,
                     lineHeight: 28,
+                    renderLineHighlight: 'none',
                     // Note: To add little lines between each line of the book, like a notebook page
                     glyphMargin: false,
                     folding: false,
