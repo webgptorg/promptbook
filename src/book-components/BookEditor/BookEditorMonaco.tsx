@@ -122,6 +122,12 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     lineNumbers: 'off',
                     fontSize: 20,
                     fontFamily: `ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif`,
+                    lineHeight: 28,
+                    // Note: To add little lines between each line of the book, like a notebook page
+                    glyphMargin: false,
+                    folding: false,
+                    lineDecorationsWidth: 0,
+                    lineNumbersMinChars: 0,
                 }}
                 loading={<div className={styles.loading}>📖</div>}
             />

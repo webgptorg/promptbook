@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   Added notebook-style lines to the book editor for a better writing experience.
 -   Reimplemented `<BookEditor/>` using Monaco Editor for improved performance, syntax highlighting, and functionality.
 -   Added code samples for `humanizeAiText` utility in Promptbook components.
 -   Fixed the "View Source" button in the chat component's avatar profile popup. It now opens the agent's source in a modal, which can be closed by clicking outside, pressing the Escape key, or using the close button.

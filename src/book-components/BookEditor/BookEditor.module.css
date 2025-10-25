@@ -63,3 +63,7 @@
     z-index: 100;
     pointer-events: none;
 }
+
+.bookEditorContainer :global(.view-line) {
+    border-bottom: 1px solid #eee;
+}

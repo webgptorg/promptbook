@@ -26,7 +26,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✧] Between each line of the book there should be tiny visible lines, like a notebook page
 
