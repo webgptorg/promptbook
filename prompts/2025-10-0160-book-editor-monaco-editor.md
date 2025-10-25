@@ -58,7 +58,7 @@
 
 [ ]
 
-[✨✧] bar
+[✨✧] Editor should have interval padding 20px from both left, right and top
 
 -   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
