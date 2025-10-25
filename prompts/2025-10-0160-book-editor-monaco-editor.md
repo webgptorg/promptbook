@@ -16,7 +16,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✧] The `title` token should match only the first line and the entire line of the book
 

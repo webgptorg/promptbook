@@ -30,16 +30,19 @@ export function BookEditorMonaco(props: BookEditorProps) {
         const commitmentTypes = getAllCommitmentDefinitions().map(({ type }) => type);
         const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bookRules: any = [
+            [/@\w+/, 'parameter'],
+            [/\{[^}]+\}/, 'parameter'],
+            [keywordRegex, 'keyword'],
+        ];
+
         // Register a tokens provider for the language
         monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
             ignoreCase: true,
             tokenizer: {
-                root: [
-                    [/^a*$/, 'title'],
-                    [/@\w+/, 'parameter'],
-                    [/\{[^}]+\}/, 'parameter'],
-                    [keywordRegex, 'keyword'],
-                ],
+                root: [[/^.*$/, 'title', '@body']],
+                body: bookRules,
             },
         });
 
@@ -112,28 +115,6 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 language={BOOK_LANGUAGE_ID}
                 value={value}
                 onChange={(newValue) => onChange?.(newValue as string_book)}
-                onMount={(editor) => {
-                    if (!monaco) {
-                        return;
-                    }
-                    const model = editor.getModel();
-                    if (!model) {
-                        return;
-                    }
-
-                    const firstLine = model.getLineContent(1);
-                    editor.deltaDecorations(
-                        [],
-                        [
-                            {
-                                range: new monaco.Range(1, 1, 1, firstLine.length + 1),
-                                options: {
-                                    inlineClassName: 'book-title',
-                                },
-                            },
-                        ],
-                    );
-                }}
                 options={{
                     readOnly: isReadonly,
                     wordWrap: 'on',
