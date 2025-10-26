@@ -67,4 +67,45 @@ describe('BookEditorMonaco', () => {
         expect('@onlyAscii'.match(parameterRegex)?.[0]).toBe('@onlyAscii');
         expect('not a parameter'.match(parameterRegex)).toBeNull();
     });
+
+    describe('BookEditorMonaco padding', () => {
+        it('should add 5 empty lines to an empty book', () => {
+            const { getByTestId } = render(<BookEditorMonaco value={undefined} isReadonly={false} />);
+            const editor = getByTestId('mock-editor');
+            const props = JSON.parse(editor.textContent || '{}');
+            expect(props.value).toBe('\n\n\n\n\n');
+        });
+
+        it('should add 5 empty lines to a book with no trailing newlines', () => {
+            const { getByTestId } = render(<BookEditorMonaco value={'Hello' as string_book} isReadonly={false} />);
+            const editor = getByTestId('mock-editor');
+            const props = JSON.parse(editor.textContent || '{}');
+            expect(props.value).toBe('Hello\n\n\n\n\n');
+        });
+
+        it('should add remaining empty lines to a book with some trailing newlines', () => {
+            const { getByTestId } = render(<BookEditorMonaco value={'Hello\n\n' as string_book} isReadonly={false} />);
+            const editor = getByTestId('mock-editor');
+            const props = JSON.parse(editor.textContent || '{}');
+            expect(props.value).toBe('Hello\n\n\n\n\n');
+        });
+
+        it('should not add empty lines to a book with 5 trailing newlines', () => {
+            const { getByTestId } = render(
+                <BookEditorMonaco value={'Hello\n\n\n\n\n' as string_book} isReadonly={false} />,
+            );
+            const editor = getByTestId('mock-editor');
+            const props = JSON.parse(editor.textContent || '{}');
+            expect(props.value).toBe('Hello\n\n\n\n\n');
+        });
+
+        it('should not add empty lines to a book with more than 5 trailing newlines', () => {
+            const { getByTestId } = render(
+                <BookEditorMonaco value={'Hello\n\n\n\n\n\n' as string_book} isReadonly={false} />,
+            );
+            const editor = getByTestId('mock-editor');
+            const props = JSON.parse(editor.textContent || '{}');
+            expect(props.value).toBe('Hello\n\n\n\n\n\n');
+        });
+    });
 });

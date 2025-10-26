@@ -10,6 +10,41 @@ import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 
 const BOOK_LANGUAGE_ID = 'book';
+const PADDING_LINES = 5;
+
+/**
+ * A function that adds padding to the book content
+ *
+ * @private
+ */
+function padBookContent(content: string_book | undefined): string_book {
+    if (!content) {
+        return '\n'.repeat(PADDING_LINES) as string_book;
+    }
+
+    const lines = content.split('\n');
+    let trailingEmptyLines = 0;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i];
+
+        if (line === undefined) {
+            // Note: This should not happen in reality, but it's here to satisfy TypeScript's noUncheckedIndexedAccess option
+            continue;
+        }
+        if (line.trim() === '') {
+            trailingEmptyLines++;
+        } else {
+            break;
+        }
+    }
+
+    if (trailingEmptyLines >= PADDING_LINES) {
+        return content;
+    }
+
+    const linesToAdd = PADDING_LINES - trailingEmptyLines;
+    return (content + '\n'.repeat(linesToAdd)) as string_book;
+}
 
 /**
  * @private Internal component used by `BookEditor`
@@ -149,7 +184,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
             <Editor
                 language={BOOK_LANGUAGE_ID}
-                value={value}
+                value={padBookContent(value)}
                 onChange={(newValue) => onChange?.(newValue as string_book)}
                 options={{
                     readOnly: isReadonly,

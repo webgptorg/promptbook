@@ -82,7 +82,7 @@ Tohle je @Slovník
 
 ---
 
-[ ]
+[x]
 
 [✨✧] In `BookEditor` add extra 5 new lines on bottom
 
