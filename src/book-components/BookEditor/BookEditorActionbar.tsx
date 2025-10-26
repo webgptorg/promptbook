@@ -2,7 +2,7 @@
 
 import { DEFAULT_BOOK, parseAgentSource, validateBook } from '../../_packages/core.index';
 import { titleToName } from '../../_packages/utils.index';
-import { $induceFileDownload } from '../../utils/files/induceFileDownload';
+import { $induceFileDownload } from '../../utils/files/$induceFileDownload';
 import styles from './BookEditor.module.css';
 
 type BookEditorActionbarProps = {
