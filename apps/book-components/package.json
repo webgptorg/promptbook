@@ -1,6 +1,5 @@
 {
     "name": "book-components",
-    "--todo-1": "Should be dependencies installed here or in the root monorepo package.json?",
     "scripts": {
         "dev": "(npx kill-port 4022 || true) && next dev -p 4022 --turbopack",
         "test-build": "npm run build",

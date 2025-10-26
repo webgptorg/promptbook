@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
+import type { ChatMessage } from '../../../../../../src/playground/Chat/types/ChatMessage';
 
 export const assistantsOnlyScenario = {
     name: 'AI Avatars discussing together (without user)',

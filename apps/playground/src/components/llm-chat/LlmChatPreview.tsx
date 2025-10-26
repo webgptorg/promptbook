@@ -2,13 +2,13 @@
 
 import { book, createAgentLlmExecutionTools } from '@promptbook-local/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
-import { useSendMessageToLlmChat } from '../../../../../src/book-components/Chat/hooks/useSendMessageToLlmChat';
-import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
-import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedEchoLlmExecutionTools';
 import { MockedFackedLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiExecutionTools';
+import { LlmChat } from '../../../../../src/playground/Chat/LlmChat/LlmChat';
+import { useSendMessageToLlmChat } from '../../../../../src/playground/Chat/hooks/useSendMessageToLlmChat';
+import type { ChatMessage } from '../../../../../src/playground/Chat/types/ChatMessage';
+import type { ChatParticipant } from '../../../../../src/playground/Chat/types/ChatParticipant';
 
 const OPENAI_API_KEY_STORAGE_KEY = 'llm-chat-preview-openai-api-key';
 

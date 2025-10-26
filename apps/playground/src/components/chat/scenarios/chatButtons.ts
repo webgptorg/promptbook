@@ -1,4 +1,4 @@
-import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
+import type { ChatMessage } from '../../../../../../src/playground/Chat/types/ChatMessage';
 
 export const chatButtonsScenario = {
     name: 'Chat with Buttons',
