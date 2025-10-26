@@ -1,6 +1,9 @@
 'use client';
 
 import Editor, { useMonaco } from '@monaco-editor/react';
+import { MonacoBinding } from 'y-monaco';
+import { WebsocketProvider } from 'y-websocket';
+import * as Y from 'yjs';
 import { useCallback, useEffect, useState } from 'react';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments';
@@ -51,10 +54,33 @@ function padBookContent(content: string_book | undefined): string_book {
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorMonaco(props: BookEditorProps) {
-    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown } = props;
+    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown, sync } = props;
     const [isDragOver, setIsDragOver] = useState(false);
+    const [editor, setEditor] = useState<any>(null);
 
     const monaco = useMonaco();
+
+    useEffect(() => {
+        if (!monaco || !editor || !sync) {
+            return;
+        }
+
+        const ydoc = new Y.Doc();
+        const provider = new WebsocketProvider(sync.serverUrl, sync.roomName, ydoc);
+        const ytext = ydoc.getText('monaco');
+
+        const binding = new MonacoBinding(
+            ytext,
+            editor.getModel(),
+            new Set([editor]),
+            provider.awareness,
+        );
+
+        return () => {
+            binding.destroy();
+            provider.destroy();
+        };
+    }, [monaco, editor, sync]);
 
     useEffect(() => {
         if (!monaco) {
@@ -185,6 +211,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             <Editor
                 language={BOOK_LANGUAGE_ID}
                 value={padBookContent(value)}
+                onMount={(editor) => setEditor(editor)}
                 onChange={(newValue) => onChange?.(newValue as string_book)}
                 options={{
                     readOnly: isReadonly,

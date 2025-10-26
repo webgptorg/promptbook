@@ -140,7 +140,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 [✨✧] `BookEditor` have action bar, add "About" button to it
 
 -   Add prop `BookEditor.isAboutButtonShown: boolean` which when `true` shows about modal showing information about the editor, version of the Promptbook etc.
--   By fault `isAboutButtonShown` is `true`
+-   By default `isAboutButtonShown` is `true`
 -   For modal use `/src/book-components/_common/Modal/Modal.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

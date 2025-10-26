@@ -75,6 +75,21 @@ export type BookEditorProps = {
      * By default, the download button is shown.
      */
     readonly isDownloadButtonShown?: boolean;
+
+    /**
+     * If defined, the editor will be synced with other editors with the same sync configuration.
+     */
+    readonly sync?: {
+        /**
+         * The URL of the y-websocket server.
+         */
+        readonly serverUrl: string;
+
+        /**
+         * The name of the room to join.
+         */
+        readonly roomName: string;
+    };
 };
 
 /**
@@ -95,6 +110,7 @@ export function BookEditor(props: BookEditorProps) {
         isFooterShown = false,
         isReadonly = false,
         isDownloadButtonShown = true,
+        sync,
     } = props;
 
     return (
@@ -120,6 +136,7 @@ export function BookEditor(props: BookEditorProps) {
                 isFooterShown={isFooterShown}
                 isReadonly={isReadonly}
                 isDownloadButtonShown={isDownloadButtonShown}
+                sync={sync}
             />
         </div>
     );

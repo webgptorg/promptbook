@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨☦️] Add capability to sync editor content with multiple users
 
@@ -13,10 +13,12 @@
 
 [ ]
 
-[✨☦️] baz
+[✨☦️] `BookEditor` have action bar, add "Sync status" to it
 
--   You are working on `/apps/playground/src/app/sync/page.tsx`
+-   Add prop `BookEditor.sync` is defined, show the sync status in the actions
+-   For example working sample is in `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Preserve the mechanism that more than 2 items in actions are put into the munu
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---

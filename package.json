@@ -317,6 +317,8 @@
         "userhome": "1.0.1",
         "waitasecond": "1.11.83",
         "y-monaco": "^0.1.6",
+        "y-protocols": "^1.0.6",
+        "y-websocket": "^3.0.0",
         "y-websocket-server": "^1.0.2",
         "yjs": "^13.6.27"
     }
