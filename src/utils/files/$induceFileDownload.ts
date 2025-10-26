@@ -1,15 +1,19 @@
 import { string_url } from '../../types/typeAliases';
 import { $isRunningInBrowser } from '../environment/$isRunningInBrowser';
+import { side_effect } from '../organization/side_effect';
+import { TODO_any } from '../organization/TODO_any';
 import { ObjectUrl } from './ObjectUrl';
 
 /**
- * Download a File to with a browser
+ * Download a File in a browser
+ *
+ * Note: `$` is used to indicate that this function is not a pure function - its purpose is to cause a side effect (download a file)
  *
  * @public exported from `@promptbook/browser`
  */
-export async function $induceFileDownload(fileOrBlobOrUrl: File | Blob | URL | string_url) {
+export async function $induceFileDownload(fileOrBlobOrUrl: File | Blob | URL | string_url): Promise<side_effect> {
     if (!$isRunningInBrowser()) {
-        throw new Error('Function `induceFileDownload` is available ONLY in browser');
+        throw new Error('Function `$induceFileDownload` is available ONLY in browser');
     }
 
     const objectUrl = ObjectUrl.fromBlobOrUrl(fileOrBlobOrUrl);

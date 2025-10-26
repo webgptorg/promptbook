@@ -1,8 +1,7 @@
 'use client';
 
-import { DEFAULT_BOOK, parseAgentSource, validateBook } from '../../_packages/core.index';
-import { titleToName } from '../../_packages/utils.index';
-import { $induceFileDownload } from '../../utils/files/$induceFileDownload';
+import { DEFAULT_BOOK, validateBook } from '../../_packages/core.index';
+import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
 import styles from './BookEditor.module.css';
 
 type BookEditorActionbarProps = {
@@ -13,14 +12,8 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
     const { value } = props;
 
     const handleDownload = () => {
-        const bookContent = validateBook(value || DEFAULT_BOOK);
-
-        const { agentName } = parseAgentSource(bookContent);
-        const bookFile = new File([bookContent], `${titleToName(agentName || 'AI Avatar')}.book`, {
-            type: 'application/json',
-        });
-
-        /* not await */ $induceFileDownload(bookFile);
+        const book = validateBook(value || DEFAULT_BOOK);
+        /* not await */ $induceBookDownload(book);
     };
 
     return (
