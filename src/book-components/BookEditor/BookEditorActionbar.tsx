@@ -8,6 +8,10 @@ type BookEditorActionbarProps = {
     value: string | undefined;
 };
 
+/**
+ *
+ * @private Internal component used by `BookEditor`
+ */
 export function BookEditorActionbar(props: BookEditorActionbarProps) {
     const { value } = props;
 
