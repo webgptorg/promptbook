@@ -5,9 +5,9 @@ import { forTime } from 'waitasecond';
 import { DEFAULT_IS_VERBOSE } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../environment/$isRunningInNode';
+import { $side_effect } from '../organization/$side_effect';
 import { $execCommandNormalizeOptions } from './$execCommandNormalizeOptions';
 import type { ExecCommandOptions } from './ExecCommandOptions';
-import { $side_effect } from '../organization/$side_effect';
 
 /**
  * Run one command in a shell
@@ -20,7 +20,7 @@ import { $side_effect } from '../organization/$side_effect';
  *
  * @public exported from `@promptbook/node`
  */
-export function $execCommand(options: ExecCommandOptions): Promise< $side_effect & string> {
+export function $execCommand(options: ExecCommandOptions): Promise<$side_effect & string> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$execCommand` can run only in Node environment.js');
     }
