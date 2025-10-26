@@ -123,7 +123,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 ---
 
-[ ]
+[x]
 
 [✨✧] In `BookEditor` adds extra 5 new lines on bottom
 

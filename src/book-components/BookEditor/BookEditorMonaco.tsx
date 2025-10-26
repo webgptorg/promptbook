@@ -1,5 +1,6 @@
 'use client';
 
+import type { editor } from 'monaco-editor';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
@@ -55,8 +56,9 @@ function padBookContent(content: string_book | undefined): string_book {
  */
 export function BookEditorMonaco(props: BookEditorProps) {
     const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown, sync } = props;
+    const [initialContent] = useState(padBookContent(value));
     const [isDragOver, setIsDragOver] = useState(false);
-    const [editor, setEditor] = useState<any>(null);
+    const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(null);
 
     const monaco = useMonaco();
 
@@ -65,16 +67,17 @@ export function BookEditorMonaco(props: BookEditorProps) {
             return;
         }
 
+        const model = editor.getModel();
+
+        if (!model) {
+            return;
+        }
+
         const ydoc = new Y.Doc();
         const provider = new WebsocketProvider(sync.serverUrl, sync.roomName, ydoc);
         const ytext = ydoc.getText('monaco');
 
-        const binding = new MonacoBinding(
-            ytext,
-            editor.getModel(),
-            new Set([editor]),
-            provider.awareness,
-        );
+        const binding = new MonacoBinding(ytext, model, new Set([editor]), provider.awareness);
 
         return () => {
             binding.destroy();
@@ -210,7 +213,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
             <Editor
                 language={BOOK_LANGUAGE_ID}
-                value={padBookContent(value)}
+                value={initialContent}
                 onMount={(editor) => setEditor(editor)}
                 onChange={(newValue) => onChange?.(newValue as string_book)}
                 options={{
