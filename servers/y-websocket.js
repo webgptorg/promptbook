@@ -2,7 +2,7 @@
 
 const { spawn } = require('child_process');
 
-const port = process.env.PORT || '1234';
+const port = process.env.PORT || '4461';
 const cmd = 'npx';
 const args = ['y-websocket-server', '--port', String(port)];
 

@@ -25,9 +25,10 @@
 
 [ ]
 
-[✨☦️] baz
+[✨☦️] `BookEditor` is can be synced by `yjs`
 
--   You are working on `/apps/playground/src/app/sync/page.tsx`
+-   When the connection fails just indicate the failiure of the sync
+-   For example working sample is in `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -37,7 +38,7 @@
 
 [✨☦️] baz
 
--   You are working on `/apps/playground/src/app/sync/page.tsx`
+-   For example working sample is in `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -47,7 +48,7 @@
 
 [✨☦️] baz
 
--   You are working on `/apps/playground/src/app/sync/page.tsx`
+-   For example working sample is in `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
