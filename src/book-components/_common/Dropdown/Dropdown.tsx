@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { MenuIcon } from '../../icons/MenuIcon';
 import styles from './Dropdown.module.css';
 import { classNames } from '../react-utils/classNames';
+import { JSX } from 'react';
 
 type DropdownProps = {
     actions: Array<{
@@ -18,7 +20,7 @@ export function Dropdown({ actions }: DropdownProps) {
     return (
         <div className={styles.dropdown}>
             <button className={styles.button} onClick={() => setIsOpen(!isOpen)}>
-                ...
+                <MenuIcon />
             </button>
             {isOpen && (
                 <div className={styles.menu}>

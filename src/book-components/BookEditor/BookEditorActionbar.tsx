@@ -51,7 +51,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
 
     return (
         <div className={styles.bookEditorActionbar}>
-            {actions.length > 2 ? (
+            {actions.length >= 2 ? (
                 <Dropdown actions={actions} />
             ) : (
                 actions.map(({ icon, name, onClick }) => (
