@@ -77,6 +77,12 @@ export type BookEditorProps = {
     readonly isDownloadButtonShown?: boolean;
 
     /**
+     * If true, shows the about button in the action bar.
+     * By default, the about button is shown.
+     */
+    readonly isAboutButtonShown?: boolean;
+
+    /**
      * If defined, the editor will be synced with other editors with the same sync configuration.
      */
     readonly sync?: {
@@ -110,6 +116,7 @@ export function BookEditor(props: BookEditorProps) {
         isFooterShown = false,
         isReadonly = false,
         isDownloadButtonShown = true,
+        isAboutButtonShown = true,
         sync,
     } = props;
 
@@ -136,6 +143,7 @@ export function BookEditor(props: BookEditorProps) {
                 isFooterShown={isFooterShown}
                 isReadonly={isReadonly}
                 isDownloadButtonShown={isDownloadButtonShown}
+                isAboutButtonShown={isAboutButtonShown}
                 sync={sync}
             />
         </div>

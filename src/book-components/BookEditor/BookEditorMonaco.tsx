@@ -55,7 +55,8 @@ function padBookContent(content: string_book | undefined): string_book {
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorMonaco(props: BookEditorProps) {
-    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown, sync } = props;
+    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown, isAboutButtonShown = true, sync } =
+        props;
     const [initialContent] = useState(padBookContent(value));
     const [isDragOver, setIsDragOver] = useState(false);
     const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(null);
@@ -209,7 +210,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
         >
-            {isDownloadButtonShown && <BookEditorActionbar value={value} />}
+            {(isDownloadButtonShown || isAboutButtonShown) && (
+                <BookEditorActionbar
+                    {...{ value, isDownloadButtonShown, isAboutButtonShown }}
+                />
+            )}
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
             <Editor
                 language={BOOK_LANGUAGE_ID}

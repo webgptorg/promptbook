@@ -135,7 +135,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 ---
 
-[ ]
+[x]
 
 [✨✧] `BookEditor` have action bar, add "About" button to it
 
