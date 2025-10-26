@@ -12,7 +12,10 @@ export default function Home() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <BookEditor
                 value={book}
-                onChange={setBook}
+                onChange={(book)=>{
+                    console.log('Book changed');
+                  setBook(book);
+                }}
                 isBorderRadiusDisabled={false}
                 style={{
                     width: `100vw`,

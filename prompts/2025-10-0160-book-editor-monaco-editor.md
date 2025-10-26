@@ -125,6 +125,67 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [ ]
 
+[✨✧] In `BookEditor` adds extra 5 new lines on bottom
+
+-   This is already implemented but do some UX improvements`
+-   When the editor is initialized and used adds something on the bottom, do not add new extra lines
+-   Adding lines should happen only when the editor initially loads
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] `BookEditor` have action bar, add "About" button to it
+
+-   Add prop `BookEditor.isAboutButtonShown: boolean` which when `true` shows about modal showing information about the editor, version of the Promptbook etc.
+-   By fault `isAboutButtonShown` is `true`
+-   For modal use `/src/book-components/_common/Modal/Modal.tsx`
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] `BookEditor` have action bar, when this menu contains more than 2 items, group them into dropdown menu
+
+-   Each item in this menu should have icon, use simmilar as in `/src/book-components/Chat/Chat/Chat.tsx`
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] bar
+
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] bar
+
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] bar
+
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨✧] bar
 
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
