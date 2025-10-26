@@ -15,6 +15,7 @@
 
 [✨☦️] baz
 
+-   You are working on `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -24,6 +25,7 @@
 
 [✨☦️] baz
 
+-   You are working on `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -33,6 +35,7 @@
 
 [✨☦️] baz
 
+-   You are working on `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -42,6 +45,7 @@
 
 [✨☦️] baz
 
+-   You are working on `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
