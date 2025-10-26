@@ -109,3 +109,7 @@ describe('BookEditorMonaco', () => {
         });
     });
 });
+
+/**
+ * TODO: Make this test working, now it fails because css modules import doesn't work in the test env
+ */
