@@ -1,0 +1,80 @@
+.ResizablePanels {
+    /*/
+    outline: 1px dotted rgb(38, 255, 56) !important;
+    /**/
+
+    width: 100%;
+    height: 100vh !important; /* <- TODO: !!! Better or comment */
+
+    display: flex;
+    white-space: nowrap;
+    overflow: hidden;
+
+    touch-action: none;
+}
+
+.ResizablePanels.HORIZONTAL {
+    flex-direction: row;
+}
+
+.ResizablePanels.VERTICAL {
+    flex-direction: column;
+}
+
+.panel,
+.divider {
+    /*/
+    outline: 1px dotted rgb(255, 125, 38) !important;
+    background-color: rgba(255, 125, 38, 0.1) !important;
+    /**/
+
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.panel {
+    z-index: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    -ms-overflow-style: none; /* <- [📎] Internet Explorer 10+ */
+    scrollbar-width: none; /* <- [📎] Firefox */
+}
+
+.panel::-webkit-scrollbar {
+    display: none; /* <- [📎] Safari and Chrome */
+}
+
+.panel.isResizing {
+    opacity: 0.5;
+}
+
+.divider {
+    /*/
+    background-color: red;
+    /**/
+
+    z-index: 2 /* <- Note: Dividers always above the panels */;
+
+    border: 1px solid #999999cc;
+    background-color: #9999992c;
+}
+
+.divider.isResizing {
+    background-color: #999999ad;
+}
+
+.ResizablePanels.HORIZONTAL > .divider {
+    cursor: col-resize;
+    /* <- Note: @see http://elektronotdienst-nuernberg.de/bugs/cursor.html */
+    border-top: none;
+    border-bottom: none;
+}
+
+.ResizablePanels.VERTICAL > .divider {
+    cursor: row-resize;
+    /* <- Note: @see http://elektronotdienst-nuernberg.de/bugs/cursor.html */
+    border-left: none;
+    border-right: none;
+}

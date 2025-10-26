@@ -1,0 +1,8 @@
+.ResizablePanelsAuto {
+    /*/
+    outline: 1px dotted rgb(38, 255, 56) !important;
+    /**/
+
+    width: 100%;
+    height: 100%;
+}

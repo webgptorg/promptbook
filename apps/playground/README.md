@@ -1,3 +1,3 @@
-# Promptbook Components Gallery
+# Promptbook App playground
 
-This is a preview of the book components gallery.
+!!!
