@@ -93,7 +93,7 @@ Tohle je @Slovník
 
 ---
 
-[ ]
+[x]
 
 [✨✧] Book editors should have action bar on top right corner
 

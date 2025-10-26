@@ -72,3 +72,22 @@
 .bookEditorContainer :global(.view-line) {
     border-bottom: 1px solid #eee;
 }
+
+.bookEditorActionbar {
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    z-index: 100;
+}
+
+.button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #e0e0e0;
+}

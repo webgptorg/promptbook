@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   **New:** Book editors now have an action bar in the top right corner, featuring a "Download" button that allows users to download the editor's content as a `.book` file. This button is shown by default but can be hidden by setting the `isDownloadButtonShown` prop to `false`.
 -   **Style:** Editor in `BookEditor` now has interval padding 20px from both left, right and top
 -   Added notebook-style lines to the book editor for a better writing experience.
 -   Reimplemented `<BookEditor/>` using Monaco Editor for improved performance, syntax highlighting, and functionality.

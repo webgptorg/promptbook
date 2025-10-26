@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { book } from '../../pipeline/book-notation';
 
 /**
  * Branded type for books
@@ -34,10 +34,8 @@ export function validateBook(source: string): string_book {
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOK = validateBook(
-    spaceTrim(`
-        AI Avatar
+export const DEFAULT_BOOK = book`
+    AI Avatar
 
-        PERSONA A friendly AI assistant that helps you with your tasks
-    `),
-);
+    PERSONA A friendly AI assistant that helps you with your tasks
+`;

@@ -7,6 +7,7 @@ import { getAllCommitmentDefinitions } from '../../book-2.0/commitments';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
 import type { BookEditorProps } from './BookEditor';
+import { BookEditorActionbar } from './BookEditorActionbar';
 import styles from './BookEditor.module.css';
 
 const BOOK_LANGUAGE_ID = 'book';
@@ -50,7 +51,7 @@ function padBookContent(content: string_book | undefined): string_book {
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorMonaco(props: BookEditorProps) {
-    const { value, onChange, isReadonly, onFileUpload } = props;
+    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown } = props;
     const [isDragOver, setIsDragOver] = useState(false);
 
     const monaco = useMonaco();
@@ -181,6 +182,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
         >
+            {isDownloadButtonShown && <BookEditorActionbar value={value} />}
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
             <Editor
                 language={BOOK_LANGUAGE_ID}

@@ -70,6 +70,12 @@ export type BookEditorProps = {
      * @default false
      */
     readonly isReadonly?: boolean;
+
+    /**
+     * If true, shows the download button in the action bar.
+     * By default, the download button is shown.
+     */
+    readonly isDownloadButtonShown?: boolean;
 };
 
 /**
@@ -89,6 +95,7 @@ export function BookEditor(props: BookEditorProps) {
         isBorderRadiusDisabled = false,
         isFooterShown = false,
         isReadonly = false,
+        isDownloadButtonShown = true,
     } = props;
 
     return (
@@ -113,6 +120,7 @@ export function BookEditor(props: BookEditorProps) {
                 isBorderRadiusDisabled={isBorderRadiusDisabled}
                 isFooterShown={isFooterShown}
                 isReadonly={isReadonly}
+                isDownloadButtonShown={isDownloadButtonShown}
             />
         </div>
     );
