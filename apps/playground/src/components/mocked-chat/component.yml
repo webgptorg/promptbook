@@ -1,0 +1,110 @@
+---
+id: mocked-chat
+name: MockedChat
+description: Interactive chat component that emulates ongoing discussion with realistic typing delays and thinking pauses, perfect for demos and presentations.
+category: Chat
+tags:
+    - chat
+    - messaging
+    - mocked
+    - simulation
+    - demo
+    - typing-animation
+    - user-interaction
+    - delay-configuration
+props:
+    messages:
+        type: ReadonlyArray<ChatMessage>
+        description: Array of chat messages to display with simulated typing
+    participants:
+        type: ReadonlyArray<ChatParticipant>
+        description: List of chat participants with their information (name, avatar, color, etc.)
+    delayConfig:
+        type: MockedChatDelayConfig
+        description: Optional configuration for typing delays and simulation behavior
+        default: '{ beforeFirstMessage: 1000, thinkingBetweenMessages: 2000, waitAfterWord: 100, extraWordDelay: 50 }'
+    onMessage:
+        type: '(messageContent: string) => Promise<void>'
+        description: Callback function called when user sends a new message (disabled during simulation)
+    onReset:
+        type: '() => Promise<void>'
+        description: Optional callback to reset/clear the chat
+    placeholderMessageContent:
+        type: string
+        default: 'Write a message'
+        description: Placeholder text for the message input field
+    defaultMessage:
+        type: string
+        description: Optional preset message content in the input field
+    children:
+        type: ReactNode
+        description: Optional content to show in the chat header bar
+    className:
+        type: string
+        description: Optional CSS class name for styling
+    style:
+        type: CSSProperties
+        description: Optional inline CSS styles
+    isVoiceRecognitionButtonShown:
+        type: boolean
+        default: false
+        description: Whether to show the voice recognition button
+    voiceLanguage:
+        type: string
+        default: 'en-US'
+        description: Language code for voice recognition
+    isVoiceCalling:
+        type: boolean
+        default: false
+        description: Whether a voice call is currently active
+features:
+    - Realistic typing simulation with word-by-word animation
+    - Configurable delays for different aspects of chat flow
+    - Thinking pauses between messages
+    - Delay before first message appears
+    - Customizable word typing speed with extra delays
+    - Built on top of the standard Chat component
+    - Perfect for demos, presentations, and mockups
+    - User input disabled during simulation
+    - All Chat component features when simulation completes
+examples:
+    - title: Basic MockedChat
+      code: '<MockedChat messages={messages} participants={participants} />'
+    - title: Custom Delay Configuration
+      code: |-
+          <MockedChat
+              messages={messages}
+              participants={participants}
+              delayConfig={{
+                  beforeFirstMessage: 500,
+                  thinkingBetweenMessages: 1500,
+                  waitAfterWord: 80,
+                  extraWordDelay: 30
+              }}
+          />
+    - title: Fast Typing Simulation
+      code: |-
+          <MockedChat
+              messages={messages}
+              participants={participants}
+              delayConfig={{
+                  beforeFirstMessage: 200,
+                  thinkingBetweenMessages: 800,
+                  waitAfterWord: 50,
+                  extraWordDelay: 20
+              }}
+              placeholderMessageContent="Fast typing demo..."
+          />
+    - title: Slow Dramatic Simulation
+      code: |-
+          <MockedChat
+              messages={messages}
+              participants={participants}
+              delayConfig={{
+                  beforeFirstMessage: 2000,
+                  thinkingBetweenMessages: 4000,
+                  waitAfterWord: 200,
+                  extraWordDelay: 100
+              }}
+              placeholderMessageContent="Dramatic pause demo..."
+          />
