@@ -5,6 +5,7 @@ import type {
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes testing `hello` command for Promptbook CLI utilities
@@ -13,7 +14,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeHelloCommand(program: Program) {
+export function $initializeHelloCommand(program: Program): $side_effect {
     const helloCommand = program.command('hello');
     helloCommand.description(
         spaceTrim(`

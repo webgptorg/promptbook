@@ -6,11 +6,14 @@ import type { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the model command
@@ -128,7 +131,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ModelCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: ModelCommand, $pipelineJson: $PipelineJson): $side_effect {
         $pipelineJson.defaultModelRequirements = $pipelineJson.defaultModelRequirements || {};
 
         // TODO: [🚜] DRY
@@ -158,7 +161,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ModelCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: ModelCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson):  $side_effect {
         if ($taskJson.taskType !== 'PROMPT_TASK') {
             throw new ParseError(`MODEL command can only be used in PROMPT_TASK block`);
         }

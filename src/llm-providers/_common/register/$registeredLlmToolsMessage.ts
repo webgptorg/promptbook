@@ -3,6 +3,7 @@ import spaceTrim from 'spacetrim';
 import type { string_filename, string_markdown, string_name } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { Registered } from '../../../utils/misc/$Register';
+import { $side_effect } from '../../../utils/organization/$side_effect';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';
@@ -22,7 +23,7 @@ let $usedEnvFilename: string | null = null;
  *
  * @private internal log of `$provideLlmToolsConfigurationFromEnv` and `$registeredLlmToolsMessage`
  */
-export function $setUsedEnvFilename(filepath: string_filename) {
+export function $setUsedEnvFilename(filepath: string_filename): $side_effect {
     $usedEnvFilename = filepath;
 }
 

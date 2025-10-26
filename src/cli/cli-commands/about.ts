@@ -11,6 +11,7 @@ import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWo
 import { BOOK_LANGUAGE_VERSION } from '../../version';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `about` command for Promptbook CLI utilities
@@ -19,7 +20,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeAboutCommand(program: Program) {
+export function $initializeAboutCommand(program: Program): $side_effect {
     const makeCommand = program.command('about');
     makeCommand.description(
         spaceTrim(`

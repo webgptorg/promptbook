@@ -1,6 +1,7 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { $PipelineJson } from '../_common/types/CommandParser';
@@ -59,7 +60,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ActionCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: ActionCommand, $pipelineJson: $PipelineJson):  $side_effect {
         keepUnused(command, $pipelineJson);
         console.error(new NotYetImplementedError('[🛠] Actions are not implemented yet'));
     },

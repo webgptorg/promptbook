@@ -1,4 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
+import { $side_effect } from '../organization/$side_effect';
 import type { really_any } from '../organization/really_any';
 import type { TODO_any } from '../organization/TODO_any';
 
@@ -11,7 +12,7 @@ import type { TODO_any } from '../organization/TODO_any';
  * @returns The same object as the input, but deeply frozen
  * @public exported from `@promptbook/utils`
  */
-export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<TObject> {
+export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<$side_effect & TObject> {
     if (Array.isArray(objectValue)) {
         return Object.freeze(objectValue.map((item) => $deepFreeze(item))) as TODO_any;
     }

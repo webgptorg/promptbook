@@ -10,6 +10,7 @@ import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipeli
 import { assertsError } from '../../errors/assertsError';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `prettify` command for Promptbook CLI utilities
@@ -18,7 +19,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializePrettifyCommand(program: Program) {
+export function $initializePrettifyCommand(program: Program) : $side_effect{
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`

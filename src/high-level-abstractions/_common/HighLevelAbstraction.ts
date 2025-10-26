@@ -1,4 +1,5 @@
 import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Used in `parsePipeline`
@@ -13,7 +14,7 @@ export type SyncHighLevelAbstraction = /* CommonHighLevelAbstraction & */ {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson($pipelineJson: $PipelineJson): void;
+    $applyToPipelineJson($pipelineJson: $PipelineJson):  $side_effect;
 };
 
 /*
@@ -31,7 +32,7 @@ exp0rt type AsyncHighLevelAbstraction = /* CommonHighLevelAbstraction & * / {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      * /
-    $applyToPipelineJson($pipelineJson: $PipelineJson): Promise<void>;
+    $applyToPipelineJson($pipelineJson: $PipelineJson): Promise<$side_effect>;
 };
 */
 

@@ -10,6 +10,7 @@ import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the parameter command
@@ -102,7 +103,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ParameterCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: ParameterCommand, $pipelineJson: $PipelineJson):  $side_effect {
         keepUnused(command, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `parsePipeline`
     },
@@ -112,7 +113,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ParameterCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: ParameterCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson):  $side_effect {
         keepUnused(command, $taskJson, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `parsePipeline`
     },

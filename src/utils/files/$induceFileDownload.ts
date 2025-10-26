@@ -1,7 +1,6 @@
 import { string_url } from '../../types/typeAliases';
 import { $isRunningInBrowser } from '../environment/$isRunningInBrowser';
-import { side_effect } from '../organization/side_effect';
-import { TODO_any } from '../organization/TODO_any';
+import { $side_effect } from '../organization/$side_effect';
 import { ObjectUrl } from './ObjectUrl';
 
 /**
@@ -11,7 +10,7 @@ import { ObjectUrl } from './ObjectUrl';
  *
  * @public exported from `@promptbook/browser`
  */
-export async function $induceFileDownload(fileOrBlobOrUrl: File | Blob | URL | string_url): Promise<side_effect> {
+export async function $induceFileDownload(fileOrBlobOrUrl: File | Blob | URL | string_url): Promise<$side_effect> {
     if (!$isRunningInBrowser()) {
         throw new Error('Function `$induceFileDownload` is available ONLY in browser');
     }

@@ -1,6 +1,7 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
 import type { $TaskJson } from '../_common/types/CommandParser';
@@ -76,7 +77,7 @@ export const postprocessCommandParser: PipelineTaskCommandParser<PostprocessComm
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: PostprocessCommand, $taskJson: $TaskJson): void {
+    $applyToTaskJson(command: PostprocessCommand, $taskJson: $TaskJson):  $side_effect {
         $taskJson.postprocessingFunctionNames = $taskJson.postprocessingFunctionNames || [];
         $taskJson.postprocessingFunctionNames.push(command.functionName);
     },

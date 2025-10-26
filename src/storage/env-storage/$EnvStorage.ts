@@ -9,6 +9,7 @@ import type { string_filename } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Stores data in .env variables
@@ -78,7 +79,7 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
     /**
      * Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
      */
-    public async setItem(key: string, value: TItem): Promise<void> {
+    public async setItem(key: string, value: TItem): Promise<$side_effect> {
         const envFilename = await this.$provideOrCreateEnvFile();
         const envContent = await readFile(envFilename, 'utf-8');
 

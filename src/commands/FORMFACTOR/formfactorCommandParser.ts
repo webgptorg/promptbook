@@ -8,6 +8,7 @@ import type { $PipelineJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { FormfactorCommand } from './FormfactorCommand';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the formfactor command
@@ -91,7 +92,7 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: FormfactorCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: FormfactorCommand, $pipelineJson: $PipelineJson): $side_effect {
         if ($pipelineJson.formfactorName !== undefined && $pipelineJson.formfactorName !== command.formfactorName) {
             throw new ParseError(
                 spaceTrim(`

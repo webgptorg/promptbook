@@ -2,10 +2,9 @@ import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { FormatCommand } from './FormatCommand';
 
 /**
@@ -68,7 +67,7 @@ export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: FormatCommand, $taskJson: $TaskJson): void {
+    $applyToTaskJson(command: FormatCommand, $taskJson: $TaskJson): $side_effect {
         if ($taskJson.format !== undefined && command.format !== $taskJson.format) {
             throw new ParseError(`Format format is already defined to "${$taskJson.format}".
                 Now you try to redefine it by "${command.format}"`);

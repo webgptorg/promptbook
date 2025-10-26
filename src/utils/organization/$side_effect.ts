@@ -3,4 +3,4 @@
  *
  * @private within the repository
  */
-export type side_effect = void;
+export type $side_effect = void;

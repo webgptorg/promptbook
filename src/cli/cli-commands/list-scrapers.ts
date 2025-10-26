@@ -6,6 +6,7 @@ import { $provideExecutablesForNode } from '../../executables/$provideExecutable
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $registeredScrapersMessage } from '../../scrapers/_common/register/$registeredScrapersMessage';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `list-scrapers` command for Promptbook CLI utilities
@@ -14,7 +15,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeListScrapersCommand(program: Program) {
+export function $initializeListScrapersCommand(program: Program): $side_effect {
     const listModelsCommand = program.command('list-scrapers');
     listModelsCommand.description(
         spaceTrim(`

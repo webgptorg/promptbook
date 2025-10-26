@@ -4,6 +4,7 @@ import type {
 import spaceTrim from 'spacetrim';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `login` command for Promptbook CLI utilities
@@ -12,7 +13,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeLoginCommand(program: Program) {
+export function $initializeLoginCommand(program: Program): $side_effect {
     const loginCommand = program.command('login');
     loginCommand.description(
         spaceTrim(`

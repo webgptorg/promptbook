@@ -2,7 +2,7 @@ import { parseAgentSource } from '../../_packages/core.index';
 import { string_book } from '../../_packages/types.index';
 import { $isRunningInBrowser } from '../environment/$isRunningInBrowser';
 import { titleToName } from '../normalization/titleToName';
-import { side_effect } from '../organization/side_effect';
+import { $side_effect } from '../organization/$side_effect';
 import { $induceFileDownload } from './$induceFileDownload';
 
 /**
@@ -12,7 +12,7 @@ import { $induceFileDownload } from './$induceFileDownload';
  *
  * @public exported from `@promptbook/browser`
  */
-export async function $induceBookDownload(book: string_book): Promise<side_effect> {
+export async function $induceBookDownload(book: string_book): Promise<$side_effect> {
     if (!$isRunningInBrowser()) {
         throw new Error('Function `$induceBookDownload` is available ONLY in browser');
     }

@@ -1,10 +1,13 @@
 import type { SetOptional, WritableDeep } from 'type-fest';
 import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../../pipeline/PipelineJson/TaskJson';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
+import type {
+    string_markdown_text,
+    string_name,
+    string_promptbook_documentation_url,
+} from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { $side_effect } from '../../../utils/organization/$side_effect';
 import type { ___and___ } from '../../../utils/organization/___and___';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
 
@@ -119,7 +122,7 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: TCommand, $pipelineJson: $PipelineJson): void;
+    $applyToPipelineJson(command: TCommand, $pipelineJson: $PipelineJson): $side_effect;
 
     /**
      * Reads the command from the `PipelineJson`
@@ -151,7 +154,7 @@ export type PipelineTaskCommandParser<TCommand extends CommandBase> = CommonComm
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson` and/or `pipelineJson`
      */
-    $applyToTaskJson(command: TCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void;
+    $applyToTaskJson(command: TCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): $side_effect;
 
     /**
      * Reads the command from the `TaskJson`

@@ -7,6 +7,7 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import { $isRunningInNode } from '../environment/$isRunningInNode';
 import { $execCommandNormalizeOptions } from './$execCommandNormalizeOptions';
 import type { ExecCommandOptions } from './ExecCommandOptions';
+import { $side_effect } from '../organization/$side_effect';
 
 /**
  * Run one command in a shell
@@ -19,7 +20,7 @@ import type { ExecCommandOptions } from './ExecCommandOptions';
  *
  * @public exported from `@promptbook/node`
  */
-export function $execCommand(options: ExecCommandOptions): Promise<string> {
+export function $execCommand(options: ExecCommandOptions): Promise< $side_effect & string> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$execCommand` can run only in Node environment.js');
     }

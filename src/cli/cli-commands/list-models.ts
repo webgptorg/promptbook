@@ -7,6 +7,7 @@ import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register
 import { $sideEffect } from '../../utils/organization/$sideEffect';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `list-models` command for Promptbook CLI utilities
@@ -15,7 +16,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeListModelsCommand(program: Program) {
+export function $initializeListModelsCommand(program: Program): $side_effect {
     const listModelsCommand = program.command('list-models');
     listModelsCommand.description(
         spaceTrim(`

@@ -11,6 +11,7 @@ import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 import { knowledgeSourceContentToName } from './utils/knowledgeSourceContentToName';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the knowledge command
@@ -93,7 +94,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): $side_effect {
         const { knowledgeSourceContent } = command;
 
         $pipelineJson.knowledgeSources.push({

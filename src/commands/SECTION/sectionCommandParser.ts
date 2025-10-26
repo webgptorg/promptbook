@@ -13,6 +13,7 @@ import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { SectionCommand } from './SectionCommand';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the section command
@@ -144,7 +145,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: SectionCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: SectionCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson):  $side_effect {
         if ($taskJson.isSectionTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`

@@ -3,6 +3,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { handleActionErrors } from './common/handleActionErrors';
 
@@ -13,7 +14,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeBoilerplateCommand(program: Program) {
+export function $initializeBoilerplateCommand(program: Program): $side_effect {
     const boilerplateCommand = program.command('boilerplate');
     boilerplateCommand.description(
         spaceTrim(`

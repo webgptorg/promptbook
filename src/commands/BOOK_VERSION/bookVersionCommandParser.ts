@@ -2,12 +2,11 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { BOOK_LANGUAGE_VERSION } from '../../version';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { BookVersionCommand } from './BookVersionCommand';
 
 /**
@@ -76,7 +75,7 @@ export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionComm
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: BookVersionCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: BookVersionCommand, $pipelineJson: $PipelineJson): $side_effect {
         // TODO: Warn if the version is overridden
         $pipelineJson.bookVersion = command.bookVersion;
     },

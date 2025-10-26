@@ -35,6 +35,7 @@ import { $getCompiledBook } from '../../wizard/$getCompiledBook';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 import { runInteractiveChatbot } from './runInteractiveChatbot';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `run` command for Promptbook CLI utilities
@@ -43,7 +44,7 @@ import { runInteractiveChatbot } from './runInteractiveChatbot';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeRunCommand(program: Program) {
+export function $initializeRunCommand(program: Program) : $side_effect{
     const runCommand = program.command('run', { isDefault: true });
     runCommand.description(
         spaceTrim(`

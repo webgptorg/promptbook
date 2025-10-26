@@ -19,6 +19,7 @@ import { $provideScrapersForNode } from '../../scrapers/_common/register/$provid
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `test` command for Promptbook CLI utilities
@@ -27,7 +28,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeTestCommand(program: Program) {
+export function $initializeTestCommand(program: Program) : $side_effect{
     const testCommand = program.command('test');
     testCommand.description(
         spaceTrim(`

@@ -9,6 +9,7 @@ import type { $TaskJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the persona command
@@ -80,7 +81,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson):  $side_effect {
         $applyToTaskJson(command, null, $pipelineJson);
     },
 
@@ -122,7 +123,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
  *
  * Note: `$` is used to indicate that this function mutates given `taskJson`
  */
-function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, $pipelineJson: $PipelineJson): void {
+function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, $pipelineJson: $PipelineJson):  $side_effect {
     const { personaName, personaDescription } = command;
 
     if ($taskJson !== null) {

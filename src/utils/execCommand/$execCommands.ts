@@ -1,3 +1,4 @@
+import { $side_effect } from '../organization/$side_effect';
 import { $execCommand } from './$execCommand';
 
 /**
@@ -14,7 +15,7 @@ export async function $execCommands({
     commands,
     cwd,
     crashOnError,
-}: {
+}: $side_effect & {
     readonly commands: string[];
     readonly cwd: string;
     readonly crashOnError?: boolean;

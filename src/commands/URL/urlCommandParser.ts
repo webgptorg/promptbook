@@ -2,6 +2,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 import type { $PipelineJson } from '../_common/types/CommandParser';
@@ -103,7 +104,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: UrlCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: UrlCommand, $pipelineJson: $PipelineJson):  $side_effect {
         $pipelineJson.pipelineUrl = command.pipelineUrl.href;
     },
 

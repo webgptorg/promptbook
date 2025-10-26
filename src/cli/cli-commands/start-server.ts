@@ -20,6 +20,7 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `start-server` command for Promptbook CLI utilities
@@ -28,7 +29,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeStartServerCommand(program: Program) {
+export function $initializeStartServerCommand(program: Program): $side_effect {
     const startServerCommand = program.command('start-server');
 
     startServerCommand.argument(

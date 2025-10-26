@@ -28,6 +28,7 @@ import { isValidJavascriptName } from '../../utils/validators/javascriptName/isV
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 keepTypeImported<ExecutionTools>();
 
@@ -38,7 +39,7 @@ keepTypeImported<ExecutionTools>();
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeMakeCommand(program: Program) {
+export function $initializeMakeCommand(program: Program): $side_effect {
     const makeCommand = program.command('make');
     makeCommand.description(
         spaceTrim(`

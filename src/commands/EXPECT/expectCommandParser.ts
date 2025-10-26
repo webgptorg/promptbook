@@ -9,6 +9,7 @@ import { parseNumber } from '../../utils/misc/parseNumber';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
+import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
 import { WrappedError } from '../../errors/WrappedError';
@@ -132,7 +133,7 @@ export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ExpectCommand, $taskJson: $TaskJson): void {
+    $applyToTaskJson(command: ExpectCommand, $taskJson: $TaskJson): $side_effect {
         // eslint-disable-next-line no-case-declarations
         const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
