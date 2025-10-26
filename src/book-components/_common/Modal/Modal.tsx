@@ -5,7 +5,7 @@ import styles from './Modal.module.css';
 
 /**
  *
- * @private internal subcomponent of `<Chat>` component
+ * @private internal subcomponent used by various components
  */
 export function Modal({
     children,

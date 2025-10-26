@@ -14,6 +14,11 @@ type DropdownProps = {
     }>;
 };
 
+/**
+ * @@@
+ *
+ * @private internal subcomponent used by various components
+ */
 export function Dropdown({ actions }: DropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
 

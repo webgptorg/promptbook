@@ -2,6 +2,12 @@
 
 import { SVGProps } from 'react';
 
+
+/**
+ * @@@
+ *
+ * @private internal subcomponent used by various components
+ */
 export function AboutIcon(props: SVGProps<SVGSVGElement> & { size?: number }) {
     const { size, ...rest } = props;
     return (
