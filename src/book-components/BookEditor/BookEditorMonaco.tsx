@@ -4,6 +4,7 @@ import Editor, { useMonaco } from '@monaco-editor/react';
 import { useCallback, useEffect, useState } from 'react';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments';
+import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
 import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
@@ -28,13 +29,13 @@ export function BookEditorMonaco(props: BookEditorProps) {
         monaco.languages.register({ id: BOOK_LANGUAGE_ID });
 
         const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
-        const keywordRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
+        const commitmentRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookRules: any = [
             [/@\w+/, 'parameter'],
             [/\{[^}]+\}/, 'parameter'],
-            [keywordRegex, 'keyword'],
+            [commitmentRegex, 'commitment'],
         ];
 
         // Register a tokens provider for the language
@@ -72,9 +73,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
             base: 'vs',
             inherit: true,
             rules: [
-                { token: 'title', foreground: '000000', fontStyle: 'bold underline' },
-                { token: 'keyword', foreground: 'DA0F78' },
-                { token: 'parameter', foreground: '8e44ad', fontStyle: `italic` },
+                { token: 'title', foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(), fontStyle: 'bold underline' },
+                { token: 'commitment', foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex() },
+                { token: 'parameter', foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(), fontStyle: `italic` },
             ],
             colors: {},
         });

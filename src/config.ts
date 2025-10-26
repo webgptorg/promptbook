@@ -1,5 +1,5 @@
 import { REMOTE_SERVER_URLS } from '../servers';
-import { Color, grayscale, lighten } from './_packages/color.index';
+import { Color, darken, grayscale, lighten } from './_packages/color.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
@@ -54,16 +54,31 @@ export const CLAIM = `Turn your company's scattered knowledge into AI ready book
  * @public exported from `@promptbook/core`
  */
 export const PROMPTBOOK_COLOR = Color.fromHex('#79EAFD');
-// <- TODO: [🧠] Using `Color` here increases the package size approx 3kb, maybe remove it
+// <- TODO: [🧠][🈵] Using `Color` here increases the package size approx 3kb, maybe remove it
 
 /**
- * Dark color of the Promptbook
+ * Colors for syntax highlighting in the `<BookEditor/>`
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PROMPTBOOK_SYNTAX_COLORS = {
+    TITLE: PROMPTBOOK_COLOR.then(darken(0.5)),
+    COMMITMENT: Color.fromHex('#DA0F78'),
+    PARAMETER: Color.fromHex('#8e44ad'),
+} as const satisfies Record<string_name, Color>;
+// <- TODO: [🧠][🈵] Using `Color` here increases the package size approx 3kb, maybe remove it
+
+/**
+ * Chat color of the Promptbook (in chat)
  *
  * TODO: [🗽] Unite branding and make single place for it
  *
  * @public exported from `@promptbook/core`
  */
 export const PROMPTBOOK_CHAT_COLOR = PROMPTBOOK_COLOR.then(lighten(0.1)).then(saturate(0.9)).then(grayscale(0.9));
+// <- TODO: [🧠][🈵] Using `Color` and `lighten`, `saturate`,... here increases the package size approx 3kb, maybe remove it
 
 /**
  * Color of the user (in chat)
@@ -73,6 +88,7 @@ export const PROMPTBOOK_CHAT_COLOR = PROMPTBOOK_COLOR.then(lighten(0.1)).then(sa
  * @public exported from `@promptbook/core`
  */
 export const USER_CHAT_COLOR = Color.fromHex('#1D4ED8');
+// <- TODO: [🧠][🈵] Using `Color` here increases the package size approx 3kb, maybe remove it
 
 /**
  * When the title is not provided, the default title is used
