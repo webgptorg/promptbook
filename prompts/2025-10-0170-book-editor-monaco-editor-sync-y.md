@@ -2,6 +2,7 @@
 
 [✨☦️] Add capability to sync editor content with multiple users
 
+-   Use `yjs` library with CRDT approach
 -   This syncability should be passable via prop `BookEditor` which is by default turned off _(not defined prop)_, in `/apps/playground/src/app/sync/page.tsx` enable it and make the showcase of it
 -   You are working on `/apps/playground/src/app/sync/page.tsx`
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
