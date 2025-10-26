@@ -44,7 +44,7 @@ import { $side_effect } from '../../utils/organization/$side_effect';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeRunCommand(program: Program) : $side_effect{
+export function $initializeRunCommand(program: Program): $side_effect {
     const runCommand = program.command('run', { isDefault: true });
     runCommand.description(
         spaceTrim(`

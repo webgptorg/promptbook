@@ -161,7 +161,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ModelCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson):  $side_effect {
+    $applyToTaskJson(command: ModelCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): $side_effect {
         if ($taskJson.taskType !== 'PROMPT_TASK') {
             throw new ParseError(`MODEL command can only be used in PROMPT_TASK block`);
         }

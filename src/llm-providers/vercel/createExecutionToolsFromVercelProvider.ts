@@ -99,7 +99,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
             let promptMessages: Array<TODO_any>;
             if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
                 promptMessages = (prompt as TODO_any).thread.map((msg: TODO_any) => ({
-                    role: msg.role === 'assistant' ? 'assistant' : (msg.role === 'system' ? 'system' : 'user'),
+                    role: msg.role === 'assistant' ? 'assistant' : msg.role === 'system' ? 'system' : 'user',
                     content: [
                         {
                             type: 'text',

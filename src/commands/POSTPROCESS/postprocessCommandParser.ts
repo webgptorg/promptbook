@@ -77,7 +77,7 @@ export const postprocessCommandParser: PipelineTaskCommandParser<PostprocessComm
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: PostprocessCommand, $taskJson: $TaskJson):  $side_effect {
+    $applyToTaskJson(command: PostprocessCommand, $taskJson: $TaskJson): $side_effect {
         $taskJson.postprocessingFunctionNames = $taskJson.postprocessingFunctionNames || [];
         $taskJson.postprocessingFunctionNames.push(command.functionName);
     },

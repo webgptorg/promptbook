@@ -14,7 +14,7 @@ export type SyncHighLevelAbstraction = /* CommonHighLevelAbstraction & */ {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson($pipelineJson: $PipelineJson):  $side_effect;
+    $applyToPipelineJson($pipelineJson: $PipelineJson): $side_effect;
 };
 
 /*

@@ -463,7 +463,6 @@ export function Chat(props: ChatProps) {
                                                 key={formatDefinition.formatName}
                                                 className={styles.saveMenuItem}
                                                 onClick={() =>
-
                                                     // TODO: !!! Use here `$induceFileDownload`
                                                     handleDownload(
                                                         formatDefinition.formatName as string_chat_format_name,

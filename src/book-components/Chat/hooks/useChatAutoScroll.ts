@@ -35,11 +35,7 @@ export type ChatAutoScrollConfig = {
  * @public exported from `@promptbook/components`
  */
 export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
-    const {
-        bottomThreshold = 100,
-        smoothScroll = true,
-        scrollCheckDelay = 100,
-    } = config;
+    const { bottomThreshold = 100, smoothScroll = true, scrollCheckDelay = 100 } = config;
 
     const [isAutoScrolling, setIsAutoScrolling] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
@@ -63,50 +59,59 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
     }, []);
 
     // Check if user is at the bottom of the chat
-    const checkIfAtBottom = useCallback((element: HTMLDivElement): boolean => {
-        const { scrollTop, scrollHeight, clientHeight } = element;
-        return scrollTop + clientHeight >= scrollHeight - bottomThreshold;
-    }, [bottomThreshold]);
+    const checkIfAtBottom = useCallback(
+        (element: HTMLDivElement): boolean => {
+            const { scrollTop, scrollHeight, clientHeight } = element;
+            return scrollTop + clientHeight >= scrollHeight - bottomThreshold;
+        },
+        [bottomThreshold],
+    );
 
     // Scroll to bottom function
-    const scrollToBottom = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
-        const chatMessagesElement = chatMessagesRef.current;
-        if (!chatMessagesElement) return;
+    const scrollToBottom = useCallback(
+        (behavior: 'smooth' | 'auto' = 'smooth') => {
+            const chatMessagesElement = chatMessagesRef.current;
+            if (!chatMessagesElement) return;
 
-        if (isMobile) {
-            // Mobile-optimized scrolling
-            chatMessagesElement.scrollTo({
-                top: chatMessagesElement.scrollHeight,
-                behavior: smoothScroll ? behavior : 'auto',
-            });
-        } else {
-            // Desktop scrolling
-            if (smoothScroll && behavior === 'smooth') {
-                chatMessagesElement.style.scrollBehavior = 'smooth';
-                chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
-                chatMessagesElement.style.scrollBehavior = 'auto';
+            if (isMobile) {
+                // Mobile-optimized scrolling
+                chatMessagesElement.scrollTo({
+                    top: chatMessagesElement.scrollHeight,
+                    behavior: smoothScroll ? behavior : 'auto',
+                });
             } else {
-                chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+                // Desktop scrolling
+                if (smoothScroll && behavior === 'smooth') {
+                    chatMessagesElement.style.scrollBehavior = 'smooth';
+                    chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+                    chatMessagesElement.style.scrollBehavior = 'auto';
+                } else {
+                    chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+                }
             }
-        }
-    }, [isMobile, smoothScroll]);
+        },
+        [isMobile, smoothScroll],
+    );
 
     // Handle scroll events
-    const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
-        const element = event.target as HTMLDivElement;
-        if (!element) return;
+    const handleScroll = useCallback(
+        (event: React.UIEvent<HTMLDivElement>) => {
+            const element = event.target as HTMLDivElement;
+            if (!element) return;
 
-        // Clear any pending scroll timeout
-        if (scrollTimeoutRef.current) {
-            clearTimeout(scrollTimeoutRef.current);
-        }
+            // Clear any pending scroll timeout
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
 
-        // Debounce scroll position check to avoid too frequent updates
-        scrollTimeoutRef.current = setTimeout(() => {
-            const isAtBottom = checkIfAtBottom(element);
-            setIsAutoScrolling(isAtBottom);
-        }, 50);
-    }, [checkIfAtBottom]);
+            // Debounce scroll position check to avoid too frequent updates
+            scrollTimeoutRef.current = setTimeout(() => {
+                const isAtBottom = checkIfAtBottom(element);
+                setIsAutoScrolling(isAtBottom);
+            }, 50);
+        },
+        [checkIfAtBottom],
+    );
 
     // Auto-scroll when messages change (if user is at bottom)
     const handleMessagesChange = useCallback(() => {
@@ -125,7 +130,10 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
         let hasSelectionInChat = false;
         if (selection && selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
-            if (chatMessagesElement.contains(range.startContainer) || chatMessagesElement.contains(range.endContainer)) {
+            if (
+                chatMessagesElement.contains(range.startContainer) ||
+                chatMessagesElement.contains(range.endContainer)
+            ) {
                 if (!selection.isCollapsed) {
                     hasSelectionInChat = true;
                 }
@@ -141,22 +149,25 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
     }, [isAutoScrolling, scrollToBottom, scrollCheckDelay]);
 
     // Ref callback for chat messages container
-    const chatMessagesRefCallback = useCallback((element: HTMLDivElement | null) => {
-        chatMessagesRef.current = element;
+    const chatMessagesRefCallback = useCallback(
+        (element: HTMLDivElement | null) => {
+            chatMessagesRef.current = element;
 
-        if (element) {
-            // Update last scroll height
-            lastScrollHeightRef.current = element.scrollHeight;
+            if (element) {
+                // Update last scroll height
+                lastScrollHeightRef.current = element.scrollHeight;
 
-            // If auto-scrolling is enabled, scroll to bottom
-            if (isAutoScrolling) {
-                // Use requestAnimationFrame for smoother initial scroll
-                requestAnimationFrame(() => {
-                    scrollToBottom('auto');
-                });
+                // If auto-scrolling is enabled, scroll to bottom
+                if (isAutoScrolling) {
+                    // Use requestAnimationFrame for smoother initial scroll
+                    requestAnimationFrame(() => {
+                        scrollToBottom('auto');
+                    });
+                }
             }
-        }
-    }, [isAutoScrolling, scrollToBottom]);
+        },
+        [isAutoScrolling, scrollToBottom],
+    );
 
     // Manual scroll to bottom (for button click)
     const handleScrollToBottomClick = useCallback(() => {

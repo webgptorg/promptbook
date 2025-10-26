@@ -19,7 +19,7 @@ import { $side_effect } from '../../utils/organization/$side_effect';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializePrettifyCommand(program: Program) : $side_effect{
+export function $initializePrettifyCommand(program: Program): $side_effect {
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`

@@ -103,7 +103,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ParameterCommand, $pipelineJson: $PipelineJson):  $side_effect {
+    $applyToPipelineJson(command: ParameterCommand, $pipelineJson: $PipelineJson): $side_effect {
         keepUnused(command, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `parsePipeline`
     },
@@ -113,7 +113,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ParameterCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson):  $side_effect {
+    $applyToTaskJson(command: ParameterCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): $side_effect {
         keepUnused(command, $taskJson, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `parsePipeline`
     },

@@ -66,84 +66,84 @@ export const ChatMessageItem = memo(
         isFeedbackEnabled,
         onCopy,
     }: ChatMessageItemProps) => {
-const avatarSrc = participant?.avatarSrc || '';
-const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
-const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
-const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-const avatarRef = useRef<HTMLDivElement>(null);
-const tooltipRef = useRef<HTMLDivElement>(null);
+        const avatarSrc = participant?.avatarSrc || '';
+        const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
+        const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+        const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+        const avatarRef = useRef<HTMLDivElement>(null);
+        const tooltipRef = useRef<HTMLDivElement>(null);
 
-useEffect(() => {
-    const closeTooltip = () => {
-        setIsAvatarTooltipVisible(false);
-        setAvatarTooltipPosition(null);
-    };
+        useEffect(() => {
+            const closeTooltip = () => {
+                setIsAvatarTooltipVisible(false);
+                setAvatarTooltipPosition(null);
+            };
 
-    const handleClickOutside = (event: MouseEvent) => {
-        if (
-            avatarRef.current &&
-            !avatarRef.current.contains(event.target as Node) &&
-            tooltipRef.current &&
-            !tooltipRef.current.contains(event.target as Node)
-        ) {
-            closeTooltip();
-        }
-    };
+            const handleClickOutside = (event: MouseEvent) => {
+                if (
+                    avatarRef.current &&
+                    !avatarRef.current.contains(event.target as Node) &&
+                    tooltipRef.current &&
+                    !tooltipRef.current.contains(event.target as Node)
+                ) {
+                    closeTooltip();
+                }
+            };
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-            closeTooltip();
-        }
-    };
+            const handleKeyDown = (event: KeyboardEvent) => {
+                if (event.key === 'Escape') {
+                    closeTooltip();
+                }
+            };
 
-    const handleScroll = () => {
-        closeTooltip();
-    };
+            const handleScroll = () => {
+                closeTooltip();
+            };
 
-    if (isAvatarTooltipVisible) {
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('scroll', handleScroll, true);
-    } else {
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('keydown', handleKeyDown);
-        window.removeEventListener('scroll', handleScroll, true);
-    }
+            if (isAvatarTooltipVisible) {
+                document.addEventListener('mousedown', handleClickOutside);
+                document.addEventListener('keydown', handleKeyDown);
+                window.addEventListener('scroll', handleScroll, true);
+            } else {
+                document.removeEventListener('mousedown', handleClickOutside);
+                document.removeEventListener('keydown', handleKeyDown);
+                window.removeEventListener('scroll', handleScroll, true);
+            }
 
-    return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('keydown', handleKeyDown);
-        window.removeEventListener('scroll', handleScroll, true);
-    };
-}, [isAvatarTooltipVisible]);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+                document.removeEventListener('keydown', handleKeyDown);
+                window.removeEventListener('scroll', handleScroll, true);
+            };
+        }, [isAvatarTooltipVisible]);
 
-const showTooltip = () => {
-    if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-    }
-    if (avatarRef.current) {
-        const rect = avatarRef.current.getBoundingClientRect();
-        setAvatarTooltipPosition({
-            top: rect.bottom + 5 /* <- 5px offset */,
-            left: rect.left,
-        });
-        setIsAvatarTooltipVisible(true);
-    }
-};
+        const showTooltip = () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+            if (avatarRef.current) {
+                const rect = avatarRef.current.getBoundingClientRect();
+                setAvatarTooltipPosition({
+                    top: rect.bottom + 5 /* <- 5px offset */,
+                    left: rect.left,
+                });
+                setIsAvatarTooltipVisible(true);
+            }
+        };
 
-const handleMouseEnter = () => {
-    if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-    }
-    hoverTimeoutRef.current = setTimeout(showTooltip, 800);
-};
+        const handleMouseEnter = () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+            hoverTimeoutRef.current = setTimeout(showTooltip, 800);
+        };
 
-const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-    }
-    // Note: Do not hide tooltip on mouse leave, it will be hidden by clicking outside
-};
+        const handleMouseLeave = () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+            // Note: Do not hide tooltip on mouse leave, it will be hidden by clicking outside
+        };
 
         const isMe = participant?.isMe;
         const color = Color.from(

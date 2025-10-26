@@ -7,7 +7,13 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_title, string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -108,14 +114,18 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             assistant_id: this.assistantId,
             thread: {
                 messages:
-                    'thread' in prompt && Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
-                        ? ((prompt as { thread: Array<{ role: string; content: string }> }).thread as Array<{ role: string; content: string }>).map((msg) => ({
+                    'thread' in prompt &&
+                    Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
+                        ? (
+                              (prompt as { thread: Array<{ role: string; content: string }> }).thread as Array<{
+                                  role: string;
+                                  content: string;
+                              }>
+                          ).map((msg) => ({
                               role: msg.role === 'assistant' ? 'assistant' : 'user',
                               content: msg.content,
                           }))
-                        : [
-                              { role: 'user', content: rawPromptContent },
-                          ],
+                        : [{ role: 'user', content: rawPromptContent }],
             },
 
             // <- TODO: Add user identification here> user: this.options.user,

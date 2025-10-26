@@ -189,7 +189,7 @@ export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ForeachCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): $side_effect{
+    $applyToTaskJson(command: ForeachCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): $side_effect {
         const { formatName, subformatName, parameterName, inputSubparameterNames, outputSubparameterName } = command;
 
         // TODO: [🍭] Detect double use

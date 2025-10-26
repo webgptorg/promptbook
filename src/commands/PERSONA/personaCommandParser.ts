@@ -81,7 +81,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson):  $side_effect {
+    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): $side_effect {
         $applyToTaskJson(command, null, $pipelineJson);
     },
 
@@ -123,7 +123,11 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
  *
  * Note: `$` is used to indicate that this function mutates given `taskJson`
  */
-function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, $pipelineJson: $PipelineJson):  $side_effect {
+function $applyToTaskJson(
+    command: PersonaCommand,
+    $taskJson: $TaskJson | null,
+    $pipelineJson: $PipelineJson,
+): $side_effect {
     const { personaName, personaDescription } = command;
 
     if ($taskJson !== null) {

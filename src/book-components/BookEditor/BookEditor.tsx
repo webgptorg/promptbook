@@ -32,7 +32,6 @@ export type BookEditorProps = {
      */
     readonly style?: CSSProperties;
 
-
     /**
      * The book which is being edited.
      */

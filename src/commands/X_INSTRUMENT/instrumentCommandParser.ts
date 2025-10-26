@@ -61,7 +61,7 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: InstrumentCommand, $pipelineJson: $PipelineJson):  $side_effect {
+    $applyToPipelineJson(command: InstrumentCommand, $pipelineJson: $PipelineJson): $side_effect {
         keepUnused(command, $pipelineJson);
         console.error(new NotYetImplementedError('[🛠] Instruments are not implemented yet'));
     },

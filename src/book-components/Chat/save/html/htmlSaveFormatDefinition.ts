@@ -134,7 +134,6 @@ export const htmlSaveFormatDefinition = {
     fileExtension: 'html',
 } as const satisfies ChatSaveFormatDefinition;
 
-
 /**
  *  TODO: [😬] Take chat save to HTML from existing parallel implementation
  */
