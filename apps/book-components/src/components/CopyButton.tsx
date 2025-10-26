@@ -27,5 +27,6 @@ export default function CopyButton({ text, className = '', children }: CopyButto
 
 
 /**
+ * TODO: !!! Move either to `/src` or `/apps/_common/components`
  * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
  */
