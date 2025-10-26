@@ -35,9 +35,13 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 .join('|')})\\s`,
         );
 
+        // Note: Using a broad character set for Latin and Cyrillic to support international characters in parameters.
+        //       Monarch tokenizer does not support Unicode property escapes like \p{L}.
+        const parameterRegex = /@([a-zA-Z0-9_á-žÁ-Žč-řČ-Řš-žŠ-Žа-яА-ЯёЁ]+)/;
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookRules: any = [
-            [/@\w+/, 'parameter'],
+            [parameterRegex, 'parameter'],
             [/\{[^}]+\}/, 'parameter'],
             [commitmentRegex, 'commitment'],
         ];
