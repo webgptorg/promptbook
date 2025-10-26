@@ -44,12 +44,20 @@
             "focus": false
         },
         {
-            "name": "👨‍💻🔠 Book Components Server",
+            "name": "👨‍💻🔠 Run Book Components web app",
             "cwd": "./apps/book-components/",
             "command": "npm run dev",
             "execute": true,
             "onlySingle": false,
             "focus": false
+        },
+        {
+            "name": "🧸🔠 Run Playground web app",
+            "cwd": "./apps/playground/",
+            "command": "npm run dev",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🧪🧪 Test all",
