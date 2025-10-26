@@ -64,5 +64,6 @@ async function prettifyAll({ isCommited }: { readonly isCommited: boolean }) {
 }
 
 /**
+ * TODO: Prettify also the `/apps` and `/scripts` folders
  * Note: [⚫] Code in this file should never be published in any package
  */

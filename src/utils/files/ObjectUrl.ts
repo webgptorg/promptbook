@@ -1,7 +1,6 @@
 import { IDestroyable, ITeardownLogic, Registration } from 'destroyable';
 import { string_mime_type, string_url } from '../../types/typeAliases';
 
-
 /**
  * Converts Blob, File or MediaSource to url using URL.createObjectURL
  *
@@ -79,3 +78,7 @@ export class ObjectUrl extends Registration implements IDestroyable {
         return new URL(this.src);
     }
 }
+
+/**
+ * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
+ */

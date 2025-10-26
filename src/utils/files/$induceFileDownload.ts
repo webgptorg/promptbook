@@ -22,3 +22,7 @@ export async function $induceFileDownload(fileOrBlobOrUrl: File | Blob | URL | s
     link.click();
     await objectUrl.destroy();
 }
+
+/**
+ * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
+ */

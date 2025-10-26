@@ -24,3 +24,7 @@ export async function $induceBookDownload(book: string_book): Promise<$side_effe
 
     return /* not await */ $induceFileDownload(bookFile);
 }
+
+/**
+ * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
+ */
