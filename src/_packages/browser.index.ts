@@ -7,6 +7,9 @@ import { $provideScrapersForBrowser } from '../scrapers/_common/register/$provid
 import { getIndexedDbStorage } from '../storage/local-storage/getIndexedDbStorage';
 import { getLocalStorage } from '../storage/local-storage/getLocalStorage';
 import { getSessionStorage } from '../storage/local-storage/getSessionStorage';
+import { $induceBookDownload } from '../utils/files/$induceBookDownload';
+import { $induceFileDownload } from '../utils/files/$induceFileDownload';
+import { ObjectUrl } from '../utils/files/ObjectUrl';
 
 
 // Note: Exporting version from each package
@@ -19,3 +22,6 @@ export { $provideScrapersForBrowser };
 export { getIndexedDbStorage };
 export { getLocalStorage };
 export { getSessionStorage };
+export { $induceBookDownload };
+export { $induceFileDownload };
+export { ObjectUrl };
