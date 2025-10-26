@@ -583,7 +583,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 packageFullname !== '@promptbook/website-crawler' &&
                 packageFullname !== '@promptbook/markitdown' &&
                 packageFullname !== '@promptbook/pdf' &&
-                // <- [➕]
+                // <- Note: [➕] When making new package, list it here when this package is for node environment
                 bundleFileContent.includes('[🟢]')
             ) {
                 throw new Error(
@@ -595,7 +595,12 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 );
             }
 
-            if (packageFullname !== '@promptbook/browser' && bundleFileContent.includes('[🔵]')) {
+            if (
+                packageFullname !== '@promptbook/browser' &&
+                packageFullname !== '@promptbook/components' &&
+                // <- Note: [➕] When making new package, list it here when this package is for browser environment
+                bundleFileContent.includes('[🔵]')
+            ) {
                 throw new Error(
                     spaceTrim(`
                         Things marked with [🔵] should never be never released out of @promptbook/browser
