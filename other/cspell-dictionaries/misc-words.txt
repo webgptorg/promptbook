@@ -417,3 +417,5 @@ subcomponent
 openmoji
 katex
 actionbar
+ydoc
+ytext
