@@ -6,7 +6,10 @@ import { useState } from 'react';
 import { version } from '../../../package.json';
 import { DEFAULT_BOOK, validateBook } from '../../_packages/core.index';
 import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
+import { Dropdown } from '../_common/Dropdown/Dropdown';
 import { Modal } from '../_common/Modal/Modal';
+import { AboutIcon } from '../icons/AboutIcon';
+import { DownloadIcon } from '../icons/DownloadIcon';
 import styles from './BookEditor.module.css';
 
 type BookEditorActionbarProps = {
@@ -28,18 +31,35 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
         /* not await */ $induceBookDownload(book);
     };
 
+    const actions = [];
+
+    if (isDownloadButtonShown) {
+        actions.push({
+            icon: <DownloadIcon />,
+            name: 'Download',
+            onClick: handleDownload,
+        });
+    }
+
+    if (isAboutButtonShown) {
+        actions.push({
+            icon: <AboutIcon />,
+            name: 'About',
+            onClick: () => setIsAboutModalOpen(true),
+        });
+    }
+
     return (
         <div className={styles.bookEditorActionbar}>
-            {isDownloadButtonShown && (
-                <button className={styles.button} onClick={handleDownload}>
-                    Download
-                </button>
-            )}
-
-            {isAboutButtonShown && (
-                <button className={styles.button} onClick={() => setIsAboutModalOpen(true)}>
-                    About
-                </button>
+            {actions.length > 2 ? (
+                <Dropdown actions={actions} />
+            ) : (
+                actions.map(({ icon, name, onClick }) => (
+                    <button key={name} className={styles.button} onClick={onClick}>
+                        {icon}
+                        <span>{name}</span>
+                    </button>
+                ))
             )}
 
             {isAboutModalOpen && (

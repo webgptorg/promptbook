@@ -81,13 +81,21 @@
 }
 
 .button {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 5px 10px;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #374151;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
 }
 
 .button:hover {
-    background-color: #e0e0e0;
+    background-color: #f9fafb;
+    border-color: #b7bcce;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
