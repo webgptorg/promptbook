@@ -2,9 +2,9 @@
 
 import { book } from '@promptbook-local/core';
 import { useEffect, useMemo, useState } from 'react';
-import { Chat } from '../../../../src/book-components/Chat/Chat/Chat';
-import type { ChatMessage } from '../../../../src/book-components/Chat/types/ChatMessage';
-import type { ChatParticipant } from '../../../../src/book-components/Chat/types/ChatParticipant';
+import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
+import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
+import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import {
     assistantsOnlyScenario,
     chatButtonsScenario,

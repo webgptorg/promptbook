@@ -2,7 +2,7 @@
 
 import { spaceTrim } from '@promptbook-local/utils';
 import { useEffect, useState } from 'react';
-import { humanizeAiText } from '../../../../src/utils/markdown/humanizeAiText';
+import { humanizeAiText } from '../../../../../src/utils/markdown/humanizeAiText';
 
 /* eslint-disable no-irregular-whitespace */
 

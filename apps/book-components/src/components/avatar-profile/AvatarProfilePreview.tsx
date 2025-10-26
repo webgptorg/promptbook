@@ -1,6 +1,6 @@
 import { book } from '@promptbook-local/core';
-import type { string_book } from '../../../../src/book-2.0/agent-source/string_book';
-import { AvatarProfileFromSource } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
+import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
+import { AvatarProfileFromSource } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 
 export default function AvatarProfilePreview() {
     return (

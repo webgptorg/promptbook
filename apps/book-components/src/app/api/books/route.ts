@@ -2,7 +2,7 @@ import { serializeError } from '@promptbook-local/utils';
 import fs from 'fs';
 import { NextResponse } from 'next/server';
 import path from 'path';
-import { assertsError } from '../../../../../src/errors/assertsError';
+import { assertsError } from '../../../../../../src/errors/assertsError';
 
 /**
  * GET /api/books -> list all .book files in books/examples/
