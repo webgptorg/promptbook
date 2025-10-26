@@ -45,7 +45,7 @@ describe('BookEditorMonaco', () => {
 
         expect(mockSetMonarchTokensProvider).toHaveBeenCalled();
 
-        const monarchTokensProvider = mockSetMonarchTokensProvider.mock.calls[0][1] as {
+        const monarchTokensProvider = mockSetMonarchTokensProvider!.mock!.calls[0]![1]! as {
             tokenizer: { body: [RegExp, string][] };
         };
         const bookRules = monarchTokensProvider.tokenizer.body;
