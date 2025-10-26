@@ -44,6 +44,8 @@ export function ResizablePanelsAuto(props: ResizablePanelsAutoProps) {
 
                     const { width, height } = element.getBoundingClientRect();
 
+                    //console.log({ width, height });
+
                     if (width > height) {
                         setDirection('HORIZONTAL');
                     } else {
