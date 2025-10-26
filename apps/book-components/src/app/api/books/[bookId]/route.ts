@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, todoWhatIsThis: TODO_any) {
         if (typeof bookId !== 'string' || !bookId.endsWith('.book')) {
             return NextResponse.json({ error: 'Invalid bookId' }, { status: 400 });
         }
-        const filePath = path.resolve(process.cwd(), '../', 'books/examples', bookId);
+        const filePath = path.resolve(process.cwd(), '../../', 'books/examples', bookId);
 
         if (!fs.existsSync(filePath)) {
             return NextResponse.json({ error: 'Book not found' }, { status: 404 });

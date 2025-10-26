@@ -45,7 +45,7 @@
         },
         {
             "name": "👨‍💻🔠 Book Components Server",
-            "cwd": "./book-components/",
+            "cwd": "./apps/book-components/",
             "command": "npm run dev",
             "execute": true,
             "onlySingle": false,
@@ -362,7 +362,7 @@
         {
             "name": "🔪👨🏽‍💻🔠 Force reinstall of node modules in Book Components Server (and run)",
             "commands": [
-                "cd ./book-components/",
+                "cd ./apps/book-components/",
                 "(npx kill-port 4022 || true)",
                 "rm -f ./package-lock.json",
                 "rm -rf ./node_modules",

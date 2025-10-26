@@ -8,7 +8,7 @@ import { assertsError } from '../../../../../../src/errors/assertsError';
  * GET /api/books -> list all .book files in books/examples/
  */
 export async function GET() {
-    const examplesDir = path.resolve(process.cwd(), '../', 'books/examples');
+    const examplesDir = path.resolve(process.cwd(), '../../', 'books/examples');
     try {
         const files = fs.readdirSync(examplesDir).filter((f) => f.endsWith('.book'));
         return NextResponse.json(files);
