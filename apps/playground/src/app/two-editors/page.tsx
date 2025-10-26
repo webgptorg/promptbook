@@ -18,6 +18,7 @@ export default function TwoEditorsPage() {
                     onChange={setBook}
                     // className={styles.BookEditor}
                     isVerbose={false}
+                    isBorderRadiusDisabled
                     onFileUpload={(file) => {
                         return `[${file.name}]`;
                     }}
@@ -28,6 +29,7 @@ export default function TwoEditorsPage() {
                     onChange={setBook}
                     // className={styles.BookEditor}
                     isVerbose={false}
+                    isBorderRadiusDisabled
                     onFileUpload={(file) => {
                         return `[${file.name}]`;
                     }}
