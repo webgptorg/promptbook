@@ -29,7 +29,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
         monaco.languages.register({ id: BOOK_LANGUAGE_ID });
 
         const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
-        const commitmentRegex = new RegExp(`^(${commitmentTypes.join('|')})`);
+        const commitmentRegex = new RegExp(
+            `^(${commitmentTypes
+                .map((type) => (type === 'META' ? 'META\\s+\\w+' : type))
+                .join('|')})\\s`,
+        );
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookRules: any = [

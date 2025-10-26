@@ -104,7 +104,7 @@ Tohle je @Slovník
 
 ---
 
-[ ]
+[x]
 
 [✨✧] `META` token keyword should match 2 words not just one
 
