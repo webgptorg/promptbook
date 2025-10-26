@@ -13,11 +13,15 @@ export default function Home() {
             <BookEditor
                 value={book}
                 onChange={setBook}
-                isBorderRadiusDisabled={false}
-                style={{
-                    width: `100vw`,
-                    height: `100vh`,
+                // className={styles.BookEditor}
+                isVerbose={false}
+                onFileUpload={(file) => {
+                    return `[${file.name}]`;
                 }}
+            />
+            <BookEditor
+                value={book}
+                onChange={setBook}
                 // className={styles.BookEditor}
                 isVerbose={false}
                 onFileUpload={(file) => {

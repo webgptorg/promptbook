@@ -67,9 +67,58 @@
 
 [ ]
 
-[✨✧] bar
+[✨✧] Parameter should match international characters
 
--   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
+_For example:_
+
+```book
+Tohle je @Slovník
+```
+
+-   Must match full word `@Slovník` as parameter token NOT only `@Slovn`
+-   Work with all extended lating and also cyrilic alphabet
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] In `BookEditor` add extra 5 new lines on bottom
+
+-   Do not add lines when there already lines are in the book
+-   Every book should be padded with 5 lines at the end
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] Book editors should have action bar on top right corner
+
+-   Make fist action - button "Download" which will download contents of the editor as `.book` file
+-   This should be shown when `isDownloadButtonShown` is `true` or not set _(`isDownloadButtonShown` is by default `true`)_
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] `META` token keyword should match 2 words not just one
+
+_For example:_
+
+```book
+Asistent pro LŠVP
+
+PERSONA Jsi asistent pro RVP Lyceum v rámci Národního pedagogického institutu České Republiky
+META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.jpg
+```
+
+-   Now only `META` is shown and highlited as a keyword but `META IMAGE` should be
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -78,5 +127,14 @@
 
 [✨✧] bar
 
--   You are working on `src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✧] bar
+
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
