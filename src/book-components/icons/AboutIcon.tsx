@@ -2,7 +2,6 @@
 
 import { SVGProps } from 'react';
 
-
 /**
  * @@@
  *
