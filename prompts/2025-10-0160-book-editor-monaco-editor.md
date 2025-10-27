@@ -159,8 +159,12 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [ ]
 
-[✨✧] bar
+[✨✧] Add prop `BookEditor.isReadonly?: boolean` which when `true` makes the editor readonly
 
+-   This should disable all editing capabilities in the editor
+-   By default `isReadonly` is `false`
+-   Allow to set optional `translations` which is object `translations?: {readonlyMessage?: string}` which when set the message from monaco editor when trying to edit the readonly editor
+-   By default _(either `translations` or `translations.readonlyMessage` not set)_ the message is "You cannot edit this book"
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
