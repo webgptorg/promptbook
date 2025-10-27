@@ -322,18 +322,20 @@ export default function BookEditorPreview() {
                     )}
                 </div>
             </div>
-            <h2 className="text-lg font-semibold mt-6 mb-2">Horizontal Book Editor</h2>``
+            <h2 className="text-lg font-semibold mt-6 mb-2">Horizontal Book Editor</h2>
             <BookEditor
                 value={book}
                 onChange={setBook}
                 className={(styles.BookEditor, styles.BookEditorHorizontal)}
+                height={null}
                 isVerbose={false}
             />
-            <h2 className="text-lg font-semibold mt-6 mb-2">Vertical Book Editor</h2>``
+            <h2 className="text-lg font-semibold mt-6 mb-2">Vertical Book Editor</h2>
             <BookEditor
                 value={book}
                 onChange={setBook}
                 className={(styles.BookEditor, styles.BookEditorVertical)}
+                height={null}
                 isVerbose={false}
             />
             <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor with Sharp Corners (isBorderRadiusDisabled)</h2>

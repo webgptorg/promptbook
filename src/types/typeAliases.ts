@@ -388,7 +388,7 @@ export type string_css_property = string;
  *
  * For example `13px`
  */
-export type string_css_value = string;
+export type string_css_value = string | number;
 
 /**
  * Semantic helper

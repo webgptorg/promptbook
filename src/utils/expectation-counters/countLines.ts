@@ -9,12 +9,16 @@ import { CHARACTERS_PER_STANDARD_LINE } from './constants';
  * @public exported from `@promptbook/utils`
  */
 export function countLines(text: string): ExpectationAmount {
+    if (text === '') {
+        return 0;
+    }
+
     text = text.replace('\r\n', '\n');
     text = text.replace('\r', '\n');
 
     const lines = text.split('\n');
 
-    return lines.reduce((count, line) => count + Math.ceil(line.length / CHARACTERS_PER_STANDARD_LINE), 0);
+    return lines.reduce((count, line) => count + Math.max(Math.ceil(line.length / CHARACTERS_PER_STANDARD_LINE), 1), 0);
 }
 
 /**

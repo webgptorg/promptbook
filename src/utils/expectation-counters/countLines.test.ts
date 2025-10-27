@@ -15,5 +15,7 @@ describe('countLines', () => {
     it('should return the correct count for a string with multiple lines', () => {
         expect(countLines('Hello\nworld')).toBe(2);
         expect(countLines('Hello\nworld\n!')).toBe(3);
+        expect(countLines('\nxxx\n')).toBe(3);
+        expect(countLines('\n\n\nxxx\n\n\n')).toBe(7);
     });
 });

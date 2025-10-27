@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { padBookContent } from './padBookContent';
+import { padBook } from './padBook';
 
 /**
  * Branded type for books
@@ -35,7 +35,7 @@ export function validateBook(source: string): string_book {
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOK = padBookContent(
+export const DEFAULT_BOOK = padBook(
     validateBook(
         spaceTrim(`
             AI Avatar

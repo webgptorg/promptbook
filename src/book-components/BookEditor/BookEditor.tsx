@@ -4,12 +4,22 @@
 
 import type { CSSProperties } from 'react';
 import type { Promisable } from 'type-fest';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { countLines } from '../../_packages/utils.index';
+import { DEFAULT_BOOK, type string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type { string_knowledge_source_content } from '../../types/typeAliases';
+import type { string_css_value, string_knowledge_source_content } from '../../types/typeAliases';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
+
+/**
+ * Default height of the book editor
+ *
+ * Note: This height is computed based on the number of lines in the default book + padding multiplied by an estimated line height.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export const DEFAULT_BOOK_EDITOR_HEIGHT = countLines(DEFAULT_BOOK) * 30 + 20;
 
 /**
  * Props of `BookEditor`
@@ -31,6 +41,17 @@ export type BookEditorProps = {
      * Optional CSS style which will be added to root <div/> element
      */
     readonly style?: CSSProperties;
+
+    /**
+     * Height of the `BookEditor` component
+     *
+     * - You can use any valid CSS value, e.g., `500px`, `100%`, `50vh`, etc.
+     * - If not set, the default height is `DEFAULT_BOOK_EDITOR_HEIGHT`.
+     * - If set to `null`, the height should be controlled entirely via `className` or `style`, otherwise the editor will have zero height.
+     *
+     * @default `DEFAULT_BOOK_EDITOR_HEIGHT`
+     */
+    readonly height?: string_css_value | null;
 
     /**
      * The book which is being edited.
@@ -141,13 +162,21 @@ export function BookEditor(props: BookEditorProps) {
                 isVerbose && styles.isVerbose,
                 styles.bookEditorWrapper,
                 isBorderRadiusDisabled && styles.isBorderRadiusDisabled,
-
                 className,
             )}
-            style={style}
+            style={{
+                ...(style || {}),
+                ...(props.height === null
+                    ? {}
+                    : {
+                          height:
+                              typeof props.height === 'number'
+                                  ? `${props.height}px`
+                                  : props.height || `${DEFAULT_BOOK_EDITOR_HEIGHT}px`,
+                      }),
+            }}
         >
             <BookEditorMonaco
-                className={className}
                 value={agentSource || value}
                 onChange={onChange}
                 onFileUpload={onFileUpload}
@@ -159,6 +188,7 @@ export function BookEditor(props: BookEditorProps) {
                 isDownloadButtonShown={isDownloadButtonShown}
                 isAboutButtonShown={isAboutButtonShown}
                 sync={sync}
+                // <- Note: Not passing `className` here because it is already applied to the root <div/> above
             />
         </div>
     );
