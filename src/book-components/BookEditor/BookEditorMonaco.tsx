@@ -18,6 +18,8 @@ import { BookEditorActionbar } from './BookEditorActionbar';
 
 const BOOK_LANGUAGE_ID = 'book';
 const LINE_HEIGHT = 28;
+const CONTENT_PADDING_LEFT = 60;
+const VERTICAL_LINE_LEFT = 40;
 
 /**
  * @private Internal component used by `BookEditor`
@@ -173,16 +175,15 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
         style.innerHTML = `
             .monaco-editor .view-lines {
-                padding-left: 60px !important;
                 background-image: linear-gradient(to bottom, transparent ${
                     LINE_HEIGHT - 1
                 }px, ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()} ${LINE_HEIGHT - 1}px);
                 background-size: 100% ${LINE_HEIGHT}px;
             }
-            .monaco-editor .view-lines::before {
+            .monaco-editor .overflow-guard::before {
                 content: '';
                 position: absolute;
-                left: 40px;
+                left: ${VERTICAL_LINE_LEFT}px;
                 top: 0;
                 bottom: 0;
                 width: 1px;
@@ -268,9 +269,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     lineHeight: LINE_HEIGHT,
                     renderLineHighlight: 'none',
                     // Note: To add little lines between each line of the book, like a notebook page
+                    lineDecorationsWidth: CONTENT_PADDING_LEFT,
                     glyphMargin: false,
                     folding: false,
-                    lineDecorationsWidth: 0,
                     lineNumbersMinChars: 0,
                     scrollbar: {
                         vertical: 'auto',

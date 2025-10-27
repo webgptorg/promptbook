@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   **Fix:** Fixed an issue where the cursor on an empty line in `BookEditorMonaco` was not aligned with the margin line.
 -   **Style:** Added a left notebook margin line to the book editor for a better writing experience.
 -   **Style:** Enhanced the scrollbar design in `BookEditorMonaco` for a more elegant and book-like appearance.
 -   **New:** `BookEditor.isReadonly?: boolean` prop which when `true` makes the editor readonly. This should disable all editing capabilities in the editor. By default `isReadonly` is `false`. Allow to set optional `translations` which is object `translations?: {readonlyMessage?: string}` which when set the message from monaco editor when trying to edit the readonly editor. By default the message is "You cannot edit this book".
