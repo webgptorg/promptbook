@@ -71,6 +71,18 @@ export type BookEditorProps = {
     readonly isReadonly?: boolean;
 
     /**
+     * Optional translations for the component
+     */
+    readonly translations?: {
+        /**
+         * Message to show when trying to edit a readonly editor
+         *
+         * @default "You cannot edit this book"
+         */
+        readonly readonlyMessage?: string;
+    };
+
+    /**
      * If true, shows the download button in the action bar.
      * By default, the download button is shown.
      */
@@ -115,6 +127,7 @@ export function BookEditor(props: BookEditorProps) {
         isBorderRadiusDisabled = false,
         isFooterShown = false,
         isReadonly = false,
+        translations,
         isDownloadButtonShown = true,
         isAboutButtonShown = true,
         sync,
@@ -142,6 +155,7 @@ export function BookEditor(props: BookEditorProps) {
                 isBorderRadiusDisabled={isBorderRadiusDisabled}
                 isFooterShown={isFooterShown}
                 isReadonly={isReadonly}
+                translations={translations}
                 isDownloadButtonShown={isDownloadButtonShown}
                 isAboutButtonShown={isAboutButtonShown}
                 sync={sync}

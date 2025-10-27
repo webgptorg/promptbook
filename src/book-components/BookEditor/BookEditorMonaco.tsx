@@ -20,7 +20,16 @@ const BOOK_LANGUAGE_ID = 'book';
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorMonaco(props: BookEditorProps) {
-    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown, isAboutButtonShown = true, sync } = props;
+    const {
+        value,
+        onChange,
+        isReadonly,
+        translations,
+        onFileUpload,
+        isDownloadButtonShown,
+        isAboutButtonShown = true,
+        sync,
+    } = props;
     const [isDragOver, setIsDragOver] = useState(false);
     const [editor, setEditor] = useState<TODO_any>(null);
 
@@ -182,6 +191,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 onChange={(newValue) => onChange?.(newValue as string_book)}
                 options={{
                     readOnly: isReadonly,
+                    readOnlyMessage: {
+                        value: translations?.readonlyMessage || 'You cannot edit this book',
+                    },
                     wordWrap: 'on',
                     minimap: { enabled: false },
                     lineNumbers: 'off',

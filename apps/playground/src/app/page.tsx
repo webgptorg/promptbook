@@ -12,9 +12,9 @@ export default function HomePage() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <BookEditor
                 value={book}
-                onChange={(book)=>{
+                onChange={(book) => {
                     console.log('Book changed');
-                  setBook(book);
+                    setBook(book);
                 }}
                 isBorderRadiusDisabled={false}
                 style={{
@@ -26,6 +26,8 @@ export default function HomePage() {
                 onFileUpload={(file) => {
                     return `[${file.name}]`;
                 }}
+                // isReadonly
+                translations={{ readonlyMessage: 'aaaaa' }}
             />
         </div>
     );
