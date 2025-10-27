@@ -346,24 +346,47 @@ export default function BookEditorPreview() {
                 isVerbose={false}
                 isBorderRadiusDisabled={true}
             />
-            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor with Footer (isFooterShown)</h2>
+            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor zoomed 150%</h2>
             <BookEditor
                 value={book}
                 onChange={setBook}
                 className={styles.BookEditor}
                 isVerbose={false}
-                isFooterShown={true}
+                zoom={1.5}
                 onFileUpload={(file) => {
                     return `[${file.name}]`;
                 }}
             />
-            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor without Footer (default)</h2>
+
+            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor zoomed 200%</h2>
             <BookEditor
                 value={book}
                 onChange={setBook}
                 className={styles.BookEditor}
                 isVerbose={false}
-                isFooterShown={false}
+                zoom={2}
+                onFileUpload={(file) => {
+                    return `[${file.name}]`;
+                }}
+            />
+            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor zoomed 300%</h2>
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={styles.BookEditor}
+                isVerbose={false}
+                zoom={3}
+                onFileUpload={(file) => {
+                    return `[${file.name}]`;
+                }}
+            />
+            <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor zoomed 50%</h2>
+            <BookEditor
+                value={book}
+                onChange={setBook}
+                className={styles.BookEditor}
+                isVerbose={false}
+                zoom={0.5}
                 onFileUpload={(file) => {
                     return `[${file.name}]`;
                 }}

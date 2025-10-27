@@ -3,7 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react'; // <-- added useRef
 // [🚱]> import { MonacoBinding } from 'y-monaco';
 // [🚱]> import { WebsocketProvider } from 'y-websocket';
 // [🚱]> import * as Y from 'yjs';
@@ -18,12 +18,14 @@ import { BookEditorActionbar } from './BookEditorActionbar';
 
 const BOOK_LANGUAGE_ID = 'book';
 const LINE_HEIGHT = 28;
-const CONTENT_PADDING_LEFT = 60;
-const VERTICAL_LINE_LEFT = 40;
+const CONTENT_PADDING_LEFT = 20;
+const VERTICAL_LINE_LEFT = 0; // <- TODO: This value is weird
 
 /**
  * @private Internal component used by `BookEditor`
  */
+let notebookStyleCounter = 0;
+
 export function BookEditorMonaco(props: BookEditorProps) {
     const {
         value,
@@ -33,11 +35,26 @@ export function BookEditorMonaco(props: BookEditorProps) {
         onFileUpload,
         isDownloadButtonShown,
         isAboutButtonShown = true,
+        zoom = 1,
         // [🚱]> sync,
     } = props;
+
+    const zoomLevel = zoom;
+
+    const scaledLineHeight = Math.round(LINE_HEIGHT * zoomLevel);
+    const scaledContentPaddingLeft = Math.max(8, Math.round(CONTENT_PADDING_LEFT * zoomLevel));
+    const scaledVerticalLineLeft = Math.max(0, Math.round(VERTICAL_LINE_LEFT * zoomLevel));
+    const baseFontSize = 20;
+    const scaledFontSize = Math.max(8, Math.round(baseFontSize * zoomLevel));
+    const scaledScrollbarSize = Math.max(2, Math.round(5 * zoomLevel));
+
     const [isDragOver, setIsDragOver] = useState(false);
 
     const monaco = useMonaco();
+
+    // stable unique id for this instance
+    const instanceIdRef = useRef(++notebookStyleCounter);
+    const instanceClass = `book-editor-instance-${instanceIdRef.current}`;
 
     /*
     Note+TODO: [🚱] Yjs logic is commented out because it causes errors in the build of Next.js projects:
@@ -164,7 +181,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     }, [monaco]);
 
     useEffect(() => {
-        const styleId = 'notebook-margin-line-style';
+        const styleId = `notebook-margin-line-style-${instanceIdRef.current}`; // <-- unique per instance
 
         let style = document.getElementById(styleId) as HTMLStyleElement | null;
         if (!style) {
@@ -174,17 +191,17 @@ export function BookEditorMonaco(props: BookEditorProps) {
         }
 
         style.innerHTML = `
-            .monaco-editor .view-lines {
+            .${instanceClass} .monaco-editor .view-lines {
                 background-image: linear-gradient(to bottom, transparent ${
-                    LINE_HEIGHT - 1
-                }px, ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()} ${LINE_HEIGHT - 1}px);
-                background-size: calc(100% + ${CONTENT_PADDING_LEFT}px) ${LINE_HEIGHT}px;
-                background-position-x: -${CONTENT_PADDING_LEFT}px;
+                    scaledLineHeight - 1
+                }px, ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()} ${scaledLineHeight - 1}px);
+                background-size: calc(100% + ${scaledContentPaddingLeft}px) ${scaledLineHeight}px;
+                background-position-x: -${scaledContentPaddingLeft}px;
             }
-            .monaco-editor .overflow-guard::before {
+            .${instanceClass} .monaco-editor .overflow-guard::before {
                 content: '';
                 position: absolute;
-                left: ${VERTICAL_LINE_LEFT}px;
+                left: ${scaledVerticalLineLeft}px;
                 top: 0;
                 bottom: 0;
                 width: 1px;
@@ -196,7 +213,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         return () => {
             // Note: Style is not removed on purpose to avoid flickering during development with fast refresh
         };
-    }, []);
+    }, [scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft]);
 
     const handleDrop = useCallback(
         async (event: React.DragEvent<HTMLDivElement>) => {
@@ -242,7 +259,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     return (
         <div
-            className={classNames(styles.bookEditorContainer)}
+            className={classNames(styles.bookEditorContainer, instanceClass)} // <-- add instance-scoped class
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
@@ -265,19 +282,19 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     wordWrap: 'on',
                     minimap: { enabled: false },
                     lineNumbers: 'off',
-                    fontSize: 20,
+                    fontSize: scaledFontSize,
                     fontFamily: `ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif`,
-                    lineHeight: LINE_HEIGHT,
+                    lineHeight: scaledLineHeight,
                     renderLineHighlight: 'none',
                     // Note: To add little lines between each line of the book, like a notebook page
-                    lineDecorationsWidth: CONTENT_PADDING_LEFT,
+                    lineDecorationsWidth: scaledContentPaddingLeft,
                     glyphMargin: false,
                     folding: false,
                     lineNumbersMinChars: 0,
                     scrollbar: {
                         vertical: 'auto',
                         horizontal: 'hidden',
-                        verticalScrollbarSize: 5,
+                        verticalScrollbarSize: scaledScrollbarSize,
                         arrowSize: 0,
                         useShadows: false,
                     },

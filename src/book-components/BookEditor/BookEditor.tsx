@@ -7,7 +7,12 @@ import type { Promisable } from 'type-fest';
 import { countLines } from '../../_packages/utils.index';
 import { DEFAULT_BOOK, type string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type { string_css_value, string_knowledge_source_content } from '../../types/typeAliases';
+import type {
+    number_percent,
+    number_positive,
+    string_css_value,
+    string_knowledge_source_content,
+} from '../../types/typeAliases';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
@@ -54,6 +59,13 @@ export type BookEditorProps = {
     readonly height?: string_css_value | null;
 
     /**
+     * Zoom level of the editor
+     *
+     * @default 1 (100%)
+     */
+    readonly zoom?: number_percent & number_positive;
+
+    /**
      * The book which is being edited.
      */
     readonly value?: string_book;
@@ -77,12 +89,6 @@ export type BookEditorProps = {
      * If true, disables border radius making the editor have sharp corners
      */
     readonly isBorderRadiusDisabled?: boolean;
-
-    /**
-     * If true, shows the footer with book title and version information.
-     * By default, the footer is hidden.
-     */
-    readonly isFooterShown?: boolean;
 
     /**
      * If true, the editor is in read-only mode
@@ -141,12 +147,12 @@ export function BookEditor(props: BookEditorProps) {
         agentSource,
         className,
         style,
+        zoom = 1,
         value,
         onChange,
         onFileUpload,
         isVerbose = DEFAULT_IS_VERBOSE,
         isBorderRadiusDisabled = false,
-        isFooterShown = false,
         isReadonly = false,
         translations,
         isDownloadButtonShown = true,
@@ -182,12 +188,12 @@ export function BookEditor(props: BookEditorProps) {
                 onFileUpload={onFileUpload}
                 isVerbose={isVerbose}
                 isBorderRadiusDisabled={isBorderRadiusDisabled}
-                isFooterShown={isFooterShown}
                 isReadonly={isReadonly}
                 translations={translations}
                 isDownloadButtonShown={isDownloadButtonShown}
                 isAboutButtonShown={isAboutButtonShown}
                 sync={sync}
+                zoom={zoom}
                 // <- Note: Not passing `className` here because it is already applied to the root <div/> above
             />
         </div>
