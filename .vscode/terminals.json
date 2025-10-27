@@ -118,9 +118,9 @@
         {
             "name": "🧪 Test 🔠 Book Components build",
             "command": "npm run test-book-components-build",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🧪 (examples) Test lint ",
