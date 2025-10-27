@@ -172,6 +172,56 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [ ]
 
+[✨✧] The items in collapsable menu should have better design
+
+-   Icon should be on the left side of the text
+-   Items should have slight hover effect
+-   Hamburguer menu button should have open/close animation
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+
+![alt text](screenshots/2025-10-0160-book-editor-monaco-editor-1.png)
+![alt text](screenshots/2025-10-0160-book-editor-monaco-editor-2.png)
+
+---
+
+[ ]
+
+[✨✧] Enhance design of the scrollbar in `BookEditorMonaco`
+
+-   The scrollbar should have more elegant design
+-   The editor isnt "a code editor" but "the book"
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-10-0160-book-editor-monaco-editor-3.png)
+
+---
+
+[ ]
+
+[✨✧] Add left notebook margin line
+
+-   It should be 1px wide and have color `PROMPTBOOK_SYNTAX_COLORS.LINE`
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-10-0160-book-editor-monaco-editor.png)
+
+---
+
+[ ]
+
+[✨✧] bar
+
+-   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨✧] bar
 
 -   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
