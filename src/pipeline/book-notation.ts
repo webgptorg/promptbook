@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
-import { isValidBook } from '../book-2.0/agent-source/string_book';
+import { padBookContent } from '../book-2.0/agent-source/padBookContent';
 import type { string_book } from '../book-2.0/agent-source/string_book';
+import { isValidBook } from '../book-2.0/agent-source/string_book';
 import type { PipelineString } from './PipelineString';
 import { isValidPipelineString } from './isValidPipelineString';
 import { prompt } from './prompt-notation';
@@ -47,7 +48,7 @@ export function book(strings: TemplateStringsArray, ...values: Array<string>): s
         );
     }
 
-    return bookString;
+    return padBookContent(bookString) as string_book & PipelineString;
 }
 
 /**

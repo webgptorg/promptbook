@@ -1,65 +1,28 @@
 'use client';
 
-import type { editor } from 'monaco-editor';
 import Editor, { useMonaco } from '@monaco-editor/react';
+import { useCallback, useEffect, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import { useCallback, useEffect, useState } from 'react';
+import { TODO_any } from '../../_packages/types.index';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
 import type { BookEditorProps } from './BookEditor';
-import { BookEditorActionbar } from './BookEditorActionbar';
 import styles from './BookEditor.module.css';
+import { BookEditorActionbar } from './BookEditorActionbar';
 
 const BOOK_LANGUAGE_ID = 'book';
-const PADDING_LINES = 5;
-
-/**
- * A function that adds padding to the book content
- *
- * @private
- */
-function padBookContent(content: string_book | undefined): string_book {
-    if (!content) {
-        return '\n'.repeat(PADDING_LINES) as string_book;
-    }
-
-    const lines = content.split('\n');
-    let trailingEmptyLines = 0;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        const line = lines[i];
-
-        if (line === undefined) {
-            // Note: This should not happen in reality, but it's here to satisfy TypeScript's noUncheckedIndexedAccess option
-            continue;
-        }
-        if (line.trim() === '') {
-            trailingEmptyLines++;
-        } else {
-            break;
-        }
-    }
-
-    if (trailingEmptyLines >= PADDING_LINES) {
-        return content;
-    }
-
-    const linesToAdd = PADDING_LINES - trailingEmptyLines;
-    return (content + '\n'.repeat(linesToAdd)) as string_book;
-}
 
 /**
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorMonaco(props: BookEditorProps) {
-    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown, isAboutButtonShown = true, sync } =
-        props;
-    const [initialContent] = useState(padBookContent(value));
+    const { value, onChange, isReadonly, onFileUpload, isDownloadButtonShown, isAboutButtonShown = true, sync } = props;
     const [isDragOver, setIsDragOver] = useState(false);
-    const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(null);
+    const [editor, setEditor] = useState<TODO_any>(null);
 
     const monaco = useMonaco();
 
@@ -68,17 +31,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
             return;
         }
 
-        const model = editor.getModel();
-
-        if (!model) {
-            return;
-        }
-
         const ydoc = new Y.Doc();
         const provider = new WebsocketProvider(sync.serverUrl, sync.roomName, ydoc);
         const ytext = ydoc.getText('monaco');
 
-        const binding = new MonacoBinding(ytext, model, new Set([editor]), provider.awareness);
+        const binding = new MonacoBinding(ytext, editor.getModel(), new Set([editor]), provider.awareness);
 
         return () => {
             binding.destroy();
@@ -211,14 +168,12 @@ export function BookEditorMonaco(props: BookEditorProps) {
             onDragLeave={handleDragLeave}
         >
             {(isDownloadButtonShown || isAboutButtonShown) && (
-                <BookEditorActionbar
-                    {...{ value, isDownloadButtonShown, isAboutButtonShown }}
-                />
+                <BookEditorActionbar {...{ value, isDownloadButtonShown, isAboutButtonShown }} />
             )}
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
             <Editor
                 language={BOOK_LANGUAGE_ID}
-                value={initialContent}
+                value={value}
                 onMount={(editor) => setEditor(editor)}
                 onChange={(newValue) => onChange?.(newValue as string_book)}
                 options={{
