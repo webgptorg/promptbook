@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/markitdown",
-    "version": "0.103.0-18",
+    "version": "0.103.0-19",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -91,7 +91,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/markitdown.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-18"
+        "@promptbook/core": "0.103.0-19"
     },
     "dependencies": {
         "crypto": "1.0.1",
