@@ -4,44 +4,44 @@
         {
             "name": "👨‍💻⚫ Run CLI example (💸)",
             "command": "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🟣 Run ptbk run-server",
             "command": "npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻⚪ Run simple-script example (💸)",
             "command": "npx ts-node ./examples/usage/simple-script/simple-script.ts",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🔴 Run logging example (💸)",
             "command": "npx ts-node ./examples/usage/logging/logging.ts",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🔵 Run remote example (💸)",
             "command": "npx ts-node ./examples/usage/remote/server.ts",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🔵 Run CLI `ptbk about`",
             "command": "npx ts-node ./src/cli/test/ptbk.ts about",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🔠 Run Book Components web app",
@@ -56,8 +56,8 @@
             "cwd": "./apps/playground/",
             "command": "npm run dev",
             "execute": true,
-            "onlySingle": true,
-            "focus": true
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🧪🧪 Test all",
@@ -140,7 +140,8 @@
             "name": "🤪 Find fresh emoji tag",
             "command": "npx ts-node ./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
             "execute": true,
-            "focus": true
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🏭💉 Import markdowns",
@@ -152,23 +153,23 @@
         {
             "name": "🏭📦 Generate packages",
             "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
-            "execute": false,
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
         },
         {
             "name": "🏭📚 Generate documentation",
             "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
-            "execute": false,
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
         },
         {
             "name": "🏭📚 Generate server types from Open API",
             "commands": ["npm run generate-openapi-types"],
-            "execute": false,
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
         },
         {
             "name": "🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
@@ -176,9 +177,9 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./scripts/generate-examples-bookc/generate-examples-bookc.ts --verbose"
             ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
@@ -220,6 +221,7 @@
         {
             "name": "🏭🩹 Fix end of lines to LF",
             "command": "./scripts/lines-to-lf.sh",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -233,66 +235,77 @@
         {
             "name": "🧸 Playground (💸)",
             "command": "npx ts-node ./src/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸🔴 Playground error handling",
             "command": "npx ts-node ./src/playground/permanent/error-handling-playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 OpenAI playground (💸)",
             "command": "npx ts-node ./src/llm-providers/openai/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Ollama playground",
             "command": "npx ts-node ./src/llm-providers/ollama/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Anthropic Claude playground (💸)",
             "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Vercel playground (💸)",
             "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Azure OpenAI playground (💸)",
             "command": "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Agent playground (💸)",
             "command": "npx ts-node ./src/llm-providers/agent/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Langtail playground (💸)",
             "command": "npx ts-node ./src/llm-providers/langtail/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Multiple LLMs playground (💸)",
             "command": "npx ts-node ./src/llm-providers/multiple/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Remote server playground",
             "command": "npx ts-node ./src/llm-providers/remote/playground/playground.ts",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -302,6 +315,7 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -311,6 +325,7 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/markitdown/playground/markitdown-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -321,6 +336,7 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document/playground/document-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -331,6 +347,7 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -341,6 +358,7 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/pdf/playground/pdf-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -351,6 +369,7 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -358,12 +377,14 @@
         {
             "name": "📖 Make Promptbook collection (💸) [🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🔪👨🏽‍💻 Force reinstall of node modules",
             "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -380,12 +401,14 @@
                 "npm ci",
                 "npm run dev"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🍴🔍 Git list unmerged changes",
             "commands": ["git branch --no-merged main"],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -396,6 +419,7 @@
                 "git remote prune origin",
                 "git gc"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -403,36 +427,42 @@
             "name": "🔪 Kill all Node.js processes",
             "command": "taskkill /F /IM node.exe",
             "shellPath": "C:\\Windows\\System32\\cmd.exe",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🍴 Make empty commit",
             "commands": ["git commit --allow-empty -m 'Empty commit'", "git push"],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🍴⏫ Git push all branches",
             "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🍴⏬ Git pull all branches",
             "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🔼🆚 Use current version of Promptbook in all Projects / install ptbk",
             "command": "npm run use-packages",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🔼🚀 Release minor version (💸)",
             "command": "npm version minor",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -446,9 +476,9 @@
         {
             "name": "🔼🧪 Release pre-release version (💸)",
             "command": "npm version prerelease",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🔼🩹 Release patch version (💸)",
