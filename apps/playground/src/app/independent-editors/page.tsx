@@ -10,12 +10,12 @@ export default function IdependentEditorsPage() {
     const [book1, setBook1] = useState<string_book>(DEFAULT_BOOK);
     const [book2, setBook2] = useState<string_book>(DEFAULT_BOOK);
 
-
     return (
         <div className="min-h-screen">
             <ResizablePanelsAuto name="two-editors">
                 <BookEditor
                     className="w-full h-full"
+                    height={null}
                     value={book1}
                     onChange={setBook1}
                     // className={styles.BookEditor}
@@ -27,6 +27,7 @@ export default function IdependentEditorsPage() {
                 />
                 <BookEditor
                     className="w-full h-full"
+                    height={null}
                     value={book2}
                     onChange={setBook2}
                     // className={styles.BookEditor}

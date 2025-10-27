@@ -11,16 +11,14 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <BookEditor
+                className="w-full h-screen"
+                height={null}
                 value={book}
                 onChange={(book) => {
                     console.log('Book changed');
                     setBook(book);
                 }}
                 isBorderRadiusDisabled
-                style={{
-                    width: `100vw`,
-                    height: `100vh`,
-                }}
                 // className={styles.BookEditor}
                 isVerbose={false}
                 onFileUpload={(file) => {

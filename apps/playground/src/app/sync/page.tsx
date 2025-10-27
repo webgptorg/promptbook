@@ -31,6 +31,7 @@ export default function IdependentEditorsPage() {
             <ResizablePanelsAuto name="two-editors">
                 <BookEditor
                     className="w-full h-full"
+                    height={null}
                     value={book1}
                     onChange={setBook1}
                     sync={sync1}
@@ -42,6 +43,7 @@ export default function IdependentEditorsPage() {
                 />
                 <BookEditor
                     className="w-full h-full"
+                    height={null}
                     value={book2}
                     onChange={setBook2}
                     sync={sync2}

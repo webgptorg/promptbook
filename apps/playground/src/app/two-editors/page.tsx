@@ -14,6 +14,7 @@ export default function TwoEditorsPage() {
             <ResizablePanelsAuto name="two-editors">
                 <BookEditor
                     className="w-full h-full"
+                    height={null}
                     value={book}
                     onChange={setBook}
                     // className={styles.BookEditor}
@@ -25,6 +26,7 @@ export default function TwoEditorsPage() {
                 />
                 <BookEditor
                     className="w-full h-full"
+                    height={null}
                     value={book}
                     onChange={setBook}
                     // className={styles.BookEditor}
