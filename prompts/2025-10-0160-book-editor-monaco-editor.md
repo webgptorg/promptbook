@@ -212,19 +212,25 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [ ]
 
-[✨✧] bar
+[✨✧] Fix `BookEditorMonaco` margin line
 
+-   On empty line, cursor isnt aligned with the line but outside of it _(see the attached screenshot)_
 -   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-10-0160-book-editor-monaco-editor-4.png)
 
 ---
 
-[ ]
+[x]
 
-[✨✧] bar
+[✨✧] Fix `BookEditorMonaco` margin lines with text lines
 
+-   Margin lines should cross the line lines, like a paper notebook _(see the attached preview)_
 -   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-10-0160-book-editor-monaco-editor.png)
 
 ---
 
