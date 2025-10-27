@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   **Style:** Enhanced the scrollbar design in `BookEditorMonaco` for a more elegant and book-like appearance.
 -   **New:** `BookEditor.isReadonly?: boolean` prop which when `true` makes the editor readonly. This should disable all editing capabilities in the editor. By default `isReadonly` is `false`. Allow to set optional `translations` which is object `translations?: {readonlyMessage?: string}` which when set the message from monaco editor when trying to edit the readonly editor. By default the message is "You cannot edit this book".
 -   **New:** Book editors now have an action bar in the top right corner, featuring a "Download" button that allows users to download the editor's content as a `.book` file. This button is shown by default but can be hidden by setting the `isDownloadButtonShown` prop to `false`.
 -   **Style:** Editor in `BookEditor` now has interval padding 20px from both left, right and top

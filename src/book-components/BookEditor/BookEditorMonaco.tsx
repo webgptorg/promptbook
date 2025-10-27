@@ -119,7 +119,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 { token: 'commitment', foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex() },
                 { token: 'parameter', foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(), fontStyle: `italic` },
             ],
-            colors: {},
+            colors: {
+                'editor.scrollbarSlider.background': '#E0E0E0',
+                'editor.scrollbarSlider.hoverBackground': '#D0D0D0',
+                'editor.scrollbarSlider.activeBackground': '#C0C0C0',
+            },
         });
 
         monaco.editor.setTheme('book-theme');
@@ -206,6 +210,13 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     folding: false,
                     lineDecorationsWidth: 0,
                     lineNumbersMinChars: 0,
+                    scrollbar: {
+                        vertical: 'auto',
+                        horizontal: 'hidden',
+                        verticalScrollbarSize: 5,
+                        arrowSize: 0,
+                        useShadows: false,
+                    },
                 }}
                 loading={<div className={styles.loading}>📖</div>}
             />
