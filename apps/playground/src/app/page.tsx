@@ -16,7 +16,7 @@ export default function HomePage() {
                     console.log('Book changed');
                     setBook(book);
                 }}
-                isBorderRadiusDisabled={false}
+                isBorderRadiusDisabled
                 style={{
                     width: `100vw`,
                     height: `100vh`,

@@ -134,6 +134,37 @@ export function BookEditorMonaco(props: BookEditorProps) {
         };
     }, [monaco]);
 
+    useEffect(() => {
+        const styleId = 'notebook-margin-line-style';
+
+        let style = document.getElementById(styleId) as HTMLStyleElement | null;
+        if (!style) {
+            style = document.createElement('style');
+            style.id = styleId;
+            document.head.appendChild(style);
+        }
+
+        style.innerHTML = `
+            .monaco-editor .view-lines {
+                padding-left: 60px !important;
+            }
+            .monaco-editor .view-lines::before {
+                content: '';
+                position: absolute;
+                left: 40px;
+                top: 0;
+                bottom: 0;
+                width: 1px;
+                background-color: ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()};
+                z-index: 10;
+            }
+        `;
+
+        return () => {
+            // Note: Style is not removed on purpose to avoid flickering during development with fast refresh
+        };
+    }, []);
+
     const handleDrop = useCallback(
         async (event: React.DragEvent<HTMLDivElement>) => {
             event.preventDefault();
