@@ -26,6 +26,9 @@ const VERTICAL_LINE_LEFT = 0; // <- TODO: This value is weird
  */
 let notebookStyleCounter = 0;
 
+/**
+ * @private Internal component used by `BookEditor`
+ */
 export function BookEditorMonaco(props: BookEditorProps) {
     const {
         value,
