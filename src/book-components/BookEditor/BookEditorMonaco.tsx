@@ -178,7 +178,8 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 background-image: linear-gradient(to bottom, transparent ${
                     LINE_HEIGHT - 1
                 }px, ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()} ${LINE_HEIGHT - 1}px);
-                background-size: 100% ${LINE_HEIGHT}px;
+                background-size: calc(100% + ${CONTENT_PADDING_LEFT}px) ${LINE_HEIGHT}px;
+                background-position-x: -${CONTENT_PADDING_LEFT}px;
             }
             .monaco-editor .overflow-guard::before {
                 content: '';
