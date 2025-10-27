@@ -24,7 +24,7 @@ export function Dropdown({ actions }: DropdownProps) {
 
     return (
         <div className={styles.dropdown}>
-            <button className={styles.button} onClick={() => setIsOpen(!isOpen)}>
+            <button className={classNames(styles.button, isOpen && styles.isOpen)} onClick={() => setIsOpen(!isOpen)}>
                 <MenuIcon />
             </button>
             {isOpen && (

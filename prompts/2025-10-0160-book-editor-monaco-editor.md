@@ -77,7 +77,7 @@ Tohle je @Slovník
 
 -   Must match full word `@Slovník` as parameter token NOT only `@Slovn`
 -   Work with all extended lating and also cyrilic alphabet
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -88,7 +88,7 @@ Tohle je @Slovník
 
 -   Do not add lines when there already lines are in the book
 -   Every book should be padded with 5 lines at the end
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -99,7 +99,7 @@ Tohle je @Slovník
 
 -   Make fist action - button "Download" which will download contents of the editor as `.book` file
 -   This should be shown when `isDownloadButtonShown` is `true` or not set _(`isDownloadButtonShown` is by default `true`)_
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -118,7 +118,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 ```
 
 -   Now only `META` is shown and highlited as a keyword but `META IMAGE` should be
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -130,7 +130,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 -   This is already implemented but do some UX improvements`
 -   When the editor is initialized and used adds something on the bottom, do not add new extra lines
 -   Adding lines should happen only when the editor initially loads
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -142,7 +142,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 -   Add prop `BookEditor.isAboutButtonShown: boolean` which when `true` shows about modal showing information about the editor, version of the Promptbook etc.
 -   By default `isAboutButtonShown` is `true`
 -   For modal use `/src/book-components/_common/Modal/Modal.tsx`
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -152,7 +152,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 [✨✧] `BookEditor` have action bar, when this menu contains more than 2 items, group them into dropdown menu
 
 -   Each item in this menu should have icon, use simmilar as in `/src/book-components/Chat/Chat/Chat.tsx`
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -165,21 +165,20 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 -   By default `isReadonly` is `false`
 -   Allow to set optional `translations` which is object `translations?: {readonlyMessage?: string}` which when set the message from monaco editor when trying to edit the readonly editor
 -   By default _(either `translations` or `translations.readonlyMessage` not set)_ the message is "You cannot edit this book"
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
-[ ]
+[x]
 
 [✨✧] The items in collapsable menu should have better design
 
 -   Icon should be on the left side of the text
 -   Items should have slight hover effect
 -   Hamburguer menu button should have open/close animation
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
-
 
 ![alt text](screenshots/2025-10-0160-book-editor-monaco-editor-1.png)
 ![alt text](screenshots/2025-10-0160-book-editor-monaco-editor-2.png)
@@ -192,7 +191,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 -   The scrollbar should have more elegant design
 -   The editor isnt "a code editor" but "the book"
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ![alt text](screenshots/2025-10-0160-book-editor-monaco-editor-3.png)
@@ -204,7 +203,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 [✨✧] Add left notebook margin line
 
 -   It should be 1px wide and have color `PROMPTBOOK_SYNTAX_COLORS.LINE`
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ![alt text](screenshots/2025-10-0160-book-editor-monaco-editor.png)
@@ -215,7 +214,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [✨✧] bar
 
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -224,7 +223,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [✨✧] bar
 
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -233,7 +232,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [✨✧] bar
 
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -242,7 +241,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [✨✧] bar
 
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -251,5 +250,5 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [✨✧] bar
 
--   You are working on `/src/apps/book-components/BookEditor/BookEditorMonaco.tsx`
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

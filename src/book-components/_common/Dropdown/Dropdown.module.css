@@ -9,6 +9,26 @@
     cursor: pointer;
     padding: 10px;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.button.isOpen .menuIcon line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.button.isOpen .menuIcon line:nth-child(2) {
+    opacity: 0;
+}
+
+.button.isOpen .menuIcon line:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
 }
 
 .menu {
@@ -17,15 +37,13 @@
     right: 0;
     background-color: #f9f9f9;
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
 }
 
 .menuItem {
     width: 100%;
     text-align: left;
-}
-
-.menuItem:hover {
-    background-color: #f1f1f1;
 }
