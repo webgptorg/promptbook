@@ -1,9 +1,10 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME } from '../../../config';
-import { DEFAULT_BOOK_TITLE } from '../../../config';
+import { padBookContent } from '../../../book-2.0/agent-source/padBookContent';
+import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME, DEFAULT_BOOK_TITLE } from '../../../config';
 import type { PipelineString } from '../../../pipeline/PipelineString';
 import { validatePipelineString } from '../../../pipeline/validatePipelineString';
 import type { string_prompt } from '../../../types/typeAliases';
+import { really_any } from '../../organization/really_any';
 import { isFlatPipeline } from '../utils/isFlatPipeline';
 
 /**
@@ -18,6 +19,8 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
     if (!isFlatPipeline(pipelineString)) {
         return pipelineString;
     }
+
+    pipelineString = spaceTrim(pipelineString) as PipelineString;
 
     const pipelineStringLines = pipelineString.split('\n');
     const potentialReturnStatement = pipelineStringLines.pop()!;
@@ -63,7 +66,7 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
     );
     // <- TODO: Maybe use book` notation
 
-    return pipelineString;
+    return padBookContent(pipelineString as really_any) as really_any as PipelineString;
 }
 
 /**
