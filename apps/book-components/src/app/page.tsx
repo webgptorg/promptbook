@@ -1,9 +1,11 @@
 import ComponentCardPreview from '@/components/ComponentCardPreview';
+import { Header } from '@/components/Header/Header';
 import { getAllComponents, getComponentsByCategory } from '@/lib/components';
 import { getAllUtilities, getUtilitiesByCategory } from '@/lib/utilities';
-import { ExternalLink, Package, Search, Tag, User } from 'lucide-react';
+import { Package, Search, Tag, User } from 'lucide-react';
 import Link from 'next/link';
 import { classNames } from '../../../../src/book-components/_common/react-utils/classNames';
+import { Footer } from '../components/Footer/Footer';
 
 export default function Home() {
     const components = getAllComponents();
@@ -13,36 +15,7 @@ export default function Home() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
-                                alt="Promptbook Logo"
-                                className="h-10 w-10"
-                            />
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Promptbook Components</h1>
-                                <p className="text-gray-600">A gallery of React components for developers</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <a
-                                href="https://github.com/webgptorg/promptbook-components"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                            >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                GitHub
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             {/* Hero Section */}
             <section className="py-16">
@@ -51,7 +24,7 @@ export default function Home() {
                     <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
                         Discover Promptbook components ready to integrate into your project.
                     </p>
-                    <div className="flex justify-center">
+                    <div className="flex justify-center" style={{ display: 'none' /* <- TODO: Bring search back */ }}>
                         <div className="relative max-w-md w-full">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
@@ -220,115 +193,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="bg-gray-900 text-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div className="col-span-1 md:col-span-2">
-                            <div className="flex items-center space-x-3 mb-4">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
-                                    alt="Promptbook Logo"
-                                    className="h-8 w-8"
-                                />
-                                <span className="text-xl font-bold">Promptbook</span>
-                            </div>
-                            <p className="text-gray-400 mb-4">
-                                Revolutionizing software development with natural language programming. Build AI
-                                applications in minutes, not weeks.
-                            </p>
-                            <div className="flex space-x-4">
-                                <a
-                                    href="https://github.com/webgptorg/promptbook"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-white transition-colors"
-                                >
-                                    GitHub
-                                </a>
-                                <a
-                                    href="https://www.ptbk.io"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-white transition-colors"
-                                >
-                                    Website
-                                </a>
-                                <a
-                                    href="https://promptbook.studio"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-white transition-colors"
-                                >
-                                    Studio
-                                </a>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Resources</h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="https://www.ptbk.io/get-started"
-                                        className="text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        Get Started
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="https://www.ptbk.io/manifest"
-                                        className="text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        Documentation
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="https://github.com/webgptorg/promptbook/discussions"
-                                        className="text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        Community
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Company</h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="https://aldaron.ptbk.io"
-                                        className="text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        Aldaron AI
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="https://www.pavolhejny.com"
-                                        className="text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        About
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="mailto:me@pavolhejny.com"
-                                        className="text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        Contact
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                        <p>&copy; 2025 Promptbook. All rights reserved. Open source and built with ❤️</p>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }

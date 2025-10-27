@@ -1,10 +1,11 @@
 'use client';
 
 import CopyButton from '@/components/CopyButton';
-import HumanizeAiTextPreview from '@/components/humanize-ai-text/HumanizeAiTextPreview';
+import { Footer } from '@/components/Footer/Footer';
+import { Header } from '@/components/Header/Header';
 import HumanizeAiTextCodeSamples from '@/components/humanize-ai-text/HumanizeAiTextCodeSamples';
-import { ArrowLeft, Download, ExternalLink, Tag, User } from 'lucide-react';
-import Link from 'next/link';
+import HumanizeAiTextPreview from '@/components/humanize-ai-text/HumanizeAiTextPreview';
+import { Download, Tag, User } from 'lucide-react';
 
 export default function HumanizeAiTextPage() {
     const utility = {
@@ -23,33 +24,7 @@ export default function HumanizeAiTextPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-purple-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <Link
-                                href="/"
-                                className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-                            >
-                                <ArrowLeft className="h-5 w-5 mr-2" />
-                                Back to Promptbook utilities gallery
-                            </Link>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <a
-                                href={utility.repository}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                            >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Repository
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -141,6 +116,8 @@ export default function HumanizeAiTextPage() {
                     </div>
                 </div>
             </div>
+
+            <Footer />
         </div>
     );
 }

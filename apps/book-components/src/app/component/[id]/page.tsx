@@ -1,8 +1,9 @@
 import ComponentPreview from '@/components/ComponentPreview';
 import CopyButton from '@/components/CopyButton';
+import { Footer } from '@/components/Footer/Footer';
+import { Header } from '@/components/Header/Header';
 import { getComponentById } from '@/lib/components';
-import { ArrowLeft, Code, Download, ExternalLink, Eye, Settings, Tag, User } from 'lucide-react';
-import Link from 'next/link';
+import { Code, Download, Eye, Settings, Tag, User } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 type ComponentPageProps = {
@@ -21,33 +22,7 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <Link
-                                href="/"
-                                className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-                            >
-                                <ArrowLeft className="h-5 w-5 mr-2" />
-                                Back to Promptbook components gallery
-                            </Link>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <a
-                                href={component.repository}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                            >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Repository
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -218,6 +193,8 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
                     </div>
                 </div>
             </div>
+
+            <Footer />
         </div>
     );
 }
