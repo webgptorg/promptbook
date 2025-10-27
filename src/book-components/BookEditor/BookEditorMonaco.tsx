@@ -4,10 +4,10 @@
 
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { useCallback, useEffect, useState } from 'react';
-import { MonacoBinding } from 'y-monaco';
-import { WebsocketProvider } from 'y-websocket';
-import * as Y from 'yjs';
-import { TODO_any } from '../../_packages/types.index';
+// [🚱]> import { MonacoBinding } from 'y-monaco';
+// [🚱]> import { WebsocketProvider } from 'y-websocket';
+// [🚱]> import * as Y from 'yjs';
+// [🚱]> import { TODO_any } from '../../_packages/types.index';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../book-2.0/commitments';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
@@ -30,13 +30,36 @@ export function BookEditorMonaco(props: BookEditorProps) {
         onFileUpload,
         isDownloadButtonShown,
         isAboutButtonShown = true,
-        sync,
+        // [🚱]> sync,
     } = props;
     const [isDragOver, setIsDragOver] = useState(false);
-    const [editor, setEditor] = useState<TODO_any>(null);
 
     const monaco = useMonaco();
 
+    /*
+    Note+TODO: [🚱] Yjs logic is commented out because it causes errors in the build of Next.js projects:
+             > ▲ Next.js 15.4.5
+             > - Experiments (use with caution):
+             >     ✓ externalDir
+             >
+             > Creating an optimized production build ...
+             > ✓ Compiled successfully in 17.0s
+             > ✓ Linting and checking validity of types    
+             > ✓ Collecting page data    
+             > Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+             > ReferenceError: window is not defined
+             >     at 27132 (C:\Users\me\work\ai\promptbook\apps\book-components\.next\server\chunks\134.js:1:525485)
+             >     at c (C:\Users\me\work\ai\promptbook\apps\book-components\.next\server\webpack-runtime.js:1:128)
+             >     at 89192 (C:\Users\me\work\ai\promptbook\apps\book-components\.next\server\chunks\462.js:711:10466)
+             >     at Object.c [as require] (C:\Users\me\work\ai\promptbook\apps\book-components\.next\server\webpack-runtime.js:1:128) {
+             > digest: '2500543835'
+             > }
+             > Export encountered an error on /page: /, exiting the build.
+             > ⨯ Next.js build worker exited with code: 1 and signal: null
+
+
+    const [editor, setEditor] = useState<TODO_any>(null);
+      
     useEffect(() => {
         if (!monaco || !editor || !sync) {
             return;
@@ -53,6 +76,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             provider.destroy();
         };
     }, [monaco, editor, sync]);
+    */
 
     useEffect(() => {
         if (!monaco) {
@@ -224,7 +248,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             <Editor
                 language={BOOK_LANGUAGE_ID}
                 value={value}
-                onMount={(editor) => setEditor(editor)}
+                // [🚱]> onMount={(editor) => setEditor(editor)}
                 onChange={(newValue) => onChange?.(newValue as string_book)}
                 options={{
                     readOnly: isReadonly,
