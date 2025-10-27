@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { padBookContent } from './padBookContent';
 
 /**
  * Branded type for books
@@ -34,11 +35,13 @@ export function validateBook(source: string): string_book {
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOK = validateBook(
-    spaceTrim(`
-        AI Avatar
+export const DEFAULT_BOOK = padBookContent(
+    validateBook(
+        spaceTrim(`
+            AI Avatar
 
-        PERSONA A friendly AI assistant that helps you with your tasks
-    `),
+            PERSONA A friendly AI assistant that helps you with your tasks
+        `),
+    ),
 );
 // <- Note: Not using book`...` notation to avoid strange error in jest unit tests `TypeError: (0 , book_notation_1.book) is not a function`

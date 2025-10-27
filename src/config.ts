@@ -1,5 +1,5 @@
 import { REMOTE_SERVER_URLS } from '../servers';
-import { Color, darken, grayscale, lighten } from './_packages/color.index';
+import { Color, grayscale, lighten } from './_packages/color.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
@@ -64,7 +64,8 @@ export const PROMPTBOOK_COLOR = Color.fromHex('#79EAFD');
  * @public exported from `@promptbook/core`
  */
 export const PROMPTBOOK_SYNTAX_COLORS = {
-    TITLE: PROMPTBOOK_COLOR.then(darken(0.5)),
+    TITLE: Color.fromHex('#244EA8'),
+    LINE: Color.fromHex('#DA0F78'),
     COMMITMENT: Color.fromHex('#DA0F78'),
     PARAMETER: Color.fromHex('#8e44ad'),
 } as const satisfies Record<string_name, Color>;

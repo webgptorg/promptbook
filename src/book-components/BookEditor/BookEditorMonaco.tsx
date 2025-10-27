@@ -102,7 +102,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
             base: 'vs',
             inherit: true,
             rules: [
-                { token: 'title', foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(), fontStyle: 'bold underline' },
+                {
+                    token: 'title',
+                    foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(),
+                    fontStyle: 'underline italic' /* 'bold underline' */,
+                },
                 { token: 'commitment', foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex() },
                 { token: 'parameter', foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(), fontStyle: `italic` },
             ],
