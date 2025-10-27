@@ -1,3 +1,8 @@
+import { CLAIM } from '@promptbook-local/core';
+import Image from 'next/image';
+import Link from 'next/link';
+import logo from '../../../public/logos/logo-blue-white-256.png';
+
 export function Footer() {
     return (
         <footer className="bg-gray-900 text-white">
@@ -5,71 +10,37 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="col-span-1 md:col-span-2">
                         <div className="flex items-center space-x-3 mb-4">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
-                                alt="Promptbook Logo"
-                                className="h-8 w-8"
-                            />
+                            <Image src={logo} alt="Promptbook Logo" className="h-10 w-10" />
                             <span className="text-xl font-bold">Promptbook</span>
                         </div>
-                        <p className="text-gray-400 mb-4">
-                            Revolutionizing software development with natural language programming. Build AI
-                            applications in minutes, not weeks.
-                        </p>
-                        <div className="flex space-x-4">
-                            <a
-                                href="https://github.com/webgptorg/promptbook"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-400 hover:text-white transition-colors"
-                            >
-                                GitHub
-                            </a>
-                            <a
-                                href="https://www.ptbk.io"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-400 hover:text-white transition-colors"
-                            >
-                                Website
-                            </a>
-                            <a
-                                href="https://promptbook.studio"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-400 hover:text-white transition-colors"
-                            >
-                                Studio
-                            </a>
-                        </div>
+                        <p className="text-gray-400 mb-4">{CLAIM}</p>
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Resources</h3>
                         <ul className="space-y-2">
                             <li>
-                                <a
-                                    href="https://www.ptbk.io/get-started"
+                                <Link
+                                    href="https://www.ptbk.io/"
                                     className="text-gray-400 hover:text-white transition-colors"
                                 >
                                     Get Started
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a
-                                    href="https://www.ptbk.io/manifest"
+                                <Link
+                                    href="https://github.com/webgptorg/promptbook"
                                     className="text-gray-400 hover:text-white transition-colors"
                                 >
                                     Documentation
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a
-                                    href="https://github.com/webgptorg/promptbook/discussions"
+                                <Link
+                                    href="https://discord.gg/x3QWNaa89N"
                                     className="text-gray-400 hover:text-white transition-colors"
                                 >
                                     Community
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -77,28 +48,34 @@ export function Footer() {
                         <h3 className="text-lg font-semibold mb-4">Company</h3>
                         <ul className="space-y-2">
                             <li>
-                                <a
-                                    href="https://aldaron.ptbk.io"
+                                <Link
+                                    href="https://github.com/webgptorg/promptbook"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-gray-400 hover:text-white transition-colors"
                                 >
-                                    Aldaron AI
-                                </a>
+                                    GitHub
+                                </Link>
                             </li>
                             <li>
-                                <a
-                                    href="https://www.pavolhejny.com"
+                                <Link
+                                    href="https://www.facebook.com/61560776453536"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-gray-400 hover:text-white transition-colors"
                                 >
-                                    About
-                                </a>
+                                    Facebook
+                                </Link>
                             </li>
                             <li>
-                                <a
-                                    href="mailto:me@pavolhejny.com"
+                                <Link
+                                    href="https://linkedin.com/company/promptbook"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-gray-400 hover:text-white transition-colors"
                                 >
-                                    Contact
-                                </a>
+                                    LinkedIn
+                                </Link>
                             </li>
                         </ul>
                     </div>
