@@ -160,10 +160,19 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 {
                     token: 'title',
                     foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(),
-                    fontStyle: 'underline italic' /* 'bold underline' */,
+                    // [🚚]> fontStyle: 'underline italic',
+                    fontStyle: 'bold underline',
                 },
-                { token: 'commitment', foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex() },
-                { token: 'parameter', foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(), fontStyle: `italic` },
+                {
+                    token: 'commitment',
+                    foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
+                    fontStyle: 'bold',
+                },
+                {
+                    token: 'parameter',
+                    foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(),
+                    fontStyle: `italic`,
+                },
             ],
             colors: {
                 'editor.scrollbarSlider.background': '#E0E0E0',
@@ -191,6 +200,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
         }
 
         style.innerHTML = `
+
+            @import url('https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+            /* <- [🚚] */
+
             .${instanceClass} .monaco-editor .view-lines {
                 background-image: linear-gradient(to bottom, transparent ${
                     scaledLineHeight - 1
@@ -283,7 +296,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     minimap: { enabled: false },
                     lineNumbers: 'off',
                     fontSize: scaledFontSize,
-                    fontFamily: `ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif`,
+                    // TODO: [🚚] Allow to pass fornt family as prop
+                    fontFamily: `"Playfair Display", serif`,
+                    // [🚚]> fontFamily: `"Bitcount Grid Single", system-ui`,
                     lineHeight: scaledLineHeight,
                     renderLineHighlight: 'none',
                     // Note: To add little lines between each line of the book, like a notebook page
