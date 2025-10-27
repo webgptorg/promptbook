@@ -12,6 +12,7 @@ import type { AvatarProfileProps } from '../book-components/AvatarProfile/Avatar
 import { AvatarProfile } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import type { AvatarProfileFromSourceProps } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 import { AvatarProfileFromSource } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
+import { DEFAULT_BOOK_EDITOR_HEIGHT } from '../book-components/BookEditor/BookEditor';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
 import { DEFAULT_BOOK_FONT_CLASS } from '../book-components/BookEditor/config';
@@ -72,6 +73,7 @@ export type { AvatarProfileProps };
 export { AvatarProfile };
 export type { AvatarProfileFromSourceProps };
 export { AvatarProfileFromSource };
+export { DEFAULT_BOOK_EDITOR_HEIGHT };
 export type { BookEditorProps };
 export { BookEditor };
 export { DEFAULT_BOOK_FONT_CLASS };
