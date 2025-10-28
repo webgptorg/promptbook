@@ -6,6 +6,6 @@
         "build": "(npx kill-port 4022 || true) && next build",
         "start": "next start",
         "lint": "next lint",
-        "postinstall": "cd ../ && npm install"
+        "postinstall": "cd ../../ && npm ci"
     }
 }
