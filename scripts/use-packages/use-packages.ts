@@ -14,7 +14,6 @@ import { LOOP_LIMIT } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
-import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -79,7 +78,7 @@ async function usePackages() {
 
             const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
 
-            for (const dependenciesType of ['dependencies', 'devDependencies']) {
+            for (const dependenciesType of ['dependencies', 'devDependencies'] as const) {
                 if (remotePackageJson[dependenciesType] === undefined) {
                     continue;
                 }
@@ -124,8 +123,52 @@ async function usePackages() {
         }
 
         if (!remoteFolder.startsWith('..')) {
-            // Note: No need to check that folder is clean, because this script is executed only after new version which can be triggered only from clean state
-            await commit([remoteFolder], `⏫ Update Promptbook to \`${currentVersion}\` in \`${remoteFolder}\``);
+            const gitStatusResult = await $execCommand({
+                cwd: remoteFolder,
+                command: 'git status --porcelain',
+                crashOnError: false,
+            });
+
+            const changedLines = gitStatusResult
+                .trim()
+                .split('\n')
+                .filter((line: string) => line);
+
+            if (changedLines.length === 0) {
+                console.info(colors.gray(`No changes in ${remoteFolder} to commit.`));
+                continue;
+            }
+
+            const changedFiles = changedLines.map((line: string) => line.substring(3));
+            const allowedChanges = ['package.json', 'package-lock.json', 'Dockerfile'];
+            const unexpectedChanges = changedFiles.filter((file: string) => !allowedChanges.includes(basename(file)));
+
+            if (unexpectedChanges.length > 0) {
+                console.warn(
+                    colors.yellow(`Skipping commit for ${remoteFolder} because of unexpected changes:`),
+                );
+                for (const file of unexpectedChanges) {
+                    console.warn(colors.yellow(` - ${file}`));
+                }
+            } else {
+                console.info(colors.blue(`Committing updates in ${remoteFolder}`));
+
+                await $execCommand({
+                    cwd: remoteFolder,
+                    command: `git add .`,
+                });
+
+                const commitMessage = `Update Promptbook ${currentVersion}`;
+                await $execCommand({
+                    cwd: remoteFolder,
+                    command: `git commit -m "${commitMessage}"`,
+                });
+
+                await $execCommand({
+                    cwd: remoteFolder,
+                    command: 'git push',
+                });
+            }
         }
     }
 
