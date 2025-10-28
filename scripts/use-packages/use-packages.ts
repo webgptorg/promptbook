@@ -71,7 +71,7 @@ async function usePackages() {
 
     // Note: Update the version in all packages
     for (const remoteFolder of [
-        // !!! 'examples/usage/other/vercel',
+        'examples/usage/other/vercel',
         ...(process.env.USE_THIS_PACKAGE_PATHS || '').split(','),
     ].filter(Boolean)) {
         // <-- avoid empty entries
