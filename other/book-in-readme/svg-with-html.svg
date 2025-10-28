@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+    <foreignObject width="800" height="450">
+        <body xmlns="http://www.w3.org/1999/xhtml" style="margin:0; padding:0; width:800px; height:450px; display:flex; justify-content:center; align-items:center; background-color:#f0f0f0;">
+        <div style="font-family: Arial, sans-serif; font-size: 24px; color: #333;">
+            <h1>Hello, SVG with HTML!</h1>
+            <p>This is an example of embedding HTML content within an SVG using the &lt;foreignObject&gt; element.</p>
+        </div>
+        </body>
+    </foreignObject>
+</svg>
