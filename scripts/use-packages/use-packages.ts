@@ -68,6 +68,7 @@ async function usePackages() {
     const updatedProjects: string[] = [];
     const committedProjects: string[] = [];
     const skippedProjects: string[] = [];
+    const failedProjects: { folder: string; error: Error }[] = [];
 
     // Note: Update the version in all packages
     for (const remoteFolder of [
@@ -203,13 +204,18 @@ async function usePackages() {
                     command: `git commit -m "${commitMessage}"`,
                 });
 
-                await $execCommand({
-                    cwd: remoteFolder,
-                    command: 'git push',
-                });
+                try {
+                    await $execCommand({
+                        cwd: remoteFolder,
+                        command: 'git push',
+                    });
+                    committedProjects.push(remoteFolder);
+                } catch (error) {
+                    assertsError(error);
+                    failedProjects.push({ folder: remoteFolder, error });
+                }
 
                 // record committed and updated
-                committedProjects.push(remoteFolder);
                 if (changedThisFolder) {
                     updatedProjects.push(remoteFolder);
                 }
@@ -228,6 +234,13 @@ async function usePackages() {
     console.info(colors.green(`  Committed (${committedProjects.length}):`));
     for (const p of committedProjects) {
         console.info(colors.green(`   - ${p}`));
+    }
+    console.info(colors.red(`  Failed to push (${failedProjects.length}):`));
+    for (const { folder, error } of failedProjects) {
+        // Note: Using .split(...).join(...) to remove the CWD prefix from the error message
+        console.info(
+            colors.red(`   - ${folder}: ${error.message.split(process.cwd()).join('').split('\n').join(' ').trim()}`),
+        );
     }
     console.info(colors.yellow(`  Skipped (unexpected changes) (${skippedProjects.length}):`));
     for (const p of skippedProjects) {
