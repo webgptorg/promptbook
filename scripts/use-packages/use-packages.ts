@@ -223,7 +223,7 @@ async function usePackages() {
     }
 
     // Print summary
-    console.info('\n'.repeat(4));
+    console.info('\n'.repeat(3));
     console.info(colors.bgGreen(`Promptbook ${currentVersion}:`));
     console.info(colors.green(`  Committed (${committedProjects.length}):`));
     for (const p of committedProjects) {
