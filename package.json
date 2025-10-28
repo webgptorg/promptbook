@@ -186,7 +186,7 @@
         "test-without-package-generation-and-unit": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build",
         "test-unit": "jest --forceExit",
         "_TODO-0": "           <- TODO: Remove `--forceExit` flag, now its present to ensure return code 0 when all tests ",
-        "test-types": "tsc && (cd ./apps/book-components/ && tsc)",
+        "test-types": "tsc",
         "test-lint": "eslint src",
         "test-spellcheck": "cspell \"src/**/*.{ts,tsx,js,jsx,md,json}\"",
         "test-books": "npx ts-node ./src/cli/test/ptbk.ts test --provider BRING_YOUR_OWN_KEYS --no-prepare \"./**/*.book\" --ignore \"./book/**/*,./examples/pipelines/errors/**/*\" --verbose",
