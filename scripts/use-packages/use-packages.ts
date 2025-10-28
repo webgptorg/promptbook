@@ -12,6 +12,7 @@ import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';
+import { string_version_dependency } from '../../src/types/typeAliases';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 
@@ -35,7 +36,7 @@ usePackages()
     });
 
 async function usePackages() {
-    console.info(`🌍  Using packages`);
+    console.info(`🔼🆚  Using packages`);
 
     if (!process.env.USE_THIS_PACKAGE_PATHS) {
         console.warn(colors.yellow(`Warning: USE_THIS_PACKAGE_PATHS not defined in environment`));
@@ -63,13 +64,22 @@ async function usePackages() {
     console.warn(colors.green(`Version ${currentVersion} is available on NPM`));
     await forTime(5 * 1000);
 
+    // Track which projects were changed, committed or skipped
+    const updatedProjects: string[] = [];
+    const committedProjects: string[] = [];
+    const skippedProjects: string[] = [];
+
     // Note: Update the version in all packages
     for (const remoteFolder of [
-        'examples/usage/other/vercel',
-        'book-components',
+        // !!! 'examples/usage/other/vercel',
         ...(process.env.USE_THIS_PACKAGE_PATHS || '').split(','),
-    ]) {
+    ].filter(Boolean)) {
+        // <-- avoid empty entries
+        let oldVersion: string_version_dependency | null = null;
         const remotePackageJsonPath = join(remoteFolder, 'package.json');
+
+        // Track if we modified files in this remote folder
+        let changedThisFolder = false;
 
         if (await isFileExisting(remotePackageJsonPath, fs)) {
             console.info(
@@ -91,11 +101,15 @@ async function usePackages() {
                         continue;
                     }
 
+                    if (oldVersion === null) {
+                        oldVersion = remotePackageJson[dependenciesType]![packageName] as string_version_dependency;
+                    }
                     remotePackageJson[dependenciesType]![packageName] = currentVersion;
                 }
             }
 
             await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
+            changedThisFolder = true;
 
             await $execCommand({
                 cwd: remoteFolder,
@@ -120,9 +134,12 @@ async function usePackages() {
             );
 
             await writeFile(remoteDockerfilePath, updatedDockerfile);
+            changedThisFolder = true;
         }
 
         if (!remoteFolder.startsWith('..')) {
+            // <- TODO: Inverse a condition to descrease nesting
+
             const gitStatusResult = await $execCommand({
                 cwd: remoteFolder,
                 command: 'git status --porcelain',
@@ -136,19 +153,36 @@ async function usePackages() {
 
             if (changedLines.length === 0) {
                 console.info(colors.gray(`No changes in ${remoteFolder} to commit.`));
+                // If we changed files but git shows nothing (unlikely), still record update
+                if (changedThisFolder) {
+                    updatedProjects.push(remoteFolder);
+                }
                 continue;
             }
 
-            const changedFiles = changedLines.map((line: string) => line.substring(3));
+            console.info(
+                colors.blue(`Detected changes:\n`) +
+                    changedLines.map((line: string) => colors.blue(`- ${line}`)).join('\n'),
+            );
+
+            const changedFiles = changedLines.map((line: string) => line.split(' ', 2).pop());
             const allowedChanges = ['package.json', 'package-lock.json', 'Dockerfile'];
             const unexpectedChanges = changedFiles.filter((file: string) => !allowedChanges.includes(basename(file)));
 
             if (unexpectedChanges.length > 0) {
                 console.warn(
-                    colors.yellow(`Skipping commit for ${remoteFolder} because of unexpected changes:`),
+                    colors.yellow(
+                        `Skipping update Promptbook commit for ${remoteFolder} because of unexpected changes:`,
+                    ),
                 );
                 for (const file of unexpectedChanges) {
                     console.warn(colors.yellow(` - ${file}`));
+                }
+                // record skipped commit
+                skippedProjects.push(remoteFolder);
+                // still record that we modified this project
+                if (changedThisFolder) {
+                    updatedProjects.push(remoteFolder);
                 }
             } else {
                 console.info(colors.blue(`Committing updates in ${remoteFolder}`));
@@ -158,7 +192,12 @@ async function usePackages() {
                     command: `git add .`,
                 });
 
-                const commitMessage = `Update Promptbook ${currentVersion}`;
+                const commitMessage = `🔼🆚 Update Promptbook ${
+                    oldVersion === null ? '' : `\`${oldVersion}\` -> `
+                }\`${currentVersion}\``;
+
+                console.info(colors.bgCyan(commitMessage));
+
                 await $execCommand({
                     cwd: remoteFolder,
                     command: `git commit -m "${commitMessage}"`,
@@ -168,11 +207,36 @@ async function usePackages() {
                     cwd: remoteFolder,
                     command: 'git push',
                 });
+
+                // record committed and updated
+                committedProjects.push(remoteFolder);
+                if (changedThisFolder) {
+                    updatedProjects.push(remoteFolder);
+                }
+            }
+        } else {
+            // For folders outside repo root we may have modified files but skipped git ops
+            if (changedThisFolder) {
+                updatedProjects.push(remoteFolder);
             }
         }
     }
 
-    console.info(`[ 🌍  Using packages ]`);
+    // Print summary
+    console.info('\n'.repeat(4));
+    console.info(colors.bgGreen(`Promptbook ${currentVersion}:`));
+    console.info(colors.green(`  Committed (${committedProjects.length}):`));
+    for (const p of committedProjects) {
+        console.info(colors.green(`   - ${p}`));
+    }
+    console.info(colors.yellow(`  Skipped (unexpected changes) (${skippedProjects.length}):`));
+    for (const p of skippedProjects) {
+        console.info(colors.yellow(`   - ${p}`));
+    }
+    console.info(colors.blue(`  Updated (files modified) (${updatedProjects.length}):`));
+    for (const p of updatedProjects) {
+        console.info(colors.blue(`   - ${p}`));
+    }
 }
 
 /**
