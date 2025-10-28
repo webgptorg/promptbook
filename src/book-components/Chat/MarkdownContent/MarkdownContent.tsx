@@ -1,25 +1,24 @@
-import hljs from 'highlight.js'; // <- [🥂]
-import katex from 'katex'; // <- [🥂]
-// <- [🥂] !!! Fix `katex` and `highlight.js`
+'use client';
+
+import hljs from 'highlight.js';
+import katex from 'katex';
+import { useMemo } from 'react';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
-// import 'highlight.js/styles/github-dark.css';
-// <- TODO: Make this work from node_modules
 
 /**
- * Create a showdown converter instance optimized for chat messages
+ * @@@
  *
- * @private utility of Chat components
+ * @private utility of `MarkdownContent` component
  */
 function createChatMarkdownConverter(): ShowdownConverter {
     return new ShowdownConverter({
         flavor: 'github',
-        // Enable common markdown features for chat
         tables: true,
         strikethrough: true,
         tasklists: true,
         ghCodeBlocks: true,
-        ghMentions: false, // Disable mentions to avoid unwanted @ processing
+        ghMentions: false,
         ghMentionsLink: '',
         openLinksInNewWindow: true,
         backslashEscapesHTMLTags: true,
@@ -28,14 +27,13 @@ function createChatMarkdownConverter(): ShowdownConverter {
         completeHTMLDocument: false,
         metadata: false,
         splitAdjacentBlockquotes: true,
-        // Security settings
-        noHeaderId: true, // Prevent header IDs that could cause conflicts
+        noHeaderId: true,
         headerLevelStart: 1,
         parseImgDimensions: true,
         simplifiedAutoLink: true,
         literalMidWordUnderscores: true,
         literalMidWordAsterisks: false,
-        simpleLineBreaks: true, // Convert single line breaks to <br>
+        simpleLineBreaks: true,
         requireSpaceBeforeHeadingText: true,
         ghCompatibleHeaderId: true,
         prefixHeaderId: 'chat-header-',
@@ -48,15 +46,19 @@ function createChatMarkdownConverter(): ShowdownConverter {
     });
 }
 
-// Create a singleton instance for performance
+/**
+ * @@@
+ *
+ * @private utility of `MarkdownContent` component
+ */
 const chatMarkdownConverter = createChatMarkdownConverter();
 
 /**
- * Render math expressions in markdown using KaTeX.
- * Supports inline ($...$) and block ($$...$$) math.
+ * @@@
+ *
+ * @private utility of `MarkdownContent` component
  */
 function renderMathInMarkdown(md: string): string {
-    // Block math: $$...$$
     md = md.replace(/(^|[^\\])\$\$([\s\S]+?)\$\$/g, (match, prefix, math) => {
         try {
             const rendered = katex.renderToString(math, { displayMode: true, throwOnError: false });
@@ -65,9 +67,7 @@ function renderMathInMarkdown(md: string): string {
             return match;
         }
     });
-    // Inline math: $...$
     md = md.replace(/(^|[^\\])\$([^$\n]+?)\$/g, (match, prefix, math) => {
-        // Avoid matching block math or escaped dollars
         if (/^\s*$/.test(math)) return match;
         try {
             const rendered = katex.renderToString(math, { displayMode: false, throwOnError: false });
@@ -76,13 +76,12 @@ function renderMathInMarkdown(md: string): string {
             return match;
         }
     });
-    // Unescape $ to $
     md = md.replace(/\\$/g, '$');
     return md;
 }
 
 /**
- * Convert markdown content to HTML for display in chat messages
+ * Convert markdown content to HTML
  *
  * @param markdown - The markdown content to convert
  * @returns HTML string ready for rendering
@@ -90,20 +89,16 @@ function renderMathInMarkdown(md: string): string {
  * @public exported from `@promptbook/components`
  *         <- TODO: [🧠] Maybe export from `@promptbook/markdown-utils`
  */
-export function renderMarkdown(markdown: string_markdown): string_html {
+function renderMarkdown(markdown: string_markdown): string_html {
     if (!markdown || typeof markdown !== 'string') {
         return '' as string_html;
     }
 
     try {
-        // Render math before markdown conversion
         const processedMarkdown = renderMathInMarkdown(markdown);
-
-        // Convert markdown to HTML
         let html = chatMarkdownConverter.makeHtml(processedMarkdown);
 
         if (typeof window === 'undefined') {
-            // SSR: fallback to regex (less safe, but works for static export)
             html = html.replace(
                 /<pre><code( class="language-([^"]+)")?>([\s\S]*?)<\/code><\/pre>/g,
                 (match, _langClass, lang, code) => {
@@ -122,8 +117,6 @@ export function renderMarkdown(markdown: string_markdown): string_html {
                 },
             );
         } else {
-            // Browser: use DOMParser for robust manipulation
-            // Inject highlight.js GitHub Dark CSS if not already present and code block exists
             if (html.match(/<pre><code/)) {
                 const cssId = 'hljs-github-dark-css';
                 if (!window.document.getElementById(cssId)) {
@@ -134,7 +127,6 @@ export function renderMarkdown(markdown: string_markdown): string_html {
                     window.document.head.appendChild(link);
                 }
             }
-            // Inject KaTeX CSS if not already present and math exists
             if (html.match(/class="katex/)) {
                 const katexCssId = 'katex-css';
                 if (!window.document.getElementById(katexCssId)) {
@@ -176,30 +168,22 @@ export function renderMarkdown(markdown: string_markdown): string_html {
             html = doc.body.innerHTML;
         }
 
-        // Basic sanitization - remove potentially dangerous attributes
-        // Note: For production use, consider using a proper HTML sanitizer like DOMPurify
-        // Allow safe HTML tables (<table>, <tr>, <td>, <th>, <thead>, <tbody>, <tfoot>)
-        // Remove script/style/iframe/object/embed tags and event handlers
         const sanitizedHtml = html
-            .replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '') // Remove dangerous tags
-            .replace(/\s+on\w+="[^"]*"/gi, '') // Remove event handlers
-            .replace(/\s+javascript:/gi, '') // Remove javascript: URLs
-            .replace(/\s+data:/gi, '') // Remove data: URLs for security
-            .replace(/\s+vbscript:/gi, ''); // Remove vbscript: URLs
-
-        // Optionally, allow only specific tags (table-related and common markdown tags)
-        // For now, we rely on Showdown + above regex for safety
+            .replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+            .replace(/\s+on\w+="[^"]*"/gi, '')
+            .replace(/\s+javascript:/gi, '')
+            .replace(/\s+data:/gi, '')
+            .replace(/\s+vbscript:/gi, '');
 
         return sanitizedHtml as string_html;
     } catch (error) {
         console.error('Error rendering markdown:', error);
-        // Fallback to plain text if markdown parsing fails
         return markdown.replace(/[<>&"']/g, (char) => {
             const entities: Record<string, string> = {
-                '<': '&lt;',
-                '>': '&gt;',
-                '&': '&amp;',
-                '"': '&quot;',
+                '<': '<',
+                '>': '>',
+                '&': '&',
+                '"': '"',
                 "'": '&#39;',
             };
             return entities[char] || char;
@@ -208,35 +192,24 @@ export function renderMarkdown(markdown: string_markdown): string_html {
 }
 
 /**
- * Check if content appears to be markdown (contains markdown syntax)
- *
- * @param content - Content to check
- * @returns true if content appears to contain markdown syntax
+ * Renders markdown content with support for code highlighting, math, and tables.
  *
  * @public exported from `@promptbook/components`
- *         <- TODO: [🧠] Maybe export from `@promptbook/markdown-utils`
  */
-export function isMarkdownContent(content: string): boolean {
-    if (!content || typeof content !== 'string') {
-        return false;
-    }
+export function MarkdownContent({ content }: { content: string_markdown }) {
+    const htmlContent = useMemo(() => renderMarkdown(content), [content]);
 
-    // Check for common markdown patterns
-    const markdownPatterns = [
-        /^#{1,6}\s+/m, // Headers
-        /\*\*.*?\*\*/, // Bold
-        /\*.*?\*/, // Italic
-        /`.*?`/, // Inline code
-        /```[\s\S]*?```/, // Code blocks
-        /^\s*[-*+]\s+/m, // Unordered lists
-        /^\s*\d+\.\s+/m, // Ordered lists
-        /^\s*>\s+/m, // Blockquotes
-        /\[.*?\]\(.*?\)/, // Links
-        /!\[.*?\]\(.*?\)/, // Images
-        /^\s*\|.*\|/m, // Tables
-        /~~.*?~~/, // Strikethrough
-        /^\s*---+\s*$/m, // Horizontal rules
-    ];
-
-    return markdownPatterns.some((pattern) => pattern.test(content));
+    return (
+        <div
+            dangerouslySetInnerHTML={{
+                __html: htmlContent,
+            }}
+        />
+    );
 }
+
+
+
+/**
+ * TODO: !!! Split into multiple files
+ */

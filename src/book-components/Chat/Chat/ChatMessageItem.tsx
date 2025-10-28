@@ -2,17 +2,16 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Color, textColor } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
-import { just } from '../../../utils/organization/just';
 import { classNames } from '../../_common/react-utils/classNames';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
-import { renderMarkdown } from '../utils/renderMarkdown'; // <- [🥂]
+import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -164,7 +163,6 @@ export const ChatMessageItem = memo(
         }, [isExpanded]);
 
         const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
-        const contentWithoutButtonsHtml = useMemo(() => renderMarkdown(contentWithoutButtons), [contentWithoutButtons]);
 
         return (
             <div
@@ -232,8 +230,9 @@ export const ChatMessageItem = memo(
                                     if (navigator.clipboard && window.ClipboardItem) {
                                         const clipboardItems: Record<string, Blob> = {};
 
-                                        if (just(true)) {
-                                            clipboardItems['text/html'] = new Blob([contentWithoutButtonsHtml], {
+                                        if (contentWithoutButtonsRef.current) {
+                                            const html = contentWithoutButtonsRef.current.innerHTML;
+                                            clipboardItems['text/html'] = new Blob([html], {
                                                 type: 'text/html',
                                             });
                                         }
@@ -325,12 +324,9 @@ export const ChatMessageItem = memo(
                             {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
                         </>
                     ) : (
-                        <div
-                            ref={contentWithoutButtonsRef}
-                            dangerouslySetInnerHTML={{
-                                __html: contentWithoutButtonsHtml,
-                            }}
-                        />
+                        <div ref={contentWithoutButtonsRef}>
+                            <MarkdownContent content={contentWithoutButtons} />
+                        </div>
                     )}
 
                     {!message.isComplete && <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>}
@@ -347,10 +343,9 @@ export const ChatMessageItem = memo(
                                             onMessage(button.message);
                                         }
                                     }}
-                                    dangerouslySetInnerHTML={{
-                                        __html: renderMarkdown(button.text),
-                                    }}
-                                />
+                                >
+                                    <MarkdownContent content={button.text} />
+                                </button>
                             ))}
                         </div>
                     )}

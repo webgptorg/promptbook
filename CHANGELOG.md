@@ -1,4 +1,6 @@
 # 📅 Changelog## [Unreleased]
+-   **New:** Created a new `MarkdownContent` component to handle markdown rendering, decoupling it from the `Chat` component.
+-   **Refactor:** The `Chat` component now uses the `MarkdownContent` component for rendering markdown.
 -   **Fix:** Fixed an issue where the cursor on an empty line in `BookEditorMonaco` was not aligned with the margin line.
 -   **Style:** The margin line in `BookEditorMonaco` now crosses over the text lines, creating a more realistic paper notebook appearance.
 -   **Style:** Added a left notebook margin line to the book editor for a better writing experience.

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🪟] Make component `MarkdownContent`
 
