@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/google",
-    "version": "0.103.0-19",
+    "version": "0.103.0-20",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -95,7 +95,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/google.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-19"
+        "@promptbook/core": "0.103.0-20"
     },
     "dependencies": {
         "@ai-sdk/google": "1.0.5",
