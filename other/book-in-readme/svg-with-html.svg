@@ -1,10 +1,528 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
-    <foreignObject width="800" height="450">
-        <body xmlns="http://www.w3.org/1999/xhtml" style="margin:0; padding:0; width:800px; height:450px; display:flex; justify-content:center; align-items:center; background-color:#f0f0f0;">
-        <div style="font-family: Arial, sans-serif; font-size: 24px; color: #333;">
-            <h1>Hello, SVG with HTML!</h1>
-            <p>This is an example of embedding HTML content within an SVG using the &lt;foreignObject&gt; element.</p>
-        </div>
-        </body>
-    </foreignObject>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+  viewBox="0 0 800 450"
+  version="1.1"
+  id="svg1"
+  sodipodi:docname="svg-with-html.svg"
+  inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+  xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+  xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:svg="http://www.w3.org/2000/svg"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <foreignObject
+    width="800"
+    height="450">
+    <xhtml:body
+      style="margin:0; padding:0; width:800px; height:450px; display:flex; justify-content:center; align-items:center; background-color:#f0f0f0;">
+      <!-- =============================== -->
+      <xhtml:div
+        data-book-component="BookEditor"
+        class="BookEditor_BookEditor__7o1lH BookEditor_bookEditorWrapper__fD_Gw BookEditorPreview_BookEditor__7aka7"
+        style="height: 440px"
+      >
+        <xhtml:div class="BookEditor_bookEditorContainer__TrBlV book-editor-instance-1">
+          <xhtml:div class="BookEditor_bookEditorActionbar__OW61v">
+            <xhtml:div class="Dropdown_dropdown__XVqII"></xhtml:div>
+          </xhtml:div>
+          <xhtml:section
+            style="display: flex; position: relative; text-align: initial; width: 100%; height: 100%">
+            <xhtml:div
+              style="
+                    width: 100%;
+                    --vscode-editorCodeLens-lineHeight: 25px;
+                    --vscode-editorCodeLens-fontSize: 18px;
+                    --vscode-editorCodeLens-fontFeatureSettings: 'liga' off, 'calt' off;
+                "
+              data-keybinding-context="1"
+              data-mode-id="book"
+            >
+              <xhtml:div
+                class="monaco-editor no-user-select showUnused showDeprecated vs"
+                role="code"
+                data-uri="inmemory://model/1"
+                style="width: 687px; height: 417px"
+              >
+                <xhtml:div data-mprt="3" class="overflow-guard" style="width: 687px; height: 417px">
+                  <xhtml:div
+                    class="native-edit-context"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    spellcheck="false"
+                    tabindex="0"
+                    role="textbox"
+                    aria-required="false"
+                    aria-multiline="true"
+                    aria-autocomplete="both"
+                    aria-roledescription="editor"
+                    aria-label="Editor content"
+                    style="
+                                tab-size: 19.9219px;
+                                text-wrap: wrap;
+                                font-family: 'Playfair Display', serif, Consolas, 'Courier New', monospace;
+                                font-weight: normal;
+                                font-size: 20px;
+                                font-feature-settings: 'liga' 0, 'calt' 0;
+                                font-variation-settings: normal;
+                                line-height: 28px;
+                                letter-spacing: 0px;
+                                top: 168px;
+                                left: 20px;
+                                height: 28px;
+                                width: 657px;
+                            "
+                  ></xhtml:div>
+
+                  <xhtml:div
+                    class="margin"
+                    role="presentation"
+                    aria-hidden="true"
+                    style="
+                                position: absolute;
+                                transform: translate3d(0px, 0px, 0px);
+                                contain: strict;
+                                top: 0px;
+                                height: 585px;
+                                width: 20px;
+                            "
+                  >
+                    <xhtml:div class="glyph-margin" style="left: 0px; width: 0px; height: 585px"></xhtml:div>
+                    <xhtml:div
+                      class="margin-view-zones"
+                      role="presentation"
+                      aria-hidden="true"
+                      style="position: absolute"
+                    ></xhtml:div>
+                    <xhtml:div
+                      class="margin-view-overlays"
+                      role="presentation"
+                      aria-hidden="true"
+                      style="
+                                    position: absolute;
+                                    font-family: 'Playfair Display', serif, Consolas, 'Courier New', monospace;
+                                    font-weight: normal;
+                                    font-size: 20px;
+                                    font-feature-settings: 'liga' 0, 'calt' 0;
+                                    font-variation-settings: normal;
+                                    line-height: 28px;
+                                    letter-spacing: 0px;
+                                    width: 20px;
+                                    height: 585px;
+                                "
+                    >
+                      <xhtml:div style="top: 0px; height: 28px; line-height: 28px"></xhtml:div>
+                      <xhtml:div style="top: 28px; height: 28px; line-height: 28px"></xhtml:div>
+                      <xhtml:div style="top: 56px; height: 28px; line-height: 28px"></xhtml:div>
+                      <xhtml:div style="top: 84px; height: 28px; line-height: 28px"></xhtml:div>
+                      <xhtml:div style="top: 112px; height: 28px; line-height: 28px"></xhtml:div>
+                      <xhtml:div style="top: 140px; height: 28px; line-height: 28px">
+                        <xhtml:div class="current-line" style="width: 20px"></xhtml:div>
+                      </xhtml:div>
+                      <xhtml:div style="top: 168px; height: 28px; line-height: 28px">
+                        <xhtml:div class="current-line" style="width: 20px"></xhtml:div>
+                      </xhtml:div>
+                    </xhtml:div>
+                    <xhtml:div class="glyph-margin-widgets" style="position: absolute; top: 0px"></xhtml:div>
+                  </xhtml:div>
+                  <xhtml:div
+                    class="monaco-scrollable-element editor-scrollable vs"
+                    role="presentation"
+                    data-mprt="6"
+                    style="position: absolute; overflow: hidden; left: 20px; height: 417px; width: 667px"
+                  >
+                    <xhtml:div
+                      class="lines-content monaco-editor-background"
+                      style="
+                                    position: absolute;
+                                    overflow: hidden;
+                                    width: 1.67772e7px;
+                                    height: 1.67772e7px;
+                                    transform: translate3d(0px, 0px, 0px);
+                                    contain: strict;
+                                    top: 0px;
+                                    left: 0px;
+                                "
+                    >
+                      <xhtml:div
+                        class="view-overlays"
+                        role="presentation"
+                        aria-hidden="true"
+                        style="
+                                        position: absolute;
+                                        font-family: 'Playfair Display', serif, Consolas, 'Courier New', monospace;
+                                        font-weight: normal;
+                                        font-size: 20px;
+                                        font-feature-settings: 'liga' 0, 'calt' 0;
+                                        font-variation-settings: normal;
+                                        line-height: 28px;
+                                        letter-spacing: 0px;
+                                        height: 0px;
+                                        width: 667px;
+                                    "
+                      >
+                        <xhtml:div style="top: 0px; height: 28px; line-height: 28px"></xhtml:div>
+                        <xhtml:div style="top: 28px; height: 28px; line-height: 28px"></xhtml:div>
+                        <xhtml:div style="top: 56px; height: 28px; line-height: 28px"></xhtml:div>
+                        <xhtml:div style="top: 84px; height: 28px; line-height: 28px"></xhtml:div>
+                        <xhtml:div style="top: 112px; height: 28px; line-height: 28px"></xhtml:div>
+                        <xhtml:div style="top: 140px; height: 28px; line-height: 28px"></xhtml:div>
+                        <xhtml:div style="top: 168px; height: 28px; line-height: 28px"></xhtml:div>
+                      </xhtml:div>
+                      <xhtml:div role="presentation" aria-hidden="true" class="view-rulers"></xhtml:div>
+                      <xhtml:div
+                        class="view-zones"
+                        role="presentation"
+                        aria-hidden="true"
+                        style="position: absolute"
+                      ></xhtml:div>
+                      <xhtml:div
+                        class="view-lines monaco-mouse-cursor-text"
+                        role="presentation"
+                        aria-hidden="true"
+                        data-mprt="8"
+                        style="
+                                        position: absolute;
+                                        font-family: 'Playfair Display', serif, Consolas, 'Courier New', monospace;
+                                        font-weight: normal;
+                                        font-size: 20px;
+                                        font-feature-settings: 'liga' 0, 'calt' 0;
+                                        font-variation-settings: normal;
+                                        line-height: 28px;
+                                        letter-spacing: 0px;
+                                        width: 667px;
+                                        height: 585px;
+                                    "
+                      >
+                        <xhtml:div style="top: 0px; height: 28px; line-height: 28px"
+                          class="view-line">
+                          <xhtml:span>
+                            <xhtml:span class="mtk24 mtkb mtku"
+                            >
+                              Paul&nbsp;Smith&nbsp;&amp;&nbsp;Associés</xhtml:span>
+                          </xhtml:span>
+                        </xhtml:div>
+                        <xhtml:div style="top: 28px; height: 28px; line-height: 28px"
+                          class="view-line">
+                          <xhtml:span>
+                            <xhtml:span></xhtml:span>
+                          </xhtml:span>
+                        </xhtml:div>
+                        <xhtml:div style="top: 56px; height: 28px; line-height: 28px"
+                          class="view-line">
+                          <xhtml:span>
+                            <xhtml:span class="mtk9 mtkb">PERSONA&nbsp;</xhtml:span>
+                            <xhtml:span class="mtk1"
+                            >You&nbsp;are&nbsp;a&nbsp;company&nbsp;lawyer.</xhtml:span>
+                          </xhtml:span>
+                        </xhtml:div>
+                        <xhtml:div style="top: 84px; height: 28px; line-height: 28px"
+                          class="view-line">
+                          <xhtml:span>
+                            <xhtml:span class="mtk1"
+                            >
+                              Your&nbsp;job&nbsp;is&nbsp;to&nbsp;provide&nbsp;legal&nbsp;advice&nbsp;and&nbsp;support&nbsp;to</xhtml:span>
+                            <xhtml:span class="mtk1">&nbsp;the&nbsp;</xhtml:span>
+                          </xhtml:span>
+                        </xhtml:div>
+                        <xhtml:div style="top: 112px; height: 28px; line-height: 28px"
+                          class="view-line">
+                          <xhtml:span>
+                            <xhtml:span class="mtk1">company&nbsp;and&nbsp;its&nbsp;employees.</xhtml:span>
+                          </xhtml:span>
+                        </xhtml:div>
+                        <xhtml:div style="top: 140px; height: 28px; line-height: 28px"
+                          class="view-line">
+                          <xhtml:span>
+                            <xhtml:span class="mtk1"
+                            >
+                              You&nbsp;are&nbsp;knowledgeable,&nbsp;professional,&nbsp;and&nbsp;</xhtml:span>
+                          </xhtml:span>
+                        </xhtml:div>
+                        <xhtml:div style="top: 168px; height: 28px; line-height: 28px"
+                          class="view-line">
+                          <xhtml:span>
+                            <xhtml:span class="mtk1">detail-oriented.</xhtml:span>
+                          </xhtml:span>
+                        </xhtml:div>
+                      </xhtml:div>
+                      <xhtml:div data-mprt="1" class="contentWidgets"
+                        style="position: absolute; top: 0px"></xhtml:div>
+                      <xhtml:div
+                        role="presentation"
+                        aria-hidden="true"
+                        class="cursors-layer cursor-line-style cursor-solid"
+                      >
+                        <xhtml:div
+                          class="cursor monaco-mouse-cursor-text"
+                          style="
+                                            height: 28px;
+                                            top: 168px;
+                                            left: 142px;
+                                            font-family: 'Playfair Display', serif, Consolas, 'Courier New', monospace;
+                                            font-weight: normal;
+                                            font-size: 20px;
+                                            font-feature-settings: 'liga' 0, 'calt' 0;
+                                            font-variation-settings: normal;
+                                            line-height: 28px;
+                                            letter-spacing: 0px;
+                                            display: block;
+                                            visibility: hidden;
+                                            padding-left: 0px;
+                                            width: 1.11111px;
+                                        "
+                        ></xhtml:div>
+                      </xhtml:div>
+                    </xhtml:div>
+                    <xhtml:div
+                      role="presentation"
+                      aria-hidden="true"
+                      class="invisible scrollbar horizontal"
+                      style="position: absolute; width: 662px; height: 0px; left: 0px; bottom: 0px"
+                    >
+                      <xhtml:div
+                        class="slider"
+                        style="
+                                        position: absolute;
+                                        top: 0px;
+                                        left: 0px;
+                                        height: 12px;
+                                        transform: translate3d(0px, 0px, 0px);
+                                        contain: strict;
+                                        width: 662px;
+                                    "
+                      ></xhtml:div>
+                    </xhtml:div>
+                    <canvas
+                      class="decorationsOverviewRuler"
+                      aria-hidden="true"
+                      width="4"
+                      height="375"
+                      style="
+                                    position: absolute;
+                                    transform: translate3d(0px, 0px, 0px);
+                                    contain: strict;
+                                    top: 0px;
+                                    right: 0px;
+                                    width: 5px;
+                                    height: 417px;
+                                    display: block;
+                                "
+                    ></canvas>
+                    <xhtml:div
+                      role="presentation"
+                      aria-hidden="true"
+                      class="invisible scrollbar vertical fade"
+                      style="position: absolute; width: 5px; height: 417px; right: 0px; top: 0px"
+                    >
+                      <xhtml:div
+                        class="slider"
+                        style="
+                                        position: absolute;
+                                        top: 0px;
+                                        left: 0px;
+                                        width: 5px;
+                                        transform: translate3d(0px, 0px, 0px);
+                                        contain: strict;
+                                        height: 297px;
+                                    "
+                      ></xhtml:div>
+                    </xhtml:div>
+                  </xhtml:div>
+                  <xhtml:div role="presentation" aria-hidden="true" style="width: 687px"></xhtml:div>
+                  <xhtml:div data-mprt="4" class="overlayWidgets" style="width: 687px">
+                    <xhtml:div
+                      class="sticky-widget"
+                      widgetid="editor.contrib.stickyScrollWidget"
+                      style="display: none; width: 682px; position: absolute; right: 50%; top: 0px"
+                    >
+                      <xhtml:div class="sticky-widget-line-numbers" role="none" style="width: 20px"></xhtml:div>
+                      <xhtml:div
+                        class="sticky-widget-lines-scrollable"
+                        style="--vscode-editorStickyScroll-scrollableWidth: 662px"
+                      >
+                        <xhtml:div class="sticky-widget-lines" role="list" style="left: 0px"></xhtml:div>
+                      </xhtml:div>
+                    </xhtml:div>
+                    <xhtml:div
+                      class="monaco-hover fade-in hidden"
+                      tabindex="0"
+                      role="tooltip"
+                      widgetid="editor.contrib.modesGlyphHoverWidget"
+                      style="position: absolute"
+                    >
+                      <xhtml:div
+                        class="monaco-scrollable-element"
+                        role="presentation"
+                        style="position: relative; overflow: hidden"
+                      >
+                        <xhtml:div class="monaco-hover-content" style="overflow: hidden"></xhtml:div>
+                        <xhtml:div
+                          role="presentation"
+                          aria-hidden="true"
+                          class="invisible scrollbar horizontal"
+                          style="position: absolute"
+                        >
+                          <xhtml:div
+                            class="slider"
+                            style="
+                                                position: absolute;
+                                                top: 0px;
+                                                left: 0px;
+                                                height: 10px;
+                                                transform: translate3d(0px, 0px, 0px);
+                                                contain: strict;
+                                            "
+                          ></xhtml:div>
+                        </xhtml:div>
+                        <xhtml:div
+                          role="presentation"
+                          aria-hidden="true"
+                          class="invisible scrollbar vertical"
+                          style="position: absolute"
+                        >
+                          <xhtml:div
+                            class="slider"
+                            style="
+                                                position: absolute;
+                                                top: 0px;
+                                                left: 0px;
+                                                width: 10px;
+                                                transform: translate3d(0px, 0px, 0px);
+                                                contain: strict;
+                                            "
+                          ></xhtml:div>
+                        </xhtml:div>
+                        <xhtml:div class="shadow"></xhtml:div>
+                        <xhtml:div class="shadow"></xhtml:div>
+                        <xhtml:div class="shadow"></xhtml:div>
+                      </xhtml:div>
+                    </xhtml:div>
+                  </xhtml:div>
+                  <xhtml:div
+                    data-mprt="9"
+                    class="minimap slider-mouseover"
+                    role="presentation"
+                    aria-hidden="true"
+                    style="position: absolute; left: 0px; width: 0px; height: 417px"
+                  >
+                    <xhtml:div class="minimap-shadow-hidden" style="height: 417px"></xhtml:div>
+                    <canvas
+                      width="0"
+                      height="375"
+                      style="position: absolute; left: 0px; width: 0px; height: 417px"
+                    ></canvas>
+                    <canvas
+                      class="minimap-decorations-layer"
+                      width="0"
+                      height="375"
+                      style="position: absolute; left: 0px; width: 0px; height: 417px"
+                    ></canvas>
+                    <xhtml:div
+                      class="minimap-slider"
+                      style="
+                                    position: absolute;
+                                    transform: translate3d(0px, 0px, 0px);
+                                    contain: strict;
+                                    width: 0px;
+                                "
+                    >
+                      <xhtml:div
+                        class="minimap-slider-horizontal"
+                        style="position: absolute; width: 0px; height: 0px"
+                      ></xhtml:div>
+                    </xhtml:div>
+                  </xhtml:div>
+                  <xhtml:div role="presentation" aria-hidden="true"
+                    class="blockDecorations-container"></xhtml:div>
+                </xhtml:div>
+                <xhtml:div data-mprt="2" class="overflowingContentWidgets">
+                  <xhtml:div
+                    class="monaco-resizable-hover"
+                    widgetid="editor.contrib.resizableContentHoverWidget"
+                    style="
+                                position: absolute;
+                                height: 36px;
+                                width: 150px;
+                                z-index: 50;
+                                display: none;
+                                visibility: hidden;
+                                max-width: 2133px;
+                            "
+                  >
+                    <xhtml:div class="monaco-sash vertical" style="left: 148px"></xhtml:div>
+                    <xhtml:div class="monaco-sash vertical" style="left: -2px"></xhtml:div>
+                    <xhtml:div class="monaco-sash orthogonal-edge-north horizontal"
+                      style="top: -2px">
+                      <xhtml:div class="orthogonal-drag-handle start"></xhtml:div>
+                      <xhtml:div class="orthogonal-drag-handle end"></xhtml:div>
+                    </xhtml:div>
+                    <xhtml:div class="monaco-sash orthogonal-edge-south horizontal"
+                      style="top: 34px">
+                      <xhtml:div class="orthogonal-drag-handle start"></xhtml:div>
+                      <xhtml:div class="orthogonal-drag-handle end"></xhtml:div>
+                    </xhtml:div>
+                    <xhtml:div class="monaco-hover fade-in hidden" tabindex="0" role="tooltip">
+                      <xhtml:div
+                        class="monaco-scrollable-element"
+                        role="presentation"
+                        style="position: relative; overflow: hidden"
+                      >
+                        <xhtml:div class="monaco-hover-content" style="overflow: hidden"></xhtml:div>
+                        <xhtml:div
+                          role="presentation"
+                          aria-hidden="true"
+                          class="invisible scrollbar horizontal"
+                          style="position: absolute"
+                        >
+                          <xhtml:div
+                            class="slider"
+                            style="
+                                                position: absolute;
+                                                top: 0px;
+                                                left: 0px;
+                                                height: 10px;
+                                                transform: translate3d(0px, 0px, 0px);
+                                                contain: strict;
+                                            "
+                          ></xhtml:div>
+                        </xhtml:div>
+                        <xhtml:div
+                          role="presentation"
+                          aria-hidden="true"
+                          class="invisible scrollbar vertical"
+                          style="position: absolute"
+                        >
+                          <xhtml:div
+                            class="slider"
+                            style="
+                                                position: absolute;
+                                                top: 0px;
+                                                left: 0px;
+                                                width: 10px;
+                                                transform: translate3d(0px, 0px, 0px);
+                                                contain: strict;
+                                            "
+                          ></xhtml:div>
+                        </xhtml:div>
+                        <xhtml:div class="shadow"></xhtml:div>
+                        <xhtml:div class="shadow"></xhtml:div>
+                        <xhtml:div class="shadow"></xhtml:div>
+                      </xhtml:div>
+                    </xhtml:div>
+                  </xhtml:div>
+                </xhtml:div>
+                <xhtml:div data-mprt="5" class="overflowingOverlayWidgets"></xhtml:div>
+              </xhtml:div>
+              <xhtml:div class="context-view" aria-hidden="true" style="display: none"></xhtml:div>
+            </xhtml:div>
+          </xhtml:section>
+        </xhtml:div>
+      </xhtml:div>
+
+
+      <!-- =============================== -->
+    </xhtml:body>
+  </foreignObject>
 </svg>
