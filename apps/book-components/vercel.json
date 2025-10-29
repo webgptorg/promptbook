@@ -1,0 +1,7 @@
+{
+    "functions": {
+        "*/**": {
+            "excludeFiles": "{.next,node_modules}/**"
+        }
+    }
+}
