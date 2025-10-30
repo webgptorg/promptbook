@@ -248,7 +248,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [ ]
 
-[✨✧] bar
+[✨✧] Openmoji ....
 
 -   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
