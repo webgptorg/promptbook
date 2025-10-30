@@ -65,14 +65,14 @@ export function $registeredLlmToolsMessage(): string_markdown {
     const metadata = all.map((metadata) => {
         const isMetadataAviailable = $llmToolsMetadataRegister
             .list()
-            .find(
+            .some(
                 ({ packageName, className }) =>
                     metadata.packageName === packageName && metadata.className === className,
             );
 
         const isInstalled = $llmToolsRegister
             .list()
-            .find(
+            .some(
                 ({ packageName, className }) =>
                     metadata.packageName === packageName && metadata.className === className,
             );
