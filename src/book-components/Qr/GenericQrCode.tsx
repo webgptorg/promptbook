@@ -10,7 +10,7 @@ type GenericQrCodeProps = {
  * @public exported from `@promptbook/components`
  */
 export function GenericQrCode({ value, size = 250, className }: GenericQrCodeProps) {
-    const { canvasRef } = useQrCode(value);
+    const { canvasRef } = useQrCode({ value });
 
     return (
         <div className={className}>
