@@ -2,7 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import type { CSSProperties } from 'react';
+import { CSSProperties, useState } from 'react';
 import type { Promisable } from 'type-fest';
 import { countLines } from '../../_packages/utils.index';
 import { DEFAULT_BOOK, type string_book } from '../../book-2.0/agent-source/string_book';
@@ -122,6 +122,26 @@ export type BookEditorProps = {
     readonly isAboutButtonShown?: boolean;
 
     /**
+     * If true, shows the fullscreen button in the action bar.
+     * By default, the fullscreen button is shown.
+     */
+    readonly isFullscreenButtonShown?: boolean;
+
+    /**
+     * Callback function to handle fullscreen button click.
+     * Note: This is for internal use between BookEditor and BookEditorMonaco
+     * @private
+     */
+    onFullscreenClick?(): void;
+
+    /**
+     * If true, the editor is in fullscreen mode.
+     * Note: This is for internal use between BookEditor and BookEditorMonaco
+     * @private
+     */
+    readonly isFullscreen?: boolean;
+
+    /**
      * If defined, the editor will be synced with other editors with the same sync configuration.
      */
     readonly sync?: {
@@ -157,8 +177,15 @@ export function BookEditor(props: BookEditorProps) {
         translations,
         isDownloadButtonShown = true,
         isAboutButtonShown = true,
+        isFullscreenButtonShown = true,
         sync,
     } = props;
+
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    const handleFullscreenToggle = () => {
+        setIsFullscreen(!isFullscreen);
+    };
 
     return (
         <div
@@ -168,6 +195,7 @@ export function BookEditor(props: BookEditorProps) {
                 isVerbose && styles.isVerbose,
                 styles.bookEditorWrapper,
                 isBorderRadiusDisabled && styles.isBorderRadiusDisabled,
+                isFullscreen && styles.fullscreen,
                 className,
             )}
             style={{
@@ -192,6 +220,9 @@ export function BookEditor(props: BookEditorProps) {
                 translations={translations}
                 isDownloadButtonShown={isDownloadButtonShown}
                 isAboutButtonShown={isAboutButtonShown}
+                isFullscreenButtonShown={isFullscreenButtonShown}
+                onFullscreenClick={handleFullscreenToggle}
+                isFullscreen={isFullscreen}
                 sync={sync}
                 zoom={zoom}
                 // <- Note: Not passing `className` here because it is already applied to the root <div/> above

@@ -1,11 +1,11 @@
 import { JSX } from 'react';
 
 /**
- * Renders an icon that represents the close action
+ * Renders an icon that represents the fullscreen action
  *
  * @private
  */
-export function CloseIcon(): JSX.Element {
+export function FullscreenIcon(): JSX.Element {
     return (
         <svg
             width="1em"
@@ -16,7 +16,7 @@ export function CloseIcon(): JSX.Element {
             aria-hidden="true"
         >
             <path
-                d="M18 6L6 18M6 6l12 12"
+                d="M15 3h6v6m-2-8L7 13m8-2v6h-6m-2 8L17 9"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"

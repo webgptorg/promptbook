@@ -11,13 +11,18 @@ import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
 import { Dropdown } from '../_common/Dropdown/Dropdown';
 import { Modal } from '../_common/Modal/Modal';
 import { AboutIcon } from '../icons/AboutIcon';
+import { CloseIcon } from '../icons/CloseIcon';
 import { DownloadIcon } from '../icons/DownloadIcon';
+import { FullscreenIcon } from '../icons/FullscreenIcon';
 import styles from './BookEditor.module.css';
 
 type BookEditorActionbarProps = {
     value: string | undefined;
     isDownloadButtonShown?: boolean;
     isAboutButtonShown?: boolean;
+    isFullscreenButtonShown?: boolean;
+    onFullscreenClick?: () => void;
+    isFullscreen?: boolean;
 };
 
 /**
@@ -25,7 +30,14 @@ type BookEditorActionbarProps = {
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorActionbar(props: BookEditorActionbarProps) {
-    const { value, isDownloadButtonShown, isAboutButtonShown } = props;
+    const {
+        value,
+        isDownloadButtonShown,
+        isAboutButtonShown,
+        isFullscreenButtonShown,
+        onFullscreenClick,
+        isFullscreen,
+    } = props;
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
     const handleDownload = () => {
@@ -49,6 +61,25 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
             name: 'About',
             onClick: () => setIsAboutModalOpen(true),
         });
+    }
+
+    if (isFullscreenButtonShown && onFullscreenClick) {
+        actions.push({
+            icon: <FullscreenIcon />,
+            name: 'Fullscreen',
+            onClick: onFullscreenClick,
+        });
+    }
+
+    if (isFullscreen) {
+        return (
+            <div className={styles.bookEditorActionbar}>
+                <button className={styles.button} onClick={onFullscreenClick}>
+                    <CloseIcon />
+                    <span>Close</span>
+                </button>
+            </div>
+        );
     }
 
     return (

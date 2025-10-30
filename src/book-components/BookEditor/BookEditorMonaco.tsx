@@ -38,6 +38,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
         onFileUpload,
         isDownloadButtonShown,
         isAboutButtonShown = true,
+        isFullscreenButtonShown = true,
+        onFullscreenClick,
+        isFullscreen,
         zoom = 1,
         // [🚱]> sync,
     } = props;
@@ -281,8 +284,17 @@ export function BookEditorMonaco(props: BookEditorProps) {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
         >
-            {(isDownloadButtonShown || isAboutButtonShown) && (
-                <BookEditorActionbar {...{ value, isDownloadButtonShown, isAboutButtonShown }} />
+            {(isDownloadButtonShown || isAboutButtonShown || isFullscreenButtonShown) && (
+                <BookEditorActionbar
+                    {...{
+                        value,
+                        isDownloadButtonShown,
+                        isAboutButtonShown,
+                        isFullscreenButtonShown,
+                        onFullscreenClick,
+                        isFullscreen,
+                    }}
+                />
             )}
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
             <Editor
