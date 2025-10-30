@@ -236,6 +236,18 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [ ]
 
+[✨✧] `BookEditor` have action bar, add "Fullscreen" button to it
+
+-   Add prop `BookEditor.isFullscreenButtonShown: boolean` which when `true` shows fullscreen button which makes the editor fullscreen
+-   By default `isFullscreenButtonShown` is `true`
+-   Keep the mechanism that 1 button is shown directly, 2 or more buttons are in dropdown menu
+-   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨✧] bar
 
 -   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
