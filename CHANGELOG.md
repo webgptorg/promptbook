@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   **New:** System for `BookTranspilers`.
 -   **New:** Created a new `MarkdownContent` component to handle markdown rendering, decoupling it from the `Chat` component.
 -   **Refactor:** The `Chat` component now uses the `MarkdownContent` component for rendering markdown.
 -   **Fix:** Fixed an issue where the cursor on an empty line in `BookEditorMonaco` was not aligned with the margin line.
