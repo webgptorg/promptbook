@@ -299,7 +299,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     minimap: { enabled: false },
                     lineNumbers: 'off',
                     fontSize: scaledFontSize,
-                    // TODO: [🚚] Allow to pass font family as prop
+                    // TODO: [🚚] Allow to pass font family as prop + Make the font asset hosted on Promptbook CDN side
                     fontFamily: `"Playfair Display", serif`,
                     // [🚚]> fontFamily: `"Bitcount Grid Single", system-ui`,
                     lineHeight: scaledLineHeight,
