@@ -20,10 +20,15 @@
 
 [ ]
 
-[✨🕘] qux
+[✨🕘] Add `PromptbookQrCode` component preview`
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `CHANGELOG.md`
+-   Look at folder `/book-components/src/components`
+-   Make preview for `<PromptbookQrCode/>` component `/src/book-components/Qr/PromptbookQrCode.tsx`
+-   Look how other previews are made
+    -   Make a preview component
+    -   Also a `component.json` file
+    -   Register it in `/book-components/src/components/ComponentPreview.tsx`
+-   Keep in mind DRY (Don't Repeat Yourself) principle
 
 ---
 
