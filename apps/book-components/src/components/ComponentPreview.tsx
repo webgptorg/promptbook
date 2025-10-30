@@ -26,6 +26,9 @@ const LlmChatPreview = dynamic(() => import('@/components/llm-chat/LlmChatPrevie
 const MockedChatPreview = dynamic(() => import('@/components/mocked-chat/MockedChatPreview'), {
     ssr: false,
 });
+const PromptbookQrCodePreview = dynamic(() => import('@/components/qr-code/PromptbookQrCodePreview'), {
+    ssr: false,
+});
 
 type ComponentPreviewProps = {
     componentId: string;
@@ -86,6 +89,13 @@ export default function ComponentPreview({ componentId }: ComponentPreviewProps)
                 return (
                     <div className="p-6">
                         <MockedChatPreview />
+                    </div>
+                );
+
+            case 'qr-code':
+                return (
+                    <div className="p-6">
+                        <PromptbookQrCodePreview />
                     </div>
                 );
 

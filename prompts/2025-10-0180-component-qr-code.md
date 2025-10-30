@@ -18,7 +18,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🕘] Add `PromptbookQrCode` component preview`
 
