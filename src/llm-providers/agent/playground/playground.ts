@@ -5,21 +5,15 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import * as $registrations from '../../../_packages/cli.index';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { book } from '../../../pipeline/book-notation';
 import type { ChatPrompt } from '../../../types/Prompt';
-import { just } from '../../../utils/organization/just';
+import { $sideEffect } from '../../../utils/organization/$sideEffect';
 import { $provideLlmToolsFromEnv } from '../../_common/register/$provideLlmToolsFromEnv';
-import { _AnthropicClaudeRegistration } from '../../anthropic-claude/register-constructor';
-import { _DeepseekRegistration } from '../../deepseek/register-constructor';
-import { _GoogleRegistration } from '../../google/register-constructor';
-import { _OpenAiRegistration } from '../../openai/register-constructor';
 import { createAgentLlmExecutionTools } from '../createAgentLlmExecutionTools';
 
-just(_OpenAiRegistration); // <- Note: Ensure OpenAI is registered
-just(_AnthropicClaudeRegistration); // <- Note: Ensure OpenAI is registered
-just(_GoogleRegistration); // <- Note: Ensure OpenAI is registered
-just(_DeepseekRegistration); // <- Note: Ensure OpenAI is registered
+$sideEffect($registrations); // <- Note: LLM Providers are registered by importing their registration files
 
 /**
  * Main function demonstrating AgentLlmExecutionTools usage
