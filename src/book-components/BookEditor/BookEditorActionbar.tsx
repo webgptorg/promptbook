@@ -11,8 +11,8 @@ import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
 import { Dropdown } from '../_common/Dropdown/Dropdown';
 import { Modal } from '../_common/Modal/Modal';
 import { AboutIcon } from '../icons/AboutIcon';
-import { CloseIcon } from '../icons/CloseIcon';
 import { DownloadIcon } from '../icons/DownloadIcon';
+import { ExitFullscreenIcon } from '../icons/ExitFullscreenIcon';
 import { FullscreenIcon } from '../icons/FullscreenIcon';
 import styles from './BookEditor.module.css';
 
@@ -75,8 +75,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
         return (
             <div className={styles.bookEditorActionbar}>
                 <button className={styles.button} onClick={onFullscreenClick}>
-                    <CloseIcon />
-                    <span>Close</span>
+                    <ExitFullscreenIcon />
                 </button>
             </div>
         );
