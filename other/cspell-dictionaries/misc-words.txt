@@ -419,3 +419,4 @@ katex
 actionbar
 ydoc
 ytext
+qrcode

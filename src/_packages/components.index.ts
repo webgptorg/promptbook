@@ -56,6 +56,9 @@ import { ResetIcon } from '../book-components/icons/ResetIcon';
 import { SaveIcon } from '../book-components/icons/SaveIcon';
 import { SendIcon } from '../book-components/icons/SendIcon';
 import { TemplateIcon } from '../book-components/icons/TemplateIcon';
+import { BrandedQrCode } from '../book-components/Qr/BrandedQrCode';
+import { GenericQrCode } from '../book-components/Qr/GenericQrCode';
+import { PromptbookQrCode } from '../book-components/Qr/PromptbookQrCode';
 import { injectCssModuleIntoShadowRoot } from '../utils/misc/injectCssModuleIntoShadowRoot';
 
 
@@ -116,4 +119,7 @@ export { ResetIcon };
 export { SaveIcon };
 export { SendIcon };
 export { TemplateIcon };
+export { BrandedQrCode };
+export { GenericQrCode };
+export { PromptbookQrCode };
 export { injectCssModuleIntoShadowRoot };

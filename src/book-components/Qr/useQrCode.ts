@@ -1,6 +1,11 @@
-import { useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
+import { useEffect, useRef } from 'react';
 
+/**
+ *
+ *
+ * @private utility of QR code components
+ */
 export function useQrCode(value: string | number, logoSrc?: string) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
