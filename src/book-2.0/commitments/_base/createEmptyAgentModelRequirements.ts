@@ -10,7 +10,8 @@ import type { AgentModelRequirements } from '../../agent-source/AgentModelRequir
 export function createEmptyAgentModelRequirements(): AgentModelRequirements {
     return {
         systemMessage: '',
-        modelName: 'gpt-5',
+        // modelName: 'gpt-5',
+        modelName: 'gemini-2.5-flash', // <- TODO: !!!! Pick best model in agents NOT the default one
         temperature: 0.7,
         topP: 0.9,
         topK: 50,
