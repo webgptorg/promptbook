@@ -11,7 +11,7 @@ export function createEmptyAgentModelRequirements(): AgentModelRequirements {
     return {
         systemMessage: '',
         // modelName: 'gpt-5',
-        modelName: 'gemini-2.5-flash', // <- TODO: !!!! Pick best model in agents NOT the default one
+        modelName: 'gemini-2.5-flash-lite', // <- TODO: !!!! Pick best model in agents NOT the default one
         temperature: 0.7,
         topP: 0.9,
         topK: 50,
