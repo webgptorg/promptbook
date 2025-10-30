@@ -1,6 +1,6 @@
-import type { ExecutionTools } from '../execution/ExecutionTools';
-import type { string_name, string_title } from '../types/typeAliases';
-import type { Registered } from '../utils/misc/$Register';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { string_name, string_title } from '../../types/typeAliases';
+import type { Registered } from '../../utils/misc/$Register';
 import type { BookTranspiler } from './BookTranspiler';
 
 /**

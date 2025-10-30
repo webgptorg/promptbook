@@ -1,4 +1,4 @@
-import { $Register } from '../../utils/misc/$Register';
+import { $Register } from '../../../utils/misc/$Register';
 import type { BookTranspilerDefinition } from '../BookTranspilerDefinition';
 
 /**

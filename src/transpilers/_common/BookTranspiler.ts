@@ -2,8 +2,6 @@ import type { BookTranspilerOptions } from './BookTranspilerOptions';
 
 /**
  * Transpiler takes a book and transpiles it into another format.
- *
- * @see https://github.com/webgptorg/promptbook/issues/249
  */
 export type BookTranspiler =
     /**
