@@ -101,7 +101,7 @@
     },
     "dependencies": {
         "@anthropic-ai/sdk": "0.26.1",
-        "bottleneck": "^2.19.5",
+        "bottleneck": "2.19.5",
         "colors": "1.4.0",
         "crypto": "1.0.1",
         "socket.io-client": "4.7.2",

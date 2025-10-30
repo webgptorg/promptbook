@@ -102,7 +102,7 @@
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "express": "4.21.2",
-        "express-openapi-validator": "^5.4.9",
+        "express-openapi-validator": "5.4.9",
         "papaparse": "5.4.1",
         "react": "18.2.0",
         "rxjs": "7.8.1",

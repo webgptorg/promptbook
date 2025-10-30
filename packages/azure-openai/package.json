@@ -109,7 +109,7 @@
     },
     "dependencies": {
         "@azure/openai": "1.0.0-beta.12",
-        "bottleneck": "^2.19.5",
+        "bottleneck": "2.19.5",
         "colors": "1.4.0",
         "crypto": "1.0.1",
         "spacetrim": "0.11.59"

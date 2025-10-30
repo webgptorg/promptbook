@@ -24,6 +24,7 @@ import type { string_chat_format_name } from '../book-components/Chat/save/_comm
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
+import type { QrCodeOptions } from '../book-components/Qr/useQrCode';
 import type { PipelineCollection } from '../collection/PipelineCollection';
 import type { Command } from '../commands/_common/types/Command';
 import type { CommandParser } from '../commands/_common/types/CommandParser';
@@ -359,6 +360,7 @@ export type { string_chat_format_name };
 export type { ChatMessage };
 export type { ChatParticipant };
 export type { MessageButton };
+export type { QrCodeOptions };
 export type { PipelineCollection };
 export type { Command };
 export type { CommandParser };
