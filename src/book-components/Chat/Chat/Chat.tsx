@@ -580,7 +580,7 @@ export function Chat(props: ChatProps) {
                                                 onClick={() => removeUploadedFile(uploadedFile.id)}
                                                 title="Remove file"
                                             >
-                                                <CloseIcon size={12} />
+                                                <CloseIcon /* !!! size={12}*/ />
                                             </button>
                                         </div>
                                     ))}
