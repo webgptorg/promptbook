@@ -121,7 +121,6 @@ TODO: [🧠] `@promptbook/components` vs `@promptbook/ui`, which name is better?
 
 -   `BookEditor` - Main book editor component with syntax highlighting
 -   `BookEditorProps` - Props interface for BookEditor (type)
--   `DEFAULT_BOOK_FONT_CLASS` - Default font class for book editor
 
 ### Chat Components
 
