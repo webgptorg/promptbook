@@ -191,24 +191,30 @@ function renderMarkdown(markdown: string_markdown): string_html {
     }
 }
 
+type MarkdownContentProps = {
+    content: string_markdown;
+
+    className?: string;
+};
+
 /**
  * Renders markdown content with support for code highlighting, math, and tables.
  *
  * @public exported from `@promptbook/components`
  */
-export function MarkdownContent({ content }: { content: string_markdown }) {
+export function MarkdownContent(props: MarkdownContentProps) {
+    const { content, className } = props;
     const htmlContent = useMemo(() => renderMarkdown(content), [content]);
 
     return (
         <div
+            className={className}
             dangerouslySetInnerHTML={{
                 __html: htmlContent,
             }}
         />
     );
 }
-
-
 
 /**
  * TODO: !!! Split into multiple files
