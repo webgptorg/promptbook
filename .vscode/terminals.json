@@ -389,23 +389,6 @@
             "focus": true
         },
         {
-            "name": "🔪👨🏽‍💻🔠 Force reinstall of node modules in Book Components Server (and run)",
-            "commands": [
-                "cd ./apps/book-components/",
-                "(npx kill-port 4022 || true)",
-                "rm -f ./package-lock.json",
-                "rm -rf ./node_modules",
-                "rm -rf ./next",
-                "npm cache clean",
-                "npm install",
-                "npm ci",
-                "npm run dev"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
             "name": "🍴🔍 Git list unmerged changes",
             "commands": ["git branch --no-merged main"],
             "execute": true,
