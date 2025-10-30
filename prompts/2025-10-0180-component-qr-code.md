@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🕘] Bring QR code into the project, take the logic from external project (`webgptorg/promptbook-studio`) where its already implemented
 
