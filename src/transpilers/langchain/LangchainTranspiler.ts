@@ -9,6 +9,8 @@ import type { BookTranspilerDefinition } from '../_common/BookTranspilerDefiniti
 
 /**
  * Transpiler to Python code using LangChain library.
+ *
+ * @private TODO: !!!! Which package should export this?
  */
 export const LangchainTranspiler: BookTranspilerDefinition = {
     name: 'langchain',
@@ -76,7 +78,7 @@ function transpileTemplate(template: TaskJson, pipeline: PipelineJson): string {
                         ("human", ${interpolatedContent})
                     ])
                     chain = prompt | chat
-                    return chain.invoke({${parameterNames.map(name => `'${name}': ${name}`).join(', ')}})
+                    return chain.invoke({${parameterNames.map((name) => `'${name}': ${name}`).join(', ')}})
             `,
         );
     } else {
