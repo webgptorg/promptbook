@@ -32,6 +32,7 @@
 
 -   This transpiler will transpile the book into langchain code in Python
 -   Transpilers are in `/src/transpilers`
+-   Look how other transpilers are implemented, for example `/src/transpilers/openai`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
