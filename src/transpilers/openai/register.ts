@@ -13,3 +13,7 @@ import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
  * TODO: !!!! Which package should export this?
  */
 export const _OpenAiSdkTranspilerRegistration: Registration = $bookTranspilersRegister.register(OpenAiSdkTranspiler);
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
