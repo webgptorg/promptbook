@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   **New:** `LangchainTranspiler` to transpile the book into Python code using LangChain.
 -   **New:** `OpenAiSdkTranspiler` to transpile the book into Javascript code using OpenAI SDK.
 -   **New:** Add `showIntermediateMessages` prop to `delayConfig` of `MockedChat` to allow showing the first N messages immediately.
 -   **New:** System for `BookTranspilers`.
