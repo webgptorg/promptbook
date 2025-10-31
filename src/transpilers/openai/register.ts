@@ -2,7 +2,6 @@ import { Registration } from '../../_packages/types.index';
 import { $bookTranspilersRegister } from '../_common/register/$bookTranspilersRegister';
 import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
 
-
 /**
  * Registration of LLM provider
  *
@@ -10,9 +9,7 @@ import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
  *
  * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
- * 
+ *
  * TODO: !!!! Which package should export this?
  */
-export const _OllamaRegistration: Registration = $bookTranspilersRegister.register(OpenAiSdkTranspiler);
-
-
+export const _OpenAiSdkTranspilerRegistration: Registration = $bookTranspilersRegister.register(OpenAiSdkTranspiler);
