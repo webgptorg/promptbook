@@ -34,6 +34,7 @@ import { _PdfScraperMetadataRegistration } from '../scrapers/pdf/register-metada
 import { _WebsiteScraperRegistration } from '../scrapers/website/register-constructor';
 import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/register-metadata';
 import { _LangchainTranspilerRegistration } from '../transpilers/langchain/register';
+import { _OpenAiSdkTranspilerRegistration } from '../transpilers/openai/register';
 
 
 // Note: Exporting version from each package
@@ -73,3 +74,4 @@ export { _PdfScraperMetadataRegistration };
 export { _WebsiteScraperRegistration };
 export { _WebsiteScraperMetadataRegistration };
 export { _LangchainTranspilerRegistration };
+export { _OpenAiSdkTranspilerRegistration };

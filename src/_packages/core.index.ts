@@ -174,6 +174,7 @@ import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/registe
 import { BlackholeStorage } from '../storage/blackhole/BlackholeStorage';
 import { MemoryStorage } from '../storage/memory/MemoryStorage';
 import { PrefixStorage } from '../storage/utils/PrefixStorage';
+import { $bookTranspilersRegister } from '../transpilers/_common/register/$bookTranspilersRegister';
 import { MODEL_VARIANTS } from '../types/ModelVariant';
 import { NonTaskSectionTypes } from '../types/SectionType';
 import { SectionTypes } from '../types/SectionType';
@@ -358,6 +359,7 @@ export { _WebsiteScraperMetadataRegistration };
 export { BlackholeStorage };
 export { MemoryStorage };
 export { PrefixStorage };
+export { $bookTranspilersRegister };
 export { MODEL_VARIANTS };
 export { NonTaskSectionTypes };
 export { SectionTypes };
