@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+-   **New:** Add `showIntermediateMessages` prop to `delayConfig` of `MockedChat` to allow showing the first N messages immediately.
 -   **New:** System for `BookTranspilers`.
 -   **New:** Created a new `MarkdownContent` component to handle markdown rendering, decoupling it from the `Chat` component.
 -   **Refactor:** The `Chat` component now uses the `MarkdownContent` component for rendering markdown.

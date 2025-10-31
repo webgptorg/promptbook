@@ -12,7 +12,10 @@ export default function MockedChatPreview() {
     const PREDEFINED_CONFIG_NAMES = Object.keys(MOCKED_CHAT_DELAY_CONFIGS);
 
     const [selectedConfigName, setSelectedConfigName] = useState<string>('NORMAL_FLOW');
-    const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({ ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW });
+    const [delayConfig, setDelayConfig] = useState<MockedChatDelayConfig>({
+        ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW,
+        showIntermediateMessages: 2,
+    });
 
     function handleSelectConfig(e: React.ChangeEvent<HTMLSelectElement>) {
         const configName = e.target.value;
@@ -293,6 +296,20 @@ export default function MockedChatPreview() {
                                     ],
                                 }))
                             }
+                            className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Show Intermediate Messages
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="1"
+                            value={delayConfig.showIntermediateMessages ?? 0}
+                            onChange={(e) => handleDelayChange('showIntermediateMessages', parseInt(e.target.value))}
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
                         />
                     </div>

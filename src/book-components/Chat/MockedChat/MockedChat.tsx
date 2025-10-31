@@ -58,6 +58,12 @@ export type MockedChatDelayConfig = {
      * If true, disables typing effect and shows full message at once (BLOCKY_FLOW)
      */
     blocky?: boolean;
+
+    /**
+     * This prop will allow to show N first messages immediately, while the rest will be typed out with delays
+     * @default 0
+     */
+    showIntermediateMessages?: number;
 };
 
 /**
@@ -189,11 +195,17 @@ export function MockedChat(props: MockedChatProps) {
                 return;
             }
 
+            // Show intermediate messages immediately
+            const showIntermediateMessages = delays.showIntermediateMessages || 0;
+            if (showIntermediateMessages > 0) {
+                setDisplayedMessages(originalMessages.slice(0, showIntermediateMessages));
+            }
+
             // Wait before first message (randomized)
             await forTime(getDelay(delays.beforeFirstMessage, 1000));
             if (isCancelled) return;
 
-            for (let i = 0; i < originalMessages.length; i++) {
+            for (let i = showIntermediateMessages; i < originalMessages.length; i++) {
                 // If a pause was requested earlier, we only pause between messages
                 if (pauseRequestedRef.current) {
                     await waitIfPaused(() => isCancelled);
