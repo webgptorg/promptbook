@@ -316,7 +316,7 @@ export default function MockedChatPreview() {
                 isFocusedOnLoad={false}
                 isSaveButtonEnabled={false}
                 isCopyButtonEnabled={false}
-                isResettable={false}
+                isResettable={true}
                 isPausable={false}
             />
 

@@ -17,8 +17,10 @@
 
 [ ]
 
-[✨🌱] bar
+[✨🌱] Create `OpenAiSdkTranspiler`
 
+-   This transpiler will transpile the book into Javascript code using OpenAI SDK
+-   Transpilers are in `/src/transpilers`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
@@ -26,8 +28,10 @@
 
 [ ]
 
-[✨🌱] bar
+[✨🌱] Create `LangchainTranspiler`
 
+-   This transpiler will transpile the book into langchain code in Python
+-   Transpilers are in `/src/transpilers`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
 
