@@ -308,14 +308,16 @@ export default function MockedChatPreview() {
 
             <MockedChat
                 title="Mocked Chat"
-                isResettable
                 style={{ height: '500px' }}
                 messages={messages}
                 participants={participants}
                 delayConfig={delayConfig}
                 placeholderMessageContent="" // <- Note: No `placeholderMessageContent` to keep it clean
                 isFocusedOnLoad={false}
-                isSaveButtonEnabled={true}
+                isSaveButtonEnabled={false}
+                isCopyButtonEnabled={false}
+                isResettable={false}
+                isPausable={false}
             />
 
             <div className="text-sm text-gray-600">

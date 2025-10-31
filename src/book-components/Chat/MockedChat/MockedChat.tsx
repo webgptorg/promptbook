@@ -101,7 +101,14 @@ export type MockedChatProps = Omit<
  * @public exported from `@promptbook/components`
  */
 export function MockedChat(props: MockedChatProps) {
-    const { isResettable = true, delayConfig, messages: originalMessages, isPausable = true, ...chatProps } = props;
+    const {
+        delayConfig,
+        messages: originalMessages,
+        isResettable = true,
+        isPausable = true,
+        isSaveButtonEnabled = true,
+        ...chatProps
+    } = props;
 
     // Helper to get random delay from config
     function getDelay(val: number | [number, number] | undefined, fallback: number): number {
@@ -368,10 +375,10 @@ export function MockedChat(props: MockedChatProps) {
     return (
         <Chat
             {...chatProps}
-            onReset={onReset}
+            onReset={isResettable ? onReset : undefined}
             messages={displayedMessages}
             extraActions={extraActions}
-            isSaveButtonEnabled={true}
+            isSaveButtonEnabled={isSaveButtonEnabled}
             saveFormats={['json', 'md', 'txt', 'html']}
             // Disable input during simulation unless explicitly completed
             onMessage={isSimulationComplete && chatProps.onMessage ? chatProps.onMessage : undefined}
