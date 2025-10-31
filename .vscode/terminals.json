@@ -60,7 +60,7 @@
             "focus": false
         },
         {
-            "name": "🧪🧪 Test all",
+            "name": "🧪🧪 Test all (⏳)",
             "commands": ["npm run test"],
             "execute": false,
             "onlySingle": false,
@@ -364,7 +364,7 @@
         },
 
         {
-            "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸) [🍠]",
+            "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸)[🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
@@ -375,14 +375,14 @@
         },
 
         {
-            "name": "📖 Make Promptbook collection (💸) [🍠]",
+            "name": "📖 Make Promptbook collection (💸)(+commit)[🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔪👨🏽‍💻 Force reinstall of node modules",
+            "name": "🔪👨🏽‍💻 Force reinstall of node modules (⏳)",
             "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
             "execute": true,
             "onlySingle": true,
@@ -422,57 +422,64 @@
             "focus": true
         },
         {
-            "name": "🍴⏫ Git push all branches",
+            "name": "🍴⏫ Git push all branches (⏳)",
             "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🍴⏬ Git pull all branches",
+            "name": "🍴⏬ Git pull all branches (⏳)",
             "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼🆚 Use current version of Promptbook in all Projects / install ptbk",
+            "name": "🔼🆚 Use current version of Promptbook in all Projects / install ptbk (⏳)",
             "command": "npm run use-packages",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼🚀 Release minor version (💸)",
+            "name": "🏭🩹 Prettify all files (+commit)(⏳)",
+            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🔼 Patch dependencies (+commit)(⏳)",
+            "command": "npm run patch-dependencies-commit",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🚀 Release minor version (💸)(⏳)",
             "command": "npm version minor",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼🧪 Release pre-minor version (💸)",
+            "name": "🔼🧪 Release pre-minor version (💸)(⏳)",
             "command": "npm version preminor",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼🧪 Release pre-release version (💸)",
+            "name": "🔼🧪 Release pre-release version (💸)(⏳)",
             "command": "npm version prerelease",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🔼🩹 Release patch version (💸)",
+            "name": "🔼🩹 Release patch version (💸)(⏳)",
             "command": "npm version patch",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🏭🩹 Prettify all files",
-            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts",
-            "execute": true,
             "onlySingle": true,
             "focus": true
         }
