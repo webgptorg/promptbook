@@ -530,87 +530,91 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     // ==============================
     console.info(colors.cyan(`6️⃣  Test that nothing what should not be published is published`));
 
-    for (const packageMetadata of packagesMetadata) {
-        const { packageBasename, packageFullname } = packageMetadata;
-        const bundleFileNames = await glob(`./packages/${packageBasename}/**/*`, { nodir: true });
+    if (isBundlerSkipped) {
+        console.info(colors.yellow(`Skipping the bundler, skipping the tests for bundle content`));
+    } else {
+        for (const packageMetadata of packagesMetadata) {
+            const { packageBasename, packageFullname } = packageMetadata;
+            const bundleFileNames = await glob(`./packages/${packageBasename}/**/*`, { nodir: true });
 
-        for (const bundleFileName of bundleFileNames) {
-            if (bundleFileName.includes('/typings/')) {
-                // <- TODO: Maybe exclude "typings" directly in glob
-                continue;
-            }
+            for (const bundleFileName of bundleFileNames) {
+                if (bundleFileName.includes('/typings/')) {
+                    // <- TODO: Maybe exclude "typings" directly in glob
+                    continue;
+                }
 
-            const bundleFileContent = await readFile(bundleFileName, 'utf-8');
+                const bundleFileContent = await readFile(bundleFileName, 'utf-8');
 
-            if (bundleFileContent.includes('[⚫]')) {
-                throw new Error(
-                    spaceTrim(`
-                        Things marked with [⚫] should never be never released in the bundle
+                if (bundleFileContent.includes('[⚫]')) {
+                    throw new Error(
+                        spaceTrim(`
+                            Things marked with [⚫] should never be never released in the bundle
 
-                        ${bundleFileName}
-                    `),
-                );
-            }
+                            ${bundleFileName}
+                        `),
+                    );
+                }
 
-            if (bundleFileContent.includes('[⚪]')) {
-                throw new Error(
-                    spaceTrim(`
-                        Things marked with [⚪] should never be in a released package.
+                if (bundleFileContent.includes('[⚪]')) {
+                    throw new Error(
+                        spaceTrim(`
+                            Things marked with [⚪] should never be in a released package.
 
-                        ${bundleFileName}
-                    `),
-                );
-            }
+                            ${bundleFileName}
+                        `),
+                    );
+                }
 
-            if (packageFullname !== '@promptbook/cli' && bundleFileContent.includes('[🟡]')) {
-                throw new Error(
-                    spaceTrim(`
-                        Things marked with [🟡] should never be never released out of @promptbook/cli
+                if (packageFullname !== '@promptbook/cli' && bundleFileContent.includes('[🟡]')) {
+                    throw new Error(
+                        spaceTrim(`
+                            Things marked with [🟡] should never be never released out of @promptbook/cli
 
-                        ${bundleFileName}
-                    `),
-                );
-            }
+                            ${bundleFileName}
+                        `),
+                    );
+                }
 
-            if (
-                // Note: Packages for Node.js only:
-                packageFullname !== '@promptbook/node' &&
-                packageFullname !== '@promptbook/cli' &&
-                packageFullname !== '@promptbook/wizard' &&
-                packageFullname !== '@promptbook/remote-server' &&
-                packageFullname !== '@promptbook/documents' &&
-                packageFullname !== '@promptbook/legacy-documents' &&
-                packageFullname !== '@promptbook/website-crawler' &&
-                packageFullname !== '@promptbook/markitdown' &&
-                packageFullname !== '@promptbook/pdf' &&
-                // <- Note: [➕] When making new package, list it here when this package is for node environment
-                bundleFileContent.includes('[🟢]')
-            ) {
-                throw new Error(
-                    spaceTrim(`
+                if (
+                    // Note: Packages for Node.js only:
+                    packageFullname !== '@promptbook/node' &&
+                    packageFullname !== '@promptbook/cli' &&
+                    packageFullname !== '@promptbook/wizard' &&
+                    packageFullname !== '@promptbook/remote-server' &&
+                    packageFullname !== '@promptbook/documents' &&
+                    packageFullname !== '@promptbook/legacy-documents' &&
+                    packageFullname !== '@promptbook/website-crawler' &&
+                    packageFullname !== '@promptbook/markitdown' &&
+                    packageFullname !== '@promptbook/pdf' &&
+                    // <- Note: [➕] When making new package, list it here when this package is for node environment
+                    bundleFileContent.includes('[🟢]')
+                ) {
+                    throw new Error(
+                        spaceTrim(`
                         Things marked with [🟢] should never be never released in packages that could be imported into browser environment
 
                         ${bundleFileName}
                     `),
-                );
-            }
+                    );
+                }
 
-            if (
-                packageFullname !== '@promptbook/browser' &&
-                packageFullname !== '@promptbook/components' &&
-                // <- Note: [➕] When making new package, list it here when this package is for browser environment
-                bundleFileContent.includes('[🔵]')
-            ) {
-                throw new Error(
-                    spaceTrim(`
+                if (
+                    packageFullname !== '@promptbook/browser' &&
+                    packageFullname !== '@promptbook/components' &&
+                    // <- Note: [➕] When making new package, list it here when this package is for browser environment
+                    bundleFileContent.includes('[🔵]')
+                ) {
+                    throw new Error(
+                        spaceTrim(`
                         Things marked with [🔵] should never be never released out of @promptbook/browser
 
                         ${bundleFileName}
                     `),
-                );
-            }
+                    );
+                }
 
-            // console.info(colors.green(`Checked file ${bundleFileName}`));
+                // console.info(colors.green(`Checked file ${bundleFileName}`));
+            }
         }
     }
 
