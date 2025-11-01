@@ -229,7 +229,7 @@
     "devDependencies": {
         "@eslint/eslintrc": "3",
         "@rollup/plugin-json": "6.1.0",
-        "@rollup/plugin-typescript": "8.3.4",
+        "@rollup/plugin-typescript": "8.3.0",
         "@testing-library/react": "16.3.0",
         "@types/crypto-js": "4.2.2",
         "@types/express": "5.0.5",
