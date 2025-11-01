@@ -450,8 +450,8 @@
             "focus": true
         },
         {
-            "name": "🏭🔼 Patch dependencies (+commit)(⏳)",
-            "command": "npm run patch-dependencies-commit",
+            "name": "🏭🔼 Update and install patch dependencies (+commit)(⏳)",
+            "command": "npm run update-and-install-patch-dependencies-commit",
             "execute": true,
             "onlySingle": true,
             "focus": true
