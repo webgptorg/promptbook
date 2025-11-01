@@ -102,8 +102,8 @@
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "papaparse": "5.4.1",
-        "rxjs": "7.8.2",
-        "spacetrim": "0.11.60",
-        "waitasecond": "1.11.160"
+        "rxjs": "7.8.1",
+        "spacetrim": "0.11.59",
+        "waitasecond": "1.11.83"
     }
 }

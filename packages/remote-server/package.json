@@ -96,20 +96,5 @@
     "typings": "./esm/typings/src/_packages/remote-server.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.103.0-24"
-    },
-    "dependencies": {
-        "colors": "1.4.0",
-        "crypto": "1.0.1",
-        "crypto-js": "4.2.0",
-        "express": "4.21.2",
-        "express-openapi-validator": "5.4.9",
-        "papaparse": "5.4.1",
-        "react": "18.2.0",
-        "rxjs": "7.8.2",
-        "socket.io": "4.8.1",
-        "spacetrim": "0.11.60",
-        "swagger-ui-express": "5.0.1",
-        "userhome": "1.0.1",
-        "waitasecond": "1.11.160"
     }
 }

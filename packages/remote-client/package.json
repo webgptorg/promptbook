@@ -101,12 +101,5 @@
     "typings": "./esm/typings/src/_packages/remote-client.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.103.0-24"
-    },
-    "dependencies": {
-        "crypto": "1.0.1",
-        "crypto-js": "4.2.0",
-        "papaparse": "5.4.1",
-        "socket.io-client": "4.7.5",
-        "spacetrim": "0.11.60"
     }
 }
