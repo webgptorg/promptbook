@@ -71,6 +71,10 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
             continue;
         }
 
+        if (entity.filename.endsWith('.d.ts')) {
+            continue;
+        }
+
         const isGenerated = (entity.annotation || '').includes('@generated');
         const isPrivate = (entity.annotation || '').includes('@private');
         const isPublic = (entity.annotation || '').includes('@public');
