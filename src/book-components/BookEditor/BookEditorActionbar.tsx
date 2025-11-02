@@ -89,7 +89,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                 actions.map(({ icon, name, onClick }) => (
                     <button key={name} className={styles.button} onClick={onClick}>
                         {icon}
-                        <span>{name}</span>
+                        {/* <span>{name}</span> <- Note: Do not show text on single action */}
                     </button>
                 ))
             )}
