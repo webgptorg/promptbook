@@ -18,6 +18,8 @@ export type AboutPromptbookInformationOptions = {
  *
  * @param options Which information to include
  * @returns  Information about Promptbook in markdown format
+ *
+ * @public exported from `@promptbook/core`
  */
 export function aboutPromptbookInformation(options?: AboutPromptbookInformationOptions): string_markdown {
     const { isServersInfoIncluded = true } = options || {};

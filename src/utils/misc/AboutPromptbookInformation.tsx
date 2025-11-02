@@ -4,6 +4,11 @@ import { aboutPromptbookInformation } from './aboutPromptbookInformation';
 
 type AboutPromptbookInformationProps = AboutPromptbookInformationOptions;
 
+/**
+ * Provide information about Promptbook, engine version, book language version, servers, ...
+ *
+ * @public exported from `@promptbook/components`
+ */
 export function AboutPromptbookInformation(props: AboutPromptbookInformationProps) {
     return <MarkdownContent content={aboutPromptbookInformation(props)} />;
 }
