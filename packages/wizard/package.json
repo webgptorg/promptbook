@@ -96,5 +96,29 @@
     "typings": "./esm/typings/src/_packages/wizard.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.103.0-29"
+    },
+    "dependencies": {
+        "@ai-sdk/deepseek": "0.1.17",
+        "@ai-sdk/google": "1.0.17",
+        "@anthropic-ai/sdk": "0.26.1",
+        "@azure/openai": "1.0.0-beta.13",
+        "@mozilla/readability": "0.6.0",
+        "bottleneck": "2.19.5",
+        "colors": "1.4.0",
+        "crypto": "1.0.1",
+        "crypto-js": "4.2.0",
+        "dotenv": "16.3.2",
+        "jsdom": "25.0.1",
+        "jszip": "3.10.1",
+        "markitdown-ts": "0.0.5",
+        "openai": "4.63.0",
+        "papaparse": "5.4.1",
+        "rxjs": "7.8.2",
+        "showdown": "2.1.0",
+        "socket.io-client": "4.7.5",
+        "spacetrim": "0.11.60",
+        "type-fest": "4.5.0",
+        "userhome": "1.0.1",
+        "waitasecond": "1.11.160"
     }
 }
