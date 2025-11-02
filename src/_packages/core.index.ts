@@ -179,6 +179,7 @@ import { MODEL_VARIANTS } from '../types/ModelVariant';
 import { NonTaskSectionTypes } from '../types/SectionType';
 import { SectionTypes } from '../types/SectionType';
 import { TaskTypes } from '../types/TaskType';
+import { aboutPromptbookInformation } from '../utils/misc/aboutPromptbookInformation';
 import { REMOTE_SERVER_URLS } from '../../servers';
 
 
@@ -364,4 +365,5 @@ export { MODEL_VARIANTS };
 export { NonTaskSectionTypes };
 export { SectionTypes };
 export { TaskTypes };
+export { aboutPromptbookInformation };
 export { REMOTE_SERVER_URLS };

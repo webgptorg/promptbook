@@ -58,6 +58,7 @@ import { BrandedQrCode } from '../book-components/Qr/BrandedQrCode';
 import { GenericQrCode } from '../book-components/Qr/GenericQrCode';
 import { PromptbookQrCode } from '../book-components/Qr/PromptbookQrCode';
 import { injectCssModuleIntoShadowRoot } from '../utils/misc/injectCssModuleIntoShadowRoot';
+import { AboutPromptbookInformation } from '../utils/misc/xAboutPromptbookInformation';
 
 
 // Note: Exporting version from each package
@@ -119,3 +120,4 @@ export { BrandedQrCode };
 export { GenericQrCode };
 export { PromptbookQrCode };
 export { injectCssModuleIntoShadowRoot };
+export { AboutPromptbookInformation };
