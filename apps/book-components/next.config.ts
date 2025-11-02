@@ -4,26 +4,27 @@ import path from 'path';
 const nextConfig: NextConfig = {
     experimental: {
         externalDir: true,
-        outputFileTracingExcludes: {
-            '/*': [
-                // Note: Exclude all files from the root of the project
-                '../../src',
-                '../../apps/playground',
-                '../../book',
-                '../../books',
-                '../../design',
-                '../../documents',
-                '../../examples',
-                '../../home',
-                '../../other',
-                '../../packages',
-                '../../personas',
-                '../../prompts',
-                '../../public',
-                '../../scripts',
-                '../../servers',
-            ],
-        },
+    },
+
+    outputFileTracingExcludes: {
+        '/*': [
+            // Note: Exclude all files from the root of the project
+            '../../src',
+            '../../apps/playground',
+            '../../book',
+            '../../books',
+            '../../design',
+            '../../documents',
+            '../../examples',
+            '../../home',
+            '../../other',
+            '../../packages',
+            '../../personas',
+            '../../prompts',
+            '../../public',
+            '../../scripts',
+            '../../servers',
+        ],
     },
 
     turbopack: {
