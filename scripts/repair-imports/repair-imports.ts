@@ -170,7 +170,9 @@ async function repairImports({
         }, {} as Record<string, string[]>);
 
         console.info(colors.blue(`\n📋 Available entities:`));
-        console.info(colors.blue(allEntities.map(({ type, name }) => `   • ${type} ${name}`).join('\n')));
+        console.info(
+            allEntities.map(({ type, name }) => colors.gray(`   • ${type} `) + colors.blue(`${name}`)).join('\n'),
+        );
         console.info(colors.blue(`\n📋 Available entities ↑`));
 
         for (const [filePath, entities] of Object.entries(entitiesByFile)) {

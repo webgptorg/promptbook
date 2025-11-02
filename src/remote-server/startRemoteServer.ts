@@ -328,6 +328,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                         https://github.com/webgptorg/promptbook
                     `,
                 ),
+                // <- TODO: [🕋] Use here `aboutPromptbookInformation`
                 // <- TODO: [🗽] Unite branding and make single place for it
             );
         }
@@ -789,6 +790,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
+ * TODO: [🕋] Use here `aboutPromptbookInformation`
  * TODO: [🌡] Add CORS and security - probably via `helmet`
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`

@@ -15,12 +15,12 @@ import { $provideScrapersForNode } from '../../scrapers/_common/register/$provid
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
 import type { number_port, string_url } from '../../types/typeAliases';
 import { suffixUrl } from '../../utils/normalization/suffixUrl';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `start-server` command for Promptbook CLI utilities
@@ -166,6 +166,7 @@ export function $initializeStartServerCommand(program: Program): $side_effect {
 }
 
 /**
+ * TODO: [🕋] Use here `aboutPromptbookInformation`
  * Note: [💞] Ignore a discrepancy between file name and entity name
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */
