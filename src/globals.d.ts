@@ -14,4 +14,8 @@ declare module '*.png' {
     export const src: string; // <- TODO: string_url_image
 }
 
+declare module '*.stl' {
+    export const src: string; // <- TODO: string_url_image
+}
+
 // Note: When some module does not have types available, it is imported using `require`

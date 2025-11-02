@@ -1,10 +1,11 @@
 import jsonPlugin from '@rollup/plugin-json';
 import typescriptPlugin from '@rollup/plugin-typescript';
-import urlPlugin from '@rollup/plugin-url';
+// import urlPlugin from '@rollup/plugin-url'; // <- TODO: !!! Uninstall
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import postcss from 'rollup-plugin-postcss';
+import { importAsString } from 'rollup-plugin-string-import'; // <- TODO: !!! Use or uninstall
 import { visualizer } from 'rollup-plugin-visualizer';
 import { version } from './package.json';
 
@@ -37,11 +38,15 @@ export default function () {
                     preferConst: true,
                     compact: true,
                 }),
-                urlPlugin({
-                    include: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif'],
-                    limit: 0, // Always emit files (don't inline)
-                    fileName: '[dirname][name][extname]',
+                importAsString({
+                    include: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.stl'],
                 }),
+                // TODO: !!! Remove
+                // urlPlugin({
+                //     include: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif'],
+                //     limit: 0, // Always emit files (don't inline)
+                //     fileName: '[dirname][name][extname]',
+                // }),
             ];
 
             // External dependencies to reduce bundle size and prevent issues
