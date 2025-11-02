@@ -44,7 +44,7 @@ export default function () {
                 //}),
                 // TODO: !!! Use or remove:
                 urlPlugin({
-                    include: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif'],
+                    include: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.stl'],
                     limit: 8192, // <- Note: files under 8kb → base64 inline
                     emitFiles: true, // <- Note: Copy larger files to output dir
                     fileName: '[dirname][name][extname]',
