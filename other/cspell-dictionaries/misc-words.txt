@@ -422,3 +422,5 @@ ytext
 qrcode
 transpiles
 anouncement
+inkscape
+sodipodi
