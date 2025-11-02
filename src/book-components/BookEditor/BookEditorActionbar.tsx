@@ -7,7 +7,7 @@ import { useState } from 'react';
 // TODO: [🧠] Is there a better way to get the version?
 import { DEFAULT_BOOK, validateBook } from '../../_packages/core.index';
 import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
-import { AboutPromptbookInformation } from '../../utils/misc/AboutPromptbookInformation';
+import { AboutPromptbookInformation } from '../../utils/misc/xAboutPromptbookInformation';
 import { Dropdown } from '../_common/Dropdown/Dropdown';
 import { Modal } from '../_common/Modal/Modal';
 import { AboutIcon } from '../icons/AboutIcon';

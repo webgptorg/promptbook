@@ -14,5 +14,6 @@ export function AboutPromptbookInformation(props: AboutPromptbookInformationProp
 }
 
 /**
+ * TODO: !!! Remove "x" from filename
  * TODO: [🗽] Unite branding and make single place for it
  */
