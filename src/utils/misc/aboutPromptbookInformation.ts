@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { REMOTE_SERVER_URLS } from '../../../servers';
-import { CLAIM } from '../../config';
+import { CLAIM, NAME } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
@@ -29,12 +29,12 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
     const basicInfo = spaceTrim(
         `
 
-            # About Promptbook
+            # ${NAME}
 
-            > ${CLAIM}
+            ${CLAIM}
 
-            [Promptbook engine version \`${PROMPTBOOK_ENGINE_VERSION}\`](https://github.com/webgptorg/promptbook)
-            [Book language version \`${BOOK_LANGUAGE_VERSION}\`](https://github.com/webgptorg/book)
+            - [Promptbook engine version \`${PROMPTBOOK_ENGINE_VERSION}\`](https://github.com/webgptorg/promptbook)
+            - [Book language version \`${BOOK_LANGUAGE_VERSION}\`](https://github.com/webgptorg/book)
 
         `,
     );

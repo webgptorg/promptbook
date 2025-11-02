@@ -5,6 +5,8 @@ import katex from 'katex';
 import { useMemo } from 'react';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
+import { classNames } from '../../_common/react-utils/classNames';
+import styles from './MarkdownContent.module.css';
 
 /**
  * @@@
@@ -208,7 +210,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
 
     return (
         <div
-            className={className}
+            className={classNames(styles.MarkdownContent, className)}
             dangerouslySetInnerHTML={{
                 __html: htmlContent,
             }}

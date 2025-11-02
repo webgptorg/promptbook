@@ -1,0 +1,153 @@
+.MarkdownContent h1 {
+    font-size: 2em;
+}
+
+.MarkdownContent h2 {
+    font-size: 1.75em;
+}
+
+.MarkdownContent h3 {
+    font-size: 1.5em;
+}
+
+.MarkdownContent h4 {
+    font-size: 1.25em;
+}
+
+.MarkdownContent h5 {
+    font-size: 1.1em;
+}
+
+.MarkdownContent ul {
+    list-style: disc;
+    margin-left: 20px;
+}
+
+.MarkdownContent ol {
+    list-style: decimal;
+    margin-left: 20px;
+}
+
+.MarkdownContent img,
+.MarkdownContent pre,
+.MarkdownContent blockquote,
+.MarkdownContent table {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+.MarkdownContent pre {
+    display: block;
+    border: none;
+    box-shadow: none;
+    background: #000000ff;
+    font-size: inherit;
+    line-height: inherit;
+    color: #fff;
+    padding: 1em;
+}
+
+.MarkdownContent blockquote {
+    display: block;
+    border: none;
+    box-shadow: none;
+    background: #ffffffcc;
+    font-size: inherit;
+    line-height: inherit;
+    color: #000;
+    padding: 1em;
+}
+
+.MarkdownContent code {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: #cccccc55;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
+
+.MarkdownContent pre code {
+    background-color: #000000cc;
+    border-radius: 8px;
+}
+
+.MarkdownContent .chat-code-block {
+    background: #181c23;
+    color: #f8fafc;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: auto;
+    border-color: #23272f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    font-family: 'Fira Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+}
+.MarkdownContent .chat-code-block code {
+    background: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    white-space: pre;
+    word-break: break-word;
+    overflow-x: auto;
+    display: block;
+}
+.MarkdownContent table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 16px 0;
+    background: #f8fafc; /* Stronger light background for contrast */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    font-size: 14px;
+    color: #17223b; /* Dark text for contrast */
+}
+.MarkdownContent th,
+.MarkdownContent td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #d1dbe8;
+    text-align: left;
+    color: #17223b; /* Ensure strong text color for all cells */
+    background: none;
+}
+.MarkdownContent th {
+    background: linear-gradient(90deg, #eaf3fa 80%, #d1e3f8 100%);
+    font-weight: 700;
+    color: #17223b; /* Strong header text */
+    border-bottom: 2px solid #b5c7de;
+}
+.MarkdownContent tr:last-child td {
+    border-bottom: none;
+}
+.MarkdownContent tr:nth-child(even) td {
+    background: #eaf3fa;
+}
+.MarkdownContent tr:hover td {
+    background: #cbe0f7;
+    transition: background 0.2s;
+}
+.MarkdownContent table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.MarkdownContent th:first-child,
+.MarkdownContent td:first-child {
+    border-top-left-radius: 12px;
+}
+.MarkdownContent th:last-child,
+.MarkdownContent td:last-child {
+    border-top-right-radius: 12px;
+}
+
+/**
+ * TODO: [🌉] DRY Markdown primitives styling
+ */

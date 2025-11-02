@@ -100,11 +100,6 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                         setIsAboutModalOpen(false);
                     }}
                 >
-                    <h2>Promptbook Editor</h2>
-                    <p>
-                        This is an editor for the Promptbook.
-                        {/* TODO: [🧠] Some better description */}
-                    </p>
                     <AboutPromptbookInformation />
                 </Modal>
             )}
