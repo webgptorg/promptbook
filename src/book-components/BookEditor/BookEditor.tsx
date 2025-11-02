@@ -198,17 +198,21 @@ export function BookEditor(props: BookEditorProps) {
                 isFullscreen && styles.fullscreen,
                 className,
             )}
-            style={{
-                ...(style || {}),
-                ...(props.height === null
-                    ? {}
+            style={
+                isFullscreen
+                    ? style
                     : {
-                          height:
-                              typeof props.height === 'number'
-                                  ? `${props.height}px`
-                                  : props.height || `${DEFAULT_BOOK_EDITOR_HEIGHT}px`,
-                      }),
-            }}
+                          ...(style || {}),
+                          ...(props.height === null
+                              ? {}
+                              : {
+                                    height:
+                                        typeof props.height === 'number'
+                                            ? `${props.height}px`
+                                            : props.height || `${DEFAULT_BOOK_EDITOR_HEIGHT}px`,
+                                }),
+                      }
+            }
         >
             <BookEditorMonaco
                 value={agentSource || value}
