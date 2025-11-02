@@ -257,9 +257,11 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [ ]
 
-[✨✧] bar
+[✨✧] Book editor fullscreen mode should be true fullscreen
 
--   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
+-   When the editor is placed in some container, the fullscreen mode should cover the entire screen, not only the container
+-   Fullscreened editor be above entire page fixed on top, bottom, left and right border of screen / viewport above all other elements
+-   You are working on `/src/book-components/BookEditor/BookEditorActionbar.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
