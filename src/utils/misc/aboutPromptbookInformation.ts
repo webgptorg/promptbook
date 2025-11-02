@@ -3,6 +3,7 @@ import { REMOTE_SERVER_URLS } from '../../../servers';
 import { CLAIM, NAME } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import logoAsset from './logo-blue-white-256.png'; // <- TODO: !!! Remove
 
 export type AboutPromptbookInformationOptions = {
     /**
@@ -36,6 +37,11 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
             - [Promptbook engine version \`${PROMPTBOOK_ENGINE_VERSION}\`](https://github.com/webgptorg/promptbook)
             - [Book language version \`${BOOK_LANGUAGE_VERSION}\`](https://github.com/webgptorg/book)
 
+
+            **Logo in Markdown:**
+
+            ![Logo](${logoAsset.src})
+
         `,
     );
 
@@ -50,7 +56,7 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
                 ${block(
                     REMOTE_SERVER_URLS.map(
                         ({ title, urls, isAnonymousModeAllowed, description }, index) =>
-                            `${index + 1}) ${title} ${description}
+                            `${index + 1}. ${title} ${description}
                         ${isAnonymousModeAllowed ? '🐱‍💻 ' : ''} ${urls.join(', ')}
                     `,
                     ).join('\n'),

@@ -1,6 +1,7 @@
 import { MarkdownContent } from '../../book-components/Chat/MarkdownContent/MarkdownContent';
 import type { AboutPromptbookInformationOptions } from './aboutPromptbookInformation';
 import { aboutPromptbookInformation } from './aboutPromptbookInformation';
+import logoAsset from './logo-blue-white-256.png'; // <- TODO: !!! Remove
 
 type AboutPromptbookInformationProps = AboutPromptbookInformationOptions;
 
@@ -10,7 +11,13 @@ type AboutPromptbookInformationProps = AboutPromptbookInformationOptions;
  * @public exported from `@promptbook/components`
  */
 export function AboutPromptbookInformation(props: AboutPromptbookInformationProps) {
-    return <MarkdownContent content={aboutPromptbookInformation(props)} />;
+    return (
+        <>
+            <MarkdownContent content={aboutPromptbookInformation(props)} />
+            <b>Logo in React:</b>
+            <img src={logoAsset.src} alt="Logo" />
+        </>
+    );
 }
 
 /**
