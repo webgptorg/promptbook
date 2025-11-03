@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/azure-openai",
-    "version": "0.103.0-30",
+    "version": "0.103.0-31",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -105,7 +105,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/azure-openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-30"
+        "@promptbook/core": "0.103.0-31"
     },
     "dependencies": {
         "@azure/openai": "1.0.0-beta.13",
