@@ -29,7 +29,7 @@ playground()
     });
 
 async function playground() {
-    console.info(`🧸  Playground`);
+    console.info(`🧸  Error handling Playground`);
 
     // Do here stuff you want to test
     //========================================>

@@ -247,6 +247,23 @@
             "focus": true
         },
         {
+            "name": "🧸 Agent with browser playground (💸)",
+            "command": "npx ts-node ./src/playground/permanent/agent-with-browser-playground.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Transpilers playground (💸)",
+            "command": "npx ts-node ./src/playground/permanent/transpilers-playground.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "--note": "<- Note: [🎠] Add here new playgrounds"
+        },
+        {
             "name": "🧸 OpenAI playground (💸)",
             "command": "npx ts-node ./src/llm-providers/openai/playground/playground.ts",
             "execute": true,
@@ -282,7 +299,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Agent playground (💸)",
+            "name": "🧸 Agent LLM tools playground (💸)",
             "command": "npx ts-node ./src/llm-providers/agent/playground/playground.ts",
             "execute": true,
             "onlySingle": true,
@@ -373,7 +390,6 @@
             "onlySingle": true,
             "focus": true
         },
-
         {
             "name": "📖 Make Promptbook collection (💸)(+commit)[🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
