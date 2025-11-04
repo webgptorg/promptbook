@@ -1,5 +1,5 @@
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
-import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { TODO_any } from '../../_packages/types.index';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';

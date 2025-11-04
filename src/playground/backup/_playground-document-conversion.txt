@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'yoctocolors';
+import colors from 'colors';
 import { copyFile, rm } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename, join } from 'path';

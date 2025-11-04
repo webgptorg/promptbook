@@ -1,8 +1,8 @@
 import Bottleneck from 'bottleneck';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';

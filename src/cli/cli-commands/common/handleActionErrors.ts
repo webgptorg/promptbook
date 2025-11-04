@@ -1,7 +1,7 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import colors from 'yoctocolors';
 import { assertsError } from '../../../errors/assertsError';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 

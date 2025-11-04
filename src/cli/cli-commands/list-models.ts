@@ -1,8 +1,8 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
-import colors from 'yoctocolors';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
 import { $side_effect } from '../../utils/organization/$side_effect';
 import { $sideEffect } from '../../utils/organization/$sideEffect';

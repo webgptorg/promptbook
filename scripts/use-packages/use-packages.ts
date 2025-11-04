@@ -4,12 +4,12 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
+import colors from 'colors';
 import commander from 'commander';
 import fs, { readFile, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
-import colors from 'yoctocolors';
 import { LOOP_LIMIT } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';
 import { string_version_dependency } from '../../src/types/typeAliases';

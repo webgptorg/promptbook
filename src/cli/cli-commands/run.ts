@@ -1,3 +1,4 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -5,7 +6,6 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
-import colors from 'yoctocolors';
 import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { assertsError } from '../../errors/assertsError';

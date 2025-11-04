@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { Usage } from '../../../execution/Usage';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';

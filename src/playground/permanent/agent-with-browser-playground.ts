@@ -9,10 +9,10 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 // TODO: import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import colors from 'colors';
 import { locateChrome } from 'locate-app';
 import { join } from 'path';
 import { chromium } from 'playwright';
-import colors from 'yoctocolors';
 import { TODO_any } from '../../_packages/types.index';
 
 if (process.cwd() !== join(__dirname, '../../..')) {

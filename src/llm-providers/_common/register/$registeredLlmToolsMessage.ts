@@ -1,5 +1,5 @@
+import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import colors from 'yoctocolors';
 import type { string_filename, string_markdown, string_name } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { Registered } from '../../../utils/misc/$Register';

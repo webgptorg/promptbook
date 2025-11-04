@@ -4,9 +4,9 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { $provideExecutablesForNode } from '../../../executables/$provideExecutablesForNode';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';

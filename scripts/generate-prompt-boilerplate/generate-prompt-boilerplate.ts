@@ -4,11 +4,11 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
+import colors from 'colors';
 import { writeFileSync } from 'fs';
 import glob from 'glob-promise';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import colors from 'yoctocolors';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from '../find-fresh-emoji-tag/utils/$shuffleItems';

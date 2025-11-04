@@ -1,9 +1,9 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import colors from 'yoctocolors';
 import { $side_effect } from '../../utils/organization/$side_effect';
 import { handleActionErrors } from './common/handleActionErrors';
 

@@ -1,8 +1,8 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
-import colors from 'yoctocolors';
 import { CLAIM } from '../../config';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';

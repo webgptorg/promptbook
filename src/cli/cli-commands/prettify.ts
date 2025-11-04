@@ -1,3 +1,4 @@
+import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -5,7 +6,6 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
-import colors from 'yoctocolors';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
 import { assertsError } from '../../errors/assertsError';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';

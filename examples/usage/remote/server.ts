@@ -4,10 +4,10 @@
 Note: [🔁] In your app you will be importing '../../../src/_packages/core' instead of '../../../src/_packages/core.index.index',...
 */
 
+import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { basename } from 'path';
 import { forEver } from 'waitasecond';
-import colors from 'yoctocolors';
 import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
 import { OpenAiExecutionTools } from '../../../src/_packages/openai.index';
 import { startRemoteServer } from '../../../src/_packages/remote-server.index';

@@ -1,11 +1,11 @@
 #!/usr/bin/env ts-node
 // update-version-in-config.ts
 
+import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import colors from 'yoctocolors';
 import { version } from '../../package.json';
 import { GENERATOR_WARNING } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';

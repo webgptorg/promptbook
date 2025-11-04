@@ -7,9 +7,9 @@ to connect to any OpenAI-compatible LLM service.
 Note: [🔁] In your app you will be importing '@promptbook/openai' instead of '../../../src/_packages/openai.index'
 */
 
+import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { basename } from 'path';
-import colors from 'yoctocolors';
 import { createOpenAiCompatibleExecutionTools } from '../../../src/_packages/openai.index';
 import { assertsError } from '../../../src/errors/assertsError';
 

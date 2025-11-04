@@ -4,8 +4,8 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { usageToHuman } from '@promptbook/core';
 import type { Prompt } from '@promptbook/types';
 import { createExecutionToolsFromVercelProvider } from '@promptbook/vercel';
+import colors from 'colors';
 import * as dotenv from 'dotenv';
-import colors from 'yoctocolors';
 
 dotenv.config({ path: '.env' });
 

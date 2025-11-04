@@ -1,4 +1,5 @@
 # 📅 Changelog## [Unreleased]
+
 -   **New:** `LangchainTranspiler` to transpile the book into Python code using LangChain.
 -   **New:** `OpenAiSdkTranspiler` to transpile the book into Javascript code using OpenAI SDK.
 -   **New:** Add `showIntermediateMessages` prop to `delayConfig` of `MockedChat` to allow showing the first N messages immediately.
@@ -22,11 +23,11 @@
 -   Chat component have avatar profile on hover, it's outside of the main chat container to avoid being cut off by overflow hidden, it floating on top of everything on the page.
 -   Chat component's avatar profile now displays a tooltip on hover, allowing users to view the agent's source in the `<BookEditor />`.
 -   Added `isReadonly` prop to `<BookEditor />` to allow read-only mode.
-- Refactored `ChatMessageItem.tsx` to move all inline static styles to `Chat.module.css` and use CSS modules. DRY principle applied.
-- Allow passing a chat thread into `OpenAiAssistantExecutionTools` via the `prompt.thread` property.  
-  This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
-  [2025-10-14]
-  - Remove problematic usage of `chalk` and `colors` and use `yoctocolors` 
+-   Refactored `ChatMessageItem.tsx` to move all inline static styles to `Chat.module.css` and use CSS modules. DRY principle applied.
+-   Allow passing a chat thread into `OpenAiAssistantExecutionTools` via the `prompt.thread` property.  
+    This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
+    [2025-10-14]
+    -   Remove problematic usage of `chalk` and `yoctocolors` and use only `colors`
 
 ## [Unreleased]
 
@@ -35,10 +36,11 @@
     [2025-10-14]
 -   Allow passing a chat thread into `AnthropicClaudeExecutionTools` via the `prompt.thread` property.  
     This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
-    [2025-10-14]  
+    [2025-10-14]
 -   `<Chat />` now renders math expressions (inline `$...$` and block `$$...$$`) in messages using KaTeX for proper display.
 -   Enhanced `renderMarkdown` utility to support math rendering.
 -   Added dependencies: `katex`, `@types/katex`.
+
 ## Released versions
 
 ### `0.102.0` _(2025-10-14)_

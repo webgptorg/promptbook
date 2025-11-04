@@ -4,11 +4,11 @@
 Note: [🔁] In your app you will be importing '@promptbook/core' instead of '../../../src/_packages/core.index.index',...
 */
 
+import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
 import { basename } from 'path';
 import { forTime } from 'waitasecond';
-import colors from 'yoctocolors';
 import {
     createPipelineExecutor,
     executionReportJsonToString,

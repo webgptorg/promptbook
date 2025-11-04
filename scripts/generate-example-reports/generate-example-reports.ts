@@ -4,11 +4,11 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
+import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename, join } from 'path';
-import colors from 'yoctocolors';
 import { executionReportJsonToString } from '../../src/types/execution-report/executionReportJsonToString';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';

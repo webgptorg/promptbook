@@ -11,7 +11,7 @@ import { makeKnowledgeSourceHandler } from '@promptbook/core';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { MarkdownScraper } from '@promptbook/markdown-utils';
 import { spaceTrim } from '@promptbook/utils';
-import colors from 'yoctocolors';
+import colors from 'colors';
 import { join } from 'path';
 
 if (process.cwd() !== join(__dirname, '../..')) {

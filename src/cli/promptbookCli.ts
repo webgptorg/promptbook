@@ -1,6 +1,6 @@
+import colors from 'colors';
 import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
-import colors from 'yoctocolors';
 import { CLAIM } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
