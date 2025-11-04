@@ -40,7 +40,7 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
 
             **Logo in Markdown:**
 
-            ![Logo](${logoAsset.src})
+            ![Logo](${logoAsset})
 
         `,
     );

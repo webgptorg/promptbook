@@ -9,7 +9,7 @@ import iconAsset from './ExitFullscreenIcon.svg';
  */
 export function ExitFullscreenIcon(): JSX.Element {
     console.log('!!!', { iconAsset });
-    return <img src={iconAsset.src} alt="Exit Fullscreen Icon" width={20} height={20} />;
+    return <img src={iconAsset} alt="Exit Fullscreen Icon" width={20} height={20} />;
     // <- Set the size as needed
 
     /*

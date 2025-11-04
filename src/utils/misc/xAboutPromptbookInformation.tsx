@@ -18,7 +18,7 @@ export function AboutPromptbookInformation(props: AboutPromptbookInformationProp
         <>
             <MarkdownContent content={aboutPromptbookInformation(props)} />
             <b>Logo in React:</b>
-            <img src={logoAsset.src} alt="Logo" />
+            <img src={logoAsset} alt="Logo" />
         </>
     );
 }
