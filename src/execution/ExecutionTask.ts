@@ -4,8 +4,7 @@ import { PartialDeep } from 'type-fest';
 import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import { assertsError } from '../errors/assertsError';
 import type { LlmCall } from '../types/LlmCall';
-import type { number_percent } from '../types/typeAliases';
-import type { task_id } from '../types/typeAliases';
+import type { number_percent, task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import type { really_any } from '../utils/organization/really_any';
@@ -390,6 +389,11 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
      * List of LLM calls that occurred during the task processing
      */
     readonly llmCalls: Array<LlmCall>;
+
+    /**
+     * Optional nonce to correlate logs with version of the Promptbook engine
+     */
+    readonly nonce?: really_any;
 
     // <- TODO: asMutableObject(): PartialDeep<TTaskResult>;
 };

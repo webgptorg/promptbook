@@ -432,7 +432,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         }
     });
 
-    function exportExecutionTask(executionTask: ExecutionTask, isFull: boolean) {
+    function exportExecutionTask(executionTask: ExecutionTask, isDetailed: boolean) {
         // <- TODO: [🧠] This should be maybe method of `ExecutionTask` itself
         const {
             taskType,
@@ -449,7 +449,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             llmCalls,
         } = executionTask;
 
-        if (isFull) {
+        if (isDetailed) {
             return {
                 taskId,
                 title,
@@ -459,10 +459,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 tldr,
                 errors: errors.map(serializeError),
                 warnings: warnings.map(serializeError),
+                llmCalls,
                 createdAt,
                 updatedAt,
                 currentValue,
-                llmCalls,
+                nonce: 0,
             } satisfies Omit<AbstractTask<really_any>, 'asPromise' | 'asObservable'>;
         } else {
             return {
@@ -475,6 +476,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 createdAt,
                 updatedAt,
                 llmCalls,
+                nonce: 0,
             } satisfies Omit<
                 AbstractTask<really_any>,
                 'asPromise' | 'asObservable' | 'currentValue' | 'errors' | 'warnings'
