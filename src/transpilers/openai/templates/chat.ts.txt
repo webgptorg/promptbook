@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: '.env' });
+
 import { spaceTrim } from '@promptbook/utils';
 import OpenAI from 'openai';
 import readline from 'readline';

@@ -38,6 +38,7 @@ export const OpenAiSdkTranspiler = {
             .join(modelRequirements.systemMessage)
             .split('TEMPERATURE')
             .join(modelRequirements.temperature);
+        // <- TODO: Smart template to preserve indentation
 
         return source;
     },

@@ -37,7 +37,7 @@ async function playground() {
 
     // Note: [🎠] Do here the stuff and add in `terminals.json`
 
-    const agent = book`
+    const agentSource = book`
         Poe
 
         PERSONA You are funny and creative AI assistant
@@ -45,7 +45,7 @@ async function playground() {
     `;
 
     const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
-    const code = OpenAiSdkTranspiler.transpileBook(agent, { llm }, { isVerbose: true });
+    const code = OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
     console.info(code);
 

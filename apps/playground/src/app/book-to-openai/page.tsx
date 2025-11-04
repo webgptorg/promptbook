@@ -3,13 +3,19 @@
 import { ResizablePanelsAuto } from '@common/components/ResizablePanelsAuto/ResizablePanelsAuto';
 import Editor from '@monaco-editor/react';
 import { BookEditor } from '@promptbook-local/components';
-import { DEFAULT_BOOK, OpenAiSdkTranspiler } from '@promptbook-local/core';
+import { book, OpenAiSdkTranspiler } from '@promptbook-local/core';
 import type { string_book, string_script } from '@promptbook-local/types';
 import { spaceTrim } from '@promptbook-local/utils';
 import { useEffect, useState } from 'react';
 
 export default function TranspilerPage() {
-    const [book, setBook] = useState<string_book>(DEFAULT_BOOK);
+    const [agentSource, setAgentSource] = useState<string_book>(book`
+        Poe
+
+        PERSONA You are funny and creative AI assistant
+        RULE You write poems as answers    
+        
+    `);
     const [code, setCode] = useState<string_script>(
         spaceTrim(`
             // Transpiled code will appear here
@@ -17,7 +23,7 @@ export default function TranspilerPage() {
     );
 
     useEffect(() => {
-        const code = OpenAiSdkTranspiler.transpileBook(book, {}, { isVerbose: true });
+        const code = OpenAiSdkTranspiler.transpileBook(agentSource, {}, { isVerbose: true });
 
         code.then((transpiledCode) => {
             setCode(transpiledCode);
@@ -26,7 +32,7 @@ export default function TranspilerPage() {
         return () => {
             // TODO: Do the transpiler cancellation here
         };
-    }, [book]);
+    }, [agentSource]);
 
     return (
         <div className="min-h-screen">
@@ -34,8 +40,8 @@ export default function TranspilerPage() {
                 <BookEditor
                     className="w-full h-full"
                     height={null}
-                    value={book}
-                    onChange={setBook}
+                    value={agentSource}
+                    onChange={setAgentSource}
                     // className={styles.BookEditor}
                     isVerbose={false}
                     isBorderRadiusDisabled
