@@ -11,7 +11,8 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { join } from 'path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
-import { LangchainTranspiler } from '../../transpilers/langchain/LangchainTranspiler';
+import { book } from '../../pipeline/book-notation';
+import { OpenAiSdkTranspiler } from '../../transpilers/openai/OpenAiSdkTranspiler';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -36,12 +37,17 @@ async function playground() {
 
     // Note: [🎠] Do here the stuff and add in `terminals.json`
 
-    const a: any = 123;
+    const agent = book`
+        Poe
+
+        PERSONA You are funny and creative AI assistant
+        RULE You write poems as answers
+    `;
 
     const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
-    const transpiler = LangchainTranspiler.new({ llm } /*,{isVerbose: true}*/);
+    const code = OpenAiSdkTranspiler.transpileBook(agent, { llm }, { isVerbose: true });
 
-    // !!! transpiler.
+    console.info(code);
 
     //========================================/
 }

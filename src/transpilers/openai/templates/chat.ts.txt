@@ -1,0 +1,54 @@
+#!/usr/bin/env node
+import { spaceTrim } from '@promptbook/utils';
+import OpenAI from 'openai';
+import readline from 'readline';
+
+// ---- CONFIG ----
+const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+// ---- CLI SETUP ----
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
+
+const chatHistory = [
+    {
+        role: 'system',
+        content: spaceTrim(`
+            SYSTEM_MESSAGE
+        `),
+    },
+];
+
+async function ask(question) {
+    chatHistory.push({ role: 'user', content: question });
+
+    const response = await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages: chatHistory,
+        temperature: TEMPERATURE,
+    });
+
+    const answer = response.choices[0].message.content;
+    console.log('\n🧠 AGENT_NAME:', answer, '\n');
+
+    chatHistory.push({ role: 'assistant', content: answer });
+    promptUser();
+}
+
+function promptUser() {
+    rl.question('💬 You: ', (input) => {
+        if (input.trim().toLowerCase() === 'exit') {
+            console.log('👋 Bye!');
+            rl.close();
+            return;
+        }
+        ask(input);
+    });
+}
+
+console.log("🤖 Chat with AGENT_NAME (type 'exit' to quit)\n");
+promptUser();

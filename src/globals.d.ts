@@ -6,6 +6,10 @@ declare module '*.bookc';
 // Note: For the components
 declare module '*.module.css';
 
+declare module '*.txt' {
+    export default string;
+}
+
 declare module '*.svg' {
     export default string; // <- TODO: string_url_image
 }

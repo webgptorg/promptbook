@@ -1,9 +1,9 @@
+import { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+
 /**
  * Options for the BookTranspiler.
- *
- * @see https://github.com/webgptorg/promptbook/issues/249
  */
-export type BookTranspilerOptions = {
+export type BookTranspilerOptions = Omit<CommonToolsOptions, 'maxRequestsPerMinute'> & {
     /**
      * If true, the transpiler will log verbose information to the console.
      *

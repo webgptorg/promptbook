@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
         externalDir: true,
     },
 
-
     turbopack: {
         // Note: Set this to your monorepo root (where the shared folder lives)
         root: path.join(__dirname, '..', '..'),

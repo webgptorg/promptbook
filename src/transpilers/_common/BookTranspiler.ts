@@ -1,9 +1,33 @@
-import type { BookTranspilerOptions } from './BookTranspilerOptions';
+import {
+    BookTranspilerOptions,
+    ExecutionTools,
+    Registered,
+    string_book,
+    string_name,
+    string_script,
+    string_title,
+} from '../../_packages/types.index';
 
 /**
- * Transpiler takes a book and transpiles it into another format.
+ * Transpiler takes a book and transpiles it into another format (e.g., Langchain).
  */
-export type BookTranspiler =
+export type BookTranspiler = Registered & {
+    /**
+     * The name of the transpiler.
+     * It is used to identify the transpiler in the register.
+     *
+     * @example 'python-langchain'
+     */
+    readonly name: string_name;
+
+    /**
+     * The title of the transpiler.
+     * It is used to display the transpiler in the UI.
+     *
+     * @example 'Python Langchain'
+     */
+    readonly title: string_title;
+
     /**
      * Transpiles a book.
      *
@@ -11,11 +35,5 @@ export type BookTranspiler =
      * @param options additional options for the transpiler
      * @returns transpiled book
      */
-    (book: string, options: BookTranspilerOptions) => Promise<string>;
-
-/**
- * TODO: [🧠] Should there be a BookTranspiler class or just a function?
- *       Maybe a class with a constructor that takes ExecutionTools.
- *       Then the instance would be a function.
- *       @see LlmExecutionTools
- */
+    transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): Promise<string_script>;
+};

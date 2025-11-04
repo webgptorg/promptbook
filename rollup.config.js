@@ -6,6 +6,7 @@ import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import postcss from 'rollup-plugin-postcss';
 // import { importAsString } from 'rollup-plugin-string-import'; // <- TODO: !!! Use or uninstall
+import { string as importAsString } from 'rollup-plugin-string'; // <- Note: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! using
 import { visualizer } from 'rollup-plugin-visualizer';
 import { version } from './package.json';
 
@@ -37,6 +38,10 @@ export default function () {
                 jsonPlugin({
                     preferConst: true,
                     compact: true,
+                }),
+                // Import .txt files as raw strings
+                importAsString({
+                    include: ['**/*.txt'],
                 }),
                 // TODO: !!! Use or remove:
                 //importAsString({

@@ -1,5 +1,5 @@
 import { $Register } from '../../../utils/misc/$Register';
-import type { BookTranspilerDefinition } from '../BookTranspilerDefinition';
+import { BookTranspiler } from '../BookTranspiler';
 
 /**
  * Register for book transpilers.
@@ -10,7 +10,7 @@ import type { BookTranspilerDefinition } from '../BookTranspilerDefinition';
  *
  * @public exported from `@promptbook/core`
  */
-export const $bookTranspilersRegister = new $Register<BookTranspilerDefinition>('book_transpilers');
+export const $bookTranspilersRegister = new $Register<BookTranspiler>('book_transpilers');
 
 /**
  * TODO: [®] DRY Register logic

@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import path from 'path';
+import { TsconfigPathsPlugin } from 'tsconfig-paths-webpack-plugin';
 
 const nextConfig: NextConfig = {
     experimental: {
@@ -17,7 +18,7 @@ const nextConfig: NextConfig = {
         },
     },
 
-    /*/
+    /**/
     // Note: In case you need to use Webpack instead of Turbopack
     webpack(config) {
         // Use TsconfigPathsPlugin for all path alias resolution
@@ -28,6 +29,12 @@ const nextConfig: NextConfig = {
                 extensions: config.resolve.extensions,
             }),
         );
+
+        config.module.rules.push({
+            test: /\.txt$/,
+            use: 'raw-loader',
+        });
+
         return config;
     },
     /**/
