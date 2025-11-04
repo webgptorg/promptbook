@@ -110,9 +110,10 @@ export default function () {
                 'markitdown-ts',
 
                 // React dependencies (for components package)
-                'react',
-                'react-dom',
-                'react/jsx-runtime',
+                // 'react',
+                // 'react-dom',
+                // 'react/jsx-runtime',
+                // <- TODO: !!! Was rich UI fixed by this
             ];
 
             const packageFullname = `@promptbook/${packageBasename}`;
