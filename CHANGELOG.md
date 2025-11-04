@@ -1,5 +1,6 @@
 # 📅 Changelog## [Unreleased]
 
+-   **Fix:** On mobile devices `BookEditorMonaco` steals scrolling from the main page content. It now only captures scroll events when it is focused.
 -   **New:** Log all LLM calls made during the execution of an `ExecutionTask` into its `llmCalls` property.
 -   **New:** `LangchainTranspiler` to transpile the book into Python code using LangChain.
 -   **New:** `OpenAiSdkTranspiler` to transpile the book into Javascript code using OpenAI SDK.

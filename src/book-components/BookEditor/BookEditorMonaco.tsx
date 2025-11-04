@@ -3,6 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import Editor, { useMonaco } from '@monaco-editor/react';
+import { editor } from 'monaco-editor';
 import { useCallback, useEffect, useRef, useState } from 'react'; // <-- added useRef
 // [🚱]> import { MonacoBinding } from 'y-monaco';
 // [🚱]> import { WebsocketProvider } from 'y-websocket';
@@ -55,6 +56,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const scaledScrollbarSize = Math.max(2, Math.round(5 * zoomLevel));
 
     const [isDragOver, setIsDragOver] = useState(false);
+    const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(null);
+    const [isFocused, setIsFocused] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
 
     const monaco = useMonaco();
 
@@ -103,6 +107,30 @@ export function BookEditorMonaco(props: BookEditorProps) {
         };
     }, [monaco, editor, sync]);
     */
+
+    useEffect(() => {
+        // Note: Test on client side only
+        setIsTouchDevice(typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
+    }, []);
+
+    useEffect(() => {
+        if (!editor) {
+            return;
+        }
+
+        const focusListener = editor.onDidFocusEditorWidget(() => {
+            setIsFocused(true);
+        });
+
+        const blurListener = editor.onDidBlurEditorWidget(() => {
+            setIsFocused(false);
+        });
+
+        return () => {
+            focusListener.dispose();
+            blurListener.dispose();
+        };
+    }, [editor]);
 
     useEffect(() => {
         if (!monaco) {
@@ -297,41 +325,72 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 />
             )}
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
-            <Editor
-                language={BOOK_LANGUAGE_ID}
-                value={value}
-                // [🚱]> onMount={(editor) => setEditor(editor)}
-                onChange={(newValue) => onChange?.(newValue as string_book)}
-                options={{
-                    readOnly: isReadonly,
-                    readOnlyMessage: {
-                        value: translations?.readonlyMessage || 'You cannot edit this book',
-                    },
-                    wordWrap: 'on',
-                    minimap: { enabled: false },
-                    lineNumbers: 'off',
-                    fontSize: scaledFontSize,
-                    // TODO: [🚚] Allow to pass font family as prop + Make the font asset hosted on Promptbook CDN side
-                    // <- TODO: !!! Pass font as asset
-                    fontFamily: `"Playfair Display", serif`,
-                    // [🚚]> fontFamily: `"Bitcount Grid Single", system-ui`,
-                    lineHeight: scaledLineHeight,
-                    renderLineHighlight: 'none',
-                    // Note: To add little lines between each line of the book, like a notebook page
-                    lineDecorationsWidth: scaledContentPaddingLeft,
-                    glyphMargin: false,
-                    folding: false,
-                    lineNumbersMinChars: 0,
-                    scrollbar: {
-                        vertical: 'auto',
-                        horizontal: 'hidden',
-                        verticalScrollbarSize: scaledScrollbarSize,
-                        arrowSize: 0,
-                        useShadows: false,
-                    },
+            <div
+                style={{
+                    position: 'relative',
+                    flex: 1,
+                    height: '100%',
+                    width: '100%',
+                    // outline: '1px dotted #ff3333'
                 }}
-                loading={<div className={styles.loading}>📖</div>}
-            />
+            >
+                {isTouchDevice && !isFocused && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 20,
+                            height: '100%',
+                            width: '100%',
+                            backgroundColor: 'transparent',
+                            // outline: '1px dotted #ff3333',
+                        }}
+                        onTouchEnd={(event) => {
+                            event.preventDefault();
+                            alert('Tap inside the book editor to focus and start editing.');
+                            editor?.focus();
+                        }}
+                    />
+                )}
+                <Editor
+                    language={BOOK_LANGUAGE_ID}
+                    value={value}
+                    onMount={(editor) => setEditor(editor)}
+                    onChange={(newValue) => onChange?.(newValue as string_book)}
+                    options={{
+                        readOnly: isReadonly,
+                        readOnlyMessage: {
+                            value: translations?.readonlyMessage || 'You cannot edit this book',
+                        },
+                        wordWrap: 'on',
+                        minimap: { enabled: false },
+                        lineNumbers: 'off',
+                        fontSize: scaledFontSize,
+                        // TODO: [🚚] Allow to pass font family as prop + Make the font asset hosted on Promptbook CDN side
+                        // <- TODO: !!! Pass font as asset
+                        fontFamily: `"Playfair Display", serif`,
+                        // [🚚]> fontFamily: `"Bitcount Grid Single", system-ui`,
+                        lineHeight: scaledLineHeight,
+                        renderLineHighlight: 'none',
+                        // Note: To add little lines between each line of the book, like a notebook page
+                        lineDecorationsWidth: scaledContentPaddingLeft,
+                        glyphMargin: false,
+                        folding: false,
+                        lineNumbersMinChars: 0,
+                        scrollbar: {
+                            vertical: 'auto',
+                            horizontal: 'hidden',
+                            verticalScrollbarSize: scaledScrollbarSize,
+                            arrowSize: 0,
+                            useShadows: false,
+                        },
+                    }}
+                    loading={<div className={styles.loading}>📖</div>}
+                />
+            </div>
         </div>
     );
 }

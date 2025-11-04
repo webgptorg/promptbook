@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🎳] On mobile devices `BookEditorMonaco` steals scrolling from the main page content
 
