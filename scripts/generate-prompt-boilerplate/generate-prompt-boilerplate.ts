@@ -148,5 +148,5 @@ async function generatePromptBoilerplate() {
         console.info(colors.green(`✓ Created: ${file.filename} with [✨${file.emoji}]`));
     }
 
-    console.info(colors.bgGreen.black(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
+    console.info(colors.bgGreen(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
 }
