@@ -18,6 +18,7 @@ import type { number_percent } from '../../types/typeAliases';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { ExecutionTask } from '../ExecutionTask';
 import { createTask } from '../ExecutionTask';
+import type { LlmCall } from '../../types/LlmCall';
 import type { PipelineExecutor } from '../PipelineExecutor';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { UNCERTAIN_USAGE } from '../utils/usage-constants';
@@ -91,6 +92,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const pipelineExecutorWithCallback = async (
         inputParameters: InputParameters,
         onProgress?: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>,
+        logLlmCall?: (llmCall: LlmCall) => Promisable<void>,
     ): Promise<PipelineExecutorResult> => {
         runCount++;
 
@@ -103,6 +105,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             inputParameters,
             tools,
             onProgress,
+            logLlmCall,
             pipelineIdentification: spaceTrim(
                 (block) => `
                     ${block(pipelineIdentification)}

@@ -18,7 +18,9 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
+import type { LlmCall } from '../../types/LlmCall';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
+import { logLlmCall as logLlmCallUtils } from '../utils/logLlmCall';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { validatePromptResult } from '../utils/validatePromptResult';
 import type { $OngoingTaskResult } from './$OngoingTaskResult';
@@ -80,6 +82,11 @@ export type ExecuteAttemptsOptions = Required<Omit<CreatePipelineExecutorOptions
     onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
 
     /**
+     * Optional callback invoked with each LLM call.
+     */
+    logLlmCall?(llmCall: LlmCall): Promisable<void>;
+
+    /**
      * The execution report object, which is updated during execution.
      */
     readonly $executionReport: WritableDeep<ExecutionReportJson>;
@@ -118,6 +125,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         pipelineIdentification,
         maxExecutionAttempts,
         onProgress,
+        logLlmCall,
     } = options;
 
     const $ongoingTaskResult: $OngoingTaskResult = {
@@ -454,15 +462,11 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 errors: [error],
             });
         } finally {
-            if (
-                !isJokerAttempt &&
-                task.taskType === 'PROMPT_TASK' &&
-                $ongoingTaskResult.$prompt!
-                //    <- Note:  [2] When some expected parameter is not defined, error will occur in templateParameters
-                //              In that case we don’t want to make a report about it because it’s not a llm execution error
-            ) {
-                // TODO: [🧠] Maybe put other taskTypes into report
-                $executionReport.promptExecutions.push({
+            if (!isJokerAttempt && task.taskType === 'PROMPT_TASK' && $ongoingTaskResult.$prompt!) {
+                // Note:  [2] When some expected parameter is not defined, error will occur in templateParameters
+                //        In that case we don’t want to make a report about it because it’s not a llm execution error
+
+                const executionPromptReport = {
                     prompt: {
                         ...$ongoingTaskResult.$prompt,
                         // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
@@ -471,8 +475,14 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                     error:
                         $ongoingTaskResult.$expectError === null
                             ? undefined
-                            : serializeError($ongoingTaskResult.$expectError),
-                });
+                                                        : serializeError($ongoingTaskResult.$expectError),
+                };
+
+                $executionReport.promptExecutions.push(executionPromptReport);
+
+                if (logLlmCall) {
+                    logLlmCallUtils(logLlmCall, executionPromptReport);
+                }
             }
         }
         if ($ongoingTaskResult.$expectError !== null && attemptIndex === maxAttempts - 1) {

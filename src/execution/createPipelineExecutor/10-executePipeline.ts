@@ -21,6 +21,7 @@ import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage } from '../utils/addUsage';
+import type { LlmCall } from '../../types/LlmCall';
 import { ZERO_USAGE } from '../utils/usage-constants';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeTask } from './20-executeTask';
@@ -41,6 +42,11 @@ type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
      * Optional callback invoked with partial results as the pipeline execution progresses.
      */
     onProgress?(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
+
+    /**
+     * Optional callback invoked with each LLM call.
+     */
+    logLlmCall?(llmCall: LlmCall): Promisable<void>;
 
     /**
      * The pipeline definition to execute.
@@ -78,6 +84,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         inputParameters,
         tools,
         onProgress,
+        logLlmCall,
         pipeline,
         setPreparedPipeline,
         pipelineIdentification,
@@ -331,6 +338,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                             onProgress(newOngoingResult);
                         }
                     },
+                    logLlmCall,
                     $executionReport: executionReport,
                     pipelineIdentification: spaceTrim(
                         (block) => `

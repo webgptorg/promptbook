@@ -8,6 +8,7 @@ import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
+import type { LlmCall } from '../../types/LlmCall';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
@@ -42,6 +43,11 @@ type executeSingleTaskOptions = Required<CreatePipelineExecutorOptions> & {
     onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
 
     /**
+     * Optional callback invoked with each LLM call.
+     */
+    logLlmCall?(llmCall: LlmCall): Promisable<void>;
+
+    /**
      * Mutable execution report object for tracking execution details.
      */
     readonly $executionReport: WritableDeep<ExecutionReportJson>;
@@ -67,6 +73,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         parametersToPass,
         tools,
         onProgress,
+        logLlmCall,
         $executionReport,
         pipelineIdentification,
         maxExecutionAttempts,
@@ -185,6 +192,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         tools,
         $executionReport,
         onProgress,
+        logLlmCall,
         pipelineIdentification,
         maxExecutionAttempts,
         maxParallelCount,

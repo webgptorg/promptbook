@@ -1,5 +1,6 @@
 # 📅 Changelog## [Unreleased]
 
+-   **New:** Log all LLM calls made during the execution of an `ExecutionTask` into its `llmCalls` property.
 -   **New:** `LangchainTranspiler` to transpile the book into Python code using LangChain.
 -   **New:** `OpenAiSdkTranspiler` to transpile the book into Javascript code using OpenAI SDK.
 -   **New:** Add `showIntermediateMessages` prop to `delayConfig` of `MockedChat` to allow showing the first N messages immediately.

@@ -446,6 +446,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             createdAt,
             updatedAt,
             currentValue,
+            llmCalls,
         } = executionTask;
 
         if (isFull) {
@@ -461,6 +462,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 createdAt,
                 updatedAt,
                 currentValue,
+                llmCalls,
             } satisfies Omit<AbstractTask<really_any>, 'asPromise' | 'asObservable'>;
         } else {
             return {
@@ -472,6 +474,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 tldr,
                 createdAt,
                 updatedAt,
+                llmCalls,
             } satisfies Omit<
                 AbstractTask<really_any>,
                 'asPromise' | 'asObservable' | 'currentValue' | 'errors' | 'warnings'

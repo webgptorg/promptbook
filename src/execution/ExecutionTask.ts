@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { PartialDeep } from 'type-fest';
 import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import { assertsError } from '../errors/assertsError';
+import type { LlmCall } from '../types/LlmCall';
 import type { number_percent } from '../types/typeAliases';
 import type { task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
@@ -46,6 +47,7 @@ type CreateTaskOptions<TTaskResult extends AbstractTaskResult> = {
             },
         ) => void,
         updateTldr: (tldrInfo: { readonly percent: number_percent; readonly message: string }) => void,
+        logLlmCall: (llmCall: LlmCall) => void,
     ): Promise<TTaskResult>;
 };
 
@@ -70,6 +72,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
     let updatedAt = createdAt;
     const errors: Array<Error> = [];
     const warnings: Array<Error> = [];
+    const llmCalls: Array<LlmCall> = [];
     let currentValue = {} as PartialDeep<TTaskResult>;
     let customTldr: { readonly percent: number_percent; readonly message: string } | null = null;
     const partialResultSubject = new Subject<PartialDeep<TTaskResult>>();
@@ -89,6 +92,10 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
         },
         (tldrInfo) => {
             customTldr = tldrInfo;
+            updatedAt = new Date();
+        },
+        (llmCall) => {
+            llmCalls.push(llmCall);
             updatedAt = new Date();
         },
     );
@@ -250,6 +257,10 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             return warnings;
             // <- Note: [1] --||--
         },
+        get llmCalls() {
+            return llmCalls;
+            // <- Note: [1] --||--
+        },
         get currentValue() {
             return currentValue;
             // <- Note: [1] --||--
@@ -374,6 +385,11 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
      * List of warnings that occurred during the task processing
      */
     readonly warnings: Array<Error>;
+
+    /**
+     * List of LLM calls that occurred during the task processing
+     */
+    readonly llmCalls: Array<LlmCall>;
 
     // <- TODO: asMutableObject(): PartialDeep<TTaskResult>;
 };

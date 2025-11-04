@@ -9,6 +9,7 @@ import type { string_parameter_name } from '../../types/typeAliases';
 import type { string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
+import type { LlmCall } from '../../types/LlmCall';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
 import { executeAttempts } from './40-executeAttempts';
@@ -24,6 +25,11 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions & {
      * Callback invoked with partial results as the execution progresses.
      */
     onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
+
+    /**
+     * Optional callback invoked with each LLM call.
+     */
+    logLlmCall?(llmCall: LlmCall): Promisable<void>;
 };
 
 /**
@@ -36,11 +42,19 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions & {
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { task, jokerParameterNames, parameters, priority, csvSettings, onProgress, pipelineIdentification } =
-        options;
+    const {
+        task,
+        jokerParameterNames,
+        parameters,
+        priority,
+        csvSettings,
+        onProgress,
+        logLlmCall,
+        pipelineIdentification,
+    } = options;
 
     if (task.foreach === undefined) {
-        return /* not await */ executeAttempts(options);
+        return /* not await */ executeAttempts({ ...options, logLlmCall });
     }
 
     if (jokerParameterNames.length !== 0) {
