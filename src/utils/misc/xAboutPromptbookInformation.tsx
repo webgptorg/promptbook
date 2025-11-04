@@ -2,7 +2,7 @@ import { MarkdownContent } from '../../book-components/Chat/MarkdownContent/Mark
 import type { AboutPromptbookInformationOptions } from './aboutPromptbookInformation';
 import { aboutPromptbookInformation } from './aboutPromptbookInformation';
 import logoAsset from './logo-blue-white-256.png'; // <- TODO: !!! Remove
-import logo3dAsset from './logo-design-cube.stl'; // <- TODO: !!! Remove
+// import logo3dAsset from './logo-design-cube.stl'; // <- TODO: !!! Remove
 
 type AboutPromptbookInformationProps = AboutPromptbookInformationOptions;
 
@@ -12,7 +12,7 @@ type AboutPromptbookInformationProps = AboutPromptbookInformationOptions;
  * @public exported from `@promptbook/components`
  */
 export function AboutPromptbookInformation(props: AboutPromptbookInformationProps) {
-    console.log('!!!', { logoAsset, logo3dAsset });
+    console.log('!!!', { logoAsset /* logo3dAsset */ });
 
     return (
         <>
