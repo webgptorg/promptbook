@@ -4,83 +4,124 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
-import { copyFile, rm } from 'fs/promises';
-import glob from 'glob-promise';
-import { basename, join } from 'path';
-import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
-import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
-import { makeKnowledgeSourceHandler } from '../scrapers/_common/utils/makeKnowledgeSourceHandler';
-import { DocumentScraper } from '../scrapers/document/DocumentScraper';
+import OpenAI from 'openai';
+import { chromium } from 'playwright';
+import readlineSync from 'readline-sync';
 
-if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
-    process.exit(1);
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// --- 🧠 Funkce, které AI může volat ---
+async function searchWeb(query: string) {
+    return [];
 }
 
-playground()
-    .catch((error) => {
-        console.error(colors.bgRed(error.name || 'NamelessError'));
-        console.error(error);
-        process.exit(1);
-    })
-    .then(() => {
-        process.exit(0);
-    });
+async function browsePage(url: string) {
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    const text = await page.evaluate(() => document.body.innerText.slice(0, 2000));
+    await browser.close();
+    return { url, text };
+}
 
-async function playground() {
-    console.info(`🧸  Playground`);
+// --- 🗣️ Chat loop ---
+async function main() {
+    console.log('🤖 Ahoj! Jsem AI agent s oficiálním function calling API.\n');
 
-    // Do here stuff you want to test
-    //========================================>
-
-    // const dictionary = `C:/Users/me/Documents/p13`;
-    const dictionary = `other/prague-13/source`;
-    const documentFiles = await glob(`${dictionary}/**/*.docx`);
-
-    console.info(colors.cyan(`Found ${documentFiles.length} document files to convert`));
-
-    const fs = $provideFilesystemForNode();
-    const executables = await $provideExecutablesForNode();
-
-    const documentScraper = new DocumentScraper(
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
         {
-            fs,
-            executables,
+            role: 'system',
+            content: `Jsi český AI agent, který může používat následující nástroje:
+      - search_web(query): pro vyhledávání aktuálních informací
+      - browse_page(url): pro otevření webu a čtení obsahu.
+      Odpovídej přirozeně a používej funkce jen, pokud je to nutné.`,
         },
-        {
-            isVerbose: false,
-        },
-    );
+    ];
 
-    for (const documentFile of documentFiles) {
-        // const markdownFile = documentFile.replace(/\.docx$/i, '.md');
-        const markdownFile = join('other/prague-13/converted', basename(documentFile).replace(/\.docx$/i, '.md'));
+    while (true) {
+        const input = readlineSync.question('\nTy: ');
+        if (input.toLowerCase() === 'exit') break;
+        messages.push({ role: 'user', content: input });
 
-        if (markdownFile === documentFile) {
-            throw new Error(`Unexpected same filename markdownFile===documentFile==="${markdownFile}"`);
+        const response = await client.chat.completions.create({
+            model: 'gpt-4.1', // potřebujeme model s podporou function calling
+            messages,
+            tools: [
+                {
+                    type: 'function',
+                    function: {
+                        name: 'search_web',
+                        description: 'Vyhledá informace na webu podle dotazu',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                query: { type: 'string', description: 'dotaz pro vyhledávač' },
+                            },
+                            required: ['query'],
+                        },
+                    },
+                },
+                {
+                    type: 'function',
+                    function: {
+                        name: 'browse_page',
+                        description: 'Otevře webovou stránku a přečte její text',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                url: { type: 'string', description: 'adresa stránky' },
+                            },
+                            required: ['url'],
+                        },
+                    },
+                },
+            ],
+        });
+
+        const choice = response.choices[0];
+        const message = choice.message;
+
+        // 🔧 Pokud AI volá funkci
+        if (message.tool_calls && message.tool_calls.length > 0) {
+            for (const tool of message.tool_calls) {
+                const fnName = tool.function.name;
+                const args = JSON.parse(tool.function.arguments || '{}');
+
+                console.log(`🛠️ AI volá funkci: ${fnName}`, args);
+
+                let result;
+                try {
+                    if (fnName === 'search_web') result = await searchWeb(args.query);
+                    else if (fnName === 'browse_page') result = await browsePage(args.url);
+                } catch (err) {
+                    result = { error: (err as Error).message };
+                }
+
+                // Pošleme výsledek funkce zpět do konverzace
+                messages.push(message);
+                messages.push({
+                    role: 'tool',
+                    tool_call_id: tool.id,
+                    content: JSON.stringify(result),
+                });
+
+                const followUp = await client.chat.completions.create({
+                    model: 'gpt-4.1',
+                    messages,
+                });
+
+                const finalAnswer = followUp.choices[0].message?.content;
+                if (finalAnswer) console.log(`🤖 AI: ${finalAnswer}`);
+                messages.push({ role: 'assistant', content: finalAnswer || '' });
+            }
+        } else {
+            const text = message.content;
+            if (text) console.log(`🤖 AI: ${text}`);
+            messages.push({ role: 'assistant', content: text || '' });
         }
-
-        const sourceHandler = await makeKnowledgeSourceHandler(
-            { knowledgeSourceContent: documentFile },
-            { fs },
-            { rootDirname: process.cwd(), isVerbose: false },
-        );
-
-        // console.info('documentFile', documentFile);
-        // console.info('sourceHandler', sourceHandler);
-
-        const converted = await documentScraper.$convert(sourceHandler);
-
-        console.info(colors.green(`✅ ${converted.filename}`));
-
-        await copyFile(converted.filename, markdownFile);
-        await rm(converted.filename);
     }
 
-    //========================================/
+    console.log('\n👋 Konec konverzace.');
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+main();

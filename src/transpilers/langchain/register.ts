@@ -10,7 +10,7 @@ import { LangchainTranspiler } from './LangchainTranspiler';
  * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  *
- * TODO: !!!! Which package should export this?
+ * TODO: !!!! Which package should export this? - `@promptbook/core` vs `@promptbook/transpilers` vs `@promptbook/langchain`
  */
 export const _LangchainTranspilerRegistration: Registration = $bookTranspilersRegister.register(LangchainTranspiler);
 

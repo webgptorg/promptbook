@@ -6,7 +6,10 @@ dotenv.config({ path: '.env' });
 
 // TODO: import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import colors from 'colors';
+import { locateChrome } from 'locate-app';
 import { join } from 'path';
+import { chromium } from 'playwright';
+import { TODO_any } from '../../_packages/types.index';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -29,9 +32,42 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    // Note: [🎠] Do here the stuff and add in `terminals.json`
-    // TODO: console.info(PROMPTBOOK_ENGINE_VERSION);
+    const browser = await chromium.launch({ headless: false, executablePath: await locateChrome() });
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
+    /*
+    // 1. Go to LinkedIn login page
+    await page.goto('https://www.linkedin.com/login');
+
+    // 2. Log in
+    await page.fill('input[name="session_key"]', process.env.LINKEDIN_EMAIL);
+    await page.fill('input[name="session_password"]', process.env.LINKEDIN_PASSWORD);
+    await page.click('button[type="submit"]');
+    */
+
+    // 3. Wait for feed to load
+    await page.waitForURL('**/feed');
+    await page.waitForSelector('div.feed-shared-update-v2', { timeout: 10000 });
+
+    // 4. Scroll to load more posts
+    for (let i = 0; i < 3; i++) {
+        await page.mouse.wheel(0, 1000);
+        await page.waitForTimeout(2000);
+    }
+
+    // 5. Extract posts text
+    const posts = await page.$$eval('div.feed-shared-update-v2', (elements) =>
+        elements.slice(0, 5).map((el) => {
+            const textEl = el.querySelector('.feed-shared-update-v2__description, span.break-words');
+            return textEl ? (textEl as TODO_any).innerText.trim() : '(no text)';
+        }),
+    );
+
+    console.log('📰 Latest posts:');
+    posts.forEach((p, i) => console.log(`\nPost #${i + 1}:\n${p}\n`));
+
+    await browser.close();
     //========================================/
 }
 

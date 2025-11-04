@@ -6,6 +6,10 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { join } from 'path';
+import { LangchainTranspiler } from '../../transpilers/langchain/LangchainTranspiler';
+import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+
 
 if (process.cwd() !== join(__dirname, '../../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -29,6 +33,16 @@ async function playground() {
     //========================================>
 
     // Note: [🎠] Do here the stuff and add in `terminals.json`
+
+
+
+
+
+    const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground());
+    const transpiler = LangchainTranspiler.new({llm},{isVerbose});
+
+
+    transpiler.
 
     //========================================/
 }
