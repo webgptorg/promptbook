@@ -66,6 +66,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const instanceIdRef = useRef(++notebookStyleCounter);
     const instanceClass = `book-editor-instance-${instanceIdRef.current}`;
 
+    // [1] Track touch start position to differentiate tap from drag
+    const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
     /*
     Note+TODO: [🚱] Yjs logic is commented out because it causes errors in the build of Next.js projects:
              > ▲ Next.js 15.4.5
@@ -348,10 +351,31 @@ export function BookEditorMonaco(props: BookEditorProps) {
                             backgroundColor: 'transparent',
                             // outline: '1px dotted #ff3333',
                         }}
+                        onTouchStart={(event) => {
+                            // [1] Record the starting position of the touch
+                            const touch = event.touches[0];
+                            if (touch) {
+                                touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+                            }
+                        }}
                         onTouchEnd={(event) => {
                             event.preventDefault();
-                            alert('Tap inside the book editor to focus and start editing.');
-                            editor?.focus();
+
+                            // [1] Check if this was a tap (not a drag)
+                            const touch = event.changedTouches[0];
+                            if (touch && touchStartRef.current) {
+                                const deltaX = Math.abs(touch.clientX - touchStartRef.current.x);
+                                const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
+                                const threshold = 10; // pixels
+
+                                // [1] Only focus if the touch hasn't moved much (it's a tap)
+                                if (deltaX < threshold && deltaY < threshold) {
+                                    // alert('Tap inside the book editor to focus and start editing.');
+                                    editor?.focus();
+                                }
+                            }
+
+                            touchStartRef.current = null;
                         }}
                     />
                 )}
