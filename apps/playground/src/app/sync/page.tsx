@@ -38,7 +38,7 @@ export default function IdependentEditorsPage() {
                     isVerbose={false}
                     isBorderRadiusDisabled
                     onFileUpload={(file) => {
-                        return `[${file.name}]`;
+                        return file.name;
                     }}
                 />
                 <BookEditor
@@ -50,7 +50,7 @@ export default function IdependentEditorsPage() {
                     isVerbose={false}
                     isBorderRadiusDisabled
                     onFileUpload={(file) => {
-                        return `[${file.name}]`;
+                        return file.name;
                     }}
                 />
             </ResizablePanelsAuto>

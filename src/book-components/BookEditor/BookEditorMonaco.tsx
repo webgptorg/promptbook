@@ -250,7 +250,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
                 // Note: This is a simplified implementation. A more robust solution would
                 // determine the drop position in the editor and insert the text there.
-                const newText = uploadResults.join('\n');
+                const newText = uploadResults.map((fileSrc) => `KNOWLEDGE { ${fileSrc} }`).join('\n');
                 const currentValue = value || '';
                 const newValue = currentValue + '\n' + newText;
                 onChange?.(newValue as string_book);

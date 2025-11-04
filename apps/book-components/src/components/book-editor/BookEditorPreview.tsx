@@ -158,7 +158,7 @@ export default function BookEditorPreview() {
                 className={styles.BookEditor}
                 isVerbose={false}
                 onFileUpload={(file) => {
-                    return `[${file.name}]`;
+                    return file.name;
                 }}
             />
             <h2 className="text-lg font-semibold mt-6 mb-2">Parsed Book Content</h2>
@@ -354,7 +354,7 @@ export default function BookEditorPreview() {
                 isVerbose={false}
                 zoom={1.5}
                 onFileUpload={(file) => {
-                    return `[${file.name}]`;
+                    return file.name;
                 }}
             />
 
@@ -366,7 +366,7 @@ export default function BookEditorPreview() {
                 isVerbose={false}
                 zoom={2}
                 onFileUpload={(file) => {
-                    return `[${file.name}]`;
+                    return file.name;
                 }}
             />
             <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor zoomed 300%</h2>
@@ -377,7 +377,7 @@ export default function BookEditorPreview() {
                 isVerbose={false}
                 zoom={3}
                 onFileUpload={(file) => {
-                    return `[${file.name}]`;
+                    return file.name;
                 }}
             />
             <h2 className="text-lg font-semibold mt-6 mb-2">Book Editor zoomed 50%</h2>
@@ -388,7 +388,7 @@ export default function BookEditorPreview() {
                 isVerbose={false}
                 zoom={0.5}
                 onFileUpload={(file) => {
-                    return `[${file.name}]`;
+                    return file.name;
                 }}
             />
         </div>

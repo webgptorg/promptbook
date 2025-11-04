@@ -225,7 +225,7 @@ export default function LlmChatPreview() {
             onFileUpload: (file) => {
                 console.log('Files uploaded:', file);
 
-                return `[${file.name}]`;
+                return file.name;
             },
         } satisfies Partial<React.ComponentProps<typeof LlmChat>>;
 

@@ -22,7 +22,7 @@ export default function HomePage() {
                 // className={styles.BookEditor}
                 isVerbose={false}
                 onFileUpload={(file) => {
-                    return `[${file.name}]`;
+                    return file.name;
                 }}
                 // isReadonly
                 translations={{ readonlyMessage: 'aaaaa' }}

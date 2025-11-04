@@ -20,7 +20,7 @@
 <Chat
     onFileUpload={(file) => {
         // Some possible file handling logic here
-        return `[${file.name}]`;
+        return file.name;
     }}
 />
 ```
