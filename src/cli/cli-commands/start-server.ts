@@ -132,8 +132,7 @@ export function $initializeStartServerCommand(program: Program): $side_effect {
             });
 
             // console.log(path, await collection.listPipelines());
-
-            console.log({ isRichUi });
+            // console.log({ isRichUi });
 
             const server = startRemoteServer({
                 port,
