@@ -96,7 +96,7 @@
         "@promptbook/core": "0.103.0-31"
     },
     "dependencies": {
-        "colors": "1.4.0",
+        "colors": "^1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "dotenv": "16.3.2",

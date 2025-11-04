@@ -91,7 +91,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/core.index.d.ts",
     "dependencies": {
-        "colors": "1.4.0",
+        "colors": "^1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "moment": "2.30.1",
