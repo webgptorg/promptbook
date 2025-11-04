@@ -1,5 +1,9 @@
 #!/usr/bin/env ts-node
 
+// Note: [❌] Turning off some global checks for playground file:
+// spell-checker: disable
+/* eslint-disable */
+
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });

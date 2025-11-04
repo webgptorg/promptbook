@@ -95,7 +95,7 @@
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.17",
         "@ai-sdk/google": "1.0.17",
-        "@anthropic-ai/sdk": "0.26.1",
+        "@anthropic-ai/sdk": "0.68.0",
         "@azure/openai": "1.0.0-beta.13",
         "@mozilla/readability": "0.6.0",
         "bottleneck": "2.19.5",

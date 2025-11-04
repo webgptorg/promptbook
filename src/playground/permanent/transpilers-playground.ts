@@ -1,15 +1,17 @@
 #!/usr/bin/env ts-node
 
+// Note: [❌] Turning off some global checks for playground file:
+// spell-checker: disable
+/* eslint-disable */
+
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { join } from 'path';
-import { LangchainTranspiler } from '../../transpilers/langchain/LangchainTranspiler';
-import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
-
+import { LangchainTranspiler } from '../../transpilers/langchain/LangchainTranspiler';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -34,15 +36,12 @@ async function playground() {
 
     // Note: [🎠] Do here the stuff and add in `terminals.json`
 
+    const a: any = 123;
 
+    const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+    const transpiler = LangchainTranspiler.new({ llm } /*,{isVerbose: true}*/);
 
-
-
-    const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground());
-    const transpiler = LangchainTranspiler.new({llm},{isVerbose});
-
-
-    transpiler.
+    // !!! transpiler.
 
     //========================================/
 }

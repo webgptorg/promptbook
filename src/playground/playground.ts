@@ -1,5 +1,9 @@
 #!/usr/bin/env ts-node
 
+// Note: [❌] Turning off some global checks for playground file:
+// spell-checker: disable
+/* eslint-disable */
+
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -79,7 +83,7 @@ async function main() {
         });
 
         const choice = response.choices[0];
-        const message = choice.message;
+        const message = choice!.message;
 
         // 🔧 Pokud AI volá funkci
         if (message.tool_calls && message.tool_calls.length > 0) {
@@ -110,7 +114,7 @@ async function main() {
                     messages,
                 });
 
-                const finalAnswer = followUp.choices[0].message?.content;
+                const finalAnswer = followUp.choices[0]!.message?.content;
                 if (finalAnswer) console.log(`🤖 AI: ${finalAnswer}`);
                 messages.push({ role: 'assistant', content: finalAnswer || '' });
             }

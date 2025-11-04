@@ -100,7 +100,7 @@
         "@promptbook/core": "0.103.0-31"
     },
     "dependencies": {
-        "@anthropic-ai/sdk": "0.26.1",
+        "@anthropic-ai/sdk": "0.68.0",
         "bottleneck": "2.19.5",
         "colors": "1.4.0",
         "crypto": "1.0.1",
