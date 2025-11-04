@@ -5,7 +5,7 @@ import { string_book } from './string_book';
  *
  * @public exported from `@promptbook/core`
  */
-export const PADDING_LINES = 11;
+export const PADDING_LINES = 4;
 
 /**
  * A function that adds padding to the book content
