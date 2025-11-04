@@ -56,6 +56,38 @@ export function filterJustOutputParameters(options: FilterJustOutputParametersOp
                                 parameter.name
                             }}\` should be an output parameter, but it was not generated during pipeline execution
 
+                            Note: This is a warning which happened after the pipeline was executed, and \`{${
+                                parameter.name
+                            }}\` was not for some reason defined in output parameters
+
+                            All parameters:
+                            ${block(
+                                preparedPipeline.parameters
+                                    .map(({ name, isInput, isOutput, description }) => {
+                                        let line = `\`{${name}}\``;
+
+                                        if (isInput) {
+                                            line += ' `[input parameter]`';
+                                        }
+
+                                        if (isOutput) {
+                                            line += ' `[output parameter]`';
+                                        }
+
+                                        if (parametersToPass[name] === undefined) {
+                                            line += ` <- Warning: Should be in the output but its not |`;
+                                        }
+
+                                        if (description) {
+                                            line += ` ${description}`;
+                                        }
+
+                                        return line;
+                                    })
+                                    .map((line, index) => `${index + 1}) ${line}`)
+                                    .join('\n'),
+                            )}
+
                             ${block(pipelineIdentification)}
                         `,
                     ),
