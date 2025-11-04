@@ -1,5 +1,6 @@
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
+import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { TODO_any } from '../../_packages/types.index';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -15,7 +16,6 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import { asSerializable } from '../../utils/serialization/asSerializable';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { VercelExecutionToolsOptions } from './VercelExecutionToolsOptions';
-import { TODO_any } from '../../_packages/types.index';
 
 /**
  * Profile for Vercel AI adapter

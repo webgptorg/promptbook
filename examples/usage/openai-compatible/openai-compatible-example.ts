@@ -7,9 +7,9 @@ to connect to any OpenAI-compatible LLM service.
 Note: [🔁] In your app you will be importing '@promptbook/openai' instead of '../../../src/_packages/openai.index'
 */
 
-import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { basename } from 'path';
+import colors from 'yoctocolors';
 import { createOpenAiCompatibleExecutionTools } from '../../../src/_packages/openai.index';
 import { assertsError } from '../../../src/errors/assertsError';
 
@@ -80,7 +80,9 @@ async function main() {
         console.info(`Description: ${envTools.description}`);
         console.info(`Using baseURL from env: ${process.env.OPENAI_BASE_URL}`);
     } else {
-        console.info(colors.yellow('Set OPENAI_API_KEY and OPENAI_BASE_URL environment variables to test this example'));
+        console.info(
+            colors.yellow('Set OPENAI_API_KEY and OPENAI_BASE_URL environment variables to test this example'),
+        );
     }
 
     // Example 5: Using with proxied mode (for browser/remote usage)

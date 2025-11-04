@@ -1,5 +1,5 @@
-import colors from 'colors';
 import spaceTrim from 'spacetrim';
+import colors from 'yoctocolors';
 import { getPackagesMetadataForRollup } from '../../rollup.config';
 import { EntityMetadata, findAllProjectEntities } from '../utils/findAllProjectEntities';
 import type { PackageMetadata } from './PackageMetadata';

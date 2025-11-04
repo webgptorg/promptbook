@@ -1,6 +1,6 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import Bottleneck from 'bottleneck';
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { CONNECTION_TIMEOUT_MS, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';

@@ -1,16 +1,18 @@
-import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
+import colors from 'yoctocolors';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { DEFAULT_BOOKS_DIRNAME } from '../../config';
-import { DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME } from '../../config';
-import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import {
+    DEFAULT_BOOKS_DIRNAME,
+    DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
+    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
+    GENERATOR_WARNING_BY_PROMPTBOOK_CLI,
+} from '../../config';
 import { saveArchive } from '../../conversion/archive/saveArchive';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -23,12 +25,12 @@ import { $provideScrapersForNode } from '../../scrapers/_common/register/$provid
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
 import type { string_file_extension } from '../../types/typeAliases';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 keepTypeImported<ExecutionTools>();
 

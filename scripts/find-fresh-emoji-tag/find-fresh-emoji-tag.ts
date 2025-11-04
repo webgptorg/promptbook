@@ -5,11 +5,10 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
 import { readFileSync } from 'fs';
-import { basename } from 'path';
 import glob from 'glob-promise';
-import { join } from 'path';
+import { basename, join } from 'path';
+import colors from 'yoctocolors';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { $shuffleItems } from './utils/$shuffleItems';
 import { difference } from './utils/difference';

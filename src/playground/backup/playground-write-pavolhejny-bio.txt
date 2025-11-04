@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
+import colors from 'yoctocolors';
 import { join } from 'path';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';

@@ -1,4 +1,3 @@
-import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -6,6 +5,7 @@ import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
+import colors from 'yoctocolors';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { assertsError } from '../../errors/assertsError';
@@ -17,9 +17,9 @@ import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
+import { $side_effect } from '../../utils/organization/$side_effect';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `test` command for Promptbook CLI utilities

@@ -4,24 +4,24 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'chalk';
 import { writeFileSync } from 'fs';
 import glob from 'glob-promise';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import colors from 'yoctocolors';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from '../find-fresh-emoji-tag/utils/$shuffleItems';
 import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../find-fresh-emoji-tag/utils/emojis';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
 generatePromptBoilerplate()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })
@@ -59,7 +59,7 @@ async function generatePromptBoilerplate() {
     // If no files for this month, highestNumber will be -10, so first will be 0000
     const startNumber = highestNumber < 0 ? 0 : highestNumber + 10;
     console.info(
-        chalk.blue(
+        colors.blue(
             `Highest existing number for ${datePrefix} found: ${Math.max(0, highestNumber)
                 .toString()
                 .padStart(4, '0')}`,
@@ -88,8 +88,8 @@ async function generatePromptBoilerplate() {
     const freshEmojis = difference(EMOJIS_OF_SINGLE_PICTOGRAM, usedEmojis);
     const selectedEmojis = $shuffleItems(...Array.from(freshEmojis)).slice(0, 5);
 
-    console.info(chalk.green(`Found ${freshEmojis.size} available fresh emojis`));
-    console.info(chalk.green(`Selected emojis: ${selectedEmojis.map((emoji) => `[✨${emoji}]`).join(' ')}`));
+    console.info(colors.green(`Found ${freshEmojis.size} available fresh emojis`));
+    console.info(colors.green(`Selected emojis: ${selectedEmojis.map((emoji) => `[✨${emoji}]`).join(' ')}`));
 
     // Placeholder titles
     const titles = ['foo', 'bar', 'baz', 'qux', 'quux'];
@@ -141,12 +141,12 @@ async function generatePromptBoilerplate() {
     }
 
     // Create the files
-    console.info(chalk.yellow(`Creating ${filesToCreate.length} files:`));
+    console.info(colors.yellow(`Creating ${filesToCreate.length} files:`));
 
     for (const file of filesToCreate) {
         writeFileSync(file.filepath, file.content, 'utf-8');
-        console.info(chalk.green(`✓ Created: ${file.filename} with [✨${file.emoji}]`));
+        console.info(colors.green(`✓ Created: ${file.filename} with [✨${file.emoji}]`));
     }
 
-    console.info(chalk.bgGreen.black(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
+    console.info(colors.bgGreen.black(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
 }

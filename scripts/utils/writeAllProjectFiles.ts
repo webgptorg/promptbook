@@ -1,6 +1,6 @@
-import colors from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import colors from 'yoctocolors';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChunks';
 import { prettify } from './prettify';

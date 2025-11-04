@@ -292,7 +292,6 @@
         "@monaco-editor/react": "4.7.0",
         "@mozilla/readability": "0.6.0",
         "bottleneck": "2.19.5",
-        "colors": "1.4.0",
         "commander": "12.0.0",
         "cross-fetch": "4.0.0",
         "crypto": "1.0.1",
@@ -331,6 +330,7 @@
         "y-protocols": "1.0.6",
         "y-websocket": "3.0.0",
         "y-websocket-server": "1.0.2",
-        "yjs": "13.6.27"
+        "yjs": "13.6.27",
+        "yoctocolors": "2.1.2"
     }
 }

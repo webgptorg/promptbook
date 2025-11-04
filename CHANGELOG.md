@@ -26,6 +26,7 @@
 - Allow passing a chat thread into `OpenAiAssistantExecutionTools` via the `prompt.thread` property.  
   This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
   [2025-10-14]
+  - Remove problematic usage of `chalk` and `colors` and use `yoctocolors` 
 
 ## [Unreleased]
 
@@ -795,7 +796,7 @@ More options to create `PromptbookLibrary`
 -   Utility `createPromptbookLibraryFromDirectory`
 -   Utility `createPromptbookLibraryFromUrl`
 -   Add `extractBlock` to build-in functions
--   Remove problematic usage of `chalk` and use `colors` instead
+-   Remove problematic usage of `chalk` and `colors` and use `yoctocolors`
 -   Export `replaceParameters` from `@promptbook/utils`
 
 ### `0.40.0` _(2024-03-10)_

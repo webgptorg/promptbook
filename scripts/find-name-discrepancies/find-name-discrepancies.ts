@@ -1,11 +1,11 @@
 #!/usr/bin/env ts-node
 // repair-imports.ts
 
-import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
 import { basename, join } from 'path';
 import spaceTrim from 'spacetrim';
+import colors from 'yoctocolors';
 import { assertsError } from '../../src/errors/assertsError';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
 

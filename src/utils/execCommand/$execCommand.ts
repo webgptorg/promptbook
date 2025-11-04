@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
-import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
+import colors from 'yoctocolors';
 import { DEFAULT_IS_VERBOSE } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../environment/$isRunningInNode';

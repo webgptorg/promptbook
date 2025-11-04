@@ -5,13 +5,13 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import { createOpenAI } from '@ai-sdk/openai';
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import type { Usage } from '../../../execution/Usage';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
+import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
 import { createExecutionToolsFromVercelProvider } from '../createExecutionToolsFromVercelProvider';
 
 playground()

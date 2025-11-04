@@ -1,6 +1,6 @@
-import colors from 'colors';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
+import colors from 'yoctocolors';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { jsonParse } from '../../formats/json/utils/jsonParse';

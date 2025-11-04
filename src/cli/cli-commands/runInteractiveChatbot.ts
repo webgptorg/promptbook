@@ -1,7 +1,7 @@
-import colors from 'colors';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
+import colors from 'yoctocolors';
 import { assertsError } from '../../errors/assertsError';
 import type { PipelineExecutor } from '../../execution/PipelineExecutor';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';

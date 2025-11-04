@@ -4,10 +4,10 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
 import OpenAI from 'openai';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import colors from 'yoctocolors';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));

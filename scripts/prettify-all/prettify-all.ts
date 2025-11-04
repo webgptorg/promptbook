@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 // prettify-all.ts
 
-import colors from 'colors';
 import commander from 'commander';
 import { basename, join } from 'path';
+import colors from 'yoctocolors';
 import { $execCommand } from '../../src/_packages/node.index';
 import { assertsError } from '../../src/errors/assertsError';
 import { commit } from '../utils/autocommit/commit';

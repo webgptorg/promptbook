@@ -4,10 +4,10 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import colors from 'yoctocolors';
 import { $execCommand, $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';

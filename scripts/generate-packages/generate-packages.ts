@@ -1,7 +1,6 @@
 #!/usr/bin/env ts-node
 // generate-packages.ts
 
-import colors from 'colors';
 import commander from 'commander';
 import fs, { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
@@ -10,6 +9,7 @@ import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
+import colors from 'yoctocolors';
 import { GENERATOR_WARNING } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';

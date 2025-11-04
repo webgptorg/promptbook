@@ -1,4 +1,3 @@
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import http from 'http';
@@ -6,6 +5,7 @@ import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
+import colors from 'yoctocolors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { CLAIM, DEFAULT_IS_VERBOSE } from '../config';
 import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';

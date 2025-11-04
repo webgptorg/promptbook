@@ -8,8 +8,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
 import { join } from 'path';
+import colors from 'yoctocolors';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
     console.error(colors.red(`CWD must be root of the project`));

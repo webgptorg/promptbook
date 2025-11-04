@@ -4,11 +4,11 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename, dirname, join } from 'path';
+import colors from 'yoctocolors';
 import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';

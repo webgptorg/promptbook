@@ -11,17 +11,17 @@ import { makeKnowledgeSourceHandler } from '@promptbook/core';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { MarkdownScraper } from '@promptbook/markdown-utils';
 import { spaceTrim } from '@promptbook/utils';
-import chalk from 'chalk';
+import colors from 'yoctocolors';
 import { join } from 'path';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
 playground()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })
@@ -56,7 +56,7 @@ async function playground() {
         ),
     );
 
-    console.info(chalk.bgGreen(' Knowledge: '));
+    console.info(colors.bgGreen(' Knowledge: '));
     console.info(knowledge);
 
     //========================================/
