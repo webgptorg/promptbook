@@ -33,6 +33,7 @@ export const FormattedBookInMarkdownTranspiler = {
             line = line?.split('RULE').join('**RULE**');
             line = line?.split('META').join('**META**');
             line = line?.split('KNOWLEDGE').join('**KNOWLEDGE**');
+            line = line?.split('ACTION').join('**ACTION**');
             // <- TODO: !!! Unhardcode these commitments
 
             lines[i] = line;

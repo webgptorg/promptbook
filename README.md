@@ -53,7 +53,7 @@ The main challenge is to narrow it down, constrain it, set the proper **context,
 
 Promptbook takes the best from both worlds. You are defining your AI behavior by simple **books**, which are very explicit. They are automatically enforced, but they are very easy to understand, very easy to write, and very reliable and portable.
 
-<table><tr><td>
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
@@ -75,7 +75,7 @@ You can look at it as prompting (or writing a system message), but decorated by 
 
 Personas define the character of your AI persona, its role, and how it should interact with users. It sets the tone and style of communication.
 
-<table><tr><td>
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
@@ -93,7 +93,7 @@ This can include domain-specific knowledge, company policies, or any other relev
 
 Promptbook Engine will automatically enforce this knowledge during interactions. When the knowledge is short enough, it will be included in the prompt. When it is too long, it will be stored in vector databases and RAG retrieved when needed. But you don't need to care about it.
 
-<table><tr><td>
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
@@ -112,7 +112,7 @@ Rules will enforce specific behaviors or constraints on the AI's responses. This
 
 Depending on rule strictness, Promptbook will either propagate it to the prompt or use other techniques, like adversary agent, to enforce it.
 
-<table><tr><td>
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
@@ -132,7 +132,7 @@ You are knowledgeable, professional, and detail-oriented.<br/>
 
 Action Commitment allows you to define specific actions that the AI can take during interactions. This can include things like posting on a social media platform, sending emails, creating calendar events, or interacting with your internal systems.
 
-<table><tr><td>
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
@@ -145,7 +145,7 @@ You are knowledgeable, professional, and detail-oriented.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
 **KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
-ACTION When a user asks about an issue that could be treated as a crime, notify legal@company.com.<br/>
+**ACTION** When a user asks about an issue that could be treated as a crime, notify legal@company.com.<br/>
 
 </td></tr></table>
 
