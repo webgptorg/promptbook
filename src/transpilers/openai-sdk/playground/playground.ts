@@ -13,7 +13,7 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { book } from '../../../pipeline/book-notation';
-import { OpenAiSdkTranspiler } from '../../../transpilers/openai/OpenAiSdkTranspiler';
+import { OpenAiSdkTranspiler } from '../../../transpilers/openai-sdk/OpenAiSdkTranspiler';
 import { $execCommand } from '../../../utils/execCommand/$execCommand';
 
 playground()

@@ -3,7 +3,7 @@ import { $bookTranspilersRegister } from '../_common/register/$bookTranspilersRe
 import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
 
 /**
- * Registration of LLM provider
+ * Registration of transpiler
  *
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *

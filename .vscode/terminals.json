@@ -385,7 +385,7 @@
         },
         {
             "name": "🧸 Transpile book -> OpenAiSdk (playground)",
-            "command": "npx ts-node ./src/transpilers/openai/playground/playground.ts",
+            "command": "npx ts-node ./src/transpilers/openai-sdk/playground/playground.ts",
             "execute": true,
             "onlySingle": true,
             "focus": true
