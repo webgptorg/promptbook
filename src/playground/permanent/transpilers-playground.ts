@@ -45,9 +45,11 @@ async function playground() {
     `;
 
     const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
-    const code = OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+    const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
     console.info(code);
+
+    // <- TODO: !!! Save the file and run it to see it in action
 
     //========================================/
 }
