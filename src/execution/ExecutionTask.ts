@@ -393,7 +393,7 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
     /**
      * Optional nonce to correlate logs with version of the Promptbook engine
      */
-    readonly nonce?: really_any;
+    readonly ptbkNonce?: really_any;
 
     // <- TODO: asMutableObject(): PartialDeep<TTaskResult>;
 };

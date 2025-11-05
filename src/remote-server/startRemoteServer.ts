@@ -463,7 +463,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 createdAt,
                 updatedAt,
                 currentValue,
-                nonce: 0,
+                ptbkNonce: 0,
             } satisfies Omit<AbstractTask<really_any>, 'asPromise' | 'asObservable'>;
         } else {
             return {
@@ -476,7 +476,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 createdAt,
                 updatedAt,
                 llmCalls,
-                nonce: 0,
+                ptbkNonce: 0,
             } satisfies Omit<
                 AbstractTask<really_any>,
                 'asPromise' | 'asObservable' | 'currentValue' | 'errors' | 'warnings'
