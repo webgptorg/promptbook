@@ -254,13 +254,6 @@
             "focus": true
         },
         {
-            "name": "🧸 Transpilers playground (💸)",
-            "command": "npx ts-node ./src/playground/permanent/transpilers-playground.ts",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
             "--note": "<- Note: [🎠] Add here new playgrounds"
         },
         {
@@ -386,6 +379,13 @@
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
             ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Transpile book -> OpenAiSdk (playground)",
+            "command": "npx ts-node ./src/transpilers/openai/playground/playground.ts",
             "execute": true,
             "onlySingle": true,
             "focus": true

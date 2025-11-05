@@ -8,16 +8,10 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
-import { join } from 'path';
-import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
-import { book } from '../../pipeline/book-notation';
-import { OpenAiSdkTranspiler } from '../../transpilers/openai/OpenAiSdkTranspiler';
-
-if (process.cwd() !== join(__dirname, '../../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
-    process.exit(1);
-}
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { book } from '../../../pipeline/book-notation';
+import { OpenAiSdkTranspiler } from '../../../transpilers/openai/OpenAiSdkTranspiler';
 
 playground()
     .catch((error) => {
@@ -30,7 +24,7 @@ playground()
     });
 
 async function playground() {
-    console.info(`🧸  Transpilers Playground`);
+    console.info(`🧸  Transpile book -> OpenAiSdk`);
 
     // Do here stuff you want to test
     //========================================>
