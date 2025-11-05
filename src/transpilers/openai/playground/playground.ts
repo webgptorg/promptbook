@@ -9,9 +9,12 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { book } from '../../../pipeline/book-notation';
 import { OpenAiSdkTranspiler } from '../../../transpilers/openai/OpenAiSdkTranspiler';
+import { $execCommand } from '../../../utils/execCommand/$execCommand';
 
 playground()
     .catch((error) => {
@@ -40,10 +43,13 @@ async function playground() {
 
     const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
     const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+    const filePath = join(__dirname, 'tmp', 'chatbot.js');
 
-    console.info(code);
+    await writeFile(filePath, code, 'utf-8');
+    console.info(colors.gray(filePath));
 
-    // <- TODO: !!! Save the file and run it to see it in action
+    // TODO: !!! Make this work
+    await $execCommand(`node ${filePath}`);
 
     //========================================/
 }

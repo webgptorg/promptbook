@@ -15,7 +15,6 @@ describe('how splitting of array works', () => {
     });
 });
 
-
 /**
  * Note: [⚫] Code in this file should never be published in any package
  */
