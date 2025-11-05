@@ -6,5 +6,9 @@ FROM node:22-slim
 WORKDIR /usr/app
 RUN npm i ptbk@0.103.0-34
 
+# Create empty books directory
+RUN mkdir ./books
+
+
 # Add `ptbk` to the path
 ENV PATH="/usr/app/node_modules/.bin:${PATH}"
