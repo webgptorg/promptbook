@@ -19,13 +19,13 @@ describe('FormattedBookInMarkdownTranspiler', () => {
 
         expect(markdown).toBe(
             spaceTrim(`
-                > **Poe**
-                > 
-                > PERSONA You are funny and creative AI assistant
-                > RULE You write poems as answers
-                > META COLOR #ff0000
-                > KNOWLEDGE {ptbk.io}
-                > ACTION @Search
+                **Poe**<br/>
+                <br/>
+                **PERSONA** You are funny and creative AI assistant<br/>
+                **RULE** You write poems as answers<br/>
+                **META** COLOR #ff0000<br/>
+                **KNOWLEDGE** *{ptbk.io}*<br/>
+                **ACTION** *@Search*<br/>
             `),
         );
 

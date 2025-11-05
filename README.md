@@ -53,17 +53,15 @@ The main challenge is to narrow it down, constrain it, set the proper **context,
 
 Promptbook takes the best from both worlds. You are defining your AI behavior by simple **books**, which are very explicit. They are automatically enforced, but they are very easy to understand, very easy to write, and very reliable and portable.
 
-<!--
-Paul Smith & Associés
+<div style="outline: 1px solid #777; padding: 10px;">
 
-PERSONA You are a company lawyer.
-Your job is to provide legal advice and support to the company and its employees.
-You are knowledgeable, professional, and detail-oriented.
--->
-<img
-    alt="Paul Smith & Associés Book"
-    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.&width=800&height=450&nonce=0"
-/>
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+You are knowledgeable, professional, and detail-oriented.<br/>
+
+</div>
 
 <div style="page-break-after: always;"></div>
 
@@ -77,17 +75,15 @@ You can look at it as prompting (or writing a system message), but decorated by 
 
 Personas define the character of your AI persona, its role, and how it should interact with users. It sets the tone and style of communication.
 
-<!--
-Paul Smith & Associés
+<div style="outline: 1px solid #777; padding: 10px;">
 
-PERSONA You are a company lawyer.
-Your job is to provide legal advice and support to the company and its employees.
-You are knowledgeable, professional, and detail-oriented.
--->
-<img
-    alt="Paul Smith & Associés Book"
-    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.&width=800&height=450&nonce=0"
-/>
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+You are knowledgeable, professional, and detail-oriented.<br/>
+
+</div>
 
 #### `Knowledge` commitment
 
@@ -97,20 +93,18 @@ This can include domain-specific knowledge, company policies, or any other relev
 
 Promptbook Engine will automatically enforce this knowledge during interactions. When the knowledge is short enough, it will be included in the prompt. When it is too long, it will be stored in vector databases and RAG retrieved when needed. But you don't need to care about it.
 
-<!--
-Paul Smith & Associés
+<div style="outline: 1px solid #777; padding: 10px;">
 
-PERSONA You are a company lawyer.
-Your job is to provide legal advice and support to the company and its employees.
-You are knowledgeable, professional, and detail-oriented.
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+You are knowledgeable, professional, and detail-oriented.<br/>
+<br/>
+**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
-KNOWLEDGE  https://company.com/company-policies.pdf
-KNOWLEDGE https://company.com/internal-documents/employee-handbook.docx
--->
-<img
-    alt="Paul Smith & Associés Book"
-    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20%20https%3A%2F%2Fcompany.com%2Fcompany-policies.pdf%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20https%3A%2F%2Fcompany.com%2Finternal-documents%2Femployee-handbook.docx&width=800&height=450&nonce=0"
-/>
+</div>
 
 #### `Rule` commitment
 
@@ -118,46 +112,42 @@ Rules will enforce specific behaviors or constraints on the AI's responses. This
 
 Depending on rule strictness, Promptbook will either propagate it to the prompt or use other techniques, like adversary agent, to enforce it.
 
-<!--
-Paul Smith & Associés
+<div style="outline: 1px solid #777; padding: 10px;">
 
-PERSONA You are a company lawyer.
-Your job is to provide legal advice and support to the company and its employees.
-You are knowledgeable, professional, and detail-oriented.
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+You are knowledgeable, professional, and detail-oriented.<br/>
+<br/>
+**RULE** Always ensure compliance with laws and regulations.<br/>
+**RULE** Never provide legal advice outside your area of expertise.<br/>
+**RULE** Never provide legal advice about criminal law.<br/>
+**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
-RULE Always ensure compliance with laws and regulations.
-RULE Never provide legal advice outside your area of expertise.
-RULE Never provide legal advice about criminal law.
-KNOWLEDGE  https://company.com/company-policies.pdf
-KNOWLEDGE https://company.com/internal-documents/employee-handbook.docx
--->
-<img
-    alt="Paul Smith & Associés Book"
-    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.%0A%20%20%20%20%20%20%7C%20RULE%20Always%20ensure%20compliance%20with%20laws%20and%20regulations.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20outside%20your%20area%20of%20expertise.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20about%20criminal%20law.%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20%20https%3A%2F%2Fcompany.com%2Fcompany-policies.pdf%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20https%3A%2F%2Fcompany.com%2Finternal-documents%2Femployee-handbook.docx&width=800&height=450&nonce=0"
-/>
+</div>
 
 #### `Action` commitment
 
 Action Commitment allows you to define specific actions that the AI can take during interactions. This can include things like posting on a social media platform, sending emails, creating calendar events, or interacting with your internal systems.
 
-<!--
-Paul Smith & Associés
+<div style="outline: 1px solid #777; padding: 10px;">
 
-PERSONA You are a company lawyer.
-Your job is to provide legal advice and support to the company and its employees.
-You are knowledgeable, professional, and detail-oriented.
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+You are knowledgeable, professional, and detail-oriented.<br/>
+<br/>
+**RULE** Always ensure compliance with laws and regulations.<br/>
+**RULE** Never provide legal advice outside your area of expertise.<br/>
+**RULE** Never provide legal advice about criminal law.<br/>
+**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
+ACTION When a user asks about an issue that could be treated as a crime, notify legal@company.com.<br/>
 
-RULE Always ensure compliance with laws and regulations.
-RULE Never provide legal advice outside your area of expertise.
-RULE Never provide legal advice about criminal law.
-KNOWLEDGE  https://company.com/company-policies.pdf
-KNOWLEDGE https://company.com/internal-documents/employee-handbook.docx
-ACTION When a user asks about an issue that could be treated as a crime, notify legal@company.com.
--->
-<img
-    alt="Paul Smith & Associés Book"
-    src="https://promptbook.studio/embed/book-preview.png?book=Paul%20Smith%20%26%20Associ%C3%A9s%0A%20%20%20%20%20%20%7C%20PERSONA%20You%20are%20a%20company%20lawyer.%0A%20%20%20%20%20%20%7C%20Your%20job%20is%20to%20provide%20legal%20advice%20and%20support%20to%20the%20company%20and%20its%20employees.%0A%20%20%20%20%20%20%7C%20You%20are%20knowledgeable%2C%20professional%2C%20and%20detail-oriented.%0A%20%20%20%20%20%20%7C%20RULE%20Always%20ensure%20compliance%20with%20laws%20and%20regulations.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20outside%20your%20area%20of%20expertise.%0A%20%20%20%20%20%20%7C%20RULE%20Never%20provide%20legal%20advice%20about%20criminal%20law.%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20%20https%3A%2F%2Fcompany.com%2Fcompany-policies.pdf%0A%20%20%20%20%20%20%7C%20KNOWLEDGE%20https%3A%2F%2Fcompany.com%2Finternal-documents%2Femployee-handbook.docx%0A%20%20%20%20%20%20%7C%20ACTION%20When%20a%20user%20asks%20about%20an%20issue%20that%20could%20be%20treated%20as%20a%20crime%2C%20notify%20legal%40company.com.&width=800&height=450&nonce=0"
-/>
+</div>
 
 [Read more about the language](./BLUEPRINT.md)
 

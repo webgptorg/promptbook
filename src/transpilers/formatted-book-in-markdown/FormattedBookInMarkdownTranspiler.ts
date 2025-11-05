@@ -1,4 +1,3 @@
-import spaceTrim from 'spacetrim';
 import {
     BookTranspiler,
     BookTranspilerOptions,
@@ -21,13 +20,26 @@ export const FormattedBookInMarkdownTranspiler = {
     transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): string_markdown {
         keepUnused(tools, options);
 
-        let lines = spaceTrim(book).split('\n');
+        let lines = book.trim(/* <- Note: Not using `spaceTrim` because its not needed */).split('\n');
 
         if (lines[0]) {
-            lines[0] = `**${lines[0]}**`;
+            lines[0] = `**<ins>${lines[0]}</ins>**`;
         }
 
-        lines = lines.map((line) => `> ${line}`);
+        for (let i = 1; i < lines.length; i++) {
+            let line = lines[i]!;
+
+            line = line?.split('PERSONA').join('**PERSONA**');
+            line = line?.split('RULE').join('**RULE**');
+            line = line?.split('META').join('**META**');
+            line = line?.split('KNOWLEDGE').join('**KNOWLEDGE**');
+            // <- TODO: !!! Unhardcode these commitments
+
+            lines[i] = line;
+        }
+
+        // lines = lines.map((line) => `> ${line}`);
+        lines = lines.map((line) => `${line}<br/>`);
 
         return lines.join('\n');
     },
