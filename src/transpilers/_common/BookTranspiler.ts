@@ -1,3 +1,4 @@
+import { Promisable } from 'type-fest';
 import {
     BookTranspilerOptions,
     ExecutionTools,
@@ -35,5 +36,5 @@ export type BookTranspiler = Registered & {
      * @param options additional options for the transpiler
      * @returns transpiled book
      */
-    transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): Promise<string_script>; // <- TODO: !!! Allow to return multiple files
+    transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): Promisable<string_script>; // <- TODO: !!! Allow to return multiple files
 };
