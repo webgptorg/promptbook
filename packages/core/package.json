@@ -89,15 +89,5 @@
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/core.index.d.ts",
-    "dependencies": {
-        "colors": "^1.4.0",
-        "crypto": "1.0.1",
-        "crypto-js": "4.2.0",
-        "moment": "2.30.1",
-        "papaparse": "5.4.1",
-        "rxjs": "7.8.2",
-        "spacetrim": "0.11.60",
-        "waitasecond": "1.11.160"
-    }
+    "typings": "./esm/typings/src/_packages/core.index.d.ts"
 }
