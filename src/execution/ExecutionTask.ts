@@ -1,6 +1,7 @@
 import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
 import { PartialDeep } from 'type-fest';
+import { TODO_any } from '../_packages/types.index';
 import { DEFAULT_TASK_SIMULATED_DURATION_MS } from '../config';
 import { assertsError } from '../errors/assertsError';
 import type { LlmCall } from '../types/LlmCall';
@@ -233,7 +234,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
 
             return {
                 percent: percent as number_percent,
-                message,
+                message: message + ' (!!!fallback)',
             };
         },
         get createdAt() {
@@ -257,7 +258,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             // <- Note: [1] --||--
         },
         get llmCalls() {
-            return llmCalls;
+            return [...llmCalls, { foo: '!!! bar' } as TODO_any];
             // <- Note: [1] --||--
         },
         get currentValue() {
