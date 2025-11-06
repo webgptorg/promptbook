@@ -1,6 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/wizard`
 
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic-claude/register-configuration';
 import { _AnthropicClaudeRegistration } from '../llm-providers/anthropic-claude/register-constructor';
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
@@ -11,16 +12,12 @@ import { _GoogleMetadataRegistration } from '../llm-providers/google/register-co
 import { _GoogleRegistration } from '../llm-providers/google/register-constructor';
 import { _OllamaMetadataRegistration } from '../llm-providers/ollama/register-configuration';
 import { _OllamaRegistration } from '../llm-providers/ollama/register-constructor';
-import {
-    _OpenAiAssistantMetadataRegistration,
-    _OpenAiCompatibleMetadataRegistration,
-    _OpenAiMetadataRegistration,
-} from '../llm-providers/openai/register-configuration';
-import {
-    _OpenAiAssistantRegistration,
-    _OpenAiCompatibleRegistration,
-    _OpenAiRegistration,
-} from '../llm-providers/openai/register-constructor';
+import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { _OpenAiCompatibleMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
+import { _OpenAiAssistantRegistration } from '../llm-providers/openai/register-constructor';
+import { _OpenAiCompatibleRegistration } from '../llm-providers/openai/register-constructor';
 import { _BoilerplateScraperRegistration } from '../scrapers/_boilerplate/register-constructor';
 import { _BoilerplateScraperMetadataRegistration } from '../scrapers/_boilerplate/register-metadata';
 import { _LegacyDocumentScraperRegistration } from '../scrapers/document-legacy/register-constructor';
@@ -35,45 +32,46 @@ import { _PdfScraperRegistration } from '../scrapers/pdf/register-constructor';
 import { _PdfScraperMetadataRegistration } from '../scrapers/pdf/register-metadata';
 import { _WebsiteScraperRegistration } from '../scrapers/website/register-constructor';
 import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/register-metadata';
+import { _FormattedBookInMarkdownTranspilerRegistration } from '../transpilers/formatted-book-in-markdown/register';
 import { _OpenAiSdkTranspilerRegistration } from '../transpilers/openai-sdk/register';
-import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { wizard } from '../wizard/wizard';
+
 
 // Note: Exporting version from each package
 export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
+
 // Note: Entities of the `@promptbook/wizard`
-export {
-    _AnthropicClaudeMetadataRegistration,
-    _AnthropicClaudeRegistration,
-    _AzureOpenAiMetadataRegistration,
-    _AzureOpenAiRegistration,
-    _BoilerplateScraperMetadataRegistration,
-    _BoilerplateScraperRegistration,
-    _DeepseekMetadataRegistration,
-    _DeepseekRegistration,
-    _DocumentScraperMetadataRegistration,
-    _DocumentScraperRegistration,
-    _GoogleMetadataRegistration,
-    _GoogleRegistration,
-    _LegacyDocumentScraperMetadataRegistration,
-    _LegacyDocumentScraperRegistration,
-    _MarkdownScraperMetadataRegistration,
-    _MarkdownScraperRegistration,
-    _MarkitdownScraperMetadataRegistration,
-    _MarkitdownScraperRegistration,
-    _OllamaMetadataRegistration,
-    _OllamaRegistration,
-    _OpenAiAssistantMetadataRegistration,
-    _OpenAiAssistantRegistration,
-    _OpenAiCompatibleMetadataRegistration,
-    _OpenAiCompatibleRegistration,
-    _OpenAiMetadataRegistration,
-    _OpenAiRegistration,
-    _OpenAiSdkTranspilerRegistration,
-    _PdfScraperMetadataRegistration,
-    _PdfScraperRegistration,
-    _WebsiteScraperMetadataRegistration,
-    _WebsiteScraperRegistration,
-    wizard,
-};
+export { _AnthropicClaudeMetadataRegistration };
+export { _AnthropicClaudeRegistration };
+export { _AzureOpenAiMetadataRegistration };
+export { _AzureOpenAiRegistration };
+export { _DeepseekMetadataRegistration };
+export { _DeepseekRegistration };
+export { _GoogleMetadataRegistration };
+export { _GoogleRegistration };
+export { _OllamaMetadataRegistration };
+export { _OllamaRegistration };
+export { _OpenAiMetadataRegistration };
+export { _OpenAiAssistantMetadataRegistration };
+export { _OpenAiCompatibleMetadataRegistration };
+export { _OpenAiRegistration };
+export { _OpenAiAssistantRegistration };
+export { _OpenAiCompatibleRegistration };
+export { _BoilerplateScraperRegistration };
+export { _BoilerplateScraperMetadataRegistration };
+export { _LegacyDocumentScraperRegistration };
+export { _LegacyDocumentScraperMetadataRegistration };
+export { _DocumentScraperRegistration };
+export { _DocumentScraperMetadataRegistration };
+export { _MarkdownScraperRegistration };
+export { _MarkdownScraperMetadataRegistration };
+export { _MarkitdownScraperRegistration };
+export { _MarkitdownScraperMetadataRegistration };
+export { _PdfScraperRegistration };
+export { _PdfScraperMetadataRegistration };
+export { _WebsiteScraperRegistration };
+export { _WebsiteScraperMetadataRegistration };
+export { _FormattedBookInMarkdownTranspilerRegistration };
+export { _OpenAiSdkTranspilerRegistration };
+export { wizard };
