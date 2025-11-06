@@ -1,0 +1,119 @@
+.tooltipContainer {
+    position: relative;
+    display: inline-block;
+}
+
+.blockContainer {
+    display: block;
+    width: 100%;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: var(--tooltip-background-color, rgba(0, 0, 0, 0.8));
+    color: var(--tooltip-text-color, white);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.tooltip.portal {
+    position: fixed;
+    z-index: 9999;
+}
+
+/* Tooltip positions when NOT rendered via portal (relative to trigger) */
+.tooltip:not(.portal).top {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+}
+
+.tooltip:not(.portal).right {
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%) translateX(8px);
+}
+
+.tooltip:not(.portal).bottom {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+}
+
+.tooltip:not(.portal).left {
+    top: 50%;
+    right: 100%;
+    transform: translateY(-50%) translateX(-8px);
+}
+
+/* Portal tooltip positions - use transform for centering */
+.portal.top {
+    transform: translateX(-50%) translateY(-100%);
+}
+
+.portal.right {
+    transform: translateY(-50%);
+}
+
+.portal.bottom {
+    transform: translateX(-50%);
+}
+
+.portal.left {
+    transform: translateX(-100%) translateY(-50%);
+}
+
+/* Tooltip arrows */
+.tooltip:not(.portal).top::after,
+.tooltip:not(.portal).right::after,
+.tooltip:not(.portal).bottom::after,
+.tooltip:not(.portal).left::after {
+    content: "";
+    position: absolute;
+    border-width: 5px;
+    border-style: solid;
+}
+
+.tooltip:not(.portal).top::after {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: var(--tooltip-background-color, rgba(0, 0, 0, 0.8)) transparent transparent transparent;
+}
+
+.tooltip:not(.portal).right::after {
+    top: 50%;
+    right: 100%;
+    transform: translateY(-50%);
+    border-color: transparent var(--tooltip-background-color, rgba(0, 0, 0, 0.8)) transparent transparent;
+}
+
+.tooltip:not(.portal).bottom::after {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: transparent transparent var(--tooltip-background-color, rgba(0, 0, 0, 0.8)) transparent;
+}
+
+.tooltip:not(.portal).left::after {
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    border-color: transparent transparent transparent var(--tooltip-background-color, rgba(0, 0, 0, 0.8));
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
