@@ -3,7 +3,7 @@ import { REMOTE_SERVER_URLS } from '../../../servers';
 import { CLAIM, NAME } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
-// import logoAsset from './logo-blue-white-256.png'; // <- TODO: !!! Remove
+// [😺]> import logoAsset from './logo-blue-white-256.png';
 
 export type AboutPromptbookInformationOptions = {
     /**

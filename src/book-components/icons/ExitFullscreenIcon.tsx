@@ -1,14 +1,13 @@
 import { JSX } from 'react';
 import iconAsset from './ExitFullscreenIcon.svg';
-// <- TODO: !!! Is this type of SVG import working correctly?
-// <- TODO: !!! Try also the png import if SVG works
+// <- TODO: [😺] Is this type of SVG import working correctly?
+// <- TODO: [😺] Try also the png import if SVG works
 /**
  * Renders an icon that represents the exit fullscreen action
  *
  * @private
  */
 export function ExitFullscreenIcon(): JSX.Element {
-    console.log('!!!', { iconAsset });
     return <img src={iconAsset} alt="Exit Fullscreen Icon" width={20} height={20} />;
     // <- Set the size as needed
 

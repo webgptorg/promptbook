@@ -1,6 +1,6 @@
 import jsonPlugin from '@rollup/plugin-json';
 import typescriptPlugin from '@rollup/plugin-typescript';
-import urlPlugin from '@rollup/plugin-url'; // <- TODO: !!!  Use or uninstall
+import urlPlugin from '@rollup/plugin-url'; // <- TODO: [😺] Use or uninstall
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
@@ -37,11 +37,7 @@ export default function () {
                     preferConst: true,
                     compact: true,
                 }),
-                // TODO: !!! Use or remove:
-                //importAsString({
-                //    include: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.stl'],
-                //}),
-                // TODO: !!! Use or remove:
+                // TODO: [😺] Use or remove:
                 urlPlugin({
                     include: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.stl'],
                     // limit: 8192, // <- Note: files under 8kb → base64 inline
