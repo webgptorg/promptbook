@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/markdown-utils",
-    "version": "0.103.0-34",
+    "version": "0.103.0-35",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
