@@ -78,6 +78,18 @@ PERSONA and RULE commitments defines agent behavior and are used in prompt/syste
 -   You are working with commitment file /src/book-2.0/commitments/KNOWLEDGE/KNOWLEDGE.ts
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
+
+
+---
+
+[ ]
+
+[✨🌱] `OpenAiSdkTranspiler` should use `spaceTrim` each time multiline string is present
+
+-
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+
 ---
 
 [ ]
