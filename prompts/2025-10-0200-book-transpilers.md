@@ -38,7 +38,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🌱] `OpenAiSdkTranspiler` should work with knowledge commitment
 
