@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
 import { createAgentModelRequirements, parseAgentSource } from '../../_packages/core.index';
-import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import {
     BookTranspiler,
     BookTranspilerOptions,
@@ -8,6 +7,7 @@ import {
     string_book,
     string_script,
 } from '../../_packages/types.index';
+import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 
 /**
@@ -76,8 +76,12 @@ export const OpenAiSdkTranspiler = {
                     });
 
                     // ---- KNOWLEDGE ----
-                    const knowledge = ${JSON.stringify(directKnowledge, null, 4)};
-                    const knowledgeSources = ${JSON.stringify(knowledgeSources, null, 4)};
+                    const knowledge = ${block(
+                        JSON.stringify(directKnowledge, null, 4) /* <- TODO: Use here Promptbook stringify */,
+                    )};
+                    const knowledgeSources = ${block(
+                        JSON.stringify(knowledgeSources, null, 4) /* <- TODO: Use here Promptbook stringify */,
+                    )};
                     let index;
 
                     async function setupKnowledge() {
@@ -125,15 +129,16 @@ export const OpenAiSdkTranspiler = {
 
                         const userMessage = spaceTrim(\`
                             ${block(
-                                `
-                                Here is some additional context to help you answer the question:
-                                \${context}
+                                spaceTrim(`
+                                    Here is some additional context to help you answer the question:
+                                    \${context}
 
-                                ---
+                                    ---
 
-                                My question is:
-                                \${question}
-                                `,
+                                    My question is:
+                                    \${question}
+                                `),
+                                // <- TODO: !!! Maybe block in the spaceTrim shoud do the spaceTrim automatically?
                             )}
                         \`);
 
