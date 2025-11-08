@@ -43,7 +43,7 @@ interface TooltipProps {
      * If true, the tooltip will not be displayed but the content will still be rendered.
      * In this case <Tooltip> is equivalent to a <React.Fragment> with the content.
      *
-     * Note: Tooltip sometimes breaks the hover, temporarly disable via this prop
+     * Note: Tooltip sometimes breaks the hover, temporarily disable via this prop
      */
     isDisabled?: boolean;
 }
