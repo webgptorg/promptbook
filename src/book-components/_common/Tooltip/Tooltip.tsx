@@ -2,7 +2,7 @@ import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Tooltip.module.css';
 
-interface TooltipProps {
+type TooltipProps = {
     /**
      * The content to display in the tooltip
      */
@@ -46,7 +46,7 @@ interface TooltipProps {
      * Note: Tooltip sometimes breaks the hover, temporarily disable via this prop
      */
     isDisabled?: boolean;
-}
+};
 
 /**
  * A tooltip component that displays additional information when hovering over an element
