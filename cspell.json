@@ -27,6 +27,7 @@
         ".git",
         "src/scrapers/website/examples",
         "src/scrapers/markdown/examples",
-        "src/other/templates/getTemplatesPipelineCollection.ts"
+        "src/other/templates/getTemplatesPipelineCollection.ts",
+        "**/tmp/**"
     ]
 }
