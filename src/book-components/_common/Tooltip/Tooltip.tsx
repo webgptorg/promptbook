@@ -50,6 +50,8 @@ type TooltipProps = {
 
 /**
  * A tooltip component that displays additional information when hovering over an element
+ *
+ * @private Used internally in book components
  */
 export function Tooltip({
     content,
