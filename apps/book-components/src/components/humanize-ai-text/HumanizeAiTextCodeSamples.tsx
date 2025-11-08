@@ -4,7 +4,7 @@ import { Code } from '../Code/Code';
 export default function HumanizeAiTextCodeSamples() {
     const samples = [
         {
-            name: 'Humanize AI Text',
+            name: 'Humanize AI Text2',
             code: `import { humanizeAiText } from '@promptbook/utils';\n\nhumanizeAiText('Hello World');`,
         },
     ];

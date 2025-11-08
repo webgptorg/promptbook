@@ -60,56 +60,56 @@
             "focus": false
         },
         {
-            "name": "🧪🧪 Test all (⏳)",
+            "name": "🧪🧪 Test all (💤)(⏳)",
             "commands": ["npm run test"],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test Unit",
+            "name": "🧪 Test Unit (💤)",
             "command": "npm run test-unit",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test Types",
+            "name": "🧪 Test Types (💤)",
             "command": "npm run test-types",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test Spell check",
+            "name": "🧪 Test Spell check (💤)",
             "command": "npm run test-spellcheck",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test Lint",
+            "name": "🧪 Test Lint (💤)",
             "command": "npm run test-lint",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test Books",
+            "name": "🧪 Test Books (💤)",
             "command": "npm run test-books",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test Package generation (build)",
+            "name": "🧪 Test Package generation (build) (💤)",
             "command": "npm run test-package-generation",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test name discrepancies",
+            "name": "🧪 Test name discrepancies (💤)",
             "command": "npm run test-name-discrepancies",
             "execute": false,
             "onlySingle": false,
@@ -487,14 +487,14 @@
             "focus": true
         },
         {
-            "name": "🔼🧪 Release pre-release version (💸)(⏳)",
+            "name": "🔼🧪 Release pre-release version (💤)(💸)(⏳)",
             "command": "npm version prerelease",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🔼🩹 Release patch version (💸)(⏳)",
+            "name": "🔼🩹 Release patch version (💤)(💸)(⏳)",
             "command": "npm version patch",
             "onlySingle": true,
             "focus": true

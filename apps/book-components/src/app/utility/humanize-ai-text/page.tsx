@@ -5,19 +5,21 @@ import { Footer } from '@/components/Footer/Footer';
 import { Header } from '@/components/Header/Header';
 import HumanizeAiTextCodeSamples from '@/components/humanize-ai-text/HumanizeAiTextCodeSamples';
 import HumanizeAiTextPreview from '@/components/humanize-ai-text/HumanizeAiTextPreview';
+import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/color';
 import { Download, Tag, User } from 'lucide-react';
 
 export default function HumanizeAiTextPage() {
     const utility = {
-        name: 'Humanize AI Text',
-        description: 'A utility to make AI-generated text sound more natural and human-like.',
+        name: 'Humanize AI Text1',
+        description:
+            'This utility makes AI-generated text sound more natural and human-like, rendering it undetectable as AI-written.',
         tags: ['text', 'utility', 'humanize', 'ai'],
-        version: '1.0.0',
+        version: PROMPTBOOK_ENGINE_VERSION, // <- TODO: !!! To all components
         author: 'Promptbook',
         repository: 'https://github.com/webgptorg/promptbook',
         category: 'Text Analysis',
         dependencies: {
-            react: '^18.0.0 || ^19.0.0',
+            // react: '^18.0.0 || ^19.0.0',
             '@promptbook/utils': '0.103.0-4',
         },
     };
