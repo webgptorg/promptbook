@@ -35,7 +35,7 @@ async function playground() {
     // Note: [🎠] Do here the stuff and add in `terminals.json`
 
     const agentSource = book`
-    
+
         Marigold
 
         PERSONA You are writing stories about Witcher
@@ -67,10 +67,11 @@ async function playground() {
     const filePath = join(__dirname, 'tmp', 'chatbot.js');
 
     await writeFile(filePath, code, 'utf-8');
-    console.info(colors.gray(filePath));
+    const command = `node ${filePath.split('\\').join('/')}`;
+    console.info(colors.bgWhite(command));
 
     // TODO: !!! Make this work
-    await $execCommand(`node ${filePath}`);
+    await $execCommand(command);
 
     //========================================/
 }
