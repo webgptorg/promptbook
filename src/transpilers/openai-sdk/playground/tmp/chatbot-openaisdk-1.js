@@ -3,16 +3,9 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
-import { Document, Settings, VectorStoreIndex } from 'llamaindex';
 import OpenAI from 'openai';
 import readline from 'readline';
 import { spaceTrim } from 'spacetrim';
-
-Settings.embedModel = new OpenAI({
-    model: 'text-embedding-3-small',
-    apiKey: process.env.OPENAI_API_KEY,
-    type: 'embedding',
-});
 
 // ---- CONFIG ----
 const client = new OpenAI({
@@ -25,13 +18,33 @@ const knowledge = [
     '{Yennefer of Vengerberg}\nYennefer of Vengerberg is a formidable sorceress known for her beauty, intelligence, and temper.\nShe has a complicated past, having been born with a hunchback and later transformed through magic.\nYennefer is deeply connected to Geralt of Rivia, with whom she shares a tumultuous romantic relationship.\nShe is also a mother figure to {Ciri}, whom she trains in the ways of magic.',
     '{Ciri}\nCiri, also known as {Cirilla Fiona Elen Riannon}, is a young woman with a mysterious past and a powerful destiny.\nShe is the daughter of {Poviss}, the ruler of the kingdom of Cintra, and possesses the Elder Blood, which grants her extraordinary abilities.\nCiri is a skilled fighter and has been trained in the ways of the sword by Geralt of Rivia.\nHer destiny is intertwined with that of Geralt and Yennefer, as they both seek to protect her from those who would exploit her powers.',
 ];
-let index;
+let knowledgeVectors = [];
+
+// Helper function to calculate cosine similarity
+function cosineSimilarity(vecA, vecB) {
+    const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
+    const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
+    const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
+    return dotProduct / (magnitudeA * magnitudeB);
+}
+
+async function getEmbedding(text) {
+    const response = await client.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: text,
+    });
+    return response.data[0].embedding;
+}
 
 async function setupKnowledge() {
-    const documents = knowledge.map((text) => new Document({ text }));
-
-    if (documents.length > 0) {
-        index = await VectorStoreIndex.fromDocuments(documents);
+    if (knowledge.length > 0) {
+        console.log('🧠 Preparing knowledge base...');
+        knowledgeVectors = await Promise.all(
+            knowledge.map(async (text) => ({
+                text,
+                embedding: await getEmbedding(text),
+            }))
+        );
         console.log('🧠 Knowledge base prepared.');
     }
 }
@@ -56,10 +69,18 @@ const chatHistory = [
 
 async function ask(question) {
     let context = '';
-    if (index) {
-        const retriever = index.asRetriever();
-        const relevantNodes = await retriever.retrieve(question);
-        context = relevantNodes.map((node) => node.getContent()).join('\n\n');
+    if (knowledgeVectors.length > 0) {
+        const questionEmbedding = await getEmbedding(question);
+        
+        // Find most relevant knowledge entries
+        const similarities = knowledgeVectors.map((item) => ({
+            text: item.text,
+            similarity: cosineSimilarity(questionEmbedding, item.embedding),
+        }));
+        
+        // Sort by similarity and take top 3
+        similarities.sort((a, b) => b.similarity - a.similarity);
+        context = similarities.slice(0, 3).map((item) => item.text).join('\n\n');
     }
 
     const userMessage = spaceTrim(`
