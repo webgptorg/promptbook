@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨‼️] Fix Vercel serverless function size for `apps/book-components`
 
