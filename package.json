@@ -263,7 +263,6 @@
         "locate-app": "^2.5.0",
         "lucide-react": "0.536.0",
         "mermaid": "11.9.0",
-        "next": "15.4.7",
         "openapi-typescript": "7.6.1",
         "organize-imports-cli": "0.10.0",
         "playwright": "^1.56.1",
@@ -286,6 +285,7 @@
         "yaml": "2.3.4"
     },
     "dependencies": {
+        "next": "15.4.7",
         "@ai-sdk/deepseek": "0.1.17",
         "@ai-sdk/google": "1.0.17",
         "@ai-sdk/openai": "1.0.20",
