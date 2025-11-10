@@ -18,9 +18,8 @@
                 "name": "next"
             }
         ],
-        "baseUrl": ".",
         "paths": {
-            "@/*": ["src/*"],
+            "@/*": ["./src/*"],
             "@common/*": ["../_common/*"],
             "@promptbook-local/*": ["../../src/_packages/*.index"]
         }
