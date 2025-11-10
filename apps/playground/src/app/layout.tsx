@@ -9,12 +9,12 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-    title: 'Promptbook Components Gallery',
+    title: 'Promptbook Playground',
     description: 'A showcase of React components for developers using Promptbook technology',
     keywords: ['React', 'Components', 'Promptbook', 'UI', 'Gallery', 'Developers'],
     authors: [{ name: 'Promptbook Team' }],
     openGraph: {
-        title: 'Promptbook Components Gallery',
+        title: 'Promptbook Playground',
         description: 'A showcase of React components for developers using Promptbook technology',
         type: 'website',
         images: [
@@ -24,14 +24,14 @@ export const metadata: Metadata = {
                 url: 'https://www.ptbk.io/design',
                 width: 1200,
                 height: 630,
-                alt: 'Promptbook Components Gallery',
+                alt: 'Promptbook Playground',
             },
             */
         ],
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Promptbook Components Gallery',
+        title: 'Promptbook Playground',
         description: 'A showcase of React components for developers using Promptbook technology',
         // TODO: images: ['https://www.ptbk.io/design'],
     },

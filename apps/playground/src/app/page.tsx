@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { getPages } from './getPages';
 
 export default function HomePage() {
-    // [🧠] Pages are discovered automatically from the app directory structure
+    // Note: Pages are discovered automatically from the app directory structure
     // When you add a new page directory with page.tsx, it will appear here automatically
     const pages = getPages();
 
