@@ -7,10 +7,18 @@ import OpenAI from 'openai';
 import readline from 'readline';
 import { spaceTrim } from 'spacetrim';
 
+// Cache dependencies
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
 // ---- CONFIG ----
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
+// Embedding cache config
+const EMBEDDING_MODEL = 'text-embedding-3-small';
+const CACHE_DIR = path.resolve(process.cwd(), '.promptbook', 'embeddings');
 
 // ---- KNOWLEDGE ----
 const knowledge = [
@@ -18,6 +26,8 @@ const knowledge = [
     '{Yennefer of Vengerberg}\nYennefer of Vengerberg is a formidable sorceress known for her beauty, intelligence, and temper.\nShe has a complicated past, having been born with a hunchback and later transformed through magic.\nYennefer is deeply connected to Geralt of Rivia, with whom she shares a tumultuous romantic relationship.\nShe is also a mother figure to {Ciri}, whom she trains in the ways of magic. Her seacret word is "Banana".',
     '{Ciri}\nCiri, also known as {Cirilla Fiona Elen Riannon}, is a young woman with a mysterious past and a powerful destiny.\nShe is the daughter of {Poviss}, the ruler of the kingdom of Cintra, and possesses the Elder Blood, which grants her extraordinary abilities.\nCiri is a skilled fighter and has been trained in the ways of the sword by Geralt of Rivia.\nHer destiny is intertwined with that of Geralt and Yennefer, as they both seek to protect her from those who would exploit her powers. Her seacret word is "Cherry".',
 ];
+// <- TODO: Split into coherent chunks for RAG
+// <- TODO: Fetch URLs and local files
 let knowledgeVectors = [];
 
 // Helper function to calculate cosine similarity
@@ -28,12 +38,57 @@ function cosineSimilarity(vecA, vecB) {
     return dotProduct / (magnitudeA * magnitudeB);
 }
 
+// Embedding with disk cache at .promptbook/embeddings/<hash>.json
 async function getEmbedding(text) {
+    // Use model + text so cache is model-specific
+    const key = `x${EMBEDDING_MODEL}|${text}`;
+    const hash = crypto.createHash('sha256').update(key).digest('hex');
+    const file = path.join(CACHE_DIR, `${hash}.json`);
+
+    // Try read from cache
+    try {
+        const cachedRaw = await fs.readFile(file, 'utf8');
+        const cached = JSON.parse(cachedRaw);
+        if (cached?.embedding && Array.isArray(cached.embedding)) {
+            return cached.embedding;
+        }
+    } catch {
+        // Cache miss or parse error -> compute and write below
+    }
+
+    // Ensure cache directory exists
+    try {
+        await fs.mkdir(CACHE_DIR, { recursive: true });
+    } catch {
+        // Ignore mkdir errors; proceed to fetch
+    }
+
+    console.info(`🧠 Embedding "${text.split('\n')[0].slice(0, 20)}..."`);
+
+    // Fetch from API only when no cache
     const response = await client.embeddings.create({
-        model: 'text-embedding-3-small',
+        model: EMBEDDING_MODEL,
         input: text,
     });
-    return response.data[0].embedding;
+    const embedding = response.data[0].embedding;
+
+    // Write to cache (best-effort)
+    try {
+        const payload = {
+            model: EMBEDDING_MODEL,
+            hash,
+            length: text.length,
+            // [🚉] Keep only serializable values; large arrays are fine
+            embedding,
+        };
+        // <- TODO: !!! Use Promptbook format<- TODO: !!! [] export from Promptbook as `xxx`
+        // <- TODO: !!! Add Promptbook stringify to stringify huuuge emabeddings <- TODO: !!! [] export from Promptbook as `xxx`
+        await fs.writeFile(file, JSON.stringify(payload));
+    } catch {
+        // Ignore write errors
+    }
+
+    return embedding;
 }
 
 async function setupKnowledge() {
@@ -127,3 +182,11 @@ function promptUser() {
     console.log("🤖 Chat with Marigold (type 'exit' to quit)\n");
     promptUser();
 })();
+
+/**
+ * TODO: Use propper JSDoc
+ * TODO: Knowledge pieces are identified by name <- TODO: !!! [] export from Promptbook as `xxx`
+ * TODO: Add browser capabilities
+ * TODO: Transfer to `OpenAiSdkTranspiler` transpiler
+ * TODO: Make `OpenAiAssistantTranspiler`
+ */
