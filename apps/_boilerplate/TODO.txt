@@ -1,1 +1,0 @@
-TODO: Make web app boilerplate + mark all the boilerplates ACRY by one emoji tag

@@ -60,6 +60,9 @@
             "focus": false
         },
         {
+            "--note": " <- Note: [🔠] Register new apps here "
+        },
+        {
             "name": "🧪🧪 Test all (💤)(⏳)",
             "commands": ["npm run test"],
             "execute": false,
