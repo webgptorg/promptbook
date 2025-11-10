@@ -1,8 +1,12 @@
+import faviconLogoImage from '@/public/favicon.ico';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Barlow_Condensed } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const barlowCondensed = Barlow_Condensed({
+    subsets: ['latin'],
+    weight: ['300', '400', '500', '600', '700'],
+});
 
 export const metadata: Metadata = {
     title: 'Promptbook Components Gallery',
@@ -42,27 +46,27 @@ export default function RootLayout({
         <html lang="en">
             <head>
                 {/* Favicon for light mode */}
+                {/*
                 <link
                     rel="icon"
                     href="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
                     media="(prefers-color-scheme: light)"
                     type="image/svg+xml"
                 />
+                */}
                 {/* Favicon for dark mode */}
+                {/*
                 <link
                     rel="icon"
                     href="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
                     media="(prefers-color-scheme: dark)"
                     type="image/svg+xml"
                 />
+                */}
                 {/* Default favicon as a fallback */}
-                <link
-                    rel="icon"
-                    href="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
-                    type="image/svg+xml"
-                />
+                <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
             </head>
-            <body className={`${inter.className} antialiased bg-white text-gray-900`}>{children}</body>
+            <body className={`${barlowCondensed.className} antialiased bg-white text-gray-900`}>{children}</body>
         </html>
     );
 }
