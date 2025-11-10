@@ -228,6 +228,7 @@
     },
     "devDependencies": {
         "@eslint/eslintrc": "3",
+        "@next/bundle-analyzer": "^16.0.1",
         "@rollup/plugin-json": "6.1.0",
         "@rollup/plugin-typescript": "8.3.0",
         "@rollup/plugin-url": "^8.0.2",

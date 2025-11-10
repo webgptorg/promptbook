@@ -1,3 +1,4 @@
+import NextBundleAnalyzer from '@next/bundle-analyzer';
 import type { NextConfig } from 'next';
 import path from 'path';
 
@@ -34,4 +35,8 @@ const nextConfig: NextConfig = {
     /**/
 };
 
-export default nextConfig;
+const withBundleAnalyzer = NextBundleAnalyzer({
+    enabled: true, //process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer(nextConfig);
