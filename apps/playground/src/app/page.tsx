@@ -1,32 +1,32 @@
-'use client';
-
-import { BookEditor } from '@promptbook-local/components';
-import { DEFAULT_BOOK } from '@promptbook-local/core';
-import type { string_book } from '@promptbook-local/types';
-import { useState } from 'react';
+import Link from 'next/link';
+import { getPages } from './getPages';
 
 export default function HomePage() {
-    const [book, setBook] = useState<string_book>(DEFAULT_BOOK);
+    // [🧠] Pages are discovered automatically from the app directory structure
+    // When you add a new page directory with page.tsx, it will appear here automatically
+    const pages = getPages();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            <BookEditor
-                className="w-full h-screen"
-                height={null}
-                value={book}
-                onChange={(book) => {
-                    console.log('Book changed');
-                    setBook(book);
-                }}
-                isBorderRadiusDisabled
-                // className={styles.BookEditor}
-                isVerbose={false}
-                onFileUpload={(file) => {
-                    return file.name;
-                }}
-                // isReadonly
-                translations={{ readonlyMessage: 'aaaaa' }}
-            />
+            <div className="container mx-auto px-4 py-16">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">Promptbook Playground</h1>
+                <p className="text-xl text-gray-600 mb-12">
+                    Explore different examples and demos of the Promptbook components
+                </p>
+
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {pages.map((page) => (
+                        <Link
+                            key={page.path}
+                            href={page.path}
+                            className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                        >
+                            <h2 className="text-2xl font-semibold text-gray-900 mb-2">{page.title}</h2>
+                            <p className="text-gray-600">{page.description}</p>
+                        </Link>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
