@@ -135,61 +135,61 @@ export function BookEditorMonaco(props: BookEditorProps) {
         };
     }, [editor]);
 
+    // Ensure Monaco language/theme registration is done safely for multiple editors
     useEffect(() => {
-        if (!monaco) {
-            return;
+        if (!monaco) return;
+
+        // Register language only if not already registered
+        const alreadyRegistered = monaco.languages.getLanguages().some(lang => lang.id === BOOK_LANGUAGE_ID);
+        if (!alreadyRegistered) {
+            monaco.languages.register({ id: BOOK_LANGUAGE_ID });
+
+            const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
+            const commitmentRegex = new RegExp(
+                `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})\\s`,
+            );
+
+            // Note: Using a broad character set for Latin and Cyrillic to support international characters in parameters.
+            //       Monarch tokenizer does not support Unicode property escapes like \p{L}.
+            const parameterRegex = /@([a-zA-Z0-9_á-žÁ-Žč-řČ-Řš-žŠ-Žа-яА-ЯёЁ]+)/;
+
+            const bookRules: Array<[RegExp, string]> = [
+                [parameterRegex, 'parameter'],
+                [/\{[^}]+\}/, 'parameter'],
+                [commitmentRegex, 'commitment'],
+            ];
+
+            monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
+                ignoreCase: true,
+                tokenizer: {
+                    root: [[/^.*$/, 'title', '@body']],
+                    body: bookRules,
+                },
+            });
+
+            monaco.languages.registerCompletionItemProvider(BOOK_LANGUAGE_ID, {
+                provideCompletionItems: (model, position) => {
+                    const word = model.getWordUntilPosition(position);
+                    const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: word.startColumn,
+                        endColumn: word.endColumn,
+                    };
+
+                    const suggestions = commitmentTypes.map((type) => ({
+                        label: type,
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: type,
+                        range: range,
+                    }));
+
+                    return { suggestions: suggestions };
+                },
+            });
         }
 
-        // Register a new language
-        monaco.languages.register({ id: BOOK_LANGUAGE_ID });
-
-        const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
-        const commitmentRegex = new RegExp(
-            `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})\\s`,
-        );
-
-        // Note: Using a broad character set for Latin and Cyrillic to support international characters in parameters.
-        //       Monarch tokenizer does not support Unicode property escapes like \p{L}.
-        const parameterRegex = /@([a-zA-Z0-9_á-žÁ-Žč-řČ-Řš-žŠ-Žа-яА-ЯёЁ]+)/;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const bookRules: any = [
-            [parameterRegex, 'parameter'],
-            [/\{[^}]+\}/, 'parameter'],
-            [commitmentRegex, 'commitment'],
-        ];
-
-        // Register a tokens provider for the language
-        const tokenProvider = monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
-            ignoreCase: true,
-            tokenizer: {
-                root: [[/^.*$/, 'title', '@body']],
-                body: bookRules,
-            },
-        });
-
-        // Register a completion item provider for the language
-        const completionProvider = monaco.languages.registerCompletionItemProvider(BOOK_LANGUAGE_ID, {
-            provideCompletionItems: (model, position) => {
-                const word = model.getWordUntilPosition(position);
-                const range = {
-                    startLineNumber: position.lineNumber,
-                    endLineNumber: position.lineNumber,
-                    startColumn: word.startColumn,
-                    endColumn: word.endColumn,
-                };
-
-                const suggestions = commitmentTypes.map((type) => ({
-                    label: type,
-                    kind: monaco.languages.CompletionItemKind.Keyword,
-                    insertText: type,
-                    range: range,
-                }));
-
-                return { suggestions: suggestions };
-            },
-        });
-
+        // Always define theme, but do NOT set it globally (avoid monaco.editor.setTheme)
         monaco.editor.defineTheme('book-theme', {
             base: 'vs',
             inherit: true,
@@ -197,7 +197,6 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 {
                     token: 'title',
                     foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(),
-                    // [🚚]> fontStyle: 'underline italic',
                     fontStyle: 'bold underline',
                 },
                 {
@@ -217,13 +216,6 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 'editor.scrollbarSlider.activeBackground': '#C0C0C0',
             },
         });
-
-        monaco.editor.setTheme('book-theme');
-
-        return () => {
-            tokenProvider.dispose();
-            completionProvider.dispose();
-        };
     }, [monaco]);
 
     useEffect(() => {
@@ -381,6 +373,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 )}
                 <Editor
                     language={BOOK_LANGUAGE_ID}
+                    theme="book-theme"
                     value={value}
                     onMount={(editor) => setEditor(editor)}
                     onChange={(newValue) => onChange?.(newValue as string_book)}

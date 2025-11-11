@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🗳] Syntax highliting should work for `BookEditor` when on same page is another Monaco editor present
 
@@ -6,6 +6,8 @@
     -\* You are working with `/src/book-components/BookEditor/BookEditor.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`
+
+![alt text](screenshots/2025-11-0030-book-editor-syntax-highlite-collision.png)
 
 ---
 
