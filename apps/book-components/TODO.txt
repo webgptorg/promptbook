@@ -1,1 +1,1 @@
-TODO: !!!! Fix the deployment and revert all temporary changes made to get it working.
+TODO: [✨‼️] The deployment is not working because the serverless function size exceeds the limit. 

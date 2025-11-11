@@ -1,4 +1,4 @@
-[ ]
+[.] _<- Note: Repair not working, need to investigate further_
 
 [✨‼️] Fix Vercel serverless function size for `apps/book-components`
 
@@ -13,10 +13,10 @@ Here is the problem:
 10:43:02.348 Running "vercel build"
 10:43:02.890 Vercel CLI 48.9.0
 10:43:03.225 Installing dependencies...
-10:43:03.917 
+10:43:03.917
 10:43:03.917 > postinstall
 10:43:03.917 > cd ../../ && npm ci
-10:43:03.917 
+10:43:03.917
 10:43:09.940 npm warn deprecated y-websocket-server@1.0.2: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 10:43:10.001 npm warn deprecated urix@0.1.0: Please see https://github.com/lydell/urix#deprecated
 10:43:10.513 npm warn deprecated source-map-url@0.4.1: See https://github.com/lydell/source-map-url#deprecated
@@ -47,47 +47,47 @@ Here is the problem:
 10:43:19.566 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
 10:43:21.531 npm warn deprecated @azure/openai@1.0.0-beta.13: The Azure OpenAI client library for JavaScript beta has been retired. Please migrate to the stable OpenAI SDK for JavaScript using the migration guide: https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/openai/openai/MIGRATION.md.
 10:43:24.505 npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-10:43:39.467 
+10:43:39.467
 10:43:39.467 added 1889 packages, and audited 1890 packages in 35s
-10:43:39.467 
+10:43:39.467
 10:43:39.467 335 packages are looking for funding
 10:43:39.467   run `npm fund` for details
-10:43:39.505 
+10:43:39.505
 10:43:39.505 18 vulnerabilities (8 moderate, 10 high)
-10:43:39.506 
+10:43:39.506
 10:43:39.506 To address issues that do not require attention, run:
 10:43:39.506   npm audit fix
-10:43:39.506 
+10:43:39.506
 10:43:39.506 To address all issues (including breaking changes), run:
 10:43:39.506   npm audit fix --force
-10:43:39.506 
+10:43:39.506
 10:43:39.506 Run `npm audit` for details.
-10:43:39.565 
+10:43:39.565
 10:43:39.565 up to date in 36s
 10:43:39.599 Detected Next.js version: 15.4.7
 10:43:39.602 Running "npm run build"
-10:43:39.718 
+10:43:39.718
 10:43:39.718 > build
 10:43:39.718 > (npx kill-port 4022 || true) && next build
-10:43:39.718 
+10:43:39.718
 10:43:40.244 npm warn exec The following package was not found and will be installed: kill-port@2.0.1
 10:43:40.529 Process on port 4022 killed
 10:43:41.528    ▲ Next.js 15.4.7
 10:43:41.529    - Experiments (use with caution):
 10:43:41.529      ✓ externalDir
-10:43:41.529 
+10:43:41.529
 10:43:41.557    Creating an optimized production build ...
 10:44:16.986  ✓ Compiled successfully in 31.0s
 10:44:16.991    Linting and checking validity of types ...
 10:44:27.726    Collecting page data ...
 10:44:29.971    Generating static pages (0/9) ...
-10:44:31.010    Generating static pages (2/9) 
-10:44:31.010    Generating static pages (4/9) 
-10:44:31.010    Generating static pages (6/9) 
+10:44:31.010    Generating static pages (2/9)
+10:44:31.010    Generating static pages (4/9)
+10:44:31.010    Generating static pages (6/9)
 10:44:31.010  ✓ Generating static pages (9/9)
 10:44:31.886    Finalizing page optimization ...
 10:44:31.893    Collecting build traces ...
-10:44:57.131 
+10:44:57.131
 10:44:57.134 Route (app)                                 Size  First Load JS
 10:44:57.135 ┌ ○ /                                    2.17 kB         592 kB
 10:44:57.135 ├ ○ /_not-found                            997 B         103 kB
@@ -102,11 +102,11 @@ Here is the problem:
 10:44:57.136   ├ chunks/1902-4c6fa32f8f283b65.js      44.4 kB
 10:44:57.136   ├ chunks/87c73c54-095cf9a90cf9ee03.js  54.1 kB
 10:44:57.136   └ other shared chunks (total)          3.69 kB
-10:44:57.137 
-10:44:57.137 
+10:44:57.137
+10:44:57.137
 10:44:57.137 ○  (Static)   prerendered as static content
 10:44:57.137 ƒ  (Dynamic)  server-rendered on demand
-10:44:57.137 
+10:44:57.137
 10:44:57.300 Traced Next.js server files in: 92.873ms
 10:45:00.166 Warning: Max serverless function size of 250 MB uncompressed reached
 10:45:00.166 Serverless Function's page: component/[id].js
@@ -115,7 +115,7 @@ Here is the problem:
 10:45:00.168 node_modules/next/dist                 4.14 MB
 10:45:00.168 apps/book-components/public             3.1 MB
 10:45:00.168 node_modules/react-dom/cjs             1.74 MB
-10:45:00.168 
+10:45:00.168
 10:45:00.168 All dependencies                     579.49 MB
 10:45:00.168 Serverless Function's page: index.js
 10:45:00.169 Large Dependencies           Uncompressed size
@@ -123,7 +123,7 @@ Here is the problem:
 10:45:00.169 node_modules/next/dist                 4.14 MB
 10:45:00.169 apps/book-components/public             3.1 MB
 10:45:00.169 node_modules/react-dom/cjs             1.74 MB
-10:45:00.169 
+10:45:00.169
 10:45:00.169 All dependencies                     579.48 MB
 10:45:00.169 Serverless Function's page: utility/[id].js
 10:45:00.170 Large Dependencies           Uncompressed size
@@ -131,7 +131,7 @@ Here is the problem:
 10:45:00.171 node_modules/next/dist                 4.14 MB
 10:45:00.171 apps/book-components/public             3.1 MB
 10:45:00.171 node_modules/react-dom/cjs             1.74 MB
-10:45:00.171 
+10:45:00.171
 10:45:00.171 All dependencies                     579.49 MB
 10:45:00.171 Max serverless function size was exceeded for 3 functions
 10:45:00.217 Created all serverless functions in: 2.917s
@@ -141,9 +141,9 @@ Here is the problem:
 10:45:34.652 Error: A Serverless Function has exceeded the unzipped maximum size of 250 MB. : https://vercel.link/serverless-function-size
 ```
 
-- The `apps/playground` is working fine
-- The `apps/book-components` is exceeding the Vercel serverless function size limit of 250 MB uncompressed
-- Fix the problem
+-   The `apps/playground` is working fine
+-   The `apps/book-components` is exceeding the Vercel serverless function size limit of 250 MB uncompressed
+-   Fix the problem
 
 ---
 

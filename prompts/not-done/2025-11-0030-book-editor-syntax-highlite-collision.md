@@ -1,4 +1,4 @@
-[ ]
+[.] _<- Note: Repair not working, need to investigate further_
 
 [✨🗳] Syntax highliting should work for `BookEditor` when on same page is another Monaco editor present
 
