@@ -60,6 +60,14 @@
             "focus": false
         },
         {
+            "name": "🧸🔠 Run Utils web app",
+            "cwd": "./apps/utils/",
+            "command": "npm run dev",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "--note": " <- Note: [🔠] Register new apps here "
         },
         {
