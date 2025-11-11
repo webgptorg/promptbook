@@ -1,8 +1,5 @@
-# 📅 Changelog
+# 📅 Changelog## [Unreleased]
 
-## 2025-11-11
-
--   **Fix:** Syntax highlighting in `BookEditorMonaco` now works correctly when multiple Monaco editors are present on the same page, including with other Monaco editors. Language registration and theme setup are now idempotent and instance-safe. DRY principle applied.
 -   **Fix:** On mobile devices `BookEditorMonaco` steals scrolling from the main page content. It now only captures scroll events when it is focused.
 -   **New:** Log all LLM calls made during the execution of an `ExecutionTask` into its `llmCalls` property.
 -   **New:** `LangchainTranspiler` to transpile the book into Python code using LangChain.
