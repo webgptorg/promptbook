@@ -18,7 +18,7 @@ const defaultText = spaceTrim(`
     of alchemists, lovers, and kings.
 `);
 
-export default function HumanizeAiTextPreview() {
+export function HumanizeAiTextComponent() {
     const [inputText, setInputText] = useState(defaultText);
     const [outputText, setOutputText] = useState(humanizeAiText(defaultText));
     const [isHumanizing, setIsHumanizing] = useState(false);
@@ -37,22 +37,22 @@ export default function HumanizeAiTextPreview() {
     }, [inputText]);
 
     return (
-        <div className="p-6 flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="h-full flex flex-col gap-4">
+            <div className="h-full flex flex-col md:flex-row gap-4">
                 <textarea
-                    className="w-full md:flex-1 h-64 p-2 border rounded"
+                    className="h-full w-full min-h-[60vh] md:flex-1 p-2 border rounded"
                     placeholder="Paste AI-generated text here..."
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                 />
                 <textarea
-                    className="w-full md:flex-1 h-64 p-2 border rounded bg-gray-100"
+                    className="h-full w-full min-h-[60vh] md:flex-1 p-2 border rounded bg-gray-100"
                     placeholder="Humanized text will appear here..."
                     value={outputText}
                     readOnly
                 />
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center hidden">
                 <button className="px-4 py-2 bg-yellow-500 text-white rounded cursor-not-allowed" disabled>
                     {isHumanizing ? 'Humanizing...' : 'Humanized'}
                 </button>
