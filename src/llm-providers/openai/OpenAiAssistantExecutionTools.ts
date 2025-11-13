@@ -43,6 +43,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         super(options);
         this.assistantId = options.assistantId;
+        // <- TODO: !!! `OpenAiAssistantExecutionToolsOptions` - Allow `assistantId: null` together with `isCreatingNewAssistantsAllowed: true`
         // TODO: [👱] Make limiter same as in `OpenAiExecutionTools`
     }
 
