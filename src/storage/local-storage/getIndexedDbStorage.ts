@@ -1,6 +1,6 @@
-import { isRunningInBrowser } from 'openai/core';
-import type { really_any } from '../../utils/organization/really_any';
+import { $isRunningInBrowser } from '../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import type { really_any } from '../../utils/organization/really_any';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { IndexedDbStorageOptions } from './utils/IndexedDbStorageOptions';
 import { makePromptbookStorageFromIndexedDb } from './utils/makePromptbookStorageFromIndexedDb';
@@ -18,7 +18,7 @@ const indexedDbStorageCache = new Map<string, PromptbookStorage<really_any>>();
  * @public exported from `@promptbook/browser`
  */
 export function getIndexedDbStorage<TItem>(options: IndexedDbStorageOptions): PromptbookStorage<TItem> {
-    if (!isRunningInBrowser()) {
+    if (!$isRunningInBrowser()) {
         throw new EnvironmentMismatchError(`You can get IndexedDB storage only in browser environment`);
     }
 

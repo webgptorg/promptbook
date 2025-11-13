@@ -1,6 +1,6 @@
-import { isRunningInBrowser } from 'openai/core';
-import type { really_any } from '../../utils/organization/really_any';
+import { $isRunningInBrowser } from '../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import type { really_any } from '../../utils/organization/really_any';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStorageFromWebStorage';
 
@@ -17,7 +17,7 @@ let promptbookSessionStorage: null | PromptbookStorage<really_any> = null;
  * @public exported from `@promptbook/browser`
  */
 export function getSessionStorage<TItem>(): PromptbookStorage<TItem> {
-    if (!isRunningInBrowser()) {
+    if (!$isRunningInBrowser()) {
         throw new EnvironmentMismatchError(`You can get sessionStorage works only in browser environment`);
     }
 

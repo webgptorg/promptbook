@@ -6,7 +6,7 @@ import type {
     PromptResult,
 } from '../../../src/_packages/types.index';
 import { spaceTrim } from 'spacetrim';
-import { isRunningInNode } from '../../../utils/isRunningInWhatever';
+import { $isRunningInNode } from '../../../utils/isRunningInWhatever';
 import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServer';
 import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLoggerWrapperOfLlmExecutionToolsOptions';
 
@@ -16,7 +16,7 @@ import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLogge
 export class SupabaseLoggerWrapperOfLlmExecutionTools
 
     public constructor(protected readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
-        if (!isRunningInNode()) {
+        if (!$isRunningInNode()) {
             throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
     }
