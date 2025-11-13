@@ -6,8 +6,6 @@ import { BehaviorSubject } from 'rxjs';
  * 1) It can be a static value of type `TValue`
  * 2) Or a `BehaviorSubject` that emits values of type `TValue`
  * 3) Or pair of `[getValue, setValue]` functions for getting and setting the value
- *
- * @public exported from `@promptbook/types`
  */
 export type Updatable<TValue> = TValue | BehaviorSubject<TValue> | [TValue, (value: TValue) => void];
 
