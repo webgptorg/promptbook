@@ -144,7 +144,12 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         let underlyingLlmResult: CommonPromptResult;
 
         if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.llmTools)) {
-            underlyingLlmResult = await this.llmTools.callChatModel(chatPrompt);
+            // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
+            const assistant =
+                await this.llmTools.createNewAssistant(/* <- TODO: !!!! Generate the `instructions` from passed `agentSource` */);
+            // <- TODO: !!! Cache the assistant in prepareCache
+
+            underlyingLlmResult = await assistant.callChatModel(chatPrompt);
         } else {
             // Get agent model requirements (cached with best model selection)
             const modelRequirements = await this.getAgentModelRequirements();

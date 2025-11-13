@@ -67,6 +67,7 @@ export function SelfLearningBook() {
         /**/
         const llm = new OpenAiAssistantExecutionTools({
             dangerouslyAllowBrowser: true,
+            isCreatingNewAssistantsAllowed: true, // <- TODO: !!! Test without whether warning is shown
             apiKey,
             assistantId: 'asst_xI94Elk27nssnwAUkG2Cmok8', // <- TODO: [🧠] Make dynamic
             isVerbose: true,

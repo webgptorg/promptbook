@@ -10,8 +10,15 @@ import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleEx
 export type OpenAiAssistantExecutionToolsOptions = OpenAiCompatibleExecutionToolsOptions &
     ClientOptions & {
         /**
+         * Whether creating new assistants is allowed
+         *
+         * @default false
+         */
+        readonly isCreatingNewAssistantsAllowed?: boolean;
+
+        /**
          * Which assistant to use
          */
-        assistantId: string_token;
+        readonly assistantId: string_token;
         // <- TODO: [🧠] This should be maybe more like model for each prompt?
     };

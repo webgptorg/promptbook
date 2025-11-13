@@ -1,5 +1,7 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
+import spaceTrim from 'spacetrim';
+import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -30,6 +32,7 @@ import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
     /* <- TODO: [🍚] `, Destroyable` */
     private readonly assistantId: string_token;
+    private readonly isCreatingNewAssistantsAllowed: boolean = false;
 
     /**
      * Creates OpenAI Execution Tools.
@@ -43,6 +46,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         super(options);
         this.assistantId = options.assistantId;
+        this.isCreatingNewAssistantsAllowed = options.isCreatingNewAssistantsAllowed ?? false;
+
+        if (this.assistantId === null && !this.isCreatingNewAssistantsAllowed) {
+            throw new NotAllowed(
+                `Assistant ID is null and creating new assistants is not allowed - this configuration does not make sense`,
+            );
+        }
+
         // <- TODO: !!! `OpenAiAssistantExecutionToolsOptions` - Allow `assistantId: null` together with `isCreatingNewAssistantsAllowed: true`
         // TODO: [👱] Make limiter same as in `OpenAiExecutionTools`
     }
@@ -229,11 +240,85 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
     }
 
-    /*
-    TODO: !!!
-    public createNewAssistant(): Promise<string> {
+    public async createNewAssistant(): Promise<OpenAiAssistantExecutionTools> {
+        if (!this.isCreatingNewAssistantsAllowed) {
+            throw new NotAllowed(
+                `Creating new assistants is not allowed. Set \`isCreatingNewAssistantsAllowed: true\` in options to enable this feature.`,
+            );
+        }
+
+        const client = await this.getClient();
+
+        /*
+        TODO: !!!
+        async function downloadFile(url: string, folder = './tmp'): Promise<string> {
+            const filename = path.basename(url.split('?')[0]);
+            const filepath = path.join(folder, filename);
+
+            if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Chyba při stahování: ${url}`);
+            const buffer = await res.arrayBuffer();
+            fs.writeFileSync(filepath, Buffer.from(buffer));
+            console.log(`📥 Stažen soubor: ${filename}`);
+
+            return filepath;
+        }
+
+        async function uploadFileToOpenAI(filepath: string) {
+            const file = await client.files.create({
+                file: fs.createReadStream(filepath),
+                purpose: 'assistants',
+            });
+            console.log(`⬆️  Nahrán soubor na OpenAI: ${file.filename} (${file.id})`);
+            return file;
+        }
+
+        // 🌐 URL adresy souborů, které chceš nahrát
+        const fileUrls = [
+            'https://raw.githubusercontent.com/vercel/next.js/canary/packages/next/README.md',
+            'https://raw.githubusercontent.com/openai/openai-cookbook/main/examples/How_to_call_the_Assistants_API_with_Node.js.ipynb',
+        ];
+
+        // 1️⃣ Stáhni soubory z URL
+        const localFiles = [];
+        for (const url of fileUrls) {
+            const filepath = await downloadFile(url);
+            localFiles.push(filepath);
+        }
+
+        // 2️⃣ Nahraj soubory na OpenAI
+        const uploadedFiles = [];
+        for (const filepath of localFiles) {
+            const file = await uploadFileToOpenAI(filepath);
+            uploadedFiles.push(file.id);
+        }
+        */
+
+        // 3️⃣ Vytvoření asistenta s nahranými soubory
+        const assistant = await client.beta.assistants.create({
+            name: 'Next.js dokumentační asistent',
+            description: 'Asistent, který umí odpovídat na otázky o Next.js a práci s API.',
+            model: 'gpt-4o',
+            instructions: spaceTrim(`
+                Odpovídej česky, srozumitelně a přehledně.
+                V případě potřeby cituj části z nahraných souborů.
+            `),
+            // <- TODO: !!!! Generate the `instructions` from passed `agentSource` (generate outside of this class)
+            tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
+            // !!!! file_ids: uploadedFiles, // <-- tady připojíme soubory
+        });
+
+        // TODO: !!!! Change Czech to English
+        console.log(`✅ Asistent vytvořen: ${assistant.id}`);
+
+        return new OpenAiAssistantExecutionTools({
+            ...this.options,
+            isCreatingNewAssistantsAllowed: false,
+            assistantId: assistant.id,
+        });
     }
-    */
 
     /**
      * Discriminant for type guards

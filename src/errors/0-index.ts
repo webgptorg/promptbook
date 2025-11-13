@@ -7,6 +7,7 @@ import { ExpectError } from './ExpectError';
 import { KnowledgeScrapeError } from './KnowledgeScrapeError';
 import { LimitReachedError } from './LimitReachedError';
 import { MissingToolsError } from './MissingToolsError';
+import { NotAllowed } from './NotAllowed';
 import { NotFoundError } from './NotFoundError';
 import { NotYetImplementedError } from './NotYetImplementedError';
 import { ParseError } from './ParseError';
@@ -41,6 +42,7 @@ export const PROMPTBOOK_ERRORS = {
     PromptbookFetchError,
     UnexpectedError,
     WrappedError,
+    NotAllowed,
     // TODO: [🪑]> VersionMismatchError,
 } as const;
 
