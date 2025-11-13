@@ -132,6 +132,7 @@ import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usag
 import { getSingleLlmExecutionTools } from '../llm-providers/_multiple/getSingleLlmExecutionTools';
 import { joinLlmExecutionTools } from '../llm-providers/_multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../llm-providers/_multiple/MultipleLlmExecutionTools';
+import { Agent } from '../llm-providers/agent/Agent';
 import { AgentLlmExecutionTools } from '../llm-providers/agent/AgentLlmExecutionTools';
 import { createAgentLlmExecutionTools } from '../llm-providers/agent/createAgentLlmExecutionTools';
 import { _AgentMetadata } from '../llm-providers/agent/register-configuration';
@@ -320,6 +321,7 @@ export { limitTotalUsage };
 export { getSingleLlmExecutionTools };
 export { joinLlmExecutionTools };
 export { MultipleLlmExecutionTools };
+export { Agent };
 export { AgentLlmExecutionTools };
 export { createAgentLlmExecutionTools };
 export { _AgentMetadata };
