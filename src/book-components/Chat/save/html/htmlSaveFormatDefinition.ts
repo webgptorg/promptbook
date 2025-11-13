@@ -135,5 +135,6 @@ export const htmlSaveFormatDefinition = {
 } as const satisfies ChatSaveFormatDefinition;
 
 /**
+ * TODO: !!! Add QR code with branding to the footer
  *  TODO: [😬] Take chat save to HTML from existing parallel implementation
  */
