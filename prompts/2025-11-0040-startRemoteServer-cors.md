@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🌡] Allow to pass CORS setting into remote server into options of `startRemoteServer`
 

@@ -1,5 +1,7 @@
 # 📅 Changelog## [Unreleased]
 
+-   **New:** Allow passing CORS settings into `startRemoteServer` via the `cors` option in `RemoteServerOptions`.  
+    These CORS settings are applied to all endpoints of the remote server, including REST, UI, and socket.io, following the DRY principle.
 -   **Fix:** On mobile devices `BookEditorMonaco` steals scrolling from the main page content. It now only captures scroll events when it is focused.
 -   **New:** Log all LLM calls made during the execution of an `ExecutionTask` into its `llmCalls` property.
 -   **New:** `LangchainTranspiler` to transpile the book into Python code using LangChain.
