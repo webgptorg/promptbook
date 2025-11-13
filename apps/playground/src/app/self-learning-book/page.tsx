@@ -8,10 +8,12 @@ import { Agent, book } from '@promptbook-local/core';
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import type { string_book } from '@promptbook-local/types';
 import { spaceTrim } from '@promptbook-local/utils';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function SelfLearningBook() {
     const [apiKey, setApiKey] = useStateInLocalStorage<string>('openai-apiKey', () => '');
+    const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
+    const [isApiKeySectionCollapsed, setIsApiKeySectionCollapsed] = useState(!!apiKey);
 
     const [agentSource, setAgentSource] = useStateInLocalStorage<string_book>(
         'marigold-agentSource-1',
@@ -88,19 +90,55 @@ export default function SelfLearningBook() {
     }, [agent]);
 
     return (
-        <div className="min-h-screen">
-            <div className="p-4 bg-gray-100 border-b">
-                <label className="flex items-center gap-2">
-                    <span className="font-medium">OpenAI API Key:</span>
-                    <input
-                        type="password"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="sk-proj-..."
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </label>
+        <div className="min-h-screen relative">
+            {/* Floating API Key Configuration */}
+            <div className={`fixed top-24 right-4 z-50 ${isApiKeySectionCollapsed ? '' : 'min-w-[400px]'}`}>
+                {isApiKeySectionCollapsed ? (
+                    // Collapsed state - small corner button
+                    <button
+                        onClick={() => setIsApiKeySectionCollapsed(false)}
+                        className="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-full p-2 shadow-lg transition-all flex items-center gap-1"
+                        title="Configure OpenAI API Key"
+                    >
+                        <span className="text-sm">🔑</span>
+                    </button>
+                ) : (
+                    // Expanded state - full configuration panel
+                    <div className="bg-white border border-gray-300 rounded-lg shadow-lg">
+                        <div className="flex items-center justify-between p-3 bg-gray-100 rounded-t-lg border-b border-gray-300">
+                            <span className="font-medium text-sm">OpenAI API Key</span>
+                            <button
+                                onClick={() => setIsApiKeySectionCollapsed(true)}
+                                className="text-gray-600 hover:text-gray-800 text-lg leading-none"
+                                title="Collapse"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="p-3">
+                            <label className="flex items-center gap-2">
+                                <span className="text-sm font-medium whitespace-nowrap">API Key:</span>
+                                <input
+                                    type={isApiKeyVisible ? 'text' : 'password'}
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                    placeholder="sk-proj-..."
+                                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setIsApiKeyVisible(!isApiKeyVisible)}
+                                    className="px-2 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm"
+                                    title={isApiKeyVisible ? 'Hide API key' : 'Show API key'}
+                                >
+                                    {isApiKeyVisible ? '🙈' : '👁️'}
+                                </button>
+                            </label>
+                        </div>
+                    </div>
+                )}
             </div>
+
             <ResizablePanelsAuto name="two-editors">
                 <BookEditor
                     className="w-full h-full"
