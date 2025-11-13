@@ -8,12 +8,13 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CommonPromptResult } from '../../execution/PromptResult';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
 import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
+import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 
 /**
  * Execution Tools for calling LLM models with a predefined agent "soul"
@@ -38,7 +39,10 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * @param llmTools The underlying LLM execution tools to wrap
      * @param agentSource The agent source string that defines the agent's behavior
      */
-    constructor(private readonly llmTools: LlmExecutionTools, private readonly agentSource: string_book) {}
+    constructor(private readonly llmTools: LlmExecutionTools, private readonly agentSource: string_book) {
+        // <- TODO: !!!! CreateAgentLlmExecutionToolsOptions
+        // <- TODO: !!!! Leverage `OpenAiAssistantExecutionTools`
+    }
 
     /**
      * Get cached or parse agent information
@@ -137,26 +141,31 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         }
 
         const chatPrompt = prompt as ChatPrompt;
+        let underlyingLlmResult: CommonPromptResult;
 
-        // Get agent model requirements (cached with best model selection)
-        const modelRequirements = await this.getAgentModelRequirements();
+        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.llmTools)) {
+            underlyingLlmResult = await this.llmTools.callChatModel(chatPrompt);
+        } else {
+            // Get agent model requirements (cached with best model selection)
+            const modelRequirements = await this.getAgentModelRequirements();
 
-        // Create modified chat prompt with agent system message
-        const modifiedChatPrompt: ChatPrompt = {
-            ...chatPrompt,
-            modelRequirements: {
-                ...chatPrompt.modelRequirements,
-                ...modelRequirements,
-                // Prepend agent system message to existing system message
-                systemMessage:
-                    modelRequirements.systemMessage +
-                    (chatPrompt.modelRequirements.systemMessage
-                        ? `\n\n${chatPrompt.modelRequirements.systemMessage}`
-                        : ''),
-            },
-        };
+            // Create modified chat prompt with agent system message
+            const modifiedChatPrompt: ChatPrompt = {
+                ...chatPrompt,
+                modelRequirements: {
+                    ...chatPrompt.modelRequirements,
+                    ...modelRequirements,
+                    // Prepend agent system message to existing system message
+                    systemMessage:
+                        modelRequirements.systemMessage +
+                        (chatPrompt.modelRequirements.systemMessage
+                            ? `\n\n${chatPrompt.modelRequirements.systemMessage}`
+                            : ''),
+                },
+            };
 
-        const underlyingLlmResult = await this.llmTools.callChatModel(modifiedChatPrompt);
+            underlyingLlmResult = await this.llmTools.callChatModel(modifiedChatPrompt);
+        }
 
         let content = underlyingLlmResult.content as string_markdown;
 

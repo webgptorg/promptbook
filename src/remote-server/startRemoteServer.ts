@@ -46,6 +46,8 @@ keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
 
+// TODO: !!!! Add agents logic
+
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
  *
@@ -795,6 +797,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
+ * TODOL !!!! Add agent
+ * TODO: !!!! Allow to chat with agents directly via remote server
  * TODO: [🕋] Use here `aboutPromptbookInformation`
  * TODO: [🌡] Add CORS and security - probably via `helmet`
  * TODO: Split this file into multiple functions - handler for each request

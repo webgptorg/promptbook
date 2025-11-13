@@ -18,3 +18,7 @@ export type Executables = {
      */
     libreOfficePath?: string_executable_path;
 };
+
+/**
+ * <- TODO: Add !!! `browserPath` to `Executables`
+ */

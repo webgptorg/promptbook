@@ -65,7 +65,7 @@ export type LlmExecutionTools = {
 };
 
 /**
- * TODO: [🕛] Extend this from sth class
+ * TODO: [🕛] Extend this from sth class -  like `AgentBasicInformation` / `ModelBasicInformation``
  * TODO: [🍚] Implement destroyable pattern to free resources
  * TODO: [🏳] Add `callTranslationModel`
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat

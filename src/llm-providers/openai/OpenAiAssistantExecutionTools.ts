@@ -227,7 +227,38 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             },
         });
     }
+
+    /*
+    TODO: !!!
+    public createNewAssistant(): Promise<string> {
+    }
+    */
+
+    /**
+     * Discriminant for type guards
+     */
+    protected get discriminant() {
+        return DISCRIMINANT;
+    }
+
+    /**
+     * Type guard to check if given `LlmExecutionTools` are instanceof `OpenAiAssistantExecutionTools`
+     *
+     * Note: This is useful when you can possibly have multiple versions of `@promptbook/openai` installed
+     */
+    public static isOpenAiAssistantExecutionTools(
+        llmExecutionTools: LlmExecutionTools,
+    ): llmExecutionTools is OpenAiAssistantExecutionTools {
+        return (llmExecutionTools as OpenAiAssistantExecutionTools).discriminant === DISCRIMINANT;
+    }
 }
+
+/**
+ * Discriminant for type guards
+ *
+ * @private const of `OpenAiAssistantExecutionTools`
+ */
+const DISCRIMINANT = 'OPEN_AI_ASSISTANT_V1';
 
 /**
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for those who want to use just OpenAI
