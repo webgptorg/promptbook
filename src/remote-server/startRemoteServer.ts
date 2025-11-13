@@ -797,7 +797,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODOL !!!! Add agent
+ * TODO !!!! Add agent
  * TODO: !!!! Allow to chat with agents directly via remote server
  * TODO: [🕋] Use here `aboutPromptbookInformation`
  * TODO: [🌡] Add CORS and security - probably via `helmet`

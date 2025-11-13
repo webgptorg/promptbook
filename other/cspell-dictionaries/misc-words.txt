@@ -426,3 +426,5 @@ inkscape
 sodipodi
 Witcher
 llamaindex
+mcp
+mcps

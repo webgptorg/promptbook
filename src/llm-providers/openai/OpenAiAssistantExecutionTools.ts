@@ -258,10 +258,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             if (!fs.existsSync(folder)) fs.mkdirSync(folder);
 
             const res = await fetch(url);
-            if (!res.ok) throw new Error(`Chyba při stahování: ${url}`);
+            if (!res.ok) throw new Error(`Download error: ${url}`);
             const buffer = await res.arrayBuffer();
             fs.writeFileSync(filepath, Buffer.from(buffer));
-            console.log(`📥 Stažen soubor: ${filename}`);
+            console.log(`📥 File downloaded: ${filename}`);
 
             return filepath;
         }
@@ -271,24 +271,24 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 file: fs.createReadStream(filepath),
                 purpose: 'assistants',
             });
-            console.log(`⬆️  Nahrán soubor na OpenAI: ${file.filename} (${file.id})`);
+            console.log(`⬆️  File uploaded to OpenAI: ${file.filename} (${file.id})`);
             return file;
         }
 
-        // 🌐 URL adresy souborů, které chceš nahrát
+        // 🌐 URL addresses of files to upload
         const fileUrls = [
             'https://raw.githubusercontent.com/vercel/next.js/canary/packages/next/README.md',
             'https://raw.githubusercontent.com/openai/openai-cookbook/main/examples/How_to_call_the_Assistants_API_with_Node.js.ipynb',
         ];
 
-        // 1️⃣ Stáhni soubory z URL
+        // 1️⃣ Download files from URL
         const localFiles = [];
         for (const url of fileUrls) {
             const filepath = await downloadFile(url);
             localFiles.push(filepath);
         }
 
-        // 2️⃣ Nahraj soubory na OpenAI
+        // 2️⃣ Upload files to OpenAI
         const uploadedFiles = [];
         for (const filepath of localFiles) {
             const file = await uploadFileToOpenAI(filepath);
@@ -296,22 +296,22 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
         */
 
-        // 3️⃣ Vytvoření asistenta s nahranými soubory
+        // 3️⃣ Create assistant with uploaded files
         const assistant = await client.beta.assistants.create({
-            name: 'Next.js dokumentační asistent',
-            description: 'Asistent, který umí odpovídat na otázky o Next.js a práci s API.',
+            name: 'Next.js documentation assistant',
+            description: 'Assistant that can answer questions about Next.js and working with APIs.',
             model: 'gpt-4o',
             instructions: spaceTrim(`
-                Odpovídej česky, srozumitelně a přehledně.
-                V případě potřeby cituj části z nahraných souborů.
+                Answer clearly and comprehensively.
+                Quote parts from uploaded files if needed.
             `),
             // <- TODO: !!!! Generate the `instructions` from passed `agentSource` (generate outside of this class)
             tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
-            // !!!! file_ids: uploadedFiles, // <-- tady připojíme soubory
+            // !!!! file_ids: uploadedFiles,
         });
 
         // TODO: !!!! Change Czech to English
-        console.log(`✅ Asistent vytvořen: ${assistant.id}`);
+        console.log(`✅ Assistant created: ${assistant.id}`);
 
         return new OpenAiAssistantExecutionTools({
             ...this.options,
