@@ -34,12 +34,14 @@ export type AgentBasicInformation = {
      * This is the first line of the agent source
      */
     agentName: string_agent_name | null;
+    // <- TODO: [🕛][🧠]  Maybe rename to `title` or `fullname`
 
     /**
      * Optional description of the agent
      * This is the line starting with "PERSONA"
      */
     personaDescription: string | null;
+    // <- TODO: [🕛][🧠]  Maybe rename to just `description`
 
     /**
      * Metadata commitments parsed from META lines
@@ -61,8 +63,10 @@ export type AgentBasicInformation = {
      * - {parameterName} or {parameter with multiple words} or {parameterName: description text}
      */
     parameters: BookParameter[];
+    // <- TODO: [🧠][😰] Maybe remove, Agent is not working with the parameters
 };
 
 /**
+ * TODO: All readonly
  * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
  */
