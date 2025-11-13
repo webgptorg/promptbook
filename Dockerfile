@@ -4,7 +4,7 @@ FROM node:22-slim
 
 # Install the Promptbook CLI
 WORKDIR /usr/app
-RUN npm i ptbk@0.103.0-36
+RUN npm i ptbk@0.103.0-37
 
 # Create empty books directory
 RUN mkdir ./books
