@@ -30,7 +30,7 @@ const knowledge = [
 // <- TODO: Fetch URLs and local files
 let knowledgeVectors = [];
 
-// Helper function to calculate cosine similarity
+// TODO: import { computeCosineSimilarity } from '@promptbook/core'
 function cosineSimilarity(vecA, vecB) {
     const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
     const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
@@ -184,6 +184,8 @@ function promptUser() {
 })();
 
 /**
+ * TODO: !!! Use entire file structure as transopiler
+ * TODO: !!! Chatting should work through LlmExecutionTools, exported code should have LlmExecutionTools compatible export
  * TODO: Use propper JSDoc
  * TODO: Knowledge pieces are identified by name <- TODO: !!! [] export from Promptbook as `xxx`
  * TODO: Add browser capabilities
