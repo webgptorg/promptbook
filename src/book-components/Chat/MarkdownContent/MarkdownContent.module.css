@@ -18,6 +18,10 @@
     font-size: 1.1em;
 }
 
+.MarkdownContent p {
+    text-wrap: auto;
+}
+
 .MarkdownContent ul {
     list-style: disc;
     margin-left: 20px;

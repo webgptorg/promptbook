@@ -8,10 +8,10 @@ import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { classNames } from '../../_common/react-utils/classNames';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
+import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
-import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -343,6 +343,7 @@ export const ChatMessageItem = memo(
                                             onMessage(button.message);
                                         }
                                     }}
+                                    // <- TODO: !!!! use `textColor` for button text here
                                 >
                                     <MarkdownContent content={button.text} />
                                 </button>
