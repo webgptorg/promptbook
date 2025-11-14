@@ -315,6 +315,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
         */
 
+        alert('!!!! Creating new OpenAI assistant');
+
         // 3️⃣ Create assistant with uploaded files
         const assistant = await client.beta.assistants.create({
             name,
@@ -326,6 +328,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
 
         console.log(`✅ Assistant created: ${assistant.id}`);
+
+        // TODO: !!!! Try listing existing assistants
+        // TODO: !!!! Try marking existing assistants by DISCRIMINANT
+        // TODO: !!!! Allow to update and reconnect to existing assistants
 
         return new OpenAiAssistantExecutionTools({
             ...this.options,
