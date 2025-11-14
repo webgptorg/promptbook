@@ -4,7 +4,7 @@
         "dev": "(npx kill-port 4440 || true) && next dev -p 4440",
         "test-build": "npm run build",
         "build": "(npx kill-port 4440 || true) && next build",
-        "start": "next start",
+        "start": "next start -p 4440",
         "lint": "next lint",
         "postinstall": "cd ../../ && npm ci"
     }
