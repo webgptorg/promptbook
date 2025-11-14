@@ -69,10 +69,10 @@ export class Agent implements AgentBasicInformation {
      * Creates LlmExecutionTools which exposes the agent as a model
      */
     getLlmExecutionTools(): LlmExecutionTools {
-        const llmTools = new AgentLlmExecutionTools(
-            getSingleLlmExecutionTools(this.options.executionTools.llm),
-            this.agentSource.value, // <- TODO: !!!! Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
-        );
+        const llmTools = new AgentLlmExecutionTools({
+            llmTools: getSingleLlmExecutionTools(this.options.executionTools.llm),
+            agentSource: this.agentSource.value, // <- TODO: !!!! Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
+        });
 
         // TODO: !!!! Add `Agent` simple "mocked" learning by appending to agent source
         // TODO: !!!! Add `Agent` learning by promptbookAgent
