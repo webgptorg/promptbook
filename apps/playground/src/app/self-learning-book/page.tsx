@@ -1,13 +1,9 @@
-'use client';
+import dynamic from 'next/dynamic';
 
-import { Suspense } from 'react';
-// import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
-import { SelfLearningBook } from './SelfLearningBook';
+const SelfLearningBook = dynamic(() => import('./SelfLearningBook').then((module) => module.SelfLearningBook), {
+    ssr: false,
+});
 
 export default function SelfLearningBookPage() {
-    return (
-        <Suspense>
-            <SelfLearningBook />
-        </Suspense>
-    );
+    return <SelfLearningBook />;
 }
