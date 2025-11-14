@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';

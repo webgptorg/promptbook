@@ -1,7 +1,9 @@
 import logoImage from '@/public/logo-blue-white-256.png';
+import { DEFAULT_BOOK } from '@promptbook-local/core';
 import moment from 'moment';
 import Image from 'next/image';
 import Link from 'next/link';
+import { AvatarProfileFromSource } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 
 // Add calendar formats that include seconds
@@ -28,7 +30,7 @@ export default function HomePage() {
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <Link
-                        href={'/api/longRunningTask'}
+                        href={'#'}
                         className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
                     >
                         <h2 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -41,6 +43,29 @@ export default function HomePage() {
                         <p className="text-gray-600">
                             Updated At: {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
                         </p>
+                    </Link>
+                </div>
+
+                <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">Agents</h2>
+
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <Link
+                        href={'#'}
+                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                    >
+                        <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
+                    </Link>
+                    <Link
+                        href={'#'}
+                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                    >
+                        <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
+                    </Link>
+                    <Link
+                        href={'#'}
+                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                    >
+                        <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
                     </Link>
                 </div>
             </div>
