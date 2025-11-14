@@ -28,7 +28,7 @@ export default function HomePage() {
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <Link
-                        href={'#'}
+                        href={'/api/longRunningTask'}
                         className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
                     >
                         <h2 className="text-2xl font-semibold text-gray-900 mb-2">
