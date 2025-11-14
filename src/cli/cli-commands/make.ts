@@ -5,8 +5,8 @@ import type {
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { collectionToJson } from '../../collection/collectionToJson';
-import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
+import { collectionToJson } from '../../collection/pipeline-collection/collectionToJson';
+import { createCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createCollectionFromDirectory';
 import {
     DEFAULT_BOOKS_DIRNAME,
     DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,

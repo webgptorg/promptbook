@@ -1,4 +1,4 @@
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PipelineCollection } from './PipelineCollection';
 
 /**

@@ -1,6 +1,6 @@
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { Prompt } from '../../types/Prompt';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
+import type { Prompt } from '../../../types/Prompt';
+import type { string_pipeline_url } from '../../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromJson } from './createCollectionFromJson';
 

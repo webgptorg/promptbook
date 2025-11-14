@@ -4,7 +4,7 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forEver } from 'waitasecond';
-import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
+import { createCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';

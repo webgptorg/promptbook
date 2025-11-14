@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
-import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
+import { createCollectionFromJson } from '../collection/pipeline-collection/constructors/createCollectionFromJson';
 import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';

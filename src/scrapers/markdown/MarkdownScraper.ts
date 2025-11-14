@@ -6,7 +6,7 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
-import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
+import { createCollectionFromJson } from '../../collection/pipeline-collection/constructors/createCollectionFromJson';
 import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';

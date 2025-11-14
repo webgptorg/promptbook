@@ -1,5 +1,6 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
+import { forEver } from 'waitasecond';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -245,6 +246,31 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
     }
 
+    public async playground() {
+        const client = await this.getClient();
+
+        // List all assistants
+        const assistants = await client.beta.assistants.list();
+        console.log('!!! Assistants:', assistants);
+
+        // Get details of a specific assistant
+        const assistantId = 'asst_MO8fhZf4dGloCfXSHeLcIik0';
+        const assistant = await client.beta.assistants.retrieve(assistantId);
+        console.log('!!! Assistant Details:', assistant);
+
+        // Update an assistant
+        const updatedAssistant = await client.beta.assistants.update(assistantId, {
+            name: assistant.name + '(M)',
+            description: 'Updated description via Promptbook',
+            metadata: {
+                [Math.random().toString(36).substring(2, 15)]: new Date().toISOString(),
+            },
+        });
+        console.log('!!! Updated Assistant:', updatedAssistant);
+
+        await forEver();
+    }
+
     public async createNewAssistant(options: {
         /**
          * Name of the new assistant
@@ -263,6 +289,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 `Creating new assistants is not allowed. Set \`isCreatingNewAssistantsAllowed: true\` in options to enable this feature.`,
             );
         }
+
+        await this.playground();
 
         const { name, instructions } = options;
 

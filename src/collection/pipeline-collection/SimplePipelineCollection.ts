@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
-import { validatePipeline } from '../conversion/validation/validatePipeline';
-import { NotFoundError } from '../errors/NotFoundError';
-import { PipelineUrlError } from '../errors/PipelineUrlError';
-import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import { unpreparePipeline } from '../prepare/unpreparePipeline';
-import type { Prompt } from '../types/Prompt';
-import type { string_pipeline_url } from '../types/typeAliases';
+import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
+import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { NotFoundError } from '../../errors/NotFoundError';
+import { PipelineUrlError } from '../../errors/PipelineUrlError';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import { unpreparePipeline } from '../../prepare/unpreparePipeline';
+import type { Prompt } from '../../types/Prompt';
+import type { string_pipeline_url } from '../../types/typeAliases';
 import type { PipelineCollection } from './PipelineCollection';
 
 /**

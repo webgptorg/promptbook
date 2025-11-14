@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { NotFoundError } from '../../errors/NotFoundError';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { Prompt } from '../../types/Prompt';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import { NotFoundError } from '../../../errors/NotFoundError';
+import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
+import type { Prompt } from '../../../types/Prompt';
+import type { string_pipeline_url } from '../../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
 
 /**

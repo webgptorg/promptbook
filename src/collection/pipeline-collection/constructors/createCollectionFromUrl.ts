@@ -1,5 +1,5 @@
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import type { string_url } from '../../types/typeAliases';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
+import type { string_url } from '../../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 

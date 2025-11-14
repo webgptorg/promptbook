@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { Promisable } from 'type-fest';
 import { really_any } from '../../_packages/types.index';
-import type { PipelineCollection } from '../../collection/PipelineCollection';
+import type { PipelineCollection } from '../../collection/pipeline-collection/PipelineCollection';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';

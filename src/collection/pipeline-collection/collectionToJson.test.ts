@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { compilePipeline } from '../conversion/compilePipeline';
-import type { PipelineString } from '../pipeline/PipelineString';
+import { compilePipeline } from '../../conversion/compilePipeline';
+import type { PipelineString } from '../../pipeline/PipelineString';
 import { collectionToJson } from './collectionToJson';
 import { createCollectionFromJson } from './constructors/createCollectionFromJson';
 

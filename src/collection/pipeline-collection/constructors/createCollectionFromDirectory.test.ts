@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { unpreparePipeline } from '../../prepare/unpreparePipeline';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import { keepUnused } from '../../utils/organization/keepUnused';
+import { unpreparePipeline } from '../../../prepare/unpreparePipeline';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
 describe('createCollectionFromDirectory', () => {
