@@ -1,6 +1,6 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import http from 'http';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
@@ -47,7 +47,7 @@ keepTypeImported<PromptbookServer_Prompt_Response>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_Error>(); // <- Note: [🤛]
 keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
 
-// TODO: !!!! Add agents logic
+// TODO: !!! Deprecate
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.

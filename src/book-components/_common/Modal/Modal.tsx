@@ -44,5 +44,5 @@ export function Modal({
 }
 
 /**
- * TODO: !!!! Use this also for feedback modal in Chat component - Make modals DRY
+ * TODO: Use this also for feedback modal in Chat component - Make modals DRY
  */

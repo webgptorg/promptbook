@@ -26,6 +26,12 @@ import { OpenAiExecutionTools } from './OpenAiExecutionTools';
  *
  * This is useful for calling OpenAI API with a single assistant, for more wide usage use `OpenAiExecutionTools`.
  *
+ * Note: [🦖] There are several different things in Promptbook:
+ * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
+ * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
+ * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
+ * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ *
  * @public exported from `@promptbook/openai`
  */
 export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
@@ -319,7 +325,6 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             // !!!! file_ids: uploadedFiles,
         });
 
-        // TODO: !!!! Change Czech to English
         console.log(`✅ Assistant created: ${assistant.id}`);
 
         return new OpenAiAssistantExecutionTools({

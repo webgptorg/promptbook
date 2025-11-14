@@ -4,7 +4,6 @@ import type { Promisable } from 'type-fest';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -15,10 +14,17 @@ import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
+import { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
 /**
  * Execution Tools for calling LLM models with a predefined agent "soul"
  * This wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
+ *
+ * Note: [🦖] There are several different things in Promptbook:
+ * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
+ * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
+ * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
+ * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
  *
  * @public exported from `@promptbook/core`
  */
@@ -39,17 +45,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * @param llmTools The underlying LLM execution tools to wrap
      * @param agentSource The agent source string that defines the agent's behavior
      */
-    constructor(private readonly llmTools: LlmExecutionTools, private readonly agentSource: string_book) {
-        // <- TODO: !!!! CreateAgentLlmExecutionToolsOptions
-        // <- TODO: !!!! Leverage `OpenAiAssistantExecutionTools`
-    }
+    constructor(private readonly options: CreateAgentLlmExecutionToolsOptions) {}
 
     /**
      * Get cached or parse agent information
      */
     private getAgentInfo() {
         if (this._cachedAgentInfo === null) {
-            this._cachedAgentInfo = parseAgentSource(this.agentSource);
+            this._cachedAgentInfo = parseAgentSource(this.options.agentSource);
         }
         return this._cachedAgentInfo;
     }
@@ -60,9 +63,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
     private async getAgentModelRequirements(): Promise<AgentModelRequirements> {
         if (this._cachedModelRequirements === null) {
             // Get available models from underlying LLM tools for best model selection
-            const availableModels = await this.llmTools.listModels();
+            const availableModels = await this.options.llmTools.listModels();
             this._cachedModelRequirements = await createAgentModelRequirements(
-                this.agentSource,
+                this.options.agentSource,
                 undefined, // Let the function pick the best model
                 availableModels,
             );
@@ -97,14 +100,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
     public checkConfiguration(): Promisable<void> {
         // Check underlying tools configuration
-        return this.llmTools.checkConfiguration();
+        return this.options.llmTools.checkConfiguration();
     }
 
     /**
      * Returns a virtual model name representing the agent behavior
      */
     public get modelName(): string_model_name {
-        const hash = sha256(hexEncoder.parse(this.agentSource))
+        const hash = sha256(hexEncoder.parse(this.options.agentSource))
             //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
             .toString(/* hex */);
         //    <- TODO: [🥬] Make some system for hashes and ids of promptbook
@@ -131,7 +134,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * Calls the chat model with agent-specific system prompt and requirements
      */
     public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
-        if (!this.llmTools.callChatModel) {
+        if (!this.options.llmTools.callChatModel) {
             throw new Error('Underlying LLM execution tools do not support chat model calls');
         }
 
@@ -145,9 +148,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         const chatPrompt = prompt as ChatPrompt;
         let underlyingLlmResult: CommonPromptResult;
 
-        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.llmTools)) {
+        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
-            const assistant = await this.llmTools.createNewAssistant({
+            const assistant = await this.options.llmTools.createNewAssistant({
                 name: this.title,
                 instructions: modelRequirements.systemMessage,
             });
@@ -170,7 +173,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 },
             };
 
-            underlyingLlmResult = await this.llmTools.callChatModel(modifiedChatPrompt);
+            underlyingLlmResult = await this.options.llmTools.callChatModel(modifiedChatPrompt);
         }
 
         let content = underlyingLlmResult.content as string_markdown;

@@ -10,7 +10,7 @@ import { FormattedBookInMarkdownTranspiler } from './FormattedBookInMarkdownTran
  * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  *
- * TODO: !!!! Which package should export this?
+ * TODO: !!! Which package should export this?
  */
 export const _FormattedBookInMarkdownTranspilerRegistration: Registration = $bookTranspilersRegister.register(
     FormattedBookInMarkdownTranspiler,
