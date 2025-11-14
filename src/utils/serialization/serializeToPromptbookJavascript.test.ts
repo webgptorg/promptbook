@@ -110,7 +110,3 @@ describe('how `serializeToPromptbookJavascript` works', () => {
             value: [`[Color.fromHex('#07C9BF')]`],
         }));
 });
-
-/**
- * TODO: !!!! Fix this test
- */
