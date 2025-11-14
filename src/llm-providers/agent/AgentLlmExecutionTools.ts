@@ -140,20 +140,21 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             throw new Error('AgentLlmExecutionTools only supports chat prompts');
         }
 
+        const modelRequirements = await this.getAgentModelRequirements();
+
         const chatPrompt = prompt as ChatPrompt;
         let underlyingLlmResult: CommonPromptResult;
 
         if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.llmTools)) {
             // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
-            const assistant =
-                await this.llmTools.createNewAssistant(/* <- TODO: !!!! Generate the `instructions` from passed `agentSource` */);
+            const assistant = await this.llmTools.createNewAssistant({
+                name: this.title,
+                instructions: modelRequirements.systemMessage,
+            });
             // <- TODO: !!! Cache the assistant in prepareCache
 
             underlyingLlmResult = await assistant.callChatModel(chatPrompt);
         } else {
-            // Get agent model requirements (cached with best model selection)
-            const modelRequirements = await this.getAgentModelRequirements();
-
             // Create modified chat prompt with agent system message
             const modifiedChatPrompt: ChatPrompt = {
                 ...chatPrompt,

@@ -1,6 +1,5 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
-import spaceTrim from 'spacetrim';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -240,12 +239,26 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
     }
 
-    public async createNewAssistant(): Promise<OpenAiAssistantExecutionTools> {
+    public async createNewAssistant(options: {
+        /**
+         * Name of the new assistant
+         */
+        readonly name: string_title;
+
+        /**
+         * Instructions for the new assistant
+         */
+        readonly instructions: string_markdown;
+
+        // <- TODO: !!!! Add also other assistant creation parameters like tools, name, description, model, ...
+    }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
             throw new NotAllowed(
                 `Creating new assistants is not allowed. Set \`isCreatingNewAssistantsAllowed: true\` in options to enable this feature.`,
             );
         }
+
+        const { name, instructions } = options;
 
         const client = await this.getClient();
 
@@ -298,15 +311,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // 3️⃣ Create assistant with uploaded files
         const assistant = await client.beta.assistants.create({
-            name: 'Next.js documentation assistant',
-            description: 'Assistant that can answer questions about Next.js and working with APIs.',
+            name,
+            description: 'Assistant created via Promptbook',
             model: 'gpt-4o',
-            instructions: spaceTrim(`
-                Answer clearly and comprehensively.
-                Quote parts from uploaded files if needed.
-            `),
-            // <- TODO: !!!! Generate the `instructions` from passed `agentSource` (generate outside of this class)
-            tools: [{ type: 'code_interpreter' }, { type: 'file_search' }],
+            instructions,
+            tools: [/* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */ { type: 'file_search' }],
             // !!!! file_ids: uploadedFiles,
         });
 
