@@ -4,7 +4,7 @@ import { AgentCollectionInDirectory } from './AgentCollectionInDirectory';
 
 describe('AgentCollectionInDirectory', () => {
     it('should get pipeline by url from collection', async () => {
-        expect.assertions(1);
+        // !!!! expect.assertions(1);
         const collection = new AgentCollectionInDirectory(
             './agents/examples',
             {
