@@ -1,4 +1,4 @@
 TODO: !!!! Make the agents live here
 TODO: !!!! Publish `agents-server` this as Docker container
 TODO: !!!! Publish `@promptbook/agents-server` to npm
-TODO: !!!! Work `ptbk run-server` / `ptbk agents-server` CLI command to start this server
+TODO: !!!! Work `ptbk start-pipelines-server` / `ptbk start-agents-server` CLI command to start this server

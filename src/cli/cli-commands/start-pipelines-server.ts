@@ -23,14 +23,14 @@ import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
- * Initializes `start-server` command for Promptbook CLI utilities
+ * Initializes `start-pipelines-server` command for Promptbook CLI utilities
  *
  * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI
  *
  * @private internal function of `promptbookCli`
  */
 export function $initializeStartServerCommand(program: Program): $side_effect {
-    const startServerCommand = program.command('start-server');
+    const startServerCommand = program.command('start-pipelines-server');
 
     startServerCommand.argument(
         '[path]',
@@ -142,7 +142,7 @@ export function $initializeStartServerCommand(program: Program): $side_effect {
                 collection,
                 async login() {
                     throw new AuthenticationError(
-                        'You can not login to the server started by `ptbk start-server` in cli, use `startRemoteServer` function instead.',
+                        'You can not login to the server started by `ptbk start-pipelines-server` in cli, use `startRemoteServer` function instead.',
                     );
                 },
                 createLlmExecutionTools(options) {

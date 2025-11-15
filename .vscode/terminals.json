@@ -9,8 +9,8 @@
             "focus": true
         },
         {
-            "name": "👨‍💻🟣 Run ptbk run-server",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
+            "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
             "execute": true,
             "onlySingle": true,
             "focus": true

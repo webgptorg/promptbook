@@ -6,7 +6,7 @@ services:
         # <- TODO: [🧠][🐋] Make better scope/organization of the image
         ports:
             - 4460:4460
-        command: ptbk start-server --port 4460 --no-interactive
+        command: ptbk start-pipelines-server --port 4460 --no-interactive
         # TODO: [🧠][🐋] Make volume for `.promptbook` folder
         # volumes:
         #     - ./logs:/opt/chutoo/promptbook-module/
