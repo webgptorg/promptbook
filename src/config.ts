@@ -285,6 +285,15 @@ export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 export const DEFAULT_BOOKS_DIRNAME = './books';
 // <- TODO: [🕝] Make also `BOOKS_DIRNAME_ALTERNATIVES`
 
+/**
+ * Where to store your agents (also book files)
+ * This is kind of a "src" for your books
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_AGENTS_DIRNAME = './agents';
+// <- TODO: [🕝] Make also `AGENTS_DIRNAME_ALTERNATIVES`
+
 // TODO: Just `.promptbook` in config, hardcode subfolders like `download-cache` or `execution-cache`
 
 /**

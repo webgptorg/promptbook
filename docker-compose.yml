@@ -12,3 +12,4 @@ services:
         #     - ./logs:/opt/chutoo/promptbook-module/
         env_file: '.env'
         # <- TODO: Is this secure, isn't there some way how env variables leaks into dockerhub?
+# TODO: !!!! Make Docker image for agents-server

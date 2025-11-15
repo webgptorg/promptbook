@@ -73,3 +73,7 @@ export default function HomePage() {
         </div>
     );
 }
+
+/**
+ * TODO: [🕋] Use here `AboutPromptbookInformation`
+ */

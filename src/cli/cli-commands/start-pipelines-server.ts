@@ -29,7 +29,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeStartServerCommand(program: Program): $side_effect {
+export function $initializeStartPipelinesServerCommand(program: Program): $side_effect {
     const startServerCommand = program.command('start-pipelines-server');
 
     startServerCommand.argument(
@@ -56,10 +56,11 @@ export function $initializeStartServerCommand(program: Program): $side_effect {
     startServerCommand.description(
         spaceTrim(`
             Starts a remote server to execute books
+
+            Note: You want probably to use "ptbk start-agents-server" to start agents server instead of pipelines server
         `),
     );
 
-    startServerCommand.alias('server');
 
     startServerCommand.action(
         handleActionErrors(async (path, cliOptions) => {

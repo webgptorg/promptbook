@@ -13,7 +13,8 @@ import { $initializeLoginCommand } from './cli-commands/login';
 import { $initializeMakeCommand } from './cli-commands/make';
 import { $initializePrettifyCommand } from './cli-commands/prettify';
 import { $initializeRunCommand } from './cli-commands/run';
-import { $initializeStartServerCommand } from './cli-commands/start-pipelines-server';
+import { $initializeStartAgentsServerCommand } from './cli-commands/start-agents-server';
+import { $initializeStartPipelinesServerCommand } from './cli-commands/start-pipelines-server';
 import { $initializeTestCommand } from './cli-commands/test-command';
 import { $addGlobalOptionsToCommand } from './common/$addGlobalOptionsToCommand';
 
@@ -60,7 +61,8 @@ export async function promptbookCli(): Promise<void> {
     $initializeTestCommand(program);
     $initializeListModelsCommand(program);
     $initializeListScrapersCommand(program);
-    $initializeStartServerCommand(program);
+    $initializeStartAgentsServerCommand(program);
+    $initializeStartPipelinesServerCommand(program);
 
     // TODO: [🧠] Should it be here or not> $addGlobalOptionsToCommand(program);
     program.commands.forEach($addGlobalOptionsToCommand);
