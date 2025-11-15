@@ -3,6 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { CSSProperties, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
 import { countLines } from '../../_packages/utils.index';
 import { DEFAULT_BOOK, type string_book } from '../../book-2.0/agent-source/string_book';
@@ -187,7 +188,7 @@ export function BookEditor(props: BookEditorProps) {
         setIsFullscreen(!isFullscreen);
     };
 
-    return (
+    const editorContent = (
         <div
             data-book-component="BookEditor"
             className={classNames(
@@ -229,10 +230,13 @@ export function BookEditor(props: BookEditorProps) {
                 isFullscreen={isFullscreen}
                 sync={sync}
                 zoom={zoom}
-                // <- Note: Not passing `className` here because it is already applied to the root <div/> above
             />
         </div>
     );
+
+    return isFullscreen && typeof document !== 'undefined'
+        ? createPortal(editorContent, document.body)
+        : editorContent;
 }
 
 /**
