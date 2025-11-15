@@ -9,7 +9,7 @@ import { isDirectoryExisting } from './isDirectoryExisting';
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
- * @private internal function of `createPipelineCollectionFromDirectory`
+ * @private internal function of `AgentCollectionInDirectory` and `createPipelineCollectionFromDirectory`
  */
 export async function listAllFiles(
     path: string_dirname,
