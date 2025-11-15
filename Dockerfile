@@ -12,3 +12,6 @@ RUN mkdir ./books
 
 # Add `ptbk` to the path
 ENV PATH="/usr/app/node_modules/.bin:${PATH}"
+
+
+# TODO: [🧠][🚑] This file should be meybe in `/packages/`
