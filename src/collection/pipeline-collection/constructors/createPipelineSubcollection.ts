@@ -6,7 +6,7 @@ import type { string_pipeline_url } from '../../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
 
 /**
- * Creates PipelineCollection as a subset of another PipelineCollection
+ * Creates `PipelineCollection` as a subset of another `PipelineCollection`
  *
  * Note: You can use any type of collection as a parent collection - local, remote, etc.
  * Note: This is just a thin wrapper / proxy around the parent collection

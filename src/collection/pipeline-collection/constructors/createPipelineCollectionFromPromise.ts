@@ -5,7 +5,8 @@ import type { PipelineCollection } from '../PipelineCollection';
 import { createPipelineCollectionFromJson } from './createPipelineCollectionFromJson';
 
 /**
- * Constructs Promptbook from async sources
+ * Constructs `PipelineCollection` from async sources
+ *
  * It can be one of the following:
  * - Promise of array of PipelineJson or PipelineString
  * - Factory function that returns Promise of array of PipelineJson or PipelineString

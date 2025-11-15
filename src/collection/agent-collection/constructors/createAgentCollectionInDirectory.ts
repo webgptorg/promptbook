@@ -1,0 +1,206 @@
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { BehaviorSubject } from 'rxjs';
+import { forTime } from 'waitasecond';
+import { Agent, validateBook } from '../../../_packages/core.index';
+import { CommonToolsOptions, string_book } from '../../../_packages/types.index';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
+import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
+import type { ExecutionTools } from '../../../execution/ExecutionTools';
+import { $provideExecutionToolsForNode } from '../../../execution/utils/$provideExecutionToolsForNode';
+import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import type { string_agent_name, string_dirname } from '../../../types/typeAliases';
+import { listAllFiles } from '../../../utils/files/listAllFiles';
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
+import type { AgentCollection } from '../AgentCollection';
+
+/**
+ * Options for `createAgentCollectionFromDirectory` function
+ *
+ * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
+ *       This is not same as `path` which is the first argument of `createAgentCollectionFromDirectory` - it can be a subfolder
+ */
+type CreateAgentCollectionInDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> &
+    CommonToolsOptions & {
+        /**
+         * If true, the directory is searched recursively for pipelines
+         *
+         * @default true
+         */
+        isRecursive?: boolean;
+
+        /**
+         * If true, directory will be scanned only when needed not during the construction
+         *
+         * @default false
+         */
+        isLazyLoaded?: boolean;
+
+        /**
+         * If true, whole collection creation crashes on error in any pipeline
+         * If true and isLazyLoaded is true, the error is thrown on first access to the pipeline
+         *
+         * @default true
+         */
+        isCrashedOnError?: boolean;
+    };
+
+/**
+ * Agent collection stored in directory
+ *
+ * Note: Works only in Node.js environment because it reads the file system
+ *
+ * @public exported from `@promptbook/node`
+ */
+export class AgentCollectionInDirectory implements AgentCollection {
+    /**
+     * @param rootPath - path to the directory with agents
+     * @param tools - Execution tools to be used in `Agent` itself and listing the agents
+     * @param options - Options for the collection creation
+     */
+    public constructor(
+        public readonly rootPath: string_dirname,
+        private readonly tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
+        public readonly options?: CreateAgentCollectionInDirectoryOptions,
+    ) {
+        const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
+
+        if (isVerbose) {
+            console.info(colors.cyan(`Creating pipeline collection from path ${rootPath.split('\\').join('/')}`));
+        }
+    }
+
+    /**
+     * Cached defined execution tools
+     */
+    private _definedTools: ExecutionTools | null = null;
+
+    /**
+     * Gets or creates execution tools for the collection
+     */
+    private async getTools(): Promise<ExecutionTools> {
+        if (this._definedTools !== null) {
+            return this._definedTools;
+        }
+
+        this._definedTools = {
+            ...(this.tools === undefined || this.tools.fs === undefined ? await $provideExecutionToolsForNode() : {}),
+            ...this.tools,
+        };
+        return this._definedTools;
+    }
+
+    /**
+     * Gets all agents in the collection
+     */
+    public async listAgents(): Promise<ReadonlyArray<string_agent_name>> {
+        const { isRecursive = true, isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
+        const tools = await this.getTools();
+
+        const fileNames = await listAllFiles(this.rootPath, isRecursive, tools.fs!);
+
+        const agentNames: Array<string_agent_name> = fileNames
+            .filter((filename) => filename.endsWith('.book'))
+            .map(
+                (filename) =>
+                    filename
+                        .split('\\')
+                        .pop()!
+                        .replace(/\.book$/, '') as string_agent_name,
+            );
+
+        if (isVerbose) {
+            console.info(
+                colors.cyan(
+                    `Found ${agentNames.length} agents in directory ${this.rootPath.split('\\').join('/')}: ${agentNames
+                        .map((name) => `"${name}"`)
+                        .join(', ')}`,
+                ),
+            );
+        }
+
+        return agentNames;
+    }
+
+    /**
+     * Get one agent by its name
+     *
+     * Note: Agents are existing independently of you getting them or not, you can get the same agent multiple times.
+     * Note: Agents are changed by interacting with `Agent` objects directly. Only creation and deletion is done via the collection.
+     */
+    public async getAgentByName(agentName: string_agent_name): Promise<Agent> {
+        const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
+        const tools = await this.getTools();
+
+        const agentSourcePath = `${this.rootPath}/${agentName}.book`;
+
+        const agentSourceValue = validateBook(await tools.fs!.readFile(agentSourcePath, 'utf-8'));
+        const agentSource = new BehaviorSubject(agentSourceValue);
+
+        // Note: Write file whenever agent source changes
+        agentSource.subscribe(async (newSource) => {
+            if (isVerbose) {
+                console.info(colors.cyan(`Writing agent source to file ${agentSourcePath}`));
+            }
+            await forTime(500); // <- TODO: [🙌] !!! Remove
+            await tools.fs!.writeFile(agentSourcePath, newSource, 'utf-8');
+        });
+
+        // Note: Watch file for external changes
+        for await (const event of tools.fs!.watch(agentSourcePath)) {
+            // <- TODO: !!!! Solve the memory freeing when the watching is no longer needed
+
+            if (event.eventType !== 'change') {
+                continue;
+            }
+
+            if (isVerbose) {
+                console.info(
+                    colors.cyan(`Detected external change in agent source file ${agentSourcePath}, reloading`),
+                );
+            }
+            await forTime(500); // <- TODO: [🙌] !!! Remove
+            const newSource = validateBook(await tools.fs!.readFile(agentSourcePath, 'utf-8'));
+            agentSource.next(newSource);
+        }
+
+        // TODO: [🙌] !!!! Debug the infinite loop when file is changed externally and agent source is updated which causes file to be written again
+
+        const agent = new Agent({
+            ...this.options,
+            agentSource,
+            executionTools: this.tools || {},
+        });
+
+        if (isVerbose) {
+            console.info(colors.cyan(`Created agent "${agent.agentName}" from source file ${agentSourcePath}`));
+        }
+
+        return agent;
+    }
+
+    /**
+     * Deletes an agent from the collection
+     *
+     * Note: When you want delete an agent by name, first get the agent using `getAgentByName` and then pass it to `deleteAgent`.
+     */
+    public async deleteAgent(agent: Agent): Promise<void> {
+        TODO_USE(agent);
+        throw new NotYetImplementedError('Method not implemented.');
+    }
+
+    /**
+     * Creates a new agent in the collection
+     *
+     * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
+     */
+    public async createAgent(agentSource: string_book): Promise<Agent> {
+        TODO_USE(agentSource);
+        throw new NotYetImplementedError('Method not implemented.');
+    }
+}
+
+/**
+ * TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`
+ * TODO: [🧠] Maybe add option `isImmutable`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
+ */

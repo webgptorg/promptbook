@@ -5,7 +5,7 @@ import type fs from 'fs/promises';
  */
 export type FilesystemTools = Pick<
     typeof fs,
-    'access' | 'constants' | 'readFile' | 'writeFile' | 'stat' | 'readdir' | 'mkdir'
+    'access' | 'constants' | 'readFile' | 'writeFile' | 'stat' | 'readdir' | 'mkdir' | 'watch'
 >;
 
 /**

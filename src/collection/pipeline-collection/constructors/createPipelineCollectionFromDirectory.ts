@@ -55,8 +55,6 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
      * It has 2 purposes:
      * 1) Every pipeline in the collection is checked if it is a child of `rootUrl`
      * 2) If the pipeline does not have a URL, it is created from the `rootUrl` and path to the pipeline
-     *
-     * @default false
      */
     rootUrl?: string_pipeline_root_url;
 
@@ -79,7 +77,7 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
 };
 
 /**
- * Constructs Pipeline from given directory
+ * Constructs `PipelineCollection` from given directory
  *
  * Note: Works only in Node.js environment because it reads the file system
  *
@@ -350,6 +348,6 @@ export async function createPipelineCollectionFromDirectory(
 }
 
 /**
- * TODO: [🖇] What about symlinks? Maybe option isSymlinksFollowed
+ * TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`
  * TODO: Maybe move from `@promptbook/node` to `@promptbook/core` as we removes direct dependency on `fs`
  */

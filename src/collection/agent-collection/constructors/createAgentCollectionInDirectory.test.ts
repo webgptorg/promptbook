@@ -2,12 +2,12 @@ import { describe, expect, it } from '@jest/globals';
 import { unpreparePipeline } from '../../../prepare/unpreparePipeline';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { keepUnused } from '../../../utils/organization/keepUnused';
-import { createAgentCollectionFromDirectory } from './createAgentCollectionFromDirectory';
+import { createAgentCollectionInDirectory } from './createAgentCollectionFromDirectory';
 
 describe('createAgentCollectionFromDirectory', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
-        const collection = await createAgentCollectionFromDirectory(
+        const collection = await createAgentCollectionInDirectory(
             './examples/pipelines',
             {
                 fs: $provideFilesystemForNode(),
@@ -31,7 +31,7 @@ describe('createAgentCollectionFromDirectory', () => {
     it('should get lazy-loaded pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createAgentCollectionFromDirectory(
+        const collection = await createAgentCollectionInDirectory(
             './examples/pipelines',
             { fs: $provideFilesystemForNode() },
             {
@@ -53,7 +53,7 @@ describe('createAgentCollectionFromDirectory', () => {
     it('should get different pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createAgentCollectionFromDirectory(
+        const collection = await createAgentCollectionInDirectory(
             './examples/pipelines',
             { fs: $provideFilesystemForNode() },
             {
@@ -74,7 +74,7 @@ describe('createAgentCollectionFromDirectory', () => {
     it('should NOT crash when include error pipelines but lazy-loaded', () =>
         expect(
             (async () => {
-                const collection = await createAgentCollectionFromDirectory(
+                const collection = await createAgentCollectionInDirectory(
                     './examples/pipelines',
                     { fs: $provideFilesystemForNode() },
                     {
@@ -91,7 +91,7 @@ describe('createAgentCollectionFromDirectory', () => {
     it('should crash when include error pipelines', () =>
         expect(
             (async () => {
-                const collection = await createAgentCollectionFromDirectory(
+                const collection = await createAgentCollectionInDirectory(
                     './examples/pipelines',
                     { fs: $provideFilesystemForNode() },
                     {

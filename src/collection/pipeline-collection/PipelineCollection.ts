@@ -5,6 +5,10 @@ import type { string_pipeline_url } from '../../types/typeAliases';
 
 /**
  * Collection that groups together pipelines, knowledge, personas, tools and actions
+ *
+ * Note: [🧸] There are two types of collections:
+ * - `AgentCollection` - which groups together AI Agents
+ * - `PipelineCollection` - which groups together *(deprecated)* pipelines
  */
 export type PipelineCollection = {
     /**
