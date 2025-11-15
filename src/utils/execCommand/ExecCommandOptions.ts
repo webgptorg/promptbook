@@ -53,6 +53,7 @@ export type ExecCommandOptionsAdvanced = {
      * @default false
      */
     readonly isVerbose?: boolean;
+    // <- TODO: [🧠] Maybe rename to `isProxyingOutput`
 };
 
 /**

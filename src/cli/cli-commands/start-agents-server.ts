@@ -93,17 +93,20 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
             await $execCommand({
                 cwd: './apps/agents-server',
                 command: `next build`,
+                isVerbose: true,
             });
 
             await $execCommand({
                 cwd: './apps/agents-server',
                 command: `next start --port ${port} `,
+                isVerbose: true,
             });
             */
 
             await $execCommand({
                 cwd: './apps/agents-server',
                 command: `next dev --port ${port} `,
+                isVerbose: true,
             });
         }),
     );
