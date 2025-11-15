@@ -7,27 +7,28 @@ This package bridges the gap between Promptbook's unified pipeline execution sys
 ## 🔧 High-Level Functionality
 
 The package offers direct integration with Anthropic's Claude API:
-- **Claude Models**: Support for Claude 2, Claude 3 (Haiku, Sonnet, Opus), and future Claude models
-- **Advanced Reasoning**: Leverage Claude's strong reasoning and analysis capabilities
-- **Long Context**: Take advantage of Claude's extended context window
-- **Safety Features**: Built-in safety and alignment features from Anthropic
+
+-   **Claude Models**: Support for Claude 2, Claude 3 (Haiku, Sonnet, Opus), and future Claude models
+-   **Advanced Reasoning**: Leverage Claude's strong reasoning and analysis capabilities
+-   **Long Context**: Take advantage of Claude's extended context window
+-   **Safety Features**: Built-in safety and alignment features from Anthropic
 
 ## ✨ Key Features
 
-- 🧠 **Advanced AI Models** - Access to Claude's state-of-the-art language models
-- 🔄 **Seamless Integration** - Easy integration with other LLM providers in Promptbook
-- 📏 **Long Context Support** - Handle large documents and complex conversations
-- 🛡️ **Built-in Safety** - Anthropic's constitutional AI approach for safer outputs
-- 📊 **Usage Tracking** - Monitor token usage and costs
-- 🔧 **Flexible Configuration** - Support for custom endpoints and parameters
-- 🚀 **Performance Optimization** - Efficient request handling and caching
+-   🧠 **Advanced AI Models** - Access to Claude's state-of-the-art language models
+-   🔄 **Seamless Integration** - Easy integration with other LLM providers in Promptbook
+-   📏 **Long Context Support** - Handle large documents and complex conversations
+-   🛡️ **Built-in Safety** - Anthropic's constitutional AI approach for safer outputs
+-   📊 **Usage Tracking** - Monitor token usage and costs
+-   🔧 **Flexible Configuration** - Support for custom endpoints and parameters
+-   🚀 **Performance Optimization** - Efficient request handling and caching
 
 ## 🧡 Usage
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
+import { createPipelineExecutor, createPipelineCollectionFromDirectory } from '@promptbook/core';
 import {
-    createCollectionFromDirectory,
+    createPipelineCollectionFromDirectory,
     $provideExecutionToolsForNode,
     $provideFilesystemForNode,
     $provideScrapersForNode,
@@ -55,7 +56,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -103,7 +104,7 @@ console.info(joke);
 You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
+import { createPipelineExecutor, createPipelineCollectionFromDirectory } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
@@ -113,7 +114,7 @@ import { $provideFilesystemForNode } from '@promptbook/node';
 const tools = await $provideExecutionToolsForNode();
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -139,7 +140,7 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
+import { createPipelineExecutor, createPipelineCollectionFromDirectory } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/javascript';
@@ -181,7 +182,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -218,24 +219,30 @@ See the other model integrations:
 ## 📦 Exported Entities
 
 ### Version Information
-- `BOOK_LANGUAGE_VERSION` - Current book language version
-- `PROMPTBOOK_ENGINE_VERSION` - Current engine version
+
+-   `BOOK_LANGUAGE_VERSION` - Current book language version
+-   `PROMPTBOOK_ENGINE_VERSION` - Current engine version
 
 ### Model Information
-- `ANTHROPIC_CLAUDE_MODELS` - Available Anthropic Claude models configuration
+
+-   `ANTHROPIC_CLAUDE_MODELS` - Available Anthropic Claude models configuration
 
 ### Execution Tools Creation Function
-- `createAnthropicClaudeExecutionTools` - Create Anthropic Claude execution tools
+
+-   `createAnthropicClaudeExecutionTools` - Create Anthropic Claude execution tools
 
 ### Execution Tools Class
-- `AnthropicClaudeExecutionTools` - Anthropic Claude execution tools class
+
+-   `AnthropicClaudeExecutionTools` - Anthropic Claude execution tools class
 
 ### Configuration Types
-- `AnthropicClaudeExecutionToolsOptions` - Configuration options for Anthropic Claude tools (type)
-- `AnthropicClaudeExecutionToolsNonProxiedOptions` - Non-proxied configuration options (type)
-- `AnthropicClaudeExecutionToolsProxiedOptions` - Proxied configuration options (type)
+
+-   `AnthropicClaudeExecutionToolsOptions` - Configuration options for Anthropic Claude tools (type)
+-   `AnthropicClaudeExecutionToolsNonProxiedOptions` - Non-proxied configuration options (type)
+-   `AnthropicClaudeExecutionToolsProxiedOptions` - Proxied configuration options (type)
 
 ### Provider Registration
-- `_AnthropicClaudeRegistration` - Anthropic Claude provider registration
+
+-   `_AnthropicClaudeRegistration` - Anthropic Claude provider registration
 
 <!-- TODO: [👩‍🚒] Should be this package named `@promptbook/anthropic-claude` or just `@promptbook/anthropic` -->

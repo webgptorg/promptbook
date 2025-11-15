@@ -15,7 +15,7 @@ import type { PipelineCollection } from '../PipelineCollection';
  * @returns PipelineCollection
  * @public exported from `@promptbook/core`
  */
-export function createSubcollection(
+export function createPipelineSubcollection(
     collection: PipelineCollection,
     predicate: (url: string_pipeline_url) => boolean,
 ): PipelineCollection {

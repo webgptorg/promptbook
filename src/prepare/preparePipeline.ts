@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
-import { createCollectionFromJson } from '../collection/pipeline-collection/constructors/createCollectionFromJson';
+import { createPipelineCollectionFromJson } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
 import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
@@ -93,7 +93,9 @@ export async function preparePipeline(
     let title = pipeline.title;
     if (title === undefined || title === '' || title === DEFAULT_BOOK_TITLE) {
         // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
-        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+        const collection = createPipelineCollectionFromJson(
+            ...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>),
+        );
 
         const prepareTitleExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book'),

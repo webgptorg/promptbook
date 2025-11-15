@@ -9,8 +9,8 @@ import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { $execCommand, $provideScrapersForNode } from '../../src/_packages/node.index';
-import { collectionToJson } from '../../src/collection/collectionToJson';
-import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from '../../src/collection/constructors/createPipelineCollectionFromDirectory';
+import { pipelineCollectionToJson } from '../../src/collection/pipelineCollectionToJson';
 import { $provideExecutablesForNode } from '../../src/executables/$provideExecutablesForNode';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
@@ -65,7 +65,7 @@ async function makePipelineCollection({
     const executables = await $provideExecutablesForNode();
     const scrapers = await $provideScrapersForNode({ fs, llm, executables });
 
-    const collection = await createCollectionFromDirectory(
+    const collection = await createPipelineCollectionFromDirectory(
         promptbookSourceDir,
         {
             fs,
@@ -80,7 +80,7 @@ async function makePipelineCollection({
         },
     );
 
-    const collectionJson = await collectionToJson(collection);
+    const collectionJson = await pipelineCollectionToJson(collection);
     const collectionJsonString = JSON.stringify(collectionJson);
 
     const collectionJsonFilePath = join(promptbookSourceDir, 'index.json');
@@ -113,7 +113,7 @@ async function makePipelineCollection({
     });
 
     let content = await readFile(filePath, 'utf-8');
-    content = content.split(`@promptbook/core`).join(`../../collection/constructors/createCollectionFromJson`);
+    content = content.split(`@promptbook/core`).join(`../../collection/constructors/createPipelineCollectionFromJson`);
     content = content.split(`@promptbook/types`).join(`../../collection/PipelineCollection`);
     await writeFile(filePath, content, 'utf-8');
 

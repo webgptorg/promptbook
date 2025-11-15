@@ -26,13 +26,13 @@ import type {
 import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { listAllFiles } from '../../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../AgentCollection';
-import { createCollectionFromPromise } from './createCollectionFromPromise';
+import { createAgentCollectionFromPromise } from './createAgentCollectionFromPromise';
 
 /**
- * Options for `createCollectionFromDirectory` function
+ * Options for `createAgentCollectionFromDirectory` function
  *
  * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
- *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
+ *       This is not same as `path` which is the first argument of `createAgentCollectionFromDirectory` - it can be a subfolder
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
     /**
@@ -136,7 +136,7 @@ export async function createAgentCollectionFromDirectory(
         rootUrl,
     } = options || {};
 
-    const collection = createCollectionFromPromise(async () => {
+    const collection = createAgentCollectionFromPromise(async () => {
         if (isVerbose) {
             console.info(colors.cyan(`Creating pipeline collection from path ${rootPath.split('\\').join('/')}`));
         }

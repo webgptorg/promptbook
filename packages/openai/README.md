@@ -4,11 +4,6 @@
 
 Turn your company's scattered knowledge into AI ready Books
 
-
-
-
-
-
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
@@ -19,8 +14,6 @@ Turn your company's scattered knowledge into AI ready Books
 [![🧪 Test types](https://github.com/webgptorg/promptbook/actions/workflows/test-types.yml/badge.svg)](https://github.com/webgptorg/promptbook/actions/workflows/test-types.yml)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
-
-
 ## 🌟 New Features
 
 -   🚀 **GPT-5 Support** - Now includes OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window
@@ -29,16 +22,14 @@ Turn your company's scattered knowledge into AI ready Books
 -   🔥 Native support for OpenAI `o3-mini`, GPT-4 and other leading LLMs
 -   🔍 DeepSeek integration for advanced knowledge search
 
-
-
 <blockquote style="color: #ff8811">
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
 </blockquote>
 
 ## 📦 Package `@promptbook/openai`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/openai` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/openai` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -82,7 +73,7 @@ The package offers three main integration paths:
 ```typescript
 import { createPipelineExecutor } from '@promptbook/core';
 import {
-    createCollectionFromDirectory,
+    createPipelineCollectionFromDirectory,
     $provideExecutionToolsForNode,
     $provideFilesystemForNode,
     $provideScrapersForNode,
@@ -110,7 +101,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -133,11 +124,6 @@ console.info(outputParameters);
 
 > TODO: Write a guide how to use OpenAI's Assistants with Promptbook
 
-
-
-
-
-
 ## 🧙‍♂️ Wizard
 
 Run books without any settings, boilerplate or struggle in Node.js:
@@ -154,17 +140,12 @@ const {
 console.info(joke);
 ```
 
-
-
-
-
-
 ## 🧙‍♂️ Connect to LLM providers automatically
 
 You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
+import { createPipelineExecutor, createPipelineCollectionFromDirectory } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
@@ -174,7 +155,7 @@ import { $provideFilesystemForNode } from '@promptbook/node';
 const tools = await $provideExecutionToolsForNode();
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -193,8 +174,6 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-
-
 ## 💕 Usage of multiple LLM providers
 
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
@@ -202,7 +181,7 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 ```typescript
 import { createPipelineExecutor } from '@promptbook/core';
 import {
-    createCollectionFromDirectory,
+    createPipelineCollectionFromDirectory,
     $provideExecutionToolsForNode,
     $provideFilesystemForNode,
 } from '@promptbook/node';
@@ -246,7 +225,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -265,9 +244,6 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-
-
-
 ### 💙 Integration with other models
 
 See the other model integrations:
@@ -277,8 +253,6 @@ See the other model integrations:
 -   [Google Gemini](https://www.npmjs.com/package/@promptbook/google)
 -   [Vercel](https://www.npmjs.com/package/@promptbook/vercel)
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
-
-
 
 ## 🤖 Using Promptbook as an OpenAI-compatible model
 
@@ -292,7 +266,7 @@ import { startRemoteServer } from '@promptbook/remote-server';
 // Start the server
 await startRemoteServer({
     port: 3000,
-    collection: await createCollectionFromDirectory('./books'),
+    collection: await createPipelineCollectionFromDirectory('./books'),
     isAnonymousModeAllowed: true,
     isApplicationModeAllowed: true,
 });
@@ -328,8 +302,6 @@ This allows you to:
 -   Use Promptbook books with any OpenAI-compatible client
 -   Integrate Promptbook into existing OpenAI-based applications
 -   Use Promptbook books as models in other AI frameworks
-
-
 
 ## 📦 Exported Entities
 
@@ -370,13 +342,9 @@ This allows you to:
 
 > 💡 This package provides OpenAI integration for promptbook applications. For the core functionality, see [@promptbook/core](#-packages) or install all packages with `npm i ptbk`
 
-
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-
-
 
 ## 📖 The Book Whitepaper
 
@@ -434,7 +402,7 @@ Promptbook Engine will automatically enforce this knowledge during interactions.
 Your job is to provide legal advice and support to the company and its employees.<br/>
 You are knowledgeable, professional, and detail-oriented.<br/>
 <br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
 </td></tr></table>
@@ -456,7 +424,7 @@ You are knowledgeable, professional, and detail-oriented.<br/>
 **RULE** Always ensure compliance with laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
 </td></tr></table>
@@ -476,7 +444,7 @@ You are knowledgeable, professional, and detail-oriented.<br/>
 **RULE** Always ensure compliance with laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 **ACTION** When a user asks about an issue that could be treated as a crime, notify legal@company.com.<br/>
 
@@ -527,22 +495,13 @@ Now you want to use it. There are several ways how to write your first book:
 
 We have written ai asistant in book who can help you with writing your first book.
 
-
-
 #### Your AI twin
 
 Copy your own behavior, personality, and knowledge into book and create your AI twin. It can help you with your work, personal life, or any other task.
 
-
-
 #### AI persona workpool
 
 Or you can pick from our library of pre-written books for various roles and tasks. You can find books for customer support, coding, marketing, sales, HR, legal, and many other roles.
-
-
-
-
-
 
 ## 🚀 Get started
 
@@ -551,11 +510,6 @@ Take a look at the simple starter kit with books integrated into the **Hello Wor
 -   [Hello Book](https://github.com/webgptorg/hello-world)
 -   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
 -   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
-
-
-
-
-
 
 ## 💜 The Promptbook Project
 
@@ -647,15 +601,6 @@ Join our growing community of developers and users:
   </tbody>
 </table>
 
-
-
-
-
-
-
-
-
-
 ## 📚 Documentation
 
 See detailed guides and API reference in the [docs](https://github.com/webgptorg/promptbook/discussions/categories/concepts) or [online](https://discord.gg/x3QWNaa89N).
@@ -688,7 +633,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizard](https://www.npmjs.com/package/@promptbook/wizard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
@@ -710,11 +655,6 @@ Or you can install them separately:
 -   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 -   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
 
-
-
-
-
-
 ## 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
@@ -731,8 +671,6 @@ The following glossary is used to clarify certain concepts:
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 _Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 ### 💯 Core concepts
 
@@ -792,8 +730,6 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 </table>
 
 <p align="center"><a href="https://github.com/webgptorg/promptbook/discussions/categories/concepts">🔍 View more concepts</a></p>
-
-
 
 ## 🚂 Promptbook Engine
 

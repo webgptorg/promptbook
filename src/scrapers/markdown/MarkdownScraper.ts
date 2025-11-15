@@ -6,7 +6,7 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
-import { createCollectionFromJson } from '../../collection/pipeline-collection/constructors/createCollectionFromJson';
+import { createPipelineCollectionFromJson } from '../../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
 import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -58,7 +58,9 @@ export class MarkdownScraper implements Scraper {
         TODO_USE(maxParallelCount); // <- [🪂]
 
         // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
-        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+        const collection = createPipelineCollectionFromJson(
+            ...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>),
+        );
 
         const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(

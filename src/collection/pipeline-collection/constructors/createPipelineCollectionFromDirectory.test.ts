@@ -2,12 +2,12 @@ import { describe, expect, it } from '@jest/globals';
 import { unpreparePipeline } from '../../../prepare/unpreparePipeline';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { keepUnused } from '../../../utils/organization/keepUnused';
-import { createCollectionFromDirectory } from './createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from './createPipelineCollectionFromDirectory';
 
-describe('createCollectionFromDirectory', () => {
+describe('createPipelineCollectionFromDirectory', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
-        const collection = await createCollectionFromDirectory(
+        const collection = await createPipelineCollectionFromDirectory(
             './examples/pipelines',
             {
                 fs: $provideFilesystemForNode(),
@@ -31,7 +31,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get lazy-loaded pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createCollectionFromDirectory(
+        const collection = await createPipelineCollectionFromDirectory(
             './examples/pipelines',
             { fs: $provideFilesystemForNode() },
             {
@@ -53,7 +53,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get different pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createCollectionFromDirectory(
+        const collection = await createPipelineCollectionFromDirectory(
             './examples/pipelines',
             { fs: $provideFilesystemForNode() },
             {
@@ -74,7 +74,7 @@ describe('createCollectionFromDirectory', () => {
     it('should NOT crash when include error pipelines but lazy-loaded', () =>
         expect(
             (async () => {
-                const collection = await createCollectionFromDirectory(
+                const collection = await createPipelineCollectionFromDirectory(
                     './examples/pipelines',
                     { fs: $provideFilesystemForNode() },
                     {
@@ -91,7 +91,7 @@ describe('createCollectionFromDirectory', () => {
     it('should crash when include error pipelines', () =>
         expect(
             (async () => {
-                const collection = await createCollectionFromDirectory(
+                const collection = await createPipelineCollectionFromDirectory(
                     './examples/pipelines',
                     { fs: $provideFilesystemForNode() },
                     {
@@ -110,7 +110,7 @@ describe('createCollectionFromDirectory', () => {
     it('should find pipeline in subdirectory', () =>
         expect(
             (async () => {
-              const collection = await   createCollectionFromDirectory('./examples/pipelines',{}, {
+              const collection = await   createPipelineCollectionFromDirectory('./examples/pipelines',{}, {
                     isVerbose: true,
                     isRecursive: false,
                 });

@@ -4,7 +4,7 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forEver } from 'waitasecond';
-import { createCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
@@ -122,7 +122,7 @@ export function $initializeStartServerCommand(program: Program): $side_effect {
             } satisfies ExecutionTools;
 
             // TODO: [🧟‍♂️][◽] DRY:
-            const collection = await createCollectionFromDirectory(path, tools, {
+            const collection = await createPipelineCollectionFromDirectory(path, tools, {
                 isVerbose,
                 rootUrl,
                 isRecursive: true,

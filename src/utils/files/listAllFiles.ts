@@ -1,7 +1,6 @@
 import { join } from 'path';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_dirname, string_filename } from '../../types/typeAliases';
 import { isDirectoryExisting } from './isDirectoryExisting';
 
 /**
@@ -10,7 +9,7 @@ import { isDirectoryExisting } from './isDirectoryExisting';
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
- * @private internal function of `createCollectionFromDirectory`
+ * @private internal function of `createPipelineCollectionFromDirectory`
  */
 export async function listAllFiles(
     path: string_dirname,

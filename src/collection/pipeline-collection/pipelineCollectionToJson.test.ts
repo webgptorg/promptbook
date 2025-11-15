@@ -2,10 +2,10 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import type { PipelineString } from '../../pipeline/PipelineString';
-import { collectionToJson } from './collectionToJson';
-import { createCollectionFromJson } from './constructors/createCollectionFromJson';
+import { createPipelineCollectionFromJson } from './constructors/createPipelineCollectionFromJson';
+import { pipelineCollectionToJson } from './pipelineCollectionToJson';
 
-describe('createCollectionFromJson', () => {
+describe('createPipelineCollectionFromJson', () => {
     const pipelineString = spaceTrim(`
             # Example prompt
 
@@ -36,10 +36,10 @@ describe('createCollectionFromJson', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const pipeline = await compilePipeline(pipelineString);
-        const collection = createCollectionFromJson(pipeline);
+        const collection = createPipelineCollectionFromJson(pipeline);
 
         // Note: This is the actual test:
-        const collectionJson = await collectionToJson(collection);
+        const collectionJson = await pipelineCollectionToJson(collection);
         expect([pipeline]).toEqual(collectionJson);
     });
 });

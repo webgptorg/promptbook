@@ -9,7 +9,7 @@ import { join } from 'path';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from '../../src/collection/constructors/createPipelineCollectionFromDirectory';
 import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { $provideLlmToolsFromEnv } from '../../src/llm-providers/_common/register/$provideLlmToolsFromEnv';
@@ -36,7 +36,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const collection = await createCollectionFromDirectory('./examples/pipelines/',  {}, {
+    const collection = await createPipelineCollectionFromDirectory('./examples/pipelines/',  {}, {
         llmTools: undefined,
         isVerbose: true,
         isRecursive: false,

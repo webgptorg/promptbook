@@ -4,11 +4,11 @@ import type { PipelineCollection } from './PipelineCollection';
 /**
  * Converts PipelineCollection to serialized JSON
  *
- * Note: Functions `collectionToJson` and `createCollectionFromJson` are complementary
+ * Note: Functions `pipelineCollectionToJson` and `createPipelineCollectionFromJson` are complementary
  *
  * @public exported from `@promptbook/core`
  */
-export async function collectionToJson(collection: PipelineCollection): Promise<ReadonlyArray<PipelineJson>> {
+export async function pipelineCollectionToJson(collection: PipelineCollection): Promise<ReadonlyArray<PipelineJson>> {
     const pipelineUrls = await collection.listPipelines();
     const promptbooks = await Promise.all(pipelineUrls.map((url) => collection.getPipelineByUrl(url)));
     return promptbooks;

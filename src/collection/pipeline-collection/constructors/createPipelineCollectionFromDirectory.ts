@@ -26,13 +26,13 @@ import type {
 import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { listAllFiles } from '../../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
-import { createCollectionFromPromise } from './createCollectionFromPromise';
+import { createPipelineCollectionFromPromise } from './createPipelineCollectionFromPromise';
 
 /**
- * Options for `createCollectionFromDirectory` function
+ * Options for `createPipelineCollectionFromDirectory` function
  *
  * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
- *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
+ *       This is not same as `path` which is the first argument of `createPipelineCollectionFromDirectory` - it can be a subfolder
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
     /**
@@ -89,7 +89,7 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  * @returns PipelineCollection
  * @public exported from `@promptbook/node`
  */
-export async function createCollectionFromDirectory(
+export async function createPipelineCollectionFromDirectory(
     rootPath: string_dirname,
     tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options?: CreatePipelineCollectionFromDirectoryOptions,
@@ -136,7 +136,7 @@ export async function createCollectionFromDirectory(
         rootUrl,
     } = options || {};
 
-    const collection = createCollectionFromPromise(async () => {
+    const collection = createPipelineCollectionFromPromise(async () => {
         if (isVerbose) {
             console.info(colors.cyan(`Creating pipeline collection from path ${rootPath.split('\\').join('/')}`));
         }

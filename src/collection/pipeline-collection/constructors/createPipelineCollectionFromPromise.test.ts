@@ -3,9 +3,9 @@ import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { compilePipeline } from '../../../conversion/compilePipeline';
 import type { PipelineString } from '../../../pipeline/PipelineString';
-import { createCollectionFromPromise } from './createCollectionFromPromise';
+import { createPipelineCollectionFromPromise } from './createPipelineCollectionFromPromise';
 
-describe('createCollectionFromPromise', () => {
+describe('createPipelineCollectionFromPromise', () => {
     const pipeline = spaceTrim(`
             # Example prompt
 
@@ -33,7 +33,7 @@ describe('createCollectionFromPromise', () => {
          `) as PipelineString;
     // <- TODO: [📼] Use`book\`` string literal notation
 
-    const collection = createCollectionFromPromise(async () => {
+    const collection = createPipelineCollectionFromPromise(async () => {
         await forTime(100);
         return [await compilePipeline(pipeline)];
     });

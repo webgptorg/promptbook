@@ -1,10 +1,10 @@
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { string_url } from '../../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
-import { createCollectionFromPromise } from './createCollectionFromPromise';
+import { createPipelineCollectionFromPromise } from './createPipelineCollectionFromPromise';
 
 /**
- * Options for `createCollectionFromDirectory` function
+ * Options for `createPipelineCollectionFromDirectory` function
  */
 type CreatePipelineCollectionFromUrlyOptions = {
     /**
@@ -27,13 +27,13 @@ type CreatePipelineCollectionFromUrlyOptions = {
  * @returns PipelineCollection
  * @public exported from `@promptbook/core`
  */
-export async function createCollectionFromUrl(
+export async function createPipelineCollectionFromUrl(
     url: string_url | URL,
     options: CreatePipelineCollectionFromUrlyOptions,
 ): Promise<PipelineCollection> {
     const { isVerbose = DEFAULT_IS_VERBOSE, isLazyLoaded = false } = options || {};
 
-    const collection = createCollectionFromPromise(async () => {
+    const collection = createPipelineCollectionFromPromise(async () => {
         if (isVerbose) {
             console.info(`Creating pipeline collection from url ${url.toString()}`);
         }
@@ -50,7 +50,7 @@ export async function createCollectionFromUrl(
     // TODO: [main] !!3 [🏳‍🌈] Allow variant with .json .js and .ts files
     // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function of the collection
     // TODO: Look at WebGPT "📖 Make Promptbook collection" and https://webgpt.cz/_books.json
-    // TODO: Implement via createCollectionFromPromise
+    // TODO: Implement via createPipelineCollectionFromPromise
 }
 
 /**

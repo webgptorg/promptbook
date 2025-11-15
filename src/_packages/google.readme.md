@@ -3,9 +3,9 @@
 ## 🧡 Usage
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
+import { createPipelineExecutor, createPipelineCollectionFromDirectory } from '@promptbook/core';
 import {
-    createCollectionFromDirectory,
+    createPipelineCollectionFromDirectory,
     $provideExecutionToolsForNode,
     $provideFilesystemForNode,
     $provideScrapersForNode,
@@ -33,7 +33,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -81,7 +81,7 @@ console.info(joke);
 You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
+import { createPipelineExecutor, createPipelineCollectionFromDirectory } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
@@ -91,7 +91,7 @@ import { $provideFilesystemForNode } from '@promptbook/node';
 const tools = await $provideExecutionToolsForNode();
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);
@@ -117,7 +117,7 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import { createPipelineExecutor, createCollectionFromDirectory } from '@promptbook/core';
+import { createPipelineExecutor, createPipelineCollectionFromDirectory } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { $provideFilesystemForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/javascript';
@@ -159,7 +159,7 @@ const tools = {
 };
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./books', tools);
+const collection = await createPipelineCollectionFromDirectory('./books', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.book`);

@@ -2,7 +2,7 @@ import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import type { Prompt } from '../../../types/Prompt';
 import type { string_pipeline_url } from '../../../types/typeAliases';
 import type { PipelineCollection } from '../PipelineCollection';
-import { createCollectionFromJson } from './createCollectionFromJson';
+import { createPipelineCollectionFromJson } from './createPipelineCollectionFromJson';
 
 /**
  * Constructs Promptbook from async sources
@@ -11,20 +11,20 @@ import { createCollectionFromJson } from './createCollectionFromJson';
  * - Factory function that returns Promise of array of PipelineJson or PipelineString
  *
  * Note: This is useful as internal tool for other constructor functions like
- *       `createCollectionFromUrl` or `createCollectionFromDirectory`
+ *       `createPipelineCollectionFromUrl` or `createPipelineCollectionFromDirectory`
  *       Consider using those functions instead of this one
  *
  * Note: The function does NOT return promise it returns the collection directly which waits for the sources to be resolved
  *       when error occurs in given promise or factory function, it is thrown during `listPipelines` or `getPipelineByUrl` call
  *
- * Note: Consider using  `createCollectionFromDirectory` or `createCollectionFromUrl`
+ * Note: Consider using  `createPipelineCollectionFromDirectory` or `createPipelineCollectionFromUrl`
  *
  * @param promptbookSourcesPromiseOrFactory
  * @returns PipelineCollection
  * @deprecated Do not use, it will became internal tool for other constructor functions
  * @public exported from `@promptbook/core`
  */
-export function createCollectionFromPromise(
+export function createPipelineCollectionFromPromise(
     promptbookSourcesPromiseOrFactory:
         | Promise<ReadonlyArray<PipelineJson>>
         | (() => Promise<ReadonlyArray<PipelineJson>>),
@@ -40,7 +40,7 @@ export function createCollectionFromPromise(
             promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
         }
         const promptbookSources = await promptbookSourcesPromiseOrFactory;
-        collection = createCollectionFromJson(...promptbookSources);
+        collection = createPipelineCollectionFromJson(...promptbookSources);
     }
 
     async function listPipelines(): Promise<ReadonlyArray<string_pipeline_url>> {

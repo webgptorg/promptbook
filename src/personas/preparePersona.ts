@@ -1,5 +1,5 @@
 import PipelineCollection from '../../books/index.json';
-import { createCollectionFromJson } from '../collection/pipeline-collection/constructors/createCollectionFromJson';
+import { createPipelineCollectionFromJson } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -30,7 +30,9 @@ export async function preparePersona(
     }
 
     // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
-    const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+    const collection = createPipelineCollectionFromJson(
+        ...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>),
+    );
 
     const preparePersonaExecutor = createPipelineExecutor({
         pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book'),

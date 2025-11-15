@@ -1,7 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/node`
 
-import { createCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
 import { $provideLlmToolsConfigurationFromEnv } from '../llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv';
@@ -28,6 +28,6 @@ export {
     $provideLlmToolsFromEnv,
     $provideScrapersForNode,
     $provideScriptingForNode,
-    createCollectionFromDirectory,
+    createPipelineCollectionFromDirectory,
     FileCacheStorage,
 };

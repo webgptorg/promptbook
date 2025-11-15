@@ -339,7 +339,7 @@ ex-port const WIZARD_APP_ID: string_app_id = 'wizard';
 */
 
 /**
- * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
+ * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createPipelineCollectionFromDirectory`
  *
  * @public exported from `@promptbook/core`
  */

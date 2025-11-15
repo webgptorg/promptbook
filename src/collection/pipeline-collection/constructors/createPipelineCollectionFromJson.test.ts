@@ -2,9 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { compilePipeline } from '../../../conversion/compilePipeline';
 import type { PipelineString } from '../../../pipeline/PipelineString';
-import { createCollectionFromJson } from './createCollectionFromJson';
+import { createPipelineCollectionFromJson } from './createPipelineCollectionFromJson';
 
-describe('createCollectionFromJson', () => {
+describe('createPipelineCollectionFromJson', () => {
     const pipelineString = spaceTrim(`
             # Example prompt
 
@@ -35,7 +35,7 @@ describe('createCollectionFromJson', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const pipeline = await compilePipeline(pipelineString);
-        const collection = createCollectionFromJson(pipeline);
+        const collection = createPipelineCollectionFromJson(pipeline);
         const pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/examples/pipeline.book',
         );

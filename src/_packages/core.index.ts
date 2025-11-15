@@ -20,11 +20,11 @@ import {
     isCommitmentSupported,
 } from '../book-2.0/commitments/index';
 import { generatePlaceholderAgentProfileImageUrl } from '../book-2.0/utils/generatePlaceholderAgentProfileImageUrl';
-import { collectionToJson } from '../collection/pipeline-collection/collectionToJson';
-import { createCollectionFromJson } from '../collection/pipeline-collection/constructors/createCollectionFromJson';
-import { createCollectionFromPromise } from '../collection/pipeline-collection/constructors/createCollectionFromPromise';
-import { createCollectionFromUrl } from '../collection/pipeline-collection/constructors/createCollectionFromUrl';
-import { createSubcollection } from '../collection/pipeline-collection/constructors/createSubcollection';
+import { createPipelineCollectionFromJson } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
+import { createPipelineCollectionFromPromise } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromPromise';
+import { createPipelineCollectionFromUrl } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromUrl';
+import { createPipelineSubcollection } from '../collection/pipeline-collection/constructors/createPipelineSubcollection';
+import { pipelineCollectionToJson } from '../collection/pipeline-collection/pipelineCollectionToJson';
 import {
     ADMIN_EMAIL,
     ADMIN_GITHUB_NAME,
@@ -231,7 +231,6 @@ export {
     CLAIM,
     CLI_APP_ID,
     CollectionError,
-    collectionToJson,
     compilePipeline,
     CompletionFormfactorDefinition,
     computeCosineSimilarity,
@@ -240,13 +239,13 @@ export {
     createAgentModelRequirements,
     createAgentModelRequirementsWithCommitments,
     createBasicAgentModelRequirements,
-    createCollectionFromJson,
-    createCollectionFromPromise,
-    createCollectionFromUrl,
     createEmptyAgentModelRequirements,
     createLlmToolsFromConfiguration,
+    createPipelineCollectionFromJson,
+    createPipelineCollectionFromPromise,
+    createPipelineCollectionFromUrl,
     createPipelineExecutor,
-    createSubcollection,
+    createPipelineSubcollection,
     CsvFormatError,
     CsvFormatParser,
     DEFAULT_BOOK,
@@ -331,6 +330,7 @@ export {
     parseParameters,
     parsePipeline,
     PENDING_VALUE_PLACEHOLDER,
+    pipelineCollectionToJson,
     PipelineExecutionError,
     pipelineJsonToString,
     PipelineLogicError,

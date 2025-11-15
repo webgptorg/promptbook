@@ -804,7 +804,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
+ * TODO: [⚖] Expose the collection to be able to connect to same collection via createPipelineCollectionFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🗯] Timeout on chat to free up resources

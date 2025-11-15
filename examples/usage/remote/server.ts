@@ -8,7 +8,10 @@ import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { basename } from 'path';
 import { forEver } from 'waitasecond';
-import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
+import {
+    $provideExecutionToolsForNode,
+    createPipelineCollectionFromDirectory,
+} from '../../../src/_packages/node.index';
 import { OpenAiExecutionTools } from '../../../src/_packages/openai.index';
 import { startRemoteServer } from '../../../src/_packages/remote-server.index';
 import { AuthenticationError } from '../../../src/errors/AuthenticationError';
@@ -42,7 +45,7 @@ async function main() {
     console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
     const tools = await $provideExecutionToolsForNode();
-    const collection = await createCollectionFromDirectory('./examples/pipelines/', tools);
+    const collection = await createPipelineCollectionFromDirectory('./examples/pipelines/', tools);
 
     // [⚖]
     startRemoteServer({

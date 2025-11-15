@@ -1,6 +1,6 @@
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { createCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { saveArchive } from '../conversion/archive/saveArchive';
 import { compilePipeline } from '../conversion/compilePipeline';
@@ -94,7 +94,7 @@ export async function $getCompiledBook(
             // console.log({ rootDirname, booksDirname });
 
             if (await isDirectoryExisting(booksDirname, fs)) {
-                const collection = await createCollectionFromDirectory(booksDirname, tools, {
+                const collection = await createPipelineCollectionFromDirectory(booksDirname, tools, {
                     isRecursive: true,
                     rootDirname: booksDirname, // <- TODO: Avoid confusion with `rootDirname` and `booksDirname`
                     ...options,

@@ -15,7 +15,10 @@ import {
     stringifyPipelineJson,
     usageToHuman,
 } from '../../../src/_packages/core.index';
-import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
+import {
+    $provideExecutionToolsForNode,
+    createPipelineCollectionFromDirectory,
+} from '../../../src/_packages/node.index';
 
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
@@ -43,7 +46,7 @@ main()
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const collection = await createCollectionFromDirectory(
+    const collection = await createPipelineCollectionFromDirectory(
         './examples/pipelines/',
         {},
         {

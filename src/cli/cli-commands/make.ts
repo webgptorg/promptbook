@@ -5,8 +5,8 @@ import type {
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { collectionToJson } from '../../collection/pipeline-collection/collectionToJson';
-import { createCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
+import { pipelineCollectionToJson } from '../../collection/pipeline-collection/pipelineCollectionToJson';
 import {
     DEFAULT_BOOKS_DIRNAME,
     DEFAULT_GET_PIPELINE_COLLECTION_FUNCTION_NAME,
@@ -162,7 +162,7 @@ export function $initializeMakeCommand(program: Program): $side_effect {
             } satisfies ExecutionTools;
 
             // TODO: [🧟‍♂️][◽] DRY:
-            const collection = await createCollectionFromDirectory(path, tools, {
+            const collection = await createPipelineCollectionFromDirectory(path, tools, {
                 isVerbose,
                 rootUrl,
                 isRecursive: true,
@@ -194,7 +194,7 @@ export function $initializeMakeCommand(program: Program): $side_effect {
                 }
             }
 
-            const collectionJson = await collectionToJson(collection);
+            const collectionJson = await pipelineCollectionToJson(collection);
 
             const collectionJsonString = stringifyPipelineJson(collectionJson).trim();
             const collectionJsonItems = (() => {
@@ -261,7 +261,7 @@ export function $initializeMakeCommand(program: Program): $side_effect {
                         (block) => `
                             // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
 
-                            import { createCollectionFromJson } from '@promptbook/core';
+                            import { createPipelineCollectionFromJson } from '@promptbook/core';
 
                             /**
                              * Pipeline collection for ${projectName}
@@ -284,7 +284,7 @@ export function $initializeMakeCommand(program: Program): $side_effect {
                              */
                             export function ${functionName}(){
                                 if(pipelineCollection===null){
-                                    pipelineCollection = createCollectionFromJson(
+                                    pipelineCollection = createPipelineCollectionFromJson(
                                         ${block(collectionJsonItems)}
                                     );
                                 }
@@ -308,7 +308,7 @@ export function $initializeMakeCommand(program: Program): $side_effect {
                         (block) => `
                             // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
 
-                            import { createCollectionFromJson } from '@promptbook/core';
+                            import { createPipelineCollectionFromJson } from '@promptbook/core';
                             import type { PipelineCollection } from '@promptbook/types';
 
                             /**
@@ -335,7 +335,7 @@ export function $initializeMakeCommand(program: Program): $side_effect {
 
                                     // TODO: !!6 Use book string literal notation
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    pipelineCollection = (createCollectionFromJson as (..._: any) => PipelineCollection)(
+                                    pipelineCollection = (createPipelineCollectionFromJson as (..._: any) => PipelineCollection)(
                                         ${block(collectionJsonItems)}
                                     );
                                 }
