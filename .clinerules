@@ -1,6 +1,6 @@
 ## How to Contribute
 
--   **Add changes in CHANGELOG**
+-   **Add changes in [Changelog](/changelog/_current-preversion.md)**
 -   **Test your changes** to ensure they work as expected, use `npm test`
 
 ## Code Style

@@ -6,7 +6,7 @@ Thank you for considering contributing to Promptbook! Here are some guidelines t
 
 1. **Fork the repository** and create your branch from `main`.
 2. **Write clear, concise commit messages**.
-3. **Add changes in CHANGELOG**
+3. **Add changes in [Changelog](/changelog/_current-preversion.md)**
 4. **Test your changes** to ensure they work as expected, use `npm test`
 
 ## Reporting Issues
