@@ -107,6 +107,7 @@ export class AgentCollectionInDirectory implements AgentCollection {
                         .pop()!
                         .replace(/\.book$/, '') as string_agent_name,
             );
+        // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
 
         if (isVerbose) {
             console.info(
@@ -128,6 +129,7 @@ export class AgentCollectionInDirectory implements AgentCollection {
      * Note: Agents are changed by interacting with `Agent` objects directly. Only creation and deletion is done via the collection.
      */
     public async getAgentByName(agentName: string_agent_name): Promise<Agent> {
+        // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const tools = await this.getTools();
 
