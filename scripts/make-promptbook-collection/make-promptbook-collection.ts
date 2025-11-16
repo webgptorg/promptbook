@@ -113,8 +113,12 @@ async function makePipelineCollection({
     });
 
     let content = await readFile(filePath, 'utf-8');
-    content = content.split(`@promptbook/core`).join(`../../collection/constructors/createPipelineCollectionFromJson`);
-    content = content.split(`@promptbook/types`).join(`../../collection/PipelineCollection`);
+    content = content
+        .split(`@promptbook/core`)
+        .join(`../../collection/pipeline-collection/constructors/createPipelineCollectionFromJson`);
+    content = content
+        .split(`@promptbook/types`)
+        .join(`../../collection/pipeline-collection/pipeline-collection/PipelineCollection`);
     await writeFile(filePath, content, 'utf-8');
 
     if (isCommited) {
@@ -125,6 +129,7 @@ async function makePipelineCollection({
 }
 
 /**
+ * TODO: !!!! Also make Agent collection here during build step
  * Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
  * TODO: [🌼] Maybe use `ptbk make --no-interactive` cli command instead of this script (but figure out what to do with nessesity to have collection commited here)
  * TODO: [main] !!3 Use `ptbk make --no-interactive` cli command this in WebGPT and Promptbook
