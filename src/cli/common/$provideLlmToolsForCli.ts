@@ -59,7 +59,11 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
     } else if (/^r/i.test(provider)) {
         strategy = 'REMOTE_SERVER';
     } else {
-        console.log(colors.red(`Unknown provider: "${provider}", please use "BRING_YOUR_OWN_KEYS" or "REMOTE_SERVER"`));
+        console.log(
+            colors.red(
+                `Unknown provider: "${provider}", please use "--provider BRING_YOUR_OWN_KEYS" or "--provider REMOTE_SERVER"`,
+            ),
+        );
         process.exit(1);
     }
 

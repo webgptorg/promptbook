@@ -48,6 +48,8 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
         handleActionErrors(async (path, cliOptions) => {
             const { port: portRaw, reload: isCacheReloaded, verbose: isVerbose } = cliOptions;
 
+            // TODO: !!!! [🌕] DRY
+
             const port: number_port = parseInt(portRaw, 10);
             if (isNaN(port) || port <= 0 || port > 65535) {
                 console.error(colors.red(`Invalid port number: ${portRaw}`));
@@ -85,7 +87,7 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
             TODO_USE(tools);
             TODO_USE(collection);
 
-            // TODO: !!!! Use 
+            // TODO: !!!! Use
 
             // TODO: !!!! Pass collection and tools to the server starter
             // TODO: !!!! The Next app should be build during the package build step not here
@@ -110,7 +112,6 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
                 command: `next dev --port ${port} `,
                 isVerbose: true,
             });
-            
         }),
     );
 }

@@ -202,6 +202,7 @@ export class AgentCollectionInDirectory implements AgentCollection {
 }
 
 /**
+ * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
  * TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`
  * TODO: [🧠] Maybe add option `isImmutable`
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment

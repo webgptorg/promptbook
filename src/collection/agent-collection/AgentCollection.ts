@@ -38,3 +38,7 @@ export type AgentCollection = {
      */
     createAgent(agentSource: string_book): Promisable<Agent>;
 };
+
+/**
+ * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
+ */

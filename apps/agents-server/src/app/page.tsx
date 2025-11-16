@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AvatarProfileFromSource } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 import { getLongRunningTask } from '../deamons/longRunningTask';
+import { $provideAgentsServerTools } from '../tools/$provideAgentsServerTools';
 
 // Add calendar formats that include seconds
 const calendarWithSeconds = {
@@ -16,7 +17,9 @@ const calendarWithSeconds = {
     sameElse: 'L [at] LTS',
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+    const { collection } = await $provideAgentsServerTools();
+    const agentNames = await collection.listAgents();
     const longRunningTask = getLongRunningTask();
 
     return (
@@ -68,6 +71,15 @@ export default function HomePage() {
                     >
                         <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
                     </Link>
+                    {agentNames.map((agentName) => (
+                        <Link
+                            key={agentName}
+                            href={'#'}
+                            className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                        >
+                            <h3 className="text-xl font-semibold text-gray-900">{agentName}</h3>
+                        </Link>
+                    ))}
                 </div>
             </div>
         </div>
