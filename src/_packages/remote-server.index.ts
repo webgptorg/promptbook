@@ -5,6 +5,7 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import type { Identification } from '../remote-server/socket-types/_subtypes/Identification';
 import type { ApplicationModeIdentification } from '../remote-server/socket-types/_subtypes/Identification';
 import type { AnonymousModeIdentification } from '../remote-server/socket-types/_subtypes/Identification';
+import { startAgentServer } from '../remote-server/startAgentServer';
 import { startRemoteServer } from '../remote-server/startRemoteServer';
 import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
 
@@ -17,5 +18,6 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 export type { Identification };
 export type { ApplicationModeIdentification };
 export type { AnonymousModeIdentification };
+export { startAgentServer };
 export { startRemoteServer };
 export type { RemoteServerOptions };
