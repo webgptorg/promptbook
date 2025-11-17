@@ -2,7 +2,7 @@
 
 import { AgentCollectionInDirectory } from '@promptbook-local/node';
 import { ExecutionTools, TODO_any } from '@promptbook-local/types';
-import { _OpenAiAssistantRegistration } from '@promptbook-local/wizard';
+import { _OpenAiAssistantMetadataRegistration, _OpenAiAssistantRegistration } from '@promptbook-local/wizard';
 import { $provideLlmToolsForCli } from '../../../../src/cli/common/$provideLlmToolsForCli';
 import { $provideExecutablesForNode } from '../../../../src/executables/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../../../src/scrapers/_common/register/$provideFilesystemForNode';
@@ -10,7 +10,7 @@ import { $provideScrapersForNode } from '../../../../src/scrapers/_common/regist
 import { $provideScriptingForNode } from '../../../../src/scrapers/_common/register/$provideScriptingForNode';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 
-$sideEffect(_OpenAiAssistantRegistration);
+$sideEffect(/* [㊗] */ _OpenAiAssistantMetadataRegistration, _OpenAiAssistantRegistration);
 // <- TODO: !!!! Allow to dynamically install required metadata
 
 /**
