@@ -2,6 +2,7 @@ import { CsvFormatError } from '../formats/csv/CsvFormatError';
 import { AbstractFormatError } from './AbstractFormatError';
 import { AuthenticationError } from './AuthenticationError';
 import { CollectionError } from './CollectionError';
+import { DatabaseError } from './DatabaseError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
 import { ExpectError } from './ExpectError';
 import { KnowledgeScrapeError } from './KnowledgeScrapeError';
@@ -43,6 +44,7 @@ export const PROMPTBOOK_ERRORS = {
     UnexpectedError,
     WrappedError,
     NotAllowed,
+    DatabaseError,
     // TODO: [🪑]> VersionMismatchError,
 } as const;
 

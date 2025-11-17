@@ -1,9 +1,14 @@
+'use server';
+
 import logoImage from '@/public/logo-blue-white-256.png';
 import { DEFAULT_BOOK } from '@promptbook-local/core';
+import { $isRunningInBrowser } from '@promptbook-local/utils';
 import moment from 'moment';
 import Image from 'next/image';
 import Link from 'next/link';
+import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import { AvatarProfileFromSource } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
+import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentsServerTools } from '../tools/$provideAgentsServerTools';
 
@@ -18,8 +23,10 @@ const calendarWithSeconds = {
 };
 
 export default async function HomePage() {
+    console.log($isRunningInBrowser());
+
     const { collection } = await $provideAgentsServerTools();
-    const agentNames = await collection.listAgents();
+    const agents = await collection.listAgents();
     const longRunningTask = getLongRunningTask();
 
     return (
@@ -71,16 +78,20 @@ export default async function HomePage() {
                     >
                         <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
                     </Link>
-                    {agentNames.map((agentName) => (
+                    {agents.map((agent) => (
                         <Link
-                            key={agentName}
+                            key={agent.agentName}
                             href={'#'}
                             className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
                         >
-                            <h3 className="text-xl font-semibold text-gray-900">{agentName}</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">{agent.agentName}</h3>
+                            <AvatarProfile {...{ agent }} />
                         </Link>
                     ))}
                 </div>
+
+                <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">About</h2>
+                <AboutPromptbookInformation />
             </div>
         </div>
     );

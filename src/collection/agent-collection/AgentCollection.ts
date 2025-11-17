@@ -1,6 +1,7 @@
 import type { Promisable } from 'type-fest';
-import { Agent } from '../../_packages/core.index';
-import { string_book } from '../../_packages/types.index';
+import { AgentBasicInformation } from '../../_packages/types.index';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { Agent } from '../../llm-providers/agent/Agent';
 import type { string_agent_name } from '../../types/typeAliases';
 
 /**
@@ -14,7 +15,7 @@ export type AgentCollection = {
     /**
      * Gets all agents in the collection
      */
-    listAgents(): Promisable<ReadonlyArray<string_agent_name>>;
+    listAgents(): Promisable<ReadonlyArray<AgentBasicInformation>>;
 
     /**
      * Get one agent by its name

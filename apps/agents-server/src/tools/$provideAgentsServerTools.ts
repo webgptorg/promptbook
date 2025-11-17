@@ -1,7 +1,8 @@
 'use server';
 
-import { AgentCollectionInDirectory } from '@promptbook-local/node';
-import { ExecutionTools, TODO_any } from '@promptbook-local/types';
+import { AgentCollectionInSupabase } from '@promptbook-local/core';
+import { AgentCollection, ExecutionTools, TODO_any } from '@promptbook-local/types';
+import { $detectRuntimeEnvironment } from '@promptbook-local/utils';
 import { _OpenAiAssistantMetadataRegistration, _OpenAiAssistantRegistration } from '@promptbook-local/wizard';
 import { $provideLlmToolsForCli } from '../../../../src/cli/common/$provideLlmToolsForCli';
 import { $provideExecutablesForNode } from '../../../../src/executables/$provideExecutablesForNode';
@@ -9,9 +10,12 @@ import { $provideFilesystemForNode } from '../../../../src/scrapers/_common/regi
 import { $provideScrapersForNode } from '../../../../src/scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../../../src/scrapers/_common/register/$provideScriptingForNode';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
+import { getSupabaseForServer } from '../supabase/getSupabaseForServer';
 
 $sideEffect(/* [㊗] */ _OpenAiAssistantMetadataRegistration, _OpenAiAssistantRegistration);
 // <- TODO: !!!! Allow to dynamically install required metadata
+
+console.log('$detectRuntimeEnvironment', $detectRuntimeEnvironment());
 
 /**
  * Cache of provided agents server tools
@@ -20,7 +24,7 @@ $sideEffect(/* [㊗] */ _OpenAiAssistantMetadataRegistration, _OpenAiAssistantRe
  */
 let agentsServerTools: null | {
     tools: ExecutionTools;
-    collection: AgentCollectionInDirectory;
+    collection: AgentCollection;
 } = null;
 
 /**
@@ -28,7 +32,7 @@ let agentsServerTools: null | {
  */
 export async function $provideAgentsServerTools(): Promise<{
     tools: ExecutionTools;
-    collection: AgentCollectionInDirectory;
+    collection: AgentCollection;
 }> {
     // TODO: !!!! [🌕] DRY
 
@@ -40,7 +44,7 @@ export async function $provideAgentsServerTools(): Promise<{
 
     console.log('!!! Creating NEW agents server tools');
 
-    const path = '../../agents'; // <- TODO: !!!! Pass
+    // const path = '../../agents'; // <- TODO: !!!! Pass
     const isVerbose = true; // <- TODO: !!!! Pass
     const isCacheReloaded = false; // <- TODO: !!!! Pass
     const cliOptions = {
@@ -66,6 +70,7 @@ export async function $provideAgentsServerTools(): Promise<{
         script: await $provideScriptingForNode(prepareAndScrapeOptions),
     } satisfies ExecutionTools;
 
+    /*
     // TODO: [🧟‍♂️][◽] DRY:
     const collection = new AgentCollectionInDirectory(path, tools, {
         isVerbose,
@@ -73,6 +78,13 @@ export async function $provideAgentsServerTools(): Promise<{
         isLazyLoaded: false,
         isCrashedOnError: true,
         // <- TODO: [🍖] Add `intermediateFilesStrategy`
+    });
+    */
+
+    const supabase = getSupabaseForServer();
+
+    const collection = new AgentCollectionInSupabase(supabase, tools, {
+        isVerbose,
     });
 
     agentsServerTools = { tools, collection };

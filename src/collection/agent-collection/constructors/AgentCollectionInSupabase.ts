@@ -1,73 +1,48 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { BehaviorSubject } from 'rxjs';
 import { forTime } from 'waitasecond';
+import { parseAgentSource } from '../../../_packages/core.index';
+import { AgentBasicInformation } from '../../../_packages/types.index';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
+import { DatabaseError } from '../../../errors/DatabaseError';
 import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../../execution/utils/$provideExecutionToolsForNode';
 import { Agent } from '../../../llm-providers/agent/Agent';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
-import type { string_agent_name, string_dirname } from '../../../types/typeAliases';
-import { listAllFiles } from '../../../utils/files/listAllFiles';
+import type { string_agent_name } from '../../../types/typeAliases';
+import { spaceTrim } from '../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { AgentCollection } from '../AgentCollection';
+import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 
 /**
- * Options for `createAgentCollectionFromDirectory` function
+ * Agent collection stored in Supabase table
  *
- * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
- *       This is not same as `path` which is the first argument of `createAgentCollectionFromDirectory` - it can be a subfolder
+ * Note: This object can work both from Node.js and browser environment depending on the Supabase client provided
+ *
+ * @public exported from `@promptbook/core`
+ * <- TODO: !!! Move to `@promptbook/supabase` package
  */
-type CreateAgentCollectionInDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> &
-    CommonToolsOptions & {
-        /**
-         * If true, the directory is searched recursively for pipelines
-         *
-         * @default true
-         */
-        isRecursive?: boolean;
-
-        /**
-         * If true, directory will be scanned only when needed not during the construction
-         *
-         * @default false
-         */
-        isLazyLoaded?: boolean;
-
-        /**
-         * If true, whole collection creation crashes on error in any pipeline
-         * If true and isLazyLoaded is true, the error is thrown on first access to the pipeline
-         *
-         * @default true
-         */
-        isCrashedOnError?: boolean;
-    };
-
-/**
- * Agent collection stored in directory
- *
- * Note: Works only in Node.js environment because it reads the file system
- *
- * @public exported from `@promptbook/node`
- */
-export class AgentCollectionInDirectory implements AgentCollection {
+export class AgentCollectionInSupabase implements AgentCollection {
     /**
      * @param rootPath - path to the directory with agents
      * @param tools - Execution tools to be used in `Agent` itself and listing the agents
      * @param options - Options for the collection creation
      */
     public constructor(
-        public readonly rootPath: string_dirname,
+        private readonly supabaseClient: SupabaseClient<AgentsDatabaseSchema>,
         private readonly tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
-        public readonly options?: CreateAgentCollectionInDirectoryOptions,
+        public readonly options?: PrepareAndScrapeOptions & CommonToolsOptions,
     ) {
         const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
         if (isVerbose) {
-            console.info(colors.cyan(`Creating pipeline collection from path ${rootPath.split('\\').join('/')}`));
+            console.info(colors.cyan(`Creating pipeline collection from supabase`));
         }
     }
 
@@ -95,31 +70,38 @@ export class AgentCollectionInDirectory implements AgentCollection {
     /**
      * Gets all agents in the collection
      */
-    public async listAgents(): Promise<ReadonlyArray<string_agent_name>> {
-        const { isRecursive = true, isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
-        const tools = await this.getTools();
+    public async listAgents(/* TODO: [🧠] Allow to pass some contition here */): Promise<
+        ReadonlyArray<AgentBasicInformation>
+    > {
+        const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
+        const result = await this.supabaseClient
+            .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
+            .select('agentName,agentSource');
 
-        const fileNames = await listAllFiles(this.rootPath, isRecursive, tools.fs!);
-
-        const agentNames: Array<string_agent_name> = fileNames
-            .filter((filename) => filename.endsWith('.book'))
-            .map(
-                (filename) =>
-                    filename
-                        .split('\\')
-                        .pop()!
-                        .replace(/\.book$/, '') as string_agent_name,
-            );
-        // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
-
-        if (isVerbose) {
-            console.info(
-                colors.cyan(
-                    `Found ${agentNames.length} agents in directory ${this.rootPath.split('\\').join('/')}: ${agentNames
-                        .map((name) => `"${name}"`)
-                        .join(', ')}`,
+        if (result.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                
+                        Error fetching agents from Supabase:
+                        
+                        ${block(result.error.message)}
+                    `,
                 ),
             );
+        }
+
+        const agentNames = result.data.map(({ agentName: agentNameFromDatabase, agentSource }) => {
+            const agent = parseAgentSource(agentSource as string_book);
+
+            TODO_USE(agentNameFromDatabase);
+            // TODO: !!! `isCrashedOnError` / `isCrashedOnInconsistency`
+
+            return agent;
+        });
+
+        if (isVerbose) {
+            console.info(`Found ${agentNames.length} agents in directory`);
         }
 
         return agentNames;
@@ -206,7 +188,4 @@ export class AgentCollectionInDirectory implements AgentCollection {
 
 /**
  * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
- * TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`
- * TODO: [🧠] Maybe add option `isImmutable`
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
