@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { normalizeTo_PascalCase } from '../../../../utils/normalization/normalizeTo_PascalCase';
 import { serializeToPromptbookJavascript } from '../../../../utils/serialization/serializeToPromptbookJavascript';
+import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
  * React <jsx/> export plugin (full metadata)

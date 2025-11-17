@@ -6,6 +6,7 @@ import { ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
 import { computeOpenAiUsage } from '../openai/computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from '../openai/OpenAiCompatibleExecutionTools';
+import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
 import { OLLAMA_MODELS } from './ollama-models';
 import type { OllamaExecutionToolsOptions } from './OllamaExecutionToolsOptions';
 import { DEFAULT_OLLAMA_BASE_URL } from './OllamaExecutionToolsOptions';

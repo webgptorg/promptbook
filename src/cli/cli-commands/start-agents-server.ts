@@ -1,11 +1,12 @@
 import colors from 'colors';
 import type {
-  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { AgentCollectionInDirectory } from '../../collection/agent-collection/constructors/AgentCollectionInDirectory';
 import { DEFAULT_AGENTS_DIRNAME } from '../../config';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
