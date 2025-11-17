@@ -36,7 +36,7 @@ export type AgentCollection = {
     /**
      * Deletes an agent from the collection
      */
-    deleteAgent(agentname: string_agent_name): Promisable<void>;
+    deleteAgent(agentName: string_agent_name): Promisable<void>;
 };
 
 /**
