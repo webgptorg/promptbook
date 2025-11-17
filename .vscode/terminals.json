@@ -16,6 +16,14 @@
             "focus": true
         },
         {
+            "name": "👨‍💻🟣 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx next dev --port 4440",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
             "command": "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
             "execute": true,
