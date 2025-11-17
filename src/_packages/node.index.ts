@@ -2,7 +2,6 @@
 // `@promptbook/node`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
-import { AgentCollectionInDirectory } from '../collection/agent-collection/constructors/AgentCollectionInDirectory';
 import { createPipelineCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
@@ -21,7 +20,6 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/node`
-export { AgentCollectionInDirectory };
 export { createPipelineCollectionFromDirectory };
 export { $provideExecutablesForNode };
 export { $provideExecutionToolsForNode };

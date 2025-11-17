@@ -4,6 +4,7 @@ import type { string_token } from '../../types/typeAliases';
 /**
  * Generates random token
  *
+ * Note: `$` is used to indicate that this function is not a pure function - it is not deterministic
  * Note: This function is cryptographically secure (it uses crypto.randomBytes internally)
  *
  * @private internal helper function

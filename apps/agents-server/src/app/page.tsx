@@ -1,16 +1,15 @@
 'use server';
 
 import logoImage from '@/public/logo-blue-white-256.png';
-import { DEFAULT_BOOK } from '@promptbook-local/core';
 import { $isRunningInBrowser } from '@promptbook-local/utils';
 import moment from 'moment';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
-import { AvatarProfileFromSource } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentsServerTools } from '../tools/$provideAgentsServerTools';
+import { AddAgentButton } from './AddAgentButton';
 
 // Add calendar formats that include seconds
 const calendarWithSeconds = {
@@ -28,6 +27,8 @@ export default async function HomePage() {
     const { collection } = await $provideAgentsServerTools();
     const agents = await collection.listAgents();
     const longRunningTask = getLongRunningTask();
+
+    console.log('!!!', agents);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -56,38 +57,18 @@ export default async function HomePage() {
                     </Link>
                 </div>
 
-                <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">Agents</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">Agents ({agents.length})</h2>
 
-                {/* TODO: !!!! List Agents here dynamically, use AgentCollection */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    <Link
-                        href={'#'}
-                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                    >
-                        <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
-                    </Link>
-                    <Link
-                        href={'#'}
-                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                    >
-                        <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
-                    </Link>
-                    <Link
-                        href={'#'}
-                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                    >
-                        <AvatarProfileFromSource agentSource={DEFAULT_BOOK} />
-                    </Link>
                     {agents.map((agent) => (
-                        <Link
-                            key={agent.agentName}
-                            href={'#'}
-                            className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                        >
-                            <h3 className="text-xl font-semibold text-gray-900">{agent.agentName}</h3>
-                            <AvatarProfile {...{ agent }} />
+                        <Link key={agent.agentName} href={'#'}>
+                            <AvatarProfile
+                                {...{ agent }}
+                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                            />
                         </Link>
                     ))}
+                    <AddAgentButton />
                 </div>
 
                 <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">About</h2>

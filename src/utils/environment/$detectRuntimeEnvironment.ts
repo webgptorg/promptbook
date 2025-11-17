@@ -12,10 +12,10 @@ import { $isRunningInWebWorker } from './$isRunningInWebWorker';
  */
 export function $detectRuntimeEnvironment() {
     return {
-        $isRunningInBrowser: $isRunningInBrowser(),
-        $isRunningInJest: $isRunningInJest(),
-        $isRunningInNode: $isRunningInNode(),
-        $isRunningInWebWorker: $isRunningInWebWorker(),
+        isRunningInBrowser: $isRunningInBrowser(),
+        isRunningInJest: $isRunningInJest(),
+        isRunningInNode: $isRunningInNode(),
+        isRunningInWebWorker: $isRunningInWebWorker(),
     };
 }
 

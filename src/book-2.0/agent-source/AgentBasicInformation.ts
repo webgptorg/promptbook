@@ -1,4 +1,4 @@
-import type { string_agent_name, string_url_image } from '../../types/typeAliases';
+import type { string_agent_name, string_color, string_url_image } from '../../types/typeAliases';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -50,9 +50,7 @@ export type AgentBasicInformation = {
      */
     meta: {
         image?: string_url_image;
-        link?: string;
-        title?: string;
-        description?: string;
+        color?: string_color;
         [key: string]: string | undefined;
     };
 

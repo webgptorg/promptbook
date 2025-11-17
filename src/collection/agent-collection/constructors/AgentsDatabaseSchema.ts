@@ -31,13 +31,14 @@ export type AgentsDatabaseSchema = {
             AgentCollection: {
                 Row: {
                     id: number;
-                    agentName: string;
-                    createdAt: string;
-                    updatedAt: string | null;
+                    agentName: string; // <- `string_agent_name`
+                    agentProfile: Json; // <- `AgentBasicInformation` <- TODO: [🕛]
+                    createdAt: string; // <- `string_date_iso8601`
+                    updatedAt: string | null; // <- `string_date_iso8601`
                     agentVersion: number;
-                    promptbookEngineVersion: string;
-                    usage: Json | null;
-                    agentSource: string; // <- TODO: `string_book`
+                    promptbookEngineVersion: string; // <- `string_promptbook_version`
+                    usage: Json | null; // <- `Usage`
+                    agentSource: string; // <- `string_book`
                 };
                 Insert: {
                     id?: number;
@@ -47,7 +48,7 @@ export type AgentsDatabaseSchema = {
                     agentVersion: number;
                     promptbookEngineVersion: string;
                     usage?: Json | null;
-                    agentSource: string; // <- TODO: `string_book`
+                    agentSource: string;
                 };
                 Update: {
                     id?: number;
@@ -57,7 +58,7 @@ export type AgentsDatabaseSchema = {
                     agentVersion?: number;
                     promptbookEngineVersion?: string;
                     usage?: Json | null;
-                    agentSource?: string; // <- TODO: `string_book`
+                    agentSource?: string;
                 };
                 Relationships: [];
             };

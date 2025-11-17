@@ -196,8 +196,6 @@ export class AgentCollectionInDirectory implements AgentCollection {
 
     /**
      * Deletes an agent from the collection
-     *
-     * Note: When you want delete an agent by name, first get the agent using `getAgentByName` and then pass it to `deleteAgent`.
      */
     public async deleteAgent(agent: Agent): Promise<void> {
         TODO_USE(agent);

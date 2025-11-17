@@ -20,24 +20,23 @@ export type AgentCollection = {
     /**
      * Get one agent by its name
      *
-     * Note: Agents are existing independently of you getting them or not, you can get the same agent multiple times.
+     * Note: !!!! Agents are existing independently of you getting them or not, you can get the same agent multiple times.
      * Note: Agents are changed by interacting with `Agent` objects directly. Only creation and deletion is done via the collection.
      */
-    getAgentByName(agentName: string_agent_name): Promisable<Agent>;
-
-    /**
-     * Deletes an agent from the collection
-     *
-     * Note: When you want delete an agent by name, first get the agent using `getAgentByName` and then pass it to `deleteAgent`.
-     */
-    deleteAgent(agent: Agent): Promisable<void>;
+    spawnAgent(agentName: string_agent_name): Promisable<Agent>;
+    // <- TODO: [🧠] What is the best name `runAgent`, `loadAgent`, `startAgent`,...?
 
     /**
      * Creates a new agent in the collection
      *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
      */
-    createAgent(agentSource: string_book): Promisable<Agent>;
+    createAgent(agentSource: string_book): Promisable<AgentBasicInformation>;
+
+    /**
+     * Deletes an agent from the collection
+     */
+    deleteAgent(agentname: string_agent_name): Promisable<void>;
 };
 
 /**

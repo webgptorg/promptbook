@@ -33,6 +33,7 @@ export function validateBook(source: string): string_book {
 /**
  * Default book
  *
+ * @deprecated Use `$generateBookBoilerplate` instead
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_BOOK = padBook(
@@ -46,6 +47,6 @@ export const DEFAULT_BOOK = padBook(
 );
 // <- Note: Not using book`...` notation to avoid strange error in jest unit tests `TypeError: (0 , book_notation_1.book) is not a function`
 
-// <- TODO: !!! GENESIS_BOOK
+// <- TODO: !!! `GENESIS_BOOK` / `ADAM_BOOK` in `/agents/adam.book`
 //                  <- !!! Buttons into genesis book
-// <- TODO: !!! createBookBoilerplate and deprecate `DEFAULT_BOOK`
+// <- TODO: !!! generateBookBoilerplate and deprecate `DEFAULT_BOOK`

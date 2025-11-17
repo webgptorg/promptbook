@@ -1,3 +1,4 @@
+import { ZERO_USAGE } from '@promptbook-local/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { BehaviorSubject } from 'rxjs';
@@ -17,6 +18,7 @@ import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeO
 import type { string_agent_name } from '../../../types/typeAliases';
 import { spaceTrim } from '../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../version';
 import type { AgentCollection } from '../AgentCollection';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 
@@ -76,7 +78,7 @@ export class AgentCollectionInSupabase implements AgentCollection {
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const result = await this.supabaseClient
             .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
-            .select('agentName,agentSource');
+            .select('agentProfile');
 
         if (result.error) {
             throw new DatabaseError(
@@ -91,34 +93,20 @@ export class AgentCollectionInSupabase implements AgentCollection {
             );
         }
 
-        const agentNames = result.data.map(({ agentName: agentNameFromDatabase, agentSource }) => {
-            const agent = parseAgentSource(agentSource as string_book);
-
-            TODO_USE(agentNameFromDatabase);
-            // TODO: !!! `isCrashedOnError` / `isCrashedOnInconsistency`
-
-            return agent;
-        });
-
         if (isVerbose) {
-            console.info(`Found ${agentNames.length} agents in directory`);
+            console.info(`Found ${result.data.length} agents in directory`);
         }
 
-        return agentNames;
+        return result.data.map((row) => row.agentProfile as AgentBasicInformation);
     }
 
     /**
-     * Get one agent by its name
-     *
-     * Note: Agents are existing independently of you getting them or not, you can get the same agent multiple times.
-     * Note: Agents are changed by interacting with `Agent` objects directly. Only creation and deletion is done via the collection.
+     * !!!
      */
-    public async getAgentByName(agentName: string_agent_name): Promise<Agent> {
+    public async spawnAgent(agentName: string_agent_name): Promise<Agent> {
         // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const tools = await this.getTools();
-
-        const agentSourcePath = `${this.rootPath}/${agentName}.book`;
 
         const agentSourceValue = validateBook(await tools.fs!.readFile(agentSourcePath, 'utf-8'));
         const agentSource = new BehaviorSubject(agentSourceValue);
@@ -166,22 +154,45 @@ export class AgentCollectionInSupabase implements AgentCollection {
     }
 
     /**
-     * Deletes an agent from the collection
-     *
-     * Note: When you want delete an agent by name, first get the agent using `getAgentByName` and then pass it to `deleteAgent`.
-     */
-    public async deleteAgent(agent: Agent): Promise<void> {
-        TODO_USE(agent);
-        throw new NotYetImplementedError('Method not implemented.');
-    }
-
-    /**
      * Creates a new agent in the collection
      *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
      */
-    public async createAgent(agentSource: string_book): Promise<Agent> {
-        TODO_USE(agentSource);
+    public async createAgent(agentSource: string_book): Promise<AgentBasicInformation> {
+        const agentProfile = parseAgentSource(agentSource as string_book);
+        //     <- TODO: [🕛]
+
+        const result = await this.supabaseClient.from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */).insert({
+            agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
+            agentProfile,
+            createdAt: new Date().toISOString(),
+            updatedAt: null,
+            agentVersion: 0,
+            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            usage: ZERO_USAGE,
+            agentSource: agentSource,
+        });
+
+        if (result.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                        Error creating agent "${agentProfile.agentName}" in Supabase:
+                        
+                        ${block(result.error.message)}
+                    `,
+                ),
+            );
+        }
+
+        return agentProfile;
+    }
+
+    /**
+     * Deletes an agent from the collection
+     */
+    public async deleteAgent(agentName: string_agent_name): Promise<void> {
+        TODO_USE(agentName);
         throw new NotYetImplementedError('Method not implemented.');
     }
 }
