@@ -1,8 +1,10 @@
 import { REMOTE_SERVER_URLS } from '../servers';
-import { Color, grayscale, lighten } from './_packages/color.index';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
+import { Color } from './utils/color/Color';
+import { grayscale } from './utils/color/operators/grayscale';
+import { lighten } from './utils/color/operators/lighten';
 import { saturate } from './utils/color/operators/saturate';
 import { just } from './utils/organization/just';
 

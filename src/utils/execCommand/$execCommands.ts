@@ -1,4 +1,4 @@
-import { $side_effect } from '../organization/$side_effect';
+import type { $side_effect } from '../organization/$side_effect';
 import { $execCommand } from './$execCommand';
 
 /**

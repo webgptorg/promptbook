@@ -1,14 +1,12 @@
 import spaceTrim from 'spacetrim';
-import { createAgentModelRequirements, parseAgentSource } from '../../_packages/core.index';
-import {
-    BookTranspiler,
-    BookTranspilerOptions,
-    ExecutionTools,
-    string_book,
-    string_script,
-} from '../../_packages/types.index';
+import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
+import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { string_script } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
+import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 
 /**
  * Transpiler to Javascript code using OpenAI SDK.

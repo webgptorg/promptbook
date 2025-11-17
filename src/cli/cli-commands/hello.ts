@@ -1,10 +1,10 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { $side_effect } from '../../utils/organization/$side_effect';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**

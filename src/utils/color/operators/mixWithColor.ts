@@ -1,6 +1,6 @@
+import type { number_percent } from '../../../types/typeAliases';
 import { Color } from '../Color';
 import type { ColorTransformer } from './ColorTransformer';
-import { number_percent } from '../../../types/typeAliases';
 
 /**
  * Makes color transformer which returns a mix of two colors based on a ratio

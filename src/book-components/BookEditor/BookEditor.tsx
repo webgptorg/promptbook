@@ -5,15 +5,11 @@
 import { CSSProperties, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
-import { countLines } from '../../_packages/utils.index';
-import { DEFAULT_BOOK, type string_book } from '../../book-2.0/agent-source/string_book';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type {
-    number_percent,
-    number_positive,
-    string_css_value,
-    string_knowledge_source_content,
-} from '../../types/typeAliases';
+import type { number_percent, number_positive, string_css_value, string_knowledge_source_content } from '../../types/typeAliases';
+import { countLines } from '../../utils/expectation-counters/countLines';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
@@ -234,9 +230,7 @@ export function BookEditor(props: BookEditorProps) {
         </div>
     );
 
-    return isFullscreen && typeof document !== 'undefined'
-        ? createPortal(editorContent, document.body)
-        : editorContent;
+    return isFullscreen && typeof document !== 'undefined' ? createPortal(editorContent, document.body) : editorContent;
 }
 
 /**

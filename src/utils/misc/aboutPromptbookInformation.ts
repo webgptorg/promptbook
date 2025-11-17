@@ -1,8 +1,10 @@
 import spaceTrim from 'spacetrim';
 import { REMOTE_SERVER_URLS } from '../../../servers';
-import { CLAIM, NAME } from '../../config';
+import { CLAIM, IS_COST_PREVENTED, NAME } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { $detectRuntimeEnvironment } from '../environment/$detectRuntimeEnvironment';
+import { valueToString } from '../parameters/valueToString';
 // [😺]> import logoAsset from './logo-blue-white-256.png';
 
 export type AboutPromptbookInformationOptions = {
@@ -12,6 +14,13 @@ export type AboutPromptbookInformationOptions = {
      * @default true
      */
     isServersInfoIncluded?: boolean;
+
+    /**
+     * Include information about runtime environment
+     *
+     * @default true
+     */
+    isRuntimeEnvironmentInfoIncluded?: boolean;
 };
 
 /**
@@ -23,7 +32,7 @@ export type AboutPromptbookInformationOptions = {
  * @public exported from `@promptbook/core`
  */
 export function aboutPromptbookInformation(options?: AboutPromptbookInformationOptions): string_markdown {
-    const { isServersInfoIncluded = true } = options || {};
+    const { isServersInfoIncluded = true, isRuntimeEnvironmentInfoIncluded = true } = options || {};
 
     const fullInfoPieces: string_markdown[] = [];
 
@@ -59,6 +68,29 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
             `,
         );
         fullInfoPieces.push(serversInfo);
+    }
+
+    if (isRuntimeEnvironmentInfoIncluded) {
+        const runtimeEnvironment = $detectRuntimeEnvironment();
+
+        const environmentInfoRecord = {
+            ...runtimeEnvironment,
+            isCostPrevented: IS_COST_PREVENTED,
+        };
+
+        const environmentInfo = spaceTrim(
+            (block) => `
+
+                ## Environment
+
+                ${block(
+                    Object.entries(environmentInfoRecord)
+                        .map(([key, value]) => `- **${key}:** ${valueToString(value)}`)
+                        .join('\n'),
+                )}
+            `,
+        );
+        fullInfoPieces.push(environmentInfo);
     }
 
     const fullInfo = spaceTrim(fullInfoPieces.join('\n\n'));

@@ -2,17 +2,13 @@ import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_markdown_text, string_parameter_name } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the foreach command

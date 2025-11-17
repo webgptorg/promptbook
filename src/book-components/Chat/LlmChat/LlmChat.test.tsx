@@ -21,7 +21,7 @@ jest.mock('../Chat/Chat', () => ({
 
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
-import { TODO_any } from '../../../_packages/types.index';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from './LlmChat';
 
 describe('LlmChat', () => {

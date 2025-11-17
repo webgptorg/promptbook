@@ -1,6 +1,6 @@
-import { $execCommand } from '../_packages/node.index';
-import { TODO_any } from '../_packages/types.index';
-import { number_port } from '../types/typeAliases';
+import type { number_port } from '../types/typeAliases';
+import { $execCommand } from '../utils/execCommand/$execCommand';
+import type { TODO_any } from '../utils/organization/TODO_any';
 
 type AgentsServerOptions = {
     /**

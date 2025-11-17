@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import { AgentBasicInformation } from '../../_packages/types.index';
+import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { Agent } from '../../llm-providers/agent/Agent';
 import type { string_agent_name } from '../../types/typeAliases';

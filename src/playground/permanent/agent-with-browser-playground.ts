@@ -13,7 +13,7 @@ import colors from 'colors';
 import { locateChrome } from 'locate-app';
 import { join } from 'path';
 import { chromium } from 'playwright';
-import { TODO_any } from '../../_packages/types.index';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
     console.error(colors.red(`CWD must be root of the project`));

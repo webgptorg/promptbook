@@ -1,4 +1,4 @@
-import { string_book } from './string_book';
+import type { string_book } from './string_book';
 
 /**
  *  Number of padding lines to add at the end of the book content

@@ -58,7 +58,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     const parameters = parseParameters(agentSource);
 
     return {
-        agentName: parseResult.agentName,
+        agentName: parseResult.agentName, // <- TODO: !!!!! `agentName` is always defined and normalized
         personaDescription,
         meta,
         parameters,

@@ -27,7 +27,7 @@ export function getLongRunningTask() {
     (async () => {
         while (just(true)) {
             await forTime(1000);
-            console.log(`Long running task ${taskId} tick ${tick}`);
+            // console.log(`Long running task ${taskId} tick ${tick}`);
             longRunningTask.updatedAt = new Date();
             longRunningTask.tick = ++tick;
         }

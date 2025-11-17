@@ -1,4 +1,5 @@
-import { QrCodeOptions, useQrCode } from './useQrCode';
+import type { QrCodeOptions } from './useQrCode';
+import { useQrCode } from './useQrCode';
 
 type BrandedQrCodeProps = QrCodeOptions & {
     /**

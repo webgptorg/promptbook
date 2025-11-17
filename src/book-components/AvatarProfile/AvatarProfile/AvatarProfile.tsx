@@ -23,7 +23,7 @@ export type AvatarProfileProps = {
     /**
      * The source of the agent, which will be displayed in the BookEditor.
      */
-    readonly agentSource: string_book;
+    readonly agentSource?: string_book;
 
     /**
      * Optional CSS class name which will be added to root <div> element
@@ -48,15 +48,17 @@ export function AvatarProfile(props: AvatarProfileProps) {
                 <div className={styles.AgentInfo}>
                     <h2 className={styles.AgentName}>{agentName}</h2>
                     <p className={styles.AgentDescription}>{personaDescription}</p>
-                    <button
-                        className={styles.viewSourceButton}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsBookEditorVisible(true);
-                        }}
-                    >
-                        View Source
-                    </button>
+                    {agentSource !== undefined && (
+                        <button
+                            className={styles.viewSourceButton}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setIsBookEditorVisible(true);
+                            }}
+                        >
+                            View Source
+                        </button>
+                    )}
                 </div>
             </div>
             {isBookEditorVisible && (

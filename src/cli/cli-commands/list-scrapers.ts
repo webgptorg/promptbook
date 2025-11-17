@@ -1,12 +1,12 @@
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $registeredScrapersMessage } from '../../scrapers/_common/register/$registeredScrapersMessage';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { handleActionErrors } from './common/handleActionErrors';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Initializes `list-scrapers` command for Promptbook CLI utilities

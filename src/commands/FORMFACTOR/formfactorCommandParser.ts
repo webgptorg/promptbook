@@ -3,12 +3,10 @@ import { ParseError } from '../../errors/ParseError';
 import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import type { really_any } from '../../utils/organization/really_any';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { FormfactorCommand } from './FormfactorCommand';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the formfactor command

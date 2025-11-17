@@ -1,15 +1,13 @@
 import { BehaviorSubject } from 'rxjs';
-import { AgentLlmExecutionTools, getSingleLlmExecutionTools, parseAgentSource } from '../../_packages/core.index';
-import {
-    AgentBasicInformation,
-    BookParameter,
-    LlmExecutionTools,
-    string_agent_name,
-    string_book,
-    string_url_image,
-} from '../../_packages/types.index';
+import type { AgentBasicInformation, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
+import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { string_agent_name, string_url_image } from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
-import { AgentOptions } from './AgentOptions';
+import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
+import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
+import type { AgentOptions } from './AgentOptions';
 
 /**
  * Represents one AI Agent

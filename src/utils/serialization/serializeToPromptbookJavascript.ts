@@ -1,8 +1,8 @@
 import spaceTrim from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { string_javascript } from '../../types/typeAliases';
+import type { string_javascript } from '../../types/typeAliases';
 import { Color } from '../color/Color';
-import { TODO_any } from '../organization/TODO_any';
+import type { TODO_any } from '../organization/TODO_any';
 
 type SerializeToPromptbookJavascriptReturn = {
     /**

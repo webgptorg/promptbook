@@ -7,9 +7,9 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { $provideEnvFilename } from '../../llm-providers/_common/register/$provideEnvFilename';
 import type { string_filename } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Stores data in .env variables

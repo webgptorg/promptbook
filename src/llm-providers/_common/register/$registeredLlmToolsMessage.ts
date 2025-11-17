@@ -3,7 +3,7 @@ import spaceTrim from 'spacetrim';
 import type { string_filename, string_markdown, string_name } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { Registered } from '../../../utils/misc/$Register';
-import { $side_effect } from '../../../utils/organization/$side_effect';
+import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';

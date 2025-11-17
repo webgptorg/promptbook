@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { string_file_extension, string_mime_type } from '../../../../types/typeAliases';
 import type { ChatMessage } from '../../types/ChatMessage';
-import { ChatParticipant } from '../../types/ChatParticipant';
+import type { ChatParticipant } from '../../types/ChatParticipant';
 
 /**
  * Plugin contract for chat export formatNames

@@ -4,7 +4,7 @@ import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME, DEFAULT_BOOK_TITLE } from '../../..
 import type { PipelineString } from '../../../pipeline/PipelineString';
 import { validatePipelineString } from '../../../pipeline/validatePipelineString';
 import type { string_prompt } from '../../../types/typeAliases';
-import { really_any } from '../../organization/really_any';
+import type { really_any } from '../../organization/really_any';
 import { isFlatPipeline } from '../utils/isFlatPipeline';
 
 /**

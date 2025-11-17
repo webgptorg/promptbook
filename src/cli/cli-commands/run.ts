@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -13,7 +13,6 @@ import { ParseError } from '../../errors/ParseError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { executionReportJsonToString } from '../../execution/execution-report/executionReportJsonToString';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
@@ -29,7 +28,7 @@ import { countLines } from '../../utils/expectation-counters/countLines';
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
-import { $side_effect } from '../../utils/organization/$side_effect';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $getCompiledBook } from '../../wizard/$getCompiledBook';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';

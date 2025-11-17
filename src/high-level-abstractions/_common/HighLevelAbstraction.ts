@@ -1,5 +1,5 @@
 import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
-import { $side_effect } from '../../utils/organization/$side_effect';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Used in `parsePipeline`

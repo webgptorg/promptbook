@@ -5,15 +5,15 @@
 import { useState } from 'react';
 // Note: Do not import from `../../package.json` because it would be included in the bundle
 // TODO: [🧠] Is there a better way to get the version?
-import { DEFAULT_BOOK, validateBook } from '../../_packages/core.index';
+import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
 import { AboutPromptbookInformation } from '../../utils/misc/xAboutPromptbookInformation';
-import { Dropdown } from '../_common/Dropdown/Dropdown';
-import { Modal } from '../_common/Modal/Modal';
 import { AboutIcon } from '../icons/AboutIcon';
 import { DownloadIcon } from '../icons/DownloadIcon';
 import { ExitFullscreenIcon } from '../icons/ExitFullscreenIcon';
 import { FullscreenIcon } from '../icons/FullscreenIcon';
+import { Dropdown } from '../_common/Dropdown/Dropdown';
+import { Modal } from '../_common/Modal/Modal';
 import styles from './BookEditor.module.css';
 
 type BookEditorActionbarProps = {

@@ -1,8 +1,8 @@
+import type { number_percent } from '../../../types/typeAliases';
 import { Color } from '../Color';
 import { hslToRgb } from '../internal-utils/hslToRgb';
 import { rgbToHsl } from '../internal-utils/rgbToHsl';
 import type { ColorTransformer } from './ColorTransformer';
-import { number_percent } from '../../../types/typeAliases';
 
 /**
  * Makes color transformer which lighten the given color

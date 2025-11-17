@@ -1,6 +1,5 @@
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
-import { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
+import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
 /**
  * Creates new AgentLlmExecutionTools that wrap underlying LLM tools with agent-specific behavior

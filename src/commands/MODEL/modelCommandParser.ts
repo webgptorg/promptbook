@@ -5,15 +5,10 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { string_markdown_text } from '../../types/typeAliases';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type {
-    $PipelineJson,
-    $TaskJson,
-    CommandParserInput,
-    PipelineBothCommandParser,
-} from '../_common/types/CommandParser';
+import type { $PipelineJson, $TaskJson, CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the model command

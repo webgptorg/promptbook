@@ -1,6 +1,6 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { CLAIM } from '../../config';
@@ -8,7 +8,7 @@ import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
-import { $side_effect } from '../../utils/organization/$side_effect';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { handleActionErrors } from './common/handleActionErrors';
 

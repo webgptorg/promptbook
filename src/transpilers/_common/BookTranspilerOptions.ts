@@ -1,4 +1,4 @@
-import { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 
 /**
  * Options for the BookTranspiler.

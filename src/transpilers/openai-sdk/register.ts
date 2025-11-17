@@ -1,4 +1,4 @@
-import { Registration } from '../../_packages/types.index';
+import type { Registration } from '../../utils/misc/$Register';
 import { $bookTranspilersRegister } from '../_common/register/$bookTranspilersRegister';
 import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
 

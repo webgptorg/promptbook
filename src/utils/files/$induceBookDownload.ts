@@ -1,8 +1,8 @@
-import { parseAgentSource } from '../../_packages/core.index';
-import { string_book } from '../../_packages/types.index';
+import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { $isRunningInBrowser } from '../environment/$isRunningInBrowser';
 import { titleToName } from '../normalization/titleToName';
-import { $side_effect } from '../organization/$side_effect';
+import type { $side_effect } from '../organization/$side_effect';
 import { $induceFileDownload } from './$induceFileDownload';
 
 /**

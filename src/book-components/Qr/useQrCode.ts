@@ -1,7 +1,7 @@
 import type { QRCodeRenderersOptions } from 'qrcode';
 import QRCode from 'qrcode';
 import { useEffect, useRef } from 'react';
-import { string_url_image } from '../../types/typeAliases';
+import type { string_url_image } from '../../types/typeAliases';
 
 export type QrCodeOptions = QRCodeRenderersOptions & {
     value: string | number;

@@ -8,6 +8,7 @@ import { serializeError } from '../../errors/utils/serializeError';
 import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
+import type { LlmCall } from '../../types/LlmCall';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
 import type { Parameters, string_parameter_name } from '../../types/typeAliases';
@@ -18,9 +19,7 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import type { LlmCall } from '../../types/LlmCall';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
-import { logLlmCall as logLlmCallUtils } from '../utils/logLlmCall';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { validatePromptResult } from '../utils/validatePromptResult';
 import type { $OngoingTaskResult } from './$OngoingTaskResult';
@@ -475,13 +474,16 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                     error:
                         $ongoingTaskResult.$expectError === null
                             ? undefined
-                                                        : serializeError($ongoingTaskResult.$expectError),
+                            : serializeError($ongoingTaskResult.$expectError),
                 };
 
                 $executionReport.promptExecutions.push(executionPromptReport);
 
                 if (logLlmCall) {
-                    logLlmCallUtils(logLlmCall, executionPromptReport);
+                    logLlmCall({
+                        modelName: 'model' /* <- TODO: How to get model name from the report */,
+                        report: executionPromptReport,
+                    });
                 }
             }
         }

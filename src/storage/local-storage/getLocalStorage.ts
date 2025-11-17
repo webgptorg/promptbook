@@ -1,5 +1,5 @@
-import { $isRunningInBrowser } from '../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import type { really_any } from '../../utils/organization/really_any';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStorageFromWebStorage';

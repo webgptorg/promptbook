@@ -1,6 +1,6 @@
-import { string_url } from '../../types/typeAliases';
+import type { string_url } from '../../types/typeAliases';
 import { $isRunningInBrowser } from '../environment/$isRunningInBrowser';
-import { $side_effect } from '../organization/$side_effect';
+import type { $side_effect } from '../organization/$side_effect';
 import { ObjectUrl } from './ObjectUrl';
 
 /**

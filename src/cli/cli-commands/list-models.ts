@@ -1,11 +1,11 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { $registeredLlmToolsMessage } from '../../llm-providers/_common/register/$registeredLlmToolsMessage';
-import { $side_effect } from '../../utils/organization/$side_effect';
 import { $sideEffect } from '../../utils/organization/$sideEffect';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 

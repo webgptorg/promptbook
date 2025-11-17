@@ -3,13 +3,10 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, $TaskJson, CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Parses the persona command

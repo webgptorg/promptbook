@@ -32,14 +32,13 @@ import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { openapiJson } from './openapi';
 import type { paths } from './openapi-types';
 import type { RemoteServer } from './RemoteServer';
-import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
-import type { Identification } from './socket-types/_subtypes/Identification';
 import type { PromptbookServer_ListModels_Request } from './socket-types/listModels/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './socket-types/listModels/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_PreparePipeline_Request } from './socket-types/prepare/PromptbookServer_PreparePipeline_Request';
-import type { PromptbookServer_PreparePipeline_Response } from './socket-types/prepare/PromptbookServer_PreparePipeline_Response';
 import type { PromptbookServer_Prompt_Request } from './socket-types/prompt/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './socket-types/prompt/PromptbookServer_Prompt_Response';
+import type { PromptbookServer_Error } from './socket-types/_common/PromptbookServer_Error';
+import type { Identification } from './socket-types/_subtypes/Identification';
 import type { LoginResponse, RemoteServerOptions } from './types/RemoteServerOptions';
 import { renderServerIndexHtml } from './ui/renderServerIndexHtml';
 

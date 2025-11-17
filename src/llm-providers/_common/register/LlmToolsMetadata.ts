@@ -29,7 +29,7 @@ export type LlmToolsMetadata = Registered & {
     /**
      * How is the model provider important and should be sorted in the list of available providers?
      */
-    readonly order: typeof MODEL_ORDERS[keyof typeof MODEL_ORDERS] | number;
+    readonly order: (typeof MODEL_ORDERS)[keyof typeof MODEL_ORDERS] | number;
 
     /**
      * List of environment variables that can be used to configure the provider

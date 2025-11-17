@@ -6,10 +6,10 @@ import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { parseNumber } from '../../utils/misc/parseNumber';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
-import { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
 import { WrappedError } from '../../errors/WrappedError';

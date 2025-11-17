@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
-import { $side_effect } from '../organization/$side_effect';
+import type { $side_effect } from '../organization/$side_effect';
 import type { really_any } from '../organization/really_any';
 import type { TODO_any } from '../organization/TODO_any';
 

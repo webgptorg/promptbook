@@ -3,11 +3,12 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { memo, useEffect, useRef, useState } from 'react';
-import { Color, textColor } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
-import { classNames } from '../../_common/react-utils/classNames';
+import { Color } from '../../../utils/color/Color';
+import { textColor } from '../../../utils/color/operators/furthest';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
+import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';

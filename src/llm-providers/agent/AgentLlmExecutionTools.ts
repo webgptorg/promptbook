@@ -14,7 +14,7 @@ import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
-import { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
+import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
 /**
  * Execution Tools for calling LLM models with a predefined agent "soul"

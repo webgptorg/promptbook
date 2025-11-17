@@ -4,14 +4,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
-import { Color, grayscale, lighten, textColor } from '../../../_packages/color.index';
-import { normalizeToKebabCase } from '../../../_packages/utils.index';
 import { USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
+import { Color } from '../../../utils/color/Color';
+import { textColor } from '../../../utils/color/operators/furthest';
+import { grayscale } from '../../../utils/color/operators/grayscale';
+import { lighten } from '../../../utils/color/operators/lighten';
 import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
-import { classNames } from '../../_common/react-utils/classNames';
+import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
@@ -19,6 +21,7 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import { classNames } from '../../_common/react-utils/classNames';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';

@@ -1,6 +1,6 @@
 import { QRCodeRenderersOptions } from 'qrcode';
-import { TODO_any } from '../../_packages/types.index';
-import { string_data_url } from '../../types/typeAliases';
+import type { string_data_url } from '../../types/typeAliases';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 type PromptbookQrCodeProps = {
     value: string | number;

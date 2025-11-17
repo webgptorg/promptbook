@@ -1,6 +1,6 @@
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { id, string_color, string_person_fullname, string_url_image } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
-import type { string_book } from '../../../book-2.0/agent-source/string_book';
 
 /**
  * A participant in the chat

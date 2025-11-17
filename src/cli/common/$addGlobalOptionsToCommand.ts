@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { DEFAULT_REMOTE_SERVER_URL } from '../../config';
-import { $side_effect } from '../../utils/organization/$side_effect';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 
 /**
  * Note: `$` is used to indicate that this function is not a pure function - it registers an option in the CLI

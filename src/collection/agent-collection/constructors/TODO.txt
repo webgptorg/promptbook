@@ -1,5 +1,6 @@
-TODO: Make `createAgentCollectionFromConfiguration`
-TODO: Make `createAgentCollectionFromDatabase`
-TODO: Make `createAgentCollectionFromSupabase`
-TODO: Allow to connect to external agent collections
-TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
+TODO: !!!! Nest into subfolders
+TODO: !!!! Make `createAgentCollectionFromConfiguration`
+TODO: !!!! Make `createAgentCollectionFromDatabase`
+TODO: !!!! Make `createAgentCollectionFromSupabase`
+TODO: !!!! Allow to connect to external agent collections
+TODO: !!!! [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention

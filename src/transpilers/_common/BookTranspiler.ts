@@ -1,13 +1,9 @@
 import { Promisable } from 'type-fest';
-import {
-    BookTranspilerOptions,
-    ExecutionTools,
-    Registered,
-    string_book,
-    string_name,
-    string_script,
-    string_title,
-} from '../../_packages/types.index';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { string_name, string_script, string_title } from '../../types/typeAliases';
+import type { Registered } from '../../utils/misc/$Register';
+import type { BookTranspilerOptions } from './BookTranspilerOptions';
 
 /**
  * Transpiler takes a book and transpiles it into another format (e.g., Langchain).

@@ -1,11 +1,8 @@
-import {
-    BookTranspiler,
-    BookTranspilerOptions,
-    ExecutionTools,
-    string_book,
-    string_markdown,
-} from '../../_packages/types.index';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { string_markdown } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 
 /**
  * Converts a book into a 1:1 formatted markdown

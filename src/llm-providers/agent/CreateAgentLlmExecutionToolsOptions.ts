@@ -1,6 +1,6 @@
-import type { string_book } from '../../_packages/types.index';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
+import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 // <- TODO: !!! Keep imported only the type of OpenAiAssistantExecutionTools
 
 /**
