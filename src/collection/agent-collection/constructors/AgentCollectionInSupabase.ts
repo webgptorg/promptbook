@@ -70,7 +70,7 @@ export class AgentCollectionInSupabase implements AgentCollection {
     /**
      * Gets all agents in the collection
      */
-    public async listAgents(/* TODO: [🧠] Allow to pass some contition here */): Promise<
+    public async listAgents(/* TODO: [🧠] Allow to pass some condition here */): Promise<
         ReadonlyArray<AgentBasicInformation>
     > {
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
