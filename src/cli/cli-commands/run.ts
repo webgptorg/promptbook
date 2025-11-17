@@ -194,7 +194,7 @@ export function $initializeRunCommand(program: Program): $side_effect {
                 fetch: promptbookFetch,
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
                 script: [new JavascriptExecutionTools(cliOptions)],
-            } satisfies ExecutionTools;
+            } satisfies ExecutionTools; /* <- Note: [🤛] */
 
             if (isVerbose) {
                 console.info(colors.gray('--- Getting the book ---'));

@@ -119,7 +119,7 @@ export function $initializeStartPipelinesServerCommand(program: Program): $side_
 
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
                 script: await $provideScriptingForNode(prepareAndScrapeOptions),
-            } satisfies ExecutionTools;
+            } satisfies ExecutionTools; /* <- Note: [🤛] */
 
             // TODO: [🧟‍♂️][◽] DRY:
             const collection = await createPipelineCollectionFromDirectory(path, tools, {

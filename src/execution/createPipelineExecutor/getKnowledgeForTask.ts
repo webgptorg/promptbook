@@ -67,7 +67,7 @@ export async function getKnowledgeForTask(
             },
             content: task.content,
             parameters,
-        } as const satisfies Prompt;
+        } as const satisfies Prompt; /* <- Note: [🤛] */
         const taskEmbeddingResult = await llmTools.callEmbeddingModel!(taskEmbeddingPrompt);
 
         const knowledgePiecesWithRelevance = preparedPipeline.knowledgePieces.map((knowledgePiece) => {

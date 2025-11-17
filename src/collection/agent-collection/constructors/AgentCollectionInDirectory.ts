@@ -1,7 +1,7 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { BehaviorSubject } from 'rxjs';
 import { forTime } from 'waitasecond';
-import type { AgentBasicInformation } from '../../../_packages/types.index';
+import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
