@@ -1,6 +1,6 @@
-import { ZERO_USAGE } from '@promptbook-local/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { ZERO_USAGE } from '../../../_packages/core.index';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';

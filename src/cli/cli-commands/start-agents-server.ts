@@ -3,18 +3,11 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import spaceTrim from 'spacetrim';
-import { AgentCollectionInDirectory } from '../../collection/agent-collection/constructors/AgentCollectionInDirectory';
 import { DEFAULT_AGENTS_DIRNAME } from '../../config';
-import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
 import type { number_port } from '../../types/typeAliases';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
@@ -56,13 +49,19 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
                 return process.exit(1);
             }
 
+            TODO_USE(path);
+            TODO_USE(isCacheReloaded);
+            TODO_USE(isVerbose);
+
+            /*
+
             // TODO: DRY [◽]
             const prepareAndScrapeOptions = {
                 isVerbose,
                 isCacheReloaded,
-            }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
+            }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` * /
             const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-            const { /* [0] strategy,*/ llm } = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
+            const { /* [0] strategy,* / llm } = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
             const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
             const tools = {
                 llm,
@@ -86,6 +85,7 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
 
             TODO_USE(tools);
             TODO_USE(collection);
+            */
 
             // TODO: !!!! Use
 
