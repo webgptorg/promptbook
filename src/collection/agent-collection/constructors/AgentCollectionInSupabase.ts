@@ -1,12 +1,9 @@
 import { ZERO_USAGE } from '@promptbook-local/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { BehaviorSubject } from 'rxjs';
-import { forTime } from 'waitasecond';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { DatabaseError } from '../../../errors/DatabaseError';
 import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
@@ -104,6 +101,9 @@ export class AgentCollectionInSupabase implements AgentCollection {
      * !!!
      */
     public async spawnAgent(agentName: string_agent_name): Promise<Agent> {
+        TODO_USE(agentName);
+        throw new NotYetImplementedError('Method not implemented.');
+        /*
         // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const tools = await this.getTools();
@@ -151,6 +151,7 @@ export class AgentCollectionInSupabase implements AgentCollection {
         }
 
         return agent;
+        */
     }
 
     /**
