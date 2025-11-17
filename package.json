@@ -295,6 +295,7 @@
         "@azure/openai": "1.0.0-beta.13",
         "@monaco-editor/react": "4.7.0",
         "@mozilla/readability": "0.6.0",
+        "@supabase/supabase-js": "^2.81.1",
         "bottleneck": "2.19.5",
         "colors": "^1.4.0",
         "commander": "12.0.0",
