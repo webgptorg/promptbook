@@ -6,3 +6,7 @@ _Note: You can delete folders containing packages, they will be rebuilt before a
 ONLY exception is `packages/cli/bin/promptbook-cli.js` which is not built and should be kept.
 
 -   [➖] When deleting package, delete its folder here
+
+<!--
+TODO: [🚑] Make here two subfolders `/packages/npm` *(all current stuff here)* and `/packages/docker`
+-->

@@ -13,4 +13,4 @@ services:
         #     - ./logs:/opt/chutoo/promptbook-module/
         env_file: '.env'
         # <- TODO: Is this secure, isn't there some way how env variables leaks into DockerHub?
-# TODO: [🧠][🚑] This file should be meybe in `/other/` or `/src/packages/`
+# TODO: [🚑] This file should be in `/src/packages/docker/...`

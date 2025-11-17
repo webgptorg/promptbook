@@ -17,4 +17,4 @@ RUN mkdir ./books
 ENV PATH="/usr/app/node_modules/.bin:${PATH}"
 
 
-# TODO: [🧠][🚑] This file should be meybe in `/packages/`
+# TODO: [🚑] This file should be meybe in `/packages/docker/...`
