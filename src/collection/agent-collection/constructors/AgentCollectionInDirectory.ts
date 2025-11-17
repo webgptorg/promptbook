@@ -123,7 +123,7 @@ export class AgentCollectionInDirectory implements AgentCollection {
             );
         }
 
-        return agentNames;
+        return agentNames.map((agentName) => ({ agentName, personaDescription: null, meta: {}, parameters: [] }));
     }
 
     /**
@@ -185,22 +185,22 @@ export class AgentCollectionInDirectory implements AgentCollection {
     }
 
     /**
-     * Deletes an agent from the collection
-     *
-     * Note: When you want delete an agent by name, first get the agent using `getAgentByName` and then pass it to `deleteAgent`.
-     */
-    public async deleteAgent(agent: Agent): Promise<void> {
-        TODO_USE(agent);
-        throw new NotYetImplementedError('Method not implemented.');
-    }
-
-    /**
      * Creates a new agent in the collection
      *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
      */
     public async createAgent(agentSource: string_book): Promise<Agent> {
         TODO_USE(agentSource);
+        throw new NotYetImplementedError('Method not implemented.');
+    }
+
+    /**
+     * Deletes an agent from the collection
+     *
+     * Note: When you want delete an agent by name, first get the agent using `getAgentByName` and then pass it to `deleteAgent`.
+     */
+    public async deleteAgent(agent: Agent): Promise<void> {
+        TODO_USE(agent);
         throw new NotYetImplementedError('Method not implemented.');
     }
 }
