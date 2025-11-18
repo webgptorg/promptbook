@@ -8,7 +8,6 @@ import { DatabaseError } from '../../../errors/DatabaseError';
 import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
-import { $provideExecutionToolsForNode } from '../../../execution/utils/$provideExecutionToolsForNode';
 import { ZERO_USAGE } from '../../../execution/utils/usage-constants';
 import { Agent } from '../../../llm-providers/agent/Agent';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -50,9 +49,11 @@ export class AgentCollectionInSupabase implements AgentCollection {
      */
     private _definedTools: ExecutionTools | null = null;
 
+    /*
+    TODO: !!! Use or remove
     /**
      * Gets or creates execution tools for the collection
-     */
+     * /
     private async getTools(): Promise<ExecutionTools> {
         if (this._definedTools !== null) {
             return this._definedTools;
@@ -65,6 +66,7 @@ export class AgentCollectionInSupabase implements AgentCollection {
         return this._definedTools;
     }
     // <- TODO: [👪] Maybe create some common abstraction *(or parent abstract class)*
+    */
 
     /**
      * Gets all agents in the collection
