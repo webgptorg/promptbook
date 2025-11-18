@@ -1,9 +1,9 @@
+import type { AgentsDatabaseSchema } from '@promptbook-local/types';
+import { $isRunningInBrowser, $isRunningInNode, $isRunningInWebWorker } from '@promptbook-local/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { isRunningInBrowser, isRunningInNode, isRunningInWebWorker } from '../isRunningInWhatever';
 import { getSupabaseForBrowser } from './getSupabaseForBrowser';
 import { getSupabaseForServer } from './getSupabaseForServer';
 import { getSupabaseForWorker } from './getSupabaseForWorker';
-import type { Database } from './types';
 
 /**
  * Get supabase client in any environment
@@ -12,12 +12,12 @@ import type { Database } from './types';
  *
  * @returns instance of supabase client
  */
-export function getSupabase(): SupabaseClient<Database> {
-    if (isRunningInNode()) {
+export function getSupabase(): SupabaseClient<AgentsDatabaseSchema> {
+    if ($isRunningInNode()) {
         return getSupabaseForServer();
-    } else if (isRunningInBrowser()) {
+    } else if ($isRunningInBrowser()) {
         return getSupabaseForBrowser();
-    } else if (isRunningInWebWorker()) {
+    } else if ($isRunningInWebWorker()) {
         return getSupabaseForWorker();
     } else {
         throw new Error('Unknown environment, cannot determine how to get Supabase client');

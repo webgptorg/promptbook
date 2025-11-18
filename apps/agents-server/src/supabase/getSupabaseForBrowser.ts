@@ -1,5 +1,4 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
 import { AgentsDatabaseSchema } from '@promptbook-local/types';
 import { $isRunningInBrowser } from '@promptbook-local/utils';
 
