@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { ZERO_USAGE } from '../../../_packages/core.index';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
@@ -10,6 +9,7 @@ import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../../execution/utils/$provideExecutionToolsForNode';
+import { ZERO_USAGE } from '../../../execution/utils/usage-constants';
 import { Agent } from '../../../llm-providers/agent/Agent';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import type { string_agent_name } from '../../../types/typeAliases';
