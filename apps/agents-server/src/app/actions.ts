@@ -1,10 +1,10 @@
 'use server';
 
 import { $generateBookBoilerplate } from '@promptbook-local/core';
-import { $provideAgentsServerTools } from '../tools/$provideAgentCollectionForServer';
+import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 
 export async function $createAgentAction() {
-    const { collection } = await $provideAgentsServerTools();
+    const collection = await $provideAgentCollectionForServer();
     await collection.createAgent($generateBookBoilerplate());
 }
 
