@@ -9,8 +9,3 @@ const SelfLearningBook = dynamic(() => import('./SelfLearningBook').then((module
 export default function SelfLearningBookPage() {
     return <SelfLearningBook />;
 }
-
-
-/**
- * TODO: !!!! This was moved to Agents server
- */

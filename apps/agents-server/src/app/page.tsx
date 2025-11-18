@@ -61,7 +61,7 @@ export default async function HomePage() {
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {agents.map((agent) => (
-                        <Link key={agent.agentName} href={'#'}>
+                        <Link key={agent.agentName} href={'/agents/' + agent.agentName}>
                             <AvatarProfile
                                 {...{ agent }}
                                 className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"

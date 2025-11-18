@@ -199,5 +199,4 @@ export function SelfLearningBook() {
 
 /**
  * TODO: !!!! Make self-learning book createAgentLlmExecutionTools, use bidirectional agentSource
- * TODO: !!!! This was moved to Agents server
  */
