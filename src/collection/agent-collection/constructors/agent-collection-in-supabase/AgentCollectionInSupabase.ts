@@ -1,21 +1,21 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
-import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
-import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
-import { DatabaseError } from '../../../errors/DatabaseError';
-import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
-import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
-import type { ExecutionTools } from '../../../execution/ExecutionTools';
-import { ZERO_USAGE } from '../../../execution/utils/usage-constants';
-import { Agent } from '../../../llm-providers/agent/Agent';
-import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
-import type { string_agent_name } from '../../../types/typeAliases';
-import { spaceTrim } from '../../../utils/organization/spaceTrim';
-import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../../version';
-import type { AgentCollection } from '../AgentCollection';
+import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
+import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
+import type { string_book } from '../../../../book-2.0/agent-source/string_book';
+import { DEFAULT_IS_VERBOSE } from '../../../../config';
+import { DatabaseError } from '../../../../errors/DatabaseError';
+import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
+import type { CommonToolsOptions } from '../../../../execution/CommonToolsOptions';
+import type { ExecutionTools } from '../../../../execution/ExecutionTools';
+import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
+import { Agent } from '../../../../llm-providers/agent/Agent';
+import type { PrepareAndScrapeOptions } from '../../../../prepare/PrepareAndScrapeOptions';
+import type { string_agent_name } from '../../../../types/typeAliases';
+import { spaceTrim } from '../../../../utils/organization/spaceTrim';
+import { TODO_USE } from '../../../../utils/organization/TODO_USE';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
+import type { AgentCollection } from '../../AgentCollection';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 
 /**
@@ -201,5 +201,6 @@ export class AgentCollectionInSupabase implements AgentCollection {
 }
 
 /**
+ * TODO: Write unit test
  * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
  */

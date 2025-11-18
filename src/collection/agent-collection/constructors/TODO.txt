@@ -1,4 +1,3 @@
-TODO: !!!! Nest into subfolders
 TODO: !!!! Make `createAgentCollectionFromConfiguration`
 TODO: !!!! Make `createAgentCollectionFromDatabase`
 TODO: !!!! Make `createAgentCollectionFromSupabase`

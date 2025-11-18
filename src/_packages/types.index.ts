@@ -1,8 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/types`
 
-import type { BookParameter } from '../book-2.0/agent-source/AgentBasicInformation';
-import type { AgentBasicInformation } from '../book-2.0/agent-source/AgentBasicInformation';
+import type { AgentBasicInformation, BookParameter } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentModelRequirements } from '../book-2.0/agent-source/AgentModelRequirements';
 import type { string_book } from '../book-2.0/agent-source/string_book';
 import type { BookCommitment } from '../book-2.0/commitments/_base/BookCommitment';
@@ -17,8 +16,7 @@ import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatAutoScrollConfig } from '../book-components/Chat/hooks/useChatAutoScroll';
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { LlmChatProps } from '../book-components/Chat/LlmChat/LlmChatProps';
-import type { MockedChatDelayConfig } from '../book-components/Chat/MockedChat/MockedChat';
-import type { MockedChatProps } from '../book-components/Chat/MockedChat/MockedChat';
+import type { MockedChatDelayConfig, MockedChatProps } from '../book-components/Chat/MockedChat/MockedChat';
 import type { ChatSaveFormatDefinition } from '../book-components/Chat/save/_common/ChatSaveFormatDefinition';
 import type { string_chat_format_name } from '../book-components/Chat/save/_common/string_chat_format_name';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
@@ -26,20 +24,24 @@ import type { ChatParticipant } from '../book-components/Chat/types/ChatParticip
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
 import type { QrCodeOptions } from '../book-components/Qr/useQrCode';
 import type { AgentCollection } from '../collection/agent-collection/AgentCollection';
-import type { Json } from '../collection/agent-collection/constructors/AgentsDatabaseSchema';
-import type { AgentsDatabaseSchema } from '../collection/agent-collection/constructors/AgentsDatabaseSchema';
-import type { Tables } from '../collection/agent-collection/constructors/AgentsDatabaseSchema';
-import type { TablesInsert } from '../collection/agent-collection/constructors/AgentsDatabaseSchema';
-import type { TablesUpdate } from '../collection/agent-collection/constructors/AgentsDatabaseSchema';
-import type { Enums } from '../collection/agent-collection/constructors/AgentsDatabaseSchema';
-import type { CompositeTypes } from '../collection/agent-collection/constructors/AgentsDatabaseSchema';
+import type {
+    AgentsDatabaseSchema,
+    CompositeTypes,
+    Enums,
+    Json,
+    Tables,
+    TablesInsert,
+    TablesUpdate,
+} from '../collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema';
 import type { PipelineCollection } from '../collection/pipeline-collection/PipelineCollection';
 import type { Command } from '../commands/_common/types/Command';
-import type { CommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../commands/_common/types/CommandParser';
-import type { CommandParserInput } from '../commands/_common/types/CommandParser';
+import type {
+    CommandParser,
+    CommandParserInput,
+    PipelineBothCommandParser,
+    PipelineHeadCommandParser,
+    PipelineTaskCommandParser,
+} from '../commands/_common/types/CommandParser';
 import type { CommandType } from '../commands/_common/types/CommandType';
 import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePlaces';
 import type { BookVersionCommand } from '../commands/BOOK_VERSION/BookVersionCommand';
@@ -73,11 +75,7 @@ import type { ExecutionPromptReportJson } from '../execution/execution-report/Ex
 import type { ExecutionReportJson } from '../execution/execution-report/ExecutionReportJson';
 import type { ExecutionReportString } from '../execution/execution-report/ExecutionReportString';
 import type { ExecutionReportStringOptions } from '../execution/execution-report/ExecutionReportStringOptions';
-import type { ExecutionTask } from '../execution/ExecutionTask';
-import type { PreparationTask } from '../execution/ExecutionTask';
-import type { task_status } from '../execution/ExecutionTask';
-import type { AbstractTask } from '../execution/ExecutionTask';
-import type { Task } from '../execution/ExecutionTask';
+import type { AbstractTask, ExecutionTask, PreparationTask, Task, task_status } from '../execution/ExecutionTask';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { FilesystemTools } from '../execution/FilesystemTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
@@ -85,21 +83,21 @@ import type { LlmExecutionToolsConstructor } from '../execution/LlmExecutionTool
 import type { PipelineExecutor } from '../execution/PipelineExecutor';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
 import type { PromptbookFetch } from '../execution/PromptbookFetch';
-import type { PromptResult } from '../execution/PromptResult';
-import type { CompletionPromptResult } from '../execution/PromptResult';
-import type { ChatPromptResult } from '../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../execution/PromptResult';
-import type { ScriptExecutionTools } from '../execution/ScriptExecutionTools';
-import type { ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../execution/PromptResult';
+import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UncertainNumber } from '../execution/UncertainNumber';
-import type { Usage } from '../execution/Usage';
-import type { UsageCounts } from '../execution/Usage';
-import type { UserInterfaceTools } from '../execution/UserInterfaceTools';
-import type { UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
-import type { ValidatePromptResultOptions } from '../execution/utils/validatePromptResult';
-import type { ValidatePromptResultResult } from '../execution/utils/validatePromptResult';
-import type { FormatSubvalueParser } from '../formats/_common/FormatSubvalueParser';
-import type { FormatSubvalueParserMapValuesOptions } from '../formats/_common/FormatSubvalueParser';
+import type { Usage, UsageCounts } from '../execution/Usage';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
+import type { ValidatePromptResultOptions, ValidatePromptResultResult } from '../execution/utils/validatePromptResult';
+import type {
+    FormatSubvalueParser,
+    FormatSubvalueParserMapValuesOptions,
+} from '../formats/_common/FormatSubvalueParser';
 import type { CsvSettings } from '../formats/csv/CsvSettings';
 import type { AbstractFormfactorDefinition } from '../formfactors/_common/AbstractFormfactorDefinition';
 import type { FormfactorDefinition } from '../formfactors/_common/FormfactorDefinition';
@@ -112,17 +110,21 @@ import type { CacheLlmToolsOptions } from '../llm-providers/_common/utils/cache/
 import type { LlmExecutionToolsWithTotalUsage } from '../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import type { AgentOptions } from '../llm-providers/agent/AgentOptions';
 import type { CreateAgentLlmExecutionToolsOptions } from '../llm-providers/agent/CreateAgentLlmExecutionToolsOptions';
-import type { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
-import type { AnthropicClaudeExecutionToolsNonProxiedOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
-import type { AnthropicClaudeExecutionToolsProxiedOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
+import type {
+    AnthropicClaudeExecutionToolsNonProxiedOptions,
+    AnthropicClaudeExecutionToolsOptions,
+    AnthropicClaudeExecutionToolsProxiedOptions,
+} from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-openai/AzureOpenAiExecutionToolsOptions';
 import type { DeepseekExecutionToolsOptions } from '../llm-providers/deepseek/DeepseekExecutionToolsOptions';
 import type { GoogleExecutionToolsOptions } from '../llm-providers/google/GoogleExecutionToolsOptions';
 import type { OllamaExecutionToolsOptions } from '../llm-providers/ollama/OllamaExecutionToolsOptions';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
-import type { OpenAiCompatibleExecutionToolsOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
-import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
-import type { OpenAiCompatibleExecutionToolsProxiedOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
+import type {
+    OpenAiCompatibleExecutionToolsNonProxiedOptions,
+    OpenAiCompatibleExecutionToolsOptions,
+    OpenAiCompatibleExecutionToolsProxiedOptions,
+} from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import type { VercelExecutionToolsOptions } from '../llm-providers/vercel/VercelExecutionToolsOptions';
 import type { VercelProvider } from '../llm-providers/vercel/VercelProvider';
@@ -130,19 +132,17 @@ import type { IsPipelineImplementingInterfaceOptions } from '../pipeline/Pipelin
 import type { PipelineInterface } from '../pipeline/PipelineInterface/PipelineInterface';
 import type { CommonTaskJson } from '../pipeline/PipelineJson/CommonTaskJson';
 import type { DialogTaskJson } from '../pipeline/PipelineJson/DialogTaskJson';
-import type { Expectations } from '../pipeline/PipelineJson/Expectations';
-import type { ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
-import type { ExpectationAmount } from '../pipeline/PipelineJson/Expectations';
+import type { ExpectationAmount, Expectations, ExpectationUnit } from '../pipeline/PipelineJson/Expectations';
 import type { KnowledgePiecePreparedJson } from '../pipeline/PipelineJson/KnowledgePieceJson';
-import type { KnowledgeSourceJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
-import type { ParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { InputParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { IntermediateParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { OutputParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { CommonParameterJson } from '../pipeline/PipelineJson/ParameterJson';
-import type { PersonaJson } from '../pipeline/PipelineJson/PersonaJson';
-import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from '../pipeline/PipelineJson/KnowledgeSourceJson';
+import type {
+    CommonParameterJson,
+    InputParameterJson,
+    IntermediateParameterJson,
+    OutputParameterJson,
+    ParameterJson,
+} from '../pipeline/PipelineJson/ParameterJson';
+import type { PersonaJson, PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import type { PromptTaskJson } from '../pipeline/PipelineJson/PromptTaskJson';
@@ -151,31 +151,32 @@ import type { SimpleTaskJson } from '../pipeline/PipelineJson/SimpleTaskJson';
 import type { TaskJson } from '../pipeline/PipelineJson/TaskJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { paths } from '../remote-server/openapi-types';
-import type { webhooks } from '../remote-server/openapi-types';
-import type { components } from '../remote-server/openapi-types';
-import type { $defs } from '../remote-server/openapi-types';
-import type { operations } from '../remote-server/openapi-types';
+import type { $defs, components, operations, paths, webhooks } from '../remote-server/openapi-types';
 import type { RemoteServer } from '../remote-server/RemoteServer';
-import type { Identification } from '../remote-server/socket-types/_subtypes/Identification';
-import type { ApplicationModeIdentification } from '../remote-server/socket-types/_subtypes/Identification';
-import type { AnonymousModeIdentification } from '../remote-server/socket-types/_subtypes/Identification';
+import type {
+    AnonymousModeIdentification,
+    ApplicationModeIdentification,
+    Identification,
+} from '../remote-server/socket-types/_subtypes/Identification';
 import type { RemoteClientOptions } from '../remote-server/types/RemoteClientOptions';
-import type { RemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
-import type { AnonymousRemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
-import type { ApplicationRemoteServerOptions } from '../remote-server/types/RemoteServerOptions';
-import type { ApplicationRemoteServerClientOptions } from '../remote-server/types/RemoteServerOptions';
-import type { LoginRequest } from '../remote-server/types/RemoteServerOptions';
-import type { LoginResponse } from '../remote-server/types/RemoteServerOptions';
+import type {
+    AnonymousRemoteServerOptions,
+    ApplicationRemoteServerClientOptions,
+    ApplicationRemoteServerOptions,
+    LoginRequest,
+    LoginResponse,
+    RemoteServerOptions,
+} from '../remote-server/types/RemoteServerOptions';
 import type { ServerInfo } from '../remote-server/ui/types';
 import type { Converter } from '../scrapers/_common/Converter';
 import type { ScraperAndConverterMetadata } from '../scrapers/_common/register/ScraperAndConverterMetadata';
 import type { ScraperConstructor } from '../scrapers/_common/register/ScraperConstructor';
-import type { Scraper } from '../scrapers/_common/Scraper';
-import type { ScraperSourceHandler } from '../scrapers/_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../scrapers/_common/Scraper';
 import type { ScraperIntermediateSource } from '../scrapers/_common/ScraperIntermediateSource';
-import type { JavascriptExecutionToolsOptions } from '../scripting/javascript/JavascriptExecutionToolsOptions';
-import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
+import type {
+    JavascriptExecutionToolsOptions,
+    PostprocessingFunction,
+} from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { PromptbookStorage } from '../storage/_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from '../storage/file-cache-storage/FileCacheStorageOptions';
 import type { IndexedDbStorageOptions } from '../storage/local-storage/utils/IndexedDbStorageOptions';
@@ -183,159 +184,156 @@ import type { BookTranspiler } from '../transpilers/_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../transpilers/_common/BookTranspilerOptions';
 import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
 import type { LlmCall } from '../types/LlmCall';
-import type { ModelRequirements } from '../types/ModelRequirements';
-import type { CompletionModelRequirements } from '../types/ModelRequirements';
-import type { ChatModelRequirements } from '../types/ModelRequirements';
-import type { EmbeddingModelRequirements } from '../types/ModelRequirements';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ModelRequirements,
+} from '../types/ModelRequirements';
 import type { ModelVariant } from '../types/ModelVariant';
-import type { NonEmptyArray } from '../types/NonEmptyArray';
-import type { NonEmptyReadonlyArray } from '../types/NonEmptyArray';
-import type { Prompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { ChatPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
+import type { NonEmptyArray, NonEmptyReadonlyArray } from '../types/NonEmptyArray';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import type { SectionType } from '../types/SectionType';
 import type { TaskType } from '../types/TaskType';
 import type { string_char_emoji } from '../types/typeAliasEmoji';
-import type { string_business_category_name } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
-import type { string_template } from '../types/typeAliases';
-import type { string_text_prompt } from '../types/typeAliases';
-import type { string_chat_prompt } from '../types/typeAliases';
-import type { string_system_message } from '../types/typeAliases';
-import type { string_completion_prompt } from '../types/typeAliases';
-import type { string_page } from '../types/typeAliases';
-import type { string_mime_type } from '../types/typeAliases';
-import type { string_mime_type_with_wildcard } from '../types/typeAliases';
-import type { string_char } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { Parameters } from '../types/typeAliases';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_reserved_parameter_name } from '../types/typeAliases';
-import type { ReservedParameters } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { string_agent_name } from '../types/typeAliases';
-import type { string_persona_description } from '../types/typeAliases';
-import type { string_model_description } from '../types/typeAliases';
-import type { string_knowledge_source_content } from '../types/typeAliases';
-import type { string_knowledge_source_link } from '../types/typeAliases';
-import type { string_html } from '../types/typeAliases';
-import type { string_xml } from '../types/typeAliases';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_markdown_section } from '../types/typeAliases';
-import type { string_markdown_section_content } from '../types/typeAliases';
-import type { string_markdown_text } from '../types/typeAliases';
-import type { string_markdown_codeblock_language } from '../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../types/typeAliases';
-import type { string_domain } from '../types/typeAliases';
-import type { string_origin } from '../types/typeAliases';
-import type { string_tdl } from '../types/typeAliases';
-import type { string_css } from '../types/typeAliases';
-import type { string_svg } from '../types/typeAliases';
-import type { string_script } from '../types/typeAliases';
-import type { string_javascript } from '../types/typeAliases';
-import type { string_typescript } from '../types/typeAliases';
-import type { string_json } from '../types/typeAliases';
-import type { string_css_class } from '../types/typeAliases';
-import type { string_css_property } from '../types/typeAliases';
-import type { string_css_value } from '../types/typeAliases';
-import type { string_css_selector } from '../types/typeAliases';
-import type { string_url } from '../types/typeAliases';
-import type { string_promptbook_server_url } from '../types/typeAliases';
-import type { string_base_url } from '../types/typeAliases';
-import type { string_pipeline_root_url } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
-import type { string_pipeline_url_with_task_hash } from '../types/typeAliases';
-import type { string_data_url } from '../types/typeAliases';
-import type { string_base64 } from '../types/typeAliases';
-import type { string_href } from '../types/typeAliases';
-import type { string_url_image } from '../types/typeAliases';
-import type { string_executable_path } from '../types/typeAliases';
-import type { string_uri } from '../types/typeAliases';
-import type { string_uri_part } from '../types/typeAliases';
-import type { string_hostname } from '../types/typeAliases';
-import type { string_host } from '../types/typeAliases';
-import type { string_protocol } from '../types/typeAliases';
-import type { string_ip_address } from '../types/typeAliases';
-import type { string_email } from '../types/typeAliases';
-import type { string_emails } from '../types/typeAliases';
-import type { string_uuid } from '../types/typeAliases';
-import type { string_app_id } from '../types/typeAliases';
-import type { string_user_id } from '../types/typeAliases';
-import type { string_sha256 } from '../types/typeAliases';
-import type { string_semantic_version } from '../types/typeAliases';
-import type { string_version_dependency } from '../types/typeAliases';
-import type { string_file_extension } from '../types/typeAliases';
-import type { string_absolute_filename } from '../types/typeAliases';
-import type { string_relative_filename } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_absolute_dirname } from '../types/typeAliases';
-import type { string_relative_dirname } from '../types/typeAliases';
-import type { string_dirname } from '../types/typeAliases';
-import type { string_person_fullname } from '../types/typeAliases';
-import type { string_person_profile } from '../types/typeAliases';
-import type { string_license } from '../types/typeAliases';
-import type { string_legal_entity } from '../types/typeAliases';
-import type { string_attribute } from '../types/typeAliases';
-import type { string_attribute_value_scope } from '../types/typeAliases';
-import type { string_color } from '../types/typeAliases';
-import type { string_translate_name } from '../types/typeAliases';
-import type { string_translate_name_not_normalized } from '../types/typeAliases';
-import type { string_translate_language } from '../types/typeAliases';
-import type { string_javascript_name } from '../types/typeAliases';
-import type { string_postprocessing_function_name } from '../types/typeAliases';
-import type { id } from '../types/typeAliases';
-import type { task_id } from '../types/typeAliases';
-import type { string_token } from '../types/typeAliases';
-import type { string_promptbook_token } from '../types/typeAliases';
-import type { string_license_token } from '../types/typeAliases';
-import type { string_password } from '../types/typeAliases';
-import type { string_ssh_key } from '../types/typeAliases';
-import type { string_pgp_key } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { number_id } from '../types/typeAliases';
-import type { number_linecol_number } from '../types/typeAliases';
-import type { number_tokens } from '../types/typeAliases';
-import type { number_positive } from '../types/typeAliases';
-import type { number_negative } from '../types/typeAliases';
-import type { number_integer } from '../types/typeAliases';
-import type { number_port } from '../types/typeAliases';
-import type { number_percent } from '../types/typeAliases';
-import type { number_model_temperature } from '../types/typeAliases';
-import type { number_seed } from '../types/typeAliases';
-import type { number_likeness } from '../types/typeAliases';
-import type { number_milliseconds } from '../types/typeAliases';
-import type { number_seconds } from '../types/typeAliases';
-import type { number_minutes } from '../types/typeAliases';
-import type { number_hours } from '../types/typeAliases';
-import type { number_days } from '../types/typeAliases';
-import type { number_weeks } from '../types/typeAliases';
-import type { number_months } from '../types/typeAliases';
-import type { number_years } from '../types/typeAliases';
-import type { number_bytes } from '../types/typeAliases';
-import type { number_kilobytes } from '../types/typeAliases';
-import type { number_megabytes } from '../types/typeAliases';
-import type { number_gigabytes } from '../types/typeAliases';
-import type { number_terabytes } from '../types/typeAliases';
+import type {
+    id,
+    InputParameters,
+    number_bytes,
+    number_days,
+    number_gigabytes,
+    number_hours,
+    number_id,
+    number_integer,
+    number_kilobytes,
+    number_likeness,
+    number_linecol_number,
+    number_megabytes,
+    number_milliseconds,
+    number_minutes,
+    number_model_temperature,
+    number_months,
+    number_negative,
+    number_percent,
+    number_port,
+    number_positive,
+    number_seconds,
+    number_seed,
+    number_terabytes,
+    number_tokens,
+    number_usd,
+    number_weeks,
+    number_years,
+    Parameters,
+    ReservedParameters,
+    string_absolute_dirname,
+    string_absolute_filename,
+    string_agent_name,
+    string_app_id,
+    string_attribute,
+    string_attribute_value_scope,
+    string_base64,
+    string_base_url,
+    string_business_category_name,
+    string_char,
+    string_chat_prompt,
+    string_color,
+    string_completion_prompt,
+    string_css,
+    string_css_class,
+    string_css_property,
+    string_css_selector,
+    string_css_value,
+    string_data_url,
+    string_date_iso8601,
+    string_dirname,
+    string_domain,
+    string_email,
+    string_emails,
+    string_executable_path,
+    string_file_extension,
+    string_filename,
+    string_host,
+    string_hostname,
+    string_href,
+    string_html,
+    string_ip_address,
+    string_javascript,
+    string_javascript_name,
+    string_json,
+    string_knowledge_source_content,
+    string_knowledge_source_link,
+    string_legal_entity,
+    string_license,
+    string_license_token,
+    string_markdown,
+    string_markdown_codeblock_language,
+    string_markdown_section,
+    string_markdown_section_content,
+    string_markdown_text,
+    string_mime_type,
+    string_mime_type_with_wildcard,
+    string_model_description,
+    string_model_name,
+    string_name,
+    string_origin,
+    string_page,
+    string_parameter_name,
+    string_parameter_value,
+    string_password,
+    string_person_fullname,
+    string_person_profile,
+    string_persona_description,
+    string_pgp_key,
+    string_pipeline_root_url,
+    string_pipeline_url,
+    string_pipeline_url_with_task_hash,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_promptbook_documentation_url,
+    string_promptbook_server_url,
+    string_promptbook_token,
+    string_protocol,
+    string_relative_dirname,
+    string_relative_filename,
+    string_reserved_parameter_name,
+    string_script,
+    string_semantic_version,
+    string_sha256,
+    string_ssh_key,
+    string_svg,
+    string_system_message,
+    string_tdl,
+    string_template,
+    string_text_prompt,
+    string_title,
+    string_token,
+    string_translate_language,
+    string_translate_name,
+    string_translate_name_not_normalized,
+    string_typescript,
+    string_uri,
+    string_uri_part,
+    string_url,
+    string_url_image,
+    string_user_id,
+    string_uuid,
+    string_version_dependency,
+    string_xml,
+    task_id,
+} from '../types/typeAliases';
 import type { Updatable } from '../types/Updatable';
 import type { ColorTransformer } from '../utils/color/operators/ColorTransformer';
 import type { PipelineEditableSerialized } from '../utils/editable/types/PipelineEditableSerialized';
-import type { ExecCommandOptions } from '../utils/execCommand/ExecCommandOptions';
-import type { ExecCommandOptionsAdvanced } from '../utils/execCommand/ExecCommandOptions';
+import type { ExecCommandOptions, ExecCommandOptionsAdvanced } from '../utils/execCommand/ExecCommandOptions';
 import type { CodeBlock } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import type { MarkdownSection } from '../utils/markdown/parseMarkdownSection';
-import type { Registered } from '../utils/misc/$Register';
-import type { Registration } from '../utils/misc/$Register';
+import type { Registered, Registration } from '../utils/misc/$Register';
 import type { AboutPromptbookInformationOptions } from '../utils/misc/aboutPromptbookInformation';
 import type { FromtoItems } from '../utils/misc/FromtoItems';
 import type { InjectCssModuleIntoShadowRootOptions } from '../utils/misc/injectCssModuleIntoShadowRoot';
-import type { string_keyword } from '../utils/normalization/IKeywords';
-import type { Keywords } from '../utils/normalization/IKeywords';
+import type { Keywords, string_keyword } from '../utils/normalization/IKeywords';
 import type { string_kebab_case } from '../utils/normalization/normalize-to-kebab-case';
 import type { string_camelCase } from '../utils/normalization/normalizeTo_camelCase';
 import type { string_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
@@ -351,351 +349,353 @@ import type { ITakeChain } from '../utils/take/interfaces/ITakeChain';
 import type { string_promptbook_version } from '../version';
 
 // Note: Entities of the `@promptbook/types`
-export type { BookParameter };
-export type { AgentBasicInformation };
-export type { AgentModelRequirements };
-export type { string_book };
-export type { BookCommitment };
-export type { CommitmentDefinition };
-export type { ParsedCommitment };
-export type { AvatarChipProps };
-export type { AvatarChipFromSourceProps };
-export type { AvatarProfileProps };
-export type { AvatarProfileFromSourceProps };
-export type { BookEditorProps };
-export type { ChatProps };
-export type { ChatAutoScrollConfig };
-export type { SendMessageToLlmChatFunction };
-export type { LlmChatProps };
-export type { MockedChatDelayConfig };
-export type { MockedChatProps };
-export type { ChatSaveFormatDefinition };
-export type { string_chat_format_name };
-export type { ChatMessage };
-export type { ChatParticipant };
-export type { MessageButton };
-export type { QrCodeOptions };
-export type { AgentCollection };
-export type { Json };
-export type { AgentsDatabaseSchema };
-export type { Tables };
-export type { TablesInsert };
-export type { TablesUpdate };
-export type { Enums };
-export type { CompositeTypes };
-export type { PipelineCollection };
-export type { Command };
-export type { CommandParser };
-export type { PipelineBothCommandParser };
-export type { PipelineHeadCommandParser };
-export type { PipelineTaskCommandParser };
-export type { CommandParserInput };
-export type { CommandType };
-export type { CommandUsagePlace };
-export type { BookVersionCommand };
-export type { ExpectCommand };
-export type { ForeachCommand };
-export type { ForeachJson };
-export type { FormatCommand };
-export type { FormfactorCommand };
-export type { JokerCommand };
-export type { KnowledgeCommand };
-export type { ModelCommand };
-export type { ParameterCommand };
-export type { PersonaCommand };
-export type { PostprocessCommand };
-export type { SectionCommand };
-export type { UrlCommand };
-export type { ActionCommand };
-export type { InstrumentCommand };
-export type { PrettifyOptions };
-export type { renderPipelineMermaidOptions };
-export type { CallbackInterfaceToolsOptions };
-export type { ErrorJson };
-export type { LocateAppOptions };
-export type { AbstractTaskResult };
-export type { AvailableModel };
-export type { CommonToolsOptions };
-export type { CreatePipelineExecutorOptions };
-export type { EmbeddingVector };
-export type { Executables };
-export type { ExecutionPromptReportJson };
-export type { ExecutionReportJson };
-export type { ExecutionReportString };
-export type { ExecutionReportStringOptions };
-export type { ExecutionTask };
-export type { PreparationTask };
-export type { task_status };
-export type { AbstractTask };
-export type { Task };
-export type { ExecutionTools };
-export type { FilesystemTools };
-export type { LlmExecutionTools };
-export type { LlmExecutionToolsConstructor };
-export type { PipelineExecutor };
-export type { PipelineExecutorResult };
-export type { PromptbookFetch };
-export type { PromptResult };
-export type { CompletionPromptResult };
-export type { ChatPromptResult };
-export type { EmbeddingPromptResult };
-export type { ScriptExecutionTools };
-export type { ScriptExecutionToolsExecuteOptions };
-export type { UncertainNumber };
-export type { Usage };
-export type { UsageCounts };
-export type { UserInterfaceTools };
-export type { UserInterfaceToolsPromptDialogOptions };
-export type { ValidatePromptResultOptions };
-export type { ValidatePromptResultResult };
-export type { FormatSubvalueParser };
-export type { FormatSubvalueParserMapValuesOptions };
-export type { CsvSettings };
-export type { AbstractFormfactorDefinition };
-export type { FormfactorDefinition };
-export type { string_formfactor_name };
-export type { LlmToolsConfiguration };
-export type { LlmToolsMetadata };
-export type { LlmToolsOptions };
-export type { CacheItem };
-export type { CacheLlmToolsOptions };
-export type { LlmExecutionToolsWithTotalUsage };
-export type { AgentOptions };
-export type { CreateAgentLlmExecutionToolsOptions };
-export type { AnthropicClaudeExecutionToolsOptions };
-export type { AnthropicClaudeExecutionToolsNonProxiedOptions };
-export type { AnthropicClaudeExecutionToolsProxiedOptions };
-export type { AzureOpenAiExecutionToolsOptions };
-export type { DeepseekExecutionToolsOptions };
-export type { GoogleExecutionToolsOptions };
-export type { OllamaExecutionToolsOptions };
-export type { OpenAiAssistantExecutionToolsOptions };
-export type { OpenAiCompatibleExecutionToolsOptions };
-export type { OpenAiCompatibleExecutionToolsNonProxiedOptions };
-export type { OpenAiCompatibleExecutionToolsProxiedOptions };
-export type { OpenAiExecutionToolsOptions };
-export type { VercelExecutionToolsOptions };
-export type { VercelProvider };
-export type { IsPipelineImplementingInterfaceOptions };
-export type { PipelineInterface };
-export type { CommonTaskJson };
-export type { DialogTaskJson };
-export type { Expectations };
-export type { ExpectationUnit };
-export type { ExpectationAmount };
-export type { KnowledgePiecePreparedJson };
-export type { KnowledgeSourceJson };
-export type { KnowledgeSourcePreparedJson };
-export type { ParameterJson };
-export type { InputParameterJson };
-export type { IntermediateParameterJson };
-export type { OutputParameterJson };
-export type { CommonParameterJson };
-export type { PersonaJson };
-export type { PersonaPreparedJson };
-export type { PipelineJson };
-export type { PreparationJson };
-export type { PromptTaskJson };
-export type { ScriptTaskJson };
-export type { SimpleTaskJson };
-export type { TaskJson };
-export type { PipelineString };
-export type { PrepareAndScrapeOptions };
-export type { paths };
-export type { webhooks };
-export type { components };
-export type { $defs };
-export type { operations };
-export type { RemoteServer };
-export type { Identification };
-export type { ApplicationModeIdentification };
-export type { AnonymousModeIdentification };
-export type { RemoteClientOptions };
-export type { RemoteServerOptions };
-export type { AnonymousRemoteServerOptions };
-export type { ApplicationRemoteServerOptions };
-export type { ApplicationRemoteServerClientOptions };
-export type { LoginRequest };
-export type { LoginResponse };
-export type { ServerInfo };
-export type { Converter };
-export type { ScraperAndConverterMetadata };
-export type { ScraperConstructor };
-export type { Scraper };
-export type { ScraperSourceHandler };
-export type { ScraperIntermediateSource };
-export type { JavascriptExecutionToolsOptions };
-export type { PostprocessingFunction };
-export type { PromptbookStorage };
-export type { FileCacheStorageOptions };
-export type { IndexedDbStorageOptions };
-export type { BookTranspiler };
-export type { BookTranspilerOptions };
-export type { IntermediateFilesStrategy };
-export type { LlmCall };
-export type { ModelRequirements };
-export type { CompletionModelRequirements };
-export type { ChatModelRequirements };
-export type { EmbeddingModelRequirements };
-export type { ModelVariant };
-export type { NonEmptyArray };
-export type { NonEmptyReadonlyArray };
-export type { Prompt };
-export type { CompletionPrompt };
-export type { ChatPrompt };
-export type { EmbeddingPrompt };
-export type { ScriptLanguage };
-export type { SectionType };
-export type { TaskType };
-export type { string_char_emoji };
-export type { string_business_category_name };
-export type { string_model_name };
-export type { string_prompt };
-export type { string_template };
-export type { string_text_prompt };
-export type { string_chat_prompt };
-export type { string_system_message };
-export type { string_completion_prompt };
-export type { string_page };
-export type { string_mime_type };
-export type { string_mime_type_with_wildcard };
-export type { string_char };
-export type { string_name };
-export type { string_parameter_name };
-export type { string_parameter_value };
-export type { Parameters };
-export type { InputParameters };
-export type { string_reserved_parameter_name };
-export type { ReservedParameters };
-export type { string_title };
-export type { string_agent_name };
-export type { string_persona_description };
-export type { string_model_description };
-export type { string_knowledge_source_content };
-export type { string_knowledge_source_link };
-export type { string_html };
-export type { string_xml };
-export type { string_markdown };
-export type { string_markdown_section };
-export type { string_markdown_section_content };
-export type { string_markdown_text };
-export type { string_markdown_codeblock_language };
-export type { string_promptbook_documentation_url };
-export type { string_domain };
-export type { string_origin };
-export type { string_tdl };
-export type { string_css };
-export type { string_svg };
-export type { string_script };
-export type { string_javascript };
-export type { string_typescript };
-export type { string_json };
-export type { string_css_class };
-export type { string_css_property };
-export type { string_css_value };
-export type { string_css_selector };
-export type { string_url };
-export type { string_promptbook_server_url };
-export type { string_base_url };
-export type { string_pipeline_root_url };
-export type { string_pipeline_url };
-export type { string_pipeline_url_with_task_hash };
-export type { string_data_url };
-export type { string_base64 };
-export type { string_href };
-export type { string_url_image };
-export type { string_executable_path };
-export type { string_uri };
-export type { string_uri_part };
-export type { string_hostname };
-export type { string_host };
-export type { string_protocol };
-export type { string_ip_address };
-export type { string_email };
-export type { string_emails };
-export type { string_uuid };
-export type { string_app_id };
-export type { string_user_id };
-export type { string_sha256 };
-export type { string_semantic_version };
-export type { string_version_dependency };
-export type { string_file_extension };
-export type { string_absolute_filename };
-export type { string_relative_filename };
-export type { string_filename };
-export type { string_absolute_dirname };
-export type { string_relative_dirname };
-export type { string_dirname };
-export type { string_person_fullname };
-export type { string_person_profile };
-export type { string_license };
-export type { string_legal_entity };
-export type { string_attribute };
-export type { string_attribute_value_scope };
-export type { string_color };
-export type { string_translate_name };
-export type { string_translate_name_not_normalized };
-export type { string_translate_language };
-export type { string_javascript_name };
-export type { string_postprocessing_function_name };
-export type { id };
-export type { task_id };
-export type { string_token };
-export type { string_promptbook_token };
-export type { string_license_token };
-export type { string_password };
-export type { string_ssh_key };
-export type { string_pgp_key };
-export type { string_date_iso8601 };
-export type { number_usd };
-export type { number_id };
-export type { number_linecol_number };
-export type { number_tokens };
-export type { number_positive };
-export type { number_negative };
-export type { number_integer };
-export type { number_port };
-export type { number_percent };
-export type { number_model_temperature };
-export type { number_seed };
-export type { number_likeness };
-export type { number_milliseconds };
-export type { number_seconds };
-export type { number_minutes };
-export type { number_hours };
-export type { number_days };
-export type { number_weeks };
-export type { number_months };
-export type { number_years };
-export type { number_bytes };
-export type { number_kilobytes };
-export type { number_megabytes };
-export type { number_gigabytes };
-export type { number_terabytes };
-export type { Updatable };
-export type { ColorTransformer };
-export type { PipelineEditableSerialized };
-export type { ExecCommandOptions };
-export type { ExecCommandOptionsAdvanced };
-export type { CodeBlock };
-export type { MarkdownSection };
-export type { Registered };
-export type { Registration };
-export type { AboutPromptbookInformationOptions };
-export type { FromtoItems };
-export type { InjectCssModuleIntoShadowRootOptions };
-export type { string_keyword };
-export type { Keywords };
-export type { string_kebab_case };
-export type { string_camelCase };
-export type { string_PascalCase };
-export type { string_SCREAMING_CASE };
-export type { string_snake_case };
-export type { OrderJsonOptions };
-export type { empty_object };
-export type { really_any };
-export type { TODO_any };
-export type { CheckSerializableAsJsonOptions };
-export type { ExportJsonOptions };
-export type { ITakeChain };
-export type { string_promptbook_version };
+export type {
+    $defs,
+    AboutPromptbookInformationOptions,
+    AbstractFormfactorDefinition,
+    AbstractTask,
+    AbstractTaskResult,
+    ActionCommand,
+    AgentBasicInformation,
+    AgentCollection,
+    AgentModelRequirements,
+    AgentOptions,
+    AgentsDatabaseSchema,
+    AnonymousModeIdentification,
+    AnonymousRemoteServerOptions,
+    AnthropicClaudeExecutionToolsNonProxiedOptions,
+    AnthropicClaudeExecutionToolsOptions,
+    AnthropicClaudeExecutionToolsProxiedOptions,
+    ApplicationModeIdentification,
+    ApplicationRemoteServerClientOptions,
+    ApplicationRemoteServerOptions,
+    AvailableModel,
+    AvatarChipFromSourceProps,
+    AvatarChipProps,
+    AvatarProfileFromSourceProps,
+    AvatarProfileProps,
+    AzureOpenAiExecutionToolsOptions,
+    BookCommitment,
+    BookEditorProps,
+    BookParameter,
+    BookTranspiler,
+    BookTranspilerOptions,
+    BookVersionCommand,
+    CacheItem,
+    CacheLlmToolsOptions,
+    CallbackInterfaceToolsOptions,
+    ChatAutoScrollConfig,
+    ChatMessage,
+    ChatModelRequirements,
+    ChatParticipant,
+    ChatPrompt,
+    ChatPromptResult,
+    ChatProps,
+    ChatSaveFormatDefinition,
+    CheckSerializableAsJsonOptions,
+    CodeBlock,
+    ColorTransformer,
+    Command,
+    CommandParser,
+    CommandParserInput,
+    CommandType,
+    CommandUsagePlace,
+    CommitmentDefinition,
+    CommonParameterJson,
+    CommonTaskJson,
+    CommonToolsOptions,
+    CompletionModelRequirements,
+    CompletionPrompt,
+    CompletionPromptResult,
+    components,
+    CompositeTypes,
+    Converter,
+    CreateAgentLlmExecutionToolsOptions,
+    CreatePipelineExecutorOptions,
+    CsvSettings,
+    DeepseekExecutionToolsOptions,
+    DialogTaskJson,
+    EmbeddingModelRequirements,
+    EmbeddingPrompt,
+    EmbeddingPromptResult,
+    EmbeddingVector,
+    empty_object,
+    Enums,
+    ErrorJson,
+    ExecCommandOptions,
+    ExecCommandOptionsAdvanced,
+    Executables,
+    ExecutionPromptReportJson,
+    ExecutionReportJson,
+    ExecutionReportString,
+    ExecutionReportStringOptions,
+    ExecutionTask,
+    ExecutionTools,
+    ExpectationAmount,
+    Expectations,
+    ExpectationUnit,
+    ExpectCommand,
+    ExportJsonOptions,
+    FileCacheStorageOptions,
+    FilesystemTools,
+    ForeachCommand,
+    ForeachJson,
+    FormatCommand,
+    FormatSubvalueParser,
+    FormatSubvalueParserMapValuesOptions,
+    FormfactorCommand,
+    FormfactorDefinition,
+    FromtoItems,
+    GoogleExecutionToolsOptions,
+    id,
+    Identification,
+    IndexedDbStorageOptions,
+    InjectCssModuleIntoShadowRootOptions,
+    InputParameterJson,
+    InputParameters,
+    InstrumentCommand,
+    IntermediateFilesStrategy,
+    IntermediateParameterJson,
+    IsPipelineImplementingInterfaceOptions,
+    ITakeChain,
+    JavascriptExecutionToolsOptions,
+    JokerCommand,
+    Json,
+    Keywords,
+    KnowledgeCommand,
+    KnowledgePiecePreparedJson,
+    KnowledgeSourceJson,
+    KnowledgeSourcePreparedJson,
+    LlmCall,
+    LlmChatProps,
+    LlmExecutionTools,
+    LlmExecutionToolsConstructor,
+    LlmExecutionToolsWithTotalUsage,
+    LlmToolsConfiguration,
+    LlmToolsMetadata,
+    LlmToolsOptions,
+    LocateAppOptions,
+    LoginRequest,
+    LoginResponse,
+    MarkdownSection,
+    MessageButton,
+    MockedChatDelayConfig,
+    MockedChatProps,
+    ModelCommand,
+    ModelRequirements,
+    ModelVariant,
+    NonEmptyArray,
+    NonEmptyReadonlyArray,
+    number_bytes,
+    number_days,
+    number_gigabytes,
+    number_hours,
+    number_id,
+    number_integer,
+    number_kilobytes,
+    number_likeness,
+    number_linecol_number,
+    number_megabytes,
+    number_milliseconds,
+    number_minutes,
+    number_model_temperature,
+    number_months,
+    number_negative,
+    number_percent,
+    number_port,
+    number_positive,
+    number_seconds,
+    number_seed,
+    number_terabytes,
+    number_tokens,
+    number_usd,
+    number_weeks,
+    number_years,
+    OllamaExecutionToolsOptions,
+    OpenAiAssistantExecutionToolsOptions,
+    OpenAiCompatibleExecutionToolsNonProxiedOptions,
+    OpenAiCompatibleExecutionToolsOptions,
+    OpenAiCompatibleExecutionToolsProxiedOptions,
+    OpenAiExecutionToolsOptions,
+    operations,
+    OrderJsonOptions,
+    OutputParameterJson,
+    ParameterCommand,
+    ParameterJson,
+    Parameters,
+    ParsedCommitment,
+    paths,
+    PersonaCommand,
+    PersonaJson,
+    PersonaPreparedJson,
+    PipelineBothCommandParser,
+    PipelineCollection,
+    PipelineEditableSerialized,
+    PipelineExecutor,
+    PipelineExecutorResult,
+    PipelineHeadCommandParser,
+    PipelineInterface,
+    PipelineJson,
+    PipelineString,
+    PipelineTaskCommandParser,
+    PostprocessCommand,
+    PostprocessingFunction,
+    PreparationJson,
+    PreparationTask,
+    PrepareAndScrapeOptions,
+    PrettifyOptions,
+    Prompt,
+    PromptbookFetch,
+    PromptbookStorage,
+    PromptResult,
+    PromptTaskJson,
+    QrCodeOptions,
+    really_any,
+    Registered,
+    Registration,
+    RemoteClientOptions,
+    RemoteServer,
+    RemoteServerOptions,
+    renderPipelineMermaidOptions,
+    ReservedParameters,
+    Scraper,
+    ScraperAndConverterMetadata,
+    ScraperConstructor,
+    ScraperIntermediateSource,
+    ScraperSourceHandler,
+    ScriptExecutionTools,
+    ScriptExecutionToolsExecuteOptions,
+    ScriptLanguage,
+    ScriptTaskJson,
+    SectionCommand,
+    SectionType,
+    SendMessageToLlmChatFunction,
+    ServerInfo,
+    SimpleTaskJson,
+    string_absolute_dirname,
+    string_absolute_filename,
+    string_agent_name,
+    string_app_id,
+    string_attribute,
+    string_attribute_value_scope,
+    string_base64,
+    string_base_url,
+    string_book,
+    string_business_category_name,
+    string_camelCase,
+    string_char,
+    string_char_emoji,
+    string_chat_format_name,
+    string_chat_prompt,
+    string_color,
+    string_completion_prompt,
+    string_css,
+    string_css_class,
+    string_css_property,
+    string_css_selector,
+    string_css_value,
+    string_data_url,
+    string_date_iso8601,
+    string_dirname,
+    string_domain,
+    string_email,
+    string_emails,
+    string_executable_path,
+    string_file_extension,
+    string_filename,
+    string_formfactor_name,
+    string_host,
+    string_hostname,
+    string_href,
+    string_html,
+    string_ip_address,
+    string_javascript,
+    string_javascript_name,
+    string_json,
+    string_kebab_case,
+    string_keyword,
+    string_knowledge_source_content,
+    string_knowledge_source_link,
+    string_legal_entity,
+    string_license,
+    string_license_token,
+    string_markdown,
+    string_markdown_codeblock_language,
+    string_markdown_section,
+    string_markdown_section_content,
+    string_markdown_text,
+    string_mime_type,
+    string_mime_type_with_wildcard,
+    string_model_description,
+    string_model_name,
+    string_name,
+    string_origin,
+    string_page,
+    string_parameter_name,
+    string_parameter_value,
+    string_PascalCase,
+    string_password,
+    string_person_fullname,
+    string_person_profile,
+    string_persona_description,
+    string_pgp_key,
+    string_pipeline_root_url,
+    string_pipeline_url,
+    string_pipeline_url_with_task_hash,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_promptbook_documentation_url,
+    string_promptbook_server_url,
+    string_promptbook_token,
+    string_promptbook_version,
+    string_protocol,
+    string_relative_dirname,
+    string_relative_filename,
+    string_reserved_parameter_name,
+    string_SCREAMING_CASE,
+    string_script,
+    string_semantic_version,
+    string_sha256,
+    string_snake_case,
+    string_ssh_key,
+    string_svg,
+    string_system_message,
+    string_tdl,
+    string_template,
+    string_text_prompt,
+    string_title,
+    string_token,
+    string_translate_language,
+    string_translate_name,
+    string_translate_name_not_normalized,
+    string_typescript,
+    string_uri,
+    string_uri_part,
+    string_url,
+    string_url_image,
+    string_user_id,
+    string_uuid,
+    string_version_dependency,
+    string_xml,
+    Tables,
+    TablesInsert,
+    TablesUpdate,
+    Task,
+    task_id,
+    task_status,
+    TaskJson,
+    TaskType,
+    TODO_any,
+    UncertainNumber,
+    Updatable,
+    UrlCommand,
+    Usage,
+    UsageCounts,
+    UserInterfaceTools,
+    UserInterfaceToolsPromptDialogOptions,
+    ValidatePromptResultOptions,
+    ValidatePromptResultResult,
+    VercelExecutionToolsOptions,
+    VercelProvider,
+    webhooks,
+};
