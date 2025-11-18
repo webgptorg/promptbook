@@ -5,8 +5,13 @@ import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_app_id, string_email, string_password, string_token, string_user_id } from '../../types/typeAliases';
-import type { really_any } from '../../utils/organization/really_any';
+import type {
+    string_app_id,
+    string_email,
+    string_password,
+    string_token,
+    string_user_id,
+} from '../../types/typeAliases';
 import type { ApplicationModeIdentification, Identification } from '../socket-types/_subtypes/Identification';
 
 /**
@@ -28,26 +33,6 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
      * @property {number} port The port number the server will listen on.
      */
     readonly port: number;
-
-    /**
-     * CORS options to apply to all endpoints (REST, UI, socket.io, etc.).
-     * Accepts the same options as the `cors` npm package and socket.io's CORS config.
-     * If not provided, defaults to permissive CORS (origin: '*').
-     * @see https://www.npmjs.com/package/cors
-     * @see https://socket.io/docs/v4/server-options/#cors
-     */
-    readonly cors?: {
-        origin?: string | string[] | boolean;
-        methods?: string | string[];
-        allowedHeaders?: string | string[];
-        exposedHeaders?: string | string[];
-        credentials?: boolean;
-        maxAge?: number;
-        preflightContinue?: boolean;
-        optionsSuccessStatus?: number;
-        [key: string]: really_any;
-    };
-    // <- TODO: [🧠] Maybe pass just origins and other headers are set to values which are used in the server?
 
     /**
      * Enable rich UI (React + Tailwind) at `/` path.

@@ -1,5 +1,4 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import cors from 'cors';
 import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import http from 'http';
@@ -141,9 +140,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
     }
 
     const app = express();
-
-    // Apply CORS middleware to all endpoints
-    app.use(cors(options.cors ?? { origin: '*' }));
 
     app.use(express.json());
     app.use(function (request, response, next) {
@@ -601,7 +597,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
     const server: Server = new Server(httpServer, {
         path: '/socket.io',
         transports: ['polling', 'websocket' /*, <- TODO: [🌬] Allow to pass `transports`, add 'webtransport' */],
-        cors: options.cors ?? { origin: '*' },
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST'],
+            // <- TODO: [🌡] Allow to pass
+        },
     });
 
     server.on('connection', (socket: Socket) => {
