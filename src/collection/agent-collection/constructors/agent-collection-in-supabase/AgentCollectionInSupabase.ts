@@ -1,5 +1,4 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { BehaviorSubject } from 'rxjs';
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
@@ -38,7 +37,7 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements AgentCollection 
         const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
         if (isVerbose) {
-            console.info(colors.cyan(`Creating pipeline collection from supabase`));
+            console.info(`Creating pipeline collection from supabase...`);
         }
     }
 

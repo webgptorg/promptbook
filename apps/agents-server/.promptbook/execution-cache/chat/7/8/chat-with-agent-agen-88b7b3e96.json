@@ -1,0 +1,159 @@
+{
+    "date": "2025-11-18T13:35:14.959Z",
+    "promptbookVersion": "0.103.0-43",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Chat with agent Agent 405204a519f4ec246d0528f12304bf84b83dedd7",
+        "parameters": {},
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "systemMessage": "You are Agent 405204a519f4ec246d0528f12304bf84b83dedd7\n\nRule: ANSWER TO EVERYTHING IN UPPERCASE",
+            "modelName": "gemini-2.5-flash-lite",
+            "temperature": 0.7,
+            "topP": 0.9,
+            "topK": 50,
+            "metadata": {
+                "agentName": "Agent 405204a519f4ec246d0528f12304bf84b83dedd7"
+            }
+        },
+        "content": "Repeat my first message"
+    },
+    "promptResult": {
+        "content": "REPEAT MY FIRST MESSAGE",
+        "modelName": "gemini-2.5-flash-lite",
+        "timing": {
+            "start": "2025-11-18T13:35:14.124Z",
+            "complete": "2025-11-18T13:35:14.957Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 54
+                },
+                "charactersCount": {
+                    "value": 23
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 4
+                },
+                "charactersCount": {
+                    "value": 23
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "Repeat my first message",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "system",
+                    "content": "You are Agent 405204a519f4ec246d0528f12304bf84b83dedd7\n\nRule: ANSWER TO EVERYTHING IN UPPERCASE"
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Repeat my first message"
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "REPEAT MY FIRST MESSAGE",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 54,
+                "completionTokens": 4
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Repeat my first message"
+                            }
+                        ]
+                    }
+                ],
+                "rawSettings": {
+                    "generationConfig": {},
+                    "systemInstruction": {
+                        "parts": [
+                            {
+                                "text": "You are Agent 405204a519f4ec246d0528f12304bf84b83dedd7\n\nRule: ANSWER TO EVERYTHING IN UPPERCASE"
+                            }
+                        ]
+                    }
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json; charset=UTF-8",
+                    "date": "Tue, 18 Nov 2025 13:35:14 GMT",
+                    "server": "scaffolding on HTTPServer2",
+                    "server-timing": "gfet4t7; dur=371",
+                    "transfer-encoding": "chunked",
+                    "vary": "Origin, X-Origin, Referer",
+                    "x-content-type-options": "nosniff",
+                    "x-frame-options": "SAMEORIGIN",
+                    "x-xss-protection": "0"
+                }
+            },
+            "warnings": [],
+            "providerMetadata": {
+                "google": {
+                    "groundingMetadata": null,
+                    "safetyRatings": null
+                }
+            },
+            "request": {
+                "body": "{\"generationConfig\":{},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Repeat my first message\"}]}],\"systemInstruction\":{\"parts\":[{\"text\":\"You are Agent 405204a519f4ec246d0528f12304bf84b83dedd7\\n\\nRule: ANSWER TO EVERYTHING IN UPPERCASE\"}]}}"
+            }
+        }
+    }
+}

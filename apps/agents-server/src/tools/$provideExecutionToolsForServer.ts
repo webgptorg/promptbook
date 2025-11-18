@@ -20,7 +20,6 @@ import {
 import { _GoogleRegistration } from '@promptbook-local/google';
 import { _OpenAiRegistration } from '@promptbook-local/openai';
 import { ExecutionTools, TODO_any } from '@promptbook-local/types';
-import { $detectRuntimeEnvironment } from '@promptbook-local/utils';
 import { $provideLlmToolsForCli } from '../../../../src/cli/common/$provideLlmToolsForCli';
 import { $provideExecutablesForNode } from '../../../../src/executables/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../../../src/scrapers/_common/register/$provideFilesystemForNode';
@@ -50,14 +49,21 @@ $sideEffect(/* [㊗] */ _OpenAiRegistration);
 $sideEffect(/* [㊗] */ _GoogleRegistration);
 // <- TODO: !!!! Allow to dynamically install required metadata
 
-console.log('$detectRuntimeEnvironment', $detectRuntimeEnvironment());
-
 /**
  * Cache of provided execution tools
  *
  * @private internal cache for `$provideExecutionToolsForServer`
  */
 let executionTools: null | ExecutionTools = null;
+
+
+
+/*
+TODO: [▶️]
+type ProvideExecutionToolsForServerOptions = {
+ isLlmProvided
+}
+*/
 
 /**
  * !!!!

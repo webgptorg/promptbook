@@ -149,15 +149,27 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         let underlyingLlmResult: CommonPromptResult;
 
         if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
+            if (this.options.isVerbose) {
+                console.log(`Creating new OpenAI Assistant for agent ${this.title}...`);
+            }
             // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
             const assistant = await this.options.llmTools.createNewAssistant({
                 name: this.title,
                 instructions: modelRequirements.systemMessage,
+                /*
+                !!!
+                metadata: {
+                    agentModelName: this.modelName,
+                }
+                */
             });
             // <- TODO: !!! Cache the assistant in prepareCache
 
             underlyingLlmResult = await assistant.callChatModel(chatPrompt);
         } else {
+            if (this.options.isVerbose) {
+                console.log(`Creating Assistant ${this.title} on generic LLM execution tools...`);
+            }
             // Create modified chat prompt with agent system message
             const modifiedChatPrompt: ChatPrompt = {
                 ...chatPrompt,

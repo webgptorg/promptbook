@@ -1,5 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -12,10 +12,15 @@ export async function GET(request: Request, { params }: { params: { agentName: s
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const executionTools = await $provideExecutionToolsForServer();
+        // [▶️] const executionTools = await $provideExecutionToolsForServer();
+        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
         const agentSource = await collection.getAgentSource(agentName);
         const agent = new Agent({
-            executionTools,
+            isVerbose: true, // <- TODO: !!! From environment variable
+            executionTools: {
+                // [▶️] ...executionTools,
+                llm: openAiAssistantExecutionTools, // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
+            },
             agentSource,
         });
         const llmTools = agent.getLlmExecutionTools();
@@ -35,6 +40,8 @@ export async function GET(request: Request, { params }: { params: { agentName: s
         });
     } catch (error) {
         assertsError(error);
+
+        console.error(error);
 
         return new Response(
             JSON.stringify(

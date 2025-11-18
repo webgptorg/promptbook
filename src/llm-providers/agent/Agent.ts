@@ -68,6 +68,7 @@ export class Agent implements AgentBasicInformation {
      */
     getLlmExecutionTools(): LlmExecutionTools {
         const llmTools = new AgentLlmExecutionTools({
+            isVerbose: this.options.isVerbose,
             llmTools: getSingleLlmExecutionTools(this.options.executionTools.llm),
             agentSource: this.agentSource.value, // <- TODO: !!!! Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
         });

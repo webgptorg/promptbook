@@ -9,7 +9,13 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_title, string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -284,14 +290,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             );
         }
 
-        await this.playground();
-
+        // await this.playground();
         const { name, instructions } = options;
-
         const client = await this.getClient();
 
-        /*
-        TODO: !!!
+        /*/
+        //TODO: !!!
         async function downloadFile(url: string, folder = './tmp'): Promise<string> {
             const filename = path.basename(url.split('?')[0]);
             const filepath = path.join(folder, filename);
@@ -335,9 +339,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             const file = await uploadFileToOpenAI(filepath);
             uploadedFiles.push(file.id);
         }
-        */
+        /**/
 
-        alert('!!!! Creating new OpenAI assistant');
+        // alert('!!!! Creating new OpenAI assistant');
 
         // 3️⃣ Create assistant with uploaded files
         const assistant = await client.beta.assistants.create({
