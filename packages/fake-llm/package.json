@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/fake-llm",
-    "version": "0.103.0-42",
+    "version": "0.103.0-43",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -96,7 +96,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/fake-llm.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-42"
+        "@promptbook/core": "0.103.0-43"
     },
     "dependencies": {
         "crypto": "1.0.1",
