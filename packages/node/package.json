@@ -96,11 +96,13 @@
         "@promptbook/core": "0.103.0-42"
     },
     "dependencies": {
+        "bottleneck": "2.19.5",
         "colors": "^1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "dotenv": "16.3.2",
         "jszip": "3.10.1",
+        "openai": "4.63.0",
         "papaparse": "5.4.1",
         "rxjs": "7.8.2",
         "spacetrim": "0.11.60",
