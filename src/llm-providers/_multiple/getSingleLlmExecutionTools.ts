@@ -21,5 +21,6 @@ export function getSingleLlmExecutionTools(
 }
 
 /**
+ * TODO: [🙆] `getSingleLlmExecutionTools` vs `joinLlmExecutionTools` - explain difference or pick one
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  */

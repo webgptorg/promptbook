@@ -1,6 +1,7 @@
 'use server';
 
 import logoImage from '@/public/logo-blue-white-256.png';
+import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import { $isRunningInBrowser } from '@promptbook-local/utils';
 import moment from 'moment';
 import Image from 'next/image';
@@ -8,7 +9,8 @@ import Link from 'next/link';
 import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { getLongRunningTask } from '../deamons/longRunningTask';
-import { $provideAgentsServerTools } from '../tools/$provideAgentsServerTools';
+import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
+import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { AddAgentButton } from './AddAgentButton';
 
 // Add calendar formats that include seconds
@@ -24,11 +26,13 @@ const calendarWithSeconds = {
 export default async function HomePage() {
     console.log($isRunningInBrowser());
 
-    const { collection } = await $provideAgentsServerTools();
+    const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
+
     const longRunningTask = getLongRunningTask();
 
-    console.log('!!!', agents);
+    const executionTools = await $provideExecutionToolsForServer();
+    const models = await getSingleLlmExecutionTools(executionTools.llm).listModels();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -58,10 +62,9 @@ export default async function HomePage() {
                 </div>
 
                 <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">Agents ({agents.length})</h2>
-
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {agents.map((agent) => (
-                        <Link key={agent.agentName} href={'/agents/' + agent.agentName}>
+                        <Link key={agent.agentName} href={`/agents/${agent.agentName}`}>
                             <AvatarProfile
                                 {...{ agent }}
                                 className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
@@ -69,6 +72,19 @@ export default async function HomePage() {
                         </Link>
                     ))}
                     <AddAgentButton />
+                </div>
+
+                <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">Models ({models.length})</h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {models.map(({ modelName, modelTitle, modelDescription }) => (
+                        <Link key={modelName} href={`#!!!`}>
+                            <div className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400">
+                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">{modelTitle}</h2>
+                                <code>{modelName}</code>
+                                <p className="text-gray-600">{modelDescription}</p>
+                            </div>
+                        </Link>
+                    ))}
                 </div>
 
                 <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-4">About</h2>

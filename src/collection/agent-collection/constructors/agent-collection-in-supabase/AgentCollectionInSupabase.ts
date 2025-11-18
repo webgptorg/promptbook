@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
+import { BehaviorSubject } from 'rxjs';
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
@@ -7,15 +8,12 @@ import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { CommonToolsOptions } from '../../../../execution/CommonToolsOptions';
-import type { ExecutionTools } from '../../../../execution/ExecutionTools';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import { Agent } from '../../../../llm-providers/agent/Agent';
 import type { PrepareAndScrapeOptions } from '../../../../prepare/PrepareAndScrapeOptions';
 import type { string_agent_name } from '../../../../types/typeAliases';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
-import type { AgentCollection } from '../../AgentCollection';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 
 /**
@@ -26,15 +24,15 @@ import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
  * @public exported from `@promptbook/core`
  * <- TODO: !!! Move to `@promptbook/supabase` package
  */
-export class AgentCollectionInSupabase implements AgentCollection {
+export class AgentCollectionInSupabase /* TODO: !!!! implements AgentCollection */ {
     /**
      * @param rootPath - path to the directory with agents
-     * @param tools - Execution tools to be used in `Agent` itself and listing the agents
+     * @param tools - Execution tools to be used in !!! `Agent` itself and listing the agents
      * @param options - Options for the collection creation
      */
     public constructor(
         private readonly supabaseClient: SupabaseClient<AgentsDatabaseSchema>,
-        private readonly tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
+        /// TODO: !!! Remove> private readonly tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
         public readonly options?: PrepareAndScrapeOptions & CommonToolsOptions,
     ) {
         const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
@@ -47,7 +45,7 @@ export class AgentCollectionInSupabase implements AgentCollection {
     /**
      * Cached defined execution tools
      */
-    private _definedTools: ExecutionTools | null = null;
+    // !!! private _definedTools: ExecutionTools | null = null;
 
     /*
     TODO: !!! Use or remove
@@ -101,11 +99,9 @@ export class AgentCollectionInSupabase implements AgentCollection {
 
     /**
      * !!!
-     */
+     * /
     public async spawnAgent(agentName: string_agent_name): Promise<Agent> {
-        TODO_USE(agentName);
-        throw new NotYetImplementedError('Method not implemented.');
-        /*
+   
         // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const tools = await this.getTools();
@@ -153,7 +149,37 @@ export class AgentCollectionInSupabase implements AgentCollection {
         }
 
         return agent;
-        */
+        * /
+    }
+    */
+
+    /**
+     * !!!@@@
+     */
+    public async getAgentSource(agentName: string_agent_name): Promise<BehaviorSubject<string_book>> {
+        const result = await this.supabaseClient
+            .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
+            .select('agentSource')
+            .eq('agentName', agentName)
+            .single();
+
+        if (result.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                
+                        Error fetching agent "${agentName}" from Supabase:
+                        
+                        ${block(result.error.message)}
+                    `,
+                ),
+            );
+            // <- TODO: !!! First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
+        }
+
+        const agentSource = new BehaviorSubject(result.data.agentSource as string_book);
+        // <- TODO: !!!! Dynamic updates
+        return agentSource;
     }
 
     /**
@@ -201,6 +227,7 @@ export class AgentCollectionInSupabase implements AgentCollection {
 }
 
 /**
+ * TODO: !!!! Implement it here correctly and update JSDoc comments here, and on interface + other implementations
  * TODO: Write unit test
  * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
  */

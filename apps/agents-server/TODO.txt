@@ -1,4 +1,4 @@
-
+TODO: !!!! Tests of this should be in main testing pipeline
 TODO: !!!! Make the agents live here
 TODO: !!!! Publish `agents-server` this as Docker container
 TODO: !!!! Publish `@promptbook/agents-server` to npm
