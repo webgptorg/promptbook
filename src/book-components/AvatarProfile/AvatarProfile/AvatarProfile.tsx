@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { CSSProperties, useState } from 'react';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { string_css_class } from '../../../types/typeAliases';
@@ -29,6 +29,11 @@ export type AvatarProfileProps = {
      * Optional CSS class name which will be added to root <div> element
      */
     readonly className?: string_css_class;
+
+    /**
+     * Optional CSS style which will be added to root <div/> element
+     */
+    readonly style?: CSSProperties;
 };
 
 /**
@@ -37,13 +42,13 @@ export type AvatarProfileProps = {
  * @public exported from `@promptbook/components`
  */
 export function AvatarProfile(props: AvatarProfileProps) {
-    const { agent, agentSource, className } = props;
+    const { agent, agentSource, className, style } = props;
     const { agentName, personaDescription, meta } = agent;
     const [isBookEditorVisible, setIsBookEditorVisible] = useState(false);
 
     return (
         <>
-            <div className={classNames(styles.AvatarProfile, className)}>
+            <div className={classNames(styles.AvatarProfile, className)} style={style}>
                 <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
                 <div className={styles.AgentInfo}>
                     <h2 className={styles.AgentName}>{agentName}</h2>

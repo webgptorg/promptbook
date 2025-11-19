@@ -185,6 +185,15 @@ export type string_title = string;
 export type string_agent_name = string;
 
 /**
+ * Semantic helper
+ *
+ * For example `"My AI Assistant"`
+ */
+export type string_agent_name_in_book = string;
+
+// <- TODO: !!!! Search and dinstinguish between `string_agent_name` and `string_agent_name_in_book` ACRY + write here in JSDoc difference
+
+/**
  * Unstructured description of the persona
  *
  * For example `"Skilled copywriter"`
@@ -631,7 +640,21 @@ export type string_dirname = string_absolute_dirname | string_relative_dirname;
  *
  * For example `"John Smith"`
  */
-export type string_person_fullname = string;
+export type string_person_fullname = `${string_person_firstname} ${string_person_lastname}` | string;
+
+/**
+ * Semantic helper
+ *
+ * For example `"John Smith"`
+ */
+export type string_person_firstname = string;
+
+/**
+ * Semantic helper
+ *
+ * For example `"John Smith"`
+ */
+export type string_person_lastname = string;
 
 /**
  * Semantic helper

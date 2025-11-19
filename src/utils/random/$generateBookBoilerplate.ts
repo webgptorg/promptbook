@@ -2,9 +2,9 @@ import spaceTrim from 'spacetrim';
 import type { PartialDeep } from 'type-fest';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { string_book, validateBook } from '../../book-2.0/agent-source/string_book';
-import { string_agent_name } from '../../types/typeAliases';
+import { string_agent_name_in_book } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
-import { $randomToken } from './$randomToken';
+import { $randomFullnameWithColor } from './$randomFullnameWithColor';
 
 type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'parameters'>> & {
     /**
@@ -12,7 +12,7 @@ type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'p
      *
      * @default 'Adam'
      */
-    parentAgentName?: string_agent_name;
+    parentAgentName?: string_agent_name_in_book;
 };
 
 /**
@@ -30,8 +30,9 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
     let { image, color, ...restMeta } = meta || {};
 
     if (!agentName) {
-        agentName = 'Agent ' + $randomToken(20);
-        // <- TODO: !!! Supercool random name generator
+        const randomFullnameWithColor = $randomFullnameWithColor();
+        agentName = randomFullnameWithColor.fullname as string_agent_name_in_book;
+        color = color || randomFullnameWithColor.color;
     }
 
     if (!personaDescription) {
@@ -48,10 +49,16 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
             (block) => `
                 ${agentName}
     
+                META COLOR ${color || '#3498db' /* <- TODO: !!!! Best default color */}
                 PERSONA ${block(personaDescription!)}
             `,
         ),
+        // <- TODO: !!!! Also add `META IMAGE` with some cool AI-generated avatar image
     );
 
     return agentSource;
 }
+
+/**
+ * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
+ */

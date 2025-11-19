@@ -16,4 +16,5 @@ export function $randomColor(): Color {
 /**
  * TODO: !! Use Internally Color.fromValues
  * TODO: !! randomColorWithAlpha
+ * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
  */

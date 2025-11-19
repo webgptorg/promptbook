@@ -15,5 +15,6 @@ export function $randomToken(randomness: number): string_token {
 }
 
 /**
+ * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
  * TODO: Maybe use nanoid instead https://github.com/ai/nanoid
  */

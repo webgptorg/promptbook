@@ -2,12 +2,13 @@
 
 import logoImage from '@/public/logo-blue-white-256.png';
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
-import { $isRunningInBrowser } from '@promptbook-local/utils';
 import moment from 'moment';
+import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
+import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
@@ -23,10 +24,8 @@ const calendarWithSeconds = {
     sameElse: 'L [at] LTS',
 };
 
-export const dynamic = 'force-dynamic';
-
 export default async function HomePage() {
-    console.log($isRunningInBrowser());
+    $sideEffect(/* TODO: !!!!!! Explain */ headers());
 
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
@@ -51,6 +50,13 @@ export default async function HomePage() {
                             <Link key={agent.agentName} href={`/agents/${agent.agentName}`}>
                                 <AvatarProfile
                                     {...{ agent }}
+                                    style={
+                                        !agent.meta.color
+                                            ? {}
+                                            : {
+                                                  backgroundColor: `${agent.meta.color}22`, // <- TODO: Use Color object here
+                                              }
+                                    }
                                     className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
                                 />
                             </Link>
