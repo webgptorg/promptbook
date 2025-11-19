@@ -23,6 +23,8 @@ const calendarWithSeconds = {
     sameElse: 'L [at] LTS',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
     console.log($isRunningInBrowser());
 
