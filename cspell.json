@@ -28,6 +28,10 @@
         "src/scrapers/website/examples",
         "src/scrapers/markdown/examples",
         "src/other/templates/getTemplatesPipelineCollection.ts",
-        "**/tmp/**"
+        "**/tmp/**",
+        "src/utils/random/data/czech-first-male-names.json",
+        "src/utils/random/data/czech-first-female-names.json",
+        "src/utils/random/data/czech-last-male-names.json",
+        "src/utils/random/data/czech-last-female-names.json"
     ]
 }
