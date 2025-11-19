@@ -24,6 +24,11 @@ const CZECH_LAST_NAMES: Record<Gender, IName[]> = {
     [Gender.Male]: CZECH_LAST_MALE_NAMES,
 };
 
+/**
+ * @@@@
+ * 
+ * @private internal helper function
+ */
 export function $randomCzechName({
     isProportionallyRandom,
     pickGender,

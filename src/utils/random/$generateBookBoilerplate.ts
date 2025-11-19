@@ -5,6 +5,7 @@ import { string_book, validateBook } from '../../book-2.0/agent-source/string_bo
 import { string_agent_name_in_book } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
 import { $randomFullnameWithColor } from './$randomFullnameWithColor';
+import { $randomAgentPersona } from './$randomAgentPersona';
 
 type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'parameters'>> & {
     /**
@@ -36,7 +37,7 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
     }
 
     if (!personaDescription) {
-        personaDescription = 'Friendly and helpful AI agent.';
+        personaDescription = $randomAgentPersona();
     }
 
     TODO_USE(parentAgentName);
