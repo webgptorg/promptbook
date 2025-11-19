@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Anthropic Claude models with pricing
  *
- * Note: Synced with official API docs at 2025-08-20
+ * Note: Synced with official API docs at 2025-11-19
  *
  * @see https://docs.anthropic.com/en/docs/models-overview
  * @public exported from `@promptbook/anthropic-claude`
@@ -23,6 +23,26 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
     value: [
         {
             modelVariant: 'CHAT',
+            modelTitle: 'Claude Sonnet 4.5',
+            modelName: 'claude-sonnet-4-5-20250929',
+            modelDescription: 'Our smartest model for complex agents and coding',
+            pricing: {
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$15.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Haiku 4.5',
+            modelName: 'claude-haiku-4-5-20251001',
+            modelDescription: 'Our fastest model with near-frontier intelligence',
+            pricing: {
+                prompt: pricing(`$1.00 / 1M tokens`),
+                output: pricing(`$5.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
             modelTitle: 'Claude Opus 4.1',
             modelName: 'claude-opus-4-1-20250805',
             modelDescription:
@@ -37,7 +57,7 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelTitle: 'Claude Opus 4',
             modelName: 'claude-opus-4-20250514',
             modelDescription:
-                'Previous flagship Claude model with 200K token context window. Features very high intelligence and capability with exceptional performance across reasoning, coding, and creative tasks. Maintains strong safety guardrails while delivering sophisticated outputs for complex professional applications.',
+                'Previous flagship Claude model with 200K token context window. Features very high intelligence and capability with exceptional performance across reasoning, coding, and creative tasks. Maintains strong safety guardrails while delivering sophisticated outputs for complex professional applications. DEPRECATED: Use Claude Opus 4.1 instead.',
             pricing: {
                 prompt: pricing(`$15.00 / 1M tokens`),
                 output: pricing(`$75.00 / 1M tokens`),
@@ -48,7 +68,7 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelTitle: 'Claude Sonnet 4',
             modelName: 'claude-sonnet-4-20250514',
             modelDescription:
-                'High-performance Claude model with exceptional reasoning capabilities and 200K token context window (1M context beta available). Features balanced intelligence and efficiency with enhanced multimodal understanding. Offers optimal performance for most enterprise applications requiring sophisticated AI capabilities.',
+                'High-performance Claude model with exceptional reasoning capabilities and 200K token context window (1M context beta available). Features balanced intelligence and efficiency with enhanced multimodal understanding. Offers optimal performance for most enterprise applications requiring sophisticated AI capabilities. DEPRECATED: Use Claude Sonnet 4.5 instead.',
             pricing: {
                 prompt: pricing(`$3.00 / 1M tokens`),
                 output: pricing(`$15.00 / 1M tokens`),

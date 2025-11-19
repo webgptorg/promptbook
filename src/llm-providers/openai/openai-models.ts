@@ -5,7 +5,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available OpenAI models with pricing
  *
- * Note: Synced with official API docs at 2025-08-20
+ * Note: Synced with official API docs at 2025-11-19
  *
  * @see https://platform.openai.com/docs/models/
  * @see https://openai.com/api/pricing/
@@ -17,10 +17,21 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         /**/
         {
             modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.1',
+            modelName: 'gpt-5.1',
+            modelDescription:
+                'The best model for coding and agentic tasks with configurable reasoning effort.',
+            pricing: {
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
             modelTitle: 'gpt-5',
             modelName: 'gpt-5',
             modelDescription:
-                "OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window. Features revolutionary improvements in complex problem-solving, scientific reasoning, and creative tasks. Demonstrates human-level performance across diverse domains with enhanced safety measures and alignment. Represents the next generation of AI with superior understanding, nuanced responses, and advanced multimodal capabilities.",
+                "OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window. Features revolutionary improvements in complex problem-solving, scientific reasoning, and creative tasks. Demonstrates human-level performance across diverse domains with enhanced safety measures and alignment. Represents the next generation of AI with superior understanding, nuanced responses, and advanced multimodal capabilities. DEPRECATED: Use gpt-5.1 instead.",
             pricing: {
                 prompt: pricing(`$1.25 / 1M tokens`),
                 output: pricing(`$10.00 / 1M tokens`),

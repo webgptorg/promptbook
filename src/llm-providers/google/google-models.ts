@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Google models with descriptions
  *
- * Note: Synced with official API docs at 2025-08-20
+ * Note: Synced with official API docs at 2025-11-19
  *
  * @see https://ai.google.dev/models/gemini
  * @public exported from `@promptbook/google`
@@ -22,6 +22,14 @@ export const GOOGLE_MODELS: ReadonlyArray<
 > = exportJson({
     name: 'GOOGLE_MODELS',
     value: [
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Gemini 3 Pro',
+            modelName: 'gemini-3-pro-preview',
+            modelDescription:
+                'The best model in the world for multimodal understanding, and our most powerful agentic and vibe-coding model yet, delivering richer visuals and deeper interactivity, all built on a foundation of state-of-the-art reasoning.',
+            // TODO: [🧠] Add pricing information for Gemini 3 Pro
+        },
         {
             modelVariant: 'CHAT',
             modelTitle: 'Gemini 2.5 Pro',

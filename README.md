@@ -32,11 +32,7 @@ TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 
 ## 🌟 New Features
 
--   🚀 **GPT-5 Support** - Now includes OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window
--   💡 VS Code support for `.book` files with syntax highlighting and IntelliSense
--   🐳 Official Docker image (`hejny/promptbook`) for seamless containerized usage
--   🔥 Native support for OpenAI `o3-mini`, GPT-4 and other leading LLMs
--   🔍 DeepSeek integration for advanced knowledge search
+-   **Gemini 3 Support**
 
 <!-- <- TODO: !!3 Make this warning dynamic + link latest stable release automatically -->
 
