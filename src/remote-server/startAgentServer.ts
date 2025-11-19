@@ -27,9 +27,16 @@ export async function startAgentServer(options: AgentsServerOptions): Promise<TO
 
     // TODO: !!!! [🌕]
 
+    console.trace(`!!! Starting agents server on port ${port}...`);
+    console.log(`!!! cwd`, process.cwd());
+
     await $execCommand({
         cwd: './apps/agents-server',
         command: `next dev --port ${port} `,
         isVerbose: true,
     });
 }
+
+/**
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
+ */

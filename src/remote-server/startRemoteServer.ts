@@ -811,4 +811,5 @@ export function startRemoteServer<TCustomOptions = undefined>(
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  * TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
  * TODO: Allow to constrain anonymous mode for specific models / providers
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
