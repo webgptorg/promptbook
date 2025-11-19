@@ -25,7 +25,7 @@ const calendarWithSeconds = {
 };
 
 export default async function HomePage() {
-    $sideEffect(/* TODO: !!!!!! Explain */ headers());
+    $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();

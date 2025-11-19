@@ -199,4 +199,5 @@ export function SelfLearningBook() {
 
 /**
  * TODO: !!!! Make self-learning book createAgentLlmExecutionTools, use bidirectional agentSource
+ * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
  */
