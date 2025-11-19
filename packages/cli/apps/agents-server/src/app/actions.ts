@@ -1,0 +1,14 @@
+'use server';
+
+import { $generateBookBoilerplate } from '@promptbook-local/core';
+import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
+
+export async function $createAgentAction() {
+    const collection = await $provideAgentCollectionForServer();
+    await collection.createAgent($generateBookBoilerplate());
+}
+
+/**
+ * TODO: !!!! Reorganize actions.ts files
+ * TODO: !!! [🧠] Study how Next.js actions work
+ */
