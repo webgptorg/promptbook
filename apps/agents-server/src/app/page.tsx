@@ -1,16 +1,14 @@
-'use server';
+'use client';
 
 import logoImage from '@/public/logo-blue-white-256.png';
-import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import { $isRunningInBrowser } from '@promptbook-local/utils';
 import moment from 'moment';
 import Image from 'next/image';
 import Link from 'next/link';
+import React, { useEffect } from 'react';
 import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { getLongRunningTask } from '../deamons/longRunningTask';
-import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
-import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { AddAgentButton } from './AddAgentButton';
 
 // Add calendar formats that include seconds
@@ -26,13 +24,35 @@ const calendarWithSeconds = {
 export default async function HomePage() {
     console.log($isRunningInBrowser());
 
-    const collection = await $provideAgentCollectionForServer();
-    const agents = await collection.listAgents();
-
     const longRunningTask = getLongRunningTask();
 
-    const executionTools = await $provideExecutionToolsForServer();
-    const models = await getSingleLlmExecutionTools(executionTools.llm).listModels();
+    // Dynamic client-side loading for agents and models
+    // Use React hooks to fetch data after initial render
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [agents, setAgents] = React.useState<Array<{ agentName: string }>>([]);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [models, setModels] = React.useState<
+        Array<{ modelName: string; modelTitle: string; modelDescription: string }>
+    >([]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const agentsRes = await fetch('/api/agents');
+                const agentsData = await agentsRes.json();
+                setAgents(agentsData);
+            } catch (e) {
+                setAgents([]);
+            }
+            try {
+                const modelsRes = await fetch('/api/models');
+                const modelsData = await modelsRes.json();
+                setModels(modelsData);
+            } catch (e) {
+                setModels([]);
+            }
+        })();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
