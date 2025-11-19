@@ -9,15 +9,16 @@ import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffec
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 // import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 
-export default async function AgentPage() {
+export default async function AgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     // const [apiKey, setApiKey] = useStateInLocalStorage<string>('openai-apiKey', () => '');
     // const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
     // const [isApiKeySectionCollapsed, setIsApiKeySectionCollapsed] = useState(!!apiKey);
 
     $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
+    const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const agentSourceSubject = await collection.getAgentSource('Gabriel Gray');
+    const agentSourceSubject = await collection.getAgentSource(decodeURIComponent(agentName));
     const agentSource = agentSourceSubject.getValue();
     const agentProfile = parseAgentSource(agentSource);
 
