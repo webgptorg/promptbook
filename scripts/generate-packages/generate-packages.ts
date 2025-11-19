@@ -257,7 +257,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             /*
             spaceTrim(`
 
-                # ![Promptbook logo - cube with letters P and B](./design/logo-h1.png) Promptbook
+                # ![Promptbook logo](./design/logo-h1.png) Promptbook
 
                 Supercharge your use of large language models
 
