@@ -428,3 +428,7 @@ Witcher
 llamaindex
 mcp
 mcps
+firstname
+firstnames
+lastname
+lastnames
