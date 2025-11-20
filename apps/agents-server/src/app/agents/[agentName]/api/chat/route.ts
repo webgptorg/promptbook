@@ -33,6 +33,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             content: message,
         });
 
+        // TODO: [🐚] Implement streaming
+
         return new Response(response.content, {
             status: 200,
             headers: { 'Content-Type': 'text/plain' },

@@ -42,3 +42,7 @@ export async function GET(request: Request) {
         headers: { 'Content-Type': 'text/plain' },
     });
 }
+
+/**
+ * Note: [🐚] This is how streaming is implemented correctly
+ */

@@ -32,6 +32,16 @@ export class RemoteAgent extends Agent {
             ...options,
             executionTools: {
                 /* Note: Theese tools arent used */
+                // ---------------------------------------
+                /*
+                TODO: !!! Get rid of
+                
+                > You have not provided any `LlmExecutionTools`
+                > This means that you won't be able to execute any prompts that require large language models like GPT-4 or Anthropic's Claude.
+                > 
+                > Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.
+
+                */
             },
             agentSource,
         });
@@ -60,12 +70,25 @@ export class RemoteAgent extends Agent {
         // <- TODO: !!!! What about closed-source agents?
         // <- TODO: !!!! Maybe use promptbookFetch
 
-        const bookResponseContent = (await bookResponse.text()) as string_book;
-        // <- TODO: !!!!!!!! Try streaming
+        let content = '';
+
+        if (!bookResponse.body) {
+            content = await bookResponse.text();
+        } else {
+            // Note: [🐚] Problem with streaming isnt here but it isnt implemented on server
+            const decoder = new TextDecoder();
+
+            for await (const chunk of bookResponse.body) {
+                const textChunk = decoder.decode(chunk, { stream: true });
+                console.log(chunk, textChunk);
+                content += textChunk;
+            }
+        }
+
         // <- TODO: !!!!!!!! Transfer metadata
 
         const agentResult: ChatPromptResult = {
-            content: bookResponseContent,
+            content,
             modelName: this.modelName,
             timing: {} as TODO_any,
             usage: {} as TODO_any,
