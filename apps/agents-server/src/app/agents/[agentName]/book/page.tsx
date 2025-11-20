@@ -10,8 +10,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
 
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const agentSourceSubject = await collection.getAgentSource(decodeURIComponent(agentName));
-    const agentSource = agentSourceSubject.getValue();
+    const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
 
     return <BookEditorWrapper agentName={agentName} initialAgentSource={agentSource} />;
 }

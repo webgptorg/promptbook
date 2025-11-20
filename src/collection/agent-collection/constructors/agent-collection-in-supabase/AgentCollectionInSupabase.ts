@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { BehaviorSubject } from 'rxjs';
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
+import { NotFoundError } from '../../../../errors/NotFoundError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { CommonToolsOptions } from '../../../../execution/CommonToolsOptions';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
@@ -42,143 +42,67 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements AgentCollection 
     }
 
     /**
-     * Cached defined execution tools
-     */
-    // !!! private _definedTools: ExecutionTools | null = null;
-
-    /*
-    TODO: !!! Use or remove
-    /**
-     * Gets or creates execution tools for the collection
-     * /
-    private async getTools(): Promise<ExecutionTools> {
-        if (this._definedTools !== null) {
-            return this._definedTools;
-        }
-
-        this._definedTools = {
-            ...(this.tools === undefined || this.tools.fs === undefined ? await $provideExecutionToolsForNode() : {}),
-            ...this.tools,
-        };
-        return this._definedTools;
-    }
-    // <- TODO: [👪] Maybe create some common abstraction *(or parent abstract class)*
-    */
-
-    /**
      * Gets all agents in the collection
      */
     public async listAgents(/* TODO: [🧠] Allow to pass some condition here */): Promise<
         ReadonlyArray<AgentBasicInformation>
     > {
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
-        const result = await this.supabaseClient
+        const selectResult = await this.supabaseClient
             .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
             .select('agentProfile');
 
-        if (result.error) {
+        if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
                 
                         Error fetching agents from Supabase:
                         
-                        ${block(result.error.message)}
+                        ${block(selectResult.error.message)}
                     `,
                 ),
             );
         }
 
         if (isVerbose) {
-            console.info(`Found ${result.data.length} agents in directory`);
+            console.info(`Found ${selectResult.data.length} agents in directory`);
         }
 
-        return result.data.map((row) => row.agentProfile as AgentBasicInformation);
+        return selectResult.data.map((row) => row.agentProfile as AgentBasicInformation);
     }
-
-    /**
-     * !!!
-     * /
-    public async spawnAgent(agentName: string_agent_name): Promise<Agent> {
-   
-        // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
-        const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
-        const tools = await this.getTools();
-
-        const agentSourceValue = validateBook(await tools.fs!.readFile(agentSourcePath, 'utf-8'));
-        const agentSource = new BehaviorSubject(agentSourceValue);
-
-        // Note: Write file whenever agent source changes
-        agentSource.subscribe(async (newSource) => {
-            if (isVerbose) {
-                console.info(colors.cyan(`Writing agent source to file ${agentSourcePath}`));
-            }
-            await forTime(500); // <- TODO: [🙌] !!! Remove
-            await tools.fs!.writeFile(agentSourcePath, newSource, 'utf-8');
-        });
-
-        // Note: Watch file for external changes
-        for await (const event of tools.fs!.watch(agentSourcePath)) {
-            // <- TODO: !!!! Solve the memory freeing when the watching is no longer needed
-
-            if (event.eventType !== 'change') {
-                continue;
-            }
-
-            if (isVerbose) {
-                console.info(
-                    colors.cyan(`Detected external change in agent source file ${agentSourcePath}, reloading`),
-                );
-            }
-            await forTime(500); // <- TODO: [🙌] !!! Remove
-            const newSource = validateBook(await tools.fs!.readFile(agentSourcePath, 'utf-8'));
-            agentSource.next(newSource);
-        }
-
-        // TODO: [🙌] !!!! Debug the infinite loop when file is changed externally and agent source is updated which causes file to be written again
-
-        const agent = new Agent({
-            ...this.options,
-            agentSource,
-            executionTools: this.tools || {},
-        });
-
-        if (isVerbose) {
-            console.info(colors.cyan(`Created agent "${agent.agentName}" from source file ${agentSourcePath}`));
-        }
-
-        return agent;
-        * /
-    }
-    */
 
     /**
      * !!!@@@
      */
-    public async getAgentSource(agentName: string_agent_name): Promise<BehaviorSubject<string_book>> {
-        const result = await this.supabaseClient
+    public async getAgentSource(agentName: string_agent_name): Promise<string_book> {
+        const selectResult = await this.supabaseClient
             .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
             .select('agentSource')
             .eq('agentName', agentName)
             .single();
 
-        if (result.error) {
+        /*
+        if (selectResult.data===null) {
+            throw new NotFoundError(`Agent "${agentName}" not found`);
+        }
+        */
+
+        if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
                 
                         Error fetching agent "${agentName}" from Supabase:
                         
-                        ${block(result.error.message)}
+                        ${block(selectResult.error.message)}
                     `,
                 ),
             );
             // <- TODO: !!! First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
         }
 
-        const agentSource = new BehaviorSubject(result.data.agentSource as string_book);
-        // <- TODO: !!!! Dynamic updates
-        return agentSource;
+        return selectResult.data.agentSource as string_book;
     }
 
     /**
@@ -190,24 +114,26 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements AgentCollection 
         const agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
 
-        const result = await this.supabaseClient.from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */).insert({
-            agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
-            agentProfile,
-            createdAt: new Date().toISOString(),
-            updatedAt: null,
-            agentVersion: 0,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            usage: ZERO_USAGE,
-            agentSource: agentSource,
-        });
+        const selectResult = await this.supabaseClient
+            .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
+            .insert({
+                agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
+                agentProfile,
+                createdAt: new Date().toISOString(),
+                updatedAt: null,
+                agentVersion: 0,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                usage: ZERO_USAGE,
+                agentSource: agentSource,
+            });
 
-        if (result.error) {
+        if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
                         Error creating agent "${agentProfile.agentName}" in Supabase:
                         
-                        ${block(result.error.message)}
+                        ${block(selectResult.error.message)}
                     `,
                 ),
             );
@@ -220,6 +146,16 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements AgentCollection 
      * Updates an existing agent in the collection
      */
     public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
+        const selectResult = await this.supabaseClient
+            .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
+            .select('agentVersion')
+            .eq('agentName', agentName)
+            .single();
+
+        if (!selectResult.data) {
+            throw new NotFoundError(`Agent "${agentName}" not found`);
+        }
+
         const agentProfile = parseAgentSource(agentSource as string_book);
 
         // TODO: !!!!!! What about agentName change
@@ -227,37 +163,39 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements AgentCollection 
         console.log('!!! agentName', agentName);
         const oldAgentSource = await this.getAgentSource(agentName);
 
-        const result = await this.supabaseClient
+        const updateResult = await this.supabaseClient
             .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
             .update({
                 // TODO: !!!! Compare not update> agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
                 agentProfile,
                 updatedAt: new Date().toISOString(),
-                agentVersion: 0, // <- TODO: !!!! Implement proper versioning
-                agentSource: agentSource,
+                agentVersion: selectResult.data.agentVersion + 1,
+                agentSource,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             })
             .eq('agentName', agentName);
 
         const newAgentSource = await this.getAgentSource(agentName);
 
-        console.log('!!! updateAgent', result);
+        console.log('!!! updateAgent', updateResult);
         console.log('!!! old', oldAgentSource);
         console.log('!!! new', newAgentSource);
 
-        if (result.error) {
+        if (updateResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
                         Error updating agent "${agentName}" in Supabase:
                         
-                        ${block(result.error.message)}
+                        ${block(updateResult.error.message)}
                     `,
                 ),
             );
         }
     }
 
-    // TODO: !!!! getAgentSourceSubject
+    // TODO: !!!! public async getAgentSourceSubject(agentName: string_agent_name): Promise<BehaviorSubject<string_book>>
+    //            Use Supabase realtime logic
 
     /**
      * Deletes an agent from the collection

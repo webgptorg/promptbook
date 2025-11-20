@@ -20,8 +20,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const agentSourceSubject = await collection.getAgentSource(decodeURIComponent(agentName));
-    const agentSource = agentSourceSubject.getValue();
+    const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
     const agentProfile = parseAgentSource(agentSource);
 
     // Build agent page URL for QR and copy
