@@ -155,7 +155,7 @@ export function SelfLearningBook() {
                 />
                 {/*
                 <AgentChat className="w-full h-full" persistenceKey="marigold-chat" {...{ agent }} />
-                TODO: !!! Move to `AgentChat` component
+                TODO: [👤] !!! Move to `AgentChat` component
                 */}
                 <LlmChat
                     title={`Chat with ${agent.agentName || 'Agent'}`}

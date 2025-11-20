@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { BookEditorWrapper } from './BookEditorWrapper';
 
-export default async function AgentPage({ params }: { params: Promise<{ agentName: string }> }) {
+export default async function AgentBookPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
 
     const { agentName } = await params;
