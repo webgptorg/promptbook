@@ -1,3 +1,4 @@
+import { join } from 'path';
 import type { number_port } from '../types/typeAliases';
 import { $execCommand } from '../utils/execCommand/$execCommand';
 import type { TODO_any } from '../utils/organization/TODO_any';
@@ -27,12 +28,15 @@ export async function startAgentServer(options: AgentsServerOptions): Promise<TO
 
     // TODO: !!!! [🌕]
 
+    const agentsServerRoot = join(__dirname, '../apps/agents-server');
+
     console.trace(`!!! Starting agents server on port ${port}...`);
     console.log(`!!! cwd`, process.cwd());
     console.log(`!!! __dirname`, __dirname);
+    console.log(`!!! agentsServerRoot`, agentsServerRoot);
 
     await $execCommand({
-        cwd: './apps/agents-server',
+        cwd: agentsServerRoot,
         command: `next dev --port ${port} `,
         isVerbose: true,
     });
