@@ -59,6 +59,8 @@ export type ValidatePromptResultResult = {
  * Validates a prompt result against expectations and format requirements.
  * This function provides a common abstraction for result validation that can be used
  * by both execution logic and caching logic to ensure consistency.
+ * 
+ * Note: [🔂] This function is idempotent.
  *
  * @param options - The validation options including result string, expectations, and format
  * @returns Validation result with processed string and validity status

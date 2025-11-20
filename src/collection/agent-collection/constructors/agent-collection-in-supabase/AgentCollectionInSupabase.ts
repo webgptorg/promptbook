@@ -217,6 +217,49 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements AgentCollection 
     }
 
     /**
+     * Updates an existing agent in the collection
+     */
+    public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
+        const agentProfile = parseAgentSource(agentSource as string_book);
+
+        // TODO: !!!!!! What about agentName change
+
+        console.log('!!! agentName', agentName);
+        const oldAgentSource = await this.getAgentSource(agentName);
+
+        const result = await this.supabaseClient
+            .from('AgentCollection' /* <- TODO: !!!! Change to `Agent` */)
+            .update({
+                // TODO: !!!! Compare not update> agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
+                agentProfile,
+                updatedAt: new Date().toISOString(),
+                agentVersion: 0, // <- TODO: !!!! Implement proper versioning
+                agentSource: agentSource,
+            })
+            .eq('agentName', agentName);
+
+        const newAgentSource = await this.getAgentSource(agentName);
+
+        console.log('!!! updateAgent', result);
+        console.log('!!! old', oldAgentSource);
+        console.log('!!! new', newAgentSource);
+
+        if (result.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                        Error updating agent "${agentName}" in Supabase:
+                        
+                        ${block(result.error.message)}
+                    `,
+                ),
+            );
+        }
+    }
+
+    // TODO: !!!! getAgentSourceSubject
+
+    /**
      * Deletes an agent from the collection
      */
     public async deleteAgent(agentName: string_agent_name): Promise<void> {

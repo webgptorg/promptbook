@@ -21,6 +21,8 @@ export function isValidBook(value: string): value is string_book {
  * This function should be used when you have a string that you know represents agent source
  * but need to convert it to the branded type for type safety
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @public exported from `@promptbook/core`
  */
 export function validateBook(source: string): string_book {

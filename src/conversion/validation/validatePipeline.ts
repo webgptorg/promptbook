@@ -22,6 +22,8 @@ import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUr
  * It does NOT check:
  * -   if it is valid json
  * -   if it is meaningful
+ * 
+ * Note: [🔂] This function is idempotent.
  *
  * @param pipeline valid or invalid PipelineJson
  * @returns the same pipeline if it is logically valid

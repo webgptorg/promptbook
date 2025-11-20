@@ -10,6 +10,8 @@ export const PADDING_LINES = 11;
 /**
  * A function that adds padding to the book content
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @public exported from `@promptbook/core`
  */
 export function padBook(content: string_book): string_book {

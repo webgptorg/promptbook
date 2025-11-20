@@ -11,6 +11,8 @@ import { removeQuotes } from '../../normalization/removeQuotes';
  * Function `validateParameterName` will normalize and validate a parameter name for use in pipelines.
  * It removes diacritics, emojis, and quotes, normalizes to camelCase, and checks for reserved names and invalid characters.
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @param parameterName The parameter name to validate and normalize.
  * @returns The validated and normalized parameter name.
  * @throws {ParseError} If the parameter name is empty, reserved, or contains invalid characters.
