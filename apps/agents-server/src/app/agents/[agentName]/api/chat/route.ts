@@ -38,7 +38,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
         return new Response(response.content, {
             status: 200,
-            headers: { 'Content-Type': 'text/plain' },
+            headers: { 'Content-Type': 'text/markdown' },
         });
     } catch (error) {
         assertsError(error);

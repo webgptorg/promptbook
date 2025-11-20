@@ -27,6 +27,6 @@ export async function GET(request: Request) {
 
     return new Response(response.content, {
         status: 200,
-        headers: { 'Content-Type': 'text/plain' },
+        headers: { 'Content-Type': 'text/markdown' },
     });
 }

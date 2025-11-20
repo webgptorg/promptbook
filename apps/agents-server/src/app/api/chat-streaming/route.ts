@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
     return new Response(readableStream, {
         status: 200,
-        headers: { 'Content-Type': 'text/plain' },
+        headers: { 'Content-Type': 'text/markdown' },
     });
 }
 

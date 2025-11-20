@@ -158,4 +158,5 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
  * TODO: !!! Make this page look nice - 🃏
  * TODO: !!! Show usage of LLM
  * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
+ * TODO: [🎣][🧠] Maybe do API / Page for transpilers, Allow to export each agent
  */
