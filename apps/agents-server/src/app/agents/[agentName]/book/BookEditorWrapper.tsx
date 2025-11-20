@@ -2,7 +2,7 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type BookEditorWrapperProps = {
     agentName: string;
@@ -15,23 +15,22 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-    const handleChange = async (newSource: string_book) => {
-        setAgentSource(newSource);
-        setSaveStatus('saving');
+    // Debounce timer ref so we can clear previous pending save
+    const debounceTimerRef = useRef<number | null>(null);
+    // Configurable debounce delay (ms) - tweak if needed
+    const DEBOUNCE_DELAY = 600;
 
+    const performSave = async (sourceToSave: string_book) => {
+        setSaveStatus('saving');
         try {
             const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'text/plain',
-                },
-                body: newSource,
+                headers: { 'Content-Type': 'text/plain' },
+                body: sourceToSave,
             });
-
             if (!response.ok) {
                 throw new Error(`Failed to save: ${response.statusText}`);
             }
-
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000); // Reset status after 2 seconds
         } catch (error) {
@@ -40,6 +39,32 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
             setTimeout(() => setSaveStatus('idle'), 3000);
         }
     };
+
+    const scheduleSave = (nextSource: string_book) => {
+        // Clear existing pending save
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        // We stay 'idle' while typing; could add a 'pending' status in future if desired
+        // Schedule new save
+        debounceTimerRef.current = window.setTimeout(() => {
+            performSave(nextSource);
+        }, DEBOUNCE_DELAY);
+    };
+
+    const handleChange = (newSource: string_book) => {
+        setAgentSource(newSource);
+        scheduleSave(newSource);
+    };
+
+    // Cleanup on unmount to avoid lingering timeouts
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
 
     return (
         <div className="w-full h-screen flex flex-col">
@@ -67,7 +92,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
 /**
  * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- * TODO: !!! Implement debouncing for auto-save
+ * DONE: Implement debouncing for auto-save (600ms delay) ✅
  * TODO: !!! Add error handling and retry logic
  * TODO: !!! Show save status indicator
  * TODO: !!!!! Add file upload capability
