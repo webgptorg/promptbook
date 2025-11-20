@@ -26,6 +26,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
     // Build agent page URL for QR and copy
     const pageUrl = `https://s6.ptbk.io/agents/${encodeURIComponent(agentName)}`;
+    // <- TODO: !!! Better
 
     // Extract brand color from meta
     const brandColor = agentProfile.meta.color || '#3b82f6'; // Default to blue-600
@@ -124,13 +125,15 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                     </div>
                     <div className="flex gap-4 mt-6">
                         <a
-                            href="#"
+                            href={`${pageUrl}/chat`}
+                            // <- !!!! Can I append path like this on current browser URL in href?
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-semibold transition"
                         >
                             💬 Chat
                         </a>
                         <a
-                            href="#"
+                            href={`${pageUrl}/book`}
+                            // <- !!!! Can I append path like this on current browser URL in href?
                             className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
                         >
                             ✏️ Edit Agent Book
@@ -151,5 +154,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 }
 
 /**
+ * TODO: !!! Make this page look nice - 🃏
+ * TODO: !!! Show usage of LLM
  * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
  */
