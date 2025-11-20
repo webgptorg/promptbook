@@ -437,6 +437,13 @@ export type string_pipeline_root_url = string;
 /**
  * Semantic helper
  *
+ * For example `"https://s6.ptbk.io/agents/agent-007"`
+ */
+export type string_agent_url = string; // <- TODO: `${string}.book`
+
+/**
+ * Semantic helper
+ *
  * For example `"https://promptbook.studio/webgpt/write-website-content-cs.book"`
  */
 export type string_pipeline_url = string; // <- TODO: `${string}.book`
