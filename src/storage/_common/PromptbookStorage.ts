@@ -25,4 +25,5 @@ export type PromptbookStorage<TItem> = {
 
 /**
  * TODO: [💺] Constrain `TItem` to [🚉] JSON-serializable objects only in type level
+ * TODO: [☹️] Unite the storages
  */

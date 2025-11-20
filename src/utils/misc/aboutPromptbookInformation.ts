@@ -59,9 +59,8 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
 
                 ${block(
                     REMOTE_SERVER_URLS.map(
-                        ({ title, urls, isAnonymousModeAllowed, description }, index) =>
-                            `${index + 1}. ${title} ${description}
-                        ${isAnonymousModeAllowed ? '🐱‍💻 ' : ''} ${urls.join(', ')}
+                        ({ title, urls, description }, index) =>
+                            `${index + 1}. ${title} ${description} ${urls.join(', ')}
                     `,
                     ).join('\n'),
                 )}

@@ -31,7 +31,3 @@ export function checkChannelValue(
         throw new Error(`${channelName} channel is greater than 255, it is ${value}`);
     }
 }
-
-/**
- * TODO: [🧠][🚓] Is/which combination it better to use asserts/check, validate or is utility function?
- */

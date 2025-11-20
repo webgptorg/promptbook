@@ -6,6 +6,7 @@ import { getSupabaseForServer } from '../supabase/getSupabaseForServer';
 
 /**
  * Cache of provided agent collection
+ * 
  * @private internal cache for `$provideAgentCollectionForServer`
  */
 let agentCollection: null | AgentCollection = null;

@@ -93,8 +93,25 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 value={agentSource}
                 onChange={handleChange}
                 onFileUpload={async (file) => {
-                    await forTime(1000 + Math.random() * 2000);
-                    return file.name;
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to upload file: ${response.statusText}`);
+                    }
+
+                    const { fileUrl } = await response.json();
+                    const publicUrl = fileUrl.replace(
+                        process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!,
+                        process.env.NEXT_PUBLIC_URL!,
+                    );
+
+                    return publicUrl;
                 }}
                 // <- TODO: !!!! Create two-state solution for `<BookEditor onFileUpload={...} />`
             />

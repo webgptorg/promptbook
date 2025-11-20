@@ -14,7 +14,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
 
-        return new Response(agentSource.getValue(), {
+        return new Response(agentSource, {
             status: 200,
             headers: { 'Content-Type': 'text/plain' /* <- TODO: [🎳] Mime type of book */ },
         });
