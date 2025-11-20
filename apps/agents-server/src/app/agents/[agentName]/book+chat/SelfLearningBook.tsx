@@ -2,12 +2,11 @@
 
 import { ResizablePanelsAuto } from '@common/components/ResizablePanelsAuto/ResizablePanelsAuto';
 import { useStateInLocalStorage } from '@common/hooks/useStateInLocalStorage';
-import { BookEditor, LlmChat } from '@promptbook-local/components';
+import { AgentChat, BookEditor } from '@promptbook-local/components';
 import { Agent, book } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import type { string_book } from '@promptbook-local/types';
-import { spaceTrim } from '@promptbook-local/utils';
 import { useMemo, useState } from 'react';
 
 export function AgentBookAndChatPage() {
@@ -85,10 +84,7 @@ export function AgentBookAndChatPage() {
         return agent;
     }, [agentSource, setAgentSource, apiKey]);
 
-    const llmTools = useMemo(() => {
-        const llmTools = agent.getLlmExecutionTools();
-        return llmTools;
-    }, [agent]);
+
 
     return (
         <div className="min-h-screen relative">
@@ -153,45 +149,8 @@ export function AgentBookAndChatPage() {
                         return file.name;
                     }}
                 />
-                {/*
-                <AgentChat className="w-full h-full" persistenceKey="marigold-chat" {...{ agent }} />
-                TODO: [👤] !!! Move to `AgentChat` component
-                */}
-                <LlmChat
-                    title={`Chat with ${agent.agentName || 'Agent'}`}
-                    // TODO: !!! Pass persistenceKey="chat-with-pavol-hejny"
-                    userParticipantName="USER"
-                    llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
-                    initialMessages={[
-                        {
-                            from: 'AGENT',
-                            content: spaceTrim(`
-                                
-                                Hello! I am ${agent.agentName || 'an AI Agent'}.
-                                
-                                [Hello](?message=Hello, can you tell me about yourself?)
-                            `),
-                        },
-                    ]}
-                    participants={[
-                        {
-                            name: 'AGENT',
-                            fullname: agent.agentName || 'Agent',
-                            avatarSrc: agent.meta.image,
-                            color: agent.meta.color,
-                            isMe: false,
-                            agentSource,
-                        },
-                        {
-                            name: 'USER',
-                            fullname: 'User',
-                            color: '#115EB6',
-                            isMe: true,
-                        },
-                    ]}
-                    {...{ llmTools }}
-                    className={`h-full flex flex-col`}
-                />
+        
+                <AgentChat className={`h-full flex flex-col`} {...{ agent }} />
             </ResizablePanelsAuto>
         </div>
     );

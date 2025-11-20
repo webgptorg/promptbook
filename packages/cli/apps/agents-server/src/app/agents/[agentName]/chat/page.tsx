@@ -1,11 +1,10 @@
 'use client';
 
-import { LlmChat } from '@promptbook-local/components';
 import { Agent, book } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 import { MockedEchoLlmExecutionTools } from '@promptbook-local/fake-llm';
-import { spaceTrim } from '@promptbook-local/utils';
 import { useMemo } from 'react';
+import { AgentChat } from '../../../../../../../../../src/book-components/Chat/AgentChat/AgentChat';
 
 export default function AgentChatBook() {
     const agent = useMemo(() => {
@@ -45,52 +44,9 @@ export default function AgentChatBook() {
         return agent;
     }, []);
 
-    const llmTools = useMemo(() => {
-        const llmTools = agent.getLlmExecutionTools();
-        return llmTools;
-    }, [agent]);
-
     return (
-        /*
-        <AgentChat className="w-full h-full" persistenceKey="marigold-chat" {...{ agent }} />
-        TODO: [👤] !!! Move to `AgentChat` component
-        */
         <main className={`w-screen h-screen`}>
-            <AgentChat
-                className={`w-full h-full`}
-                title={`Chat with ${agent.agentName || 'Agent'}`}
-                // TODO: !!! Pass persistenceKey="chat-with-pavol-hejny"
-                userParticipantName="USER"
-                llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
-                initialMessages={[
-                    {
-                        from: 'AGENT',
-                        content: spaceTrim(`
-                                
-                                Hello! I am ${agent.agentName || 'an AI Agent'}.
-                                
-                                [Hello](?message=Hello, can you tell me about yourself?)
-                            `),
-                    },
-                ]}
-                participants={[
-                    {
-                        name: 'AGENT',
-                        fullname: agent.agentName || 'Agent',
-                        avatarSrc: agent.meta.image,
-                        color: agent.meta.color,
-                        isMe: false,
-                        // agentSource,
-                    },
-                    {
-                        name: 'USER',
-                        fullname: 'User',
-                        color: '#115EB6',
-                        isMe: true,
-                    },
-                ]}
-                {...{ llmTools }}
-            />
+            <AgentChat className={`w-full h-full`} {...{ agent }} />
         </main>
     );
 }

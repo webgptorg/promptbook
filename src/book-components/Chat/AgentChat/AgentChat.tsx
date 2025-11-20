@@ -67,7 +67,3 @@ export function AgentChat(props: AgentChatProps) {
         />
     );
 }
-
-/**
- * TODO: [👤] Use this ACRY
- */
