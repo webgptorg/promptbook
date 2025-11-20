@@ -9,7 +9,7 @@ import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import type { string_book } from '@promptbook-local/types';
 import { useMemo, useState } from 'react';
 
-export function AgentBookAndChatPage() {
+export function AgentBookAndChatComponent() {
     const [apiKey, setApiKey] = useStateInLocalStorage<string>('openai-apiKey', () => '');
     const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
     const [isApiKeySectionCollapsed, setIsApiKeySectionCollapsed] = useState(!!apiKey);

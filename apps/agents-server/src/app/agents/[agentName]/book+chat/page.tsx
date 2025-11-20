@@ -2,11 +2,14 @@
 
 import dynamic from 'next/dynamic';
 
-const SelfLearningBook = dynamic(() => import('./SelfLearningBook').then((module) => module.SelfLearningBook), {
-    ssr: false,
-});
+const SelfLearningBook = dynamic(
+    () => import('./AgentBookAndChatComponent').then((module) => module.AgentBookAndChatComponent),
+    {
+        ssr: false,
+    },
+);
 
-export default function SelfLearningBookPage() {
+export default function AgentBookAndChatPage() {
     return <SelfLearningBook />;
 }
 
