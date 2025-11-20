@@ -456,7 +456,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
         if (isBuilded) {
-            await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
+            await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd', 'apps'].join('\n'));
             await writeFile(
                 `./packages/${packageBasename}/.npmignore`,
                 spaceTrim(`
