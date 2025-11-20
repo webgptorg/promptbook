@@ -15,11 +15,11 @@ export function $provideCdnForServer(): IIFilesStorageWithCdn {
     if (!cdn) {
         cdn = new DigitalOceanSpaces({
             bucket: process.env.CDN_BUCKET!,
-            pathPrefix: process.env.CDN_PATH_PREFIX!,
+            pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX!,
             endpoint: process.env.CDN_ENDPOINT!,
             accessKeyId: process.env.CDN_ACCESS_KEY_ID!,
             secretAccessKey: process.env.CDN_SECRET_ACCESS_KEY!,
-            cdnPublicUrl: new URL(process.env.CDN_PUBLIC_URL!),
+            cdnPublicUrl: new URL(process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!),
             gzip: true,
         });
     }

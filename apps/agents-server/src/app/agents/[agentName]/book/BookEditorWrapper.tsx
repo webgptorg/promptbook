@@ -3,7 +3,6 @@
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
 import { useEffect, useRef, useState } from 'react';
-import { forTime } from 'waitasecond';
 
 type BookEditorWrapperProps = {
     agentName: string;
@@ -105,13 +104,26 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                         throw new Error(`Failed to upload file: ${response.statusText}`);
                     }
 
-                    const { fileUrl } = await response.json();
-                    const publicUrl = fileUrl.replace(
-                        process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!,
-                        process.env.NEXT_PUBLIC_URL!,
-                    );
+                    const { fileUrl: longFileUrl } = await response.json();
 
-                    return publicUrl;
+                    const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
+                        .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
+                    const SHORT_URL = `https://ptbk.io/k/`;
+                    // <- TODO: [🌍] Unite this logic in one place
+
+                    const shortFileUrl = longFileUrl.split(LONG_URL).join(SHORT_URL);
+
+                    console.log(`File uploaded:`, {
+                        LONG_URL,
+                        SHORT_URL,
+                        longFileUrl,
+                        shortFileUrl,
+                        file,
+                        formData,
+                        response,
+                    });
+
+                    return shortFileUrl;
                 }}
                 // <- TODO: !!!! Create two-state solution for `<BookEditor onFileUpload={...} />`
             />

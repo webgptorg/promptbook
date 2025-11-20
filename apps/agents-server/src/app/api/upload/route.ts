@@ -13,8 +13,6 @@ import { validateMimeType } from '../../../../src/utils/validators/validateMimeT
 
 export async function POST(request: NextRequest) {
     try {
-        console.log('!!! 0');
-
         const nodeRequest = await nextRequestToNodeRequest(request);
 
         const files = await new Promise<formidable.Files>((resolve, reject) => {
@@ -31,8 +29,6 @@ export async function POST(request: NextRequest) {
 
         const uploadedFiles = files.file;
 
-        console.log('!!! 1');
-
         if (!uploadedFiles || uploadedFiles.length !== 1) {
             return NextResponse.json(
                 { message: 'In form data there is not EXACTLY one "file" field' },
@@ -45,14 +41,10 @@ export async function POST(request: NextRequest) {
         const cdn = $provideCdnForServer();
         const key = getUserFileCdnKey(fileBuffer, uploadedFile.originalFilename || uploadedFile.newFilename);
 
-        console.log('!!! 2');
-
         await cdn.setItem(key, {
             type: validateMimeType(uploadedFile.mimetype),
             data: fileBuffer,
         });
-
-        console.log('!!! 3');
 
         const fileUrl = cdn.getItemUrl(key);
 
