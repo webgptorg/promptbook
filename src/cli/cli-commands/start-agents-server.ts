@@ -4,8 +4,8 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_AGENTS_DIRNAME } from '../../config';
+import { startAgentServer } from '../../remote-server/startAgentServer';
 import type { number_port } from '../../types/typeAliases';
-import { $execCommand } from '../../utils/execCommand/$execCommand';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { handleActionErrors } from './common/handleActionErrors';
@@ -107,11 +107,7 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
             });
             */
 
-            await $execCommand({
-                cwd: './apps/agents-server',
-                command: `next dev --port ${port} `,
-                isVerbose: true,
-            });
+            await startAgentServer({ port });
         }),
     );
 }

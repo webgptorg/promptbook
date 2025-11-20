@@ -29,6 +29,7 @@ export async function startAgentServer(options: AgentsServerOptions): Promise<TO
 
     console.trace(`!!! Starting agents server on port ${port}...`);
     console.log(`!!! cwd`, process.cwd());
+    console.log(`!!! __dirname`, __dirname);
 
     await $execCommand({
         cwd: './apps/agents-server',
