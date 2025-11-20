@@ -457,7 +457,7 @@
             "focus": true
         },
         {
-            "name": "🍴 Make empty commit",
+            "name": "🍴🔼 Make empty commit / Trigger deployment",
             "commands": ["git commit --allow-empty -m 'Empty commit'", "git push"],
             "execute": true,
             "onlySingle": true,
