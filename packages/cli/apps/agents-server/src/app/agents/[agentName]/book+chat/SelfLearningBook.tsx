@@ -10,7 +10,7 @@ import type { string_book } from '@promptbook-local/types';
 import { spaceTrim } from '@promptbook-local/utils';
 import { useMemo, useState } from 'react';
 
-export function SelfLearningBook() {
+export function AgentBookAndChatPage() {
     const [apiKey, setApiKey] = useStateInLocalStorage<string>('openai-apiKey', () => '');
     const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
     const [isApiKeySectionCollapsed, setIsApiKeySectionCollapsed] = useState(!!apiKey);

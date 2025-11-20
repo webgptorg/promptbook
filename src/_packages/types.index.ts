@@ -13,6 +13,7 @@ import type { AvatarChipFromSourceProps } from '../book-components/AvatarProfile
 import type { AvatarProfileProps } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import type { AvatarProfileFromSourceProps } from '../book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
+import type { AgentChatProps } from '../book-components/Chat/AgentChat/AgentChatProps';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatAutoScrollConfig } from '../book-components/Chat/hooks/useChatAutoScroll';
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
@@ -367,6 +368,7 @@ export type { AvatarChipFromSourceProps };
 export type { AvatarProfileProps };
 export type { AvatarProfileFromSourceProps };
 export type { BookEditorProps };
+export type { AgentChatProps };
 export type { ChatProps };
 export type { ChatAutoScrollConfig };
 export type { SendMessageToLlmChatFunction };

@@ -15,6 +15,8 @@ import { AvatarProfileFromSource } from '../book-components/AvatarProfile/Avatar
 import { DEFAULT_BOOK_EDITOR_HEIGHT } from '../book-components/BookEditor/BookEditor';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
 import { BookEditor } from '../book-components/BookEditor/BookEditor';
+import { AgentChat } from '../book-components/Chat/AgentChat/AgentChat';
+import type { AgentChatProps } from '../book-components/Chat/AgentChat/AgentChatProps';
 import { Chat } from '../book-components/Chat/Chat/Chat';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import { useChatAutoScroll } from '../book-components/Chat/hooks/useChatAutoScroll';
@@ -77,6 +79,8 @@ export { AvatarProfileFromSource };
 export { DEFAULT_BOOK_EDITOR_HEIGHT };
 export type { BookEditorProps };
 export { BookEditor };
+export { AgentChat };
+export type { AgentChatProps };
 export { Chat };
 export type { ChatProps };
 export { useChatAutoScroll };
