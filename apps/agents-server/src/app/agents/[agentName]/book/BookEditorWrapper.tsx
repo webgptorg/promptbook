@@ -67,10 +67,12 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     }, []);
 
     return (
-        <div className="w-full h-screen flex flex-col">
+        <div className="w-full h-full">
             {saveStatus !== 'idle' && (
                 <div
-                    className={`px-4 py-2 text-sm ${
+                    role="status"
+                    aria-live="polite"
+                    className={`fixed top-5 right-28 z-50 px-4 py-2 text-sm rounded shadow-md ${
                         saveStatus === 'saving'
                             ? 'bg-blue-100 text-blue-800'
                             : saveStatus === 'saved'
@@ -79,13 +81,12 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                     }`}
                 >
                     {saveStatus === 'saving' && '💾 Saving...'}
-                    {saveStatus === 'saved' && '✅ Saved successfully'}
+                    {saveStatus === 'saved' && '✅ Saved'}
                     {saveStatus === 'error' && '❌ Failed to save'}
                 </div>
             )}
-            <div className="flex-1">
-                <BookEditor value={agentSource} onChange={handleChange} />
-            </div>
+
+            <BookEditor className="w-full h-full" height={null} value={agentSource} onChange={handleChange} />
         </div>
     );
 }
