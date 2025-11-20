@@ -23,9 +23,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             },
             agentSource,
         });
-        const llmTools = agent.getLlmExecutionTools();
 
-        const response = await llmTools.callChatModel!({
+        const response = await agent.callChatModel!({
             title: `Chat with agent ${agentName}`,
             parameters: {},
             modelRequirements: {

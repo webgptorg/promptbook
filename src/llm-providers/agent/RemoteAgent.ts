@@ -1,8 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
-import { string_book } from '../../_packages/types.index';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { ChatPromptResult, Prompt, string_book, TODO_any } from '../../_packages/types.index';
 import { string_agent_url } from '../../types/typeAliases';
-import { MockedEchoLlmExecutionTools } from '../mocked/MockedEchoLlmExecutionTools';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import { RemoteAgentOptions } from './RemoteAgentOptions';
@@ -10,8 +8,9 @@ import { RemoteAgentOptions } from './RemoteAgentOptions';
 /**
  * Represents one AI Agent
  *
- * Note: [🦖] There are several different things in Promptbook:
+ * !!! Note: [🦖] There are several different things in Promptbook:
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
+ * !!!! `RemoteAgent`
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
  * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
@@ -21,10 +20,11 @@ import { RemoteAgentOptions } from './RemoteAgentOptions';
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
         console.log('!!!!!', `${options.agentUrl}/api/book`);
-        const bookRequest = await fetch(`${options.agentUrl}/api/book`);
+        const bookResponse = await fetch(`${options.agentUrl}/api/book`);
         // <- TODO: !!!! What about closed-source agents?
+        // <- TODO: !!!! Maybe use promptbookFetch
 
-        const agentSourceValue = (await bookRequest.text()) as string_book;
+        const agentSourceValue = (await bookResponse.text()) as string_book;
         const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(agentSourceValue);
         // <- TODO: !!!!!! Support updating
 
@@ -48,10 +48,34 @@ export class RemoteAgent extends Agent {
     }
 
     /**
-     * Creates LlmExecutionTools which exposes the agent as a model
+     * Calls the agent on agents remote server
      */
-    getLlmExecutionTools(): LlmExecutionTools {
-        return new MockedEchoLlmExecutionTools({});
+    public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
+        // Ensure we're working with a chat prompt
+        if (prompt.modelRequirements.modelVariant !== 'CHAT') {
+            throw new Error('Agents only supports chat prompts');
+        }
+
+        const bookResponse = await fetch(`${this.agentUrl}/api/chat?message=${encodeURIComponent(prompt.content)}`);
+        // <- TODO: !!!! What about closed-source agents?
+        // <- TODO: !!!! Maybe use promptbookFetch
+
+        const bookResponseContent = (await bookResponse.text()) as string_book;
+        // <- TODO: !!!!!!!! Try streaming
+        // <- TODO: !!!!!!!! Transfer metadata
+
+        const agentResult: ChatPromptResult = {
+            content: bookResponseContent,
+            modelName: this.modelName,
+            timing: {} as TODO_any,
+            usage: {} as TODO_any,
+            rawPromptContent: {} as TODO_any,
+            rawRequest: {} as TODO_any,
+            rawResponse: {} as TODO_any,
+            // <- TODO: !!!!!!!! Transfer and proxy the metadata
+        };
+
+        return agentResult;
     }
 }
 

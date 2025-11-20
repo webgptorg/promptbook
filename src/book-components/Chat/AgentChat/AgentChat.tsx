@@ -2,7 +2,6 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useMemo } from 'react';
 /* Context removed – using attachable sendMessage from hook */
 import spaceTrim from 'spacetrim';
 import { asUpdatableSubject } from '../../../types/Updatable';
@@ -23,11 +22,6 @@ import type { AgentChatProps } from './AgentChatProps';
  */
 export function AgentChat(props: AgentChatProps) {
     const { agent, title, persistenceKey, onChange, sendMessage, ...restProps } = props;
-
-    const llmTools = useMemo(() => {
-        const llmTools = agent.getLlmExecutionTools();
-        return llmTools;
-    }, [agent]);
 
     return (
         <LlmChat
@@ -62,7 +56,7 @@ export function AgentChat(props: AgentChatProps) {
                     isMe: true,
                 },
             ]}
-            {...{ llmTools, onChange, sendMessage }}
+            {...{ llmTools: agent, onChange, sendMessage }}
             {...restProps}
         />
     );

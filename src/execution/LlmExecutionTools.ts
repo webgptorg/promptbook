@@ -10,7 +10,7 @@ import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } 
  * On its interface it exposes common methods for prompt execution.
  * Inside (in constructor) it calls OpenAI, Azure, GPU, proxy, cache, logging,...
  *
- * Note: [🦖] There are several different things in Promptbook:
+ * !!! Note: [🦖] There are several different things in Promptbook:
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
