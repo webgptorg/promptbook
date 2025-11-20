@@ -8,7 +8,8 @@ import { BookEditorWrapper } from './BookEditorWrapper';
 export default async function AgentBookPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
 
-    const { agentName } = await params;
+    let { agentName } = await params;
+    agentName = decodeURIComponent(agentName);
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
 

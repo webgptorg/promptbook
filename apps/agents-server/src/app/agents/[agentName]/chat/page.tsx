@@ -6,7 +6,8 @@ import { AgentChatWrapper } from './AgentChatWrapper';
 
 export default async function AgentChatPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
-    const { agentName } = await params;
+    let { agentName } = await params;
+    agentName = decodeURIComponent(agentName);
 
     const agentUrl = `/agents/${agentName}`;
 

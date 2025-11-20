@@ -18,13 +18,15 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
     $sideEffect(headers());
 
-    const { agentName } = await params;
+    let { agentName } = await params;
+    agentName = decodeURIComponent(agentName);
+
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
+    const agentSource = await collection.getAgentSource(agentName);
     const agentProfile = parseAgentSource(agentSource);
 
     // Build agent page URL for QR and copy
-    const pageUrl = `https://s6.ptbk.io/agents/${encodeURIComponent(agentName)}`;
+    const pageUrl = `${process.env.NEXT_PUBLIC_URL}/agents/${encodeURIComponent(agentName)}`;
     // <- TODO: !!! Better
 
     // Extract brand color from meta

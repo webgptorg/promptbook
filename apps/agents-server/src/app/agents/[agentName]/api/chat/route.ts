@@ -5,7 +5,8 @@ import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    const { agentName } = await params;
+    let { agentName } = await params;
+    agentName = decodeURIComponent(agentName);
     const { searchParams } = new URL(request.url);
     const message = searchParams.get('message') || 'Tell me more about yourself.';
     //                                               <- TODO: !!!! To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE

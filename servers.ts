@@ -1,6 +1,4 @@
-import type { string_legal_entity } from './src/types/typeAliases';
-import type { string_promptbook_server_url } from './src/types/typeAliases';
-import type { string_title } from './src/types/typeAliases';
+import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
 
 /**
  * Open Promptbook server usable for public
@@ -15,11 +13,6 @@ type ServerConfiguration = {
      * Who is the owner of the server
      */
     owner: string_legal_entity;
-
-    /**
-     * Is the server open for public and anonymous usage
-     */
-    isAnonymousModeAllowed: boolean;
 
     /**
      * Description of the server, link to registration, user agreement, privacy policy, etc.
@@ -41,14 +34,19 @@ type ServerConfiguration = {
  */
 export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
     {
-        title: 'Promptbook',
-        description: `Servers of Promptbook.studio`,
+        title: 'Promptbook.Studio',
+        description: `Server of Promptbook.studio`,
         owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
-        isAnonymousModeAllowed: true,
         urls: [
             'https://promptbook.s5.ptbk.io/',
             // Note: Servers 1-4 are not running
         ],
+    },
+    {
+        title: 'Testing Agents',
+        description: `Testing Agents server on Vercel`,
+        owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
+        urls: ['https://s6.ptbk.io/'],
     },
     /*
     Note: Working on older version of Promptbook and not supported anymore
