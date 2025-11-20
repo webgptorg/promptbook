@@ -1,23 +1,18 @@
 'use server';
 
-import { AgentChat } from '@promptbook-local/components';
-import { RemoteAgent } from '@promptbook-local/core';
-// import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { AgentChatWrapper } from './AgentChatWrapper';
 
 export default async function AgentChatPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
     const { agentName } = await params;
 
-    const agent = await RemoteAgent.connect({
-        agentUrl: `/agents/${agentName}`,
-        isVerbose: true,
-    });
+    const agentUrl = `/agents/${agentName}`;
 
     return (
         <main className={`w-screen h-screen`}>
-            <AgentChat className={`w-full h-full`} agent={agent} />
+            <AgentChatWrapper agentUrl={agentUrl} />
         </main>
     );
 }

@@ -20,6 +20,7 @@ import { RemoteAgentOptions } from './RemoteAgentOptions';
  */
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
+        console.log('!!!!!', `${options.agentUrl}/api/book`);
         const bookRequest = await fetch(`${options.agentUrl}/api/book`);
         // <- TODO: !!!! What about closed-source agents?
 
@@ -41,7 +42,7 @@ export class RemoteAgent extends Agent {
      */
     private agentUrl: string_agent_url;
 
-    constructor(options: AgentOptions & RemoteAgentOptions) {
+    private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
         this.agentUrl = options.agentUrl;
     }
