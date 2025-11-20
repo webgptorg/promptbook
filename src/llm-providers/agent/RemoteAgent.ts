@@ -77,11 +77,23 @@ export class RemoteAgent extends Agent {
         } else {
             // Note: [🐚] Problem with streaming is not here but it is not implemented on server
             const decoder = new TextDecoder();
-
-            for await (const chunk of bookResponse.body) {
-                const textChunk = decoder.decode(chunk, { stream: true });
-                console.log(chunk, textChunk);
-                content += textChunk;
+            // Web ReadableStream is not async-iterable in many runtimes; use a reader.
+            const reader = bookResponse.body.getReader();
+            try {
+                let doneReading = false;
+                while (!doneReading) {
+                    const { done, value } = await reader.read();
+                    doneReading = !!done;
+                    if (value) {
+                        const textChunk = decoder.decode(value, { stream: true });
+                        // console.debug('RemoteAgent chunk:', textChunk);
+                        content += textChunk;
+                    }
+                }
+                // Flush any remaining decoder internal state
+                content += decoder.decode();
+            } finally {
+                reader.releaseLock();
             }
         }
 
