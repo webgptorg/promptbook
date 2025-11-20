@@ -3,6 +3,7 @@
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
 import { useEffect, useRef, useState } from 'react';
+import { forTime } from 'waitasecond';
 
 type BookEditorWrapperProps = {
     agentName: string;
@@ -86,7 +87,17 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 </div>
             )}
 
-            <BookEditor className="w-full h-full" height={null} value={agentSource} onChange={handleChange} />
+            <BookEditor
+                className="w-full h-full"
+                height={null}
+                value={agentSource}
+                onChange={handleChange}
+                onFileUpload={async (file) => {
+                    await forTime(1000 + Math.random() * 2000);
+                    return file.name;
+                }}
+                // <- TODO: !!!! Create two-state solution for `<BookEditor onFileUpload={...} />`
+            />
         </div>
     );
 }
