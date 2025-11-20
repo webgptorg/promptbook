@@ -135,7 +135,7 @@ EXAMPLE of @Something
 -   Function `parseAgentSource` should parse all metadata commitments like `META IMAGE`, `META LINK`, `META TITLE`, `META DESCRIPTION`, `META XXX` and return them in the result.
 -   Now it parses just `profileImageUrl` but it is hardcoded just for `META IMAGE`
 -   Remove from the result of `parseAgentSource` the `profileImageUrl` and change it to `meta.image`
--   `meta.image` isnt much special compared to other meta parameters
+-   `meta.image` is not much special compared to other meta parameters
 -   Only special thing about `meta.image` is that it always have default fallback created by `generatePlaceholderAgentProfileImageUrl`
 -   It should parse all metadata commitments and return them in the result in a structured way, for example as object `meta: { image?: string; link?: string; title?: string; description?: string; [key: string]: string | undefined }`
 -   `META` commitment has always two words, the first word is always `META` and the second word is the type of the meta, like `IMAGE`, `LINK`, `TITLE`, `DESCRIPTION`, etc. The rest of the line or multiple lines (until the next commitment or end of the book) is the value of the meta.
@@ -223,5 +223,3 @@ AI Assistant
 
 Foo bar knowledge baz
 ```
-
-

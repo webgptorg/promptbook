@@ -190,7 +190,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 [✨✧] Enhance design of the scrollbar in `BookEditorMonaco`
 
 -   The scrollbar should have more elegant design
--   The editor isnt "a code editor" but "the book"
+-   The editor is not "a code editor" but "the book"
 -   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -214,7 +214,7 @@ META IMAGE https://edulk.cz/getFile/id:475818/type:large/02%20zna%C4%8Dka%20npi.
 
 [✨✧] Fix `BookEditorMonaco` margin line
 
--   On empty line, cursor isnt aligned with the line but outside of it _(see the attached screenshot)_
+-   On empty line, cursor is not aligned with the line but outside of it _(see the attached screenshot)_
 -   You are working on `/src/book-components/BookEditor/BookEditorMonaco.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

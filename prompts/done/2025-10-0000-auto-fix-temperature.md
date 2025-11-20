@@ -1,6 +1,6 @@
 [x]
 
-[✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value isnt supported, they should try again with stripped down that value.
+[✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value is not supported, they should try again with stripped down that value.
 
 For example, this is a kind of error that shouldnt happen:
 
@@ -27,7 +27,7 @@ at processTicksAndRejections (node:internal/process/task_queues:105:5)
 
 [x]
 
-[✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value _(like `temperature`)_ isnt supported, they should try again with stripped down that value.
+[✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value _(like `temperature`)_ is not supported, they should try again with stripped down that value.
 
 ```markdown
 Sorry, I encountered an error: All execution tools of LLM Tools from Configuration failed:
@@ -46,7 +46,7 @@ Sorry, I encountered an error: All execution tools of LLM Tools from Configurati
 
 [ ]
 
-[✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value _(like `temperature`)_ isnt supported, they should try again with stripped down that value.
+[✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value _(like `temperature`)_ is not supported, they should try again with stripped down that value.
 
 -   This feature works perfectly for the first call of `callChatModel`, but not for the subsequent calls on same instance of `OpenAiCompatibleExecutionTools`.
 

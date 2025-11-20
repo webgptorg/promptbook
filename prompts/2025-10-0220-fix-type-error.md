@@ -1,6 +1,6 @@
 [ ]
 
-[✨🍊] When running `npx ptbk` it fails BUT `npx ptbk --help` or `npx ptbk about` arent failing
+[✨🍊] When running `npx ptbk` it fails BUT `npx ptbk --help` or `npx ptbk about` are not failing
 
 -   It fails on strange error: `Cannot read properties of undefined (reading 'includes')`
 -   The `npx ptbk` should be alias for `npx ptbk --help`

@@ -31,7 +31,7 @@ export class RemoteAgent extends Agent {
         return new RemoteAgent({
             ...options,
             executionTools: {
-                /* Note: Theese tools arent used */
+                /* Note: These tools are not used */
                 // ---------------------------------------
                 /*
                 TODO: !!! Get rid of
@@ -75,7 +75,7 @@ export class RemoteAgent extends Agent {
         if (!bookResponse.body) {
             content = await bookResponse.text();
         } else {
-            // Note: [🐚] Problem with streaming isnt here but it isnt implemented on server
+            // Note: [🐚] Problem with streaming is not here but it is not implemented on server
             const decoder = new TextDecoder();
 
             for await (const chunk of bookResponse.body) {
