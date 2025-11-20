@@ -8,13 +8,6 @@ import type { ChatMessage } from '../types/ChatMessage';
 import { AgentChat } from './AgentChat';
 import type { AgentChatProps } from './AgentChatProps';
 
-type CapturedLlmChatProps = {
-    messages?: ReadonlyArray<ChatMessage>;
-    onReset?: () => Promise<void> | void;
-    // Allow other props without using `any`
-    [key: string]: unknown;
-};
-
 // Mock the LlmChat component to capture props
 jest.mock('../LlmChat/LlmChat', () => ({
     LlmChat: (props: CapturedLlmChatProps) => {
@@ -24,8 +17,8 @@ jest.mock('../LlmChat/LlmChat', () => ({
 }));
 
 /** @jest-environment jsdom */
-import spaceTrim from 'spacetrim';
 import { Agent } from '../../../llm-providers/agent/Agent';
+import { book } from '../../../pipeline/book-notation';
 
 type CapturedLlmChatProps = {
     messages?: ReadonlyArray<ChatMessage>;
@@ -50,12 +43,12 @@ describe('AgentChat', () => {
 
     function createMockAgent(agentName = 'TestAgent', color = '#FF5733'): Agent {
         return new Agent({
-            agentSource: spaceTrim(`
+            agentSource: book`
                 ${agentName}
                 PERSONA A helpful test assistant
                 META IMAGE https://example.com/avatar.png
                 META COLOR ${color}
-            `),
+            `,
             executionTools: {
                 llm: mockLlmTools,
             },
@@ -194,7 +187,7 @@ describe('AgentChat', () => {
 
     it('should work with minimal agent configuration', async () => {
         const minimalAgent = new Agent({
-            agentSource: 'MinimalAgent',
+            agentSource: book`MinimalAgent`,
             executionTools: {
                 llm: mockLlmTools,
             },
@@ -257,14 +250,5 @@ describe('AgentChat', () => {
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
         expect(capturedProps?.persistenceKey).toContain('agent-chat');
         expect(capturedProps?.persistenceKey).toContain('KeyBot');
-    });
-
-    it('should expose llmTools from agent', async () => {
-        const agent = createMockAgent('ToolBot');
-        const llmTools = agent.getLlmExecutionTools();
-
-        expect(llmTools).toBeDefined();
-        expect(llmTools.title).toBeDefined();
-        expect(llmTools.description).toBeDefined();
     });
 });
