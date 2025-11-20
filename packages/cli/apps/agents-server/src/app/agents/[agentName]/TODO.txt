@@ -1,1 +1,0 @@
-TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
