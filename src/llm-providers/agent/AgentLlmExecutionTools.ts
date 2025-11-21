@@ -30,6 +30,17 @@ import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecut
  */
 export class AgentLlmExecutionTools implements LlmExecutionTools {
     /**
+     * Cache of OpenAI assistants to avoid creating duplicates
+     */
+    private static assistantCache = new Map<
+        string_title,
+        {
+            assistantId: string;
+            requirementsHash: string;
+        }
+    >();
+
+    /**
      * Cached model requirements to avoid re-parsing the agent source
      */
     private _cachedModelRequirements: AgentModelRequirements | null = null;
@@ -149,22 +160,53 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         let underlyingLlmResult: CommonPromptResult;
 
         if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
-            if (this.options.isVerbose) {
-                console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
-            }
-            // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
-            const assistant = await this.options.llmTools.createNewAssistant({
-                name: this.title,
-                instructions: modelRequirements.systemMessage,
-                knowledgeSources: modelRequirements.knowledgeSources,
-                /*
-                !!!
-                metadata: {
-                    agentModelName: this.modelName,
+            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
+            const cached = AgentLlmExecutionTools.assistantCache.get(this.title);
+            let assistant: OpenAiAssistantExecutionTools;
+
+            if (cached) {
+                if (cached.requirementsHash === requirementsHash) {
+                    if (this.options.isVerbose) {
+                        console.log(`1️⃣ Using cached OpenAI Assistant for agent ${this.title}...`);
+                    }
+                    assistant = this.options.llmTools.getAssistant(cached.assistantId);
+                } else {
+                    if (this.options.isVerbose) {
+                        console.log(`1️⃣ Updating OpenAI Assistant for agent ${this.title}...`);
+                    }
+                    assistant = await this.options.llmTools.updateAssistant({
+                        assistantId: cached.assistantId,
+                        name: this.title,
+                        instructions: modelRequirements.systemMessage,
+                        knowledgeSources: modelRequirements.knowledgeSources,
+                    });
+                    AgentLlmExecutionTools.assistantCache.set(this.title, {
+                        assistantId: assistant.assistantId,
+                        requirementsHash,
+                    });
                 }
-                */
-            });
-            // <- TODO: !!! Cache the assistant in prepareCache
+            } else {
+                if (this.options.isVerbose) {
+                    console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
+                }
+                // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
+                assistant = await this.options.llmTools.createNewAssistant({
+                    name: this.title,
+                    instructions: modelRequirements.systemMessage,
+                    knowledgeSources: modelRequirements.knowledgeSources,
+                    /*
+                    !!!
+                    metadata: {
+                        agentModelName: this.modelName,
+                    }
+                    */
+                });
+
+                AgentLlmExecutionTools.assistantCache.set(this.title, {
+                    assistantId: assistant.assistantId,
+                    requirementsHash,
+                });
+            }
 
             underlyingLlmResult = await assistant.callChatModel(chatPrompt);
         } else {

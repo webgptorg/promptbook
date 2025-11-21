@@ -10,7 +10,7 @@ Each knowledge source should be used in vector store created and used for the cr
 
 ---
 
-[ ]
+[x]
 
 [✨🚩] Do not create new OpenAI assistant each time `AgentLlmExecutionTools.callChatModel` is called, cache and reuse the OpenAI assistants
 

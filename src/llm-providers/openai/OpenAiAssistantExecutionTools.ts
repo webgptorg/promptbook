@@ -36,7 +36,7 @@ import { OpenAiExecutionTools } from './OpenAiExecutionTools';
  */
 export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
     /* <- TODO: [🍚] `, Destroyable` */
-    private readonly assistantId: string_token;
+    public readonly assistantId: string_token;
     private readonly isCreatingNewAssistantsAllowed: boolean = false;
 
     /**
@@ -274,6 +274,16 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
     }
     */
 
+    /**
+     * Get an existing assistant tool wrapper
+     */
+    public getAssistant(assistantId: string_token): OpenAiAssistantExecutionTools {
+        return new OpenAiAssistantExecutionTools({
+            ...this.options,
+            assistantId,
+        });
+    }
+
     public async createNewAssistant(options: {
         /**
          * Name of the new assistant
@@ -391,6 +401,128 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // TODO: !!!! Try listing existing assistants
         // TODO: !!!! Try marking existing assistants by DISCRIMINANT
         // TODO: !!!! Allow to update and reconnect to existing assistants
+
+        return new OpenAiAssistantExecutionTools({
+            ...this.options,
+            isCreatingNewAssistantsAllowed: false,
+            assistantId: assistant.id,
+        });
+    }
+
+    public async updateAssistant(options: {
+        /**
+         * ID of the assistant to update
+         */
+        readonly assistantId: string_token;
+
+        /**
+         * Name of the assistant
+         */
+        readonly name?: string_title;
+
+        /**
+         * Instructions for the assistant
+         */
+        readonly instructions?: string_markdown;
+
+        /**
+         * Optional list of knowledge source links (URLs or file paths) to attach to the assistant via vector store
+         */
+        readonly knowledgeSources?: ReadonlyArray<string>;
+    }): Promise<OpenAiAssistantExecutionTools> {
+        if (!this.isCreatingNewAssistantsAllowed) {
+            throw new NotAllowed(
+                `Updating assistants is not allowed. Set \`isCreatingNewAssistantsAllowed: true\` in options to enable this feature.`,
+            );
+        }
+
+        const { assistantId, name, instructions, knowledgeSources } = options;
+        const client = await this.getClient();
+
+        let vectorStoreId: string | undefined;
+
+        // If knowledge sources are provided, create a vector store with them
+        // TODO: [🧠] Reuse vector store creation logic from createNewAssistant
+        if (knowledgeSources && knowledgeSources.length > 0) {
+            if (this.options.isVerbose) {
+                console.info(`📚 Creating vector store for update with ${knowledgeSources.length} knowledge sources...`);
+            }
+
+            // Create a vector store
+            const vectorStore = await client.beta.vectorStores.create({
+                name: `${name} Knowledge Base`,
+            });
+            vectorStoreId = vectorStore.id;
+
+            if (this.options.isVerbose) {
+                console.info(`✅ Vector store created: ${vectorStoreId}`);
+            }
+
+            // Upload files from knowledge sources to the vector store
+            const fileStreams = [];
+            for (const source of knowledgeSources) {
+                try {
+                    // Check if it's a URL
+                    if (source.startsWith('http://') || source.startsWith('https://')) {
+                        // Download the file
+                        const response = await fetch(source);
+                        if (!response.ok) {
+                            console.error(`Failed to download ${source}: ${response.statusText}`);
+                            continue;
+                        }
+                        const buffer = await response.arrayBuffer();
+                        const filename = source.split('/').pop() || 'downloaded-file';
+                        const blob = new Blob([buffer]);
+                        const file = new File([blob], filename);
+                        fileStreams.push(file);
+                    } else {
+                        // Assume it's a local file path
+                        // Note: This will work in Node.js environment
+                        // For browser environments, this would need different handling
+                        const fs = await import('fs');
+                        const fileStream = fs.createReadStream(source);
+                        fileStreams.push(fileStream);
+                    }
+                } catch (error) {
+                    console.error(`Error processing knowledge source ${source}:`, error);
+                }
+            }
+
+            // Batch upload files to the vector store
+            if (fileStreams.length > 0) {
+                try {
+                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
+                        files: fileStreams,
+                    });
+
+                    if (this.options.isVerbose) {
+                        console.info(`✅ Uploaded ${fileStreams.length} files to vector store`);
+                    }
+                } catch (error) {
+                    console.error('Error uploading files to vector store:', error);
+                }
+            }
+        }
+
+        const assistantUpdate: OpenAI.Beta.AssistantUpdateParams = {
+            name,
+            instructions,
+            tools: [/* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */ { type: 'file_search' }],
+        };
+
+        if (vectorStoreId) {
+            assistantUpdate.tool_resources = {
+                file_search: {
+                    vector_store_ids: [vectorStoreId],
+                },
+            };
+        }
+
+        const assistant = await client.beta.assistants.update(assistantId, assistantUpdate);
+
+        if (this.options.isVerbose) {
+            console.log(`✅ Assistant updated: ${assistant.id}`);
+        }
 
         return new OpenAiAssistantExecutionTools({
             ...this.options,
