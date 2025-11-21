@@ -2,7 +2,7 @@
 
 import { AgentCollectionInSupabase } from '@promptbook-local/core';
 import { AgentCollection } from '@promptbook-local/types';
-import { getSupabaseForServer } from '../supabase/getSupabaseForServer';
+import { getSupabaseForServer } from '../database/getSupabaseForServer';
 
 /**
  * Cache of provided agent collection

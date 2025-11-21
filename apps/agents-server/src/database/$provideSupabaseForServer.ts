@@ -18,7 +18,7 @@ let supabase: SupabaseClient<AgentsDatabaseSchema>;
  *
  * @returns instance of supabase client
  */
-export function getSupabaseForServer(): typeof supabase {
+export function $provideSupabaseForServer(): typeof supabase {
     if (!$isRunningInNode()) {
         throw new Error(
             'Function `getSupabaseForServer` can not be used in browser, use `getSupabaseForBrowser` instead.',

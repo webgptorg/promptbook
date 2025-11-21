@@ -12,7 +12,7 @@ import { getSupabaseForWorker } from './getSupabaseForWorker';
  *
  * @returns instance of supabase client
  */
-export function getSupabase(): SupabaseClient<AgentsDatabaseSchema> {
+export function $provideSupabase(): SupabaseClient<AgentsDatabaseSchema> {
     if ($isRunningInNode()) {
         return getSupabaseForServer();
     } else if ($isRunningInBrowser()) {
