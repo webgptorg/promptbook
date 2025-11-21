@@ -9,7 +9,13 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_title, string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -157,6 +163,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
         });
 
+        /*
         stream.on('messageDelta', (messageDelta) => {
             if (
                 this.options.isVerbose &&
@@ -170,6 +177,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
             // <- TODO: [🐚] Make streaming and running tasks working
         });
+        */
 
         stream.on('messageCreated', (message) => {
             if (this.options.isVerbose) {
@@ -276,6 +284,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
          */
         readonly instructions: string_markdown;
 
+        /**
+         * Optional list of knowledge source links (URLs or file paths) to attach to the assistant via vector store
+         */
+        readonly knowledgeSources?: ReadonlyArray<string>;
+
         // <- TODO: !!!! Add also other assistant creation parameters like tools, name, description, model, ...
     }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
@@ -285,67 +298,92 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         // await this.playground();
-        const { name, instructions } = options;
+        const { name, instructions, knowledgeSources } = options;
         const client = await this.getClient();
 
-        /*/
-        //TODO: !!!
-        async function downloadFile(url: string, folder = './tmp'): Promise<string> {
-            const filename = path.basename(url.split('?')[0]);
-            const filepath = path.join(folder, filename);
+        let vectorStoreId: string | undefined;
 
-            if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+        // If knowledge sources are provided, create a vector store with them
+        if (knowledgeSources && knowledgeSources.length > 0) {
+            if (this.options.isVerbose) {
+                console.info(`📚 Creating vector store with ${knowledgeSources.length} knowledge sources...`);
+            }
 
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`Download error: ${url}`);
-            const buffer = await res.arrayBuffer();
-            fs.writeFileSync(filepath, Buffer.from(buffer));
-            console.log(`📥 File downloaded: ${filename}`);
-
-            return filepath;
-        }
-
-        async function uploadFileToOpenAI(filepath: string) {
-            const file = await client.files.create({
-                file: fs.createReadStream(filepath),
-                purpose: 'assistants',
+            // Create a vector store
+            const vectorStore = await client.beta.vectorStores.create({
+                name: `${name} Knowledge Base`,
             });
-            console.log(`⬆️  File uploaded to OpenAI: ${file.filename} (${file.id})`);
-            return file;
+            vectorStoreId = vectorStore.id;
+
+            if (this.options.isVerbose) {
+                console.info(`✅ Vector store created: ${vectorStoreId}`);
+            }
+
+            // Upload files from knowledge sources to the vector store
+            const fileStreams = [];
+            for (const source of knowledgeSources) {
+                try {
+                    // Check if it's a URL
+                    if (source.startsWith('http://') || source.startsWith('https://')) {
+                        // Download the file
+                        const response = await fetch(source);
+                        if (!response.ok) {
+                            console.error(`Failed to download ${source}: ${response.statusText}`);
+                            continue;
+                        }
+                        const buffer = await response.arrayBuffer();
+                        const filename = source.split('/').pop() || 'downloaded-file';
+                        const blob = new Blob([buffer]);
+                        const file = new File([blob], filename);
+                        fileStreams.push(file);
+                    } else {
+                        // Assume it's a local file path
+                        // Note: This will work in Node.js environment
+                        // For browser environments, this would need different handling
+                        const fs = await import('fs');
+                        const fileStream = fs.createReadStream(source);
+                        fileStreams.push(fileStream);
+                    }
+                } catch (error) {
+                    console.error(`Error processing knowledge source ${source}:`, error);
+                }
+            }
+
+            // Batch upload files to the vector store
+            if (fileStreams.length > 0) {
+                try {
+                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
+                        files: fileStreams,
+                    });
+
+                    if (this.options.isVerbose) {
+                        console.info(`✅ Uploaded ${fileStreams.length} files to vector store`);
+                    }
+                } catch (error) {
+                    console.error('Error uploading files to vector store:', error);
+                }
+            }
         }
 
-        // 🌐 URL addresses of files to upload
-        const fileUrls = [
-            'https://raw.githubusercontent.com/vercel/next.js/canary/packages/next/README.md',
-            'https://raw.githubusercontent.com/openai/openai-cookbook/main/examples/How_to_call_the_Assistants_API_with_Node.js.ipynb',
-        ];
-
-        // 1️⃣ Download files from URL
-        const localFiles = [];
-        for (const url of fileUrls) {
-            const filepath = await downloadFile(url);
-            localFiles.push(filepath);
-        }
-
-        // 2️⃣ Upload files to OpenAI
-        const uploadedFiles = [];
-        for (const filepath of localFiles) {
-            const file = await uploadFileToOpenAI(filepath);
-            uploadedFiles.push(file.id);
-        }
-        /**/
-
-        // alert('!!!! Creating new OpenAI assistant');
-
-        // 3️⃣ Create assistant with uploaded files
-        const assistant = await client.beta.assistants.create({
+        // Create assistant with vector store attached
+        const assistantConfig: OpenAI.Beta.AssistantCreateParams = {
             name,
             description: 'Assistant created via Promptbook',
             model: 'gpt-4o',
             instructions,
             tools: [/* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */ { type: 'file_search' }],
-            // !!!! file_ids: uploadedFiles,
-        });
+        };
+
+        // Attach vector store if created
+        if (vectorStoreId) {
+            assistantConfig.tool_resources = {
+                file_search: {
+                    vector_store_ids: [vectorStoreId],
+                },
+            };
+        }
+
+        const assistant = await client.beta.assistants.create(assistantConfig);
 
         console.log(`✅ Assistant created: ${assistant.id}`);
 

@@ -156,6 +156,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             const assistant = await this.options.llmTools.createNewAssistant({
                 name: this.title,
                 instructions: modelRequirements.systemMessage,
+                knowledgeSources: modelRequirements.knowledgeSources,
                 /*
                 !!!
                 metadata: {
