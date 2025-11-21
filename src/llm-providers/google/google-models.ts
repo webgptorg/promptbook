@@ -85,28 +85,7 @@ export const GOOGLE_MODELS: ReadonlyArray<
                 output: pricing(`$0.45 / 1M tokens`),
             },
         },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Gemini 2.0 Flash',
-            modelName: 'gemini-2.0-flash',
-            modelDescription:
-                'Fast, efficient model with 128K context window optimized for rapid response times. Balances performance and cost with 2x lower latency than Pro models while maintaining strong capabilities in text generation, code completion, and logical reasoning. Excellent for interactive applications, chatbots, and services requiring quick responses with good quality.',
-            pricing: {
-                prompt: pricing(`$0.35 / 1M tokens`),
-                output: pricing(`$1.05 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
-            modelTitle: 'Gemini 2.0 Flash Lite',
-            modelName: 'gemini-2.0-flash-lite',
-            modelDescription:
-                'Streamlined version of Gemini 2.0 Flash with 64K context window, designed for extremely low-latency applications. Features 40% smaller model size and 3x faster inference while retaining core capabilities for text and simple reasoning tasks. Perfect for mobile applications, edge deployments, and high-volume services with strict latency requirements.',
-            pricing: {
-                prompt: pricing(`$0.20 / 1M tokens`),
-                output: pricing(`$0.60 / 1M tokens`),
-            },
-        },
+
         {
             modelVariant: 'CHAT',
             modelTitle: 'Gemini 2.0 Flash Thinking',
