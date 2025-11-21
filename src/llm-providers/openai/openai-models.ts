@@ -19,8 +19,7 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelVariant: 'CHAT',
             modelTitle: 'gpt-5.1',
             modelName: 'gpt-5.1',
-            modelDescription:
-                'The best model for coding and agentic tasks with configurable reasoning effort.',
+            modelDescription: 'The best model for coding and agentic tasks with configurable reasoning effort.',
             pricing: {
                 prompt: pricing(`$1.25 / 1M tokens`),
                 output: pricing(`$10.00 / 1M tokens`),
@@ -229,18 +228,18 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         /**/
 
         /*/
-      {
-          modelTitle: 'tts-1-hd-1106',
-          modelName: 'tts-1-hd-1106',
-      },
-      /**/
+        {
+            modelTitle: 'tts-1-hd-1106',
+            modelName: 'tts-1-hd-1106',
+        },
+        /**/
 
         /*/
-      {
-          modelTitle: 'tts-1-hd',
-          modelName: 'tts-1-hd',
-      },
-      /**/
+        {
+            modelTitle: 'tts-1-hd',
+            modelName: 'tts-1-hd',
+        },
+        /**/
 
         /**/
         {
