@@ -150,7 +150,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             if (this.options.isVerbose) {
-                console.log(`Creating new OpenAI Assistant for agent ${this.title}...`);
+                console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
             }
             // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
             const assistant = await this.options.llmTools.createNewAssistant({
@@ -169,7 +169,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             underlyingLlmResult = await assistant.callChatModel(chatPrompt);
         } else {
             if (this.options.isVerbose) {
-                console.log(`Creating Assistant ${this.title} on generic LLM execution tools...`);
+                console.log(`2️⃣ Creating Assistant ${this.title} on generic LLM execution tools...`);
             }
             // Create modified chat prompt with agent system message
             const modifiedChatPrompt: ChatPrompt = {

@@ -1,6 +1,5 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
-import { forEver } from 'waitasecond';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -248,6 +247,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
     }
 
+    /*
     public async playground() {
         const client = await this.getClient();
 
@@ -272,6 +272,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         await forEver();
     }
+    */
 
     public async createNewAssistant(options: {
         /**
