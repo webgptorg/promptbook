@@ -1,3 +1,4 @@
+import { string_knowledge_source_link } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
@@ -19,7 +20,12 @@ export type AgentModelRequirements = {
     /**
      * Optional list of MCP servers that the agent can connect to
      */
-    readonly mcpServers?: string[];
+    readonly mcpServers?: ReadonlyArray<string>;
+
+    /**
+     * Optional list of knowledge source links that the agent can use
+     */
+    readonly knowledgeSources?: ReadonlyArray<string_knowledge_source_link>;
 
     /**
      * Temperature for the agent's responses, controlling randomness

@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_url } from '../../../types/typeAliases';
+import { isValidUrl } from '../../../_packages/utils.index';
+import type { string_knowledge_source_link } from '../../../types/typeAliases';
 import type { AgentModelRequirements } from '../../agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
@@ -86,17 +87,14 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
         }
 
         // Check if content is a URL (external knowledge source)
-        if (this.isUrl(trimmedContent)) {
+        if (isValidUrl(trimmedContent)) {
             // Store the URL for later async processing
             const updatedRequirements = {
                 ...requirements,
-                metadata: {
-                    ...requirements.metadata,
-                    knowledgeSources: [
-                        ...(requirements.metadata?.knowledgeSources || []),
-                        trimmedContent as string_url,
-                    ],
-                },
+                knowledgeSources: [
+                    ...(requirements.knowledgeSources || []),
+                    trimmedContent as string_knowledge_source_link,
+                ],
             };
 
             // Add placeholder information about knowledge sources to system message
@@ -107,18 +105,6 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             // Direct text knowledge - add to system message
             const knowledgeSection = `Knowledge: ${trimmedContent}`;
             return this.appendToSystemMessage(requirements, knowledgeSection, '\n\n');
-        }
-    }
-
-    /**
-     * Check if content is a URL
-     */
-    private isUrl(content: string): boolean {
-        try {
-            new URL(content);
-            return true;
-        } catch {
-            return false;
         }
     }
 }
