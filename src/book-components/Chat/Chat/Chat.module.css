@@ -357,7 +357,7 @@
     color: #ffd700;
 }
 
- /* Sender Avatar */
+/* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
     width: 40px;
     aspect-ratio: 1 / 1;
@@ -560,7 +560,6 @@
     line-height: inherit;
     color: inherit;
 }
-
 
 .messageText pre code {
     background-color: #000000cc;
@@ -1862,7 +1861,6 @@
         border: 2px solid currentColor;
     }
 }
-
 
 /**
  * TODO: [🌉] DRY Markdown primitives styling

@@ -549,6 +549,11 @@ export function Chat(props: ChatProps) {
                                 />
                             );
                         })}
+
+                        <div
+                            // Note: Extra space at bottom for input area
+                            style={{ height: 100 }}
+                        ></div>
                     </div>
 
                     {onMessage && (
