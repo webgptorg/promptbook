@@ -20,8 +20,8 @@
             "cwd": "./apps/agents-server/",
             "command": "npx next dev --port 4440",
             "execute": true,
-            "onlySingle": true,
-            "focus": true
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
