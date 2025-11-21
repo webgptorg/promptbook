@@ -1,5 +1,5 @@
 
--- Note: This is primary source of truth for the database schema
+-- [💽] Note: This is primary source of truth for the database schema
 --       In future we want to be compatible with more then Supabase so we keep SQL as main schema definition
 
 

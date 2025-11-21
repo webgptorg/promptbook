@@ -1,3 +1,14 @@
+/**
+ * AUTO-GENERATED TYPES FROM `/apps/agents-server/src/database/schema.ts`
+ * [💽] Source of truth: `/apps/agents-server/src/database/schema.sql` *(do not edit table structure here manually)*
+ *
+ * Prompt:
+ * [💽] Re-generate this sub-schema
+ *
+ * Generate supabase typescript schema which will be subset of [AgentsServerDatabase](/apps/agents-server/src/database/schema.ts)
+ * containing only tables `Agent`
+ */
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type AgentsDatabaseSchema = {
@@ -28,17 +39,17 @@ export type AgentsDatabaseSchema = {
     };
     public: {
         Tables: {
-            AgentCollection: {
+            Agent: {
                 Row: {
                     id: number;
                     agentName: string; // <- `string_agent_name`
-                    agentProfile: Json; // <- `AgentBasicInformation` <- TODO: [🕛]
                     createdAt: string; // <- `string_date_iso8601`
                     updatedAt: string | null; // <- `string_date_iso8601`
-                    agentVersion: number;
+                    agentVersion: number; // <- `number_agent_version`
                     promptbookEngineVersion: string; // <- `string_promptbook_version`
                     usage: Json | null; // <- `Usage`
                     agentSource: string; // <- `string_book`
+                    agentProfile: Json; // <- `AgentBasicInformation` <- TODO: [🕛] (required)
                 };
                 Insert: {
                     id?: number;
@@ -49,6 +60,7 @@ export type AgentsDatabaseSchema = {
                     promptbookEngineVersion: string;
                     usage?: Json | null;
                     agentSource: string;
+                    agentProfile: Json; // required
                 };
                 Update: {
                     id?: number;
@@ -59,6 +71,7 @@ export type AgentsDatabaseSchema = {
                     promptbookEngineVersion?: string;
                     usage?: Json | null;
                     agentSource?: string;
+                    agentProfile?: Json; // optional on update
                 };
                 Relationships: [];
             };
