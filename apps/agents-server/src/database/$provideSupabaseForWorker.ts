@@ -37,6 +37,7 @@ export function $provideSupabaseForWorker(): typeof supabase {
 }
 
 /**
+ * Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file
  * TODO: Fix> No storage option exists to persist the session, which may result in unexpected behavior when using auth.
               If you want to set persistSession to true, please provide a storage option or you may set persistSession to false to disable this warning.
  */

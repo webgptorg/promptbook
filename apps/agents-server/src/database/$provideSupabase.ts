@@ -23,3 +23,8 @@ export function $provideSupabase(): SupabaseClient<AgentsDatabaseSchema> {
         throw new Error('Unknown environment, cannot determine how to get Supabase client');
     }
 }
+
+
+/**
+ * Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file
+ */

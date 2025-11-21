@@ -35,3 +35,8 @@ export function $provideSupabaseForBrowser(): typeof supabase {
 
     return supabase;
 }
+
+
+/**
+ * Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file
+ */
