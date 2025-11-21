@@ -1,4 +1,4 @@
-import type { BookCommitment } from '../commitments/_base/BookCommitment';
+import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 
 /**
  * Generates a regex pattern to match a specific commitment

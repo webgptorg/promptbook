@@ -5,13 +5,7 @@ import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type {
-    string_app_id,
-    string_email,
-    string_password,
-    string_token,
-    string_user_id,
-} from '../../types/typeAliases';
+import type { string_app_id, string_email, string_password, string_token, string_user_id } from '../../types/typeAliases';
 import type { ApplicationModeIdentification, Identification } from '../socket-types/_subtypes/Identification';
 
 /**

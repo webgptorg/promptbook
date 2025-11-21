@@ -1,4 +1,4 @@
-import type { ParsedCommitment } from '../commitments/_base/ParsedCommitment';
+import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 
 /**
  * Result of parsing agent source for commitments

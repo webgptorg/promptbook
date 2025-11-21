@@ -1,4 +1,4 @@
-import { string_person_firstname } from '../../types/typeAliases';
+import type { string_person_firstname } from '../../types/typeAliases';
 import { $randomItem } from './$randomItem';
 
 const PERSONALITIES: ReadonlyArray<string_person_firstname> = [

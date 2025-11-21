@@ -8,7 +8,7 @@ import { createPipelineCollectionFromDirectory } from '../../collection/pipeline
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
 import { AuthenticationError } from '../../errors/AuthenticationError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';

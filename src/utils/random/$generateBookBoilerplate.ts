@@ -1,11 +1,12 @@
 import spaceTrim from 'spacetrim';
 import type { PartialDeep } from 'type-fest';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
-import { string_book, validateBook } from '../../book-2.0/agent-source/string_book';
-import { string_agent_name_in_book } from '../../types/typeAliases';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { validateBook } from '../../book-2.0/agent-source/string_book';
+import type { string_agent_name_in_book } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
-import { $randomFullnameWithColor } from './$randomFullnameWithColor';
 import { $randomAgentPersona } from './$randomAgentPersona';
+import { $randomFullnameWithColor } from './$randomFullnameWithColor';
 
 type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'parameters'>> & {
     /**

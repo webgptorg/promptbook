@@ -1,5 +1,5 @@
-import { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import { string_agent_url } from '../../types/typeAliases';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { string_agent_url } from '../../types/typeAliases';
 
 /**
  * Options for creating a Remote Agent

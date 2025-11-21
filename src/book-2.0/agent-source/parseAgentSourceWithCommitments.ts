@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
+import { COMMITMENT_REGISTRY } from '../../commitments/index';
+import type { BookCommitment } from '../../commitments/_base/BookCommitment';
+import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import type { string_agent_name } from '../../types/typeAliases';
-import type { BookCommitment } from '../commitments/_base/BookCommitment';
-import type { ParsedCommitment } from '../commitments/_base/ParsedCommitment';
-import { COMMITMENT_REGISTRY } from '../commitments/index';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
 import type { string_book } from './string_book';
 

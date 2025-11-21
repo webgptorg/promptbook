@@ -1,13 +1,13 @@
+import { getCommitmentDefinition } from '../../commitments/index';
+import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
+import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import type { string_model_name } from '../../types/typeAliases';
-import { createBasicAgentModelRequirements } from '../commitments/_base/createEmptyAgentModelRequirements';
-import { getCommitmentDefinition } from '../commitments/index';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
+import { parseParameters } from './parseParameters';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
 import type { string_book } from './string_book';
-import { parseParameters } from './parseParameters';
-import type { ParsedCommitment } from '../commitments/_base/ParsedCommitment';
 
 /**
  * Creates agent model requirements using the new commitment system

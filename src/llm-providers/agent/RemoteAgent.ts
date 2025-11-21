@@ -1,9 +1,12 @@
 import { BehaviorSubject } from 'rxjs';
-import { ChatPromptResult, Prompt, string_book, TODO_any } from '../../_packages/types.index';
-import { string_agent_url } from '../../types/typeAliases';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { Prompt } from '../../types/Prompt';
+import type { string_agent_url } from '../../types/typeAliases';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
-import { RemoteAgentOptions } from './RemoteAgentOptions';
+import type { RemoteAgentOptions } from './RemoteAgentOptions';
 
 /**
  * Represents one AI Agent

@@ -1,4 +1,4 @@
-import { string_knowledge_source_link } from '../../types/typeAliases';
+import type { string_knowledge_source_link } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**

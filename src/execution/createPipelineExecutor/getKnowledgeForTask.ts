@@ -3,11 +3,11 @@ import { assertsError } from '../../errors/assertsError';
 import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { Prompt } from '../../types/Prompt';
 import type { Parameters, string_markdown, string_parameter_value } from '../../types/typeAliases';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
 import { knowledgePiecesToString } from './knowledgePiecesToString';
+import { Prompt } from '../../types/Prompt';
 
 /**
  * Options for retrieving relevant knowledge for a specific task during pipeline execution.
