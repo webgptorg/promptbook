@@ -7,7 +7,7 @@ import type {
 } from '../../../src/_packages/types.index';
 import { spaceTrim } from 'spacetrim';
 import { $isRunningInNode } from '../../../utils/isRunningInWhatever';
-import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServer';
+import { $provideSupabaseForServer } from '../../../utils/supabase/$provideSupabaseForServer';
 import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLoggerWrapperOfLlmExecutionToolsOptions';
 
 /**
@@ -81,7 +81,7 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools
         }
 
         // Note: We do not want to wait for the insert to the database
-        /* not await */ getSupabaseForServer()
+        /* not await */ $provideSupabaseForServer()
             .from('PromptExecution')
             .insert(
                 {

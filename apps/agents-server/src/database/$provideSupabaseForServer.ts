@@ -3,7 +3,7 @@ import { $isRunningInNode } from '@promptbook-local/utils';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Internal cache for `getSupabaseForServer`
+ * Internal cache for `$provideSupabaseForServer`
  *
  * @private
  * @singleton
@@ -14,14 +14,14 @@ let supabase: SupabaseClient<AgentsDatabaseSchema>;
  * Get supabase client
  *
  * Note: The client is cached, so it's safe to call this function multiple times
- * Note: This function is available ONLY on server/node, use getSupabaseForClient in browser
+ * Note: This function is available ONLY on server/node, use $provideSupabaseForClient in browser
  *
  * @returns instance of supabase client
  */
 export function $provideSupabaseForServer(): typeof supabase {
     if (!$isRunningInNode()) {
         throw new Error(
-            'Function `getSupabaseForServer` can not be used in browser, use `getSupabaseForBrowser` instead.',
+            'Function `$provideSupabaseForServer` can not be used in browser, use `$provideSupabaseForBrowser` instead.',
         );
     }
 

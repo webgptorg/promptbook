@@ -1,9 +1,9 @@
 import type { AgentsDatabaseSchema } from '@promptbook-local/types';
 import { $isRunningInBrowser, $isRunningInNode, $isRunningInWebWorker } from '@promptbook-local/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseForBrowser } from './getSupabaseForBrowser';
-import { getSupabaseForServer } from './getSupabaseForServer';
-import { getSupabaseForWorker } from './getSupabaseForWorker';
+import { $provideSupabaseForBrowser } from './$provideSupabaseForBrowser';
+import { $provideSupabaseForServer } from './$provideSupabaseForServer';
+import { $provideSupabaseForWorker } from './$provideSupabaseForWorker';
 
 /**
  * Get supabase client in any environment
@@ -14,16 +14,15 @@ import { getSupabaseForWorker } from './getSupabaseForWorker';
  */
 export function $provideSupabase(): SupabaseClient<AgentsDatabaseSchema> {
     if ($isRunningInNode()) {
-        return getSupabaseForServer();
+        return $provideSupabaseForServer();
     } else if ($isRunningInBrowser()) {
-        return getSupabaseForBrowser();
+        return $provideSupabaseForBrowser();
     } else if ($isRunningInWebWorker()) {
-        return getSupabaseForWorker();
+        return $provideSupabaseForWorker();
     } else {
         throw new Error('Unknown environment, cannot determine how to get Supabase client');
     }
 }
-
 
 /**
  * Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file

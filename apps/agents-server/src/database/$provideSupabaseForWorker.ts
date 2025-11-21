@@ -3,7 +3,7 @@ import { $isRunningInWebWorker } from '@promptbook-local/utils';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Internal cache for `getSupabaseForWorker`
+ * Internal cache for `$provideSupabaseForWorker`
  *
  * @private
  * @singleton
@@ -14,14 +14,14 @@ let supabase: SupabaseClient<AgentsDatabaseSchema>;
  * Get supabase client
  *
  * Note: The client is cached, so it's safe to call this function multiple times
- * Note: This function is available ONLY in worker, use getSupabaseForBrowser for main thread
+ * Note: This function is available ONLY in worker, use $provideSupabaseForBrowser for main thread
  *
  * @returns instance of supabase client
  */
 export function $provideSupabaseForWorker(): typeof supabase {
     if (!$isRunningInWebWorker) {
         throw new Error(
-            'Function `getSupabaseForWorker` can not be used in browser, use `getSupabaseForBrowser` instead.',
+            'Function `$provideSupabaseForWorker` can not be used in browser, use `$provideSupabaseForBrowser` instead.',
         );
     }
 
