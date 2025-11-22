@@ -1,7 +1,7 @@
 /**
  * AUTO-GENERATED TYPES FROM `schema.sql`
  * [💽] Source of truth: `schema.sql` *(do not edit table structure here manually)*
- * 
+ *
  * Prompt:
  * [💽] Generate supabase typescript schema from the `schema.sql`
  */
@@ -56,8 +56,3 @@ export type AgentsServerDatabase = {
         CompositeTypes: Record<string, never>;
     };
 };
-
-// Convenient table-specific aliases
-export type AgentRow = Database['public']['Tables']['Agent']['Row'];
-export type AgentInsert = Database['public']['Tables']['Agent']['Insert'];
-export type AgentUpdate = Database['public']['Tables']['Agent']['Update'];
