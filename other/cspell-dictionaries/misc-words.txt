@@ -28,6 +28,8 @@ herox
 parmeter
 heroy
 іван
+Павел
+Иванов
 محمد
 مصدق
 fadf
@@ -432,3 +434,5 @@ firstname
 firstnames
 lastname
 lastnames
+pavel
+ivanov
