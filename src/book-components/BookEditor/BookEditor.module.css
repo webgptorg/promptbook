@@ -69,9 +69,11 @@
     pointer-events: none;
 }
 
+/*
 .bookEditorContainer :global(.view-line) {
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eee; /* <- Note: `PROMPTBOOK_SYNTAX_COLORS.LINE` * /
 }
+*/
 
 .bookEditorActionbar {
     position: absolute;

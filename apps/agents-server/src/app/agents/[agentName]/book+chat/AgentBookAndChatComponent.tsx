@@ -84,8 +84,6 @@ export function AgentBookAndChatComponent() {
         return agent;
     }, [agentSource, setAgentSource, apiKey]);
 
-
-
     return (
         <div className="min-h-screen relative">
             {/* Floating API Key Configuration */}
@@ -139,6 +137,7 @@ export function AgentBookAndChatComponent() {
             <ResizablePanelsAuto name="two-editors">
                 <BookEditor
                     className="w-full h-full"
+                    isBorderRadiusDisabled
                     height={null}
                     value={agentSource}
                     onChange={setAgentSource}
@@ -149,7 +148,7 @@ export function AgentBookAndChatComponent() {
                         return file.name;
                     }}
                 />
-        
+
                 <AgentChat className={`h-full flex flex-col`} {...{ agent }} />
             </ResizablePanelsAuto>
         </div>

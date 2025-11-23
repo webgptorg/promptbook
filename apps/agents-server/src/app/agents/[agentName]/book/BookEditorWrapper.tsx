@@ -88,6 +88,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
             <BookEditor
                 className="w-full h-full"
+                isBorderRadiusDisabled
                 height={null}
                 value={agentSource}
                 onChange={handleChange}

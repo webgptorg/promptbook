@@ -247,6 +247,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 }px, ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()} ${scaledLineHeight - 1}px);
                 background-size: calc(100% + ${scaledContentPaddingLeft}px) ${scaledLineHeight}px;
                 background-position-x: -${scaledContentPaddingLeft}px;
+                background-position-y: ${scaledLineHeight * -0.1}px;
             }
             .${instanceClass} .monaco-editor .overflow-guard::before {
                 content: '';
@@ -412,7 +413,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
                             useShadows: false,
                         },
                     }}
-                    loading={<div className={styles.loading}>📖</div>}
+                    loading={
+                        <div className={styles.loading}>
+                            📖{/* <- TODO: !!!! Better visual of loading of `<BookEditor/>` */}
+                        </div>
+                    }
                 />
             </div>
         </div>
