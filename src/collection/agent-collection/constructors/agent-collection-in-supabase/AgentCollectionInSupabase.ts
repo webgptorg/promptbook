@@ -117,7 +117,6 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
             agentName,
             agentHash,
             agentProfile,
-            modelRequirements: null,
             createdAt: new Date().toISOString(),
             updatedAt: null,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
