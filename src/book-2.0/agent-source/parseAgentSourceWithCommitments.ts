@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import { COMMITMENT_REGISTRY } from '../../commitments/index';
 import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
+import { COMMITMENT_REGISTRY } from '../../commitments/index';
 import type { string_agent_name } from '../../types/typeAliases';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
 import type { string_book } from './string_book';
@@ -12,7 +12,7 @@ import type { string_book } from './string_book';
  *
  * @private internal utility of `parseAgentSource`
  */
-export function parseAgentSourceWithCommitments(agentSource: string_book): AgentSourceParseResult {
+export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<AgentSourceParseResult, 'agentHash'> {
     if (!agentSource || !agentSource.trim()) {
         return {
             agentName: null,

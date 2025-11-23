@@ -194,6 +194,14 @@ export type string_agent_name_in_book = string;
 // <- TODO: !!!! Search and distinguish between `string_agent_name` and `string_agent_name_in_book` ACRY + write here in JSDoc difference
 
 /**
+ * Semantic helper
+ *
+ * For example `"b126926439c5fcb83609888a11283723c1ef137c0ad599a77a1be81812bd221d"`
+ */
+export type string_agent_hash = string_sha256;
+// <- TODO: [🧠] Maybe only first X characters of SHA-256
+
+/**
  * Unstructured description of the persona
  *
  * For example `"Skilled copywriter"`

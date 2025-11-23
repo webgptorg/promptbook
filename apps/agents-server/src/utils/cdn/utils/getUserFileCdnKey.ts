@@ -1,7 +1,7 @@
-import { titleToName } from '../../../../../../src/utils/normalization/titleToName';
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import type { string_uri } from '../../../../../../src/types/typeAliases';
+import { titleToName } from '../../../../../../src/utils/normalization/titleToName';
 import { nameToSubfolderPath } from './nameToSubfolderPath';
 
 /**
@@ -9,6 +9,7 @@ import { nameToSubfolderPath } from './nameToSubfolderPath';
  */
 export function getUserFileCdnKey(file: Buffer, originalFilename: string): string_uri {
     const hash = sha256(hexEncoder.parse(file.toString('hex'))).toString(/* hex */);
+    //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
 
     const originalFilenameParts = originalFilename.split('.');
     const extension = originalFilenameParts.pop();

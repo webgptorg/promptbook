@@ -4,7 +4,6 @@ import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSo
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
-import { NotFoundError } from '../../../../errors/NotFoundError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { CommonToolsOptions } from '../../../../execution/CommonToolsOptions';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
@@ -116,10 +115,11 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
 
         const selectResult = await this.supabaseClient.from('Agent' /* <- TODO: !!!! Change to `Agent` */).insert({
             agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
+            agentHash: agentProfile.agentHash,
             agentProfile,
+            modelRequirements: null,
             createdAt: new Date().toISOString(),
             updatedAt: null,
-            agentVersion: 0,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             usage: ZERO_USAGE,
             agentSource: agentSource,
@@ -144,22 +144,11 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
      * Updates an existing agent in the collection
      */
     public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
-        const selectResult = await this.supabaseClient
-            .from('Agent' /* <- TODO: !!!! Change to `Agent` */)
-            .select('agentVersion')
-            .eq('agentName', agentName)
-            .single();
-
-        if (!selectResult.data) {
-            throw new NotFoundError(`Agent "${agentName}" not found`);
-        }
-
         const agentProfile = parseAgentSource(agentSource as string_book);
 
         // TODO: !!!!!! What about agentName change
 
-        console.log('!!! agentName', agentName);
-        const oldAgentSource = await this.getAgentSource(agentName);
+        // console.log('!!! agentName', agentName);
 
         const updateResult = await this.supabaseClient
             .from('Agent' /* <- TODO: !!!! Change to `Agent` */)
@@ -167,17 +156,15 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
                 // TODO: !!!! Compare not update> agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
                 agentProfile,
                 updatedAt: new Date().toISOString(),
-                agentVersion: selectResult.data.agentVersion + 1,
+                agentHash: agentProfile.agentHash,
                 agentSource,
                 promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             })
             .eq('agentName', agentName);
 
-        const newAgentSource = await this.getAgentSource(agentName);
-
-        console.log('!!! updateAgent', updateResult);
-        console.log('!!! old', oldAgentSource);
-        console.log('!!! new', newAgentSource);
+        // console.log('!!! updateAgent', updateResult);
+        // console.log('!!! old', oldAgentSource);
+        // console.log('!!! new', newAgentSource);
 
         if (updateResult.error) {
             throw new DatabaseError(

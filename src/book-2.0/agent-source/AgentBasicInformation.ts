@@ -1,4 +1,4 @@
-import type { string_agent_name, string_color, string_url_image } from '../../types/typeAliases';
+import type { string_agent_hash, string_agent_name, string_color, string_url_image } from '../../types/typeAliases';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -33,8 +33,13 @@ export type AgentBasicInformation = {
      * Name of the agent
      * This is the first line of the agent source
      */
-    agentName: string_agent_name | null; // <- TODO: !!!!! `agentName` is always defined and normalized
+    agentName: string_agent_name | null; // <- TODO: !!!!! `AgentBasicInformation.agentName` is always defined and normalized
     // <- TODO: [🕛][🧠]  Maybe rename to `title` or `fullname`
+
+    /**
+     * Hash of the agent source for integrity verification
+     */
+    agentHash: string_agent_hash;
 
     /**
      * Optional description of the agent
@@ -65,6 +70,6 @@ export type AgentBasicInformation = {
 };
 
 /**
- * TODO: All readonly
+ * TODO: !!!! Make all properties of `AgentBasicInformation` readonly
  * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
  */
