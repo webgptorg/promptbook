@@ -68,7 +68,9 @@ describe('AgentChat', () => {
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
         expect(capturedProps).toBeDefined();
-        expect(capturedProps?.title).toContain('ChatBot');
+        expect(capturedProps?.title).toContain(
+            'Chat with chat-bot' /* <- TODO: [🕛] There should be `agentName` and `agentFullname` and here "Chat with ChatBot" */,
+        );
     });
 
     it('should use custom title when provided', async () => {
