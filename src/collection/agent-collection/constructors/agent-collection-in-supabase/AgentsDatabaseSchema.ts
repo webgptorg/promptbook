@@ -1,42 +1,19 @@
 /**
- * AUTO-GENERATED TYPES FROM `/apps/agents-server/src/database/schema.ts`
- * [💽] Source of truth: `/apps/agents-server/src/database/schema.sql` *(do not edit table structure here manually)*
+ * AUTO-GENERATED SUBSET TYPES FROM `/apps/agents-server/src/database/schema.ts`
+ * Source of truth: `/apps/agents-server/src/database/schema.sql` *(do not edit table structure here manually)*
  *
- * Prompt:
- * [💽] Re-generate this sub-schema
+ * [💽] Prompt:
+ * Re-generate this sub-schema
+ * Generate Supabase TypeScript schema which is a subset of `AgentsServerDatabase`
+ * containing only table `Agent`.
  *
- * Generate supabase typescript schema which will be subset of [AgentsServerDatabase](/apps/agents-server/src/database/schema.ts)
- * containing only tables `Agent`
+ * NOTE: This file intentionally omits all other tables (EnvironmentVariable, AgentHistory, ChatHistory, ChatFeedback)
+ *       and any extra schemas (e.g. `graphql_public`) to remain a strict subset.
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type AgentsDatabaseSchema = {
-    graphql_public: {
-        Tables: {
-            [_ in never]: never;
-        };
-        Views: {
-            [_ in never]: never;
-        };
-        Functions: {
-            graphql: {
-                Args: {
-                    operationName?: string;
-                    query?: string;
-                    variables?: Json;
-                    extensions?: Json;
-                };
-                Returns: Json;
-            };
-        };
-        Enums: {
-            [_ in never]: never;
-        };
-        CompositeTypes: {
-            [_ in never]: never;
-        };
-    };
     public: {
         Tables: {
             Agent: {
@@ -45,33 +22,36 @@ export type AgentsDatabaseSchema = {
                     agentName: string; // <- `string_agent_name`
                     createdAt: string; // <- `string_date_iso8601`
                     updatedAt: string | null; // <- `string_date_iso8601`
-                    agentVersion: number; // <- `number_agent_version`
-                    promptbookEngineVersion: string; // <- `string_promptbook_version`
+                    agentHash: string; // <- `string_agent_hash`
                     usage: Json | null; // <- `Usage`
                     agentSource: string; // <- `string_book`
-                    agentProfile: Json; // <- `AgentBasicInformation` <- TODO: [🕛] (required)
+                    agentProfile: Json; // <- `AgentBasicInformation`
+                    modelRequirements: Json; // <- `ModelRequirements`
+                    promptbookEngineVersion: string; // <- `string_promptbook_version`
                 };
                 Insert: {
                     id?: number;
                     agentName: string;
                     createdAt: string;
                     updatedAt?: string | null;
-                    agentVersion: number;
-                    promptbookEngineVersion: string;
+                    agentHash: string;
                     usage?: Json | null;
                     agentSource: string;
-                    agentProfile: Json; // required
+                    agentProfile: Json;
+                    modelRequirements: Json;
+                    promptbookEngineVersion: string;
                 };
                 Update: {
                     id?: number;
                     agentName?: string;
                     createdAt?: string;
                     updatedAt?: string | null;
-                    agentVersion?: number;
-                    promptbookEngineVersion?: string;
+                    agentHash?: string;
                     usage?: Json | null;
                     agentSource?: string;
-                    agentProfile?: Json; // optional on update
+                    agentProfile?: Json;
+                    modelRequirements?: Json;
+                    promptbookEngineVersion?: string;
                 };
                 Relationships: [];
             };
