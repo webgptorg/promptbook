@@ -2,8 +2,11 @@
 // `@promptbook/core`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { computeAgentHash } from '../book-2.0/agent-source/computeAgentHash';
 import { createAgentModelRequirements } from '../book-2.0/agent-source/createAgentModelRequirements';
 import { createAgentModelRequirementsWithCommitments } from '../book-2.0/agent-source/createAgentModelRequirementsWithCommitments';
+import { createDefaultAgentName } from '../book-2.0/agent-source/createDefaultAgentName';
+import { normalizeAgentName } from '../book-2.0/agent-source/normalizeAgentName';
 import { PADDING_LINES } from '../book-2.0/agent-source/padBook';
 import { padBook } from '../book-2.0/agent-source/padBook';
 import { parseAgentSource } from '../book-2.0/agent-source/parseAgentSource';
@@ -197,8 +200,11 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/core`
+export { computeAgentHash };
 export { createAgentModelRequirements };
 export { createAgentModelRequirementsWithCommitments };
+export { createDefaultAgentName };
+export { normalizeAgentName };
 export { PADDING_LINES };
 export { padBook };
 export { parseAgentSource };

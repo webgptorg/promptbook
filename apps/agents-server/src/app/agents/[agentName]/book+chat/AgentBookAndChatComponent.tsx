@@ -143,7 +143,6 @@ export function AgentBookAndChatComponent() {
                     onChange={setAgentSource}
                     // className={styles.BookEditor}
                     isVerbose={false}
-                    isBorderRadiusDisabled
                     onFileUpload={(file) => {
                         return file.name;
                     }}
