@@ -138,6 +138,7 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
         }
 
         const insertAgentHistoryResult = await this.supabaseClient.from('AgentHistory').insert({
+            createdAt: new Date().toISOString(),
             agentName,
             agentHash,
             previousAgentHash: null,
@@ -217,6 +218,7 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
         }
 
         const insertAgentHistoryResult = await this.supabaseClient.from('AgentHistory').insert({
+            createdAt: new Date().toISOString(),
             agentName,
             agentHash,
             previousAgentHash,
