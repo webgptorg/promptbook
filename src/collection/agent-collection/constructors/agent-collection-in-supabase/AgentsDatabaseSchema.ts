@@ -23,11 +23,11 @@ export type AgentsDatabaseSchema = {
                     createdAt: string; // <- `string_date_iso8601`
                     updatedAt: string | null; // <- `string_date_iso8601`
                     agentHash: string; // <- `string_agent_hash`
-                    usage: Json | null; // <- `Usage`
                     agentSource: string; // <- `string_book`
-                    agentProfile: Json; // <- `AgentBasicInformation`
-                    modelRequirements: Json; // <- `ModelRequirements`
                     promptbookEngineVersion: string; // <- `string_promptbook_version`
+                    usage: Json | null; // <- `Usage`
+                    preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
+                    preparedExternals: Json | null; // <- `PreparedExternals`
                 };
                 Insert: {
                     id?: number;
@@ -35,11 +35,11 @@ export type AgentsDatabaseSchema = {
                     createdAt: string;
                     updatedAt?: string | null;
                     agentHash: string;
-                    usage?: Json | null;
                     agentSource: string;
-                    agentProfile: Json;
-                    modelRequirements: Json;
                     promptbookEngineVersion: string;
+                    usage?: Json | null;
+                    preparedModelRequirements?: Json | null;
+                    preparedExternals?: Json | null;
                 };
                 Update: {
                     id?: number;
@@ -47,11 +47,11 @@ export type AgentsDatabaseSchema = {
                     createdAt?: string;
                     updatedAt?: string | null;
                     agentHash?: string;
-                    usage?: Json | null;
                     agentSource?: string;
-                    agentProfile?: Json;
-                    modelRequirements?: Json;
                     promptbookEngineVersion?: string;
+                    usage?: Json | null;
+                    preparedModelRequirements?: Json | null;
+                    preparedExternals?: Json | null;
                 };
                 Relationships: [];
             };

@@ -41,11 +41,11 @@ export type AgentsServerDatabase = {
                     createdAt: string;
                     updatedAt: string | null;
                     agentHash: string;
-                    usage: Json | null;
                     agentSource: string;
-                    agentProfile: Json;
-                    modelRequirements: Json;
                     promptbookEngineVersion: string;
+                    usage: Json | null;
+                    preparedModelRequirements: Json | null;
+                    preparedExternals: Json | null;
                 };
                 Insert: {
                     id?: number;
@@ -53,11 +53,11 @@ export type AgentsServerDatabase = {
                     createdAt: string;
                     updatedAt?: string | null;
                     agentHash: string;
-                    usage?: Json | null;
                     agentSource: string;
-                    agentProfile: Json;
-                    modelRequirements: Json;
                     promptbookEngineVersion: string;
+                    usage?: Json | null;
+                    preparedModelRequirements?: Json | null;
+                    preparedExternals?: Json | null;
                 };
                 Update: {
                     id?: number;
@@ -65,11 +65,11 @@ export type AgentsServerDatabase = {
                     createdAt?: string;
                     updatedAt?: string | null;
                     agentHash?: string;
-                    usage?: Json | null;
                     agentSource?: string;
-                    agentProfile?: Json;
-                    modelRequirements?: Json;
                     promptbookEngineVersion?: string;
+                    usage?: Json | null;
+                    preparedModelRequirements?: Json | null;
+                    preparedExternals?: Json | null;
                 };
                 Relationships: [];
             };
