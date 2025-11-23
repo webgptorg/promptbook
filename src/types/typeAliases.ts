@@ -191,7 +191,8 @@ export type string_agent_name = string;
  */
 export type string_agent_name_in_book = string;
 
-// <- TODO: !!!!!! Search and distinguish between `string_agent_name` and `string_agent_name_in_book` ACRY + write here in JSDoc difference
+// <- TODO: [🕛] There should be `agent_fullname` not `string_agent_name_in_book`
+// <- TODO: [🕛] Search and distinguish between `string_agent_name` and `string_agent_name_in_book` ACRY + write here in JSDoc difference
 
 /**
  * Semantic helper
