@@ -33,8 +33,7 @@ export type AgentBasicInformation = {
      * Name of the agent
      * This is the first line of the agent source
      */
-    agentName: string_agent_name | null; // <- TODO: !!!!! `AgentBasicInformation.agentName` is always defined and normalized
-    // <- TODO: [🕛][🧠]  Maybe rename to `title` or `fullname`
+    agentName: string_agent_name;
 
     /**
      * Hash of the agent source for integrity verification

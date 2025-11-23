@@ -3,9 +3,11 @@ import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_cam
 import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
+import { normalizeAgentName } from './normalizeAgentName';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
 import type { string_book } from './string_book';
+import { createDefaultAgentName } from './createDefaultAgentName';
 
 /**
  * Parses basic information from agent source
@@ -57,10 +59,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     // Parse parameters using unified approach - both @Parameter and {parameter} notations
     // are treated as the same syntax feature with unified representation
     const parameters = parseParameters(agentSource);
+    const agentHash = computeAgentHash(agentSource);
 
     return {
-        agentName: parseResult.agentName, // <- TODO: !!!!! `agentName` is always defined and normalized
-        agentHash: computeAgentHash(agentSource),
+        agentName: normalizeAgentName(parseResult.agentName || createDefaultAgentName(agentSource)),
+        agentHash,
         personaDescription,
         meta,
         parameters,

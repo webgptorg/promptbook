@@ -7,6 +7,8 @@ import { removeEmojis } from './removeEmojis';
 /**
  * Converts a title string into a normalized name.
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @param value The title string to be converted to a name.
  * @returns A normalized name derived from the input title.
  * @example 'Hello World!' -> 'hello-world'

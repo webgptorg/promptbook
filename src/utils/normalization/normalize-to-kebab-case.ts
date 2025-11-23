@@ -17,6 +17,8 @@ type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 /**
  * Converts a given text to kebab-case format.
  *
+ * Note: [🔂] This function is idempotent.
+ *
  * @param text The text to be converted.
  * @returns The kebab-case formatted string.
  * @example 'hello-world'

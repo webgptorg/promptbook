@@ -1,4 +1,5 @@
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
+import { string_agent_name } from '../../types/typeAliases';
 
 /**
  * Result of parsing agent source for commitments
@@ -9,7 +10,7 @@ export type AgentSourceParseResult = {
     /**
      * The agent name (first line)
      */
-    agentName: string | null;
+    agentName: string_agent_name | null;
 
     /**
      * All parsed commitments

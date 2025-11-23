@@ -1,6 +1,7 @@
 import { BehaviorSubject } from 'rxjs';
 import type { AgentBasicInformation, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
+import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaultAgentName';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -22,10 +23,14 @@ import type { AgentOptions } from './AgentOptions';
  * @public exported from `@promptbook/core`
  */
 export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, AgentBasicInformation {
+    private _agentName: string_agent_name | undefined = undefined;
+
     /**
      * Name of the agent
      */
-    public agentName: string_agent_name | null = null;
+    public get agentName(): string_agent_name {
+        return this._agentName || createDefaultAgentName(this.agentSource.value);
+    }
 
     /**
      * Description of the agent
@@ -75,7 +80,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         this.agentSource = agentSource;
         this.agentSource.subscribe((source) => {
             const { agentName, personaDescription, meta } = parseAgentSource(source);
-            this.agentName = agentName;
+            this._agentName = agentName;
             this.personaDescription = personaDescription;
             this.meta = { ...this.meta, ...meta };
         });
