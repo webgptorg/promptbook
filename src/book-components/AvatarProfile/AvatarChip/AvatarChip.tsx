@@ -51,7 +51,7 @@ export function AvatarChip(props: AvatarChipProps) {
             style={{ cursor: onSelect ? 'pointer' : undefined }}
         >
             <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
-            {agentName}
+            {agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */}
             {isTemplate && <span className={styles.TemplateLabel}>Template</span>}
         </div>
     );

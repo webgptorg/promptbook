@@ -151,7 +151,9 @@ export const OpenAiSdkTranspiler = {
                         });
 
                         const answer = response.choices[0].message.content;
-                        console.log('\\n🧠 ${agentName}:', answer, '\\n');
+                        console.log('\\n🧠 ${
+                            agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
+                        }:', answer, '\\n');
 
                         chatHistory.push({ role: 'assistant', content: answer });
                         promptUser();
@@ -170,7 +172,9 @@ export const OpenAiSdkTranspiler = {
 
                     (async () => {
                         await setupKnowledge();
-                        console.log("🤖 Chat with ${agentName} (type 'exit' to quit)\\n");
+                        console.log("🤖 Chat with ${
+                            agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
+                        } (type 'exit' to quit)\\n");
                         promptUser();
                     })();
                 `,
@@ -220,7 +224,9 @@ export const OpenAiSdkTranspiler = {
                     });
 
                     const answer = response.choices[0].message.content;
-                    console.log('\\n🧠 ${agentName}:', answer, '\\n');
+                    console.log('\\n🧠 ${
+                        agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
+                    }:', answer, '\\n');
 
                     chatHistory.push({ role: 'assistant', content: answer });
                     promptUser();
@@ -237,7 +243,9 @@ export const OpenAiSdkTranspiler = {
                     });
                 }
 
-                console.log("🤖 Chat with ${agentName} (type 'exit' to quit)\\n");
+                console.log("🤖 Chat with ${
+                    agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
+                } (type 'exit' to quit)\\n");
                 promptUser();
 
             `,

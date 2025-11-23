@@ -44,7 +44,8 @@ describe('AgentChat', () => {
     function createMockAgent(agentName = 'TestAgent', color = '#FF5733'): Agent {
         return new Agent({
             agentSource: book`
-                ${agentName}
+                ${agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */}
+
                 PERSONA A helpful test assistant
                 META IMAGE https://example.com/avatar.png
                 META COLOR ${color}

@@ -132,6 +132,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
             cleanedMessage = lines.slice(personaEndIndex).join('\n').trim();
         }
 
+        // TODO: [🕛] There should be `agentFullname` not `agentName`
         // Create new system message with persona at the beginning
         // Format: "You are {agentName}\n{personaContent}"
         // The # PERSONA comment will be removed later by removeCommentsFromSystemMessage

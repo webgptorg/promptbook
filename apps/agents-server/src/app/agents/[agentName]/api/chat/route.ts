@@ -26,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         });
 
         const response = await agent.callChatModel!({
-            title: `Chat with agent ${agentName}`,
+            title: `Chat with agent ${agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */}`,
             parameters: {},
             modelRequirements: {
                 modelVariant: 'CHAT',

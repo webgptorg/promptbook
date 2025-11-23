@@ -51,7 +51,7 @@ export function AvatarProfile(props: AvatarProfileProps) {
             <div className={classNames(styles.AvatarProfile, className)} style={style}>
                 <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
                 <div className={styles.AgentInfo}>
-                    <h2 className={styles.AgentName}>{agentName}</h2>
+                    <h2 className={styles.AgentName}>{agentName /*  */}</h2>
                     <p className={styles.AgentDescription}>{personaDescription}</p>
                     {agentSource !== undefined && (
                         <button
