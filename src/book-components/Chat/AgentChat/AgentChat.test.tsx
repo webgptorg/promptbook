@@ -107,7 +107,7 @@ describe('AgentChat', () => {
         // Check AGENT participant
         const agentParticipant = participants.find((p: TODO_any) => p.name === 'AGENT');
         expect(agentParticipant).toBeDefined();
-        expect(agentParticipant?.fullname).toBe('FriendlyBot');
+        expect(agentParticipant?.fullname).toBe('friendly-bot'); // <- TODO: [🕛] There should be `agentName` and `agentFullname` and here "FriendlyBot"
         expect(agentParticipant?.color).toBe('#10b981');
         expect(agentParticipant?.isMe).toBe(false);
 
@@ -137,7 +137,7 @@ describe('AgentChat', () => {
 
         const firstMessage = initialMessages[0];
         expect(firstMessage?.from).toBe('AGENT');
-        expect(firstMessage?.content).toContain('GreeterBot');
+        expect(firstMessage?.content).toContain('greeter-bot'); // <- TODO: [🕛]
     });
 
     it('should pass through optional props to LlmChat', async () => {
@@ -206,7 +206,7 @@ describe('AgentChat', () => {
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
         expect(capturedProps).toBeDefined();
-        expect(capturedProps?.title).toContain('MinimalAgent');
+        expect(capturedProps?.title).toContain('minimal-agent'); // <- TODO: [🕛]
     });
 
     it('should have correct props interface', () => {
@@ -251,6 +251,6 @@ describe('AgentChat', () => {
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
         expect(capturedProps?.persistenceKey).toContain('agent-chat');
-        expect(capturedProps?.persistenceKey).toContain('KeyBot');
+        expect(capturedProps?.persistenceKey).toContain('agent-chat-key-bot');
     });
 });

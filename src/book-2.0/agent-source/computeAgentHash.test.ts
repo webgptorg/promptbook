@@ -13,5 +13,5 @@ describe('how `computeAgentHash` works', () => {
                     RULE Be exact
                 `,
             ),
-        ).toBe(''));
+        ).toBe('a78d9fa43f915ece9fb0b59c3f22a469cc5303d68f3c41b34281877853859cd5'));
 });

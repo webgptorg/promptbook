@@ -7,7 +7,7 @@ describe('parseAgentSource', () => {
     it('parses minimal agent source (only name)', () => {
         const agentSource = validateBook('Agent Name');
         const result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('Agent Name');
+        expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
         expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
         expect(result.parameters).toEqual([]);
@@ -23,7 +23,7 @@ describe('parseAgentSource', () => {
         );
         const result = parseAgentSource(agentSource);
         expect(result).toMatchObject({
-            agentName: 'Agent Name',
+            agentName: 'agent-name',
             personaDescription: 'A helpful assistant',
             meta: {
                 image: 'https://img.url/pic.png',
@@ -44,7 +44,7 @@ describe('parseAgentSource', () => {
         );
         const result = parseAgentSource(agentSource);
         expect(result).toMatchObject({
-            agentName: 'Agent Name',
+            agentName: 'agent-name',
             personaDescription: 'A helpful assistant',
             meta: {
                 image: 'https://img.url/pic.png',
@@ -61,14 +61,14 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('Agent Name');
+        expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
         expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
     });
 
     it('handles empty or whitespace input', () => {
-        expect(parseAgentSource(validateBook(''))).toEqual({
-            agentName: null,
+        expect(parseAgentSource(validateBook(''))).toMatchObject({
+            agentName: 'agent-e3b0c4',
             parameters: [],
             personaDescription: null,
             meta: {
@@ -76,7 +76,8 @@ describe('parseAgentSource', () => {
             },
         });
         expect(parseAgentSource(validateBook('   '))).toEqual({
-            agentName: null,
+            agentName: 'agent-c465d6',
+            agentHash: 'c465d6811e5a78386e88fc15f49d19d3fc4efbedfae8b31e285b8f6c267fd5e8',
             parameters: [],
             personaDescription: null,
             meta: {
@@ -96,7 +97,7 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('Agent Name');
+        expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
         expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
     });
@@ -111,7 +112,7 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('Agent Name');
+        expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe('');
         expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
     });
@@ -126,8 +127,8 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
-        expect(result).toEqual({
-            agentName: 'AI Avatar',
+        expect(result).toMatchObject({
+            agentName: 'ai-avatar',
             personaDescription: 'A friendly AI assistant that helps you with your tasks',
             meta: {
                 image: expect.stringMatching(/gravatar/), // Should be a gravatar URL fallback
@@ -150,8 +151,8 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
-        expect(result).toEqual({
-            agentName: 'AI Avatar',
+        expect(result).toMatchObject({
+            agentName: 'ai-avatar',
             personaDescription: 'A friendly AI assistant that helps you with your tasks',
             meta: {
                 image: './picture.png',

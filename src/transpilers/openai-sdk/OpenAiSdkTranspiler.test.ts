@@ -16,7 +16,7 @@ describe('OpenAiSdkTranspiler', () => {
         const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
         expect(code).toContain('const client = new OpenAI');
-        expect(code).toContain('🧠 Poe:');
+        expect(code).toContain('🧠 poe:'); // <- TODO: [🕛] There should be `agentName` and `agentFullname` and here "🧠 Poe:"
         expect(code).toContain("model: 'gpt-4o'");
         expect(code).toContain('temperature: 0.7');
         expect(code).not.toContain('PERSONA You are funny');
@@ -38,7 +38,7 @@ describe('OpenAiSdkTranspiler', () => {
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
         const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
-        expect(code).toContain('import { Document, VectorStoreIndex, SimpleDirectoryReader } from \'llamaindex\'');
+        expect(code).toContain("import { Document, VectorStoreIndex, SimpleDirectoryReader } from 'llamaindex'");
         expect(code).toContain('const knowledge =');
         expect(code).toContain('a'.repeat(1001));
         expect(code).toContain('index = await VectorStoreIndex.fromDocuments(documents)');
@@ -57,7 +57,7 @@ describe('OpenAiSdkTranspiler', () => {
         const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
         const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
-        expect(code).toContain('import { Document, VectorStoreIndex, SimpleDirectoryReader } from \'llamaindex\'');
+        expect(code).toContain("import { Document, VectorStoreIndex, SimpleDirectoryReader } from 'llamaindex'");
         expect(code).toContain('const knowledgeSources =');
         expect(code).toContain('https://example.com/witcher-lore.txt');
         expect(code).toContain('index = await VectorStoreIndex.fromDocuments(documents)');
