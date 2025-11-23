@@ -1,4 +1,8 @@
-// TODO: Use or remove this file:
+// TODO: !!!! Use the configuration from ConfigChecker
+// TODO: !!!! Load config from `EnvironmentVariable` table, `EnvironmentVariable` has priority over `process.env` from `.env`
+// TODO: !!!! Move variables from Vercel -> Supabase
+
+
 
 import { CLI_APP_ID } from '@promptbook/core';
 import { string_app_id } from '@promptbook/types';

@@ -4,6 +4,8 @@ import { AvailableModel } from '../../../execution/AvailableModel';
  * Utility to assert that all models in the provided array have unique `modelName` values.
  *
  * This is internal utility for unit tests to ensure no duplicate model names exist.
+ *
+ * @private internal utility of unit tests
  */
 export function assertUniqueModels(models: ReadonlyArray<AvailableModel>) {
     const seen = new Map<string, boolean>();
@@ -21,3 +23,7 @@ export function assertUniqueModels(models: ReadonlyArray<AvailableModel>) {
         throw new Error(`Duplicate model names found: ${duplicates.join(', ')}`);
     }
 }
+
+/**
+ * Note: [⚪] This should never be in any released package
+ */

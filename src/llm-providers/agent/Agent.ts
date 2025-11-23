@@ -1,9 +1,10 @@
 import { BehaviorSubject } from 'rxjs';
 import type { AgentBasicInformation, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
+import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_agent_name, string_url_image } from '../../types/typeAliases';
+import type { string_agent_hash, string_agent_name, string_url_image } from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
@@ -30,6 +31,13 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
      * Description of the agent
      */
     public personaDescription: string | null = null;
+
+    /**
+     * Computed hash of the agent source for integrity verification
+     */
+    public get agentHash(): string_agent_hash {
+        return computeAgentHash(this.agentSource.value);
+    }
 
     /**
      * Metadata like image or color
