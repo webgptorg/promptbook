@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "Agent" (
 
     "agentHash" TEXT NOT NULL COMMENT 'The hash of the `agentSource`, automatically updated on `agentSource` change',
     "agentSource" TEXT NOT NULL COMMENT 'The source code of the agent',
-    "agentProfile" JSONB NOT NULL COMMENT 'The profile of the agent generated from the `agentSource`, automatically updated on `agentSource` change',
+    "agentProfile" JSONB NOT NULL COMMENT 'The profile of the agent generated from the `agentSource`, automatically updated on `agentSource` change <- TODO: [🕛]',   
     "promptbookEngineVersion" TEXT NOT NULL COMMENT 'The version of the Promptbook engine used for last update of the agent',
    
     "usage" JSONB NULL COMMENT 'Usage and spending statistics for the agent',

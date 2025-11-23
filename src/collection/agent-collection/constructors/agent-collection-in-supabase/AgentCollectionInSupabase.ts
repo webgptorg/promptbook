@@ -9,6 +9,7 @@ import type { CommonToolsOptions } from '../../../../execution/CommonToolsOption
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { PrepareAndScrapeOptions } from '../../../../prepare/PrepareAndScrapeOptions';
 import type { string_agent_name } from '../../../../types/typeAliases';
+import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
@@ -47,9 +48,7 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
         ReadonlyArray<AgentBasicInformation>
     > {
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
-        const selectResult = await this.supabaseClient
-            .from('Agent' /* <- TODO: !!!! Change to `Agent` */)
-            .select('agentProfile');
+        const selectResult = await this.supabaseClient.from('Agent').select('agentProfile');
 
         if (selectResult.error) {
             throw new DatabaseError(
@@ -76,7 +75,7 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
      */
     public async getAgentSource(agentName: string_agent_name): Promise<string_book> {
         const selectResult = await this.supabaseClient
-            .from('Agent' /* <- TODO: !!!! Change to `Agent` */)
+            .from('Agent')
             .select('agentSource')
             .eq('agentName', agentName)
             .single();
@@ -112,10 +111,11 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
     public async createAgent(agentSource: string_book): Promise<AgentBasicInformation> {
         const agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
+        const { agentName, agentHash } = agentProfile;
 
-        const selectResult = await this.supabaseClient.from('Agent' /* <- TODO: !!!! Change to `Agent` */).insert({
-            agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
-            agentHash: agentProfile.agentHash,
+        const insertAgentResult = await this.supabaseClient.from('Agent').insert({
+            agentName,
+            agentHash,
             agentProfile,
             modelRequirements: null,
             createdAt: new Date().toISOString(),
@@ -125,17 +125,28 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
             agentSource: agentSource,
         });
 
-        if (selectResult.error) {
+        if (insertAgentResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
                         Error creating agent "${agentProfile.agentName}" in Supabase:
                         
-                        ${block(selectResult.error.message)}
+                        ${block(insertAgentResult.error.message)}
                     `,
                 ),
             );
         }
+
+        const insertAgentHistoryResult = await this.supabaseClient.from('AgentHistory').insert({
+            agentName,
+            agentHash,
+            previousAgentHash: null,
+            agentSource,
+            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+        });
+
+        keepUnused(insertAgentHistoryResult);
+        // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
 
         return agentProfile;
     }
@@ -144,14 +155,41 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
      * Updates an existing agent in the collection
      */
     public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
+        const selectPreviousAgentResult = await this.supabaseClient
+            .from('Agent')
+            .select('agentHash,agentName')
+            .eq('agentName', agentName)
+            .single();
+
+        if (selectPreviousAgentResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                
+                        Error fetching agent "${agentName}" from Supabase:
+                        
+                        ${block(selectPreviousAgentResult.error.message)}
+                    `,
+                ),
+            );
+            // <- TODO: !!! First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
+        }
+
+        const previousAgentName = selectPreviousAgentResult.data.agentName;
+        const previousAgentHash = selectPreviousAgentResult.data.agentHash;
+
         const agentProfile = parseAgentSource(agentSource as string_book);
+        //     <- TODO: [🕛]
+        const { agentHash } = agentProfile;
 
         // TODO: !!!!!! What about agentName change
 
         // console.log('!!! agentName', agentName);
 
-        const updateResult = await this.supabaseClient
-            .from('Agent' /* <- TODO: !!!! Change to `Agent` */)
+        TODO_USE(previousAgentName); // <- Do some extra action on name change
+
+        const updateAgentResult = await this.supabaseClient
+            .from('Agent')
             .update({
                 // TODO: !!!! Compare not update> agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
                 agentProfile,
@@ -166,17 +204,28 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
         // console.log('!!! old', oldAgentSource);
         // console.log('!!! new', newAgentSource);
 
-        if (updateResult.error) {
+        if (updateAgentResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
                         Error updating agent "${agentName}" in Supabase:
                         
-                        ${block(updateResult.error.message)}
+                        ${block(updateAgentResult.error.message)}
                     `,
                 ),
             );
         }
+
+        const insertAgentHistoryResult = await this.supabaseClient.from('AgentHistory').insert({
+            agentName,
+            agentHash,
+            previousAgentHash,
+            agentSource,
+            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+        });
+
+        keepUnused(insertAgentHistoryResult);
+        // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
     }
 
     // TODO: !!!! public async getAgentSourceSubject(agentName: string_agent_name): Promise<BehaviorSubject<string_book>>
