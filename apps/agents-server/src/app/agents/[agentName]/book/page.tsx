@@ -15,7 +15,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
 
     return (
         <main className={`w-screen h-screen`}>
-            <BookEditorWrapper isBorderRadiusDisabled agentName={agentName} initialAgentSource={agentSource} />
+            <BookEditorWrapper agentName={agentName} initialAgentSource={agentSource} />
         </main>
     );
 }

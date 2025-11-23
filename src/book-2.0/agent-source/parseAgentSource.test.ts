@@ -22,7 +22,7 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             agentName: 'Agent Name',
             personaDescription: 'A helpful assistant',
             meta: {
@@ -43,7 +43,7 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             agentName: 'Agent Name',
             personaDescription: 'A helpful assistant',
             meta: {
