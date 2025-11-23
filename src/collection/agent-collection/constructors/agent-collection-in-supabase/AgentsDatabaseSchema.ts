@@ -5,9 +5,9 @@
  * [💽] Prompt:
  * Re-generate this sub-schema
  * Generate Supabase TypeScript schema which is a subset of `AgentsServerDatabase`
- * containing only table `Agent`.
+ * containing only tables `Agent` and `AgentHistory`
  *
- * NOTE: This file intentionally omits all other tables (EnvironmentVariable, AgentHistory, ChatHistory, ChatFeedback)
+ * NOTE: This file intentionally omits all other tables (EnvironmentVariable, ChatHistory, ChatFeedback)
  *       and any extra schemas (e.g. `graphql_public`) to remain a strict subset.
  */
 
@@ -55,6 +55,36 @@ export type AgentsDatabaseSchema = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                };
+                Relationships: [];
+            };
+            AgentHistory: {
+                Row: {
+                    id: number;
+                    createdAt: string; // <- `string_date_iso8601`
+                    agentName: string; // <- `string_agent_name`
+                    agentHash: string; // <- `string_agent_hash`
+                    previousAgentHash: string | null; // <- `string_agent_hash`
+                    agentSource: string; // <- `string_book`
+                    promptbookEngineVersion: string; // <- `string_promptbook_version`
+                };
+                Insert: {
+                    id?: number;
+                    createdAt: string;
+                    agentName: string;
+                    agentHash: string;
+                    previousAgentHash?: string | null;
+                    agentSource: string;
+                    promptbookEngineVersion: string;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    agentName?: string;
+                    agentHash?: string;
+                    previousAgentHash?: string | null;
+                    agentSource?: string;
+                    promptbookEngineVersion?: string;
                 };
                 Relationships: [];
             };
