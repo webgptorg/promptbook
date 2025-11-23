@@ -127,14 +127,14 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                     <div className="flex gap-4 mt-6">
                         <a
                             href={`${pageUrl}/chat`}
-                            // <- !!!! Can I append path like this on current browser URL in href?
+                            // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-semibold transition"
                         >
                             💬 Chat
                         </a>
                         <a
                             href={`${pageUrl}/book`}
-                            // <- !!!! Can I append path like this on current browser URL in href?
+                            // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
                         >
                             ✏️ Edit Agent Book

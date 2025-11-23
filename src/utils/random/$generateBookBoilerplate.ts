@@ -51,11 +51,11 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
             (block) => `
                 ${agentName}
     
-                META COLOR ${color || '#3498db' /* <- TODO: !!!! Best default color */}
+                META COLOR ${color || '#3498db' /* <- TODO: [🧠] !!!! Best default color */}
                 PERSONA ${block(personaDescription!)}
             `,
         ),
-        // <- TODO: !!!! Also add `META IMAGE` with some cool AI-generated avatar image
+        // <- TODO: [🧠] !!!! Also add `META IMAGE` with some cool AI-generated avatar image
     );
 
     return agentSource;

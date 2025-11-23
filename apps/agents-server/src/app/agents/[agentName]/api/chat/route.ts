@@ -60,3 +60,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         );
     }
 }
+
+
+/**
+ * TODO: !!!!!! Record conversations to `ChatHistory`
+ * TODO: !!!!!! Make api endpoint for feedback on agent responses `/apps/agents-server/src/app/agents/[agentName]/api/feedback/route.ts` and record to `ChatFeedback`
+ */

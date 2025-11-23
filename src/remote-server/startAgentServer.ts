@@ -21,7 +21,7 @@ type AgentsServerOptions = {
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
  * @public exported from `@promptbook/remote-server`
- * <- TODO: !!!! Maybe change to `@promptbook/agent-server`
+ * <- TODO: !!!! Change to `@promptbook/agent-server`
  */
 export async function startAgentServer(options: AgentsServerOptions): Promise<TODO_any> {
     const { port = 4440 } = options;

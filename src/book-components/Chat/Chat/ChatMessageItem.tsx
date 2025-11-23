@@ -344,7 +344,8 @@ export const ChatMessageItem = memo(
                                             onMessage(button.message);
                                         }
                                     }}
-                                    // <- TODO: !!!! use `textColor` for button text here
+                                    // <- TODO: !!!!!!! use `textColor` for button text here
+                                    // <- TODO: !!!!!!! `Color` should work with forma `#ff00ff55` *(with alpha)*
                                 >
                                     <MarkdownContent content={button.text} />
                                 </button>

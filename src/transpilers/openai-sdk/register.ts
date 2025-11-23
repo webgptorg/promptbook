@@ -10,7 +10,7 @@ import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
  * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  *
- * TODO: !!!! Which package should export this?
+ * TODO: [🧠] Which package should export this?
  */
 export const _OpenAiSdkTranspilerRegistration: Registration = $bookTranspilersRegister.register(OpenAiSdkTranspiler);
 

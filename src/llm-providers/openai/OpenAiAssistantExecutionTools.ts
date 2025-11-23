@@ -300,7 +300,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
          */
         readonly knowledgeSources?: ReadonlyArray<string>;
 
-        // <- TODO: !!!! Add also other assistant creation parameters like tools, name, description, model, ...
+        // <- TODO: [🧠] !!!! Add also other assistant creation parameters like tools, name, description, model, ...
     }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
             throw new NotAllowed(
@@ -445,7 +445,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // TODO: [🧠] Reuse vector store creation logic from createNewAssistant
         if (knowledgeSources && knowledgeSources.length > 0) {
             if (this.options.isVerbose) {
-                console.info(`📚 Creating vector store for update with ${knowledgeSources.length} knowledge sources...`);
+                console.info(
+                    `📚 Creating vector store for update with ${knowledgeSources.length} knowledge sources...`,
+                );
             }
 
             // Create a vector store

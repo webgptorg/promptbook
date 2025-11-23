@@ -26,7 +26,7 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
 
     executionTools = new OpenAiAssistantExecutionTools({
         apiKey: process.env.OPENAI_API_KEY,
-        assistantId: '!!!! null',
+        assistantId: 'abstract_assistant', // <- TODO: !!!! In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
         isCreatingNewAssistantsAllowed: true,
         isVerbose,
     });

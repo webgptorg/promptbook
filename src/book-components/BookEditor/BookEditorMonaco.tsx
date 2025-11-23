@@ -415,7 +415,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     }}
                     loading={
                         <div className={styles.loading}>
-                            📖{/* <- TODO: !!!! Better visual of loading of `<BookEditor/>` */}
+                            📖{/* <- TODO: !!!!! Better visual of loading of `<BookEditor/>` */}
                         </div>
                     }
                 />

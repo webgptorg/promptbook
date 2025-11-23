@@ -26,7 +26,7 @@ export function AgentChat(props: AgentChatProps) {
     return (
         <LlmChat
             title={title || `Chat with ${agent.agentName || 'Agent'}`}
-            persistenceKey={persistenceKey || `agent-chat-${agent.agentName || '!!!!!remove'}`}
+            persistenceKey={persistenceKey || `agent-chat-${agent.agentName}`}
             userParticipantName="USER"
             llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
             initialMessages={[
@@ -47,7 +47,7 @@ export function AgentChat(props: AgentChatProps) {
                     avatarSrc: agent.meta.image,
                     color: agent.meta.color,
                     isMe: false,
-                    agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: !!!!! asValue */,
+                    agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: !!!!!! asValue */,
                 },
                 {
                     name: 'USER',

@@ -10,5 +10,5 @@ import { string_book } from './string_book';
  */
 
 export function computeAgentHash(agentSource: string_book): string_agent_hash {
-    return sha256(hexEncoder.parse(agentSource /* <- TODO: !!!! spaceTrim */)).toString(/* hex */);
+    return sha256(hexEncoder.parse(agentSource /* <- TODO: !!!!! spaceTrim */)).toString(/* hex */);
 }

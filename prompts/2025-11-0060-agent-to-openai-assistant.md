@@ -27,7 +27,7 @@ Each knowledge source should be used in vector store created and used for the cr
 
 [ ]
 
-[✨🚩] bar
+[✨🚩] bars
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`

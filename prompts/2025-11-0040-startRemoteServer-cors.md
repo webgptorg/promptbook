@@ -1,4 +1,4 @@
-[.] _<- TODO: !!!! This is maybe problematic and unnecessary change, it was implemented in e2cef0054f83719828e4cce234b7d71e3c84cd40 and then reverted_
+[.] _<- TODO: [🧠] This is maybe problematic and unnecessary change, it was implemented in e2cef0054f83719828e4cce234b7d71e3c84cd40 and then reverted_
 
 [✨🌡] Allow to pass CORS setting into remote server into options of `startRemoteServer`
 

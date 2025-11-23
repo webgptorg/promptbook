@@ -23,7 +23,7 @@ import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
  * @public exported from `@promptbook/core`
  * <- TODO: !!! Move to `@promptbook/supabase` package
  */
-export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
+export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
     /**
      * @param rootPath - path to the directory with agents
      * @param tools - Execution tools to be used in !!! `Agent` itself and listing the agents
@@ -198,7 +198,7 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
         //     <- TODO: [🕛]
         const { agentHash } = agentProfile;
 
-        // TODO: !!!!!! What about agentName change
+        // TODO: !!!!!!!! What about agentName change
 
         // console.log('!!! agentName', agentName);
 

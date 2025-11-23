@@ -137,5 +137,4 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
  * DONE: Implement debouncing for auto-save (600ms delay) ✅
  * TODO: !!! Add error handling and retry logic
  * TODO: !!! Show save status indicator
- * TODO: !!!!! Add file upload capability
  */

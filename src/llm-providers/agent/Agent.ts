@@ -74,8 +74,8 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             llmTools: getSingleLlmExecutionTools(options.executionTools.llm),
             agentSource: agentSource.value, // <- TODO: !!!! Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
         });
-        // TODO: !!!! Add `Agent` simple "mocked" learning by appending to agent source
-        // TODO: !!!! Add `Agent` learning by promptbookAgent
+        // TODO: !!!!! Add `Agent` simple "mocked" learning by appending to agent source
+        // TODO: !!!!! Add `Agent` learning by promptbookAgent
 
         this.agentSource = agentSource;
         this.agentSource.subscribe((source) => {
