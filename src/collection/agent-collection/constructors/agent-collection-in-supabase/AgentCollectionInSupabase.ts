@@ -48,7 +48,7 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
         ReadonlyArray<AgentBasicInformation>
     > {
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
-        const selectResult = await this.supabaseClient.from('Agent').select('agentProfile');
+        const selectResult = await this.supabaseClient.from('Agent').select('agentName,agentProfile');
 
         if (selectResult.error) {
             throw new DatabaseError(
@@ -67,7 +67,23 @@ export class AgentCollectionInSupabase /* TODO: !!!! implements Agent */ {
             console.info(`Found ${selectResult.data.length} agents in directory`);
         }
 
-        return selectResult.data.map((row) => row.agentProfile as AgentBasicInformation);
+        return selectResult.data.map(({ agentName, agentProfile }) => {
+            if (isVerbose && (agentProfile as AgentBasicInformation).agentName !== agentName) {
+                console.warn(
+                    spaceTrim(`
+                        Agent name mismatch for agent "${agentName}". Using name from database.
+
+                        agentName: "${agentName}"
+                        agentProfile.agentName: "${(agentProfile as AgentBasicInformation).agentName}"
+                    `),
+                );
+            }
+
+            return {
+                ...(agentProfile as AgentBasicInformation),
+                agentName,
+            };
+        });
     }
 
     /**
