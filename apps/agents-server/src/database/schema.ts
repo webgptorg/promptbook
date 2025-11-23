@@ -42,6 +42,7 @@ export type AgentsServerDatabase = {
                     updatedAt: string | null;
                     agentHash: string;
                     agentSource: string;
+                    agentProfile: Json;
                     promptbookEngineVersion: string;
                     usage: Json | null;
                     preparedModelRequirements: Json | null;
@@ -54,6 +55,7 @@ export type AgentsServerDatabase = {
                     updatedAt?: string | null;
                     agentHash: string;
                     agentSource: string;
+                    agentProfile: Json;
                     promptbookEngineVersion: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
@@ -66,6 +68,7 @@ export type AgentsServerDatabase = {
                     updatedAt?: string | null;
                     agentHash?: string;
                     agentSource?: string;
+                    agentProfile?: Json;
                     promptbookEngineVersion?: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;

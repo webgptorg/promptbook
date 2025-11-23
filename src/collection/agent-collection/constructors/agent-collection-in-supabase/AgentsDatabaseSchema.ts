@@ -24,6 +24,7 @@ export type AgentsDatabaseSchema = {
                     updatedAt: string | null; // <- `string_date_iso8601`
                     agentHash: string; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
+                    agentProfile: Json; // <- `AgentBasicInformation` (serialized)
                     promptbookEngineVersion: string; // <- `string_promptbook_version`
                     usage: Json | null; // <- `Usage`
                     preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
@@ -36,6 +37,7 @@ export type AgentsDatabaseSchema = {
                     updatedAt?: string | null;
                     agentHash: string;
                     agentSource: string;
+                    agentProfile: Json;
                     promptbookEngineVersion: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
@@ -48,6 +50,7 @@ export type AgentsDatabaseSchema = {
                     updatedAt?: string | null;
                     agentHash?: string;
                     agentSource?: string;
+                    agentProfile?: Json;
                     promptbookEngineVersion?: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
