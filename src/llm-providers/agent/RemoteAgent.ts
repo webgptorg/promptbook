@@ -29,7 +29,7 @@ export class RemoteAgent extends Agent {
 
         const agentSourceValue = (await bookResponse.text()) as string_book;
         const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(agentSourceValue);
-        // <- TODO: !!!!!! Support updating
+        // <- TODO: !!!! Support updating and self-updating
 
         return new RemoteAgent({
             ...options,
@@ -100,7 +100,7 @@ export class RemoteAgent extends Agent {
             }
         }
 
-        // <- TODO: !!!!!!!! Transfer metadata
+        // <- TODO: !!!! Transfer metadata
 
         const agentResult: ChatPromptResult = {
             content,
@@ -110,7 +110,7 @@ export class RemoteAgent extends Agent {
             rawPromptContent: {} as TODO_any,
             rawRequest: {} as TODO_any,
             rawResponse: {} as TODO_any,
-            // <- TODO: !!!!!!!! Transfer and proxy the metadata
+            // <- TODO: !!!! Transfer and proxy the metadata
         };
 
         return agentResult;
