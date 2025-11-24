@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥜] Allow to record feedback in Agents Server
 
