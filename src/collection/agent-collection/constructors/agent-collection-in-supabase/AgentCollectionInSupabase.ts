@@ -11,6 +11,7 @@ import type { PrepareAndScrapeOptions } from '../../../../prepare/PrepareAndScra
 import type { string_agent_name } from '../../../../types/typeAliases';
 import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
+import { getSupabaseTable } from '../../../../utils/environment/getSupabaseTable';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
@@ -48,7 +49,9 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
         ReadonlyArray<AgentBasicInformation>
     > {
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
-        const selectResult = await this.supabaseClient.from('Agent').select('agentName,agentProfile');
+        const selectResult = await this.supabaseClient
+            .from(getSupabaseTable('Agent') as 'Agent')
+            .select('agentName,agentProfile');
 
         if (selectResult.error) {
             throw new DatabaseError(
@@ -91,7 +94,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
      */
     public async getAgentSource(agentName: string_agent_name): Promise<string_book> {
         const selectResult = await this.supabaseClient
-            .from('Agent')
+            .from(getSupabaseTable('Agent') as 'Agent')
             .select('agentSource')
             .eq('agentName', agentName)
             .single();
@@ -129,7 +132,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
         //     <- TODO: [🕛]
         const { agentName, agentHash } = agentProfile;
 
-        const insertAgentResult = await this.supabaseClient.from('Agent').insert({
+        const insertAgentResult = await this.supabaseClient.from(getSupabaseTable('Agent') as 'Agent').insert({
             agentName,
             agentHash,
             agentProfile,
@@ -152,10 +155,12 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient.from('AgentHistory').insert({
-            createdAt: new Date().toISOString(),
-            agentName,
-            agentHash,
+        const insertAgentHistoryResult = await this.supabaseClient
+            .from(getSupabaseTable('AgentHistory') as 'AgentHistory')
+            .insert({
+                createdAt: new Date().toISOString(),
+                agentName,
+                agentHash,
             previousAgentHash: null,
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
@@ -172,7 +177,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
      */
     public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
         const selectPreviousAgentResult = await this.supabaseClient
-            .from('Agent')
+            .from(getSupabaseTable('Agent') as 'Agent')
             .select('agentHash,agentName')
             .eq('agentName', agentName)
             .single();
@@ -205,7 +210,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
         TODO_USE(previousAgentName); // <- Do some extra action on name change
 
         const updateAgentResult = await this.supabaseClient
-            .from('Agent')
+            .from(getSupabaseTable('Agent') as 'Agent')
             .update({
                 // TODO: !!!! Compare not update> agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
                 agentProfile,
@@ -232,10 +237,12 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient.from('AgentHistory').insert({
-            createdAt: new Date().toISOString(),
-            agentName,
-            agentHash,
+        const insertAgentHistoryResult = await this.supabaseClient
+            .from(getSupabaseTable('AgentHistory') as 'AgentHistory')
+            .insert({
+                createdAt: new Date().toISOString(),
+                agentName,
+                agentHash,
             previousAgentHash,
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,

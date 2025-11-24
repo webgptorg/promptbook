@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🛥] Allow to prefix Supabase database tables used in Agents Server
 

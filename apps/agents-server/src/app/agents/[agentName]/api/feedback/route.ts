@@ -1,5 +1,6 @@
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseTable } from '../../../../../../../../src/utils/environment/getSupabaseTable';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
 
 type FeedbackRequest = {
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const supabase = $provideSupabaseForServer();
 
-        const { error } = await supabase.from('ChatFeedback').insert({
+        const { error } = await supabase.from(getSupabaseTable('ChatFeedback') as 'ChatFeedback').insert({
             createdAt: new Date().toISOString(),
             agentName,
             agentHash,

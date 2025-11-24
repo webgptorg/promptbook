@@ -4,6 +4,7 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { getSupabaseTable } from '../../../../../../../../src/utils/environment/getSupabaseTable';
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
@@ -47,7 +48,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         // Record the user message
         const supabase = $provideSupabaseForServer();
-        await supabase.from('ChatHistory').insert({
+        await supabase.from(getSupabaseTable('ChatHistory') as 'ChatHistory').insert({
             createdAt: new Date().toISOString(),
             messageHash: computeHash(userMessageContent),
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
@@ -79,7 +80,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         };
 
         // Record the agent message
-        await supabase.from('ChatHistory').insert({
+        await supabase.from(getSupabaseTable('ChatHistory') as 'ChatHistory').insert({
             createdAt: new Date().toISOString(),
             messageHash: computeHash(agentMessageContent),
             previousMessageHash: computeHash(userMessageContent),
@@ -122,5 +123,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 }
 
 /**
+ * TODO: !!!!!! Increase limit on run livetime of requests to this endpoint to 2 minutes
  * TODO: !!!!!! Make api endpoint for feedback on agent responses `/apps/agents-server/src/app/agents/[agentName]/api/feedback/route.ts` and record to `ChatFeedback`
  */

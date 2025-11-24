@@ -1,3 +1,4 @@
+-   **New:** Allow to prefix Supabase database tables used in Agents Server via `SUPABASE_TABLE_PREFIX` environment variable.
 -   **New:** Record conversations to `ChatHistory` table in `Agents Server` application.
 -   **New:** Allowed to upload files to `<BookEditor/>` and created `DigitalOceanSpaces` CDN.
 -   **New:** Updated all LLM models to the latest versions, including adding Gemini 3, OpenAI's GPT-5.1, and Anthropic's Claude 4.5. Deprecated older models as necessary.
