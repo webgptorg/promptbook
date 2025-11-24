@@ -133,8 +133,8 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 }
 
 /**
+ * TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
  * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- * DONE: Implement debouncing for auto-save (600ms delay) ✅
  * TODO: !!! Add error handling and retry logic
  * TODO: !!! Show save status indicator
  */
