@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨♍️] When chatting with the agents, support chat threads _(previous message context)_
 

@@ -1,7 +1,7 @@
 import { BehaviorSubject } from 'rxjs';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { Prompt } from '../../types/Prompt';
+import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type { string_agent_url } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
@@ -69,7 +69,18 @@ export class RemoteAgent extends Agent {
             throw new Error('Agents only supports chat prompts');
         }
 
-        const bookResponse = await fetch(`${this.agentUrl}/api/chat?message=${encodeURIComponent(prompt.content)}`);
+        const chatPrompt = prompt as ChatPrompt;
+
+        const bookResponse = await fetch(`${this.agentUrl}/api/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: prompt.content,
+                thread: chatPrompt.thread,
+            }),
+        });
         // <- TODO: !!!! What about closed-source agents?
         // <- TODO: !!!! Maybe use promptbookFetch
 

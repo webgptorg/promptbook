@@ -5,12 +5,13 @@ import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 
-export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
-    const { searchParams } = new URL(request.url);
-    const message = searchParams.get('message') || 'Tell me more about yourself.';
-    //                                               <- TODO: !!!! To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
+
+    const body = await request.json();
+    const { message = 'Tell me more about yourself.', thread } = body;
+    //      <- TODO: !!!! To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
         const collection = await $provideAgentCollectionForServer();
@@ -68,6 +69,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                 modelVariant: 'CHAT',
             },
             content: message,
+            thread,
         });
 
         // Note: Identify the agent message
