@@ -36,52 +36,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     const brandColor = agentProfile.meta.color || '#3b82f6'; // Default to blue-600
 
     // Mock agent actions
-    const agentActions = ['Emails', 'Web', 'Documents', 'Browser', 'WhatsApp', 'Coding'];
-
-    // Render agent profile fields
-    const renderProfileFields = () => {
-        const renderValue = (value: unknown): React.ReactNode => {
-            if (value === null || value === undefined) {
-                return <span className="text-gray-400 italic">Not specified</span>;
-            }
-            if (typeof value === 'object' && !Array.isArray(value)) {
-                const objValue = value as Record<string, unknown>;
-                return (
-                    <div className="space-y-1 pl-3 border-l-2 border-gray-200">
-                        {Object.entries(objValue).map(([subKey, subValue]) => (
-                            <div key={subKey} className="flex gap-2">
-                                <span className="text-xs text-gray-600 font-medium">{subKey}:</span>
-                                <span className="text-sm text-gray-700">{String(subValue)}</span>
-                            </div>
-                        ))}
-                    </div>
-                );
-            }
-            if (Array.isArray(value)) {
-                return (
-                    <ul className="list-disc list-inside space-y-0.5">
-                        {value.map((item, idx) => (
-                            <li key={idx} className="text-sm text-gray-700">
-                                {String(item)}
-                            </li>
-                        ))}
-                    </ul>
-                );
-            }
-            return <span className="text-base text-gray-800 break-words">{String(value)}</span>;
-        };
-
-        return (
-            <div className="space-y-4">
-                {Object.entries(agentProfile).map(([key, value]) => (
-                    <div key={key} className="flex flex-col gap-1">
-                        <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">{key}</span>
-                        {renderValue(value)}
-                    </div>
-                ))}
-            </div>
-        );
-    };
+    const agentActions = ['Emails', 'Web chat', 'Read documents', 'Browser', 'WhatsApp', '<Coding/>'];
 
     return (
         <div
@@ -99,7 +54,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                                 alt={agentProfile.agentName || 'Agent'}
                                 width={64}
                                 height={64}
-                                className="rounded-full object-cover border-2"
+                                className="rounded-full object-cover border-2 aspect-square w-16 h-16"
                                 style={{ borderColor: brandColor }}
                             />
                         )}
@@ -113,9 +68,9 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             </span>
                         </div>
                     </div>
-                    {renderProfileFields()}
+                    <p className="text-gray-700">{agentProfile.personaDescription}</p>
                     <div className="flex flex-col gap-2">
-                        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actions</h2>
+                        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Capabilities</h2>
                         <div className="flex flex-wrap gap-2">
                             {agentActions.map((action) => (
                                 <span
@@ -132,6 +87,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             href={`${pageUrl}/chat`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-semibold transition"
+                            style={{ backgroundColor: brandColor }}
                         >
                             💬 Chat
                         </a>
@@ -140,7 +96,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
                         >
-                            ✏️ Edit Agent Book
+                            📖 Edit
                         </a>
                     </div>
                 </div>
@@ -148,7 +104,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                 <div className="flex flex-col items-center gap-6 min-w-[260px]">
                     <div className="bg-gray-100 rounded-lg p-4 flex flex-col items-center">
                         <PromptbookQrCode value={pageUrl} />
-                        <span className="mt-2 text-xs text-gray-500">Scan to open agent page</span>
+                        <span className="mt-2 text-xs text-gray-500">Scan to open agent</span>
                     </div>
                     <AgentUrlCopy url={pageUrl} />
                 </div>
