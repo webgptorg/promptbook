@@ -1,6 +1,6 @@
 [ ]
 
-[✨😣] Allow to restrict IP address of the clients via env variabile
+[✨😣] Allow to restrict IP address of the clients via env variabile or/and `Metadata`
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
