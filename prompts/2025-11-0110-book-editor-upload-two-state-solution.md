@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨👨] Show loading state when uploading files
 

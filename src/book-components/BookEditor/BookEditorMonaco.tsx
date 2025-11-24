@@ -276,21 +276,49 @@ export function BookEditorMonaco(props: BookEditorProps) {
             const files = Array.from(event.dataTransfer.files);
             if (files.length === 0) return;
 
-            try {
-                const uploadPromises = files.map((file) => onFileUpload(file));
-                const uploadResults = await Promise.all(uploadPromises);
+            // [1] Inject placeholders
+            const placeholders = files.map((file) => `KNOWLEDGE ⏳ Uploading ${file.name}...`);
+            const currentValue = value || '';
+            const valueWithPlaceholders = currentValue + '\n' + placeholders.join('\n');
+            onChange?.(valueWithPlaceholders as string_book);
 
-                // Note: This is a simplified implementation. A more robust solution would
-                // determine the drop position in the editor and insert the text there.
-                const newText = uploadResults.map((fileSrc) => `KNOWLEDGE ${fileSrc}`).join('\n');
-                const currentValue = value || '';
-                const newValue = currentValue + '\n' + newText;
-                onChange?.(newValue as string_book);
+            try {
+                // [2] Upload files one by one and replace placeholders
+                // Note: We are uploading in parallel
+                await Promise.all(
+                    files.map(async (file, index) => {
+                        const placeholder = placeholders[index]!;
+                        try {
+                            const fileSrc = await onFileUpload(file);
+                            const completedText = `KNOWLEDGE ${fileSrc}`;
+
+                            // Note: We need to get the latest value from the editor to avoid overwriting other changes
+                            const latestValue = editor?.getValue() || '';
+                            const newValue = latestValue.split(placeholder).join(completedText);
+
+                            if (latestValue !== newValue) {
+                                onChange?.(newValue as string_book);
+                            }
+                        } catch (error) {
+                            console.error(`File upload failed for ${file.name}:`, error);
+
+                            // Note: In case of error, we remove the placeholder
+                            const latestValue = editor?.getValue() || '';
+                            const newValue = latestValue
+                                .split(placeholder)
+                                .join(`KNOWLEDGE ❌ Failed to upload ${file.name}`);
+
+                            if (latestValue !== newValue) {
+                                onChange?.(newValue as string_book);
+                            }
+                        }
+                    }),
+                );
             } catch (error) {
                 console.error('File upload failed:', error);
             }
         },
-        [onFileUpload, value, onChange],
+        [onFileUpload, value, onChange, editor],
     );
 
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {

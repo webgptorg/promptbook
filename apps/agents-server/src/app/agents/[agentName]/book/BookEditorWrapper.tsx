@@ -126,7 +126,6 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
                     return shortFileUrl;
                 }}
-                // <- TODO: !!!! Create two-state solution for `<BookEditor onFileUpload={...} />`
             />
         </div>
     );

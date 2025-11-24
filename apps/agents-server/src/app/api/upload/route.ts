@@ -4,6 +4,7 @@ import { serializeError } from '@promptbook-local/utils';
 import formidable from 'formidable';
 import { readFile } from 'fs/promises';
 import { NextRequest, NextResponse } from 'next/server';
+import { forTime } from 'waitasecond';
 import { assertsError } from '../../../../../../src/errors/assertsError';
 import { string_url } from '../../../../../../src/types/typeAliases';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
@@ -13,6 +14,9 @@ import { validateMimeType } from '../../../../src/utils/validators/validateMimeT
 
 export async function POST(request: NextRequest) {
     try {
+        await forTime(1);
+        // await forTime(5000);
+
         const nodeRequest = await nextRequestToNodeRequest(request);
 
         const files = await new Promise<formidable.Files>((resolve, reject) => {
