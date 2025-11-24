@@ -45,6 +45,15 @@ function createChatMarkdownConverter(): ShowdownConverter {
         smartIndentationFix: true,
         disableForced4SpacesIndentedSublists: false,
         encodeEmails: true,
+        extensions: [
+            () => ({
+                type: 'lang',
+                regex: /【(.*?)†source】/g,
+                replace: (match: string, content: string) => {
+                    return `<span class="${styles.citation}">${content}</span>`;
+                },
+            }),
+        ],
     });
 }
 

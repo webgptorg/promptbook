@@ -152,6 +152,20 @@
     border-top-right-radius: 12px;
 }
 
+.citation {
+    display: inline-block;
+    vertical-align: super;
+    font-size: 0.7em;
+    font-weight: bold;
+    color: #007bff;
+    background: #e7f1ff;
+    padding: 0 4px;
+    border-radius: 4px;
+    margin: 0 2px;
+    cursor: default;
+    user-select: none;
+}
+
 /**
  * TODO: [🌉] DRY Markdown primitives styling
  */
