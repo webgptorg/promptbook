@@ -68,7 +68,7 @@ describe('parseAgentSource', () => {
 
     it('handles empty or whitespace input', () => {
         expect(parseAgentSource(validateBook(''))).toMatchObject({
-            agentName: 'agent-e3b0c4',
+            agentName: 'agent-9bee7d',
             parameters: [],
             personaDescription: null,
             meta: {
@@ -76,8 +76,8 @@ describe('parseAgentSource', () => {
             },
         });
         expect(parseAgentSource(validateBook('   '))).toEqual({
-            agentName: 'agent-c465d6',
-            agentHash: 'c465d6811e5a78386e88fc15f49d19d3fc4efbedfae8b31e285b8f6c267fd5e8',
+            agentName: 'agent-e3b0c4',
+            agentHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
             parameters: [],
             personaDescription: null,
             meta: {

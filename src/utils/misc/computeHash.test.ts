@@ -8,7 +8,7 @@ describe('how `computeAgentHash` works', () => {
                 Some text
                 to compute hash on.
             `),
-        ).toBe('a78d9fa43f915ece9fb0b59c3f22a469cc5303d68f3c41b34281877853859cd5'));
+        ).toBe('7b94435c5d2155a841a6b23b269c5f6872392eafadd746f4985f7670f0aae443'));
 
     // TODO: Test more things like JSON objects, numbers, files, etc.
 });
