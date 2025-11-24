@@ -44,6 +44,7 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     agentCollection = new AgentCollectionInSupabase(supabase, {
         isVerbose,
+        tablePrefix: process.env.SUPABASE_TABLE_PREFIX,
     });
 
     return agentCollection;

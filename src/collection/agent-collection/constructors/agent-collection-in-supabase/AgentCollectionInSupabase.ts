@@ -5,16 +5,17 @@ import type { string_book } from '../../../../book-2.0/agent-source/string_book'
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
-import type { CommonToolsOptions } from '../../../../execution/CommonToolsOptions';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import type { PrepareAndScrapeOptions } from '../../../../prepare/PrepareAndScrapeOptions';
 import type { string_agent_name } from '../../../../types/typeAliases';
 import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
-import { getSupabaseTable } from '../../../../utils/environment/getSupabaseTable';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
+import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
+
+// import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
+// <- TODO: !!!!! Prevent imports from `/apps` -> `/src`
 
 /**
  * Agent collection stored in Supabase table
@@ -33,7 +34,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
     public constructor(
         private readonly supabaseClient: SupabaseClient<AgentsDatabaseSchema>,
         /// TODO: !!! Remove> private readonly tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
-        public readonly options?: PrepareAndScrapeOptions & CommonToolsOptions,
+        public readonly options?: AgentCollectionInSupabaseOptions,
     ) {
         const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
@@ -50,7 +51,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
     > {
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const selectResult = await this.supabaseClient
-            .from(getSupabaseTable('Agent') as 'Agent')
+            .from(this.getTableName('Agent'))
             .select('agentName,agentProfile');
 
         if (selectResult.error) {
@@ -94,7 +95,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
      */
     public async getAgentSource(agentName: string_agent_name): Promise<string_book> {
         const selectResult = await this.supabaseClient
-            .from(getSupabaseTable('Agent') as 'Agent')
+            .from(this.getTableName('Agent'))
             .select('agentSource')
             .eq('agentName', agentName)
             .single();
@@ -132,7 +133,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
         //     <- TODO: [🕛]
         const { agentName, agentHash } = agentProfile;
 
-        const insertAgentResult = await this.supabaseClient.from(getSupabaseTable('Agent') as 'Agent').insert({
+        const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert({
             agentName,
             agentHash,
             agentProfile,
@@ -155,12 +156,10 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient
-            .from(getSupabaseTable('AgentHistory') as 'AgentHistory')
-            .insert({
-                createdAt: new Date().toISOString(),
-                agentName,
-                agentHash,
+        const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
+            createdAt: new Date().toISOString(),
+            agentName,
+            agentHash,
             previousAgentHash: null,
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
@@ -177,7 +176,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
      */
     public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
         const selectPreviousAgentResult = await this.supabaseClient
-            .from(getSupabaseTable('Agent') as 'Agent')
+            .from(this.getTableName('Agent'))
             .select('agentHash,agentName')
             .eq('agentName', agentName)
             .single();
@@ -210,7 +209,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
         TODO_USE(previousAgentName); // <- Do some extra action on name change
 
         const updateAgentResult = await this.supabaseClient
-            .from(getSupabaseTable('Agent') as 'Agent')
+            .from(this.getTableName('Agent'))
             .update({
                 // TODO: !!!! Compare not update> agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
                 agentProfile,
@@ -237,12 +236,10 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient
-            .from(getSupabaseTable('AgentHistory') as 'AgentHistory')
-            .insert({
-                createdAt: new Date().toISOString(),
-                agentName,
-                agentHash,
+        const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
+            createdAt: new Date().toISOString(),
+            agentName,
+            agentHash,
             previousAgentHash,
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
@@ -261,6 +258,18 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
     public async deleteAgent(agentName: string_agent_name): Promise<void> {
         TODO_USE(agentName);
         throw new NotYetImplementedError('Method not implemented.');
+    }
+
+    /**
+     * Get the Supabase table name with prefix
+     *
+     * @param tableName - The original table name
+     * @returns The prefixed table name
+     */
+    private getTableName<TTable extends keyof AgentsDatabaseSchema['public']['Tables']>(tableName: TTable): TTable {
+        const { tablePrefix = '' } = this.options || {};
+
+        return `${tablePrefix}${tableName}` as TTable;
     }
 }
 

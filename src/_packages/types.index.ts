@@ -24,6 +24,7 @@ import type { ChatParticipant } from '../book-components/Chat/types/ChatParticip
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
 import type { QrCodeOptions } from '../book-components/Qr/useQrCode';
 import type { AgentCollection } from '../collection/agent-collection/AgentCollection';
+import type { AgentCollectionInSupabaseOptions } from '../collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabaseOptions';
 import type { Json } from '../collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema';
 import type { AgentsDatabaseSchema } from '../collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema';
 import type { Tables } from '../collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema';
@@ -382,6 +383,7 @@ export type { ChatParticipant };
 export type { MessageButton };
 export type { QrCodeOptions };
 export type { AgentCollection };
+export type { AgentCollectionInSupabaseOptions };
 export type { Json };
 export type { AgentsDatabaseSchema };
 export type { Tables };

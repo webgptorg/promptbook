@@ -11,6 +11,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 // Public schema database interface (Supabase convention)
 export type AgentsServerDatabase = {
+    // <- TODO: [🧠][🕜] Better naming
     public: {
         Tables: {
             EnvironmentVariable: {

@@ -4,7 +4,7 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { getSupabaseTable } from '../../../../../../../../src/utils/environment/getSupabaseTable';
+import { getTableName } from '../../../../../database/getTableName';
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
@@ -48,7 +48,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         // Record the user message
         const supabase = $provideSupabaseForServer();
-        await supabase.from(getSupabaseTable('ChatHistory') as 'ChatHistory').insert({
+        await supabase.from(getTableName('ChatHistory')).insert({
             createdAt: new Date().toISOString(),
             messageHash: computeHash(userMessageContent),
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
@@ -80,7 +80,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         };
 
         // Record the agent message
-        await supabase.from(getSupabaseTable('ChatHistory') as 'ChatHistory').insert({
+        await supabase.from(getTableName('ChatHistory')).insert({
             createdAt: new Date().toISOString(),
             messageHash: computeHash(agentMessageContent),
             previousMessageHash: computeHash(userMessageContent),
