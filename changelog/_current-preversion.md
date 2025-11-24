@@ -44,3 +44,5 @@
 -   `<Chat />` now renders math expressions (inline `$...$` and block `$$...$$`) in messages using KaTeX for proper display.
 -   Enhanced `renderMarkdown` utility to support math rendering.
 -   Added dependencies: `katex`, `@types/katex`.
+-   **New:** Added `INITIAL MESSAGE` commitment to define the initial message for the chat in the agent source.
+-   **New:** `AgentChat` now supports rendering the initial message defined in the agent source.

@@ -38,6 +38,11 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public personaDescription: string | null = null;
 
     /**
+     * The initial message shown to the user when the chat starts
+     */
+    public initialMessage: string | null = null;
+
+    /**
      * Computed hash of the agent source for integrity verification
      */
     public get agentHash(): string_agent_hash {
@@ -79,9 +84,10 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
         this.agentSource = agentSource;
         this.agentSource.subscribe((source) => {
-            const { agentName, personaDescription, meta } = parseAgentSource(source);
+            const { agentName, personaDescription, initialMessage, meta } = parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
+            this.initialMessage = initialMessage;
             this.meta = { ...this.meta, ...meta };
         });
     }

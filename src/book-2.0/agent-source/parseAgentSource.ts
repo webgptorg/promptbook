@@ -38,6 +38,19 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         personaDescription += commitment.content;
     }
 
+    let initialMessage: string | null = null;
+
+    for (const commitment of parseResult.commitments) {
+        if (commitment.type !== 'INITIAL MESSAGE') {
+            continue;
+        }
+
+        // Note: Initial message override logic - later overrides earlier
+        //       Or should it append? Usually initial message is just one block.
+        //       Let's stick to "later overrides earlier" for simplicity, or just take the last one.
+        initialMessage = commitment.content;
+    }
+
     const meta: Record<string, string> = {};
 
     for (const commitment of parseResult.commitments) {
@@ -65,6 +78,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         agentName: normalizeAgentName(parseResult.agentName || createDefaultAgentName(agentSource)),
         agentHash,
         personaDescription,
+        initialMessage,
         meta,
         parameters,
     };

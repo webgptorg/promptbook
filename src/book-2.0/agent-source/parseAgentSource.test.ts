@@ -183,4 +183,27 @@ describe('parseAgentSource', () => {
             description: 'Second description', // Later should override earlier
         });
     });
+
+    it('parses INITIAL MESSAGE', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                INITIAL MESSAGE Hello! I am ready to help you.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.initialMessage).toBe('Hello! I am ready to help you.');
+    });
+
+    it('parses INITIAL MESSAGE with overrides', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                INITIAL MESSAGE First message
+                INITIAL MESSAGE Second message (override)
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.initialMessage).toBe('Second message (override)');
+    });
 });

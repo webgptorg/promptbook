@@ -48,6 +48,12 @@ export type AgentBasicInformation = {
     // <- TODO: [🕛][🧠]  Maybe rename to just `description`
 
     /**
+     * The initial message shown to the user when the chat starts
+     * This is the line starting with "INITIAL MESSAGE"
+     */
+    initialMessage: string | null;
+
+    /**
      * Metadata commitments parsed from META lines
      * Each META commitment has the format "META TYPE content"
      * When there are multiple meta commitments of the same type, later overrides earlier

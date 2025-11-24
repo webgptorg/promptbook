@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨📬] In the agentSource / book you should be able to define the initial message for the chat
 

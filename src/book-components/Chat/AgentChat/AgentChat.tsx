@@ -32,7 +32,9 @@ export function AgentChat(props: AgentChatProps) {
             initialMessages={[
                 {
                     from: 'AGENT',
-                    content: spaceTrim(`
+                    content:
+                        agent.initialMessage ||
+                        spaceTrim(`
                                 
                         Hello! I am ${agent.agentName || 'an AI Agent'}.
                         

@@ -9,6 +9,7 @@ import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
+import { InitialMessageCommitmentDefinition } from './MESSAGE/InitialMessageCommitmentDefinition';
 import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { MetaCommitmentDefinition } from './META/META';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
@@ -53,6 +54,7 @@ export const COMMITMENT_REGISTRY = [
     new NoteCommitmentDefinition('NONCE'),
     new GoalCommitmentDefinition('GOAL'),
     new GoalCommitmentDefinition('GOALS'),
+    new InitialMessageCommitmentDefinition(),
     new MessageCommitmentDefinition('MESSAGE'),
     new MessageCommitmentDefinition('MESSAGES'),
     new ScenarioCommitmentDefinition('SCENARIO'),
