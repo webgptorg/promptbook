@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { writeFileSync } from 'fs';
-import glob from 'glob-promise';
+import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
@@ -68,7 +68,7 @@ async function generatePromptBoilerplate() {
 
     // Find used emojis in the codebase
     const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,txt}', {
-        ignore: '**/node_modules/**',
+        ignore: '**/node_modules/**', // <- TODO: [🚰] Ignore also hidden folders like (`.promptbook`, `.next`, `.git`,...)
     });
 
     const usedEmojis = new Set<string_char_emoji>();
