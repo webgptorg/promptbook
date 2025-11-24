@@ -2,7 +2,10 @@
 
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentChatWrapper } from './AgentChatWrapper';
+
+export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentChatPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());

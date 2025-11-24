@@ -7,9 +7,12 @@ import { parseAgentSource } from '@promptbook-local/core';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
 import { AgentUrlCopy } from './AgentUrlCopy';
+import { generateAgentMetadata } from './generateAgentMetadata';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 // import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
+
+export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     // const [apiKey, setApiKey] = useStateInLocalStorage<string>('openai-apiKey', () => '');

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💟] Agent pages should contain proper HTML metadata
 
