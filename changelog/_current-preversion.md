@@ -1,3 +1,4 @@
+-   **New:** Record conversations to `ChatHistory` table in `Agents Server` application.
 -   **New:** Allowed to upload files to `<BookEditor/>` and created `DigitalOceanSpaces` CDN.
 -   **New:** Updated all LLM models to the latest versions, including adding Gemini 3, OpenAI's GPT-5.1, and Anthropic's Claude 4.5. Deprecated older models as necessary.
 -   **New:** BookEditor fullscreen now renders above all content using a React portal ([DRY], inspired by Tooltip). This bypasses overflow/stacking issues and ensures proper fullscreen behavior.

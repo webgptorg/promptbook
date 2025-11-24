@@ -1,7 +1,8 @@
+import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent } from '@promptbook-local/core';
-import { serializeError } from '@promptbook-local/utils';
+import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
@@ -25,6 +26,41 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             agentSource,
         });
 
+        const agentHash = computeAgentHash(agentSource);
+        const userAgent = request.headers.get('user-agent');
+        const ip =
+            request.headers.get('x-forwarded-for') ||
+            request.headers.get('x-real-ip') ||
+            request.headers.get('x-client-ip');
+
+        // Note: Capture language and platform information
+        const language = request.headers.get('accept-language');
+        // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
+        const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
+
+        // Note: Identify the user message
+        const userMessageContent = {
+            role: 'USER',
+            content: message,
+        };
+
+        // Record the user message
+        const supabase = $provideSupabaseForServer();
+        await supabase.from('ChatHistory').insert({
+            createdAt: new Date().toISOString(),
+            messageHash: computeHash(userMessageContent),
+            previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
+            agentName,
+            agentHash,
+            message: userMessageContent,
+            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            url: request.url,
+            ip,
+            userAgent,
+            language,
+            platform,
+        });
+
         const response = await agent.callChatModel!({
             title: `Chat with agent ${agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */}`,
             parameters: {},
@@ -32,6 +68,28 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                 modelVariant: 'CHAT',
             },
             content: message,
+        });
+
+        // Note: Identify the agent message
+        const agentMessageContent = {
+            role: 'MODEL',
+            content: response.content,
+        };
+
+        // Record the agent message
+        await supabase.from('ChatHistory').insert({
+            createdAt: new Date().toISOString(),
+            messageHash: computeHash(agentMessageContent),
+            previousMessageHash: computeHash(userMessageContent),
+            agentName,
+            agentHash,
+            message: agentMessageContent,
+            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            url: request.url,
+            ip,
+            userAgent,
+            language,
+            platform,
         });
 
         // TODO: [🐚] Implement streaming
@@ -61,8 +119,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     }
 }
 
-
 /**
- * TODO: !!!!!! Record conversations to `ChatHistory`
  * TODO: !!!!!! Make api endpoint for feedback on agent responses `/apps/agents-server/src/app/agents/[agentName]/api/feedback/route.ts` and record to `ChatFeedback`
  */
