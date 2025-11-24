@@ -1,6 +1,6 @@
 [ ]
 
-[✨😣] foo
+[✨😣] Allow to restrict IP address of the clients via env variabile
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
