@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨👹] Implement admin and user permissions
 
@@ -9,6 +9,13 @@
     -   `/* <- TODO: [👹] Here should be user permissions */`
     -   ... etc
 -   When `process.env.ADMIN_PASSWORD` not set, then all users are admins _(current behaviour)_
+-   When NOT logged as admin, then:
+    -   Cannot access `/agents/[agentName]/book` page (Book Editor)
+    -   Cannot create new agents on `/` page
+    -   Does not see "Models", "About" and "Technical Information" on `/`
+    -   Can list and use existing agents
+    -   Can chat with agents
+-   Implement some pretty 403 Forbidden page when non-admin user tries to access admin-only pages
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

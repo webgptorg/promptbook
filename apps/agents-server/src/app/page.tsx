@@ -12,6 +12,7 @@ import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
+import { isUserAdmin } from '../utils/isUserAdmin';
 import { AddAgentButton } from './AddAgentButton';
 
 // Add calendar formats that include seconds
@@ -26,6 +27,8 @@ const calendarWithSeconds = {
 
 export default async function HomePage() {
     $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
+
+    const isAdmin = await isUserAdmin(); /* <- TODO: [👹] Here should be user permissions */
 
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
@@ -61,50 +64,56 @@ export default async function HomePage() {
                                 />
                             </Link>
                         ))}
-                        <AddAgentButton />
+                        {isAdmin && <AddAgentButton />}
                     </div>
                 </>
 
-                <>
-                    <h2 className="text-3xl text-gray-900 mt-16 mb-4">Models ({models.length})</h2>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {models.map(({ modelName, modelTitle, modelDescription }) => (
-                            <Link key={modelName} href={`#!!!`}>
-                                <div className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400">
-                                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">{modelTitle}</h2>
-                                    <code>{modelName}</code>
-                                    <p className="text-gray-600">{modelDescription}</p>
-                                </div>
+                {isAdmin && (
+                    <>
+                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">Models ({models.length})</h2>
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {models.map(({ modelName, modelTitle, modelDescription }) => (
+                                <Link key={modelName} href={`#!!!`}>
+                                    <div className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400">
+                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">{modelTitle}</h2>
+                                        <code>{modelName}</code>
+                                        <p className="text-gray-600">{modelDescription}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {isAdmin && (
+                    <>
+                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">About</h2>
+                        <AboutPromptbookInformation />
+                    </>
+                )}
+
+                {isAdmin && (
+                    <>
+                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">Technical Information</h2>
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            <Link
+                                href={'#'}
+                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                            >
+                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                                    Long running task {longRunningTask.taskId}
+                                </h2>
+                                <p className="text-gray-600">Tick: {longRunningTask.tick}</p>
+                                <p className="text-gray-600">
+                                    Created At: {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
+                                </p>
+                                <p className="text-gray-600">
+                                    Updated At: {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
+                                </p>
                             </Link>
-                        ))}
-                    </div>
-                </>
-
-                <>
-                    <h2 className="text-3xl text-gray-900 mt-16 mb-4">About</h2>
-                    <AboutPromptbookInformation />
-                </>
-
-                <>
-                    <h2 className="text-3xl text-gray-900 mt-16 mb-4">Technical Information</h2>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        <Link
-                            href={'#'}
-                            className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                        >
-                            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                                Long running task {longRunningTask.taskId}
-                            </h2>
-                            <p className="text-gray-600">Tick: {longRunningTask.tick}</p>
-                            <p className="text-gray-600">
-                                Created At: {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
-                            </p>
-                            <p className="text-gray-600">
-                                Updated At: {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
-                            </p>
-                        </Link>
-                    </div>
-                </>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
