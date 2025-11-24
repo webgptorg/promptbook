@@ -13,9 +13,19 @@
 
 [ ]
 
-[✨🍛] Allow to set branding options in Agents Server via environment variables
+[✨🍛] Add logging in / out on the right end of the heading bar
 
--   It should be possible to set essential branding options of the Agents Server via environment variables, so that when deploying the Agents Server, user can customize the branding without changing the code.
+-   There is implemented lightweight authentication system _(The env `ADMIN_PASSWORD`)_ in Agents Server, so add "Log in" / "Log out" button on the right end of the heading bar
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+
+---
+
+[ ]
+
+[✨🍛] Allow to set branding options in Agents Server via Metadata
+
+-   It should be possible to set essential branding options of the Agents Server via Metadata, so that when deploying the Agents Server, user can customize the branding without changing the code.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 
@@ -26,13 +36,4 @@
 [✨🍛] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
----
-
-[ ]
-
-[✨🍛] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
+-   You are working with the `Agents Server` application `/apps/agents-server`
