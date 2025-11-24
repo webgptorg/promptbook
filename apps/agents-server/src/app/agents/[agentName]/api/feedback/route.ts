@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { NextRequest, NextResponse } from 'next/server';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
 
 type FeedbackRequest = {
@@ -11,20 +11,14 @@ type FeedbackRequest = {
     expectedAnswer?: string;
 };
 
-export async function POST(
-    request: NextRequest,
-    { params }: { params: { agentName: string } },
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     try {
-        const { agentName } = params;
+        const { agentName } = await params;
         const body = (await request.json()) as FeedbackRequest;
         const { agentHash, rating, textRating, chatThread, userNote, expectedAnswer } = body;
 
         if (!agentHash) {
-            return NextResponse.json(
-                { message: 'Missing agentHash' },
-                { status: 400 },
-            );
+            return NextResponse.json({ message: 'Missing agentHash' }, { status: 400 });
         }
 
         const supabase = $provideSupabaseForServer();
@@ -48,18 +42,12 @@ export async function POST(
 
         if (error) {
             console.error('Error inserting feedback:', error);
-            return NextResponse.json(
-                { message: 'Failed to save feedback' },
-                { status: 500 },
-            );
+            return NextResponse.json({ message: 'Failed to save feedback' }, { status: 500 });
         }
 
         return NextResponse.json({ message: 'Feedback saved' }, { status: 201 });
     } catch (error) {
         console.error('Unexpected error in feedback route:', error);
-        return NextResponse.json(
-            { message: 'Internal server error' },
-            { status: 500 },
-        );
+        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
     }
 }
