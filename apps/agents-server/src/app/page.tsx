@@ -1,10 +1,8 @@
 'use server';
 
-import logoImage from '@/public/logo-blue-white-256.png';
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import moment from 'moment';
 import { headers } from 'next/headers';
-import Image from 'next/image';
 import Link from 'next/link';
 import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
@@ -45,11 +43,6 @@ export default async function HomePage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    <Image src={logoImage} alt="Promptbook Logo" height={50} className="inline-block mr-4" />
-                    Promptbook Agents Server
-                </h1>
-
                 <>
                     <h2 className="text-3xl text-gray-900 mt-16 mb-4">Agents ({agents.length})</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
