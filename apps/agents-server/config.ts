@@ -35,9 +35,7 @@ export const NEXT_PUBLIC_VERCEL_BRANCH_URL = config.get('NEXT_PUBLIC_VERCEL_BRAN
 /**
  * [♐️] Production domain of the project
  */
-export const NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL = config
-    .get('NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL')
-    .url().value;
+export const NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL = config.get('NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL').value;
 
 /**
  * [♐️] Git provider (github | gitlab | bitbucket)

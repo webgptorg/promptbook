@@ -18,6 +18,9 @@ import {
 } from '@/config';
 import Link from 'next/link';
 
+/**
+ * [♐️] Expose Vercel environment variables to indentify the deployment
+ */
 export default function VercelDeploymentCard() {
     return (
         <Link
@@ -31,7 +34,7 @@ export default function VercelDeploymentCard() {
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_URL: {NEXT_PUBLIC_VERCEL_URL}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_BRANCH_URL: {NEXT_PUBLIC_VERCEL_BRANCH_URL}</p>
             <p className="text-gray-600">
-                NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: {NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL?.href}
+                NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: {NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}
             </p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_GIT_PROVIDER: {NEXT_PUBLIC_VERCEL_GIT_PROVIDER}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER: {NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER}</p>
