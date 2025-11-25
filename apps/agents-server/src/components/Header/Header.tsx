@@ -18,12 +18,17 @@ type HeaderProps = {
      * The name of the server
      */
     serverName: string;
+
+    /**
+     * The URL of the logo displayed in the heading bar
+     */
+    serverLogoUrl: string | null;
 };
 
 /* TODO: !!!!! Make this Agents server native  */
 
 export function Header(props: HeaderProps) {
-    const { isAdmin = false, serverName } = props;
+    const { isAdmin = false, serverName, serverLogoUrl } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -53,11 +58,11 @@ export function Header(props: HeaderProps) {
                     {/* Logo <- TODO: This should be <h1>*/}
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <Image
-                            src={promptbookLogoBlueTransparent}
-                            alt="Promptbook"
+                            src={serverLogoUrl || promptbookLogoBlueTransparent}
+                            alt={serverName}
                             width={32}
                             height={32}
-                            className="w-8 h-8"
+                            className="w-8 h-8 object-contain"
                         />
                         <span className="text-xl text-gray-900">{serverName}</span>
                     </Link>

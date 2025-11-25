@@ -7,9 +7,10 @@ type LayoutWrapperProps = {
     children: React.ReactNode;
     isAdmin: boolean;
     serverName: string;
+    serverLogoUrl: string | null;
 };
 
-export function LayoutWrapper({ children, isAdmin, serverName }: LayoutWrapperProps) {
+export function LayoutWrapper({ children, isAdmin, serverName, serverLogoUrl }: LayoutWrapperProps) {
     const pathname = usePathname();
     const isHeaderHidden = pathname?.includes('/chat');
 
@@ -19,7 +20,7 @@ export function LayoutWrapper({ children, isAdmin, serverName }: LayoutWrapperPr
 
     return (
         <>
-            <Header isAdmin={isAdmin} serverName={serverName} />
+            <Header isAdmin={isAdmin} serverName={serverName} serverLogoUrl={serverLogoUrl} />
             <main className={`pt-[60px]`}>{children}</main>
         </>
     );

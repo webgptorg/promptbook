@@ -21,7 +21,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🍛] Allow to set branding options in Agents Server via `Metadata` table
 
@@ -30,6 +30,7 @@
 -  Add created `Metadata` keys into `metadataDefaults.ts` file
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the `Agents Server` application `/apps/agents-server`
+
 
 ---
 

@@ -12,17 +12,22 @@ const barlowCondensed = Barlow_Condensed({
     variable: '--font-barlow-condensed',
 });
 
-export const metadata: Metadata = {
-    title: 'Promptbook agents server',
-    description: '@@@',
-    keywords: ['@@@'],
-    authors: [{ name: 'Promptbook Team' }],
-    openGraph: {
-        title: 'Promptbook agents server',
-        description: '@@@',
-        type: 'website',
-        images: [
-            /*
+export async function generateMetadata(): Promise<Metadata> {
+    const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
+    const serverDescription = (await getMetadata('SERVER_DESCRIPTION')) || 'Agents server powered by Promptbook';
+    const serverUrl = (await getMetadata('SERVER_URL')) || 'https://ptbk.io';
+
+    return {
+        title: serverName,
+        description: serverDescription,
+        // TODO: keywords: ['@@@'],
+        authors: [{ name: 'Promptbook Team' }],
+        openGraph: {
+            title: serverName,
+            description: serverDescription,
+            type: 'website',
+            images: [
+                /*
             TODO:
             {
                 url: 'https://www.ptbk.io/design',
@@ -31,15 +36,17 @@ export const metadata: Metadata = {
                 alt: 'Promptbook agents server',
             },
             */
-        ],
-    },
-    twitter: {
-        card: 'summary_large_image',
-        title: 'Promptbook agents server',
-        description: '@@@',
-        // TODO: images: ['https://www.ptbk.io/design'],
-    },
-};
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: serverName,
+            description: serverDescription,
+            // TODO: images: ['https://www.ptbk.io/design'],
+        },
+        metadataBase: new URL(serverUrl),
+    };
+}
 
 export default async function RootLayout({
     children,
@@ -48,6 +55,8 @@ export default async function RootLayout({
 }>) {
     const isAdmin = await isUserAdmin();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
+    const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
+    const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
 
     return (
         <html lang="en">
@@ -71,10 +80,10 @@ export default async function RootLayout({
                 />
                 */}
                 {/* Default favicon as a fallback */}
-                <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
+                <link rel="icon" href={serverFaviconUrl} type="image/x-icon" />
             </head>
             <body className={`${barlowCondensed.variable} antialiased bg-white text-gray-900`}>
-                <LayoutWrapper isAdmin={isAdmin} serverName={serverName}>
+                <LayoutWrapper isAdmin={isAdmin} serverName={serverName} serverLogoUrl={serverLogoUrl}>
                     {children}
                 </LayoutWrapper>
             </body>
