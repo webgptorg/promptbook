@@ -8,6 +8,7 @@ import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
 import { AgentUrlCopy } from './AgentUrlCopy';
 import { generateAgentMetadata } from './generateAgentMetadata';
+import { $provideServer } from '@/src/tools/$provideServer';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 // import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
@@ -28,9 +29,13 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     const agentSource = await collection.getAgentSource(agentName);
     const agentProfile = parseAgentSource(agentSource);
 
+    const { publicUrl } = await $provideServer();
+
     // Build agent page URL for QR and copy
-    const pageUrl = `${process.env.NEXT_PUBLIC_URL}/agents/${encodeURIComponent(agentName)}`;
+    const pageUrl = `${publicUrl.href}/agents/${encodeURIComponent(agentName)}`;
     // <- TODO: !!! Better
+
+    console.log('!!!!', { pageUrl });
 
     // Extract brand color from meta
     const brandColor = agentProfile.meta.color || '#3b82f6'; // Default to blue-600

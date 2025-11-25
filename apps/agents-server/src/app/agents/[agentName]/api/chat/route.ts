@@ -1,5 +1,5 @@
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { getTableName } from '@/src/database/getTableName';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
@@ -53,7 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         // Record the user message
         const supabase = $provideSupabaseForServer();
-        await supabase.from(getTableName('ChatHistory')).insert({
+        await supabase.from(await $getTableName('ChatHistory')).insert({
             createdAt: new Date().toISOString(),
             messageHash: computeHash(userMessageContent),
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
@@ -95,7 +95,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         };
 
                         // Record the agent message
-                        await supabase.from(getTableName('ChatHistory')).insert({
+                        await supabase.from(await $getTableName('ChatHistory')).insert({
                             createdAt: new Date().toISOString(),
                             messageHash: computeHash(agentMessageContent),
                             previousMessageHash: computeHash(userMessageContent),

@@ -3,6 +3,7 @@
 import { AgentCollectionInSupabase } from '@promptbook-local/core';
 import { AgentCollection } from '@promptbook-local/types';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
+import { $provideServer } from './$provideServer';
 
 /**
  * Cache of provided agent collection
@@ -41,10 +42,11 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
     */
 
     const supabase = $provideSupabaseForServer();
+    const { tablePrefix } = await $provideServer();
 
     agentCollection = new AgentCollectionInSupabase(supabase, {
         isVerbose,
-        tablePrefix: process.env.SUPABASE_TABLE_PREFIX,
+        tablePrefix,
     });
 
     return agentCollection;

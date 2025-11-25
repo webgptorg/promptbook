@@ -27,6 +27,13 @@ const config = ConfigChecker.from({
 });
 
 /**
+ * Public URL of the deployment, e.g. "https://my-app.vercel.app"
+ *
+ * Note: When `SERVERS` are used, this URL will be overridden by the server URL.
+ */
+export const NEXT_PUBLIC_URL = config.get('NEXT_PUBLIC_URL').url().value;
+
+/**
  * [♐️] Vercel environment: "development" | "preview" | "production"
  */
 export const NEXT_PUBLIC_VERCEL_ENV = config.get('NEXT_PUBLIC_VERCEL_ENV').value;
@@ -110,5 +117,14 @@ export const NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID = config.get('NEXT_PUBLIC_VE
 
 /**
  * List of servers where agents can be hosted
+ *
+ * List of domains where the agents-server is deployed, this overrides the `NEXT_PUBLIC_URL` and `SUPABASE_TABLE_PREFIX` for each server.
  */
 export const SERVERS = config.get('SERVERS').list().value;
+
+/**
+ * Supabase table prefix
+ *
+ * Note: When `SERVERS` are used, this prefix will be overridden by the server `server_<server_id>_`.
+ */
+export const SUPABASE_TABLE_PREFIX = config.get('SUPABASE_TABLE_PREFIX').default('').value;

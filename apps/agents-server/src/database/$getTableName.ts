@@ -1,3 +1,4 @@
+import { $provideServer } from '../tools/$provideServer';
 import { AgentsServerDatabase } from './schema';
 
 /**
@@ -11,10 +12,7 @@ type string_table_name = keyof AgentsServerDatabase['public']['Tables'];
  * @param tableName - The original table name
  * @returns The prefixed table name
  */
-export function getTableName<TTable extends string_table_name>(tableName: TTable): TTable {
-    let prefix = '';
-    if (typeof process !== 'undefined' && process.env) {
-        prefix = process.env.SUPABASE_TABLE_PREFIX || '';
-    }
-    return `${prefix}${tableName}` as TTable;
+export async function $getTableName<TTable extends string_table_name>(tableName: TTable): Promise<TTable> {
+    const { tablePrefix } = await $provideServer();
+    return `${tablePrefix}${tableName}` as TTable;
 }
