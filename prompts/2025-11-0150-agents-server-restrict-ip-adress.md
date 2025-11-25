@@ -9,6 +9,7 @@
 -   Allow to set multiple IP addresses / ranges separated by comma, for example `192.168.1.0/24,10.0.0.1`
 -   Allow to set the restriction also via `Metadata` in the database, so that user can change the restriction without changing the environment variable
 -   Metadata key should be `RESTRICT_IP` and has priority over the environment variable `RESTRICT_IP`
+-   Add created `Metadata` keys into `metadataDefaults.ts` file
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
