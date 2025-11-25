@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { metadataDefaults } from '../../database/metadataDefaults';
 
 type MetadataEntry = {
     id: number;
@@ -9,6 +10,7 @@ type MetadataEntry = {
     note: string | null;
     createdAt: string;
     updatedAt: string;
+    isDefault?: boolean;
 };
 
 export function MetadataClient() {
@@ -29,8 +31,27 @@ export function MetadataClient() {
             if (!response.ok) {
                 throw new Error('Failed to fetch metadata');
             }
-            const data = await response.json();
-            setMetadata(data);
+            const data: MetadataEntry[] = await response.json();
+
+            // Merge defaults
+            const mergedData = [...data];
+            for (const def of metadataDefaults) {
+                if (!mergedData.find((m) => m.key === def.key)) {
+                    mergedData.push({
+                        id: -1,
+                        key: def.key,
+                        value: def.value,
+                        note: def.note,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        isDefault: true,
+                    });
+                }
+            }
+            // Sort by key
+            mergedData.sort((a, b) => a.key.localeCompare(b.key));
+
+            setMetadata(mergedData);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
@@ -47,7 +68,9 @@ export function MetadataClient() {
         setError(null);
 
         try {
-            const method = editingId ? 'PUT' : 'POST';
+            // If editingId is -1 (default value) or null (new value), use POST to create
+            // If editingId is > 0 (existing value), use PUT to update
+            const method = editingId && editingId !== -1 ? 'PUT' : 'POST';
             const response = await fetch('/api/metadata', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
@@ -225,12 +248,17 @@ export function MetadataClient() {
                                         >
                                             Edit
                                         </button>
-                                        <button
-                                            onClick={() => handleDelete(entry.key)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            Delete
-                                        </button>
+                                        {!entry.isDefault && (
+                                            <button
+                                                onClick={() => handleDelete(entry.key)}
+                                                className="text-red-600 hover:text-red-900"
+                                            >
+                                                Delete
+                                            </button>
+                                        )}
+                                        {entry.isDefault && (
+                                            <span className="text-gray-400 text-xs italic ml-2">Default</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))
