@@ -75,6 +75,73 @@ export async function middleware(req: NextRequest) {
     const allowedIps = allowedIpsMetadata !== null && allowedIpsMetadata !== undefined ? allowedIpsMetadata : allowedIpsEnv;
 
     if (isIpAllowed(ip, allowedIps)) {
+        // 3. Custom Domain Routing
+        //    If the host is not one of the configured SERVERS, try to find an agent with a matching META LINK
+
+        if (host && SERVERS && !SERVERS.some((server) => server === host)) {
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+            if (supabaseUrl && supabaseKey) {
+                const supabase = createClient(supabaseUrl, supabaseKey, {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false,
+                    },
+                });
+
+                // Determine prefixes to check
+                // We check all configured servers because the custom domain could point to any of them
+                // (or if they share the database, we need to check the relevant tables)
+                const serversToCheck = SERVERS;
+                
+                // TODO: [🧠] If there are many servers, this loop might be slow. Optimize if needed.
+                for (const serverHost of serversToCheck) {
+                    let serverName = serverHost;
+                    serverName = serverName.replace(/\.ptbk\.io$/, '');
+                    serverName = normalizeTo_PascalCase(serverName);
+                    const prefix = `server_${serverName}_`;
+
+                    // Search for agent with matching META LINK
+                    // agentProfile->links is an array of strings
+                    // We check if it contains the host, or https://host, or http://host
+                    
+                    const searchLinks = [host, `https://${host}`, `http://${host}`];
+                    
+                    // Construct OR filter: agentProfile.cs.{"links":["link1"]},agentProfile.cs.{"links":["link2"]},...
+                    const orFilter = searchLinks.map(link => `agentProfile.cs.{"links":["${link}"]}`).join(',');
+
+                    try {
+                        const { data } = await supabase
+                            .from(`${prefix}Agent`)
+                            .select('agentName')
+                            .or(orFilter)
+                            .limit(1)
+                            .single();
+
+                        if (data && data.agentName) {
+                            // Found the agent!
+                            const url = req.nextUrl.clone();
+                            url.pathname = `/${data.agentName}`;
+                            
+                            // Pass the server context to the app via header
+                            const requestHeaders = new Headers(req.headers);
+                            requestHeaders.set('x-promptbook-server', serverHost);
+
+                            return NextResponse.rewrite(url, {
+                                request: {
+                                    headers: requestHeaders,
+                                },
+                            });
+                        }
+                    } catch (error) {
+                         // Ignore error (e.g. table not found, or agent not found) and continue to next server
+                         // console.error(`Error checking server ${serverHost} for custom domain ${host}:`, error);
+                    }
+                }
+            }
+        }
+
         return NextResponse.next();
     }
 

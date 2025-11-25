@@ -52,14 +52,25 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     }
 
     const meta: Record<string, string> = {};
+    const links: string[] = [];
 
     for (const commitment of parseResult.commitments) {
+        if (commitment.type === 'META LINK') {
+            links.push(spaceTrim(commitment.content));
+            continue;
+        }
+
         if (commitment.type !== 'META') {
             continue;
         }
 
         // Parse META commitments - format is "META TYPE content"
         const metaTypeRaw = commitment.content.split(' ')[0] || 'NONE';
+
+        if (metaTypeRaw === 'LINK') {
+            links.push(spaceTrim(commitment.content.substring(metaTypeRaw.length)));
+        }
+
         const metaType = normalizeTo_camelCase(metaTypeRaw);
         meta[metaType] = spaceTrim(commitment.content.substring(metaTypeRaw.length));
     }
@@ -80,6 +91,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         personaDescription,
         initialMessage,
         meta,
+        links,
         parameters,
     };
 }

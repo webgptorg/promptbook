@@ -65,6 +65,12 @@ export type AgentBasicInformation = {
     };
 
     /**
+     * Links found in the agent source
+     * This corresponds to META LINK commitments
+     */
+    links: string[]; // <- TODO: !!!! Better type for URLs
+
+    /**
      * Parameters found in the agent source
      * Supports two different notations for the same syntax feature:
      * - @Parameter (single word parameter starting with @)

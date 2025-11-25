@@ -10,18 +10,21 @@ export async function $provideServer() {
         };
     }
 
-    const host = (await headers()).get('host');
+    const headersList = await headers();
+    let host = headersList.get('host');
+    const xPromptbookServer = headersList.get('x-promptbook-server');
 
     if (host === null) {
         throw new Error('Host header is missing');
     }
 
-    if (
-        !SERVERS.some((server) => {
-            return server === host;
-        })
-    ) {
-        throw new Error(`Server with host "${host}" is not configured in SERVERS`);
+    // If host is not in known servers, check if we have a context header from middleware
+    if (!SERVERS.some((server) => server === host)) {
+        if (xPromptbookServer && SERVERS.some((server) => server === xPromptbookServer)) {
+            host = xPromptbookServer;
+        } else {
+            throw new Error(`Server with host "${host}" is not configured in SERVERS`);
+        }
     }
 
     let serverName = host;
