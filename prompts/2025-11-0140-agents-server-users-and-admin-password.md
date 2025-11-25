@@ -40,7 +40,8 @@
 
 [✨👹] In header bar "Log in" should ask for both username and password
 
--
+-   Make some standard component for logging in
+-   Use it everywhere where there is logging
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

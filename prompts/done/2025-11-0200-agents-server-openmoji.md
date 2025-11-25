@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🛩] Agent server should use `OpenMoji-black` font
 
