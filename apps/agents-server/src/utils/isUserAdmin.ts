@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { getSession } from './session';
 
 /**
  * Checks if the current user is an admin
@@ -12,6 +13,7 @@ export async function isUserAdmin(): Promise<boolean> {
         return true;
     }
 
+    // Check legacy admin token
     const cookieStore = await cookies();
     const adminToken = cookieStore.get('adminToken');
 
@@ -19,9 +21,11 @@ export async function isUserAdmin(): Promise<boolean> {
         return true;
     }
 
+    // Check session
+    const session = await getSession();
+    if (session?.isAdmin) {
+        return true;
+    }
+
     return false;
 }
-
-/**
- * TODO: [👹] Implement proper user system
- */

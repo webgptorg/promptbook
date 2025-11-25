@@ -215,6 +215,33 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            User: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    username: string;
+                    passwordHash: string;
+                    isAdmin: boolean;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    username: string;
+                    passwordHash: string;
+                    isAdmin?: boolean;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    username?: string;
+                    passwordHash?: string;
+                    isAdmin?: boolean;
+                };
+                Relationships: [];
+            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;

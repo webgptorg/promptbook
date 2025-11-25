@@ -21,7 +21,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨👹] Add table `User` to the database to store admin and user passwords
 

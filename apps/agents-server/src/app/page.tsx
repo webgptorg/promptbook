@@ -13,6 +13,9 @@ import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollecti
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { getCurrentUser } from '../utils/getCurrentUser';
+import { AuthControls } from '../components/Auth/AuthControls';
+import { UsersList } from '../components/UsersList/UsersList';
 import { AddAgentButton } from './AddAgentButton';
 
 // Add calendar formats that include seconds
@@ -29,6 +32,7 @@ export default async function HomePage() {
     $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
     const isAdmin = await isUserAdmin(); /* <- TODO: [👹] Here should be user permissions */
+    const currentUser = await getCurrentUser();
 
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
@@ -43,6 +47,10 @@ export default async function HomePage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
+                <div className="flex justify-end mb-4">
+                    <AuthControls initialUser={currentUser} />
+                </div>
+
                 <>
                     <h2 className="text-3xl text-gray-900 mt-4 mb-4">Agents ({agents.length})</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -64,6 +72,10 @@ export default async function HomePage() {
                         {isAdmin && <AddAgentButton />}
                     </div>
                 </>
+
+                {isAdmin && (
+                    <UsersList />
+                )}
 
                 {isAdmin && (
                     <>
