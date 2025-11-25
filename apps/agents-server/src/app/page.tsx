@@ -133,9 +133,9 @@ export default async function HomePage() {
                                 href={'#'}
                                 className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
                             >
-                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">$provideServer()</h2>
+                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Server</h2>
 
-                                <pre>{JSON.stringify($provideServer(), null, 2)}</pre>
+                                <pre>{JSON.stringify(await $provideServer(), null, 2)}</pre>
                             </Link>
                         </div>
                     </>
