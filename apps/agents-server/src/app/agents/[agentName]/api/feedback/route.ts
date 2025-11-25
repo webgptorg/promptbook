@@ -1,7 +1,7 @@
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { NextRequest, NextResponse } from 'next/server';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
-import { getTableName } from '../../../../../database/$getTableName';
+import { $getTableName } from '../../../../../database/$getTableName';
 
 type FeedbackRequest = {
     agentHash: string;
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const supabase = $provideSupabaseForServer();
 
-        const { error } = await supabase.from(getTableName('ChatFeedback')).insert({
+        const { error } = await supabase.from(await $getTableName('ChatFeedback')).insert({
             createdAt: new Date().toISOString(),
             agentName,
             agentHash,
