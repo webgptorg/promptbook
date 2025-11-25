@@ -13,12 +13,17 @@ type HeaderProps = {
      * Is the user an admin
      */
     isAdmin?: boolean;
+
+    /**
+     * The name of the server
+     */
+    serverName: string;
 };
 
 /* TODO: !!!!! Make this Agents server native  */
 
 export function Header(props: HeaderProps) {
-    const { isAdmin = false } = props;
+    const { isAdmin = false, serverName } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -54,12 +59,19 @@ export function Header(props: HeaderProps) {
                             height={32}
                             className="w-8 h-8"
                         />
-                        <span className="text-xl text-gray-900">Promptbook Agents Server</span>
+                        <span className="text-xl text-gray-900">{serverName}</span>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
-                        <nav className="hidden md:flex items-center gap-8">
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-8">
+                        {isAdmin && (
+                            <Link href="/metadata" className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer">
+                                Metadata
+                            </Link>
+                        )}
+
+                        {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
                             <Link
                                 href="https://ptbk.io/#try-it-yourself"
                                 target="_blank"
@@ -67,8 +79,8 @@ export function Header(props: HeaderProps) {
                             >
                                 Try it yourself
                             </Link>
-                        </nav>
-                    )}
+                        )}
+                    </nav>
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">

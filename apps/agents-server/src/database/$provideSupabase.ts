@@ -1,9 +1,9 @@
-import type { AgentsDatabaseSchema } from '@promptbook-local/types';
 import { $isRunningInBrowser, $isRunningInNode, $isRunningInWebWorker } from '@promptbook-local/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { $provideSupabaseForBrowser } from './$provideSupabaseForBrowser';
 import { $provideSupabaseForServer } from './$provideSupabaseForServer';
 import { $provideSupabaseForWorker } from './$provideSupabaseForWorker';
+import { AgentsServerDatabase } from './schema';
 
 /**
  * Get supabase client in any environment
@@ -12,7 +12,7 @@ import { $provideSupabaseForWorker } from './$provideSupabaseForWorker';
  *
  * @returns instance of supabase client
  */
-export function $provideSupabase(): SupabaseClient<AgentsDatabaseSchema> {
+export function $provideSupabase(): SupabaseClient<AgentsServerDatabase> {
     if ($isRunningInNode()) {
         return $provideSupabaseForServer();
     } else if ($isRunningInBrowser()) {

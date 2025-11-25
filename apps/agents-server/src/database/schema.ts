@@ -14,21 +14,27 @@ export type AgentsServerDatabase = {
     // <- TODO: [🧠][🕜] Better naming
     public: {
         Tables: {
-            EnvironmentVariable: {
+            Metadata: {
                 Row: {
                     id: number;
+                    createdAt: string;
+                    updatedAt: string;
                     key: string;
                     value: string;
                     note: string | null;
                 };
                 Insert: {
                     id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
                     key: string;
                     value: string;
                     note?: string | null;
                 };
                 Update: {
                     id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
                     key?: string;
                     value?: string;
                     note?: string | null;

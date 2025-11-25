@@ -2,6 +2,7 @@ import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
+import { getMetadata } from '../database/getMetadata';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
 
@@ -46,6 +47,7 @@ export default async function RootLayout({
     children: React.ReactNode;
 }>) {
     const isAdmin = await isUserAdmin();
+    const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
 
     return (
         <html lang="en">
@@ -72,7 +74,9 @@ export default async function RootLayout({
                 <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
             </head>
             <body className={`${barlowCondensed.variable} antialiased bg-white text-gray-900`}>
-                <LayoutWrapper isAdmin={isAdmin}>{children}</LayoutWrapper>
+                <LayoutWrapper isAdmin={isAdmin} serverName={serverName}>
+                    {children}
+                </LayoutWrapper>
             </body>
         </html>
     );
