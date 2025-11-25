@@ -7,6 +7,7 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { parseAgentSource } from '@promptbook-local/core';
 import { ChartAreaIcon, Edit2Icon } from 'lucide-react';
 import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { textColor } from '../../../../../../src/utils/color/operators/furthest';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
@@ -29,7 +30,20 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     agentName = decodeURIComponent(agentName);
 
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(agentName);
+    let agentSource;
+    try {
+        agentSource = await collection.getAgentSource(agentName);
+    } catch (error) {
+        if (
+            error instanceof Error &&
+            // Note: This is a bit hacky, but valid way to check for specific error message
+            (error.message.includes('Cannot coerce the result to a single JSON object') ||
+                error.message.includes('JSON object requested, multiple (or no) results returned'))
+        ) {
+            notFound();
+        }
+        throw error;
+    }
     const agentProfile = parseAgentSource(agentSource);
 
     const { publicUrl } = await $provideServer();
