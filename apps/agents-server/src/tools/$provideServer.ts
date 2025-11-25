@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 export async function $provideServer() {
     if (!SERVERS) {
         return {
-            publicUrl: NEXT_PUBLIC_URL,
+            publicUrl: NEXT_PUBLIC_URL || new URL(`https://${(await headers()).get('host') || 'localhost:4440'}`),
             tablePrefix: SUPABASE_TABLE_PREFIX,
         };
     }
@@ -30,7 +30,7 @@ export async function $provideServer() {
     serverName = normalizeTo_PascalCase(serverName);
 
     return {
-        publicUrl: `https://${host}`,
+        publicUrl: new URL(`https://${host}`),
         tablePrefix: `server_${serverName}_`,
     };
 }
