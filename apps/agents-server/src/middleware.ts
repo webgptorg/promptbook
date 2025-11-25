@@ -1,3 +1,4 @@
+import { TODO_any } from '@promptbook-local/types';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { SERVERS, SUPABASE_TABLE_PREFIX } from '../config';
@@ -14,7 +15,7 @@ function normalizeTo_PascalCase(text: string): string {
 
 export async function middleware(req: NextRequest) {
     // 1. Get client IP
-    let ip = req.ip;
+    let ip = (req as TODO_any).ip;
     const xForwardedFor = req.headers.get('x-forwarded-for');
     if (!ip && xForwardedFor) {
         ip = xForwardedFor.split(',')[0].trim();
