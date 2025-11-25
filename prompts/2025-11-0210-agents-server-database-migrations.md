@@ -7,6 +7,7 @@
 -   Now there is no proper database migration system implemented, just `/apps/agents-server/src/database/schema.sql`
 -   Relevant file is `/apps/agents-server/src/database/$provideSupabaseForServer.ts`
 -   It should work for example in the `Agents Server` application `/apps/agents-server`
+-   Be aware that it Supabase can be multiple prefixed sets of tables in one database, so the migration system should handle that properly
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
