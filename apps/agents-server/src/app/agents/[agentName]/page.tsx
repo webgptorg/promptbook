@@ -5,6 +5,7 @@ import { PromptbookQrCode } from '@promptbook-local/components';
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { parseAgentSource } from '@promptbook-local/core';
+import { ChartAreaIcon, Edit2Icon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
 import { AgentUrlCopy } from './AgentUrlCopy';
@@ -91,17 +92,19 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                         <a
                             href={`${pageUrl}/chat`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-semibold transition"
+                            className="inline-flex items-center justify-center whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-semibold transition"
                             style={{ backgroundColor: brandColor }}
                         >
-                            💬 Chat
+                            <ChartAreaIcon className="ml-2 w-4 h-4 mr-2" />
+                            Chat
                         </a>
                         <a
                             href={`${pageUrl}/book`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
-                            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
+                            className="inline-flex items-center justify-center whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
                         >
-                            📖 Edit
+                            <Edit2Icon className="ml-2 w-4 h-4 mr-2" />
+                            Edit
                         </a>
                     </div>
                 </div>
