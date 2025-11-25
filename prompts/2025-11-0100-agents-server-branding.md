@@ -23,7 +23,7 @@
 
 [ ]
 
-[✨🍛] Allow to set branding options in Agents Server via Metadata
+[✨🍛] Allow to set branding options in Agents Server via `Metadata` table
 
 -   It should be possible to set essential branding options of the Agents Server via Metadata, so that when deploying the Agents Server, user can customize the branding without changing the code.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
