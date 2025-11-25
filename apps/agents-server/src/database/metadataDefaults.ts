@@ -24,4 +24,9 @@ export const metadataDefaults = [
         value: '',
         note: 'The URL of the favicon',
     },
+    {
+        key: 'RESTRICT_IP',
+        value: '',
+        note: 'Comma separated list of allowed IPs or CIDR ranges. If set, only clients from these IPs are allowed to access the server.',
+    },
 ] as const;

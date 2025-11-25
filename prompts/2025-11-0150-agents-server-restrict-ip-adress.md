@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😣] Allow to restrict IP address of the clients via env variabile `RESTRICT_IP` or/and `Metadata`
 
