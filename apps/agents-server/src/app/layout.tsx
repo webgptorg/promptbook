@@ -1,4 +1,5 @@
 import faviconLogoImage from '@/public/favicon.ico';
+import { Header } from '@/src/components/Header/Header';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
 import './globals.css';
@@ -66,7 +67,10 @@ export default function RootLayout({
                 {/* Default favicon as a fallback */}
                 <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
             </head>
-            <body className={`${barlowCondensed.className} antialiased bg-white text-gray-900`}>{children}</body>
+            <body className={`${barlowCondensed.className} antialiased bg-white text-gray-900`}>
+                <Header />
+                <main className="pt-16">{children}</main>
+            </body>
         </html>
     );
 }

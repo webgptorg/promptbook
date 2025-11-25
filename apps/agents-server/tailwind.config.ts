@@ -15,6 +15,8 @@ const config: Config = {
             colors: {
                 background: 'var(--background)',
                 foreground: 'var(--foreground)',
+                'promptbook-blue': '#7aebff',
+                'promptbook-blue-dark': '#30a8bd',
             },
         },
     },

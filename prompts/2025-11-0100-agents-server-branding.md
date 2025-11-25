@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🍛] Homepage of the Agents Server should display heading bar
 
