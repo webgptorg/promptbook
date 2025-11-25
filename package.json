@@ -302,6 +302,7 @@
         "bottleneck": "2.19.5",
         "colors": "^1.4.0",
         "commander": "12.0.0",
+        "configchecker": "^1.5.132",
         "cross-fetch": "4.0.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",

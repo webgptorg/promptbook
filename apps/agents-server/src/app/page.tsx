@@ -1,5 +1,6 @@
 'use server';
 
+import { NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF } from '@/config';
 import logoImage from '@/public/logo-blue-white-256.png';
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import moment from 'moment';
@@ -87,7 +88,7 @@ export default async function HomePage() {
 
                 {isAdmin && (
                     <>
-                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">About</h2>
+                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">About Promptbook</h2>
                         <AboutPromptbookInformation />
                     </>
                 )}
@@ -105,11 +106,37 @@ export default async function HomePage() {
                                 </h2>
                                 <p className="text-gray-600">Tick: {longRunningTask.tick}</p>
                                 <p className="text-gray-600">
-                                    Created At: {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
+                                    Created At:{' '}
+                                    {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
                                 </p>
                                 <p className="text-gray-600">
-                                    Updated At: {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
+                                    Updated At:{' '}
+                                    {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
                                 </p>
+                            </Link>
+
+                            {/* Note: [♐️] Expose Vercel environment variables to indentify the deployment */}
+                            <Link
+                                href={'#'}
+                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                            >
+                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Vercel Deployment</h2>
+
+                                <p className="text-gray-600">
+                                    NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF: {NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF}
+                                </p>
+                                <p className="text-gray-600">
+                                    NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF: {NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF}
+                                </p>
+                            </Link>
+
+                            <Link
+                                href={'#'}
+                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                            >
+                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">HTTP Information</h2>
+
+                                <p className="text-gray-600">Host: {(await headers()).get('host')}</p>
                             </Link>
                         </div>
                     </>
