@@ -44,7 +44,7 @@ export default async function HomePage() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
                 <>
-                    <h2 className="text-3xl text-gray-900 mt-16 mb-4">Agents ({agents.length})</h2>
+                    <h2 className="text-3xl text-gray-900 mt-4 mb-4">Agents ({agents.length})</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {agents.map((agent) => (
                             <Link key={agent.agentName} href={`/agents/${agent.agentName}`}>
