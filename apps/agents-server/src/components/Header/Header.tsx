@@ -75,38 +75,36 @@ export function Header(props: HeaderProps) {
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
                         {just(false /* TODO: [🧠] Figure out what to do with call to action */) && (
-                            <div className="flex items-center gap-2">
-                                <Link
-                                    href="https://ptbk.io/?modal=get-started"
-                                    target="_blank"
-                                    className="hidden md:block"
-                                >
-                                    <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
-                                        Get Started
-                                        <ArrowRight className="ml-2 w-4 h-4" />
-                                    </button>
-                                </Link>
+                            <Link href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
+                                <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
+                                    Get Started
+                                    <ArrowRight className="ml-2 w-4 h-4" />
+                                </button>
+                            </Link>
+                        )}
 
-                                {isAdmin ? (
-                                    <button
-                                        onClick={handleLogout}
-                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                                        title="Log out"
-                                    >
-                                        <LogOut className="w-5 h-5" />
-                                        <span className="sr-only">Log out</span>
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handleLogin}
-                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                                        title="Log in"
-                                    >
-                                        <LogIn className="w-5 h-5" />
-                                        <span className="sr-only">Log in</span>
-                                    </button>
-                                )}
-                            </div>
+                        {isAdmin ? (
+                            <button
+                                onClick={() => {
+                                    handleLogin();
+                                    setIsMenuOpen(false);
+                                }}
+                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            >
+                                Log in
+                                <LogIn className="ml-2 w-4 h-4" />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    handleLogout();
+                                    setIsMenuOpen(false);
+                                }}
+                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            >
+                                Log out
+                                <LogOut className="ml-2 w-4 h-4" />
+                            </button>
                         )}
 
                         {/* Mobile Menu Toggle */}
@@ -136,33 +134,6 @@ export function Header(props: HeaderProps) {
                         </nav>
                     </div>
                 )}
-                <div className="py-4 border-t border-gray-100 animate-in slide-in-from-top-2">
-                    <nav className="flex flex-col gap-4">
-                        {!isAdmin ? (
-                            <button
-                                onClick={() => {
-                                    handleLogin();
-                                    setIsMenuOpen(false);
-                                }}
-                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                            >
-                                Log in
-                                <LogIn className="ml-2 w-4 h-4" />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => {
-                                    handleLogout();
-                                    setIsMenuOpen(false);
-                                }}
-                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                            >
-                                Log out
-                                <LogOut className="ml-2 w-4 h-4" />
-                            </button>
-                        )}
-                    </nav>
-                </div>
             </div>
         </header>
     );
