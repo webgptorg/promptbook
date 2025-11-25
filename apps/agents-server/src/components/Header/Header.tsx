@@ -6,18 +6,9 @@ import { ArrowRight, LogIn, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { just } from '../../../../../src/utils/organization/just';
 
 type HeaderProps = {
-    /**
-     * Is bare header without navigation and CTA button
-     */
-    isBare?: boolean;
-    tryItYourselfText?: string;
-    whyPromptbookText?: string;
-    integrationsText?: string;
-    pricingText?: string;
-    getStartedText?: string;
-
     /**
      * Is the user an admin
      */
@@ -27,15 +18,7 @@ type HeaderProps = {
 /* TODO: !!!!! Make this Agents server native  */
 
 export function Header(props: HeaderProps) {
-    const {
-        isBare = false,
-        tryItYourselfText = 'Try it Yourself!',
-        whyPromptbookText = 'Why Promptbook?',
-        integrationsText = 'Integrations',
-        pricingText = 'Pricing',
-        getStartedText = 'Get Started',
-        isAdmin = false,
-    } = props;
+    const { isAdmin = false } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -77,42 +60,21 @@ export function Header(props: HeaderProps) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    {!isBare && (
+                    {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
                         <nav className="hidden md:flex items-center gap-8">
                             <Link
                                 href="https://ptbk.io/#try-it-yourself"
                                 target="_blank"
                                 className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                             >
-                                {tryItYourselfText}
-                            </Link>
-                            <Link
-                                href="https://ptbk.io/#benefits"
-                                target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                            >
-                                {whyPromptbookText}
-                            </Link>
-                            <Link
-                                href="https://ptbk.io/#integrations"
-                                target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                            >
-                                {integrationsText}
-                            </Link>
-                            <Link
-                                href="https://ptbk.io/#pricing"
-                                target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                            >
-                                {pricingText}
+                                Try it yourself
                             </Link>
                         </nav>
                     )}
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
-                        {!isBare && (
+                        {just(false /* TODO: [🧠] Figure out what to do with call to action */) && (
                             <div className="flex items-center gap-2">
                                 <Link
                                     href="https://ptbk.io/?modal=get-started"
@@ -120,7 +82,7 @@ export function Header(props: HeaderProps) {
                                     className="hidden md:block"
                                 >
                                     <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
-                                        {getStartedText}
+                                        Get Started
                                         <ArrowRight className="ml-2 w-4 h-4" />
                                     </button>
                                 </Link>
@@ -148,7 +110,7 @@ export function Header(props: HeaderProps) {
                         )}
 
                         {/* Mobile Menu Toggle */}
-                        {!isBare && (
+                        {just(false /* TODO: [🧠] Figure out whether we want a menu */) && (
                             <button
                                 className="md:hidden p-2 text-gray-600 hover:text-gray-900"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -160,7 +122,7 @@ export function Header(props: HeaderProps) {
                 </div>
 
                 {/* Mobile Navigation */}
-                {!isBare && isMenuOpen && (
+                {just(false /* TODO: [🧠] Figure out whether we want a menu */) && isMenuOpen && (
                     <div className="md:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top-2">
                         <nav className="flex flex-col gap-4">
                             <Link
@@ -169,69 +131,38 @@ export function Header(props: HeaderProps) {
                                 className="text-gray-600 hover:text-gray-900 transition-colors py-2"
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                {tryItYourselfText}
+                                Try it yourself
                             </Link>
-                            <Link
-                                href="https://ptbk.io/#benefits"
-                                target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors py-2"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {whyPromptbookText}
-                            </Link>
-                            <Link
-                                href="https://ptbk.io/#integrations"
-                                target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors py-2"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {integrationsText}
-                            </Link>
-                            <Link
-                                href="https://ptbk.io/#pricing"
-                                target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors py-2"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {pricingText}
-                            </Link>
-                            <Link
-                                href="https://ptbk.io/?modal=get-started"
-                                target="_blank"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                <button className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
-                                    {getStartedText}
-                                    <ArrowRight className="ml-2 w-4 h-4" />
-                                </button>
-                            </Link>
-
-                            {isAdmin ? (
-                                <button
-                                    onClick={() => {
-                                        handleLogout();
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                                >
-                                    Log out
-                                    <LogOut className="ml-2 w-4 h-4" />
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => {
-                                        handleLogin();
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                                >
-                                    Log in
-                                    <LogIn className="ml-2 w-4 h-4" />
-                                </button>
-                            )}
                         </nav>
                     </div>
                 )}
+                <div className="py-4 border-t border-gray-100 animate-in slide-in-from-top-2">
+                    <nav className="flex flex-col gap-4">
+                        {!isAdmin ? (
+                            <button
+                                onClick={() => {
+                                    handleLogin();
+                                    setIsMenuOpen(false);
+                                }}
+                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            >
+                                Log in
+                                <LogIn className="ml-2 w-4 h-4" />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    handleLogout();
+                                    setIsMenuOpen(false);
+                                }}
+                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            >
+                                Log out
+                                <LogOut className="ml-2 w-4 h-4" />
+                            </button>
+                        )}
+                    </nav>
+                </div>
             </div>
         </header>
     );
