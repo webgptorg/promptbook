@@ -3,12 +3,12 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { PromptbookQrCode } from '@promptbook-local/components';
 // import { BookEditor } from '@promptbook-local/components';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { parseAgentSource } from '@promptbook-local/core';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
 import { AgentUrlCopy } from './AgentUrlCopy';
 import { generateAgentMetadata } from './generateAgentMetadata';
-import { $provideServer } from '@/src/tools/$provideServer';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 // import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
@@ -45,7 +45,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
     return (
         <div
-            className="w-full min-h-screen bg-gray-50 py-10 px-4 flex items-center justify-center"
+            className="w-full h-[calc(100vh-60px)] bg-gray-50 py-10 px-4 flex items-center justify-center"
             style={{ backgroundColor: brandColor }}
         >
             <div className="max-w-5xl w-full bg-white rounded-xl shadow-lg p-8 flex flex-col md:flex-row gap-8">

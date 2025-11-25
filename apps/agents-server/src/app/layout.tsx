@@ -1,5 +1,5 @@
 import faviconLogoImage from '@/public/favicon.ico';
-import { Header } from '@/src/components/Header/Header';
+import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -71,8 +71,7 @@ export default async function RootLayout({
                 <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
             </head>
             <body className={`${barlowCondensed.className} antialiased bg-white text-gray-900`}>
-                <Header isAdmin={isAdmin} />
-                <main className="pt-16">{children}</main>
+                <LayoutWrapper isAdmin={isAdmin}>{children}</LayoutWrapper>
             </body>
         </html>
     );
