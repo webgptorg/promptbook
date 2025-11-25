@@ -1,6 +1,6 @@
 'use server';
 
-import { NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF } from '@/config';
+import { HOST, NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF } from '@/config';
 import logoImage from '@/public/logo-blue-white-256.png';
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import moment from 'moment';
