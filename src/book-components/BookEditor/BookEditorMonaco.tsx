@@ -259,12 +259,80 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 background-color: ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()};
                 z-index: 10;
             }
+
+            .${instanceClass} .monaco-editor .separator-line {
+                background: linear-gradient(
+                    to bottom, 
+                    transparent calc(50% - 1px), 
+                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} calc(50% - 1px), 
+                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} calc(50% + 1px), 
+                    transparent calc(50% + 1px)
+                );
+            }
+            
+            .${instanceClass} .monaco-editor .transparent-text {
+                color: transparent !important;
+            }
         `;
 
         return () => {
             // Note: Style is not removed on purpose to avoid flickering during development with fast refresh
         };
     }, [scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft]);
+
+    const decorationIdsRef = useRef<string[]>([]);
+
+    useEffect(() => {
+        if (!editor || !monaco) {
+            return;
+        }
+
+        const updateDecorations = () => {
+            const model = editor.getModel();
+            if (!model) {
+                return;
+            }
+
+            const text = model.getValue();
+            const matches = text.matchAll(/^---[-]*$/gm);
+            const newDecorations: editor.IModelDeltaDecoration[] = [];
+
+            for (const match of matches) {
+                if (match.index === undefined) {
+                    continue;
+                }
+
+                const startPos = model.getPositionAt(match.index);
+                const endPos = model.getPositionAt(match.index + match[0].length);
+
+                newDecorations.push({
+                    range: new monaco.Range(
+                        startPos.lineNumber,
+                        startPos.column,
+                        endPos.lineNumber,
+                        endPos.column,
+                    ),
+                    options: {
+                        isWholeLine: true,
+                        className: 'separator-line',
+                        inlineClassName: 'transparent-text',
+                    },
+                });
+            }
+
+            decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, newDecorations);
+        };
+
+        updateDecorations();
+
+        const changeListener = editor.onDidChangeModelContent(() => {
+            updateDecorations();
+        });
+
+        return () => {
+            changeListener.dispose();
+        };
+    }, [editor, monaco]);
 
     const handleDrop = useCallback(
         async (event: React.DragEvent<HTMLDivElement>) => {

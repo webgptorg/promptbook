@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨➿] `BookEditor` should highlight book separators - horizontal lines
 

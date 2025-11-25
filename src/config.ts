@@ -68,6 +68,7 @@ export const PROMPTBOOK_COLOR = Color.fromHex('#79EAFD');
 export const PROMPTBOOK_SYNTAX_COLORS = {
     TITLE: Color.fromHex('#244EA8'),
     LINE: Color.fromHex('#eeeeee'),
+    SEPARATOR: Color.fromHex('#cccccc'),
     COMMITMENT: Color.fromHex('#DA0F78'),
     PARAMETER: Color.fromHex('#8e44ad'),
 } as const satisfies Record<string_name, Color>;
