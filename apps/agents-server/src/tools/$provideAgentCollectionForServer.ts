@@ -2,6 +2,7 @@
 
 import { AgentCollectionInSupabase } from '@promptbook-local/core';
 import { AgentCollection } from '@promptbook-local/types';
+import { just } from '../../../../src/utils/organization/just';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { $provideServer } from './$provideServer';
 
@@ -22,7 +23,7 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     const isVerbose = true; // <- TODO: !!!! Pass
 
-    if (agentCollection !== null) {
+    if (agentCollection !== null && just(false /* <- TODO: !!!!! Fix caching */)) {
         console.log('!!! Returning cached agent collection');
         return agentCollection;
         // TODO: !!!! Be aware of options changes
