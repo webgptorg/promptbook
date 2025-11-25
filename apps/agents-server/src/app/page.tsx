@@ -1,6 +1,6 @@
 'use server';
 
-import { HOST, NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF } from '@/config';
+import { NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF } from '@/config';
 import logoImage from '@/public/logo-blue-white-256.png';
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import moment from 'moment';
@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
+import VercelDeploymentCard from '../components/VercelDeploymentCard/VercelDeploymentCard';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
@@ -132,15 +133,7 @@ export default async function HomePage() {
                                 </p>
                             </Link>
 
-                            <Link
-                                href={'#'}
-                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                            >
-                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">HTTP Information</h2>
-
-                                <p className="text-gray-600">Host: {host}</p>
-                                <p className="text-gray-600">HOST: {HOST}</p>
-                            </Link>
+                            <VercelDeploymentCard />
                         </div>
                     </>
                 )}
