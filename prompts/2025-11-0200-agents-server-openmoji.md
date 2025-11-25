@@ -1,6 +1,8 @@
 [ ]
 
-[✨🛩] foo
+[✨🛩] Agent server should use `OpenMoji-black` font
+
+Something like this:
 
 ```css
 /**
@@ -38,7 +40,18 @@
 }
 ```
 
--   It should work for example in the `Agents Server` application `/apps/agents-server`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-11-0200-agents-server-openmoji.png)
+![alt text](screenshots/2025-11-0200-agents-server-openmoji-1.png)
+
+---
+
+[ ]
+
+[✨🛩] foo
+
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -48,7 +61,6 @@
 
 [✨🛩] foo
 
--   It should work for example in the `Agents Server` application `/apps/agents-server`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -58,16 +70,5 @@
 
 [✨🛩] foo
 
--   It should work for example in the `Agents Server` application `/apps/agents-server`
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
-
----
-
-[ ]
-
-[✨🛩] foo
-
--   It should work for example in the `Agents Server` application `/apps/agents-server`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
