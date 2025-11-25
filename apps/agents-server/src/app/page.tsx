@@ -118,6 +118,15 @@ export default async function HomePage() {
                             </Link>
 
                             <VercelDeploymentCard />
+
+                            <Link
+                                href={'#'}
+                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                            >
+                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">HTTP Information</h2>
+
+                                <p className="text-gray-600">Host: {host}</p>
+                            </Link>
                         </div>
                     </>
                 )}
