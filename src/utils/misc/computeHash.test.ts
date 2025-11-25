@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { computeHash } from './computeHash';
 
 describe('how `computeAgentHash` works', () => {
-    it('should work with foo', () =>
+    it('should work with multiline text', () =>
         expect(
             computeHash(`
                 Some text

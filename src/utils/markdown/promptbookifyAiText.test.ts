@@ -4,7 +4,7 @@ import { just } from '../organization/just';
 import { promptbookifyAiText } from './promptbookifyAiText';
 
 describe('how `promptbookifyAiText` works', () => {
-    it('should work with foo', () =>
+    it('should work with multiline text', () =>
         expect(
             promptbookifyAiText(
                 spaceTrim(`
