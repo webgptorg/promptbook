@@ -1,16 +1,16 @@
+import { $getTableName } from '@/src/database/$getTableName';
 import { NextResponse } from 'next/server';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { hashPassword } from '../../../../utils/auth';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
-import { $getTableName } from '@/src/database/$getTableName';
 
-export async function PATCH(request: Request, { params }: { params: { username: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ username: string }> }) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        const usernameParam = params.username;
+        const { username: usernameParam } = await params;
         const body = await request.json();
         const { password, isAdmin } = body;
 
@@ -49,13 +49,13 @@ export async function PATCH(request: Request, { params }: { params: { username: 
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { username: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ username: string }> }) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        const usernameParam = params.username;
+        const { username: usernameParam } = await params;
         const supabase = $provideSupabaseForServer();
 
         const { error } = await supabase
