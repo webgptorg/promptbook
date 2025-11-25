@@ -38,10 +38,14 @@
 
 [ ]
 
-[✨👹] quux
+[✨👹] In header bar "Log in" should ask for both username and password
 
+-
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-11-0140-agents-server-users-and-admin-password.png)
+![alt text](screenshots/2025-11-0140-agents-server-users-and-admin-password-1.png)
 
 ---
 
