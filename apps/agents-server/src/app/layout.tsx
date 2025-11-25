@@ -8,6 +8,7 @@ import './globals.css';
 const barlowCondensed = Barlow_Condensed({
     subsets: ['latin'],
     weight: ['300', '400', '500', '600', '700'],
+    variable: '--font-barlow-condensed',
 });
 
 export const metadata: Metadata = {
@@ -70,7 +71,7 @@ export default async function RootLayout({
                 {/* Default favicon as a fallback */}
                 <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
             </head>
-            <body className={`${barlowCondensed.className} antialiased bg-white text-gray-900`}>
+            <body className={`${barlowCondensed.variable} antialiased bg-white text-gray-900`}>
                 <LayoutWrapper isAdmin={isAdmin}>{children}</LayoutWrapper>
             </body>
         </html>
