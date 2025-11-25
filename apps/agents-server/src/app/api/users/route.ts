@@ -1,3 +1,4 @@
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { hashPassword } from '../../../utils/auth';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
@@ -11,7 +12,7 @@ export async function GET() {
     try {
         const supabase = $provideSupabaseForServer();
         const { data: users, error } = await supabase
-            .from('User')
+            .from(await $getTableName('User'))
             .select('id, username, createdAt, updatedAt, isAdmin')
             .order('username');
 
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
         const supabase = $provideSupabaseForServer();
 
         const { data: newUser, error } = await supabase
-            .from('User')
+            .from(await $getTableName('User'))
             .insert({
                 username,
                 passwordHash,

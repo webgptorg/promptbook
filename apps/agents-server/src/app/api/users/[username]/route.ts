@@ -1,7 +1,8 @@
+import { NextResponse } from 'next/server';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { hashPassword } from '../../../../utils/auth';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
-import { NextResponse } from 'next/server';
+import { $getTableName } from '@/src/database/$getTableName';
 
 export async function PATCH(request: Request, { params }: { params: { username: string } }) {
     if (!(await isUserAdmin())) {
@@ -27,7 +28,7 @@ export async function PATCH(request: Request, { params }: { params: { username: 
 
         const supabase = $provideSupabaseForServer();
         const { data: updatedUser, error } = await supabase
-            .from('User')
+            .from(await $getTableName('User'))
             .update(updates)
             .eq('username', usernameParam)
             .select('id, username, createdAt, updatedAt, isAdmin')
@@ -38,11 +39,10 @@ export async function PATCH(request: Request, { params }: { params: { username: 
         }
 
         if (!updatedUser) {
-             return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
         return NextResponse.json(updatedUser);
-
     } catch (error) {
         console.error('Update user error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -59,7 +59,7 @@ export async function DELETE(request: Request, { params }: { params: { username:
         const supabase = $provideSupabaseForServer();
 
         const { error } = await supabase
-            .from('User')
+            .from(await $getTableName('User'))
             .delete()
             .eq('username', usernameParam);
 

@@ -1,3 +1,4 @@
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { AgentsServerDatabase } from '../../../../database/schema';
 import { verifyPassword } from '../../../../utils/auth';
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
         // 2. Check DB users
         const supabase = $provideSupabaseForServer();
         const { data: user, error } = await supabase
-            .from('User')
+            .from(await $getTableName('User'))
             .select('*')
             .eq('username', username)
             .single();
