@@ -5,6 +5,7 @@ import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { ArrowRight, LogIn, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 type HeaderProps = {
@@ -37,7 +38,12 @@ export function Header(props: HeaderProps) {
         isAdmin = false,
     } = props;
 
+    const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    if (pathname?.includes('/chat')) {
+        return null;
+    }
 
     const handleLogin = async () => {
         const password = window.prompt('Enter admin password');
