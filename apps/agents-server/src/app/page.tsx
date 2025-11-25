@@ -55,7 +55,7 @@ export default async function HomePage() {
                     <h2 className="text-3xl text-gray-900 mt-4 mb-4">Agents ({agents.length})</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {agents.map((agent) => (
-                            <Link key={agent.agentName} href={`/agents/${agent.agentName}`}>
+                            <Link key={agent.agentName} href={`/${agent.agentName}`}>
                                 <AvatarProfile
                                     {...{ agent }}
                                     style={

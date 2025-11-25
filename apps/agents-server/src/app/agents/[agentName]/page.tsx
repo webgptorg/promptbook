@@ -49,7 +49,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     const { publicUrl } = await $provideServer();
 
     // Build agent page URL for QR and copy
-    const pageUrl = `${publicUrl.href}/agents/${encodeURIComponent(agentName)}`;
+    const pageUrl = `${publicUrl.href}/${encodeURIComponent(agentName)}`;
     // <- TODO: !!! Better
 
     console.log('!!!!', { pageUrl });

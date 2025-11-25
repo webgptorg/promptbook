@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🌺] All agent should be accessible through the `/[agentName]`
 
