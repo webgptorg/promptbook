@@ -36,7 +36,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨👹] In header bar "Log in" should ask for both username and password
 

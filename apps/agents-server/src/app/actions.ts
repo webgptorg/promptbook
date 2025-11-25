@@ -17,7 +17,10 @@ export async function $createAgentAction() {
 }
 
 export async function loginAction(formData: FormData) {
+    const username = formData.get('username') as string;
     const password = formData.get('password') as string;
+
+    console.info(`Login attempt for user: ${username}`);
 
     if (password === process.env.ADMIN_PASSWORD) {
         const cookieStore = await cookies();

@@ -1,12 +1,13 @@
 'use client';
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
-import { loginAction, logoutAction } from '@/src/app/actions';
+import { logoutAction } from '@/src/app/actions';
 import { ArrowRight, LogIn, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
+import { LoginDialog } from '../LoginDialog/LoginDialog';
 
 type HeaderProps = {
     /**
@@ -31,21 +32,7 @@ export function Header(props: HeaderProps) {
     const { isAdmin = false, serverName, serverLogoUrl } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const handleLogin = async () => {
-        const password = window.prompt('Enter admin password');
-        if (!password) {
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('password', password);
-        const result = await loginAction(formData);
-
-        if (!result.success) {
-            alert(result.message);
-        }
-    };
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
 
     const handleLogout = async () => {
         await logoutAction();
@@ -53,6 +40,7 @@ export function Header(props: HeaderProps) {
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-[60px]">
+            <LoginDialog isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo <- TODO: This should be <h1>*/}
@@ -98,10 +86,10 @@ export function Header(props: HeaderProps) {
                             </Link>
                         )}
 
-                        {isAdmin ? (
+                        {!isAdmin ? (
                             <button
                                 onClick={() => {
-                                    handleLogin();
+                                    setIsLoginOpen(true);
                                     setIsMenuOpen(false);
                                 }}
                                 className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
