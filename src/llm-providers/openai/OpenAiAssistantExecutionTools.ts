@@ -77,6 +77,16 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
     public async callChatModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
     ): Promise<ChatPromptResult> {
+        return this.callChatModelStream(prompt, () => {});
+    }
+
+    /**
+     * Calls OpenAI API to use a chat model with streaming.
+     */
+    public async callChatModelStream(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
+        onProgress: (chunk: ChatPromptResult) => void,
+    ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call', { prompt });
         }
@@ -162,21 +172,26 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
         });
 
-        /*
-        stream.on('messageDelta', (messageDelta) => {
-            if (
-                this.options.isVerbose &&
-                messageDelta &&
-                messageDelta.content &&
-                messageDelta.content[0] &&
-                messageDelta.content[0].type === 'text'
-            ) {
-                console.info('messageDelta', messageDelta.content[0].text?.value);
+        stream.on('textDelta', (textDelta, snapshot) => {
+            if (this.options.isVerbose && textDelta.value) {
+                console.info('textDelta', textDelta.value);
             }
 
-            // <- TODO: [🐚] Make streaming and running tasks working
+            const chunk: ChatPromptResult = {
+                content: textDelta.value || '',
+                modelName: 'assistant',
+                timing: {
+                    start,
+                    complete: $getCurrentDate(),
+                },
+                usage: UNCERTAIN_USAGE,
+                rawPromptContent,
+                rawRequest,
+                rawResponse: snapshot,
+            };
+
+            onProgress(chunk);
         });
-        */
 
         stream.on('messageCreated', (message) => {
             if (this.options.isVerbose) {
@@ -227,7 +242,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         return exportJson({
             name: 'promptResult',
-            message: `Result of \`OpenAiAssistantExecutionTools.callChatModel\``,
+            message: `Result of \`OpenAiAssistantExecutionTools.callChatModelStream\``,
             order: [],
             value: {
                 content: resultContent,

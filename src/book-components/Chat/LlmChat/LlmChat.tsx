@@ -137,25 +137,45 @@ export function LlmChat(props: LlmChatProps) {
             setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 0 }]);
 
             try {
-                // Call LLM using callChatModel
-                if (!llmTools.callChatModel) {
-                    throw new Error('LLM tools do not support chat model calls');
-                }
-
-                // Update task progress
-                setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 50 }]);
-
                 // Build thread: use props.thread if provided, otherwise use current messages
-                const thread = props.thread ?? [...newMessages];
-                const result = await llmTools.callChatModel({
+                const thread = props.thread ? [...props.thread] : [...newMessages];
+                const prompt = {
                     title: 'User Message',
                     content: messageContent as string_markdown,
                     parameters: {},
                     modelRequirements: {
-                        modelVariant: 'CHAT',
+                        modelVariant: 'CHAT' as const,
                     },
-                    thread: [...thread],
-                });
+                    thread,
+                };
+
+                // Update task progress
+                setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 50 }]);
+
+                let result;
+
+                if (llmTools.callChatModelStream) {
+                    result = await llmTools.callChatModelStream(prompt, (chunk) => {
+                        const assistantMessage: ChatMessage = {
+                            id: loadingMessage.id,
+                            date: new Date(),
+                            from: llmParticipantName,
+                            content: chunk.content as string_markdown,
+                            isComplete: false,
+                        };
+
+                        const currentMessages = [...newMessages, assistantMessage];
+                        setMessages(currentMessages);
+
+                        if (onChange) {
+                            onChange(currentMessages, participants);
+                        }
+                    });
+                } else if (llmTools.callChatModel) {
+                    result = await llmTools.callChatModel(prompt);
+                } else {
+                    throw new Error('LLM tools do not support chat model calls');
+                }
 
                 // Update task progress to complete
                 setTasksProgress([{ id: taskId, name: 'Response generated', progress: 100 }]);

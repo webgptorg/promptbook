@@ -60,6 +60,14 @@ export type LlmExecutionTools = {
     callChatModel?(prompt: Prompt /* <- TODO: [🩱] ChatPrompt */): Promise<ChatPromptResult>;
 
     /**
+     * Calls a chat model with streaming
+     */
+    callChatModelStream?(
+        prompt: Prompt, /* <- TODO: [🩱] ChatPrompt */
+        onProgress: (chunk: ChatPromptResult) => void,
+    ): Promise<ChatPromptResult>;
+
+    /**
      * Calls a completion model
      */
     callCompletionModel?(prompt: Prompt /* <- TODO: [🩱] CompletionPrompt */): Promise<CompletionPromptResult>;

@@ -64,6 +64,16 @@ export class RemoteAgent extends Agent {
      * Calls the agent on agents remote server
      */
     public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
+        return this.callChatModelStream(prompt, () => {});
+    }
+
+    /**
+     * Calls the agent on agents remote server with streaming
+     */
+    public async callChatModelStream(
+        prompt: Prompt,
+        onProgress: (chunk: ChatPromptResult) => void,
+    ): Promise<ChatPromptResult> {
         // Ensure we're working with a chat prompt
         if (prompt.modelRequirements.modelVariant !== 'CHAT') {
             throw new Error('Agents only supports chat prompts');
@@ -102,10 +112,31 @@ export class RemoteAgent extends Agent {
                         const textChunk = decoder.decode(value, { stream: true });
                         // console.debug('RemoteAgent chunk:', textChunk);
                         content += textChunk;
+                        onProgress({
+                            content,
+                            modelName: this.modelName,
+                            timing: {} as TODO_any,
+                            usage: {} as TODO_any,
+                            rawPromptContent: {} as TODO_any,
+                            rawRequest: {} as TODO_any,
+                            rawResponse: {} as TODO_any,
+                        });
                     }
                 }
                 // Flush any remaining decoder internal state
-                content += decoder.decode();
+                const lastChunk = decoder.decode();
+                if (lastChunk) {
+                    content += lastChunk;
+                    onProgress({
+                        content: lastChunk,
+                        modelName: this.modelName,
+                        timing: {} as TODO_any,
+                        usage: {} as TODO_any,
+                        rawPromptContent: {} as TODO_any,
+                        rawRequest: {} as TODO_any,
+                        rawResponse: {} as TODO_any,
+                    });
+                }
             } finally {
                 reader.releaseLock();
             }

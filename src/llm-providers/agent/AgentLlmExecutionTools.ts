@@ -145,10 +145,16 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * Calls the chat model with agent-specific system prompt and requirements
      */
     public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
-        if (!this.options.llmTools.callChatModel) {
-            throw new Error('Underlying LLM execution tools do not support chat model calls');
-        }
+        return this.callChatModelStream(prompt, () => {});
+    }
 
+    /**
+     * Calls the chat model with agent-specific system prompt and requirements with streaming
+     */
+    public async callChatModelStream(
+        prompt: Prompt,
+        onProgress: (chunk: ChatPromptResult) => void,
+    ): Promise<ChatPromptResult> {
         // Ensure we're working with a chat prompt
         if (prompt.modelRequirements.modelVariant !== 'CHAT') {
             throw new Error('AgentLlmExecutionTools only supports chat prompts');
@@ -208,7 +214,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 });
             }
 
-            underlyingLlmResult = await assistant.callChatModel(chatPrompt);
+            underlyingLlmResult = await assistant.callChatModelStream(chatPrompt, onProgress);
         } else {
             if (this.options.isVerbose) {
                 console.log(`2️⃣ Creating Assistant ${this.title} on generic LLM execution tools...`);
@@ -228,7 +234,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 },
             };
 
-            underlyingLlmResult = await this.options.llmTools.callChatModel(modifiedChatPrompt);
+            if (this.options.llmTools.callChatModelStream) {
+                underlyingLlmResult = await this.options.llmTools.callChatModelStream(modifiedChatPrompt, onProgress);
+            } else if (this.options.llmTools.callChatModel) {
+                underlyingLlmResult = await this.options.llmTools.callChatModel(modifiedChatPrompt);
+                onProgress(underlyingLlmResult as ChatPromptResult);
+            } else {
+                throw new Error('Underlying LLM execution tools do not support chat model calls');
+            }
         }
 
         let content = underlyingLlmResult.content as string_markdown;

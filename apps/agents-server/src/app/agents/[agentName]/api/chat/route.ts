@@ -4,7 +4,7 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { getTableName } from '../../../../../database/getTableName';
+import { getTableName } from '@/src/database/getTableName';
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
@@ -63,41 +63,56 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             platform,
         });
 
-        const response = await agent.callChatModel!({
-            title: `Chat with agent ${agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */}`,
-            parameters: {},
-            modelRequirements: {
-                modelVariant: 'CHAT',
+        const encoder = new TextEncoder();
+        const readableStream = new ReadableStream({
+            start(controller) {
+                agent
+                    .callChatModelStream!(
+                        {
+                            title: `Chat with agent ${agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */}`,
+                            parameters: {},
+                            modelRequirements: {
+                                modelVariant: 'CHAT',
+                            },
+                            content: message,
+                            thread,
+                        },
+                        (chunk) => {
+                            controller.enqueue(encoder.encode(chunk.content));
+                        },
+                    )
+                    .then(async (response) => {
+                        // Note: Identify the agent message
+                        const agentMessageContent = {
+                            role: 'MODEL',
+                            content: response.content,
+                        };
+
+                        // Record the agent message
+                        await supabase.from(getTableName('ChatHistory')).insert({
+                            createdAt: new Date().toISOString(),
+                            messageHash: computeHash(agentMessageContent),
+                            previousMessageHash: computeHash(userMessageContent),
+                            agentName,
+                            agentHash,
+                            message: agentMessageContent,
+                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                            url: request.url,
+                            ip,
+                            userAgent,
+                            language,
+                            platform,
+                        });
+
+                        controller.close();
+                    })
+                    .catch((error) => {
+                        controller.error(error);
+                    });
             },
-            content: message,
-            thread,
         });
 
-        // Note: Identify the agent message
-        const agentMessageContent = {
-            role: 'MODEL',
-            content: response.content,
-        };
-
-        // Record the agent message
-        await supabase.from(getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(agentMessageContent),
-            previousMessageHash: computeHash(userMessageContent),
-            agentName,
-            agentHash,
-            message: agentMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
-        });
-
-        // TODO: [🐚] Implement streaming
-
-        return new Response(response.content, {
+        return new Response(readableStream, {
             status: 200,
             headers: { 'Content-Type': 'text/markdown' },
         });
