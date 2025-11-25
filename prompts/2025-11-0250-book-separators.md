@@ -1,8 +1,9 @@
 [ ]
 
-[✨➿] foo
+[✨➿] `BookEditor` should highlight book separators - horizontal lines
 
--   The `---`
+-   The `---` _(or 3+ dashes)_ is the syntax
+-   In the `BookEditor` show horizontal lines instead of just 3 dashes
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
