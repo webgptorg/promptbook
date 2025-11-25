@@ -1,10 +1,15 @@
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { getTableName } from '@/src/database/getTableName';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { getTableName } from '@/src/database/getTableName';
+
+/**
+ * Allow long-running streams: set to platform maximum (seconds)
+ */
+export const maxDuration = 300;
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
@@ -66,21 +71,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
             start(controller) {
-                agent
-                    .callChatModelStream!(
-                        {
-                            title: `Chat with agent ${agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */}`,
-                            parameters: {},
-                            modelRequirements: {
-                                modelVariant: 'CHAT',
-                            },
-                            content: message,
-                            thread,
+                agent.callChatModelStream!(
+                    {
+                        title: `Chat with agent ${
+                            agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
+                        }`,
+                        parameters: {},
+                        modelRequirements: {
+                            modelVariant: 'CHAT',
                         },
-                        (chunk) => {
-                            controller.enqueue(encoder.encode(chunk.content));
-                        },
-                    )
+                        content: message,
+                        thread,
+                    },
+                    (chunk) => {
+                        controller.enqueue(encoder.encode(chunk.content));
+                    },
+                )
                     .then(async (response) => {
                         // Note: Identify the agent message
                         const agentMessageContent = {
